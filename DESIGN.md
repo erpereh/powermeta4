@@ -20,6 +20,12 @@ Palabras clave:
 - rápida;
 - consistente.
 
+La identidad de powermeta4 utiliza un símbolo geométrico propio, compacto y
+legible en tamaños pequeños. El símbolo puede acompañar al wordmark en
+contextos amplios y funcionar solo en navegación compacta. Las formas de
+marca deben basarse en geometría simple y tokens del tema, sin depender de
+estrellas, sparkles o adornos decorativos.
+
 ## 2. Fuente de verdad visual
 
 El preset obligatorio de shadcn/ui es:
@@ -130,6 +136,11 @@ Usuario
 - Favorito: se organiza por grupo; no necesita una estrella permanente si añade ruido.
 - Eliminación: siempre mediante confirmación.
 
+En escritorio la sidebar usa el estado expandido o la variante compacta de
+iconos del componente oficial. En móvil conserva el comportamiento de panel
+deslizante. La navegación compacta muestra solo acciones, marca y acceso de
+usuario; los nombres y listas de conversaciones permanecen ocultos.
+
 ### Menú de conversación
 
 Orden obligatorio:
@@ -186,7 +197,9 @@ No mostrar `Copy Link` ni `Open in New Tab`.
 
 ## 7. Tipografía
 
-La familia tipográfica es la definida por el preset.
+La familia tipográfica visible es Inter en toda la aplicación. El preset
+continúa definiendo los tokens, pesos disponibles y escala, pero no se
+introduce una familia diferente para títulos, navegación, diálogos o tarjetas.
 
 Escala recomendada:
 
@@ -196,7 +209,7 @@ Escala recomendada:
 - Texto principal: 14–16 px.
 - Navegación: 14 px.
 - Etiqueta y metadatos: 12–13 px.
-- Código: fuente monoespaciada del sistema o la configurada por el preset.
+- Código: mantiene Inter en esta fase para que la interfaz no mezcle familias.
 
 Reglas:
 
@@ -238,6 +251,10 @@ Evitar valores aislados como 13 px, 19 px o 27 px salvo una necesidad del compon
 - Stroke coherente.
 - Los iconos no sustituyen etiquetas cuando la acción no es evidente.
 - Todo icon button debe incluir nombre accesible y tooltip cuando sea necesario.
+- Los iconos decorativos no deben competir con el contenido ni representar una
+  página, tarjeta o marca sin una función clara.
+- Las personalizaciones de entidades usan mapas controlados de iconos y
+  colores; el color nunca es la única señal de estado.
 
 ## 11. Movimiento
 

@@ -44,6 +44,9 @@ No basarse en APIs recordadas si la documentación instalada o actual dice otra 
 - No usar `any` salvo caso excepcional documentado.
 - Priorizar componentes de servidor; usar `"use client"` solo donde haya estado, eventos, hooks o APIs del navegador.
 - Evitar duplicar estado o mantener dos fuentes de verdad para la conversación activa, favoritos o chats.
+- Mantener la tipografía visible en una única familia definida por el sistema visual; los pesos y tamaños crean jerarquía, no nuevas familias.
+- Mantener el copy de producto natural y separado de los detalles internos del runtime, persistencia o datos de desarrollo.
+- Guardar preferencias configurables como identificadores serializables y resolver iconos, colores y estilos mediante mapas controlados.
 - No introducir dependencias sin una necesidad concreta.
 - No hacer refactors ajenos a la tarea.
 - No ocultar errores con `eslint-disable`, casts innecesarios o bloques `try/catch` vacíos.
@@ -194,7 +197,8 @@ No convertir estas rutas en simples textos sin diseño. Deben demostrar el siste
   - creación y eliminación;
   - búsqueda;
   - sidebar abierta o colapsada cuando sea necesario.
-- Zustand con `persist` puede usarse para conservar el estado visual en `localStorage`, pero no debe presentarse como persistencia de producción.
+- Zustand con `persist` puede usarse para conservar preferencias o estado de interfaz en `localStorage`, con hidratación compatible con SSR y sin presentarlo como persistencia de producción.
+- La persistencia local debe reutilizar el store existente, guardar únicamente datos serializables y mantener una ruta de fallback válida si el almacenamiento no está disponible.
 - No crear API routes falsas si el comportamiento puede resolverse localmente.
 
 ## 9. Arquitectura recomendada
