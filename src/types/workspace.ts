@@ -1,6 +1,10 @@
 import type { Chat } from "@/types/chat";
 
-export type CompanyId = "company-main" | "company-cyc" | "company-nexo";
+export type CompanyId =
+  | "company-main"
+  | "company-cyc"
+  | "company-nexo"
+  | (string & { readonly __brand: "CompanyId" });
 
 export type CompanyIconName = "building" | "briefcase" | "layers";
 
@@ -14,23 +18,6 @@ export type Company = {
   color: CompanyColorName;
 };
 
-export type WorkspaceUserRole = "administrator" | "manager" | "user";
-
-export type WorkspaceUserStatus = "active" | "inactive";
-
-export type WorkspaceUser = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  username: string;
-  role: WorkspaceUserRole;
-  status: WorkspaceUserStatus;
-  createdAt: string;
-};
-
-export type UserDraft = Omit<WorkspaceUser, "id" | "createdAt">;
-
 export type ToolVisit = {
   toolId: string;
   visitedAt: string;
@@ -43,7 +30,6 @@ export type WorkspacePreferences = {
 export type WorkspaceData = {
   chats: Chat[];
   activeChatId: string | null;
-  users: WorkspaceUser[];
   recentTools: ToolVisit[];
   preferences: WorkspacePreferences;
 };

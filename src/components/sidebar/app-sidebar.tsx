@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
+import { ChevronDown, ChevronRight, Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
 
 import {
   CommandDialog,
@@ -23,6 +23,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -33,7 +34,6 @@ import {
 import { ChatSidebarItem } from "@/components/sidebar/chat-sidebar-item";
 import { CompanySwitcher } from "@/components/sidebar/company-switcher";
 import { UserMenu } from "@/components/sidebar/user-menu";
-import { PowermetaLogo } from "@/components/branding/powermeta-logo";
 import { filterChats } from "@/stores/workspace-store";
 import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
 import { TOOL_ICONS, TOOL_MODULES } from "@/lib/tools/registry";
@@ -62,6 +62,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const [toolsOpen, setToolsOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (pathname.startsWith("/tools/")) setToolsOpen(true);
+  }, [pathname]);
 
   const chats = workspace?.chats ?? [];
   const activeChatId = workspace?.activeChatId ?? null;
@@ -112,15 +116,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     <>
       <Sidebar collapsible="icon" variant="sidebar" {...props}>
         <SidebarHeader className="border-b border-sidebar-border/70">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild size="lg" tooltip="powermeta4">
-                <Link href="/home" aria-label="powermeta4" onClick={closeMobileSidebar}>
-                  <PowermetaLogo wordmarkClassName="group-data-[collapsible=icon]:hidden" />
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
           <CompanySwitcher />
           <SidebarGroup className="px-0 pb-1 pt-0">
             <SidebarGroupContent>
@@ -164,21 +159,29 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <Collapsible open={toolsOpen} onOpenChange={setToolsOpen}>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      isActive={pathname === "/tools"}
-                      tooltip="Herramientas"
-                      onClick={() => {
-                        router.push("/tools");
-                        closeMobileSidebar();
-                      }}
-                    >
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === "/tools"}
+                    tooltip="Herramientas"
+                  >
+                    <Link href="/tools" onClick={closeMobileSidebar}>
                       <Wrench />
                       <span>Herramientas</span>
-                      <ChevronDown className="ml-auto transition-transform group-data-[collapsible=icon]:hidden" />
-                    </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuButton>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuAction
+                      type="button"
+                      showOnHover
+                      aria-expanded={toolsOpen}
+                      aria-controls="sidebar-tools-submenu"
+                      aria-label={toolsOpen ? "Ocultar herramientas" : "Mostrar herramientas"}
+                      title={toolsOpen ? "Ocultar herramientas" : "Mostrar herramientas"}
+                    >
+                      {toolsOpen ? <ChevronDown /> : <ChevronRight />}
+                    </SidebarMenuAction>
                   </CollapsibleTrigger>
-                  <CollapsibleContent>
+                  <CollapsibleContent id="sidebar-tools-submenu">
                     <SidebarMenuSub>
                       {TOOL_MODULES.map((module) => {
                         const Icon = TOOL_ICONS[module.icon];

@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-08-04 — Corrección de workspaces locales y herramientas ERP
+
+### Cambios
+
+- `CompanyId` ahora admite empresas locales dinámicas. El store v3 persiste
+  `companies`, crea workspaces vacíos, selecciona nuevas empresas y protege la
+  última al eliminar.
+- La cabecera de la sidebar integra logo, producto y empresa activa en un único
+  selector, con creación, submenús de selección/eliminación y confirmaciones.
+- Herramientas separa el enlace de navegación del control de expansión y abre
+  automáticamente el grupo al entrar en un módulo.
+- `ModuleWorkspace` es la plantilla común de los cinco módulos. Usuarios dejó
+  de tener CRUD local; sus rutas antiguas redirigen al catálogo y sus cuatro
+  acciones están preparadas para sistemas ERP externos.
+- Las tarjetas no implementadas no navegan ni registran actividad y anuncian
+  `Esta herramienta estará disponible próximamente.`. Las recomendaciones ERP
+  siguen usando el registro central y `send={false}`.
+- Se eliminaron los tipos, componentes, validación y pruebas del CRUD local de
+  usuarios. La migración v2→v3 conserva chats y elimina únicamente `users`.
+
+### Verificación real
+
+- `npm install` — correcto; dependencias al día y sin cambios de dependencias.
+- `npm run lint` — correcto.
+- `npm run typecheck` — correcto.
+- `npm test` — correcto: 4 archivos y 18 pruebas.
+- `npm run build` — correcto; se generaron las rutas privadas previstas y no existe
+  `/inbox`.
+- `git diff --check` — correcto.
+- Revisión funcional — correcta: creación/eliminación de workspace local,
+  selector integrado, expansión de Herramientas sin cambiar la URL, catálogo de
+  Usuarios sin CRUD, redirección de rutas antiguas, 404 de `/inbox`,
+  recomendaciones sin envío automático y consola sin errores ni avisos.
+
 ## 2026-08-04 — Iteración multiempresa, autenticación y herramientas
 
 ### Cambios

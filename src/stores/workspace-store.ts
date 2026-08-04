@@ -15,24 +15,32 @@ import {
   isChatIconName,
 } from "@/lib/chat-customization";
 import { getTool } from "@/lib/tools/registry";
-import { DEFAULT_COMPANY_ID, isCompanyId } from "@/lib/workspaces/companies";
+import {
+  DEFAULT_COMPANY_ID,
+  INITIAL_COMPANIES,
+  isCompanyColorName,
+  isCompanyIconName,
+  toCompanyId,
+} from "@/lib/workspaces/companies";
 import type { Chat, Message, MessageStatus } from "@/types/chat";
 import type {
+  Company,
   CompanyId,
   ToolVisit,
-  UserDraft,
   WorkspaceData,
   WorkspacePreferences,
-  WorkspaceUser,
 } from "@/types/workspace";
 
 export type PersistedWorkspaceState = {
+  companies: Company[];
   activeCompanyId: CompanyId;
   workspaces: Record<CompanyId, WorkspaceData>;
   legacyMigrationComplete: boolean;
 };
 
 export type WorkspaceStore = PersistedWorkspaceState & {
+  createCompany: (name: string) => CompanyId | null;
+  deleteCompany: (companyId: CompanyId) => CompanyId | null;
   switchCompany: (companyId: CompanyId) => void;
   createChat: (companyId?: CompanyId) => string;
   selectChat: (chatId: string, companyId?: CompanyId) => void;
@@ -55,7 +63,6 @@ export type WorkspaceStore = PersistedWorkspaceState & {
     companyId?: CompanyId,
   ) => void;
   setSelectedModel: (modelId: string, companyId?: CompanyId) => void;
-  addUser: (user: UserDraft, companyId?: CompanyId) => string;
   recordToolVisit: (toolId: string, companyId?: CompanyId) => void;
   migrateLegacyChatState: () => void;
 };
@@ -87,7 +94,6 @@ const createWorkspaceData = (
   activeChatId: chats.some((chat) => chat.id === activeChatId)
     ? activeChatId
     : (chats[0]?.id ?? null),
-  users: [],
   recentTools: [],
   preferences: {
     selectedModelId: mockModels[0]?.id ?? "luma-balanced",
@@ -97,11 +103,18 @@ const createWorkspaceData = (
 export const createInitialWorkspaces = (
   mainChats: readonly Chat[] = mockChats,
   mainActiveChatId = "chat-welcome",
-): Record<CompanyId, WorkspaceData> => ({
-  "company-main": createWorkspaceData(cloneChats(mainChats), mainActiveChatId),
-  "company-cyc": createWorkspaceData(),
-  "company-nexo": createWorkspaceData(),
-});
+): Record<CompanyId, WorkspaceData> => {
+  const workspaces = {} as Record<CompanyId, WorkspaceData>;
+
+  for (const company of INITIAL_COMPANIES) {
+    workspaces[company.id] =
+      company.id === DEFAULT_COMPANY_ID
+        ? createWorkspaceData(cloneChats(mainChats), mainActiveChatId)
+        : createWorkspaceData();
+  }
+
+  return workspaces;
+};
 
 const createMemoryStorage = (): PersistStorage<PersistedWorkspaceState> => {
   let storedValue: StorageValue<PersistedWorkspaceState> | null = null;
@@ -188,8 +201,16 @@ const normalizeWorkspaceData = (value: unknown, fallback: WorkspaceData): Worksp
 
   const chats = dedupeChats(value.chats);
   const activeChatId = typeof value.activeChatId === "string" ? value.activeChatId : null;
-  const users = Array.isArray(value.users) ? (value.users as WorkspaceUser[]) : [];
-  const recentTools = Array.isArray(value.recentTools) ? (value.recentTools as ToolVisit[]) : [];
+  const recentTools = Array.isArray(value.recentTools)
+    ? value.recentTools.filter((item): item is ToolVisit => {
+        if (!isRecord(item)) return false;
+        return (
+          typeof item.toolId === "string" &&
+          typeof item.visitedAt === "string" &&
+          Boolean(getTool(item.toolId))
+        );
+      })
+    : [];
   const preferences = isRecord(value.preferences)
     ? ({
         selectedModelId:
@@ -204,45 +225,92 @@ const normalizeWorkspaceData = (value: unknown, fallback: WorkspaceData): Worksp
     activeChatId: chats.some((chat) => chat.id === activeChatId)
       ? activeChatId
       : (chats[0]?.id ?? null),
-    users,
-    recentTools,
+    recentTools: recentTools.slice(0, 8),
     preferences,
   };
 };
 
+const normalizeCompany = (value: unknown): Company | null => {
+  if (!isRecord(value)) return null;
+  if (
+    typeof value.id !== "string" ||
+    !value.id.trim() ||
+    typeof value.name !== "string" ||
+    !value.name.trim() ||
+    typeof value.shortName !== "string" ||
+    !value.shortName.trim() ||
+    !isCompanyIconName(value.icon) ||
+    !isCompanyColorName(value.color)
+  ) {
+    return null;
+  }
+
+  return {
+    id: toCompanyId(value.id),
+    name: value.name.trim(),
+    shortName: value.shortName.trim(),
+    icon: value.icon,
+    color: value.color,
+  };
+};
+
+const cloneCompanies = (companies: readonly Company[]): Company[] =>
+  companies.map((company) => ({ ...company }));
+
+const normalizeCompanies = (value: unknown, fallback: readonly Company[]): Company[] => {
+  if (!Array.isArray(value)) return cloneCompanies(fallback);
+
+  const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
+  const companies: Company[] = [];
+
+  for (const item of value) {
+    const company = normalizeCompany(item);
+    if (!company) continue;
+
+    const normalizedName = company.name.toLocaleLowerCase();
+    if (seenIds.has(company.id) || seenNames.has(normalizedName)) continue;
+    seenIds.add(company.id);
+    seenNames.add(normalizedName);
+    companies.push(company);
+  }
+
+  return companies.length > 0 ? companies : cloneCompanies(fallback);
+};
+
 const normalizePersistedState = (
   value: unknown,
+  fallbackCompanies: readonly Company[],
   fallbackWorkspaces: Record<CompanyId, WorkspaceData>,
 ): PersistedWorkspaceState => {
   if (!isRecord(value)) {
     return {
+      companies: cloneCompanies(fallbackCompanies),
       activeCompanyId: DEFAULT_COMPANY_ID,
       workspaces: fallbackWorkspaces,
       legacyMigrationComplete: false,
     };
   }
 
+  const companies = normalizeCompanies(value.companies, fallbackCompanies);
+  const requestedActiveCompanyId =
+    typeof value.activeCompanyId === "string" ? toCompanyId(value.activeCompanyId) : null;
   const activeCompanyId =
-    typeof value.activeCompanyId === "string" && isCompanyId(value.activeCompanyId)
-      ? value.activeCompanyId
-      : DEFAULT_COMPANY_ID;
+    requestedActiveCompanyId && companies.some((company) => company.id === requestedActiveCompanyId)
+      ? requestedActiveCompanyId
+      : (companies[0]?.id ?? DEFAULT_COMPANY_ID);
   const persistedWorkspaces = isRecord(value.workspaces) ? value.workspaces : {};
-  const workspaces = {
-    "company-main": normalizeWorkspaceData(
-      persistedWorkspaces["company-main"],
-      fallbackWorkspaces["company-main"],
-    ),
-    "company-cyc": normalizeWorkspaceData(
-      persistedWorkspaces["company-cyc"],
-      fallbackWorkspaces["company-cyc"],
-    ),
-    "company-nexo": normalizeWorkspaceData(
-      persistedWorkspaces["company-nexo"],
-      fallbackWorkspaces["company-nexo"],
-    ),
-  } satisfies Record<CompanyId, WorkspaceData>;
+  const workspaces = {} as Record<CompanyId, WorkspaceData>;
+
+  for (const company of companies) {
+    workspaces[company.id] = normalizeWorkspaceData(
+      persistedWorkspaces[company.id],
+      fallbackWorkspaces[company.id] ?? createWorkspaceData(),
+    );
+  }
 
   return {
+    companies,
     activeCompanyId,
     workspaces,
     legacyMigrationComplete: value.legacyMigrationComplete === true,
@@ -291,8 +359,59 @@ const createWorkspaceStoreState =
   (initialState: PersistedWorkspaceState): StateCreator<WorkspaceStore> =>
   (set, get) => ({
     ...initialState,
+    createCompany: (name) => {
+      const trimmedName = name.trim();
+      if (!trimmedName) return null;
+
+      const state = get();
+      const duplicate = state.companies.some(
+        (company) => company.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
+      );
+      if (duplicate) return null;
+
+      const company: Company = {
+        id: toCompanyId(createId("company")),
+        name: trimmedName,
+        shortName: trimmedName.split(/\s+/).slice(0, 2).join(" ").slice(0, 24),
+        icon: "building",
+        color: "blue",
+      };
+
+      set((current) => ({
+        companies: [...current.companies, company],
+        activeCompanyId: company.id,
+        workspaces: {
+          ...current.workspaces,
+          [company.id]: createWorkspaceData(),
+        },
+      }));
+
+      return company.id;
+    },
+    deleteCompany: (companyId) => {
+      const state = get();
+      if (
+        state.companies.length <= 1 ||
+        !state.companies.some((company) => company.id === companyId)
+      ) {
+        return null;
+      }
+
+      const companies = state.companies.filter((company) => company.id !== companyId);
+      const activeCompanyId =
+        state.activeCompanyId === companyId
+          ? (companies[0]?.id ?? state.activeCompanyId)
+          : state.activeCompanyId;
+      const workspaces = { ...state.workspaces };
+      delete workspaces[companyId];
+
+      set({ companies, activeCompanyId, workspaces });
+      return activeCompanyId;
+    },
     switchCompany: (companyId) => {
-      if (isCompanyId(companyId)) set({ activeCompanyId: companyId });
+      if (get().companies.some((company) => company.id === companyId)) {
+        set({ activeCompanyId: companyId });
+      }
     },
     createChat: (companyId) => {
       const targetCompanyId = companyId ?? get().activeCompanyId;
@@ -455,21 +574,6 @@ const createWorkspaceStoreState =
         })),
       );
     },
-    addUser: (user, companyId) => {
-      const targetCompanyId = resolveCompanyId(get(), companyId);
-      const newUser: WorkspaceUser = {
-        ...user,
-        id: createId("user"),
-        createdAt: new Date().toISOString(),
-      };
-      set((state) =>
-        updateWorkspace(state, targetCompanyId, (workspace) => ({
-          ...workspace,
-          users: [newUser, ...workspace.users],
-        })),
-      );
-      return newUser.id;
-    },
     recordToolVisit: (toolId, companyId) => {
       if (!getTool(toolId)) return;
       const targetCompanyId = resolveCompanyId(get(), companyId);
@@ -537,6 +641,7 @@ export const createWorkspaceStore = (
 ): StoreApi<WorkspaceStore> =>
   createStore<WorkspaceStore>()(
     createWorkspaceStoreState({
+      companies: cloneCompanies(INITIAL_COMPANIES),
       activeCompanyId,
       workspaces: initialWorkspaces,
       legacyMigrationComplete: true,
@@ -557,6 +662,7 @@ export const createPersistedWorkspaceStore = (
   return createStore<WorkspaceStore>()(
     persist(
       createWorkspaceStoreState({
+        companies: cloneCompanies(INITIAL_COMPANIES),
         activeCompanyId,
         workspaces: initialWorkspaces,
         legacyMigrationComplete: false,
@@ -565,9 +671,16 @@ export const createPersistedWorkspaceStore = (
         name: "powermeta4-workspace-store",
         storage: resolvedStorage,
         skipHydration: true,
-        version: 2,
-        migrate: (persistedState) => normalizePersistedState(persistedState, initialWorkspaces),
-        partialize: ({ activeCompanyId: companyId, workspaces, legacyMigrationComplete }) => ({
+        version: 3,
+        migrate: (persistedState) =>
+          normalizePersistedState(persistedState, INITIAL_COMPANIES, initialWorkspaces),
+        partialize: ({
+          companies,
+          activeCompanyId: companyId,
+          workspaces,
+          legacyMigrationComplete,
+        }) => ({
+          companies,
           activeCompanyId: companyId,
           workspaces,
           legacyMigrationComplete,

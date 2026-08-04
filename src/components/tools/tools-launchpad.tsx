@@ -13,18 +13,20 @@ import {
   getQuickTools,
   getTool,
   searchTools,
+  type ToolDefinition,
 } from "@/lib/tools/registry";
-import { COMPANIES } from "@/lib/workspaces/companies";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function ToolsLaunchpad() {
   const { isMobile, open, openMobile } = useSidebar();
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
+  const companies = useWorkspaceStore((state) => state.companies);
   const workspace = useWorkspaceStore((state) => state.workspaces[state.activeCompanyId]);
   const recordToolVisit = useWorkspaceStore((state) => state.recordToolVisit);
   const [query, setQuery] = useState("");
+  const [feedback, setFeedback] = useState("");
   const sidebarOpen = isMobile ? openMobile : open;
-  const activeCompany = COMPANIES.find((company) => company.id === activeCompanyId) ?? COMPANIES[0];
+  const activeCompany = companies.find((company) => company.id === activeCompanyId);
   const results = useMemo(() => searchTools(query), [query]);
   const modules = query.trim() ? results.modules : TOOL_MODULES;
   const quickTools = getQuickTools();
@@ -54,7 +56,7 @@ export function ToolsLaunchpad() {
 
       <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-8 sm:py-12">
         <section className="space-y-3">
-          <p className="text-sm font-medium text-muted-foreground">{activeCompany.name}</p>
+          <p className="text-sm font-medium text-muted-foreground">{activeCompany?.name}</p>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">Herramientas</h1>
           <p className="max-w-2xl text-base leading-7 text-muted-foreground">
             Gestiona las operaciones de tu empresa manualmente o con ayuda del asistente.
@@ -81,23 +83,15 @@ export function ToolsLaunchpad() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {quickTools.map((tool) => {
-                const Icon = TOOL_ICONS[tool.icon];
                 return (
-                  <Link
+                  <QuickToolCard
                     key={tool.id}
-                    href={tool.route}
+                    tool={tool}
                     onClick={() => recordToolVisit(tool.id)}
-                    className="group rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <Icon className="size-5 text-primary" />
-                      <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                    </div>
-                    <p className="mt-5 text-sm font-medium">{tool.name}</p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      {tool.description}
-                    </p>
-                  </Link>
+                    onUnavailable={() =>
+                      setFeedback("Esta herramienta estará disponible próximamente.")
+                    }
+                  />
                 );
               })}
             </div>
@@ -195,7 +189,60 @@ export function ToolsLaunchpad() {
             </div>
           )}
         </section>
+
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {feedback}
+        </div>
       </div>
     </main>
+  );
+}
+
+function QuickToolCard({
+  tool,
+  onClick,
+  onUnavailable,
+}: {
+  tool: ToolDefinition;
+  onClick: () => void;
+  onUnavailable: () => void;
+}) {
+  const Icon = TOOL_ICONS[tool.icon];
+  const content = (
+    <>
+      <div className="flex items-start justify-between gap-3">
+        <Icon className="size-5 text-primary" />
+        {tool.implemented && (
+          <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        )}
+      </div>
+      <p className="mt-5 text-sm font-medium">{tool.name}</p>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">{tool.description}</p>
+      {!tool.implemented && (
+        <p className="mt-4 text-xs text-muted-foreground">Disponible próximamente</p>
+      )}
+    </>
+  );
+
+  if (!tool.implemented) {
+    return (
+      <button
+        type="button"
+        onClick={onUnavailable}
+        className="group rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={tool.route}
+      onClick={onClick}
+      className="group rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {content}
+    </Link>
   );
 }

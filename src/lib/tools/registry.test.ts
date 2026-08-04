@@ -44,6 +44,22 @@ describe("tool registry", () => {
     ]);
   });
 
+  it("keeps user actions as external ERP placeholders", () => {
+    const userTools = TOOL_REGISTRY.filter((tool) => tool.moduleId === "users");
+
+    expect(userTools).toHaveLength(4);
+    expect(userTools.every((tool) => !tool.implemented && tool.route === "/tools/users")).toBe(
+      true,
+    );
+    expect(userTools.map((tool) => tool.aiPrompt)).toEqual([
+      "Quiero crear un nuevo usuario",
+      "Quiero consultar los datos de un usuario",
+      "Quiero modificar los datos de un usuario",
+      "Quiero dar de baja un usuario",
+    ]);
+    expect(userTools.every((tool) => TOOL_ICONS[tool.icon])).toBe(true);
+  });
+
   it("searches modules, actions and keywords", () => {
     expect(searchTools("nómina").tools.map((tool) => tool.moduleId)).toEqual([
       "payroll",

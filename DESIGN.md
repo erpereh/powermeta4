@@ -4,75 +4,68 @@
 
 powermeta4 debe sentirse como una herramienta profesional para operaciones y
 conversación: sobria, clara, precisa y tranquila. El chat mantiene prioridad,
-pero Inicio y los workspaces permiten acceder a operaciones manuales sin
-inventar un ERP completo.
+mientras Inicio y los workspaces locales organizan acciones preparadas para
+una futura conexión ERP.
 
 La fuente visual es el preset `b1temovYm`, junto con las primitivas existentes
-de shadcn/ui y assistant-ui. La identidad propia usa un símbolo geométrico
-simple que funciona como marca compacta y como wordmark `powermeta4`. No usa
-estrellas, sparkles ni iniciales como marca.
+de shadcn/ui y assistant-ui. La identidad usa un símbolo geométrico simple que
+funciona como marca compacta y wordmark `powermeta4`; no usa estrellas,
+sparkles ni iniciales como decoración.
 
-## Tipografía y tokens
+## Tipografía, tokens y temas
 
-Inter es la única familia visible. `--font-inter` alimenta los tokens
-`font-sans`, `font-heading` y `font-mono`, de modo que títulos, formularios,
-menús, mensajes y código compartan ritmo tipográfico.
+Inter es la única familia visible. `--font-inter` alimenta `font-sans`,
+`font-heading` y `font-mono`, de modo que títulos, formularios, menús,
+mensajes y código compartan ritmo tipográfico.
 
 Usar superficies y colores semánticos (`background`, `card`, `muted`,
 `sidebar`, `foreground`, `border`, `ring`, `primary` y `destructive`). Los
 colores de empresas y favoritos son excepciones deliberadas y se resuelven
-desde mapas estáticos tipados; no se guardan clases dinámicas en el estado.
+desde mapas estáticos tipados; nunca se guardan clases dinámicas en el store.
 
-## Temas
-
-Claro, oscuro y sistema representan el mismo producto con diferentes valores
-de tokens. El tema se controla con `next-themes`, `attribute="class"`, sistema
-habilitado y transiciones desactivadas durante el cambio. Ninguna pantalla
-debe depender de una clase `dark` fija ni de colores de fondo hardcodeados.
+Claro, oscuro y sistema representan el mismo producto con distintos valores
+de tokens. El tema usa `next-themes`, `attribute="class"`, sistema habilitado
+y transiciones desactivadas durante el cambio. Ninguna pantalla depende de una
+clase `dark` fija ni de fondos hardcodeados.
 
 ## Shell y sidebar
 
-La sidebar combina el patrón de `sidebar-07` con la base oficial existente:
+La sidebar usa la base oficial existente con composición inspirada en
+`sidebar-07`:
 
-- expandida: empresa activa, navegación, Herramientas, Favoritos, Chats y
-  usuario;
-- colapsada: solo iconos funcionales, tooltips y avatar;
-- móvil: Sheet/offcanvas nativo de shadcn, nunca un rail permanente.
+- la cabecera única integra logo, `powermeta4` y empresa activa;
+- el selector permite cambiar, crear y eliminar workspaces locales;
+- expandida muestra navegación, Herramientas, Favoritos, Chats y usuario;
+- colapsada muestra únicamente controles funcionales, tooltips y avatar;
+- móvil conserva el Sheet/offcanvas nativo, nunca un rail permanente.
 
-El selector de empresa comunica nombre, subtítulo `Empresa`, icono y estado
-activo. El cambio de empresa lleva a Inicio y todos los datos visibles quedan
-aislados por `activeCompanyId`. El contenido principal tiene un único trigger
-accesible, con nombre dinámico y el atajo `Ctrl/Cmd+B` como complemento.
+El selector usa una sola superficie de activación y submenús de empresa. Crear
+empresa abre un diálogo breve; eliminar exige confirmación, explica que solo
+afecta datos locales y bloquea la última empresa. El cambio navega a Inicio y
+mantiene el aislamiento por `activeCompanyId`.
 
-## Inicio y herramientas
+El enlace de Herramientas y su expansión son controles independientes. El
+enlace navega a `/tools`; el chevron solo abre o cierra el grupo, anuncia
+`aria-expanded` y no crea historial. El contenido principal conserva un único
+trigger accesible para la sidebar.
 
-Inicio es un launchpad con el título `Herramientas`, la descripción de
-producto, empresa activa, buscador, acceso rápido, módulos y actividad reciente
-real. Las tarjetas muestran el número real de acciones registradas. La
-actividad solo aparece después de visitar una acción; si no hay visitas se usa
-un empty state breve.
+## Inicio y workspaces
 
-El registro central define la relación entre operación manual y ayuda del
-asistente. Una herramienta puede abrir un formulario funcional o un catálogo
-preparado; nunca debe mostrar un resultado que no exista.
+Inicio es un launchpad con empresa activa, búsqueda, acceso rápido, módulos y
+actividad reciente real. Las visitas solo se registran para acciones
+implementadas; la ausencia de visitas tiene un empty state claro.
 
-## Workspaces, formularios y tablas
+Los cinco workspaces usan una plantilla común: breadcrumb, empresa activa,
+icono, título, descripción, cuatro tarjetas de acciones y estado inferior.
+Las acciones futuras muestran `Disponible próximamente` y no navegan, guardan
+datos ni inventan resultados. Usuarios ya no representa personas locales: sus
+cuatro tarjetas preparan operaciones para sistemas ERP externos y las rutas
+anteriores redirigen al catálogo común.
 
-Cada workspace muestra breadcrumb, empresa activa, título, descripción,
-acciones registradas y un empty state claro. Usuarios es el primer módulo
-funcional:
+No se duplican secciones entre Inicio y un workspace, ni se mantienen arrays de
+usuarios o catálogos paralelos fuera del registro central.
 
-- formularios con labels visibles, validación junto al campo, estados
-  pendiente/error/éxito y cancelación;
-- tablas con búsqueda por nombre, apellidos, correo y usuario, filtros de rol y
-  estado, limpieza de filtros y comportamiento usable en móvil;
-- detalle limitado al workspace activo y redirección si el usuario no existe
-  allí.
-
-Los controles deben conservar foco visible, asociación `label`/campo,
-`aria-invalid`, `aria-describedby`, contraste suficiente y targets táctiles.
-
-## Chat
+## Chat y recomendaciones
 
 El Thread conserva una sola instancia de `ComposerPrimitive.Root`, un único
 `Viewport` y un `ViewportFooter` integrado. El estado vacío centra el welcome
@@ -80,14 +73,14 @@ y el composer; al iniciar una conversación el footer se vuelve sticky dentro
 del viewport, nunca `fixed` respecto de la ventana.
 
 Las recomendaciones contextuales tienen dos niveles: categorías y acciones.
-No hay categoría seleccionada inicialmente. Las acciones usan
-`ThreadPrimitive.Suggestion` con `send={false}` para preparar texto editable,
-sin ejecutar operaciones ni duplicar el estado del composer. Se ocultan cuando
-el thread deja de estar vacío.
+No hay selección inicial. Las acciones usan `ThreadPrimitive.Suggestion` con
+`send={false}` para preparar texto editable sin ejecutar operaciones ni
+duplicar el estado del composer.
 
 ## Responsive y accesibilidad
 
 Revisar 1440 px, 1024 px, 768 px y 390 px. Evitar overflow horizontal,
-dependencia exclusiva de hover, layouts que salten al aparecer el menú y
-controles interactivos anidados. Todos los icon buttons tienen nombre
-accesible; los tooltips complementan, no sustituyen, las etiquetas.
+dependencia exclusiva de hover, saltos de layout y controles interactivos
+anidados. Todo icon button tiene nombre accesible, foco visible, estado
+correcto y navegación por teclado; los tooltips complementan, no sustituyen,
+las etiquetas.

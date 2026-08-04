@@ -1,41 +1,37 @@
 # powermeta4 — estado de tareas
 
-## Iteración multiempresa, autenticación y herramientas — 2026-08-04
+## Corrección de workspaces locales y herramientas ERP — 2026-08-04
 
-- [x] Añadir autenticación local server-side con cookie HttpOnly firmada,
-      expiración, login, logout, proxy, `requireSession` y `.env.example`.
-- [x] Añadir tema claro, oscuro y sistema con `next-themes` sin clase `dark`
-      fija.
-- [x] Crear `workspaceStore` persistido con `activeCompanyId`, aislamiento de
-      chats/favoritos/usuarios/preferencias/actividad y `skipHydration`.
-- [x] Migrar una sola vez `powermeta4-chat-store` a `company-main`, deduplicar
-      chats y conservar fallback ante almacenamiento ausente o corrupto.
-- [x] Crear las tres empresas locales y selector de empresa con navegación a
-      Inicio y cierre del Sheet móvil.
-- [x] Reemplazar la composición anterior por una sidebar híbrida inspirada en
-      `sidebar-07`, sin `SidebarRail` ni trigger interno duplicado.
-- [x] Eliminar `/inbox`, sus datos, tipos, componentes y referencias activas.
-- [x] Crear el launchpad de Herramientas con búsqueda, acceso rápido, módulos,
-      actividad real y empty state.
-- [x] Centralizar cinco módulos y veinte acciones con prompts exactos, iconos,
-      rutas, implementación y permisos tipados.
-- [x] Conectar el registro con sidebar, Inicio, workspaces y recomendaciones
-      contextuales del chat.
-- [x] Crear catálogos para Empresas, Nóminas, Informes y Procesos.
-- [x] Implementar Usuarios: creación validada, consulta con filtros y detalle
-      limitado a la empresa activa.
-- [x] Mantener el runtime externo, streaming, cancelación, edición, adjuntos,
-      selector de modelo y preferencias por workspace.
-- [x] Añadir `/chat/new` y `/chat/[chatId]`, validando chats del workspace
-      activo.
-- [x] Añadir pruebas para aislamiento, migración, persistencia, registro,
-      búsqueda de herramientas, validación de usuarios y tokens.
+- [x] Convertir `CompanyId` en un identificador dinámico y persistir la lista
+      de empresas junto con el workspace activo.
+- [x] Mantener las tres empresas iniciales, crear empresas locales con
+      workspace vacío y activar automáticamente la nueva empresa.
+- [x] Implementar eliminación de empresas, selección de reemplazo y bloqueo
+      de la última empresa.
+- [x] Subir el store a la migración v3, conservar chats, favoritos, modelos y
+      actividad, y eliminar únicamente `users` heredado de v2.
+- [x] Unificar logo, nombre de producto y empresa activa en una única cabecera
+      con selector, submenús, diálogo de creación y confirmación de borrado.
+- [x] Separar el enlace de Herramientas del control de expansión, con estados
+      accesibles y apertura automática al entrar en un módulo.
+- [x] Reutilizar `ModuleWorkspace` para los cinco módulos y eliminar el CRUD
+      local de Usuarios, su validación, componentes y pruebas específicas.
+- [x] Mantener las rutas antiguas de Usuarios como redirecciones a su catálogo
+      común, sin renderizar formularios, tablas ni detalles.
+- [x] Marcar las cuatro acciones de Usuarios como externas y no implementadas,
+      con ruta `/tools/users`, prompts e iconos centralizados.
+- [x] Mostrar `Disponible próximamente` sin navegación ni actividad persistida
+      para acciones futuras y conservar recomendaciones ERP sin envío.
+- [x] Añadir pruebas de empresas dinámicas, aislamiento, persistencia y
+      migración v2→v3, además de las pruebas existentes de chat y registro.
+- [x] Actualizar README, DESIGN y AGENTS para reflejar el alcance local real.
 
 ## Pendientes reales
 
 - [ ] Sustituir el adaptador simulado por AI SDK y un proveedor real.
 - [ ] Añadir backend, persistencia remota y autenticación de producción.
 - [ ] Incorporar permisos reales, invitaciones y administración completa de
-      empresas y usuarios.
-- [ ] Implementar operaciones reales de nóminas, informes y procesos.
+      empresas.
+- [ ] Implementar las operaciones ERP de empresas, usuarios, nóminas,
+      informes y procesos mediante una integración externa.
 - [ ] Añadir subida real de adjuntos y pruebas E2E en un entorno desplegado.

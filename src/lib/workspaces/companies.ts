@@ -2,31 +2,33 @@ import { BriefcaseBusiness, Building2, Layers3, type LucideIcon } from "lucide-r
 
 import type { Company, CompanyColorName, CompanyIconName, CompanyId } from "@/types/workspace";
 
-export const COMPANIES: readonly Company[] = [
+export const toCompanyId = (value: string): CompanyId => value as CompanyId;
+
+export const DEFAULT_COMPANY_ID = toCompanyId("company-main");
+
+export const INITIAL_COMPANIES: readonly Company[] = [
   {
-    id: "company-main",
+    id: toCompanyId("company-main"),
     name: "Empresa Principal",
     shortName: "Principal",
     icon: "building",
     color: "blue",
   },
   {
-    id: "company-cyc",
+    id: toCompanyId("company-cyc"),
     name: "CyC Quality",
     shortName: "CyC",
     icon: "briefcase",
     color: "purple",
   },
   {
-    id: "company-nexo",
+    id: toCompanyId("company-nexo"),
     name: "Nexo Operativo",
     shortName: "Nexo",
     icon: "layers",
     color: "green",
   },
 ] as const;
-
-export const DEFAULT_COMPANY_ID: CompanyId = "company-main";
 
 export const COMPANY_ICONS: Record<CompanyIconName, LucideIcon> = {
   building: Building2,
@@ -55,8 +57,8 @@ export const COMPANY_COLORS: Record<
   },
 };
 
-export const getCompany = (companyId: CompanyId) =>
-  COMPANIES.find((company) => company.id === companyId) ?? COMPANIES[0];
+export const isCompanyIconName = (value: unknown): value is CompanyIconName =>
+  value === "building" || value === "briefcase" || value === "layers";
 
-export const isCompanyId = (value: string): value is CompanyId =>
-  COMPANIES.some((company) => company.id === value);
+export const isCompanyColorName = (value: unknown): value is CompanyColorName =>
+  value === "blue" || value === "purple" || value === "green";

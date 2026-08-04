@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { PersistStorage, StorageValue } from "zustand/middleware";
+import { createJSONStorage, type PersistStorage, type StorageValue } from "zustand/middleware";
 
 import type { Chat } from "@/types/chat";
 import {
@@ -60,8 +60,12 @@ const createLocalStorage = () => {
   const values = new Map<string, string>();
   return {
     getItem: (key: string) => values.get(key) ?? null,
-    setItem: (key: string, value: string) => values.set(key, value),
-    removeItem: (key: string) => values.delete(key),
+    setItem: (key: string, value: string) => {
+      values.set(key, value);
+    },
+    removeItem: (key: string) => {
+      values.delete(key);
+    },
   };
 };
 
@@ -72,34 +76,25 @@ afterEach(() => {
 });
 
 describe("workspace store", () => {
-  it("isolates chats, favorites, users and preferences by company", () => {
+  it("isolates chats, favorites and preferences by company", () => {
     const store = createWorkspaceStore(initialWorkspaces);
 
     store.getState().toggleFavorite("chat-active", "company-main");
-    store.getState().addUser(
-      {
-        firstName: "Ana",
-        lastName: "López",
-        email: "ana@example.com",
-        username: "ana",
-        role: "manager",
-        status: "active",
-      },
-      "company-main",
-    );
     store.getState().setSelectedModel("luma-deep", "company-main");
+    const cycChatId = store.getState().createChat("company-cyc");
 
     expect(store.getState().workspaces["company-main"].chats[0]?.favorite).toBe(true);
-    expect(store.getState().workspaces["company-main"].users).toHaveLength(1);
     expect(store.getState().workspaces["company-main"].preferences.selectedModelId).toBe(
       "luma-deep",
     );
     expect(store.getState().workspaces["company-cyc"]).toMatchObject({
-      chats: [],
-      users: [],
+      chats: [{ id: cycChatId }],
       recentTools: [],
-      activeChatId: null,
+      activeChatId: cycChatId,
     });
+    expect(store.getState().workspaces["company-cyc"].preferences.selectedModelId).toBe(
+      "luma-balanced",
+    );
   });
 
   it("toggles favorite defaults and preserves custom appearance", () => {
@@ -122,6 +117,47 @@ describe("workspace store", () => {
       icon: "rocket",
       iconColor: "purple",
     });
+  });
+
+  it("creates a company with an empty workspace and selects it", () => {
+    const store = createWorkspaceStore(initialWorkspaces);
+    const companyId = store.getState().createCompany("Nueva empresa");
+
+    expect(companyId).toBeTruthy();
+    expect(store.getState().activeCompanyId).toBe(companyId);
+    expect(store.getState().companies.at(-1)).toMatchObject({
+      id: companyId,
+      name: "Nueva empresa",
+      shortName: "Nueva empresa",
+      icon: "building",
+      color: "blue",
+    });
+    expect(companyId && store.getState().workspaces[companyId]).toMatchObject({
+      chats: [],
+      activeChatId: null,
+      recentTools: [],
+    });
+    expect(store.getState().createCompany(" ")).toBeNull();
+    expect(store.getState().createCompany("nueva EMPRESA")).toBeNull();
+  });
+
+  it("deletes active and inactive companies and protects the last one", () => {
+    const store = createWorkspaceStore(initialWorkspaces);
+    const createdCompanyId = store.getState().createCompany("Empresa temporal");
+    expect(createdCompanyId).toBeTruthy();
+
+    expect(store.getState().deleteCompany("company-cyc")).toBe(createdCompanyId);
+    expect(store.getState().activeCompanyId).toBe(createdCompanyId);
+    expect(store.getState().workspaces["company-cyc"]).toBeUndefined();
+
+    expect(createdCompanyId && store.getState().deleteCompany(createdCompanyId)).toBe(
+      "company-main",
+    );
+    expect(store.getState().activeCompanyId).toBe("company-main");
+
+    expect(store.getState().deleteCompany("company-main")).toBe("company-nexo");
+    expect(store.getState().deleteCompany("company-nexo")).toBeNull();
+    expect(store.getState().companies).toHaveLength(1);
   });
 
   it("creates, selects and deletes chats in the scoped workspace", () => {
@@ -154,12 +190,15 @@ describe("workspace store", () => {
     expect(filterChats(seedChats, "ideas").map((chat) => chat.id)).toEqual(["chat-favorite"]);
   });
 
-  it("persists and rehydrates the active company and workspace data", async () => {
+  it("persists companies, active company and workspace data", async () => {
     const storage = createMemoryStorage();
     const sourceStore = createPersistedWorkspaceStore(initialWorkspaces, "company-main", storage);
-    sourceStore.getState().switchCompany("company-cyc");
-    sourceStore.getState().createChat("company-cyc");
-    sourceStore.getState().setSelectedModel("luma-fast", "company-cyc");
+    const companyId = sourceStore.getState().createCompany("Persistida");
+    expect(companyId).toBeTruthy();
+    if (companyId) {
+      sourceStore.getState().createChat(companyId);
+      sourceStore.getState().setSelectedModel("luma-fast", companyId);
+    }
 
     const restoredStore = createPersistedWorkspaceStore(
       createInitialWorkspaces([]),
@@ -168,11 +207,63 @@ describe("workspace store", () => {
     );
     await restoredStore.persist.rehydrate();
 
-    expect(restoredStore.getState().activeCompanyId).toBe("company-cyc");
-    expect(restoredStore.getState().workspaces["company-cyc"].chats).toHaveLength(1);
-    expect(restoredStore.getState().workspaces["company-cyc"].preferences.selectedModelId).toBe(
-      "luma-fast",
+    expect(restoredStore.getState().activeCompanyId).toBe(companyId);
+    expect(restoredStore.getState().companies.some((company) => company.id === companyId)).toBe(
+      true,
     );
+    expect(companyId && restoredStore.getState().workspaces[companyId].chats).toHaveLength(1);
+    expect(
+      companyId && restoredStore.getState().workspaces[companyId].preferences.selectedModelId,
+    ).toBe("luma-fast");
+  });
+
+  it("migrates v2 by removing users without deleting chats", async () => {
+    const localStorage = createLocalStorage();
+    Object.defineProperty(globalThis, "window", { value: { localStorage }, configurable: true });
+    const legacyWorkspaces = createInitialWorkspaces(seedChats, "chat-active");
+    const legacyState = {
+      activeCompanyId: "company-main",
+      workspaces: Object.fromEntries(
+        Object.entries(legacyWorkspaces).map(([companyId, workspace]) => [
+          companyId,
+          {
+            ...workspace,
+            users: [
+              {
+                id: "user-legacy",
+                firstName: "Legacy",
+                lastName: "User",
+                email: "legacy@example.com",
+                username: "legacy",
+                role: "user",
+                status: "active",
+                createdAt: "2026-08-04T09:00:00.000Z",
+              },
+            ],
+          },
+        ]),
+      ),
+      legacyMigrationComplete: true,
+    };
+    localStorage.setItem(
+      "powermeta4-workspace-store",
+      JSON.stringify({ state: legacyState, version: 2 }),
+    );
+
+    const store = createPersistedWorkspaceStore(
+      createInitialWorkspaces([]),
+      "company-main",
+      createJSONStorage(() => localStorage),
+    );
+    await store.persist.rehydrate();
+
+    expect(store.getState().workspaces["company-main"].chats.map((chat) => chat.id)).toEqual([
+      "chat-active",
+      "chat-favorite",
+      "chat-other",
+    ]);
+    expect("users" in store.getState().workspaces["company-main"]).toBe(false);
+    expect(store.getState().companies).toHaveLength(3);
   });
 
   it("migrates the old chat store once, deduplicates IDs and validates active chat", () => {

@@ -1,6 +1,5 @@
-import { UserDetail } from "@/components/tools/user-detail";
+import { redirect } from "next/navigation";
 
-export default async function UserDetailPage({ params }: { params: Promise<{ userId: string }> }) {
-  const { userId } = await params;
-  return <UserDetail userId={userId} />;
+export default function UserDetailPage() {
+  redirect("/tools/users");
 }

@@ -3,13 +3,13 @@
 ## Propósito
 
 `powermeta4` es una aplicación local híbrida para conversar con un asistente y
-gestionar herramientas operativas por empresa. La autenticación, los datos y
-el runtime de IA son de desarrollo: no se integran proveedores reales,
-autenticación de producción, base de datos ni servicios externos.
+organizar herramientas operativas por workspace de empresa. La autenticación,
+los datos y el runtime de IA son de desarrollo: no se integran proveedores
+reales, base de datos ni servicios ERP externos.
 
-## Fuentes de verdad
+## Fuentes de verdad y orden de lectura
 
-Antes de modificar código, leer completamente, en este orden:
+Antes de modificar cualquier archivo, leer completamente y en este orden:
 
 1. `AGENTS.md`
 2. `DESIGN.md`
@@ -22,54 +22,57 @@ Antes de modificar código, leer completamente, en este orden:
 
 Para assistant-ui, comprobar primero la documentación oficial y las APIs
 instaladas. Mantener `ExternalStoreRuntime` y la composición oficial del
-Thread salvo que la tarea pida expresamente otra cosa.
+Thread salvo petición expresa.
 
 ## Reglas de trabajo
 
 - Conservar la rama actual, los cambios existentes y la eliminación pendiente
   de `PROMPT_INICIAL.md`.
-- No crear ni cambiar ramas, no recrear el proyecto y no ejecutar `shadcn init`
-  o `assistant-ui init`.
-- No usar comandos destructivos ni sobrescribir primitivas existentes sin una
-  petición explícita. Revisar el diff antes de aceptar cambios amplios.
+- No crear ni cambiar ramas, no recrear el proyecto y no ejecutar `shadcn init`,
+  `assistant-ui init` ni comandos con `--overwrite`.
 - Usar `apply_patch` para editar archivos. Usar npm como único gestor y
   conservar `package-lock.json` como único lockfile.
 - Mantener TypeScript estricto, evitar `any`, casts innecesarios y errores
   silenciados.
-- Preferir componentes de servidor; usar `use client` únicamente para estado,
+- Preferir componentes de servidor; usar `use client` solo para estado,
   interacción o APIs del navegador.
+- Revisar el diff antes de aceptar cambios amplios y no sobrescribir cambios
+  del usuario.
 - Ejecutar al terminar `npm run lint`, `npm run typecheck`, `npm test`,
   `npm run build`, `git diff --check` y `git status --short`.
-- Actualizar `spec/todo.md` y `spec/changelog.md` con el estado real y las
+- Actualizar `spec/todo.md` y `spec/changelog.md` con el estado real y solo
   comprobaciones realmente ejecutadas.
 
-## Estado y aislamiento multiempresa
+## Estado, sesión y workspaces
 
 - `workspaceStore` es la única fuente global de chats, mensajes, favoritos,
-  usuarios, preferencias y actividad. Está persistido localmente bajo
-  `powermeta4-workspace-store` y se rehidrata con `skipHydration` desde el shell
-  cliente.
-- Todo dato de producto debe resolverse mediante `activeCompanyId`. El
-  runtime recibe un `companyId` capturado y sus escrituras deben conservarlo
-  durante streaming, edición y cancelación.
+  modelo, empresas y actividad. Se persiste bajo
+  `powermeta4-workspace-store` y se rehidrata con `skipHydration` desde el
+  shell cliente.
+- Todo dato de producto debe resolverse mediante `activeCompanyId`. El runtime
+  recibe un `companyId` capturado y sus escrituras deben conservarlo durante
+  streaming, edición y cancelación.
 - Los favoritos se derivan de `Chat.favorite`; no crear arrays paralelos.
-- La migración de `powermeta4-chat-store` es versionada, deduplica IDs y solo
-  se ejecuta una vez. No guardar contraseñas, tokens ni secretos en Zustand,
-  localStorage o sessionStorage.
+- Una empresa autenticada es un workspace local de powermeta4, no una entidad
+  ERP sincronizada. Crear o eliminarla no debe presentarse como una operación
+  externa.
+- Los usuarios ERP no son cuentas autenticadas y no tienen persistencia local,
+  tipos de dominio, formularios, tablas ni CRUD en esta fase.
+- La migración v3 conserva chats, favoritos, modelos y actividad válidos,
+  elimina únicamente colecciones `users` heredadas y mantiene la migración
+  legacy de `powermeta4-chat-store` de forma segura e idempotente.
 - La autenticación de prueba se valida en servidor con cookie HttpOnly firmada.
-  Los secretos solo proceden de variables de entorno de desarrollo; nunca se
-  exponen al cliente ni se imprimen en logs.
+  Secretos y tokens nunca se guardan en Zustand, localStorage o sessionStorage.
 
 ## Herramientas y recomendaciones
 
 - `src/lib/tools/registry.ts` es el registro único y tipado de módulos,
   acciones, prompts, iconos, rutas y permisos. Inicio, sidebar, búsqueda,
   workspaces, actividad y recomendaciones deben consumirlo.
-- Las recomendaciones del chat son acciones no ejecutables: solo preparan
-  texto editable en el composer y dejan el envío bajo control explícito del
-  usuario. No inventar resultados ni efectos reales.
-- Los workspaces no implementados muestran catálogo y empty states honestos;
-  solo Usuarios tiene creación y consulta funcionales en esta fase.
+- Las recomendaciones son acciones no ejecutables: solo preparan texto
+  editable en el composer y dejan el envío bajo control explícito del usuario.
+- Los workspaces futuros muestran estados honestos de disponibilidad; no
+  simular conexiones, resultados ni operaciones de ERP.
 
 ## Componentes, diseño y accesibilidad
 
@@ -80,27 +83,28 @@ Thread salvo que la tarea pida expresamente otra cosa.
 - Mantener una familia tipográfica coherente: Inter mediante `--font-inter`,
   conectada a `font-sans`, `font-heading` y `font-mono`.
 - Respetar tokens semánticos del preset `b1temovYm`; no introducir colores
-  hexadecimales arbitrarios. Las excepciones controladas de iconos de empresa
-  o favoritos deben vivir en mapas tipados y estáticos.
-- La iconografía debe comunicar una acción o entidad. Evitar adornos
-  decorativos, estrellas y sparkles.
+  hexadecimales arbitrarios. Las excepciones controladas deben vivir en mapas
+  tipados y estáticos.
+- La iconografía debe comunicar una acción o entidad. Evitar adornos,
+  estrellas y sparkles.
+- Separar siempre un control de navegación de uno de expansión o estado. No
+  anidar botones, enlaces u otros elementos interactivos.
 - Todo control interactivo debe tener foco visible, nombre accesible, estado
-  correcto y navegación por teclado. No anidar botones, enlaces o elementos
-  interactivos.
-- La interfaz debe funcionar en escritorio, tablet y móvil sin overflow
-  horizontal y con targets táctiles cómodos.
+  correcto y navegación por teclado. La interfaz debe funcionar en escritorio,
+  tablet y móvil sin overflow horizontal.
 
 ## Rutas y límites actuales
 
 Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/`, `/home`, `/chat/new`, `/chat/[chatId]`, `/tools`, `/tools/users`,
-`/tools/users/new`, `/tools/users/search`, `/tools/users/[userId]`,
 `/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`.
-`/login` es pública y `/inbox` se eliminó sin redirección.
+Las rutas antiguas `/tools/users/new`, `/tools/users/search` y
+`/tools/users/[userId]` solo redirigen a `/tools/users`. `/login` es pública y
+`/inbox` se eliminó sin redirección.
 
 No añadir backend, API routes ficticias, proveedores reales de IA, permisos
-reales, invitaciones, edición o borrado de usuarios, operaciones reales de
-empresas/nóminas/informes/procesos ni persistencia remota en esta fase.
+reales, invitaciones, operaciones ERP reales ni persistencia remota en esta
+fase.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

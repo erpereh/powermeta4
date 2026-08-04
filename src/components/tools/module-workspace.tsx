@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
@@ -13,18 +14,21 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { TOOL_ICONS, type ToolModuleDefinition } from "@/lib/tools/registry";
-import { COMPANIES } from "@/lib/workspaces/companies";
+import { TOOL_ICONS, type ToolDefinition, type ToolModuleDefinition } from "@/lib/tools/registry";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
   const { isMobile, open, openMobile } = useSidebar();
+  const companies = useWorkspaceStore((state) => state.companies);
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
-  const activeCompany = COMPANIES.find((company) => company.id === activeCompanyId) ?? COMPANIES[0];
+  const activeCompany = companies.find((company) => company.id === activeCompanyId);
   const sidebarOpen = isMobile ? openMobile : open;
   const triggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
-  const ModuleIcon = TOOL_ICONS[module.icon];
   const recordToolVisit = useWorkspaceStore((state) => state.recordToolVisit);
+  const [feedback, setFeedback] = useState("");
+  const ModuleIcon = TOOL_ICONS[module.icon];
+
+  const showUnavailable = () => setFeedback("Esta herramienta estará disponible próximamente.");
 
   return (
     <main className="flex min-h-svh flex-col">
@@ -47,7 +51,7 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/home">Herramientas</Link>
+                <Link href="/tools">Herramientas</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
@@ -58,7 +62,7 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
         </Breadcrumb>
 
         <section className="space-y-3">
-          <p className="text-sm text-muted-foreground">{activeCompany.name}</p>
+          <p className="text-sm text-muted-foreground">{activeCompany?.name}</p>
           <div className="flex items-start gap-4">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-muted text-primary">
               <ModuleIcon className="size-6" />
@@ -77,34 +81,73 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
             Acciones disponibles
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            {module.tools.map((tool) => {
-              const Icon = TOOL_ICONS[tool.icon];
-              return (
-                <Link
-                  key={tool.id}
-                  href={tool.route}
-                  onClick={() => recordToolVisit(tool.id)}
-                  className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <Icon className="size-5 text-primary" />
-                    <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                  </div>
-                  <p className="mt-5 font-medium">{tool.name}</p>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{tool.description}</p>
-                  {!tool.implemented && (
-                    <p className="mt-4 text-xs text-muted-foreground">Disponible próximamente</p>
-                  )}
-                </Link>
-              );
-            })}
+            {module.tools.map((tool) => (
+              <ToolActionCard
+                key={tool.id}
+                tool={tool}
+                onVisit={() => recordToolVisit(tool.id)}
+                onUnavailable={showUnavailable}
+              />
+            ))}
           </div>
         </section>
 
         <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          Selecciona una acción para continuar en este workspace.
+          Las acciones se conectarán a sistemas ERP externos en una futura fase.
+        </div>
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {feedback}
         </div>
       </div>
     </main>
+  );
+}
+
+function ToolActionCard({
+  tool,
+  onVisit,
+  onUnavailable,
+}: {
+  tool: ToolDefinition;
+  onVisit: () => void;
+  onUnavailable: () => void;
+}) {
+  const Icon = TOOL_ICONS[tool.icon];
+  const content = (
+    <>
+      <div className="flex items-start justify-between gap-3">
+        <Icon className="size-5 text-primary" />
+        {tool.implemented ? (
+          <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        ) : null}
+      </div>
+      <p className="mt-5 font-medium">{tool.name}</p>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">{tool.description}</p>
+      {!tool.implemented && (
+        <p className="mt-4 text-xs text-muted-foreground">Disponible próximamente</p>
+      )}
+    </>
+  );
+
+  if (!tool.implemented) {
+    return (
+      <button
+        type="button"
+        onClick={onUnavailable}
+        className="group rounded-2xl border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={tool.route}
+      onClick={onVisit}
+      className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {content}
+    </Link>
   );
 }
