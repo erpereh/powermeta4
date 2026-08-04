@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Inbox, MessageSquarePlus, Search } from "lucide-react";
+import { ChevronDown, Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
 
 import {
   CommandDialog,
@@ -12,8 +12,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -25,13 +25,18 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useChatStore } from "@/stores/use-chat-store";
-import { filterChats } from "@/stores/chat-store";
 import { ChatSidebarItem } from "@/components/sidebar/chat-sidebar-item";
+import { CompanySwitcher } from "@/components/sidebar/company-switcher";
+import { UserMenu } from "@/components/sidebar/user-menu";
 import { PowermetaLogo } from "@/components/branding/powermeta-logo";
+import { filterChats } from "@/stores/workspace-store";
+import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
+import { TOOL_ICONS, TOOL_MODULES } from "@/lib/tools/registry";
 import {
   CHAT_COLORS,
   CHAT_ICONS,
@@ -40,26 +45,26 @@ import {
 } from "@/lib/chat-customization";
 import type { Chat } from "@/types/chat";
 
-const navigation = [
-  { label: "Inicio", href: "/home", icon: Home },
-  { label: "Bandeja de entrada", href: "/inbox", icon: Inbox },
-] as const;
+const mainNavigation = [{ label: "Inicio", href: "/home", icon: Home }] as const;
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
-  const chats = useChatStore((state) => state.chats);
-  const activeChatId = useChatStore((state) => state.activeChatId);
-  const createChat = useChatStore((state) => state.createChat);
-  const selectChat = useChatStore((state) => state.selectChat);
-  const toggleFavorite = useChatStore((state) => state.toggleFavorite);
-  const setChatIcon = useChatStore((state) => state.setChatIcon);
-  const setChatColor = useChatStore((state) => state.setChatColor);
-  const deleteChat = useChatStore((state) => state.deleteChat);
+  const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
+  const workspace = useWorkspaceStore((state) => state.workspaces[state.activeCompanyId]);
+  const createChat = useWorkspaceStore((state) => state.createChat);
+  const selectChat = useWorkspaceStore((state) => state.selectChat);
+  const toggleFavorite = useWorkspaceStore((state) => state.toggleFavorite);
+  const setChatIcon = useWorkspaceStore((state) => state.setChatIcon);
+  const setChatColor = useWorkspaceStore((state) => state.setChatColor);
+  const deleteChat = useWorkspaceStore((state) => state.deleteChat);
+  const [toolsOpen, setToolsOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const chats = workspace?.chats ?? [];
+  const activeChatId = workspace?.activeChatId ?? null;
   const favorites = useMemo(() => chats.filter((chat) => chat.favorite), [chats]);
   const regularChats = useMemo(() => chats.filter((chat) => !chat.favorite), [chats]);
   const searchResults = useMemo(() => filterChats(chats, searchQuery), [chats, searchQuery]);
@@ -81,20 +86,21 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   };
 
   const handleNewChat = () => {
-    createChat();
-    router.push("/");
+    const chatId = createChat(activeCompanyId);
+    router.push(`/chat/${chatId}`);
     closeMobileSidebar();
   };
 
   const handleSelectChat = (chatId: string) => {
-    selectChat(chatId);
-    router.push("/");
+    selectChat(chatId, activeCompanyId);
+    router.push(`/chat/${chatId}`);
     closeMobileSidebar();
   };
 
-  const handleSearchSelect = (chatId: string) => {
-    handleSelectChat(chatId);
-    setSearchOpen(false);
+  const handleDeleteChat = (chatId: string) => {
+    deleteChat(chatId, activeCompanyId);
+    const nextActiveChatId = workspaceStore.getState().workspaces[activeCompanyId]?.activeChatId;
+    if (pathname.startsWith("/chat/") && nextActiveChatId) router.push(`/chat/${nextActiveChatId}`);
   };
 
   const handleSearchOpenChange = (open: boolean) => {
@@ -109,14 +115,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild size="lg" tooltip="powermeta4">
-                <Link href="/" aria-label="powermeta4" onClick={closeMobileSidebar}>
+                <Link href="/home" aria-label="powermeta4" onClick={closeMobileSidebar}>
                   <PowermetaLogo wordmarkClassName="group-data-[collapsible=icon]:hidden" />
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-
-          <SidebarGroup className="px-0 pb-1 pt-2">
+          <CompanySwitcher />
+          <SidebarGroup className="px-0 pb-1 pt-0">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -131,7 +137,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     <span>Nuevo chat</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                {navigation.map((item) => {
+                {mainNavigation.map((item) => {
                   const Icon = item.icon;
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -154,7 +160,50 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarHeader>
 
         <SidebarContent>
-          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroup className="pt-1">
+            <Collapsible open={toolsOpen} onOpenChange={setToolsOpen}>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton
+                      isActive={pathname === "/tools"}
+                      tooltip="Herramientas"
+                      onClick={() => {
+                        router.push("/tools");
+                        closeMobileSidebar();
+                      }}
+                    >
+                      <Wrench />
+                      <span>Herramientas</span>
+                      <ChevronDown className="ml-auto transition-transform group-data-[collapsible=icon]:hidden" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {TOOL_MODULES.map((module) => {
+                        const Icon = TOOL_ICONS[module.icon];
+                        return (
+                          <SidebarMenuSubItem key={module.id}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={pathname.startsWith(module.route)}
+                            >
+                              <Link href={module.route} onClick={closeMobileSidebar}>
+                                <Icon />
+                                <span>{module.name}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        );
+                      })}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </Collapsible>
+          </SidebarGroup>
+
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden pt-0">
             <SidebarGroupLabel>
               Favoritos
               <span className="ml-auto tabular-nums text-sidebar-foreground/45">
@@ -163,26 +212,21 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {favorites.length === 0 ? (
-                  <SidebarMenuItem>
-                    <span className="block px-2 py-2 text-xs text-sidebar-foreground/50">
-                      Aún no hay favoritos
-                    </span>
-                  </SidebarMenuItem>
-                ) : (
-                  favorites.map((chat) => (
-                    <ChatSidebarItem
-                      key={chat.id}
-                      chat={chat}
-                      active={activeChatId === chat.id && pathname === "/"}
-                      onSelect={() => handleSelectChat(chat.id)}
-                      onToggleFavorite={() => toggleFavorite(chat.id)}
-                      onSetIcon={(icon) => setChatIcon(chat.id, icon)}
-                      onSetColor={(color) => setChatColor(chat.id, color)}
-                      onDelete={() => deleteChat(chat.id)}
-                    />
-                  ))
-                )}
+                {favorites.map((chat) => (
+                  <ChatSidebarItem
+                    key={chat.id}
+                    chat={chat}
+                    active={
+                      activeChatId === chat.id &&
+                      (pathname === "/" || pathname === `/chat/${chat.id}`)
+                    }
+                    onSelect={() => handleSelectChat(chat.id)}
+                    onToggleFavorite={() => toggleFavorite(chat.id, activeCompanyId)}
+                    onSetIcon={(icon) => setChatIcon(chat.id, icon, activeCompanyId)}
+                    onSetColor={(color) => setChatColor(chat.id, color, activeCompanyId)}
+                    onDelete={() => handleDeleteChat(chat.id)}
+                  />
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -195,12 +239,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <ChatSidebarItem
                     key={chat.id}
                     chat={chat}
-                    active={activeChatId === chat.id && pathname === "/"}
+                    active={
+                      activeChatId === chat.id &&
+                      (pathname === "/" || pathname === `/chat/${chat.id}`)
+                    }
                     onSelect={() => handleSelectChat(chat.id)}
-                    onToggleFavorite={() => toggleFavorite(chat.id)}
-                    onSetIcon={(icon) => setChatIcon(chat.id, icon)}
-                    onSetColor={(color) => setChatColor(chat.id, color)}
-                    onDelete={() => deleteChat(chat.id)}
+                    onToggleFavorite={() => toggleFavorite(chat.id, activeCompanyId)}
+                    onSetIcon={(icon) => setChatIcon(chat.id, icon, activeCompanyId)}
+                    onSetColor={(color) => setChatColor(chat.id, color, activeCompanyId)}
+                    onDelete={() => handleDeleteChat(chat.id)}
                   />
                 ))}
               </SidebarMenu>
@@ -209,20 +256,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarContent>
 
         <SidebarFooter className="border-t border-sidebar-border/70">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="lg" tooltip="David García" aria-label="David García">
-                <Avatar className="size-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    DG
-                  </AvatarFallback>
-                </Avatar>
-                <span className="min-w-0 truncate text-left text-sm font-medium group-data-[collapsible=icon]:hidden">
-                  David García
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <UserMenu />
         </SidebarFooter>
       </Sidebar>
 
@@ -243,20 +277,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             {searchResults.map((chat) => (
               <CommandItem
                 key={chat.id}
-                value={chat.id}
-                onSelect={() => handleSearchSelect(chat.id)}
+                value={`${chat.id} ${chat.title}`}
+                onSelect={() => {
+                  handleSelectChat(chat.id);
+                  setSearchOpen(false);
+                }}
               >
                 <SearchChatIcon chat={chat} />
                 <span className="min-w-0 truncate">{chat.title}</span>
               </CommandItem>
             ))}
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Acciones">
-            <CommandItem onSelect={handleNewChat}>
-              <MessageSquarePlus />
-              <span>Crear nuevo chat</span>
-            </CommandItem>
           </CommandGroup>
         </CommandList>
       </CommandDialog>

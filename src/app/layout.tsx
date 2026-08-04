@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import { AppShell } from "@/components/app-shell/app-shell";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "powermeta4 — piensa con más claridad",
-  description: "Un espacio para conversar, organizar ideas y avanzar.",
+  title: "powermeta4",
+  description: "Gestiona las operaciones de tu empresa con claridad.",
 };
 
 export default function RootLayout({
@@ -21,11 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} dark`} suppressHydrationWarning>
+    <html lang="es" className={inter.variable} suppressHydrationWarning>
       <body className="antialiased">
-        <TooltipProvider>
-          <AppShell>{children}</AppShell>
-        </TooltipProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>{children}</TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,22 +1,26 @@
 # powermeta4
 
-Interfaz local de conversación con IA para explorar ideas, redactar y avanzar
-con más claridad. Esta fase mantiene un runtime determinista sin proveedor
-externo y consolida la identidad visual, la navegación y la personalización de
-las conversaciones.
+Aplicación local híbrida para conversar con un asistente y gestionar
+operaciones por empresa. El chat usa un adaptador determinista con streaming;
+las herramientas y la autenticación son de desarrollo y no conectan con un ERP
+real.
 
-## Inicio rápido
+## Instalación
 
 Requisitos: Node.js compatible con Next.js 16 y npm.
 
 ```bash
 npm install
+copy .env.example .env.local
 npm run dev
 ```
 
-Después, abre [http://localhost:3000](http://localhost:3000).
+Configura en `.env.local` las credenciales de desarrollo de
+`.env.example`. La sesión se guarda en una cookie HttpOnly firmada y expira
+automáticamente. Las credenciales no se almacenan en Zustand ni en el
+navegador.
 
-Comandos disponibles:
+Comprobaciones disponibles:
 
 ```bash
 npm run lint
@@ -25,53 +29,50 @@ npm test
 npm run build
 ```
 
-## Alcance actual
+## Rutas
 
-- `/`: chat principal con respuestas deterministas en streaming local.
-- `/home`: bienvenida, resumen de actividad y acciones de inicio.
-- `/inbox`: avisos locales filtrables por estado.
-- Sidebar basada en `sidebar-10`, con búsqueda por título y contenido, creación
-  de chats, favoritos, eliminación confirmada y navegación responsive.
-- Thread basado en la estructura oficial actual de assistant-ui: estado vacío
-  centrado, un único composer dentro del `ViewportFooter` y footer sticky al
-  iniciar la conversación.
-- Sidebar expandida o colapsada a un rail de iconos en escritorio y Sheet en
-  móvil.
-- Favoritos con icono y color configurables mediante mapas tipados de Lucide.
-- Recomendaciones contextuales locales orientadas a procesos de negocio; solo
-  preparan texto editable y no ejecutan operaciones. Las categorías parten sin
-  selección y las acciones usan las sugerencias oficiales de assistant-ui para
-  rellenar el composer sin enviar.
-- Estado de chats y mensajes en Zustand como única fuente de verdad.
-- `chats` y `activeChatId` se conservan localmente con Zustand `persist` en la
-  clave `powermeta4-chat-store`; la rehidratación usa `skipHydration` y conserva
-  los datos iniciales como fallback.
+- `/login`: acceso local de desarrollo.
+- `/`: entrada del chat.
+- `/home`: launchpad de herramientas y actividad reciente.
+- `/chat/new` y `/chat/[chatId]`: navegación profunda de conversaciones.
+- `/tools`: entrada del catálogo, que lleva a Inicio.
+- `/tools/users`, `/tools/users/new`, `/tools/users/search` y
+  `/tools/users/[userId]`: workspace funcional de Usuarios.
+- `/tools/companies`, `/tools/payroll`, `/tools/reports` y
+  `/tools/processes`: catálogos preparados.
 
-El runtime utiliza `ExternalStoreRuntime` de assistant-ui para mantener el
-store de Zustand como única fuente de verdad de chats y mensajes. El adaptador
-local puede sustituirse posteriormente por un proveedor real sin rehacer la
-composición de la interfaz.
+`/inbox` se eliminó en esta fase.
 
 ## Arquitectura
 
 ```text
 src/
-├─ app/              rutas App Router y estilos globales
-├─ components/       shell, branding, sidebar, chat y primitivas visuales
-├─ data/              chats, inbox, modelos y recomendaciones contextuales
-├─ lib/               adaptador de streaming local
-├─ stores/            store persistido de Zustand y hook de cliente
-└─ types/             tipos estrictos del dominio
-spec/                 tareas y changelog de la fase
+├─ app/              rutas públicas, grupo privado y Server Actions
+├─ components/       shell, sidebar, chat, herramientas y UI
+├─ data/             chats y modelos iniciales
+├─ lib/              auth, empresas, registro de herramientas y validación
+├─ stores/           workspaceStore persistido y hook de cliente
+└─ types/            tipos estrictos de chat y workspace
+spec/                 tareas y changelog
 ```
 
-El sistema visual usa el preset `b1temovYm` con Tailwind, shadcn/ui, Lucide y
-las primitivas de assistant-ui necesarias para thread, mensajes, composer,
-sugerencias y acciones.
+`src/lib/tools/registry.ts` es la única definición de módulos, acciones,
+prompts, iconos, rutas y permisos. Inicio, sidebar, workspaces y
+recomendaciones ERP consumen ese registro.
 
-## Fuera de alcance
+`workspaceStore` indexa chats, favoritos, usuarios, preferencias de modelo y
+actividad mediante `activeCompanyId`. Se persiste localmente con Zustand bajo
+`powermeta4-workspace-store`, usando `skipHydration`. La primera rehidratación
+migra una sola vez el antiguo `powermeta4-chat-store` a `company-main` y deja
+vacías las demás empresas. Esta persistencia es solo de interfaz local, no de
+producción.
 
-No se integran proveedores de IA, autenticación, base de datos, sincronización
-entre dispositivos, subida real de adjuntos ni API routes ficticias. La
-persistencia disponible es únicamente local para esta interfaz y no representa
-persistencia de producción.
+El Thread usa assistant-ui y `ExternalStoreRuntime`; el adaptador simulado
+produce respuestas en español por fragmentos acumulados, respeta cancelación,
+edición y streaming, y no requiere API keys.
+
+## Límites
+
+No hay proveedor real de IA, backend, base de datos, autenticación de
+producción, permisos reales, invitaciones, sincronización remota, subida real
+de adjuntos ni operaciones reales de empresas, nóminas, informes o procesos.

@@ -65,7 +65,7 @@ export function ChatSidebarItem({
     <>
       <SidebarMenuItem>
         <SidebarMenuButton asChild isActive={active} tooltip={chat.title}>
-          <Link href="/" onClick={onSelect}>
+          <Link href={`/chat/${chat.id}`} onClick={onSelect}>
             {chat.favorite && (
               <ChatIcon aria-hidden="true" className={cn("size-4 shrink-0", iconColor)} />
             )}

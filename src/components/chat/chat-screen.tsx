@@ -1,26 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { Thread } from "@/components/assistant-ui/thread";
+import { useWorkspaceHydrated } from "@/components/app-shell/app-shell";
 import { ChatRuntimeProvider } from "@/components/chat/chat-runtime-provider";
 import { mockModels } from "@/data/mock-models";
-import { useChatStore } from "@/stores/use-chat-store";
+import { useWorkspaceStore } from "@/stores/use-workspace-store";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { CompanyId } from "@/types/workspace";
 
-export function ChatScreen() {
+type ChatScreenProps = {
+  requestedChatId?: string;
+};
+
+export function ChatScreen({ requestedChatId }: ChatScreenProps) {
+  const router = useRouter();
   const { isMobile, open, openMobile } = useSidebar();
-  const activeChatId = useChatStore((state) => state.activeChatId);
-  const activeChat = useChatStore((state) =>
-    state.chats.find((chat) => chat.id === state.activeChatId),
-  );
-  const [selectedModelId, setSelectedModelId] = useState(mockModels[0].id);
+  const hydrated = useWorkspaceHydrated();
+  const companyId = useWorkspaceStore((state) => state.activeCompanyId);
+  const workspace = useWorkspaceStore((state) => state.workspaces[state.activeCompanyId]);
+  const createChat = useWorkspaceStore((state) => state.createChat);
+  const selectChat = useWorkspaceStore((state) => state.selectChat);
+  const setSelectedModel = useWorkspaceStore((state) => state.setSelectedModel);
   const sidebarOpen = isMobile ? openMobile : open;
   const sidebarTriggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
+  const activeChat = requestedChatId
+    ? workspace?.chats.find((chat) => chat.id === requestedChatId)
+    : workspace?.chats.find((chat) => chat.id === workspace.activeChatId);
 
-  if (!activeChat) return null;
+  useEffect(() => {
+    if (!hydrated) return;
+
+    if (requestedChatId) {
+      if (!activeChat) router.replace("/home");
+      else if (workspace?.activeChatId !== requestedChatId) selectChat(requestedChatId, companyId);
+      return;
+    }
+
+    if (!activeChat) {
+      const chatId = createChat(companyId);
+      router.replace(`/chat/${chatId}`);
+    }
+  }, [
+    activeChat,
+    companyId,
+    createChat,
+    hydrated,
+    requestedChatId,
+    router,
+    selectChat,
+    workspace?.activeChatId,
+  ]);
+
+  if (!hydrated || !activeChat || !workspace) return null;
+
+  const selectedModelId = workspace.preferences.selectedModelId || mockModels[0].id;
 
   return (
     <main className="flex h-svh min-h-0 flex-col">
@@ -36,21 +74,20 @@ export function ChatScreen() {
           <TooltipContent side="bottom">{sidebarTriggerLabel}</TooltipContent>
         </Tooltip>
         <Separator orientation="vertical" className="h-5" />
-        <div className="min-w-0">
-          <h1 className="truncate text-sm font-medium">{activeChat.title}</h1>
-        </div>
+        <h1 className="min-w-0 truncate text-sm font-medium">{activeChat.title}</h1>
       </header>
 
       <div className="min-h-0 flex-1">
         <ChatRuntimeProvider
-          key={activeChatId}
-          chatId={activeChatId}
+          key={`${companyId}:${activeChat.id}`}
+          companyId={companyId as CompanyId}
+          chatId={activeChat.id}
           selectedModelId={selectedModelId}
         >
           <Thread
             models={mockModels}
             selectedModelId={selectedModelId}
-            onModelChange={setSelectedModelId}
+            onModelChange={(modelId) => setSelectedModel(modelId, companyId)}
           />
         </ChatRuntimeProvider>
       </div>

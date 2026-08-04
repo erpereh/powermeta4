@@ -4,7 +4,7 @@ import { ThreadPrimitive } from "@assistant-ui/react";
 import { useState, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
-import { ERP_RECOMMENDATIONS, type ErpRecommendationCategoryId } from "@/data/erp-recommendations";
+import { TOOL_ICONS, TOOL_MODULES, type ToolModuleId } from "@/lib/tools/registry";
 import { cn } from "@/lib/utils";
 
 type ErpRecommendationsProps = {
@@ -12,45 +12,43 @@ type ErpRecommendationsProps = {
 };
 
 export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
-  const [activeCategoryId, setActiveCategoryId] = useState<ErpRecommendationCategoryId | null>(
-    null,
-  );
-  const activeCategory = activeCategoryId
-    ? ERP_RECOMMENDATIONS.find((category) => category.id === activeCategoryId)
-    : undefined;
+  const [activeCategoryId, setActiveCategoryId] = useState<ToolModuleId | null>(null);
+  const activeCategory = TOOL_MODULES.find((module) => module.id === activeCategoryId);
 
   const focusComposer = () => {
     requestAnimationFrame(() => {
-      const input = inputRef.current;
-      if (!input) return;
+      requestAnimationFrame(() => {
+        const input = inputRef.current;
+        if (!input) return;
 
-      input.focus({ preventScroll: true });
-      const cursorPosition = input.value.length;
-      input.setSelectionRange(cursorPosition, cursorPosition);
+        input.focus({ preventScroll: true });
+        const cursorPosition = input.value.length;
+        input.setSelectionRange(cursorPosition, cursorPosition);
+      });
     });
   };
 
   return (
-    <section className="flex w-full flex-col gap-2" aria-label="Recomendaciones para ERP">
+    <section className="flex w-full flex-col gap-2" aria-label="Recomendaciones para operaciones">
       <div
         className="flex flex-wrap justify-center gap-2"
         role="group"
-        aria-label="Categorías de recomendaciones"
+        aria-label="Categorías de herramientas"
       >
-        {ERP_RECOMMENDATIONS.map((category) => {
-          const Icon = category.icon;
-          const isActive = category.id === activeCategoryId;
+        {TOOL_MODULES.map((module) => {
+          const Icon = TOOL_ICONS[module.icon];
+          const isActive = module.id === activeCategoryId;
 
           return (
             <Button
-              key={category.id}
+              key={module.id}
               type="button"
               variant="ghost"
               size="sm"
-              aria-label={category.label}
+              aria-label={module.name}
               aria-pressed={isActive}
               onClick={() =>
-                setActiveCategoryId((current) => (current === category.id ? null : category.id))
+                setActiveCategoryId((current) => (current === module.id ? null : module.id))
               }
               className={cn(
                 "min-h-9 gap-2 rounded-full border px-3 text-xs transition-colors",
@@ -62,7 +60,7 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
               <Icon
                 className={cn("size-4", isActive ? "text-foreground" : "text-muted-foreground")}
               />
-              {category.label}
+              {module.name}
             </Button>
           );
         })}
@@ -72,25 +70,18 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
         <div
           className="flex flex-wrap justify-center gap-2"
           role="group"
-          aria-label={`Acciones de ${activeCategory.label}`}
+          aria-label={`Acciones de ${activeCategory.name}`}
         >
-          {activeCategory.actions.map((action) => (
+          {activeCategory.tools.map((action) => (
             <ThreadPrimitive.Suggestion
               key={action.id}
-              prompt={action.prompt}
+              prompt={action.aiPrompt}
               send={false}
-              asChild
+              type="button"
               onClick={focusComposer}
+              className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-border bg-transparent px-3 text-xs font-normal whitespace-nowrap text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
             >
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                aria-label={action.label}
-                className="min-h-9 rounded-full bg-transparent px-3 text-xs font-normal text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                {action.label}
-              </Button>
+              {action.name}
             </ThreadPrimitive.Suggestion>
           ))}
         </div>
