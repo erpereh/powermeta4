@@ -35,6 +35,8 @@ npm run build
 - Sidebar expandida o colapsada a un rail de iconos en escritorio y Sheet en
   móvil.
 - Favoritos con icono y color configurables mediante mapas tipados de Lucide.
+- Recomendaciones contextuales locales orientadas a procesos de negocio; solo
+  preparan texto editable y no ejecutan operaciones.
 - Estado de chats y mensajes en Zustand como única fuente de verdad.
 - `chats` y `activeChatId` se conservan localmente con Zustand `persist` en la
   clave `powermeta4-chat-store`; la rehidratación usa `skipHydration` y conserva
@@ -51,7 +53,7 @@ composición de la interfaz.
 src/
 ├─ app/              rutas App Router y estilos globales
 ├─ components/       shell, branding, sidebar, chat y primitivas visuales
-├─ data/              chats, inbox y opciones de modelo
+├─ data/              chats, inbox, modelos y recomendaciones contextuales
 ├─ lib/               adaptador de streaming local
 ├─ stores/            store persistido de Zustand y hook de cliente
 └─ types/             tipos estrictos del dominio

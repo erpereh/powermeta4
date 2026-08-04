@@ -7,9 +7,8 @@ import {
   type AppendMessage,
   type ThreadMessage,
   type ThreadMessageLike,
-  type ThreadSuggestion,
 } from "@assistant-ui/react";
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 
 import { mockChatModel } from "@/lib/mock-runtime";
 import { chatStore, useChatStore } from "@/stores/use-chat-store";
@@ -198,16 +197,6 @@ export function ChatRuntimeProvider({
 
   useEffect(() => () => controllerRef.current?.abort(), []);
 
-  const suggestions = useMemo<readonly ThreadSuggestion[]>(
-    () => [
-      { prompt: "Ayúdame a programar una tarea sencilla" },
-      { prompt: "Redacta un texto claro sobre esta idea" },
-      { prompt: "Analiza los puntos clave de este problema" },
-      { prompt: "Ideemos varias opciones para avanzar" },
-    ],
-    [],
-  );
-
   const runtime = useExternalStoreRuntime({
     messages,
     isRunning,
@@ -217,7 +206,6 @@ export function ChatRuntimeProvider({
     onEdit,
     onReload,
     onCancel,
-    suggestions,
   });
 
   return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;

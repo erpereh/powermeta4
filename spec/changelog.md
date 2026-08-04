@@ -1,5 +1,58 @@
 # Changelog
 
+## 2026-08-04 — Tercera iteración ERP y simplificación de la sidebar
+
+### Resumen
+
+Se añadieron recomendaciones contextuales para preparar solicitudes de
+usuarios, empresas, nóminas, informes y procesos sin ejecutar operaciones. La
+sidebar colapsada dejó de mostrar controles visuales duplicados y el trigger
+principal ahora comunica el estado real con un nombre accesible dinámico.
+
+### Áreas afectadas
+
+- Contrato de datos y pruebas en `src/data/erp-recommendations.ts` y su suite.
+- Recomendaciones, composer y runtime de assistant-ui en `src/components/chat`
+  y `src/components/assistant-ui`.
+- Composición de la sidebar y cabecera principal en
+  `src/components/sidebar/app-sidebar.tsx` y `src/components/chat/chat-screen.tsx`.
+- Reglas, diseño, README y seguimiento de tareas.
+
+### Comportamiento
+
+Las categorías se mantienen en estado local y comienzan en `Usuarios`. Elegir
+una categoría solo cambia sus acciones. Elegir una acción usa
+`aui.composer.setText` y enfoca el input mediante un ref, sin enviar el texto.
+Las recomendaciones dependen de que el thread no tenga mensajes, por lo que
+desaparecen al iniciar una conversación y vuelven al crear un chat nuevo.
+
+Se eliminó el `SidebarTrigger` interno de la barra colapsada y se dejó de
+renderizar `SidebarRail`; se conserva el trigger de la cabecera, el atajo
+`Ctrl/Cmd+B` y el Sheet móvil existente.
+
+### Verificaciones
+
+- `npm run lint` — correcto.
+- `npm run typecheck` — correcto.
+- `npm test` — correcto: 17 pruebas en 3 archivos.
+- `npm run build` — correcto: rutas `/`, `/home` y `/inbox`.
+- `git diff --check` — correcto.
+- `git status --short` — revisado; se conserva la eliminación pendiente de
+  `PROMPT_INICIAL.md`.
+
+### Revisión manual
+
+Se verificaron chat nuevo, categoría inicial `Usuarios`, cambio de categoría,
+relleno editable del composer, foco y posición del cursor, ausencia de envío
+automático, ocultación después del primer mensaje y restauración al crear otro
+chat. También se comprobaron el buscador, las rutas `/home` y `/inbox`, el
+streaming y la ausencia de errores visibles de hidratación o de contexto.
+
+Se revisaron 1440×900, 1024×900, 768×900 y 390×844 sin overflow horizontal.
+En escritorio solo queda un trigger de sidebar en la cabecera, con nombre
+accesible dinámico; no se renderiza `SidebarRail` ni un trigger interno. En
+móvil se conserva el Sheet existente.
+
 ## 2026-08-04 — Segunda iteración visual y funcional
 
 ### Resumen

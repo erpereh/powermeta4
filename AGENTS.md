@@ -47,6 +47,9 @@ No basarse en APIs recordadas si la documentación instalada o actual dice otra 
 - Mantener la tipografía visible en una única familia definida por el sistema visual; los pesos y tamaños crean jerarquía, no nuevas familias.
 - Mantener el copy de producto natural y separado de los detalles internos del runtime, persistencia o datos de desarrollo.
 - Guardar preferencias configurables como identificadores serializables y resolver iconos, colores y estilos mediante mapas controlados.
+- Mantener una única fuente de verdad tipada para recomendaciones contextuales, evitando duplicar categorías, acciones o prompts en componentes.
+- Las recomendaciones para operaciones potencialmente reales solo pueden preparar texto editable; nunca deben enviar ni ejecutar una operación automáticamente.
+- No duplicar controles visuales para una misma acción y no dejar rails o zonas invisibles clicables como mecanismos alternativos.
 - No introducir dependencias sin una necesidad concreta.
 - No hacer refactors ajenos a la tarea.
 - No ocultar errores con `eslint-disable`, casts innecesarios o bloques `try/catch` vacíos.

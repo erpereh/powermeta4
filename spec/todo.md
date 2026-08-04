@@ -42,6 +42,25 @@
 - [x] Ampliar las pruebas unitarias de personalización, persistencia,
       rehidratación, búsqueda, streaming y cancelación.
 
+## Tercera iteración ERP y sidebar — 2026-08-04
+
+- [x] Centralizar cinco categorías y veinte acciones ERP con tipos estrictos,
+      prompts editables e iconos Lucide.
+- [x] Mostrar categorías y acciones debajo del composer con estado local,
+      wrapping responsive y estados accesibles.
+- [x] Integrar `setText` de assistant-ui con ref tipado, foco al final del
+      prompt y sin envío automático.
+- [x] Ocultar recomendaciones cuando el thread tiene mensajes y restaurarlas
+      al crear un chat nuevo.
+- [x] Retirar las sugerencias genéricas visibles del runtime.
+- [x] Eliminar el `SidebarTrigger` interno y el render de `SidebarRail` sin
+      modificar la base oficial de shadcn.
+- [x] Mantener el trigger principal con `aria-label` dinámico, el atajo de
+      teclado oficial y el comportamiento Sheet móvil.
+- [x] Añadir pruebas de contrato para categorías, acciones, prompts e iconos.
+- [x] Revisar manualmente foco, no-envío, responsive, navegación y ausencia de
+      controles duplicados.
+
 ## Pendientes reales para fases posteriores
 
 - [ ] Sustituir el adaptador simulado por AI SDK y un proveedor real.

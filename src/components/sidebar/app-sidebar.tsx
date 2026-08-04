@@ -25,8 +25,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -115,13 +113,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <PowermetaLogo wordmarkClassName="group-data-[collapsible=icon]:hidden" />
                 </Link>
               </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem className="hidden group-data-[collapsible=icon]:block">
-              <SidebarTrigger
-                aria-label="Expandir navegación"
-                title="Expandir navegación"
-                className="w-full justify-center"
-              />
             </SidebarMenuItem>
           </SidebarMenu>
 
@@ -233,10 +224,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
-        <SidebarRail
-          aria-label="Expandir o contraer navegación"
-          title="Expandir o contraer navegación"
-        />
       </Sidebar>
 
       <CommandDialog

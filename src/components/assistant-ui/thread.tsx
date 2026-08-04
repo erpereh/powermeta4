@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FC } from "react";
+import { useRef, useState, type FC, type RefObject } from "react";
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -9,7 +9,6 @@ import {
   ComposerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
-  SuggestionPrimitive,
   ThreadPrimitive,
   useAuiState,
 } from "@assistant-ui/react";
@@ -29,6 +28,7 @@ import {
 
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { ErpRecommendations } from "@/components/chat/erp-recommendations";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -50,6 +50,8 @@ const isEmptyThread = (state: { thread: { messages: readonly unknown[] } }) =>
   state.thread.messages.length === 0;
 
 export function Thread({ models, selectedModelId, onModelChange }: ThreadProps) {
+  const composerInputRef = useRef<HTMLTextAreaElement>(null);
+
   return (
     <ThreadPrimitive.Root
       className="aui-root flex h-full min-h-0 flex-col bg-background"
@@ -71,12 +73,13 @@ export function Thread({ models, selectedModelId, onModelChange }: ThreadProps) 
           <ThreadPrimitive.ViewportFooter className="sticky bottom-0 mt-auto flex flex-col gap-3 bg-background pb-4 pt-2 sm:pb-6">
             <ThreadScrollToBottom />
             <Composer
+              inputRef={composerInputRef}
               models={models}
               selectedModelId={selectedModelId}
               onModelChange={onModelChange}
             />
-            <AuiIf condition={(state) => isEmptyThread(state) && state.composer.isEmpty}>
-              <ThreadSuggestions />
+            <AuiIf condition={isEmptyThread}>
+              <ErpRecommendations inputRef={composerInputRef} />
             </AuiIf>
           </ThreadPrimitive.ViewportFooter>
         </div>
@@ -91,22 +94,6 @@ const ThreadWelcome: FC = () => (
     <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
       Piensa, redacta y convierte tus ideas en próximos pasos.
     </p>
-  </div>
-);
-
-const ThreadSuggestions: FC = () => (
-  <div className="flex w-full flex-wrap justify-center gap-2 px-1 pb-1">
-    <ThreadPrimitive.Suggestions>
-      {() => (
-        <SuggestionPrimitive.Trigger
-          send
-          className="inline-flex h-9 items-center rounded-full border border-border bg-card px-4 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-        >
-          <SuggestionPrimitive.Title />
-          <SuggestionPrimitive.Description className="ml-1.5 text-muted-foreground/70 empty:hidden" />
-        </SuggestionPrimitive.Trigger>
-      )}
-    </ThreadPrimitive.Suggestions>
   </div>
 );
 
@@ -132,10 +119,15 @@ const ThreadMessage: FC = () => {
   return <AssistantMessage />;
 };
 
-const Composer = ({ models, selectedModelId, onModelChange }: ThreadProps) => (
+type ComposerProps = ThreadProps & {
+  inputRef: RefObject<HTMLTextAreaElement | null>;
+};
+
+const Composer = ({ inputRef, models, selectedModelId, onModelChange }: ComposerProps) => (
   <ComposerPrimitive.Root className="relative flex w-full flex-col">
     <div className="flex w-full flex-col gap-2 rounded-3xl border border-border bg-card p-2 shadow-[0_12px_36px_-24px_var(--color-foreground)] transition-colors focus-within:border-ring/70">
       <ComposerPrimitive.Input
+        ref={inputRef}
         placeholder="Escribe un mensaje..."
         className="max-h-40 min-h-16 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 outline-none placeholder:text-muted-foreground/70"
         rows={2}

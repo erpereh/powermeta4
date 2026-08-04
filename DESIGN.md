@@ -141,6 +141,10 @@ iconos del componente oficial. En móvil conserva el comportamiento de panel
 deslizante. La navegación compacta muestra solo acciones, marca y acceso de
 usuario; los nombres y listas de conversaciones permanecen ocultos.
 
+Cada comportamiento principal debe tener una única ruta visual de control. Los
+atajos de teclado pueden complementar esa ruta, pero no se añaden botones
+duplicados ni zonas invisibles que respondan a clics.
+
 ### Menú de conversación
 
 Orden obligatorio:
@@ -194,6 +198,20 @@ No mostrar `Copy Link` ni `Open in New Tab`.
   - enviar.
 - El botón de envío debe tener estados disabled, hover, focus y loading.
 - Enter envía; Shift+Enter crea salto de línea.
+
+### Recomendaciones contextuales
+
+- Las recomendaciones relacionadas con el contexto pueden vivir inmediatamente
+  debajo del composer, alineadas con su mismo ancho máximo.
+- Separar visualmente categorías principales de acciones secundarias: las
+  categorías organizan, mientras que las acciones preparan el siguiente paso.
+- El estado activo debe usar superficies, bordes y pesos del sistema, sin
+  gradientes ni acentos excesivamente brillantes.
+- Las acciones deben poder envolver naturalmente en varias líneas y conservar
+  una zona táctil cómoda en móvil.
+- Una recomendación que pueda tener efectos reales solo prepara contenido
+  editable; el envío y cualquier confirmación permanecen bajo control explícito
+  del usuario.
 
 ## 7. Tipografía
 
