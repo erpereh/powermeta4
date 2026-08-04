@@ -1,5 +1,75 @@
 # Changelog
 
+## 2026-08-04 — Ajuste del selector de modelos
+
+### Resumen
+
+El selector de modelos de
+`src/components/assistant-ui/thread.tsx` muestra únicamente el nombre del
+modelo tanto en el trigger como en las opciones. El contenido se configuró
+con `position="popper"`, `side="top"`, `sideOffset={4}`, `align="start"` y
+`avoidCollisions={false}` para mantener la apertura hacia arriba con
+cualquier modelo seleccionado. No se modificaron el runtime, Zustand, los
+datos, los tipos, el componente base de select ni el lockfile.
+
+### Verificación
+
+- `npm run lint` — OK.
+- `npm run typecheck` — OK.
+- `npm test` — OK: 3 archivos y 17 pruebas.
+- `npm run build` — OK: compilación y rutas `/`, `/home` y `/inbox`.
+- Revisión manual en navegador — OK: primer y último modelo abren hacia
+  arriba, sin descripciones visibles; selección, cierre con Escape y foco
+  funcionan, y no se observaron errores o avisos de consola.
+
+## 2026-08-04 — Restauración oficial del Thread de assistant-ui
+
+### Resumen
+
+Se rebasó el layout del Thread sobre la estructura oficial actual de
+assistant-ui obtenida en una carpeta temporal externa. Se conservaron el
+runtime externo, Zustand, la sidebar, el selector `Luma Balanced`, los
+adjuntos visuales, el streaming y los helpers locales del proyecto.
+
+### Causa y áreas afectadas
+
+La implementación anterior mantenía el estado vacío y los mensajes con
+distribución `flex-1`, y dejaba el footer sticky durante todo el ciclo del
+chat. Además, las recomendaciones ERP tenían una categoría seleccionada por
+defecto y escribían el texto mediante una llamada local. Ahora
+`src/components/assistant-ui/thread.tsx` usa `AssistantState`, la condición
+oficial de chat nuevo, un único `ThreadPrimitive.Viewport` y un
+`ViewportFooter` que solo se vuelve sticky tras el primer mensaje.
+
+`src/components/chat/erp-recommendations.tsx` conserva las categorías locales
+sin selección inicial y usa `ThreadPrimitive.Suggestion` con `send={false}`
+para rellenar el composer sin enviar. La documentación de `AGENTS.md`,
+`DESIGN.md`, `README.md` y `spec/todo.md` refleja la base oficial y el
+alcance local de las recomendaciones.
+
+### Verificaciones
+
+- `npm run lint` — correcto.
+- `npm run typecheck` — correcto.
+- `npm test` — correcto: 17 pruebas en 3 archivos.
+- `npm run build` — correcto: rutas `/`, `/home` y `/inbox`.
+- `git diff --check` — correcto.
+- `git status --short` — revisado; se conservan los cambios documentales y
+  de Thread, sin tocar `PROMPT_INICIAL.md` ni el lockfile.
+
+### Revisión manual
+
+Se verificaron el estado vacío centrado, un único composer, las cinco
+categorías sin selección inicial, activación y desactivación de categorías,
+relleno editable con foco, ausencia de envío automático, desaparición al
+escribir, transición a footer sticky tras enviar, streaming, cancelación,
+restauración al crear otro chat, `/home`, `/inbox`, búsqueda, sidebar
+expandida/colapsada, trigger accesible único, ausencia de rail y overflow en
+1440×900, 1024×900, 768×900 y 390×844. En los cuatro viewports las acciones
+ERP mantuvieron una altura mínima de 36 px y no apareció overflow horizontal.
+No se observaron errores de consola ni avisos de hidratación; el viewport se
+restableció a su tamaño predeterminado al terminar.
+
 ## 2026-08-04 — Tercera iteración ERP y simplificación de la sidebar
 
 ### Resumen

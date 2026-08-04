@@ -61,6 +61,37 @@
 - [x] Revisar manualmente foco, no-envío, responsive, navegación y ausencia de
       controles duplicados.
 
+## Restauración oficial del Thread — 2026-08-04
+
+- [x] Obtener el componente `thread` oficial en una carpeta temporal externa y
+      comparar su estructura con la implementación actual.
+- [x] Restaurar la condición oficial de chat nuevo con estados de carga del
+      thread y de la lista de threads.
+- [x] Centrar el estado vacío desde el wrapper del Thread, sin expandir el
+      welcome ni crear otro composer.
+- [x] Mantener un único composer dentro de `ThreadPrimitive.ViewportFooter` y
+      hacerlo sticky solo después del primer mensaje.
+- [x] Reintegrar las recomendaciones ERP en el slot inicial del footer, sin
+      selección de categoría por defecto y con acciones no ejecutables.
+- [x] Usar `ThreadPrimitive.Suggestion` con `send={false}`, foco y cursor al
+      final sin duplicar el estado del texto.
+- [x] Conservar selector de modelo, adjunto visual, mensajes, edición,
+      acciones, streaming y cancelación existentes.
+- [x] Completar la revisión manual de scroll, foco, hidratación, transición
+      entre chat nuevo y conversación iniciada, y matriz responsive del Thread
+      en 1440, 1024, 768 y 390 px.
+
+## Ajuste del selector de modelos — 2026-08-04
+
+- [x] Ocultar las descripciones visibles del modelo en el trigger y en cada
+      elemento del menú sin modificar `ModelOption` ni los datos internos.
+- [x] Fijar el contenido de Radix en modo `popper`, alineado arriba y sin
+      autoajuste de colisión para conservar la apertura hacia arriba.
+- [x] Conservar la selección por teclado, el foco, Escape y el funcionamiento
+      existente de envío, streaming y cancelación.
+- [x] Revisar manualmente el primer y el último modelo, la ausencia de
+      descripciones y los errores de consola en el navegador local.
+
 ## Pendientes reales para fases posteriores
 
 - [ ] Sustituir el adaptador simulado por AI SDK y un proveedor real.

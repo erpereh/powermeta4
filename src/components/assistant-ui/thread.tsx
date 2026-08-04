@@ -10,6 +10,7 @@ import {
   ErrorPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
+  type AssistantState,
   useAuiState,
 } from "@assistant-ui/react";
 import {
@@ -46,31 +47,49 @@ type ThreadProps = {
   onModelChange: (modelId: string) => void;
 };
 
-const isEmptyThread = (state: { thread: { messages: readonly unknown[] } }) =>
-  state.thread.messages.length === 0;
+const isNewChatView = (state: AssistantState) =>
+  state.thread.messages.length === 0 && (!state.thread.isLoading || state.threads.isLoading);
 
 export function Thread({ models, selectedModelId, onModelChange }: ThreadProps) {
   const composerInputRef = useRef<HTMLTextAreaElement>(null);
+  const isEmpty = useAuiState(isNewChatView);
 
   return (
     <ThreadPrimitive.Root
-      className="aui-root flex h-full min-h-0 flex-col bg-background"
-      style={{ "--thread-max-width": "54rem" } as React.CSSProperties}
+      className="aui-root aui-thread-root flex h-full min-h-0 flex-col bg-background"
+      style={{
+        ["--thread-max-width" as string]: "44rem",
+        ["--composer-bg" as string]:
+          "color-mix(in oklab, var(--color-muted) 30%, var(--color-background))",
+        ["--composer-radius" as string]: "1.5rem",
+        ["--composer-padding" as string]: "8px",
+      }}
     >
       <ThreadPrimitive.Viewport
         turnAnchor="top"
+        data-slot="aui_thread-viewport"
         className="relative flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto scroll-smooth"
       >
-        <div className="mx-auto flex min-h-full w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-5 sm:px-6 lg:px-8">
-          <AuiIf condition={isEmptyThread}>
+        <div
+          className={cn(
+            "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4",
+            isEmpty && "justify-center",
+          )}
+        >
+          <AuiIf condition={isNewChatView}>
             <ThreadWelcome />
           </AuiIf>
 
-          <div className="flex flex-1 flex-col gap-8 pb-6 empty:hidden">
+          <div data-slot="aui_message-group" className="mb-14 flex flex-col gap-y-6 empty:hidden">
             <ThreadPrimitive.Messages>{() => <ThreadMessage />}</ThreadPrimitive.Messages>
           </div>
 
-          <ThreadPrimitive.ViewportFooter className="sticky bottom-0 mt-auto flex flex-col gap-3 bg-background pb-4 pt-2 sm:pb-6">
+          <ThreadPrimitive.ViewportFooter
+            className={cn(
+              "aui-thread-viewport-footer flex flex-col gap-4 overflow-visible bg-background pb-4 md:pb-6",
+              !isEmpty && "sticky bottom-0 mt-auto rounded-(--composer-radius)",
+            )}
+          >
             <ThreadScrollToBottom />
             <Composer
               inputRef={composerInputRef}
@@ -78,8 +97,8 @@ export function Thread({ models, selectedModelId, onModelChange }: ThreadProps) 
               selectedModelId={selectedModelId}
               onModelChange={onModelChange}
             />
-            <AuiIf condition={isEmptyThread}>
-              <ErpRecommendations inputRef={composerInputRef} />
+            <AuiIf condition={(state) => isNewChatView(state) && state.composer.isEmpty}>
+              <ThreadSuggestions inputRef={composerInputRef} />
             </AuiIf>
           </ThreadPrimitive.ViewportFooter>
         </div>
@@ -89,11 +108,18 @@ export function Thread({ models, selectedModelId, onModelChange }: ThreadProps) 
 }
 
 const ThreadWelcome: FC = () => (
-  <div className="flex flex-1 flex-col items-center justify-center px-4 pb-8 text-center">
-    <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">¿En qué puedo ayudarte?</h1>
-    <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-      Piensa, redacta y convierte tus ideas en próximos pasos.
-    </p>
+  <div className="mb-6 flex flex-col items-center px-4 text-center">
+    <h1 className="text-2xl font-semibold tracking-tight">¿En qué puedo ayudarte hoy?</h1>
+  </div>
+);
+
+type ThreadSuggestionsProps = {
+  inputRef: RefObject<HTMLTextAreaElement | null>;
+};
+
+const ThreadSuggestions: FC<ThreadSuggestionsProps> = ({ inputRef }) => (
+  <div className="flex w-full flex-wrap items-center justify-center px-1 pb-1">
+    <ErpRecommendations inputRef={inputRef} />
   </div>
 );
 
@@ -125,13 +151,14 @@ type ComposerProps = ThreadProps & {
 
 const Composer = ({ inputRef, models, selectedModelId, onModelChange }: ComposerProps) => (
   <ComposerPrimitive.Root className="relative flex w-full flex-col">
-    <div className="flex w-full flex-col gap-2 rounded-3xl border border-border bg-card p-2 shadow-[0_12px_36px_-24px_var(--color-foreground)] transition-colors focus-within:border-ring/70">
+    <div className="flex w-full flex-col gap-2 rounded-(--composer-radius) border border-border/60 bg-(--composer-bg) p-(--composer-padding) transition-[border-color] focus-within:border-ring/70">
       <ComposerPrimitive.Input
         ref={inputRef}
         placeholder="Escribe un mensaje..."
-        className="max-h-40 min-h-16 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 outline-none placeholder:text-muted-foreground/70"
-        rows={2}
+        className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none placeholder:text-muted-foreground/70"
+        rows={1}
         autoFocus
+        enterKeyHint="send"
         aria-label="Mensaje"
         unstable_insertNewlineOnTouchEnter
       />
@@ -142,13 +169,16 @@ const Composer = ({ inputRef, models, selectedModelId, onModelChange }: Composer
             <SelectTrigger className="h-8 w-auto min-w-36 gap-1.5 rounded-full border-transparent bg-transparent px-2.5 text-xs text-muted-foreground shadow-none hover:bg-muted hover:text-foreground focus:ring-0">
               <SelectValue aria-label="Modelo seleccionado" />
             </SelectTrigger>
-            <SelectContent align="start">
+            <SelectContent
+              align="start"
+              position="popper"
+              side="top"
+              sideOffset={4}
+              avoidCollisions={false}
+            >
               {models.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
-                  <span className="flex flex-col text-left">
-                    <span>{model.name}</span>
-                    <span className="text-xs text-muted-foreground">{model.description}</span>
-                  </span>
+                  {model.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -159,9 +189,9 @@ const Composer = ({ inputRef, models, selectedModelId, onModelChange }: Composer
             <ComposerPrimitive.Send asChild>
               <TooltipIconButton
                 tooltip="Enviar mensaje"
-                type="submit"
+                type="button"
                 variant="default"
-                className="size-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/85"
+                className="size-8 rounded-full"
                 aria-label="Enviar mensaje"
               >
                 <ArrowUp className="size-4" />

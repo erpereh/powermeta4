@@ -1,6 +1,6 @@
 "use client";
 
-import { useAui } from "@assistant-ui/react";
+import { ThreadPrimitive } from "@assistant-ui/react";
 import { useState, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,14 @@ type ErpRecommendationsProps = {
 };
 
 export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
-  const aui = useAui();
-  const [activeCategoryId, setActiveCategoryId] = useState<ErpRecommendationCategoryId>("users");
-  const activeCategory =
-    ERP_RECOMMENDATIONS.find((category) => category.id === activeCategoryId) ??
-    ERP_RECOMMENDATIONS[0];
+  const [activeCategoryId, setActiveCategoryId] = useState<ErpRecommendationCategoryId | null>(
+    null,
+  );
+  const activeCategory = activeCategoryId
+    ? ERP_RECOMMENDATIONS.find((category) => category.id === activeCategoryId)
+    : undefined;
 
-  const handleAction = (prompt: string) => {
-    aui.composer.setText(prompt);
-
+  const focusComposer = () => {
     requestAnimationFrame(() => {
       const input = inputRef.current;
       if (!input) return;
@@ -50,7 +49,9 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
               size="sm"
               aria-label={category.label}
               aria-pressed={isActive}
-              onClick={() => setActiveCategoryId(category.id)}
+              onClick={() =>
+                setActiveCategoryId((current) => (current === category.id ? null : category.id))
+              }
               className={cn(
                 "min-h-9 gap-2 rounded-full border px-3 text-xs transition-colors",
                 isActive
@@ -67,24 +68,33 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
         })}
       </div>
 
-      <div
-        className="flex flex-wrap justify-center gap-2"
-        role="group"
-        aria-label={`Acciones de ${activeCategory.label}`}
-      >
-        {activeCategory.actions.map((action) => (
-          <Button
-            key={action.id}
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleAction(action.prompt)}
-            className="min-h-9 rounded-full bg-transparent px-3 text-xs font-normal text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            {action.label}
-          </Button>
-        ))}
-      </div>
+      {activeCategory && (
+        <div
+          className="flex flex-wrap justify-center gap-2"
+          role="group"
+          aria-label={`Acciones de ${activeCategory.label}`}
+        >
+          {activeCategory.actions.map((action) => (
+            <ThreadPrimitive.Suggestion
+              key={action.id}
+              prompt={action.prompt}
+              send={false}
+              asChild
+              onClick={focusComposer}
+            >
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                aria-label={action.label}
+                className="min-h-9 rounded-full bg-transparent px-3 text-xs font-normal text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                {action.label}
+              </Button>
+            </ThreadPrimitive.Suggestion>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

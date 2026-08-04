@@ -32,11 +32,16 @@ npm run build
 - `/inbox`: avisos locales filtrables por estado.
 - Sidebar basada en `sidebar-10`, con búsqueda por título y contenido, creación
   de chats, favoritos, eliminación confirmada y navegación responsive.
+- Thread basado en la estructura oficial actual de assistant-ui: estado vacío
+  centrado, un único composer dentro del `ViewportFooter` y footer sticky al
+  iniciar la conversación.
 - Sidebar expandida o colapsada a un rail de iconos en escritorio y Sheet en
   móvil.
 - Favoritos con icono y color configurables mediante mapas tipados de Lucide.
 - Recomendaciones contextuales locales orientadas a procesos de negocio; solo
-  preparan texto editable y no ejecutan operaciones.
+  preparan texto editable y no ejecutan operaciones. Las categorías parten sin
+  selección y las acciones usan las sugerencias oficiales de assistant-ui para
+  rellenar el composer sin enviar.
 - Estado de chats y mensajes en Zustand como única fuente de verdad.
 - `chats` y `activeChatId` se conservan localmente con Zustand `persist` en la
   clave `powermeta4-chat-store`; la rehidratación usa `skipHydration` y conserva

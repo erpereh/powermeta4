@@ -169,11 +169,13 @@ No mostrar `Copy Link` ni `Open in New Tab`.
 
 - Centrado ópticamente, no necesariamente en el centro matemático.
 - Anchura máxima del bloque: 760–880 px.
-- Título principal: `¿En qué puedo ayudarte?`.
+- Título principal: `¿En qué puedo ayudarte hoy?`.
 - Tamaño orientativo: 30–40 px en escritorio y 26–32 px en móvil.
 - Peso semibold o el indicado por el preset.
 - Texto secundario opcional, breve y silencioso.
 - Sugerencias rápidas debajo del composer, no más de cinco visibles inicialmente.
+- El contenedor del Thread controla el centrado; el welcome no debe crecer con
+  `flex-1` ni crear una segunda zona de entrada.
 
 ### Conversación activa
 
@@ -198,6 +200,10 @@ No mostrar `Copy Link` ni `Open in New Tab`.
   - enviar.
 - El botón de envío debe tener estados disabled, hover, focus y loading.
 - Enter envía; Shift+Enter crea salto de línea.
+- El composer debe permanecer dentro de `ThreadPrimitive.ViewportFooter`.
+- En un chat nuevo el footer forma parte del bloque centrado; con mensajes se
+  vuelve sticky dentro del viewport del Thread, nunca fixed respecto a la
+  ventana.
 
 ### Recomendaciones contextuales
 
@@ -209,6 +215,10 @@ No mostrar `Copy Link` ni `Open in New Tab`.
   gradientes ni acentos excesivamente brillantes.
 - Las acciones deben poder envolver naturalmente en varias líneas y conservar
   una zona táctil cómoda en móvil.
+- Las categorías no deben aparecer seleccionadas por defecto; la elección es
+  local a la presentación y se reinicia al montar un Thread nuevo.
+- Las acciones contextuales deben usar las primitivas oficiales para rellenar
+  el composer sin enviar el mensaje automáticamente.
 - Una recomendación que pueda tener efectos reales solo prepara contenido
   editable; el envío y cualquier confirmación permanecen bajo control explícito
   del usuario.
@@ -325,6 +335,11 @@ Antes de crear un componente:
 2. Revisar si existe en assistant-ui.
 3. Componer los existentes.
 4. Crear uno propio solo si representa una pieza de producto específica.
+
+Cuando se personaliza un componente de assistant-ui, mantener reconocible su
+jerarquía, sus contextos y sus condiciones de estado. Las clases visuales
+pueden adaptarse al sistema de tokens, pero no deben duplicar composers,
+viewports, fuentes de verdad ni transiciones del componente oficial.
 
 Ejemplos de componentes de producto válidos:
 
