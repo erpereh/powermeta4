@@ -1,0 +1,106 @@
+import "server-only";
+
+import { extractJSessionId } from "./cookies";
+import {
+  buildLoginEnvelope,
+  buildRetrieveM4SessionEnvelope,
+  parseLoginResponse,
+  parseRetrieveM4SessionResponse,
+} from "./soap-xml";
+
+export const DEFAULT_META4_LOGIN_URL = "https://meta4desaop.creditocaucion.es/services/Login";
+export const META4_TIMEOUT_MS = 15_000;
+
+export type Meta4LoginResult = {
+  jSessionId: string;
+  refreshSessionId: string;
+};
+
+export type Meta4Client = {
+  login: (username: string, password: string) => Promise<Meta4LoginResult>;
+  retrieveM4Session: (refreshSessionId: string) => Promise<{ jSessionId: string }>;
+};
+
+export class Meta4HttpError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super(`Meta4 respondió con HTTP ${status}.`);
+    this.name = "Meta4HttpError";
+    this.status = status;
+  }
+}
+
+export type Meta4ClientOptions = {
+  fetchImpl?: typeof fetch;
+  loginUrl?: string;
+  timeoutMs?: number;
+};
+
+const getLoginUrl = (loginUrl?: string): string => {
+  const value = loginUrl ?? process.env.META4_LOGIN_URL ?? DEFAULT_META4_LOGIN_URL;
+  if (!value.startsWith("https://")) throw new Error("META4_LOGIN_URL debe usar HTTPS.");
+  return value;
+};
+
+const postSoapXml = async (
+  fetchImpl: typeof fetch,
+  url: string,
+  xml: string,
+  timeoutMs: number,
+): Promise<Response> => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetchImpl(url, {
+      method: "POST",
+      headers: {
+        Accept: "text/xml",
+        "Content-Type": "text/xml; charset=utf-8",
+      },
+      body: xml,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("La petición Meta4 excedió el tiempo de espera.");
+    }
+    throw new Error("No se pudo conectar con Meta4.");
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+export const createMeta4Client = (options: Meta4ClientOptions = {}): Meta4Client => {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const url = getLoginUrl(options.loginUrl);
+  const timeoutMs = options.timeoutMs ?? META4_TIMEOUT_MS;
+
+  return {
+    login: async (username, password) => {
+      const response = await postSoapXml(
+        fetchImpl,
+        url,
+        buildLoginEnvelope(username, password),
+        timeoutMs,
+      );
+      if (!response.ok) throw new Meta4HttpError(response.status);
+      const body = await response.text();
+      const { refreshSessionId } = parseLoginResponse(body);
+      const jSessionId = extractJSessionId(response.headers);
+      return { jSessionId, refreshSessionId };
+    },
+    retrieveM4Session: async (refreshSessionId) => {
+      const response = await postSoapXml(
+        fetchImpl,
+        url,
+        buildRetrieveM4SessionEnvelope(refreshSessionId),
+        timeoutMs,
+      );
+      if (!response.ok) throw new Meta4HttpError(response.status);
+      const body = await response.text();
+      parseRetrieveM4SessionResponse(body);
+      return { jSessionId: extractJSessionId(response.headers) };
+    },
+  };
+};

@@ -1,25 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { createSessionToken, verifySessionToken } from "@/lib/auth/token";
+import {
+  SESSION_DURATION_SECONDS,
+  createOpaqueSessionId,
+  hashOpaqueSessionId,
+  isOpaqueSessionId,
+} from "@/lib/auth/token";
 
-describe("session tokens", () => {
-  it("creates and verifies a signed expiring token", () => {
-    const now = Date.parse("2026-08-04T10:00:00.000Z");
-    const token = createSessionToken("demo-user", "test-secret", now);
+describe("opaque browser session ids", () => {
+  it("creates an opaque random id and stores only its hash", () => {
+    const sessionId = createOpaqueSessionId();
 
-    expect(token).toBeTruthy();
-    expect(verifySessionToken(token ?? undefined, "test-secret", now)).toMatchObject({
-      userId: "demo-user",
-    });
+    expect(isOpaqueSessionId(sessionId)).toBe(true);
+    expect(sessionId).not.toContain("JSESSIONID");
+    expect(hashOpaqueSessionId(sessionId)).not.toBe(sessionId);
+    expect(hashOpaqueSessionId(sessionId)).toHaveLength(64);
   });
 
-  it("rejects a token with a bad signature or expired timestamp", () => {
-    const now = Date.parse("2026-08-04T10:00:00.000Z");
-    const token = createSessionToken("demo-user", "test-secret", now);
-
-    expect(verifySessionToken(token ?? undefined, "other-secret", now)).toBeNull();
-    expect(
-      verifySessionToken(token ?? undefined, "test-secret", now + 8 * 60 * 60 * 1000),
-    ).toBeNull();
+  it("uses a 30-day sliding cookie duration", () => {
+    expect(SESSION_DURATION_SECONDS).toBe(30 * 24 * 60 * 60);
+    expect(isOpaqueSessionId("not-a-valid-session".repeat(5))).toBe(false);
   });
 });

@@ -1,47 +1,41 @@
 "use server";
 
-import { timingSafeEqual } from "node:crypto";
 import { redirect } from "next/navigation";
 
-import { deleteSessionCookie, setSessionCookie } from "@/lib/auth/session";
+import { getAuthService } from "@/lib/auth/server";
+import { deleteSessionCookie, getSession, setSessionCookie } from "@/lib/auth/session";
 
 export type LoginState = {
   error?: string;
 };
 
-const valuesMatch = (provided: string, expected: string | undefined) => {
-  if (!expected) return false;
-  const providedBuffer = Buffer.from(provided);
-  const expectedBuffer = Buffer.from(expected);
-  return (
-    providedBuffer.length === expectedBuffer.length &&
-    timingSafeEqual(providedBuffer, expectedBuffer)
-  );
-};
+const genericLoginError =
+  "No se pudo iniciar sesión con Meta4. Comprueba el usuario, la contraseña y la conexión.";
 
 export async function loginAction(
   _previousState: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
-  const email = String(formData.get("email") ?? "")
-    .trim()
-    .toLowerCase();
+  const username = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  if (
-    !email ||
-    !password ||
-    !valuesMatch(email, process.env.DEMO_AUTH_EMAIL?.trim().toLowerCase()) ||
-    !valuesMatch(password, process.env.DEMO_AUTH_PASSWORD)
-  ) {
-    return { error: "El correo o la contraseña no son correctos." };
+  if (!username || !password) {
+    return { error: "El usuario y la contraseña son obligatorios." };
   }
 
-  await setSessionCookie("demo-user");
+  try {
+    const result = await getAuthService().login(username, password);
+    await setSessionCookie(result.sessionId);
+  } catch {
+    return { error: genericLoginError };
+  }
+
   redirect("/home");
 }
 
 export async function logoutAction(_formData: FormData): Promise<never> {
+  const session = await getSession();
+  await getAuthService().logout(session?.sessionId);
   await deleteSessionCookie();
   redirect("/login");
 }

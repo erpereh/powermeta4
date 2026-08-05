@@ -28,10 +28,10 @@ export function LoginForm() {
           </div>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="grid gap-5" noValidate={false}>
+          <form action={formAction} className="grid gap-5">
             <div className="grid gap-2">
-              <Label htmlFor="email">Correo electrónico</Label>
-              <Input id="email" name="email" type="email" autoComplete="email" required />
+              <Label htmlFor="email">Usuario Meta4</Label>
+              <Input id="email" name="email" type="text" autoComplete="username" required />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Contraseña</Label>
