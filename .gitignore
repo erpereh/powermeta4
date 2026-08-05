@@ -17,6 +17,10 @@
 /.next/
 /out/
 
+# local runtime data and generated Prisma client
+/data/
+/src/generated/prisma/
+
 # production
 /build
 

@@ -1,0 +1,174 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum CompanyIcon {
+  building
+  briefcase
+  layers
+}
+
+enum CompanyColor {
+  blue
+  purple
+  green
+}
+
+enum MessageRole {
+  user
+  assistant
+}
+
+enum MessageStatus {
+  complete
+  incomplete
+  cancelled
+  failed
+}
+
+model Company {
+  id                 String              @id
+  name               String              @unique
+  shortName          String
+  icon               CompanyIcon
+  color              CompanyColor
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  conversations      Conversation[]
+  workspaceSettings  WorkspaceSetting[]
+  toolActivities     ToolActivity[]
+
+  @@map("companies")
+}
+
+model Conversation {
+  id          String       @id
+  companyId   String
+  title       String       @default("Nuevo chat")
+  favorite    Boolean      @default(false)
+  icon        String?
+  iconColor   String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  attachments Attachment[]
+
+  @@index([companyId, updatedAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String         @id
+  conversationId String
+  role           MessageRole
+  contentJson    String
+  status         MessageStatus
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  attachments    Attachment[]
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Attachment {
+  id             String       @id
+  conversationId String
+  messageId      String?
+  fileName       String
+  mimeType       String
+  sizeBytes      Int
+  checksum       String
+  relativePath   String
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  message        Message?     @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt])
+  @@map("attachments")
+}
+
+model AppSetting {
+  key       String   @id
+  valueJson String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+model WorkspaceSetting {
+  id        String   @id
+  companyId String
+  key       String
+  valueJson String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@map("workspace_settings")
+}
+
+model ToolActivity {
+  id             String   @id
+  companyId      String
+  toolId         String
+  actionId       String
+  metadataJson   String   @default("{}")
+  createdAt      DateTime @default(now())
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@map("tool_activity")
+}
+
+model SoapSession {
+  id                       String   @id
+  username                 String
+  jsessionIdEncrypted      String
+  refreshSessionIdEncrypted String?
+  sessionIdEncrypted       String?
+  expiresAt                DateTime?
+  lastValidatedAt          DateTime?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@map("soap_sessions")
+}
+
+model LocalBrowserSession {
+  id          String    @id
+  cookieHash  String    @unique
+  username    String
+  createdAt   DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  expiresAt   DateTime
+  revokedAt   DateTime?
+
+  @@index([expiresAt, revokedAt])
+  @@map("local_browser_sessions")
+}
+
+model PendingBackupImport {
+  id                    String    @id
+  importIdHash          String    @unique
+  localBrowserSessionHash String
+  checksum              String
+  relativePath          String
+  expiresAt             DateTime
+  consumedAt            DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([expiresAt, consumedAt])
+  @@map("pending_backup_imports")
+}

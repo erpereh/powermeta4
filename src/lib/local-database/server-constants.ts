@@ -1,0 +1,8 @@
+import "server-only";
+
+export {
+  BACKUP_VERSION,
+  DATABASE_SCHEMA_VERSION,
+  DEFAULT_BACKUP_VERSION,
+  DEFAULT_DATABASE_SCHEMA_VERSION,
+} from "./constants";

@@ -1,6 +1,8 @@
 import { withAui } from "@assistant-ui/next";
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {/* config options here */};
+const nextConfig: NextConfig = {
+  serverExternalPackages: ["better-sqlite3", "@prisma/adapter-better-sqlite3"],
+};
 
 export default withAui(nextConfig);
