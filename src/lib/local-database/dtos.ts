@@ -1,9 +1,6 @@
 import type { CompanyId, Company, WorkspaceData } from "../../types/workspace";
 
-import {
-  BACKUP_VERSION,
-  DATABASE_SCHEMA_VERSION,
-} from "./server-constants";
+import { BACKUP_VERSION, DATABASE_SCHEMA_VERSION } from "./server-constants";
 
 export type ActionResult<T> =
   | { ok: true; data: T }

@@ -12,15 +12,13 @@ type BootstrapResult = {
 type CompanyBootstrapRepository = ReturnType<typeof createCompanyRepository>;
 
 const isUniqueConstraintError = (error: unknown): boolean =>
-  typeof error === "object" &&
-  error !== null &&
-  "code" in error &&
-  error.code === "P2002";
+  typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
 
 export const bootstrapLocalCompany = async (
-  repository: Pick<CompanyBootstrapRepository, "createLocalCompany" | "getFirst"> = createCompanyRepository(
-    getPrismaClient(),
-  ),
+  repository: Pick<
+    CompanyBootstrapRepository,
+    "createLocalCompany" | "getFirst"
+  > = createCompanyRepository(getPrismaClient()),
 ): Promise<BootstrapResult> => {
   const existingCompany = await repository.getFirst();
   if (existingCompany) {

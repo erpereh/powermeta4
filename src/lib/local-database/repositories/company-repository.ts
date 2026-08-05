@@ -1,9 +1,6 @@
 import "server-only";
 
-import {
-  INITIAL_LOCAL_COMPANY_NAME,
-  INITIAL_LOCAL_COMPANY_SHORT_NAME,
-} from "../constants";
+import { INITIAL_LOCAL_COMPANY_NAME, INITIAL_LOCAL_COMPANY_SHORT_NAME } from "../constants";
 import { toCompanyId } from "../../workspaces/companies";
 import type { Company } from "../../../types/workspace";
 

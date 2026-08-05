@@ -27,8 +27,7 @@ const runNpmScript = async (scriptName: string, dataDir: string) => {
     ...process.env,
     POWERMETA4_DATA_DIR: dataDir,
   };
-  const command =
-    process.platform === "win32" ? `npm run ${scriptName}` : `npm run ${scriptName}`;
+  const command = process.platform === "win32" ? `npm run ${scriptName}` : `npm run ${scriptName}`;
 
   await execAsync(command, {
     cwd: repoRoot,
@@ -98,18 +97,14 @@ describe("local database setup", () => {
     const dataDir = localDatabaseTestDir();
     createdDirectories.push(dataDir);
 
-    const {
-      DEFAULT_DATABASE_SCHEMA_VERSION,
-      DEFAULT_BACKUP_VERSION,
-    } = await importLocalDatabaseModule<{
-      DEFAULT_DATABASE_SCHEMA_VERSION: number;
-      DEFAULT_BACKUP_VERSION: number;
-    }>("constants.ts");
+    const { DEFAULT_DATABASE_SCHEMA_VERSION, DEFAULT_BACKUP_VERSION } =
+      await importLocalDatabaseModule<{
+        DEFAULT_DATABASE_SCHEMA_VERSION: number;
+        DEFAULT_BACKUP_VERSION: number;
+      }>("constants.ts");
     const { ensureLocalDataDirectories, resolveLocalDataPaths } = await importLocalDatabaseModule<{
       ensureLocalDataDirectories: (dataDir?: string) => Promise<void>;
-      resolveLocalDataPaths: (
-        dataDir?: string,
-      ) => {
+      resolveLocalDataPaths: (dataDir?: string) => {
         rootDir: string;
         databaseFilePath: string;
         backupsDir: string;
