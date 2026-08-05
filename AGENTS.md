@@ -45,10 +45,11 @@ Thread salvo petición expresa.
 
 ## Estado, sesión y workspaces
 
-- `workspaceStore` es la única fuente global de chats, mensajes, favoritos,
-  modelo, empresas y actividad. Se persiste bajo
-  `powermeta4-workspace-store` y se rehidrata con `skipHydration` desde el
-  shell cliente.
+- `workspaceStore` es la única fuente global del snapshot temporal de chats,
+  mensajes, favoritos, modelo, empresas y actividad. La fuente de verdad
+  es SQLite mediante el servidor; tras una hidratación correcta solo se
+  retiran las claves funcionales legacy `powermeta4-workspace-store` y
+  `powermeta4-chat-store`. `next-themes` conserva su almacenamiento de tema.
 - Todo dato de producto debe resolverse mediante `activeCompanyId`. El runtime
   recibe un `companyId` capturado y sus escrituras deben conservarlo durante
   streaming, edición y cancelación.
@@ -58,10 +59,11 @@ Thread salvo petición expresa.
   externa.
 - Los usuarios ERP no son cuentas autenticadas y no tienen persistencia local,
   tipos de dominio, formularios, tablas ni CRUD en esta fase.
-- La migración v3 conserva chats, favoritos, modelos y actividad válidos,
-  elimina únicamente colecciones `users` heredadas y mantiene la migración
-  legacy de `powermeta4-chat-store` de forma segura e idempotente.
-- La autenticación de prueba se valida en servidor con cookie HttpOnly firmada.
+- Los estados de mensaje persistidos son `complete`, `incomplete`, `cancelled` o
+  `failed`; una cancelación o un fallo no se presenta como completado ni se
+  reinicia al recargar.
+- La autenticación se valida en servidor con SOAP Meta4 y una cookie opaca
+  HttpOnly. JSESSIONID y refreshSessionId se cifran con DPAPI CurrentUser.
   Secretos y tokens nunca se guardan en Zustand, localStorage o sessionStorage.
 
 ## Herramientas y recomendaciones
@@ -96,15 +98,19 @@ Thread salvo petición expresa.
 ## Rutas y límites actuales
 
 Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
-`/`, `/home`, `/chat/new`, `/chat/[chatId]`, `/tools`, `/tools/users`,
-`/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`.
+`/`, `/home`, `/chat/new`, `/chat/[chatId]`, `/settings`, `/tools`,
+`/tools/users`, `/tools/companies`, `/tools/payroll`, `/tools/reports` y
+`/tools/processes`. Los Route Handlers locales de workspace y backups usan
+runtime Node.js y validan la sesión, la empresa y la conversación en servidor.
 Las rutas antiguas `/tools/users/new`, `/tools/users/search` y
 `/tools/users/[userId]` solo redirigen a `/tools/users`. `/login` es pública y
 `/inbox` se eliminó sin redirección.
 
-No añadir backend, API routes ficticias, proveedores reales de IA, permisos
-reales, invitaciones, operaciones ERP reales ni persistencia remota en esta
-fase.
+No añadir servicios remotos, APIs ficticias, proveedores reales de IA, permisos
+reales, invitaciones, operaciones ERP reales ni persistencia remota. Los Route
+Handlers y Server Actions locales de SQLite, autenticación y backups forman
+parte de la implementación aprobada. No ejecutar Prisma, DPAPI ni SOAP desde
+proxy/middleware.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

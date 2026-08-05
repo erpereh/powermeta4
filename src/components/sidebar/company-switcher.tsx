@@ -42,8 +42,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { PowermetaLogo } from "@/components/branding/powermeta-logo";
+import {
+  createCompanyAction,
+  deleteCompanyAction,
+  setActiveCompanyAction,
+} from "@/app/actions/workspace";
 import { COMPANY_COLORS, COMPANY_ICONS } from "@/lib/workspaces/companies";
-import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import type { Company, CompanyId } from "@/types/workspace";
 
 export function CompanySwitcher() {
@@ -52,8 +57,6 @@ export function CompanySwitcher() {
   const companies = useWorkspaceStore((state) => state.companies);
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
   const switchCompany = useWorkspaceStore((state) => state.switchCompany);
-  const createCompany = useWorkspaceStore((state) => state.createCompany);
-  const deleteCompany = useWorkspaceStore((state) => state.deleteCompany);
   const [createOpen, setCreateOpen] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [createError, setCreateError] = useState("");
@@ -74,9 +77,16 @@ export function CompanySwitcher() {
   };
 
   const chooseCompany = (companyId: CompanyId) => {
-    switchCompany(companyId);
-    router.push("/home");
-    closeMobileSidebar();
+    void setActiveCompanyAction(companyId).then(async (result) => {
+      if (!result.ok) {
+        setFeedback(result.message);
+        return;
+      }
+      switchCompany(companyId);
+      await hydrateWorkspaceStore();
+      router.push("/home");
+      closeMobileSidebar();
+    });
   };
 
   const handleCreateOpenChange = (open: boolean) => {
@@ -89,32 +99,34 @@ export function CompanySwitcher() {
 
   const handleCreate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const newCompanyId = createCompany(companyName);
-    if (!newCompanyId) {
-      setCreateError(
-        companyName.trim() ? "Ya existe una empresa con ese nombre." : "Escribe un nombre.",
-      );
-      return;
-    }
-
-    setCreateOpen(false);
-    setCompanyName("");
-    setCreateError("");
-    router.push("/home");
-    closeMobileSidebar();
-    setFeedback("Empresa creada correctamente.");
+    void createCompanyAction(companyName).then(async (result) => {
+      if (!result.ok) {
+        setCreateError(result.message);
+        return;
+      }
+      setCreateOpen(false);
+      setCompanyName("");
+      setCreateError("");
+      await hydrateWorkspaceStore();
+      router.push("/home");
+      closeMobileSidebar();
+      setFeedback("Empresa creada correctamente.");
+    });
   };
 
   const handleDelete = () => {
     if (!companyToDelete) return;
-    const deletedCompanyId = companyToDelete.id;
-    const nextCompanyId = deleteCompany(deletedCompanyId);
-    if (!nextCompanyId) return;
-
-    setCompanyToDelete(null);
-    router.push("/home");
-    closeMobileSidebar();
-    setFeedback("Empresa eliminada correctamente.");
+    void deleteCompanyAction(companyToDelete.id).then(async (result) => {
+      if (!result.ok) {
+        setFeedback(result.message);
+        return;
+      }
+      setCompanyToDelete(null);
+      await hydrateWorkspaceStore();
+      router.push("/home");
+      closeMobileSidebar();
+      setFeedback("Empresa eliminada correctamente.");
+    });
   };
 
   return (

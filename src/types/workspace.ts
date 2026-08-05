@@ -1,10 +1,6 @@
 import type { Chat } from "@/types/chat";
 
-export type CompanyId =
-  | "company-main"
-  | "company-cyc"
-  | "company-nexo"
-  | (string & { readonly __brand: "CompanyId" });
+export type CompanyId = string;
 
 export type CompanyIconName = "building" | "briefcase" | "layers";
 

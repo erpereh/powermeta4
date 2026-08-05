@@ -4,6 +4,7 @@ import { extractJSessionId } from "./cookies";
 import {
   buildLoginEnvelope,
   buildRetrieveM4SessionEnvelope,
+  Meta4SoapFaultError,
   parseLoginResponse,
   parseRetrieveM4SessionResponse,
 } from "./soap-xml";
@@ -84,8 +85,15 @@ export const createMeta4Client = (options: Meta4ClientOptions = {}): Meta4Client
         buildLoginEnvelope(username, password),
         timeoutMs,
       );
-      if (!response.ok) throw new Meta4HttpError(response.status);
       const body = await response.text();
+      if (!response.ok) {
+        try {
+          parseLoginResponse(body);
+        } catch (error) {
+          if (error instanceof Meta4SoapFaultError) throw error;
+        }
+        throw new Meta4HttpError(response.status);
+      }
       const { refreshSessionId } = parseLoginResponse(body);
       const jSessionId = extractJSessionId(response.headers);
       return { jSessionId, refreshSessionId };
@@ -97,8 +105,15 @@ export const createMeta4Client = (options: Meta4ClientOptions = {}): Meta4Client
         buildRetrieveM4SessionEnvelope(refreshSessionId),
         timeoutMs,
       );
-      if (!response.ok) throw new Meta4HttpError(response.status);
       const body = await response.text();
+      if (!response.ok) {
+        try {
+          parseRetrieveM4SessionResponse(body);
+        } catch (error) {
+          if (error instanceof Meta4SoapFaultError) throw error;
+        }
+        throw new Meta4HttpError(response.status);
+      }
       parseRetrieveM4SessionResponse(body);
       return { jSessionId: extractJSessionId(response.headers) };
     },

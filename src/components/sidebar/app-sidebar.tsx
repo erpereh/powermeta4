@@ -34,8 +34,18 @@ import {
 import { ChatSidebarItem } from "@/components/sidebar/chat-sidebar-item";
 import { CompanySwitcher } from "@/components/sidebar/company-switcher";
 import { UserMenu } from "@/components/sidebar/user-menu";
+import {
+  createConversationAction,
+  deleteConversationAction,
+  selectConversationAction,
+  updateConversationAction,
+} from "@/app/actions/workspace";
 import { filterChats } from "@/stores/workspace-store";
-import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
+import {
+  hydrateWorkspaceStore,
+  useWorkspaceStore,
+  workspaceStore,
+} from "@/stores/use-workspace-store";
 import { TOOL_ICONS, TOOL_MODULES } from "@/lib/tools/registry";
 import {
   CHAT_COLORS,
@@ -52,7 +62,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
-  const workspace = useWorkspaceStore((state) => state.workspaces[state.activeCompanyId]);
+  const workspace = useWorkspaceStore((state) =>
+    state.activeCompanyId ? state.workspaces[state.activeCompanyId] : undefined,
+  );
   const createChat = useWorkspaceStore((state) => state.createChat);
   const selectChat = useWorkspaceStore((state) => state.selectChat);
   const toggleFavorite = useWorkspaceStore((state) => state.toggleFavorite);
@@ -90,21 +102,67 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   };
 
   const handleNewChat = () => {
+    if (!activeCompanyId) return;
     const chatId = createChat(activeCompanyId);
+    void createConversationAction(activeCompanyId, chatId).then((result) => {
+      if (!result.ok) void hydrateWorkspaceStore();
+    });
     router.push(`/chat/${chatId}`);
     closeMobileSidebar();
   };
 
   const handleSelectChat = (chatId: string) => {
+    if (!activeCompanyId) return;
     selectChat(chatId, activeCompanyId);
+    void selectConversationAction(activeCompanyId, chatId).then((result) => {
+      if (!result.ok) void hydrateWorkspaceStore();
+    });
     router.push(`/chat/${chatId}`);
     closeMobileSidebar();
   };
 
   const handleDeleteChat = (chatId: string) => {
+    if (!activeCompanyId) return;
     deleteChat(chatId, activeCompanyId);
     const nextActiveChatId = workspaceStore.getState().workspaces[activeCompanyId]?.activeChatId;
+    void deleteConversationAction(activeCompanyId, chatId).then((result) => {
+      if (!result.ok) void hydrateWorkspaceStore();
+    });
     if (pathname.startsWith("/chat/") && nextActiveChatId) router.push(`/chat/${nextActiveChatId}`);
+    else if (pathname.startsWith("/chat/")) router.push("/home");
+  };
+
+  const handleToggleFavorite = (chat: Chat) => {
+    if (!activeCompanyId) return;
+    const favorite = !chat.favorite;
+    toggleFavorite(chat.id, activeCompanyId);
+    void updateConversationAction(activeCompanyId, chat.id, {
+      favorite,
+      ...(favorite
+        ? {
+            icon: chat.icon ?? DEFAULT_CHAT_ICON,
+            iconColor: chat.iconColor ?? DEFAULT_CHAT_COLOR,
+          }
+        : {}),
+    }).then((result) => {
+      if (!result.ok) void hydrateWorkspaceStore();
+    });
+  };
+
+  const handleSetIcon = (chat: Chat, icon: Chat["icon"]) => {
+    if (!activeCompanyId) return;
+    setChatIcon(chat.id, icon, activeCompanyId);
+    void updateConversationAction(activeCompanyId, chat.id, { icon }).then((result) => {
+      if (!result.ok) void hydrateWorkspaceStore();
+    });
+  };
+
+  const handleSetColor = (chat: Chat, iconColor: Chat["iconColor"]) => {
+    if (!activeCompanyId) return;
+    setChatColor(chat.id, iconColor, activeCompanyId);
+    void updateConversationAction(activeCompanyId, chat.id, { iconColor }).then((result) => {
+      if (!result.ok) void hydrateWorkspaceStore();
+    });
   };
 
   const handleSearchOpenChange = (open: boolean) => {
@@ -224,9 +282,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       (pathname === "/" || pathname === `/chat/${chat.id}`)
                     }
                     onSelect={() => handleSelectChat(chat.id)}
-                    onToggleFavorite={() => toggleFavorite(chat.id, activeCompanyId)}
-                    onSetIcon={(icon) => setChatIcon(chat.id, icon, activeCompanyId)}
-                    onSetColor={(color) => setChatColor(chat.id, color, activeCompanyId)}
+                    onToggleFavorite={() => handleToggleFavorite(chat)}
+                    onSetIcon={(icon) => handleSetIcon(chat, icon)}
+                    onSetColor={(color) => handleSetColor(chat, color)}
                     onDelete={() => handleDeleteChat(chat.id)}
                   />
                 ))}
@@ -247,9 +305,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       (pathname === "/" || pathname === `/chat/${chat.id}`)
                     }
                     onSelect={() => handleSelectChat(chat.id)}
-                    onToggleFavorite={() => toggleFavorite(chat.id, activeCompanyId)}
-                    onSetIcon={(icon) => setChatIcon(chat.id, icon, activeCompanyId)}
-                    onSetColor={(color) => setChatColor(chat.id, color, activeCompanyId)}
+                    onToggleFavorite={() => handleToggleFavorite(chat)}
+                    onSetIcon={(icon) => handleSetIcon(chat, icon)}
+                    onSetColor={(color) => handleSetColor(chat, color)}
                     onDelete={() => handleDeleteChat(chat.id)}
                   />
                 ))}

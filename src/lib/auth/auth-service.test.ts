@@ -20,7 +20,7 @@ const createRepository = (
   return {
     repository: {
       getSoapSession: vi.fn(async () => currentSoapSession),
-      replaceSoapSession: vi.fn(async (data) => {
+      replaceAuthState: vi.fn(async (data) => {
         currentSoapSession = {
           id: "global",
           username: data.username,
@@ -28,6 +28,7 @@ const createRepository = (
           refreshSessionIdEncrypted: data.refreshSessionIdEncrypted,
           lastValidatedAt: data.lastValidatedAt,
         };
+        localSessions.length = 0;
       }),
       updateJSessionId: vi.fn(async (encryptedJSessionId, lastValidatedAt) => {
         if (!currentSoapSession) throw new Error("missing session");
@@ -41,18 +42,18 @@ const createRepository = (
         currentSoapSession = null;
         localSessions.length = 0;
       }),
-      revokeAllLocalBrowserSessions: vi.fn(async () => {
-        localSessions.length = 0;
-      }),
       createLocalBrowserSession: vi.fn(async (data) => {
         localSessions.push({ ...data, revokedAt: null, lastSeenAt: now });
       }),
       getLocalBrowserSession: vi.fn(
         async (cookieHash) => localSessions.find((item) => item.cookieHash === cookieHash) ?? null,
       ),
-      touchLocalBrowserSession: vi.fn(async (id, lastSeenAt) => {
+      touchLocalBrowserSession: vi.fn(async (id, lastSeenAt, expiresAt) => {
         const session = localSessions.find((item) => item.id === id);
-        if (session) session.lastSeenAt = lastSeenAt;
+        if (session) {
+          session.lastSeenAt = lastSeenAt;
+          session.expiresAt = expiresAt;
+        }
       }),
       revokeLocalBrowserSession: vi.fn(async (id) => {
         const session = localSessions.find((item) => item.id === id);
@@ -86,8 +87,7 @@ describe("Meta4 auth service", () => {
 
     expect(result.username).toBe(" USER&NAME ");
     expect(result.sessionId).toMatch(/^[A-Za-z0-9_-]{43}$/);
-    expect(repository.revokeAllLocalBrowserSessions).toHaveBeenCalledOnce();
-    expect(repository.replaceSoapSession).toHaveBeenCalledWith({
+    expect(repository.replaceAuthState).toHaveBeenCalledWith({
       username: " USER&NAME ",
       jsessionIdEncrypted: "encrypted:jsession-1",
       refreshSessionIdEncrypted: "encrypted:refresh-1",
@@ -99,7 +99,7 @@ describe("Meta4 auth service", () => {
         expiresAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
       }),
     );
-    expect(JSON.stringify(repository.replaceSoapSession.mock.calls)).not.toContain("p<&");
+    expect(JSON.stringify(repository.replaceAuthState.mock.calls)).not.toContain("p<&");
   });
 
   it("does not persist a partial login when DPAPI protection fails", async () => {
@@ -115,7 +115,7 @@ describe("Meta4 auth service", () => {
     const service = createAuthService({ repository, dpapi, soap, now: () => now });
 
     await expect(service.login("user", "password")).rejects.toThrow(/dpapi/);
-    expect(repository.replaceSoapSession).not.toHaveBeenCalled();
+    expect(repository.replaceAuthState).not.toHaveBeenCalled();
     expect(repository.createLocalBrowserSession).not.toHaveBeenCalled();
   });
 
@@ -159,5 +159,33 @@ describe("Meta4 auth service", () => {
 
     await expect(failingService.restoreSession()).resolves.toBeNull();
     expect(failing.repository.clearAuthState).toHaveBeenCalledOnce();
+  });
+
+  it("extends a browser session for another 30 days after the touch interval", async () => {
+    const { repository, localSessions } = createRepository();
+    const service = createAuthService({
+      repository,
+      dpapi: createDpapi(),
+      soap: {
+        login: vi.fn(async () => ({ jSessionId: "jsession", refreshSessionId: "refresh" })),
+        retrieveM4Session: vi.fn(),
+      },
+      now: () => now,
+      createSessionId: () => "A".repeat(43),
+    });
+
+    await service.login("user", "password");
+    const stored = localSessions[0];
+    if (!stored) throw new Error("missing local session");
+    stored.lastSeenAt = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+
+    const session = await service.getLocalSession("A".repeat(43));
+
+    expect(session?.expiresAt).toEqual(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000));
+    expect(repository.touchLocalBrowserSession).toHaveBeenCalledWith(
+      stored.id,
+      now,
+      new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+    );
   });
 });

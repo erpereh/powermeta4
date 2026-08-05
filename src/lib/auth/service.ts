@@ -84,14 +84,12 @@ export const createAuthService = ({
       dpapi.protectSecret(loggedIn.jSessionId),
       dpapi.protectSecret(loggedIn.refreshSessionId),
     ]);
-    await repository.replaceSoapSession({
+    await repository.replaceAuthState({
       username,
       jsessionIdEncrypted,
       refreshSessionIdEncrypted,
       lastValidatedAt: currentTime,
     });
-    await repository.revokeAllLocalBrowserSessions();
-
     const sessionId = createSessionId();
     await repository.createLocalBrowserSession({
       id: sessionId,
@@ -113,13 +111,16 @@ export const createAuthService = ({
     const currentTime = now();
     if (!session || session.revokedAt || session.expiresAt <= currentTime) return null;
 
-    if (currentTime.getTime() - session.lastSeenAt.getTime() >= SESSION_TOUCH_INTERVAL_MS) {
-      await repository.touchLocalBrowserSession(session.id, currentTime);
-    }
+    const shouldTouch =
+      currentTime.getTime() - session.lastSeenAt.getTime() >= SESSION_TOUCH_INTERVAL_MS;
+    const expiresAt = shouldTouch
+      ? new Date(currentTime.getTime() + SESSION_DURATION_SECONDS * 1000)
+      : session.expiresAt;
+    if (shouldTouch) await repository.touchLocalBrowserSession(session.id, currentTime, expiresAt);
     return {
       sessionId,
       username: session.username,
-      expiresAt: session.expiresAt,
+      expiresAt,
       lastValidatedAt: restoredUsername ? currentTime : null,
     };
   };

@@ -1,6 +1,3 @@
-import "server-only";
-
-import { getPrismaClient } from "./client";
 import { createCompanyRepository } from "./repositories/company-repository";
 import type { Company } from "../../types/workspace";
 
@@ -15,12 +12,11 @@ const isUniqueConstraintError = (error: unknown): boolean =>
   typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
 
 export const bootstrapLocalCompany = async (
-  repository: Pick<
-    CompanyBootstrapRepository,
-    "createLocalCompany" | "getFirst"
-  > = createCompanyRepository(getPrismaClient()),
+  repository?: Pick<CompanyBootstrapRepository, "createLocalCompany" | "getFirst">,
 ): Promise<BootstrapResult> => {
-  const existingCompany = await repository.getFirst();
+  const effectiveRepository =
+    repository ?? createCompanyRepository((await import("./client")).getPrismaClient());
+  const existingCompany = await effectiveRepository.getFirst();
   if (existingCompany) {
     return {
       created: false,
@@ -30,11 +26,11 @@ export const bootstrapLocalCompany = async (
 
   let company: Company;
   try {
-    company = await repository.createLocalCompany();
+    company = await effectiveRepository.createLocalCompany();
   } catch (error) {
     if (!isUniqueConstraintError(error)) throw error;
 
-    const companyCreatedByAnotherBootstrap = await repository.getFirst();
+    const companyCreatedByAnotherBootstrap = await effectiveRepository.getFirst();
     if (!companyCreatedByAnotherBootstrap) throw error;
 
     return {
@@ -49,4 +45,6 @@ export const bootstrapLocalCompany = async (
   };
 };
 
-export const setupLocalDatabase = () => bootstrapLocalCompany();
+export const setupLocalDatabase = (
+  repository?: Pick<CompanyBootstrapRepository, "createLocalCompany" | "getFirst">,
+) => bootstrapLocalCompany(repository);

@@ -7,7 +7,12 @@ import { Thread } from "@/components/assistant-ui/thread";
 import { useWorkspaceHydrated } from "@/components/app-shell/app-shell";
 import { ChatRuntimeProvider } from "@/components/chat/chat-runtime-provider";
 import { mockModels } from "@/data/mock-models";
-import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import {
+  createConversationAction,
+  selectConversationAction,
+  setSelectedModelAction,
+} from "@/app/actions/workspace";
+import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -22,7 +27,9 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
   const { isMobile, open, openMobile } = useSidebar();
   const hydrated = useWorkspaceHydrated();
   const companyId = useWorkspaceStore((state) => state.activeCompanyId);
-  const workspace = useWorkspaceStore((state) => state.workspaces[state.activeCompanyId]);
+  const workspace = useWorkspaceStore((state) =>
+    state.activeCompanyId ? state.workspaces[state.activeCompanyId] : undefined,
+  );
   const createChat = useWorkspaceStore((state) => state.createChat);
   const selectChat = useWorkspaceStore((state) => state.selectChat);
   const setSelectedModel = useWorkspaceStore((state) => state.setSelectedModel);
@@ -36,14 +43,26 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
     if (!hydrated) return;
 
     if (requestedChatId) {
-      if (!activeChat) router.replace("/home");
-      else if (workspace?.activeChatId !== requestedChatId) selectChat(requestedChatId, companyId);
+      if (!activeChat || !companyId) {
+        router.replace("/home");
+      } else if (workspace?.activeChatId !== requestedChatId) {
+        selectChat(requestedChatId, companyId);
+        void selectConversationAction(companyId, requestedChatId).then((result) => {
+          if (!result.ok) void hydrateWorkspaceStore();
+        });
+      }
       return;
     }
 
-    if (!activeChat) {
+    if (!activeChat && companyId) {
       const chatId = createChat(companyId);
-      router.replace(`/chat/${chatId}`);
+      void createConversationAction(companyId, chatId).then((result) => {
+        if (!result.ok) {
+          void hydrateWorkspaceStore();
+          return;
+        }
+        router.replace(`/chat/${chatId}`);
+      });
     }
   }, [
     activeChat,
@@ -56,7 +75,7 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
     workspace?.activeChatId,
   ]);
 
-  if (!hydrated || !activeChat || !workspace) return null;
+  if (!hydrated || !companyId || !activeChat || !workspace) return null;
 
   const selectedModelId = workspace.preferences.selectedModelId || mockModels[0].id;
 
@@ -87,7 +106,12 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
           <Thread
             models={mockModels}
             selectedModelId={selectedModelId}
-            onModelChange={(modelId) => setSelectedModel(modelId, companyId)}
+            onModelChange={(modelId) => {
+              setSelectedModel(modelId, companyId);
+              void setSelectedModelAction(companyId, modelId).then((result) => {
+                if (!result.ok) void hydrateWorkspaceStore();
+              });
+            }}
           />
         </ChatRuntimeProvider>
       </div>

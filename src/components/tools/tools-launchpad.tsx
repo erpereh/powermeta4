@@ -7,6 +7,7 @@ import { ArrowUpRight, Clock3, Search } from "lucide-react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+import { recordToolVisitAction } from "@/app/actions/workspace";
 import {
   TOOL_ICONS,
   TOOL_MODULES,
@@ -15,13 +16,15 @@ import {
   searchTools,
   type ToolDefinition,
 } from "@/lib/tools/registry";
-import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function ToolsLaunchpad() {
   const { isMobile, open, openMobile } = useSidebar();
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
   const companies = useWorkspaceStore((state) => state.companies);
-  const workspace = useWorkspaceStore((state) => state.workspaces[state.activeCompanyId]);
+  const workspace = useWorkspaceStore((state) =>
+    state.activeCompanyId ? state.workspaces[state.activeCompanyId] : undefined,
+  );
   const recordToolVisit = useWorkspaceStore((state) => state.recordToolVisit);
   const [query, setQuery] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -37,6 +40,14 @@ export function ToolsLaunchpad() {
     })
     .slice(0, 5);
   const triggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
+
+  const handleToolVisit = (toolId: string) => {
+    if (!activeCompanyId) return;
+    recordToolVisit(toolId, activeCompanyId);
+    void recordToolVisitAction(activeCompanyId, toolId).then((result) => {
+      if (!result.ok) void hydrateWorkspaceStore();
+    });
+  };
 
   return (
     <main className="flex min-h-svh flex-col">
@@ -87,7 +98,7 @@ export function ToolsLaunchpad() {
                   <QuickToolCard
                     key={tool.id}
                     tool={tool}
-                    onClick={() => recordToolVisit(tool.id)}
+                    onClick={() => handleToolVisit(tool.id)}
                     onUnavailable={() =>
                       setFeedback("Esta herramienta estará disponible próximamente.")
                     }

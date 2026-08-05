@@ -101,7 +101,7 @@ describe("local database setup", () => {
       await importLocalDatabaseModule<{
         DEFAULT_DATABASE_SCHEMA_VERSION: number;
         DEFAULT_BACKUP_VERSION: number;
-      }>("constants.ts");
+      }>("server-constants.ts");
     const { ensureLocalDataDirectories, resolveLocalDataPaths } = await importLocalDatabaseModule<{
       ensureLocalDataDirectories: (dataDir?: string) => Promise<void>;
       resolveLocalDataPaths: (dataDir?: string) => {

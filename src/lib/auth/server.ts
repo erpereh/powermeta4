@@ -19,3 +19,7 @@ export const getAuthService = (): AuthService => {
   }
   return globalForAuth.__powermeta4AuthService;
 };
+
+export const resetAuthService = (): void => {
+  delete globalForAuth.__powermeta4AuthService;
+};

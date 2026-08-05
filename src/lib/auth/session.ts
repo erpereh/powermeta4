@@ -40,12 +40,14 @@ export const getSession = async (): Promise<SessionPayload | null> => {
 
 export const requireSession = async (): Promise<SessionPayload> => {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) {
+    const sessionId = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+    redirect(isOpaqueSessionId(sessionId) ? "/login?expired=1" : "/login");
+  }
 
   const restored = await getAuthService().restoreSession();
   if (!restored) {
-    await deleteSessionCookie();
-    redirect("/login");
+    redirect("/login?expired=1");
   }
   return session;
 };

@@ -57,6 +57,15 @@ const findValues = (value: unknown, wantedName: string, values: string[] = []): 
   return values;
 };
 
+const hasKey = (value: unknown, wantedName: string): boolean => {
+  if (Array.isArray(value)) return value.some((item) => hasKey(item, wantedName));
+  if (typeof value !== "object" || value === null) return false;
+  return Object.entries(value).some(([key, child]) => {
+    const localName = key.includes(":") ? key.slice(key.lastIndexOf(":") + 1) : key;
+    return localName.toLowerCase() === wantedName.toLowerCase() || hasKey(child, wantedName);
+  });
+};
+
 const parseDocument = (xml: string): unknown => {
   if (!xml.trim()) throw new Error("La respuesta SOAP está vacía.");
   if (/<!(?:DOCTYPE|ENTITY)\b/i.test(xml)) {
@@ -70,8 +79,7 @@ const parseDocument = (xml: string): unknown => {
 };
 
 const parseFault = (document: unknown): Meta4SoapFaultError | null => {
-  const faultValues = findValues(document, "Fault");
-  const hasFault = faultValues.length > 0 || findValues(document, "faultcode").length > 0;
+  const hasFault = hasKey(document, "Fault") || hasKey(document, "faultcode");
   if (!hasFault) return null;
 
   const code = findValues(document, "faultcode")[0] ?? null;

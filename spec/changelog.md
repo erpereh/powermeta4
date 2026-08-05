@@ -1,5 +1,56 @@
 # Changelog
 
+## 2026-08-05 - Persistencia local, autenticacion SOAP y copias seguras
+
+### Cambios
+
+- Se verifico Node.js 24.18.0, TypeScript 7.0.2, Next.js 16.3.0, React
+  19.2.8, assistant-ui 0.15.4, module esnext, moduleResolution bundler y la
+  ausencia de type: module antes de instalar Prisma 7.
+- Se añadio SQLite + Prisma 7 con adapter better-sqlite3, @types/better-sqlite3,
+  prisma.config.ts, migracion inicial y setup idempotente bajo
+  POWERMETA4_DATA_DIR.
+- El bootstrap crea Empresa local solo si no hay empresas y usa un UUID
+  generado. El codigo no depende de company-local ni recrea la empresa tras
+  renombrarla.
+- El workspace y el chat son server-authoritative. Zustand ya no persiste datos
+  funcionales en localStorage; el cliente mantiene solo el snapshot temporal.
+  Los mensajes usan contenido JSON, IDs idempotentes y estados no ambiguos.
+- Se implementaron SOAP Meta4, XML escapado, Faults, cookies, DPAPI
+  CurrentUser, cookie local opaca, single-flight de restauracion y renovacion
+  de sesion para operaciones autenticadas.
+- Se mantuvo src/proxy.ts por la convencion real de Next.js 16.3; no ejecuta
+  Prisma, DPAPI ni SOAP.
+- Se creo /settings con Tabs, Card, Button, Badge, Alert, AlertDialog,
+  Progress, Separator, Skeleton e Input oficiales de shadcn.
+- Se implementaron exportacion SQLite consistente e importacion validate/
+  confirm/cancel con manifest, checksum, limites, proteccion Zip Slip y
+  symlinks, importId opaco asociado a sesion, expiracion, consumo atomico,
+  maintenance lock, reemplazo atomico y rollback.
+
+### Verificacion automatica
+
+Se ejecutaron al finalizar:
+
+- npm run setup
+- npm test
+- npm run lint
+- npm run typecheck
+- npm run build
+- git diff --check
+- git status --short
+
+Resultado de la ejecucion: 14 archivos de prueba y 43 pruebas correctas.
+
+### Comprobacion manual
+
+- Se verifico el bootstrap local idempotente y la base SQLite creada bajo un
+  directorio de datos controlado.
+- Se verifico exportar, validar, rechazar una sesion distinta, detectar un
+  checksum alterado, expirar un import, restaurar una vez y limpiar temporales.
+- No se realizo una llamada Meta4 real: faltan credenciales y una salida
+  verificable del proveedor.
+
 ## 2026-08-04 — Corrección de workspaces locales y herramientas ERP
 
 ### Cambios

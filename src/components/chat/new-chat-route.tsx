@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { useWorkspaceHydrated } from "@/components/app-shell/app-shell";
-import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import { createConversationAction } from "@/app/actions/workspace";
+import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function NewChatRoute() {
   const router = useRouter();
@@ -16,9 +17,16 @@ export function NewChatRoute() {
   useEffect(() => {
     if (!hydrated) return;
     if (createdRef.current) return;
+    if (!companyId) return;
     createdRef.current = true;
     const chatId = createChat(companyId);
-    router.replace(`/chat/${chatId}`);
+    void createConversationAction(companyId, chatId).then((result) => {
+      if (!result.ok) {
+        void hydrateWorkspaceStore();
+        return;
+      }
+      router.replace(`/chat/${chatId}`);
+    });
   }, [companyId, createChat, hydrated, router]);
 
   return (

@@ -5,14 +5,31 @@ import {
   fromThreadMessageLike,
   useExternalStoreRuntime,
   type AppendMessage,
+  type MessageStatus as RuntimeMessageStatus,
   type ThreadMessage,
   type ThreadMessageLike,
 } from "@assistant-ui/react";
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import {
+  createConversationAction,
+  updateConversationAction,
+  updateMessageAction,
+  upsertMessageAction,
+} from "@/app/actions/workspace";
 import { mockChatModel } from "@/lib/mock-runtime";
-import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
-import type { Chat, Message, MessageStatus as ChatMessageStatus } from "@/types/chat";
+import { toInterruptedStatus, toRuntimeStatus } from "@/lib/chat/message-status";
+import {
+  hydrateWorkspaceStore,
+  useWorkspaceStore,
+  workspaceStore,
+} from "@/stores/use-workspace-store";
+import type {
+  Chat,
+  Message,
+  MessageContent,
+  MessageStatus as ChatMessageStatus,
+} from "@/types/chat";
 import type { CompanyId } from "@/types/workspace";
 
 type ChatRuntimeProviderProps = {
@@ -22,46 +39,55 @@ type ChatRuntimeProviderProps = {
   selectedModelId: string;
 };
 
+type RunOptions = {
+  userMessage?: Message;
+  assistantMessageId?: string;
+};
+
 const createRuntimeId = (prefix: string) => {
   const uuid = globalThis.crypto?.randomUUID?.();
   return `${prefix}-${uuid ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`}`;
 };
 
-const toRuntimeStatus = (status: ChatMessageStatus) => {
-  if (status === "running") return { type: "running" as const };
-  if (status === "incomplete") {
-    return { type: "incomplete" as const, reason: "error" as const };
-  }
-  return { type: "complete" as const, reason: "stop" as const };
-};
-
-const convertMessage = (message: Message): ThreadMessageLike => ({
+const convertMessage = (message: Message, runningMessageId: string | null): ThreadMessageLike => ({
   role: message.role,
   id: message.id,
   createdAt: new Date(message.createdAt),
-  content: [{ type: "text", text: message.content }],
-  ...(message.role === "assistant" ? { status: toRuntimeStatus(message.status) } : {}),
+  content: message.content,
+  ...(message.role === "assistant"
+    ? {
+        status:
+          message.id === runningMessageId
+            ? ({ type: "running" } satisfies RuntimeMessageStatus)
+            : toRuntimeStatus(message.status),
+      }
+    : {}),
 });
 
 const toThreadMessage = (message: Message): ThreadMessage =>
   fromThreadMessageLike(
-    convertMessage(message),
+    convertMessage(message, null),
     message.id,
     message.role === "assistant"
       ? toRuntimeStatus(message.status)
       : { type: "complete", reason: "stop" },
   );
 
-const getAppendText = (message: AppendMessage) => {
-  return message.content
+const getContentText = (content: MessageContent): string => {
+  if (typeof content === "string") return content;
+  return content
     .filter((part) => part.type === "text")
     .map((part) => part.text)
-    .join("\n")
-    .trim();
+    .join("");
 };
 
-const getChat = (chats: readonly Chat[], chatId: string) =>
+const getAppendText = (message: AppendMessage): string => getContentText(message.content).trim();
+
+const getChat = (chats: readonly Chat[], chatId: string): Chat | undefined =>
   chats.find((chat) => chat.id === chatId);
+
+const actionFailed = (result: { ok: boolean; message?: string }) =>
+  !result.ok ? new Error(result.message ?? "No se pudo guardar el cambio.") : null;
 
 export function ChatRuntimeProvider({
   companyId,
@@ -77,7 +103,8 @@ export function ChatRuntimeProvider({
   const setMessageContent = useWorkspaceStore((state) => state.setMessageContent);
   const setMessageStatus = useWorkspaceStore((state) => state.setMessageStatus);
   const controllerRef = useRef<AbortController | null>(null);
-  const isRunning = messages.some((message) => message.status === "running");
+  const runningMessageIdRef = useRef<string | null>(null);
+  const [runningMessageId, setRunningMessageId] = useState<string | null>(null);
 
   const runConversation = useCallback(
     async (
@@ -85,40 +112,64 @@ export function ChatRuntimeProvider({
       baseMessages: Message[],
       parentId: string | null,
       runConfig: AppendMessage["runConfig"] = {},
-    ) => {
+      options: RunOptions = {},
+    ): Promise<void> => {
       const cleanInput = input.trim();
-      if (!cleanInput) return;
+      if (!cleanInput || controllerRef.current) return;
 
-      const userMessage: Message = {
+      const userMessage: Message = options.userMessage ?? {
         id: createRuntimeId("message-user"),
         role: "user",
-        content: cleanInput,
+        content: [{ type: "text", text: cleanInput }],
         createdAt: new Date().toISOString(),
         status: "complete",
       };
       const assistantMessage: Message = {
-        id: createRuntimeId("message-assistant"),
+        id: options.assistantMessageId ?? createRuntimeId("message-assistant"),
         role: "assistant",
-        content: "",
+        content: [],
         createdAt: new Date().toISOString(),
-        status: "running",
+        status: "incomplete",
       };
       const nextMessages = [...baseMessages, userMessage, assistantMessage];
-      const threadMessages = nextMessages.slice(0, -1).map(toThreadMessage);
+      const threadMessages = [...baseMessages, userMessage].map(toThreadMessage);
       const controller = new AbortController();
+      let latestContent = "";
+      let persistedAssistant = false;
 
       controllerRef.current = controller;
+      runningMessageIdRef.current = assistantMessage.id;
+      setRunningMessageId(assistantMessage.id);
       setChatMessages(chatId, nextMessages, companyId);
 
-      const currentChat = getChat(
-        workspaceStore.getState().workspaces[companyId]?.chats ?? [],
-        chatId,
-      );
-      if (currentChat?.title === "Nuevo chat") {
-        setChatTitle(chatId, cleanInput.slice(0, 56), companyId);
-      }
-
       try {
+        const conversationResult = await createConversationAction(companyId, chatId);
+        const conversationError = actionFailed(conversationResult);
+        if (conversationError) throw conversationError;
+
+        const userResult = await upsertMessageAction({
+          companyId,
+          conversationId: chatId,
+          id: userMessage.id,
+          role: "user",
+          content: userMessage.content,
+          status: "complete",
+        });
+        const userError = actionFailed(userResult);
+        if (userError) throw userError;
+
+        const currentChat = getChat(
+          workspaceStore.getState().workspaces[companyId]?.chats ?? [],
+          chatId,
+        );
+        if (currentChat?.title === "Nuevo chat") {
+          const title = cleanInput.slice(0, 56);
+          setChatTitle(chatId, title, companyId);
+          const titleResult = await updateConversationAction(companyId, chatId, { title });
+          const titleError = actionFailed(titleResult);
+          if (titleError) throw titleError;
+        }
+
         const stream = mockChatModel.run({
           messages: threadMessages,
           runConfig: runConfig ?? {},
@@ -131,25 +182,66 @@ export function ChatRuntimeProvider({
         });
 
         for await (const result of stream) {
-          const content =
-            result.content
-              ?.filter((part) => part.type === "text")
-              .map((part) => part.text)
-              .join("") ?? "";
+          if (controller.signal.aborted) break;
+          latestContent = getContentText(result.content ?? "");
+          if (!latestContent) continue;
+          const content: MessageContent = [{ type: "text", text: latestContent }];
+          persistedAssistant = true;
           setMessageContent(chatId, assistantMessage.id, content, companyId);
+          const partialResult = await upsertMessageAction({
+            companyId,
+            conversationId: chatId,
+            id: assistantMessage.id,
+            role: "assistant",
+            content,
+            status: "incomplete",
+          });
+          const partialError = actionFailed(partialResult);
+          if (partialError) throw partialError;
         }
 
-        setMessageStatus(
-          chatId,
-          assistantMessage.id,
-          controller.signal.aborted ? "incomplete" : "complete",
-          companyId,
-        );
-      } catch {
-        setMessageStatus(chatId, assistantMessage.id, "incomplete", companyId);
+        const finalStatus: ChatMessageStatus = controller.signal.aborted ? "cancelled" : "complete";
+        if (latestContent) {
+          const finalContent: MessageContent = [{ type: "text", text: latestContent }];
+          setMessageContent(chatId, assistantMessage.id, finalContent, companyId);
+          setMessageStatus(chatId, assistantMessage.id, finalStatus, companyId);
+          const finalResult = await updateMessageAction({
+            companyId,
+            conversationId: chatId,
+            messageId: assistantMessage.id,
+            content: finalContent,
+            status: finalStatus,
+          });
+          const finalError = actionFailed(finalResult);
+          if (finalError) throw finalError;
+        } else {
+          setChatMessages(chatId, [...baseMessages, userMessage], companyId);
+        }
+      } catch (error) {
+        const interruptedStatus: ChatMessageStatus = toInterruptedStatus(controller.signal.aborted);
+        if (latestContent && persistedAssistant) {
+          const failedContent: MessageContent = [{ type: "text", text: latestContent }];
+          setMessageContent(chatId, assistantMessage.id, failedContent, companyId);
+          setMessageStatus(chatId, assistantMessage.id, interruptedStatus, companyId);
+          await updateMessageAction({
+            companyId,
+            conversationId: chatId,
+            messageId: assistantMessage.id,
+            content: failedContent,
+            status: interruptedStatus,
+          }).catch(() => undefined);
+        } else {
+          setChatMessages(chatId, [...baseMessages, userMessage], companyId);
+        }
+        if (error instanceof Error && error.message) {
+          console.error("No se pudo completar la generación local", error);
+        }
+        await hydrateWorkspaceStore();
       } finally {
-        if (controllerRef.current === controller) {
-          controllerRef.current = null;
+        if (controllerRef.current === controller) controllerRef.current = null;
+        if (runningMessageIdRef.current === assistantMessage.id) {
+          runningMessageIdRef.current = null;
+          setRunningMessageId(null);
         }
       }
     },
@@ -172,7 +264,6 @@ export function ChatRuntimeProvider({
         chatId,
       );
       if (!currentChat) return;
-
       await runConversation(input, currentChat.messages, message.parentId, message.runConfig);
     },
     [chatId, companyId, runConversation],
@@ -186,7 +277,6 @@ export function ChatRuntimeProvider({
         chatId,
       );
       if (!currentChat) return;
-
       const sourceIndex = currentChat.messages.findIndex((item) => item.id === message.sourceId);
       const baseMessages =
         sourceIndex >= 0 ? currentChat.messages.slice(0, sourceIndex) : currentChat.messages;
@@ -201,18 +291,26 @@ export function ChatRuntimeProvider({
         workspaceStore.getState().workspaces[companyId]?.chats ?? [],
         chatId,
       );
-      if (!currentChat) return;
-
+      if (!currentChat || !parentId) return;
       const parentIndex = currentChat.messages.findIndex((item) => item.id === parentId);
-      const baseMessages =
-        parentIndex >= 0 ? currentChat.messages.slice(0, parentIndex + 1) : currentChat.messages;
-      const parentMessage =
-        parentIndex >= 0
-          ? currentChat.messages[parentIndex]
-          : [...currentChat.messages].reverse().find((item) => item.role === "user");
-      if (!parentMessage || parentMessage.role !== "user") return;
-
-      await runConversation(parentMessage.content, baseMessages, parentId, config.runConfig);
+      const parentMessage = currentChat.messages[parentIndex];
+      const existingAssistant = currentChat.messages[parentIndex + 1];
+      if (
+        parentIndex < 0 ||
+        !parentMessage ||
+        parentMessage.role !== "user" ||
+        !existingAssistant ||
+        existingAssistant.role !== "assistant"
+      ) {
+        return;
+      }
+      await runConversation(
+        getContentText(parentMessage.content),
+        currentChat.messages.slice(0, parentIndex + 1),
+        parentId,
+        config.runConfig,
+        { userMessage: parentMessage, assistantMessageId: existingAssistant.id },
+      );
     },
     [chatId, companyId, runConversation],
   );
@@ -223,16 +321,26 @@ export function ChatRuntimeProvider({
 
   useEffect(() => () => controllerRef.current?.abort(), [chatId, companyId]);
 
-  const runtime = useExternalStoreRuntime({
-    messages,
-    isRunning,
-    isSendDisabled: isRunning,
-    convertMessage,
-    onNew,
-    onEdit,
-    onReload,
-    onCancel,
-  });
+  const convert = useCallback(
+    (message: Message): ThreadMessageLike => convertMessage(message, runningMessageId),
+    [runningMessageId],
+  );
+  const isRunning = runningMessageId !== null;
+  const runtime = useExternalStoreRuntime(
+    useMemo(
+      () => ({
+        messages,
+        isRunning,
+        isSendDisabled: isRunning,
+        convertMessage: convert,
+        onNew,
+        onEdit,
+        onReload,
+        onCancel,
+      }),
+      [convert, isRunning, messages, onCancel, onEdit, onNew, onReload],
+    ),
+  );
 
   return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
 }

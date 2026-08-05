@@ -61,43 +61,60 @@ const executeFetch = async (
 export const createAuthenticatedSoapClient = ({
   auth,
   fetchImpl = fetch,
-}: AuthenticatedSoapClientOptions) => ({
-  executeAuthenticatedSoap: async <T>(operation: AuthenticatedSoapOperation<T>): Promise<T> => {
-    const session = await auth.getOperationalSession();
-    if (!session) throw new SessionExpiredError();
+}: AuthenticatedSoapClientOptions) => {
+  let renewalFlight: Promise<unknown> | null = null;
 
-    const executeOnce = async (jSessionId: string) => {
-      const response = await executeFetch(
-        fetchImpl,
-        operation as AuthenticatedSoapOperation<unknown>,
-        jSessionId,
-      );
-      const expired = operation.isSessionExpired
-        ? await operation.isSessionExpired(response)
-        : await isSessionExpiredResponse(response);
-      return { response, expired };
-    };
+  const renewIfNeeded = async (expiredJSessionId: string): Promise<void> => {
+    const latestSession = await auth.getOperationalSession();
+    if (!latestSession) throw new SessionExpiredError();
+    if (latestSession.jSessionId !== expiredJSessionId) return;
 
-    const firstAttempt = await executeOnce(session.jSessionId);
-    if (!firstAttempt.expired) return operation.parseResponse(firstAttempt.response);
-
-    try {
-      await auth.renewSession();
-    } catch {
-      await auth.invalidate();
-      throw new SessionExpiredError();
+    if (!renewalFlight) {
+      renewalFlight = Promise.resolve(auth.renewSession()).finally(() => {
+        renewalFlight = null;
+      });
     }
+    await renewalFlight;
+  };
 
-    const renewedSession = await auth.getOperationalSession();
-    if (!renewedSession) {
-      await auth.invalidate();
-      throw new SessionExpiredError();
-    }
-    const retry = await executeOnce(renewedSession.jSessionId);
-    if (retry.expired) {
-      await auth.invalidate();
-      throw new SessionExpiredError();
-    }
-    return operation.parseResponse(retry.response);
-  },
-});
+  return {
+    executeAuthenticatedSoap: async <T>(operation: AuthenticatedSoapOperation<T>): Promise<T> => {
+      const session = await auth.getOperationalSession();
+      if (!session) throw new SessionExpiredError();
+
+      const executeOnce = async (jSessionId: string) => {
+        const response = await executeFetch(
+          fetchImpl,
+          operation as AuthenticatedSoapOperation<unknown>,
+          jSessionId,
+        );
+        const expired = operation.isSessionExpired
+          ? await operation.isSessionExpired(response)
+          : await isSessionExpiredResponse(response);
+        return { response, expired };
+      };
+
+      const firstAttempt = await executeOnce(session.jSessionId);
+      if (!firstAttempt.expired) return operation.parseResponse(firstAttempt.response);
+
+      try {
+        await renewIfNeeded(session.jSessionId);
+      } catch {
+        await auth.invalidate();
+        throw new SessionExpiredError();
+      }
+
+      const renewedSession = await auth.getOperationalSession();
+      if (!renewedSession) {
+        await auth.invalidate();
+        throw new SessionExpiredError();
+      }
+      const retry = await executeOnce(renewedSession.jSessionId);
+      if (retry.expired) {
+        await auth.invalidate();
+        throw new SessionExpiredError();
+      }
+      return operation.parseResponse(retry.response);
+    },
+  };
+};

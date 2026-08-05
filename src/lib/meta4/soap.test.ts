@@ -42,6 +42,11 @@ describe("Meta4 SOAP XML", () => {
         "<soap:Envelope><soap:Body><soap:Fault><faultcode>soap:Server</faultcode><faultstring>bad login</faultstring></soap:Fault></soap:Body></soap:Envelope>",
       ),
     ).toThrow(/SOAP Fault/);
+    expect(() =>
+      parseLoginResponse(
+        "<soap:Envelope><soap:Body><soap:Fault><faultstring>bad login</faultstring></soap:Fault></soap:Body></soap:Envelope>",
+      ),
+    ).toThrow(/bad login/);
     expect(() => parseLoginResponse("<Envelope><Body /></Envelope>")).toThrow(/sessionID/);
   });
 
@@ -101,5 +106,18 @@ describe("Meta4 client transport", () => {
       refreshSessionId: "refresh-1",
     });
     expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
+  it("parses a SOAP Fault even when Meta4 returns a non-success HTTP status", async () => {
+    const client = createMeta4Client({
+      loginUrl: "https://example.test/services/Login",
+      fetchImpl: async () =>
+        new Response(
+          "<soap:Envelope><soap:Body><soap:Fault><faultstring>expired credentials</faultstring></soap:Fault></soap:Body></soap:Envelope>",
+          { status: 500, headers: { "set-cookie": "JSESSIONID=ignored" } },
+        ),
+    });
+
+    await expect(client.login("user", "password")).rejects.toThrow(/expired credentials/);
   });
 });

@@ -26,10 +26,9 @@ export type AuthRepository = {
     refreshSessionIdEncrypted: string | null;
     lastValidatedAt: Date | null;
   } | null>;
-  replaceSoapSession: (data: SoapSessionData) => Promise<void>;
+  replaceAuthState: (data: SoapSessionData) => Promise<void>;
   updateJSessionId: (encryptedJSessionId: string, lastValidatedAt: Date) => Promise<void>;
   clearAuthState: () => Promise<void>;
-  revokeAllLocalBrowserSessions: () => Promise<void>;
   createLocalBrowserSession: (data: LocalBrowserSessionData) => Promise<void>;
   getLocalBrowserSession: (cookieHash: string) => Promise<{
     id: string;
@@ -39,7 +38,7 @@ export type AuthRepository = {
     revokedAt: Date | null;
     lastSeenAt: Date;
   } | null>;
-  touchLocalBrowserSession: (id: string, lastSeenAt: Date) => Promise<void>;
+  touchLocalBrowserSession: (id: string, lastSeenAt: Date, expiresAt: Date) => Promise<void>;
   revokeLocalBrowserSession: (id: string) => Promise<void>;
 };
 
@@ -57,7 +56,7 @@ export const createAuthRepository = (prisma: AuthPrismaClient): AuthRepository =
         lastValidatedAt: true,
       },
     }),
-  replaceSoapSession: async (data) => {
+  replaceAuthState: async (data) => {
     await prisma.$transaction([
       prisma.soapSession.deleteMany(),
       prisma.soapSession.create({
@@ -69,6 +68,7 @@ export const createAuthRepository = (prisma: AuthPrismaClient): AuthRepository =
           lastValidatedAt: data.lastValidatedAt,
         },
       }),
+      prisma.localBrowserSession.deleteMany(),
     ]);
   },
   updateJSessionId: async (encryptedJSessionId, lastValidatedAt) => {
@@ -82,9 +82,6 @@ export const createAuthRepository = (prisma: AuthPrismaClient): AuthRepository =
       prisma.soapSession.deleteMany(),
       prisma.localBrowserSession.deleteMany(),
     ]);
-  },
-  revokeAllLocalBrowserSessions: async () => {
-    await prisma.localBrowserSession.deleteMany();
   },
   createLocalBrowserSession: async (data) => {
     await prisma.localBrowserSession.create({
@@ -108,8 +105,11 @@ export const createAuthRepository = (prisma: AuthPrismaClient): AuthRepository =
         lastSeenAt: true,
       },
     }),
-  touchLocalBrowserSession: async (id, lastSeenAt) => {
-    await prisma.localBrowserSession.update({ where: { id }, data: { lastSeenAt } });
+  touchLocalBrowserSession: async (id, lastSeenAt, expiresAt) => {
+    await prisma.localBrowserSession.update({
+      where: { id },
+      data: { lastSeenAt, expiresAt },
+    });
   },
   revokeLocalBrowserSession: async (id) => {
     await prisma.localBrowserSession.update({

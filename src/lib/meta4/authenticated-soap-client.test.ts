@@ -68,7 +68,7 @@ describe("authenticated SOAP client", () => {
     expect(first).toContain("done");
     expect(second).toContain("done");
     expect(renewalCount).toBe(1);
-    expect(auth.renewSession).toHaveBeenCalledTimes(2);
+    expect(auth.renewSession).toHaveBeenCalledOnce();
     expect(fetchImpl).toHaveBeenCalledTimes(4);
   });
 

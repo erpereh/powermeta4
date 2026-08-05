@@ -4,7 +4,7 @@ import { createContext, type ReactNode, useContext, useEffect, useState } from "
 
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { workspaceStore } from "@/stores/use-workspace-store";
+import { hydrateWorkspaceStore } from "@/stores/use-workspace-store";
 
 const WorkspaceHydrationContext = createContext(false);
 
@@ -18,8 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
     void (async () => {
       try {
-        await Promise.resolve(workspaceStore.persist.rehydrate());
-        workspaceStore.getState().migrateLegacyChatState();
+        await hydrateWorkspaceStore();
       } finally {
         if (mounted) setHydrated(true);
       }

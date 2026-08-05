@@ -1,37 +1,39 @@
-# powermeta4 — estado de tareas
+# powermeta4 - estado de tareas
 
-## Corrección de workspaces locales y herramientas ERP — 2026-08-04
+## Implementacion local aprobada - 2026-08-05
 
-- [x] Convertir `CompanyId` en un identificador dinámico y persistir la lista
-      de empresas junto con el workspace activo.
-- [x] Mantener las tres empresas iniciales, crear empresas locales con
-      workspace vacío y activar automáticamente la nueva empresa.
-- [x] Implementar eliminación de empresas, selección de reemplazo y bloqueo
-      de la última empresa.
-- [x] Subir el store a la migración v3, conservar chats, favoritos, modelos y
-      actividad, y eliminar únicamente `users` heredado de v2.
-- [x] Unificar logo, nombre de producto y empresa activa en una única cabecera
-      con selector, submenús, diálogo de creación y confirmación de borrado.
-- [x] Separar el enlace de Herramientas del control de expansión, con estados
-      accesibles y apertura automática al entrar en un módulo.
-- [x] Reutilizar `ModuleWorkspace` para los cinco módulos y eliminar el CRUD
-      local de Usuarios, su validación, componentes y pruebas específicas.
-- [x] Mantener las rutas antiguas de Usuarios como redirecciones a su catálogo
-      común, sin renderizar formularios, tablas ni detalles.
-- [x] Marcar las cuatro acciones de Usuarios como externas y no implementadas,
-      con ruta `/tools/users`, prompts e iconos centralizados.
-- [x] Mostrar `Disponible próximamente` sin navegación ni actividad persistida
-      para acciones futuras y conservar recomendaciones ERP sin envío.
-- [x] Añadir pruebas de empresas dinámicas, aislamiento, persistencia y
-      migración v2→v3, además de las pruebas existentes de chat y registro.
-- [x] Actualizar README, DESIGN y AGENTS para reflejar el alcance local real.
+- [x] Documentar el preflight real de Node.js, TypeScript, Next.js, ESM y
+      dependencias antes de instalar Prisma 7.
+- [x] Instalar Prisma 7 con better-sqlite3, adapter oficial, tipos requeridos,
+      prisma.config.ts, migracion inicial y scripts de base de datos.
+- [x] Crear el bootstrap idempotente de una unica Empresa local con UUID
+      generado, sin datos demo ni dependencia de company-local.
+- [x] Sustituir la persistencia funcional de Zustand por snapshots server-
+      authoritative en SQLite y mantener ExternalStoreRuntime.
+- [x] Persistir mensajes estructurados con IDs estables y estados complete,
+      incomplete, cancelled y failed, sin reinicio automatico ni duplicados.
+- [x] Implementar login SOAP Meta4 server-only, DPAPI CurrentUser, cookie
+      opaca, renovacion single-flight y autorizacion real en servidor.
+- [x] Conservar src/proxy.ts por la convencion de Next.js 16.3 y limitarlo a
+      comprobaciones optimistas.
+- [x] Crear /settings con componentes shadcn oficiales y flujo de copias.
+- [x] Implementar ZIP consistente, manifest, checksum, limites, Zip Slip,
+      symlinks, importId opaco de un solo uso, expiracion, lock, reemplazo
+      atomico y rollback.
+- [x] Añadir pruebas de esquema/bootstrap, SOAP, DPAPI, sesiones, workspace,
+      aislamiento/cascadas, mensajes y copias seguras.
+- [x] Ejecutar la verificacion final indicada en AGENTS.md y documentar sus
+      resultados en spec/changelog.md.
 
 ## Pendientes reales
 
-- [ ] Sustituir el adaptador simulado por AI SDK y un proveedor real.
-- [ ] Añadir backend, persistencia remota y autenticación de producción.
-- [ ] Incorporar permisos reales, invitaciones y administración completa de
+- [ ] Comprobacion manual de Meta4 real con credenciales validas, conectividad y
+      salida verificable. Las pruebas automaticas nunca llaman al proveedor.
+- [ ] Sustituir el adaptador simulado de IA por AI SDK y un proveedor real.
+- [ ] Incorporar permisos reales, invitaciones y administracion completa de
       empresas.
-- [ ] Implementar las operaciones ERP de empresas, usuarios, nóminas,
-      informes y procesos mediante una integración externa.
-- [ ] Añadir subida real de adjuntos y pruebas E2E en un entorno desplegado.
+- [ ] Implementar operaciones ERP externas y subida real de adjuntos.
+- [ ] Añadir pruebas E2E en un entorno desplegado.
+
+Las acciones ERP actuales son un catalogo local honesto; no simulan conexiones,
+resultados ni operaciones externas.

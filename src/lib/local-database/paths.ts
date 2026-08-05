@@ -56,6 +56,7 @@ export const ensureLocalDataDirectories = async (dataDir?: string, cwd = process
   );
 
   await writeFileAsync(paths.databaseFilePath, "", { flag: "a" });
+  return paths;
 };
 
 export const ensureLocalDataDirectoriesSync = (dataDir?: string, cwd = process.cwd()) => {
@@ -66,6 +67,7 @@ export const ensureLocalDataDirectoriesSync = (dataDir?: string, cwd = process.c
   }
 
   writeFileSync(paths.databaseFilePath, "", { flag: "a" });
+  return paths;
 };
 
 export const toSqliteConnectionUrl = (databaseFilePath: string) =>

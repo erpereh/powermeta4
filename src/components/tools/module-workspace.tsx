@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { recordToolVisitAction } from "@/app/actions/workspace";
 import { TOOL_ICONS, type ToolDefinition, type ToolModuleDefinition } from "@/lib/tools/registry";
-import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
   const { isMobile, open, openMobile } = useSidebar();
@@ -27,6 +28,14 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
   const recordToolVisit = useWorkspaceStore((state) => state.recordToolVisit);
   const [feedback, setFeedback] = useState("");
   const ModuleIcon = TOOL_ICONS[module.icon];
+
+  const handleToolVisit = (toolId: string) => {
+    if (!activeCompanyId) return;
+    recordToolVisit(toolId, activeCompanyId);
+    void recordToolVisitAction(activeCompanyId, toolId).then((result) => {
+      if (!result.ok) void hydrateWorkspaceStore();
+    });
+  };
 
   const showUnavailable = () => setFeedback("Esta herramienta estará disponible próximamente.");
 
@@ -85,7 +94,7 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
               <ToolActionCard
                 key={tool.id}
                 tool={tool}
-                onVisit={() => recordToolVisit(tool.id)}
+                onVisit={() => handleToolVisit(tool.id)}
                 onUnavailable={showUnavailable}
               />
             ))}

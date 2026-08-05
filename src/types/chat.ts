@@ -1,6 +1,9 @@
+import type { ThreadMessageLike } from "@assistant-ui/react";
+
 export type MessageRole = "user" | "assistant";
 
-export type MessageStatus = "complete" | "running" | "incomplete";
+export type MessageStatus = "complete" | "incomplete" | "cancelled" | "failed";
+export type MessageContent = ThreadMessageLike["content"];
 
 export type ChatIconName =
   | "folder"
@@ -30,7 +33,7 @@ export type ChatColorName =
 export type Message = {
   id: string;
   role: MessageRole;
-  content: string;
+  content: MessageContent;
   createdAt: string;
   status: MessageStatus;
 };

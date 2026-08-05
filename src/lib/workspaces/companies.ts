@@ -1,34 +1,8 @@
 import { BriefcaseBusiness, Building2, Layers3, type LucideIcon } from "lucide-react";
 
-import type { Company, CompanyColorName, CompanyIconName, CompanyId } from "@/types/workspace";
+import type { CompanyColorName, CompanyIconName, CompanyId } from "@/types/workspace";
 
 export const toCompanyId = (value: string): CompanyId => value as CompanyId;
-
-export const DEFAULT_COMPANY_ID = toCompanyId("company-main");
-
-export const INITIAL_COMPANIES: readonly Company[] = [
-  {
-    id: toCompanyId("company-main"),
-    name: "Empresa Principal",
-    shortName: "Principal",
-    icon: "building",
-    color: "blue",
-  },
-  {
-    id: toCompanyId("company-cyc"),
-    name: "CyC Quality",
-    shortName: "CyC",
-    icon: "briefcase",
-    color: "purple",
-  },
-  {
-    id: toCompanyId("company-nexo"),
-    name: "Nexo Operativo",
-    shortName: "Nexo",
-    icon: "layers",
-    color: "green",
-  },
-] as const;
 
 export const COMPANY_ICONS: Record<CompanyIconName, LucideIcon> = {
   building: Building2,
