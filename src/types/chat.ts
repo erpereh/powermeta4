@@ -2,7 +2,8 @@ import type { ThreadMessageLike } from "@assistant-ui/react";
 
 export type MessageRole = "user" | "assistant";
 
-export type MessageStatus = "complete" | "incomplete" | "cancelled" | "failed";
+export type PersistedMessageStatus = "running" | "complete" | "incomplete" | "cancelled" | "failed";
+export type MessageStatus = PersistedMessageStatus;
 export type MessageContent = ThreadMessageLike["content"];
 
 export type ChatIconName =
@@ -32,10 +33,16 @@ export type ChatColorName =
 
 export type Message = {
   id: string;
+  conversationId?: string;
   role: MessageRole;
   content: MessageContent;
   createdAt: string;
+  updatedAt?: string;
   status: MessageStatus;
+  parentMessageId?: string | null;
+  generationId?: string | null;
+  sequence?: number;
+  errorCode?: string | null;
 };
 
 export type Chat = {
@@ -45,5 +52,6 @@ export type Chat = {
   icon?: ChatIconName;
   iconColor?: ChatColorName;
   updatedAt: string;
+  headMessageId?: string | null;
   messages: Message[];
 };

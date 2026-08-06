@@ -1,30 +1,20 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import { PrismaClient } from "../src/generated/prisma/client";
+import { bootstrapDatabase } from "../src/server/database/bootstrap";
+import { closeDatabase, createDatabase } from "../src/server/database/client";
+import { runMigrations } from "../src/server/database/migrations";
+import { transitionLegacyDatabase } from "./transition-local-database";
 
-import { setupLocalDatabase } from "../src/lib/local-database/bootstrap";
-import { ensureLocalDataDirectories, toSqliteConnectionUrl } from "../src/lib/local-database/paths";
-import { createCompanyRepository } from "../src/lib/local-database/repositories/company-repository";
-
-const main = async (): Promise<void> => {
-  const paths = await ensureLocalDataDirectories();
-  const adapter = new PrismaBetterSqlite3({ url: toSqliteConnectionUrl(paths.databaseFilePath) });
-  const prisma = new PrismaClient({ adapter });
+const main = async () => {
+  await transitionLegacyDatabase();
+  const database = createDatabase();
   try {
-    const result = await setupLocalDatabase(createCompanyRepository(prisma));
-
-    if (result.created) {
-      console.info(
-        `Bootstrap local completado para ${result.company.name} (${result.company.id}).`,
-      );
-    } else {
-      console.info(`Bootstrap local ya existente: ${result.company.name} (${result.company.id}).`);
-    }
+    runMigrations(database);
+    bootstrapDatabase(database);
   } finally {
-    await prisma.$disconnect();
+    closeDatabase();
   }
 };
 
 main().catch((error: unknown) => {
-  console.error("No se pudo completar el bootstrap local.", error);
+  console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;
 });

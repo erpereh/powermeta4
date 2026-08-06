@@ -41,6 +41,7 @@ export type WorkspaceStore = WorkspaceSnapshotState & {
   setChatTitle: (chatId: string, title: string, companyId?: CompanyId) => void;
   deleteChat: (chatId: string, companyId?: CompanyId) => void;
   setChatMessages: (chatId: string, messages: Message[], companyId?: CompanyId) => void;
+  setChatHead: (chatId: string, headMessageId: string | null, companyId?: CompanyId) => void;
   setMessageContent: (
     chatId: string,
     messageId: string,
@@ -57,9 +58,9 @@ export type WorkspaceStore = WorkspaceSnapshotState & {
   recordToolVisit: (toolId: string, companyId?: CompanyId) => void;
 };
 
-const createId = (prefix: string) => {
+const createId = (_prefix: string) => {
   const uuid = globalThis.crypto?.randomUUID?.();
-  return `${prefix}-${uuid ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`}`;
+  return uuid ?? `${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
 };
 
 const toCompanyId = (id: string): CompanyId => id as CompanyId;
@@ -69,6 +70,7 @@ const createEmptyChat = (): Chat => ({
   title: "Nuevo chat",
   favorite: false,
   updatedAt: new Date().toISOString(),
+  headMessageId: null,
   messages: [],
 });
 
@@ -332,6 +334,19 @@ const createWorkspaceStoreState =
           ...workspace,
           chats: workspace.chats.map((chat) =>
             chat.id === chatId ? { ...chat, messages, updatedAt: new Date().toISOString() } : chat,
+          ),
+        })),
+      );
+    },
+    setChatHead: (chatId, headMessageId, companyId) => {
+      const targetCompanyId = resolveCompanyId(get(), companyId);
+      set((state) =>
+        updateWorkspace(state, targetCompanyId, (workspace) => ({
+          ...workspace,
+          chats: workspace.chats.map((chat) =>
+            chat.id === chatId
+              ? { ...chat, headMessageId, updatedAt: new Date().toISOString() }
+              : chat,
           ),
         })),
       );

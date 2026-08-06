@@ -54,6 +54,7 @@ import {
   DEFAULT_CHAT_ICON,
 } from "@/lib/chat-customization";
 import type { Chat } from "@/types/chat";
+import { createClientMutationId } from "@/lib/client-mutation-id";
 
 const mainNavigation = [{ label: "Inicio", href: "/home", icon: Home }] as const;
 
@@ -104,9 +105,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const handleNewChat = () => {
     if (!activeCompanyId) return;
     const chatId = createChat(activeCompanyId);
-    void createConversationAction(activeCompanyId, chatId).then((result) => {
-      if (!result.ok) void hydrateWorkspaceStore();
-    });
+    void createConversationAction(activeCompanyId, chatId, createClientMutationId()).then(
+      (result) => {
+        if (!result.ok) void hydrateWorkspaceStore();
+      },
+    );
     router.push(`/chat/${chatId}`);
     closeMobileSidebar();
   };
@@ -114,9 +117,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const handleSelectChat = (chatId: string) => {
     if (!activeCompanyId) return;
     selectChat(chatId, activeCompanyId);
-    void selectConversationAction(activeCompanyId, chatId).then((result) => {
-      if (!result.ok) void hydrateWorkspaceStore();
-    });
+    void selectConversationAction(activeCompanyId, chatId, createClientMutationId()).then(
+      (result) => {
+        if (!result.ok) void hydrateWorkspaceStore();
+      },
+    );
     router.push(`/chat/${chatId}`);
     closeMobileSidebar();
   };
@@ -125,9 +130,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     if (!activeCompanyId) return;
     deleteChat(chatId, activeCompanyId);
     const nextActiveChatId = workspaceStore.getState().workspaces[activeCompanyId]?.activeChatId;
-    void deleteConversationAction(activeCompanyId, chatId).then((result) => {
-      if (!result.ok) void hydrateWorkspaceStore();
-    });
+    void deleteConversationAction(activeCompanyId, chatId, createClientMutationId()).then(
+      (result) => {
+        if (!result.ok) void hydrateWorkspaceStore();
+      },
+    );
     if (pathname.startsWith("/chat/") && nextActiveChatId) router.push(`/chat/${nextActiveChatId}`);
     else if (pathname.startsWith("/chat/")) router.push("/home");
   };
@@ -136,15 +143,20 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     if (!activeCompanyId) return;
     const favorite = !chat.favorite;
     toggleFavorite(chat.id, activeCompanyId);
-    void updateConversationAction(activeCompanyId, chat.id, {
-      favorite,
-      ...(favorite
-        ? {
-            icon: chat.icon ?? DEFAULT_CHAT_ICON,
-            iconColor: chat.iconColor ?? DEFAULT_CHAT_COLOR,
-          }
-        : {}),
-    }).then((result) => {
+    void updateConversationAction(
+      activeCompanyId,
+      chat.id,
+      {
+        favorite,
+        ...(favorite
+          ? {
+              icon: chat.icon ?? DEFAULT_CHAT_ICON,
+              iconColor: chat.iconColor ?? DEFAULT_CHAT_COLOR,
+            }
+          : {}),
+      },
+      createClientMutationId(),
+    ).then((result) => {
       if (!result.ok) void hydrateWorkspaceStore();
     });
   };
@@ -152,7 +164,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const handleSetIcon = (chat: Chat, icon: Chat["icon"]) => {
     if (!activeCompanyId) return;
     setChatIcon(chat.id, icon, activeCompanyId);
-    void updateConversationAction(activeCompanyId, chat.id, { icon }).then((result) => {
+    void updateConversationAction(
+      activeCompanyId,
+      chat.id,
+      { icon },
+      createClientMutationId(),
+    ).then((result) => {
       if (!result.ok) void hydrateWorkspaceStore();
     });
   };
@@ -160,7 +177,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const handleSetColor = (chat: Chat, iconColor: Chat["iconColor"]) => {
     if (!activeCompanyId) return;
     setChatColor(chat.id, iconColor, activeCompanyId);
-    void updateConversationAction(activeCompanyId, chat.id, { iconColor }).then((result) => {
+    void updateConversationAction(
+      activeCompanyId,
+      chat.id,
+      { iconColor },
+      createClientMutationId(),
+    ).then((result) => {
       if (!result.ok) void hydrateWorkspaceStore();
     });
   };

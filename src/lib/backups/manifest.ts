@@ -1,12 +1,17 @@
-import { BACKUP_VERSION, DATABASE_SCHEMA_VERSION } from "@/lib/local-database/server-constants";
+import "server-only";
+
+import {
+  BACKUP_DATABASE_PATH,
+  BACKUP_VERSION,
+  DATABASE_SCHEMA_VERSION,
+} from "@/server/database/version";
 
 export type BackupManifest = {
   backupVersion: typeof BACKUP_VERSION;
   databaseSchemaVersion: typeof DATABASE_SCHEMA_VERSION;
   appVersion: string;
   createdAt: string;
-  databaseFile: "database.sqlite";
-  snapshotFile: "workspace.json";
+  databasePath: typeof BACKUP_DATABASE_PATH;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -20,11 +25,24 @@ export const parseBackupManifest = (value: unknown): BackupManifest => {
   if (value.databaseSchemaVersion !== DATABASE_SCHEMA_VERSION) {
     throw new Error("La versión de base de datos no es compatible.");
   }
+  const keys = Object.keys(value).sort();
+  const expectedKeys = [
+    "appVersion",
+    "backupVersion",
+    "createdAt",
+    "databasePath",
+    "databaseSchemaVersion",
+  ];
+  if (
+    keys.length !== expectedKeys.length ||
+    keys.some((key, index) => key !== expectedKeys[index])
+  ) {
+    throw new Error("El manifest del backup está incompleto o contiene campos no permitidos.");
+  }
   if (
     typeof value.appVersion !== "string" ||
     typeof value.createdAt !== "string" ||
-    value.databaseFile !== "database.sqlite" ||
-    value.snapshotFile !== "workspace.json"
+    value.databasePath !== BACKUP_DATABASE_PATH
   ) {
     throw new Error("El manifest del backup está incompleto.");
   }
@@ -33,7 +51,6 @@ export const parseBackupManifest = (value: unknown): BackupManifest => {
     databaseSchemaVersion: DATABASE_SCHEMA_VERSION,
     appVersion: value.appVersion.slice(0, 120),
     createdAt: value.createdAt,
-    databaseFile: "database.sqlite",
-    snapshotFile: "workspace.json",
+    databasePath: BACKUP_DATABASE_PATH,
   };
 };

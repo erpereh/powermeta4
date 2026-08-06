@@ -1,110 +1,115 @@
 # powermeta4
 
-Aplicacion local hibrida para conversar con un asistente y organizar
-herramientas operativas por workspace de empresa. Los datos funcionales se
-guardan en SQLite local mediante Prisma 7. El modelo de IA y las acciones ERP
-siguen siendo adaptadores locales de desarrollo: no hay proveedor de IA real
-ni conexion ERP automatica.
+Aplicación local híbrida para conversar con un asistente y organizar
+herramientas operativas por workspace de empresa. SQLite local es la única
+fuente persistente; Zustand conserva únicamente el snapshot temporal para
+renderizar la interfaz. No se guardan datos funcionales en `localStorage`,
+`sessionStorage` ni en servicios remotos.
 
 ## Requisitos y puesta en marcha
 
-El preflight validado el 2026-08-05 fue:
+La persistencia usa directamente `node:sqlite`, `DatabaseSync` y `backup()`.
+El runtime admitido es Node.js `>=24.15 <25`; no se necesitan módulos SQLite
+nativos externos, `node-gyp` ni Visual Studio Build Tools para esta persistencia.
 
-- Node.js 24.18.0.
-- TypeScript 7.0.2.
-- Next.js 16.3.0, React 19.2.8 y assistant-ui 0.15.4.
-- tsconfig.json con module: esnext y moduleResolution: bundler.
-- package.json sin la propiedad type: module.
+```text
+npm install
+Copy-Item .env.example .env.local
+npm run setup
+npm run dev
+```
 
-Node.js y TypeScript cumplen los minimos de Prisma 7. Prisma usa
-prisma.config.ts, un cliente generado explicitamente y el adapter oficial de
-better-sqlite3; no se modifico la configuracion ESM de Next.js.
+`npm run setup` ejecuta la transición única segura, las migraciones SQL propias,
+la validación y el bootstrap idempotente. En una instalación vacía crea solo
+`Empresa local` y `activeCompanyId`: no crea conversaciones, mensajes,
+favoritos, actividad, configuración de demostración ni sesiones.
 
-    npm install
-    Copy-Item .env.example .env.local
-    npm run setup
-    npm run dev
+La base se guarda bajo `POWERMETA4_DATA_DIR` (por defecto `./data`):
 
-npm run setup genera el cliente Prisma, aplica migraciones y crea una unica
-empresa Empresa local con UUID si la base todavia no contiene empresas. Es
-idempotente: si ya existe cualquier empresa, no crea otra ni vuelve a crear la
-empresa inicial despues de renombrarla.
+- `powermeta4.db`: base SQLite local.
+- `uploads/`: archivos funcionales.
+- `backups/`: ZIP exportados.
+- `temp/`: imports pendientes y temporales controlados.
 
-La base se guarda bajo POWERMETA4_DATA_DIR (por defecto ./data):
+Las actualizaciones de esquema se aplican exclusivamente con
+`npm run setup` o `npm run db:migrate`. La restauración nunca ejecuta
+migraciones.
 
-- powermeta4.db: SQLite local.
-- uploads/: archivos funcionales.
-- backups/: ZIP exportados.
-- temp/: imports pendientes y temporales controlados.
+## Persistencia y autenticación
 
-## Persistencia y autenticacion
+Los repositorios server-only validan `companyId` en cada mutación y usan
+consultas preparadas, foreign keys, WAL, `busy_timeout=5000`,
+`synchronous=NORMAL`, defensive mode cuando está disponible y extensiones
+desactivadas. Las migraciones quedan registradas en `schema_migrations` con
+huella de contenido para impedir modificaciones, omisiones o duplicados.
 
-El servidor es la fuente de verdad para empresas, conversaciones, mensajes,
-favoritos, modelos, configuracion y actividad. El store Zustand del cliente
-solo mantiene el snapshot temporal para renderizar la interfaz; no usa
-persist, localStorage funcional ni sessionStorage. next-themes conserva su
-almacenamiento de tema.
+Las conversaciones conservan ramas mediante `parentMessageId`,
+`generationId`, `sequence`, estados terminales y `headMessageId`. Se mantiene
+`ExternalStoreRuntime`, `Thread` y `BranchPickerPrimitive` oficiales de
+assistant-ui. Los mensajes `running` abandonados se recuperan como
+`incomplete` y no se reanudan automáticamente.
 
-El Thread mantiene ExternalStoreRuntime, streaming, edicion, cancelacion y
-recomendaciones no ejecutables. Los mensajes se guardan como contenido JSON y
-usan estados explicitos complete, incomplete, cancelled o failed. Una
-generacion cancelada o fallida no se muestra como completada y no se reinicia
-automaticamente al recargar.
-
-El login usa SOAP Meta4 server-only con META4_LOGIN_URL, XML escapado, idioma
-3, timeout y sin SOAPAction. El usuario se conserva exactamente como se
-escribio. JSESSIONID y refreshSessionId se cifran con Windows DPAPI
-CurrentUser; el navegador solo recibe una cookie opaca HttpOnly, SameSite
-Strict, Path / y duracion deslizante de 30 dias. Las sesiones SOAP se simulan
-en las pruebas y nunca se llaman automaticamente desde npm test.
+SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
+server-only. Las pruebas SOAP son simuladas y no llaman a Meta4 real.
 
 ## Copias locales
 
-/settings permite crear un ZIP o validar y confirmar una restauracion. La
-exportacion incluye manifest, snapshot SQLite consistente, workspace funcional,
-actividad no sensible y uploads; excluye sesiones, cookies, tokens, secretos,
-.env, logs y temporales.
+El ZIP contiene exclusivamente:
 
-La importacion usa:
+```text
+manifest.json
+database/powermeta4.db
+uploads/
+```
 
-- POST /api/backups/import/validate para validar y crear un importId opaco.
-- POST /api/backups/import/confirm para consumirlo una sola vez.
-- DELETE /api/backups/import/[importId] para cancelar y limpiar.
+El manifest tiene exactamente estas cinco propiedades:
 
-El ZIP validado permanece solo en data/temp, asociado al hash de la sesion
-local, con checksum y expiracion de 15 minutos. El cliente nunca envia ni
-recibe rutas fisicas. La confirmacion vuelve a comprobar sesion, checksum,
-manifest, version, integridad SQLite, consumo unico y reemplazo atomico con
-rollback.
+```json
+{
+  "backupVersion": 1,
+  "databaseSchemaVersion": 1,
+  "appVersion": "...",
+  "createdAt": "...",
+  "databasePath": "database/powermeta4.db"
+}
+```
 
-Los limites por defecto son 256 MB comprimido, 1 GB descomprimido, 10.000
-entradas y 256 MB por archivo. Se pueden cambiar mediante las variables
-POWERMETA4_BACKUP_* de .env.example. backupVersion debe ser exactamente 1 y
-databaseSchemaVersion debe coincidir con la version soportada. appVersion solo
-es informativa.
+La instantánea activa el lock de escrituras solo durante `backup()`. El
+saneamiento de la copia, la lectura de uploads y la compresión se realizan sin
+ese lock. Sesiones, imports pendientes e idempotency receipts se eliminan de
+la copia temporal; la base activa no se modifica al exportar.
+
+La restauración exige coincidencia exacta de `backupVersion` y
+`databaseSchemaVersion` antes de adquirir mantenimiento. Valida seguridad del
+ZIP, integridad SQLite, foreign keys, historial de migraciones y tablas
+requeridas; sustituye base y uploads con rollback conjunto e invalida la
+sesión para exigir un nuevo login.
+
+## Verificación
+
+```text
+npm install
+npm run setup
+npm run lint
+npm run typecheck
+npm test
+npm run build
+git diff --check
+git status --short
+```
+
+La aceptación de dependencias se limita a la persistencia nueva: no depende de
+Prisma, `better-sqlite3`, `@prisma/adapter-better-sqlite3`, `node-gyp` ni
+compiladores externos. No se afirma que otras dependencias no relacionadas
+del proyecto jamás puedan compilar código nativo.
 
 ## Rutas principales
 
-- /login: autenticacion Meta4 local.
-- /, /home, /chat/new y /chat/[chatId]: chat y launchpad.
-- /settings: sesion y copias locales.
-- /tools, /tools/users, /tools/companies, /tools/payroll, /tools/reports y
-  /tools/processes: catalogo local de herramientas.
+- `/login`: autenticación Meta4 local.
+- `/`, `/home`, `/chat/new` y `/chat/[chatId]`: chat y launchpad.
+- `/settings`: sesión y copias locales.
+- `/tools`, `/tools/users`, `/tools/companies`, `/tools/payroll`,
+  `/tools/reports` y `/tools/processes`: catálogo local de herramientas.
 
-Las rutas antiguas de Usuarios redirigen a /tools/users; /inbox no existe.
-Las acciones ERP no ejecutan operaciones externas ni representan sincronizacion
-con un sistema real.
-
-## Verificacion
-
-    npm run setup
-    npm test
-    npm run lint
-    npm run typecheck
-    npm run build
-    git diff --check
-    git status --short
-
-Las pruebas de SOAP son simuladas. El funcionamiento de Meta4 real queda
-pendiente de credenciales validas, conectividad y una comprobacion manual con
-salida verificable.
+Las acciones ERP actuales son un catálogo local honesto; no ejecutan
+operaciones externas ni representan sincronización con un sistema real.

@@ -1,218 +1,124 @@
-import { exec } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { access, readdir } from "node:fs/promises";
+import { DatabaseSync } from "node:sqlite";
+import { access, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { promisify } from "node:util";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
-const execAsync = promisify(exec);
-const repoRoot = process.cwd();
-const localDatabaseDir = path.join(repoRoot, "src", "lib", "local-database");
-const localDatabaseTestDir = () => mkdtempSync(path.join(os.tmpdir(), "powermeta4-db-test-"));
+import { bootstrapDatabase } from "@/server/database/bootstrap";
+import { createDatabase } from "@/server/database/client";
+import { runMigrations } from "@/server/database/migrations";
+import { BACKUP_VERSION, DATABASE_SCHEMA_VERSION } from "@/server/database/version";
+import { transitionLegacyDatabase } from "../../../scripts/transition-local-database";
+import { ensureLocalDataDirectories, resolveLocalDataPaths } from "@/server/database/paths";
 
-const requirePath = async (targetPath: string) => {
-  await access(targetPath);
-  return targetPath;
-};
+const createdDirectories: string[] = [];
+const openDatabases: DatabaseSync[] = [];
 
-const importLocalDatabaseModule = async <TModule>(relativePath: string): Promise<TModule> => {
-  const absolutePath = await requirePath(path.join(localDatabaseDir, relativePath));
-  return import(absolutePath) as Promise<TModule>;
-};
-
-const runNpmScript = async (scriptName: string, dataDir: string) => {
-  const sanitizedEnv: NodeJS.ProcessEnv = {
-    ...process.env,
-    POWERMETA4_DATA_DIR: dataDir,
-  };
-  const command = process.platform === "win32" ? `npm run ${scriptName}` : `npm run ${scriptName}`;
-
-  await execAsync(command, {
-    cwd: repoRoot,
-    env: sanitizedEnv,
-    shell: process.platform === "win32" ? "powershell.exe" : undefined,
-  });
-};
+afterEach(async () => {
+  while (openDatabases.length > 0) openDatabases.pop()?.close();
+  while (createdDirectories.length > 0) {
+    const directory = createdDirectories.pop();
+    if (directory) await rm(directory, { recursive: true, force: true });
+  }
+});
 
 describe("local database setup", () => {
-  const createdDirectories: string[] = [];
-
-  afterEach(async () => {
-    vi.resetModules();
-    delete process.env.POWERMETA4_DATA_DIR;
-
-    while (createdDirectories.length > 0) {
-      const directory = createdDirectories.pop();
-      if (!directory) continue;
-      rmSync(directory, { force: true, recursive: true });
-    }
-  });
-
-  it("declares Prisma 7 config, schema, migration and npm scripts", async () => {
-    const packageJson = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8")) as {
-      scripts?: Record<string, string>;
-    };
-
-    expect(packageJson.scripts).toMatchObject({
-      "db:generate": expect.any(String),
-      "db:migrate": expect.any(String),
-      "db:deploy": expect.any(String),
-      "db:validate": expect.any(String),
-      "db:studio": expect.any(String),
-      setup: expect.any(String),
-    });
-
-    const prismaConfigPath = path.join(repoRoot, "prisma.config.ts");
-    const schemaPath = path.join(repoRoot, "prisma", "schema.prisma");
-    await expect(access(prismaConfigPath)).resolves.toBeUndefined();
-    await expect(access(schemaPath)).resolves.toBeUndefined();
-
-    const migrationsDirectory = path.join(repoRoot, "prisma", "migrations");
-    const migrations = await readdir(migrationsDirectory);
-    expect(migrations.some((entry) => entry !== "migration_lock.toml")).toBe(true);
-
-    const schemaContents = readFileSync(schemaPath, "utf8");
-    expect(schemaContents).toContain('provider     = "prisma-client"');
-    expect(schemaContents).toContain('provider = "sqlite"');
-    expect(schemaContents).toContain('output       = "../src/generated/prisma"');
-    for (const model of [
-      "Company",
-      "Conversation",
-      "Message",
-      "Attachment",
-      "AppSetting",
-      "WorkspaceSetting",
-      "ToolActivity",
-      "SoapSession",
-      "LocalBrowserSession",
-      "PendingBackupImport",
-    ]) {
-      expect(schemaContents).toMatch(new RegExp(`model\\s+${model}\\s*\\{`));
-    }
-  });
-
-  it("resolves local data paths and creates the expected directories", async () => {
-    const dataDir = localDatabaseTestDir();
+  it("uses node:sqlite migrations and the centralized versions", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "powermeta4-db-test-"));
     createdDirectories.push(dataDir);
+    const paths = await ensureLocalDataDirectories(dataDir);
+    const database = createDatabase(paths.databaseFilePath);
+    openDatabases.push(database);
 
-    const { DEFAULT_DATABASE_SCHEMA_VERSION, DEFAULT_BACKUP_VERSION } =
-      await importLocalDatabaseModule<{
-        DEFAULT_DATABASE_SCHEMA_VERSION: number;
-        DEFAULT_BACKUP_VERSION: number;
-      }>("server-constants.ts");
-    const { ensureLocalDataDirectories, resolveLocalDataPaths } = await importLocalDatabaseModule<{
-      ensureLocalDataDirectories: (dataDir?: string) => Promise<void>;
-      resolveLocalDataPaths: (dataDir?: string) => {
-        rootDir: string;
-        databaseFilePath: string;
-        backupsDir: string;
-        uploadsDir: string;
-        tempDir: string;
-      };
-    }>("paths.ts");
+    runMigrations(database);
+    const firstBootstrap = bootstrapDatabase(database);
+    const secondBootstrap = bootstrapDatabase(database);
 
-    expect(DEFAULT_DATABASE_SCHEMA_VERSION).toBe(1);
-    expect(DEFAULT_BACKUP_VERSION).toBe(1);
+    expect(BACKUP_VERSION).toBe(1);
+    expect(DATABASE_SCHEMA_VERSION).toBe(1);
+    expect(firstBootstrap.created).toBe(true);
+    expect(secondBootstrap.created).toBe(false);
+    expect(database.prepare("SELECT COUNT(*) AS count FROM companies").get()?.count).toBe(1);
+    expect(database.prepare("SELECT COUNT(*) AS count FROM conversations").get()?.count).toBe(0);
+    expect(database.prepare("SELECT COUNT(*) AS count FROM messages").get()?.count).toBe(0);
+    expect(
+      database.prepare("SELECT value_json FROM app_settings WHERE key = 'activeCompanyId'").get(),
+    ).toBeTruthy();
+    expect(database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get()?.count).toBe(
+      1,
+    );
+  });
 
+  it("creates the managed directories and transition marker", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "powermeta4-transition-test-"));
+    createdDirectories.push(dataDir);
     const paths = resolveLocalDataPaths(dataDir);
     await ensureLocalDataDirectories(dataDir);
+    await transitionLegacyDatabase(dataDir);
 
-    expect(paths.rootDir).toBe(dataDir);
-    expect(paths.databaseFilePath).toBe(path.join(dataDir, "powermeta4.db"));
     await expect(access(paths.uploadsDir)).resolves.toBeUndefined();
     await expect(access(paths.backupsDir)).resolves.toBeUndefined();
     await expect(access(paths.tempDir)).resolves.toBeUndefined();
+    await expect(access(paths.transitionMarkerPath)).resolves.toBeUndefined();
   });
 
-  it("bootstraps exactly one local company and exposes it through the repository", async () => {
-    const dataDir = localDatabaseTestDir();
+  it("removes only a known empty Prisma database during the one-time transition", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "powermeta4-legacy-test-"));
     createdDirectories.push(dataDir);
+    const paths = await ensureLocalDataDirectories(dataDir);
+    const legacy = new DatabaseSync(paths.databaseFilePath);
+    legacy.exec("CREATE TABLE _prisma_migrations (id TEXT PRIMARY KEY)");
+    legacy.close();
 
-    await runNpmScript("db:deploy", dataDir);
+    await transitionLegacyDatabase(dataDir);
 
-    const { resolveLocalDataPaths, toSqliteConnectionUrl } = await importLocalDatabaseModule<{
-      resolveLocalDataPaths: (dataDir?: string) => { databaseFilePath: string };
-      toSqliteConnectionUrl: (databaseFilePath: string) => string;
-    }>("paths.ts");
-    const { createPrismaClient } = await importLocalDatabaseModule<{
-      createPrismaClient: (databaseUrl: string) => {
-        $disconnect(): Promise<void>;
-      };
-    }>("client.ts");
-    const { createCompanyRepository } = await importLocalDatabaseModule<{
-      createCompanyRepository: (prisma: object) => {
-        count(): Promise<number>;
-        list(): Promise<Array<{ id: string; name: string }>>;
-        createLocalCompany(): Promise<{ id: string; name: string }>;
-      };
-    }>("repositories/company-repository.ts");
-    const { bootstrapLocalCompany } = await importLocalDatabaseModule<{
-      bootstrapLocalCompany: (repository: {
-        count(): Promise<number>;
-        list(): Promise<Array<{ id: string; name: string }>>;
-        createLocalCompany(): Promise<{ id: string; name: string }>;
-      }) => Promise<{ created: boolean; company: { id: string; name: string } }>;
-    }>("bootstrap.ts");
-
-    const databaseUrl = toSqliteConnectionUrl(resolveLocalDataPaths(dataDir).databaseFilePath);
-    const prisma = createPrismaClient(databaseUrl);
-    const repository = createCompanyRepository(prisma);
-
-    expect(await repository.count()).toBe(0);
-
-    try {
-      const firstBootstrap = await bootstrapLocalCompany(repository);
-      const secondBootstrap = await bootstrapLocalCompany(repository);
-      const companies = await repository.list();
-
-      expect(firstBootstrap).toMatchObject({
-        created: true,
-        company: { id: expect.any(String), name: "Empresa local" },
-      });
-      expect(secondBootstrap).toMatchObject({
-        created: false,
-        company: { id: firstBootstrap.company.id, name: "Empresa local" },
-      });
-      expect(companies).toEqual([
-        expect.objectContaining({ id: firstBootstrap.company.id, name: "Empresa local" }),
-      ]);
-    } finally {
-      await prisma.$disconnect();
-    }
+    await expect(access(paths.databaseFilePath)).rejects.toThrow();
+    await expect(access(paths.transitionMarkerPath)).resolves.toBeUndefined();
   });
 
-  it("returns the same company when bootstrap calls race", async () => {
-    const { bootstrapLocalCompany } = await importLocalDatabaseModule<{
-      bootstrapLocalCompany: (repository: {
-        getFirst(): Promise<{ id: string; name: string } | null>;
-        createLocalCompany(): Promise<{ id: string; name: string }>;
-      }) => Promise<{ created: boolean; company: { id: string; name: string } }>;
-    }>("bootstrap.ts");
-    let company: { id: string; name: string } | null = null;
-    let createCalls = 0;
-    const repository = {
-      getFirst: async () => company,
-      createLocalCompany: async () => {
-        createCalls += 1;
-        await new Promise((resolve) => setTimeout(resolve, 5));
-        if (company) {
-          const error = Object.assign(new Error("duplicate"), { code: "P2002" });
-          throw error;
-        }
-        company = { id: "company-race", name: "Empresa local" };
-        return company;
-      },
-    };
+  it("accepts the known empty seed and its active-company setting", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "powermeta4-seed-test-"));
+    createdDirectories.push(dataDir);
+    const paths = await ensureLocalDataDirectories(dataDir);
+    const legacy = new DatabaseSync(paths.databaseFilePath);
+    legacy.exec(
+      "CREATE TABLE _prisma_migrations (id TEXT PRIMARY KEY); CREATE TABLE companies (id TEXT PRIMARY KEY, name TEXT, shortName TEXT, icon TEXT, color TEXT); CREATE TABLE app_settings (key TEXT PRIMARY KEY, valueJson TEXT)",
+    );
+    legacy
+      .prepare("INSERT INTO companies (id, name, shortName, icon, color) VALUES (?, ?, ?, ?, ?)")
+      .run("seed-company", "Empresa local", "Local", "building", "blue");
+    legacy
+      .prepare("INSERT INTO app_settings (key, valueJson) VALUES (?, ?)")
+      .run("activeCompanyId", JSON.stringify("seed-company"));
+    legacy.close();
 
-    const results = await Promise.all([
-      bootstrapLocalCompany(repository),
-      bootstrapLocalCompany(repository),
-    ]);
+    await transitionLegacyDatabase(dataDir);
 
-    expect(createCalls).toBe(2);
-    expect(results.filter((result) => result.created)).toHaveLength(1);
-    expect(results[0]?.company).toEqual(results[1]?.company);
+    await expect(access(paths.databaseFilePath)).rejects.toThrow();
+    await expect(access(paths.transitionMarkerPath)).resolves.toBeUndefined();
+  });
+
+  it("aborts the transition when an existing database is unknown", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "powermeta4-unknown-test-"));
+    createdDirectories.push(dataDir);
+    const paths = await ensureLocalDataDirectories(dataDir);
+    const unknown = new DatabaseSync(paths.databaseFilePath);
+    unknown.exec("CREATE TABLE foreign_data (id TEXT PRIMARY KEY)");
+    unknown.prepare("INSERT INTO foreign_data (id) VALUES (?)").run("real-data");
+    unknown.close();
+
+    await expect(transitionLegacyDatabase(dataDir)).rejects.toThrow(/no reconocido/);
+    await expect(access(paths.databaseFilePath)).resolves.toBeUndefined();
+    await expect(access(paths.transitionMarkerPath)).rejects.toThrow();
+  });
+
+  it("rejects a second transition after the marker exists", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "powermeta4-marker-test-"));
+    createdDirectories.push(dataDir);
+    const paths = await ensureLocalDataDirectories(dataDir);
+    await writeFile(paths.transitionMarkerPath, "already transitioned\n", { flag: "wx" });
+    await expect(transitionLegacyDatabase(dataDir)).resolves.toBeUndefined();
+    await expect(access(paths.transitionMarkerPath)).resolves.toBeUndefined();
   });
 });

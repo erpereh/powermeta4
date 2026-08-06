@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { useWorkspaceHydrated } from "@/components/app-shell/app-shell";
 import { createConversationAction } from "@/app/actions/workspace";
+import { createClientMutationId } from "@/lib/client-mutation-id";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function NewChatRoute() {
@@ -20,7 +21,7 @@ export function NewChatRoute() {
     if (!companyId) return;
     createdRef.current = true;
     const chatId = createChat(companyId);
-    void createConversationAction(companyId, chatId).then((result) => {
+    void createConversationAction(companyId, chatId, createClientMutationId()).then((result) => {
       if (!result.ok) {
         void hydrateWorkspaceStore();
         return;

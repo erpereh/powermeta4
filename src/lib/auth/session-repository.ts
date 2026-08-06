@@ -1,6 +1,10 @@
 import "server-only";
 
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { DatabaseSync } from "node:sqlite";
+
+import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
+import { getDatabase } from "@/server/database/client";
+import { withTransaction } from "@/server/database/transaction";
 
 export const GLOBAL_SOAP_SESSION_ID = "global";
 
@@ -16,6 +20,12 @@ export type LocalBrowserSessionData = {
   cookieHash: string;
   username: string;
   expiresAt: Date;
+};
+
+const toDate = (value: unknown): Date | null => {
+  if (typeof value !== "string") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 };
 
 export type AuthRepository = {
@@ -42,79 +52,109 @@ export type AuthRepository = {
   revokeLocalBrowserSession: (id: string) => Promise<void>;
 };
 
-type AuthPrismaClient = Pick<PrismaClient, "soapSession" | "localBrowserSession" | "$transaction">;
-
-export const createAuthRepository = (prisma: AuthPrismaClient): AuthRepository => ({
-  getSoapSession: () =>
-    prisma.soapSession.findUnique({
-      where: { id: GLOBAL_SOAP_SESSION_ID },
-      select: {
-        id: true,
-        username: true,
-        jsessionIdEncrypted: true,
-        refreshSessionIdEncrypted: true,
-        lastValidatedAt: true,
-      },
-    }),
-  replaceAuthState: async (data) => {
-    await prisma.$transaction([
-      prisma.soapSession.deleteMany(),
-      prisma.soapSession.create({
-        data: {
-          id: GLOBAL_SOAP_SESSION_ID,
-          username: data.username,
-          jsessionIdEncrypted: data.jsessionIdEncrypted,
-          refreshSessionIdEncrypted: data.refreshSessionIdEncrypted,
-          lastValidatedAt: data.lastValidatedAt,
-        },
+export const createAuthRepository = (database: DatabaseSync = getDatabase()): AuthRepository => ({
+  getSoapSession: async () => {
+    const row = database
+      .prepare(
+        "SELECT id, username, jsession_id_encrypted, refresh_session_id_encrypted, last_validated_at FROM soap_sessions WHERE id = ?",
+      )
+      .get(GLOBAL_SOAP_SESSION_ID);
+    if (!row) return null;
+    return {
+      id: String(row.id),
+      username: String(row.username),
+      jsessionIdEncrypted: String(row.jsession_id_encrypted),
+      refreshSessionIdEncrypted:
+        typeof row.refresh_session_id_encrypted === "string"
+          ? row.refresh_session_id_encrypted
+          : null,
+      lastValidatedAt: toDate(row.last_validated_at),
+    };
+  },
+  replaceAuthState: async (data) =>
+    withRepositoryWrite(async () =>
+      withTransaction(database, () => {
+        const timestamp = new Date().toISOString();
+        database.exec("DELETE FROM soap_sessions; DELETE FROM local_browser_sessions;");
+        database
+          .prepare(
+            "INSERT INTO soap_sessions (id, username, jsession_id_encrypted, refresh_session_id_encrypted, session_id_encrypted, expires_at, last_validated_at, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?)",
+          )
+          .run(
+            GLOBAL_SOAP_SESSION_ID,
+            data.username,
+            data.jsessionIdEncrypted,
+            data.refreshSessionIdEncrypted,
+            data.lastValidatedAt.toISOString(),
+            timestamp,
+            timestamp,
+          );
       }),
-      prisma.localBrowserSession.deleteMany(),
-    ]);
-  },
-  updateJSessionId: async (encryptedJSessionId, lastValidatedAt) => {
-    await prisma.soapSession.update({
-      where: { id: GLOBAL_SOAP_SESSION_ID },
-      data: { jsessionIdEncrypted: encryptedJSessionId, lastValidatedAt },
-    });
-  },
-  clearAuthState: async () => {
-    await prisma.$transaction([
-      prisma.soapSession.deleteMany(),
-      prisma.localBrowserSession.deleteMany(),
-    ]);
-  },
-  createLocalBrowserSession: async (data) => {
-    await prisma.localBrowserSession.create({
-      data: {
-        id: data.id,
-        cookieHash: data.cookieHash,
-        username: data.username,
-        expiresAt: data.expiresAt,
-      },
-    });
-  },
-  getLocalBrowserSession: (cookieHash) =>
-    prisma.localBrowserSession.findUnique({
-      where: { cookieHash },
-      select: {
-        id: true,
-        username: true,
-        cookieHash: true,
-        expiresAt: true,
-        revokedAt: true,
-        lastSeenAt: true,
-      },
+    ),
+  updateJSessionId: async (encryptedJSessionId, lastValidatedAt) =>
+    withRepositoryWrite(async () => {
+      database
+        .prepare(
+          "UPDATE soap_sessions SET jsession_id_encrypted = ?, last_validated_at = ?, updated_at = ? WHERE id = ?",
+        )
+        .run(
+          encryptedJSessionId,
+          lastValidatedAt.toISOString(),
+          new Date().toISOString(),
+          GLOBAL_SOAP_SESSION_ID,
+        );
     }),
-  touchLocalBrowserSession: async (id, lastSeenAt, expiresAt) => {
-    await prisma.localBrowserSession.update({
-      where: { id },
-      data: { lastSeenAt, expiresAt },
-    });
+  clearAuthState: async () =>
+    withRepositoryWrite(async () => {
+      withTransaction(database, () =>
+        database.exec("DELETE FROM soap_sessions; DELETE FROM local_browser_sessions;"),
+      );
+    }),
+  createLocalBrowserSession: async (data) =>
+    withRepositoryWrite(async () => {
+      const timestamp = new Date().toISOString();
+      database
+        .prepare(
+          "INSERT INTO local_browser_sessions (id, cookie_hash, username, created_at, last_seen_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, NULL)",
+        )
+        .run(
+          data.id,
+          data.cookieHash,
+          data.username,
+          timestamp,
+          timestamp,
+          data.expiresAt.toISOString(),
+        );
+    }),
+  getLocalBrowserSession: async (cookieHash) => {
+    const row = database
+      .prepare(
+        "SELECT id, cookie_hash, username, expires_at, revoked_at, last_seen_at FROM local_browser_sessions WHERE cookie_hash = ?",
+      )
+      .get(cookieHash);
+    if (!row) return null;
+    const expiresAt = toDate(row.expires_at);
+    const lastSeenAt = toDate(row.last_seen_at);
+    if (!expiresAt || !lastSeenAt) return null;
+    return {
+      id: String(row.id),
+      username: String(row.username),
+      cookieHash: String(row.cookie_hash),
+      expiresAt,
+      revokedAt: toDate(row.revoked_at),
+      lastSeenAt,
+    };
   },
-  revokeLocalBrowserSession: async (id) => {
-    await prisma.localBrowserSession.update({
-      where: { id },
-      data: { revokedAt: new Date() },
-    });
-  },
+  touchLocalBrowserSession: async (id, lastSeenAt, expiresAt) =>
+    withRepositoryWrite(async () => {
+      database
+        .prepare("UPDATE local_browser_sessions SET last_seen_at = ?, expires_at = ? WHERE id = ?")
+        .run(lastSeenAt.toISOString(), expiresAt.toISOString(), id);
+    }),
+  revokeLocalBrowserSession: async (id) =>
+    withRepositoryWrite(async () => {
+      database
+        .prepare("UPDATE local_browser_sessions SET revoked_at = ? WHERE id = ?")
+        .run(new Date().toISOString(), id);
+    }),
 });

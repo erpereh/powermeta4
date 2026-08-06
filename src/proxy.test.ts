@@ -12,7 +12,7 @@ describe("Next 16 proxy optimistic checks", () => {
     expect(response.headers.get("location")).toContain("/login");
   });
 
-  it("allows an opaque cookie through without touching Prisma or SOAP", () => {
+  it("allows an opaque cookie through without touching the database or SOAP", () => {
     const request = new NextRequest("http://localhost/home");
     request.cookies.set(SESSION_COOKIE_NAME, createOpaqueSessionId());
 

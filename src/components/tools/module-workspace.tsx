@@ -17,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { recordToolVisitAction } from "@/app/actions/workspace";
 import { TOOL_ICONS, type ToolDefinition, type ToolModuleDefinition } from "@/lib/tools/registry";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
+import { createClientMutationId } from "@/lib/client-mutation-id";
 
 export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
   const { isMobile, open, openMobile } = useSidebar();
@@ -32,7 +33,7 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
   const handleToolVisit = (toolId: string) => {
     if (!activeCompanyId) return;
     recordToolVisit(toolId, activeCompanyId);
-    void recordToolVisitAction(activeCompanyId, toolId).then((result) => {
+    void recordToolVisitAction(activeCompanyId, toolId, createClientMutationId()).then((result) => {
       if (!result.ok) void hydrateWorkspaceStore();
     });
   };

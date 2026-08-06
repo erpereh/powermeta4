@@ -13,6 +13,7 @@ import {
   setSelectedModelAction,
 } from "@/app/actions/workspace";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
+import { createClientMutationId } from "@/lib/client-mutation-id";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -47,16 +48,18 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
         router.replace("/home");
       } else if (workspace?.activeChatId !== requestedChatId) {
         selectChat(requestedChatId, companyId);
-        void selectConversationAction(companyId, requestedChatId).then((result) => {
-          if (!result.ok) void hydrateWorkspaceStore();
-        });
+        void selectConversationAction(companyId, requestedChatId, createClientMutationId()).then(
+          (result) => {
+            if (!result.ok) void hydrateWorkspaceStore();
+          },
+        );
       }
       return;
     }
 
     if (!activeChat && companyId) {
       const chatId = createChat(companyId);
-      void createConversationAction(companyId, chatId).then((result) => {
+      void createConversationAction(companyId, chatId, createClientMutationId()).then((result) => {
         if (!result.ok) {
           void hydrateWorkspaceStore();
           return;
@@ -108,9 +111,11 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
             selectedModelId={selectedModelId}
             onModelChange={(modelId) => {
               setSelectedModel(modelId, companyId);
-              void setSelectedModelAction(companyId, modelId).then((result) => {
-                if (!result.ok) void hydrateWorkspaceStore();
-              });
+              void setSelectedModelAction(companyId, modelId, createClientMutationId()).then(
+                (result) => {
+                  if (!result.ok) void hydrateWorkspaceStore();
+                },
+              );
             }}
           />
         </ChatRuntimeProvider>

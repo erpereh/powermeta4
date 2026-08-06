@@ -1,7 +1,7 @@
 import type { CompanyId, Company, WorkspaceData } from "../../types/workspace";
 import type { SessionView } from "../../types/session";
 
-import { BACKUP_VERSION, DATABASE_SCHEMA_VERSION } from "./server-constants";
+import { BACKUP_VERSION, DATABASE_SCHEMA_VERSION } from "@/server/database/version";
 
 export type ActionResult<T> =
   | { ok: true; data: T }

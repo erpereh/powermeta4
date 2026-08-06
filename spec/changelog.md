@@ -1,15 +1,47 @@
 # Changelog
 
+## 2026-08-06 - Corte definitivo a node:sqlite
+
+### Cambios
+
+- Se reemplazó la persistencia SQLite por `node:sqlite`/`DatabaseSync` y se
+  fijó Node `>=24.15 <25`; se eliminaron la configuración, migraciones y
+  artefactos generados del ORM anterior.
+- Se centralizaron `BACKUP_VERSION`, `DATABASE_SCHEMA_VERSION` y
+  `BACKUP_DATABASE_PATH`; el manifest y la validación usan exclusivamente las
+  cinco claves aprobadas.
+- Se añadieron migraciones SQL propias con huellas SHA-256, bootstrap vacío,
+  transición única segura, repositorios explícitos, ramas persistentes,
+  idempotencia y recuperación de mensajes interrumpidos.
+- La exportación mantiene el lock de escrituras únicamente durante
+  `backup()`; la restauración exige compatibilidad exacta, no ejecuta
+  migraciones y conserva rollback conjunto de base y uploads.
+- SOAP, DPAPI, cookies HttpOnly y límites de las rutas locales se conservaron
+  funcionalmente.
+
+### Verificación automática
+
+Se ejecutaron correctamente:
+
+- `npm install`
+- `npm run setup`
+- `npm run lint`
+- `npm run typecheck`
+- `npm test` — 19 archivos y 65 pruebas correctas.
+- `npm run build`
+- `git diff --check`
+- `git status --short`
+
 ## 2026-08-05 - Persistencia local, autenticacion SOAP y copias seguras
 
 ### Cambios
 
 - Se verifico Node.js 24.18.0, TypeScript 7.0.2, Next.js 16.3.0, React
   19.2.8, assistant-ui 0.15.4, module esnext, moduleResolution bundler y la
-  ausencia de type: module antes de instalar Prisma 7.
-- Se añadio SQLite + Prisma 7 con adapter better-sqlite3, @types/better-sqlite3,
-  prisma.config.ts, migracion inicial y setup idempotente bajo
-  POWERMETA4_DATA_DIR.
+  ausencia de type: module antes de preparar la persistencia local.
+- Se añadió el esquema local inicial con migraciones SQL propias y setup
+  idempotente bajo `POWERMETA4_DATA_DIR`; la persistencia anterior quedó
+  sustituida por la implementación definitiva con `node:sqlite`.
 - El bootstrap crea Empresa local solo si no hay empresas y usa un UUID
   generado. El codigo no depende de company-local ni recrea la empresa tras
   renombrarla.
@@ -20,7 +52,7 @@
   CurrentUser, cookie local opaca, single-flight de restauracion y renovacion
   de sesion para operaciones autenticadas.
 - Se mantuvo src/proxy.ts por la convencion real de Next.js 16.3; no ejecuta
-  Prisma, DPAPI ni SOAP.
+  la persistencia, DPAPI ni SOAP.
 - Se creo /settings con Tabs, Card, Button, Badge, Alert, AlertDialog,
   Progress, Separator, Skeleton e Input oficiales de shadcn.
 - Se implementaron exportacion SQLite consistente e importacion validate/

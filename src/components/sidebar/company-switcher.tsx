@@ -48,6 +48,7 @@ import {
   setActiveCompanyAction,
 } from "@/app/actions/workspace";
 import { COMPANY_COLORS, COMPANY_ICONS } from "@/lib/workspaces/companies";
+import { createClientMutationId } from "@/lib/client-mutation-id";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import type { Company, CompanyId } from "@/types/workspace";
 
@@ -77,7 +78,7 @@ export function CompanySwitcher() {
   };
 
   const chooseCompany = (companyId: CompanyId) => {
-    void setActiveCompanyAction(companyId).then(async (result) => {
+    void setActiveCompanyAction(companyId, createClientMutationId()).then(async (result) => {
       if (!result.ok) {
         setFeedback(result.message);
         return;
@@ -99,24 +100,26 @@ export function CompanySwitcher() {
 
   const handleCreate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void createCompanyAction(companyName).then(async (result) => {
-      if (!result.ok) {
-        setCreateError(result.message);
-        return;
-      }
-      setCreateOpen(false);
-      setCompanyName("");
-      setCreateError("");
-      await hydrateWorkspaceStore();
-      router.push("/home");
-      closeMobileSidebar();
-      setFeedback("Empresa creada correctamente.");
-    });
+    void createCompanyAction(companyName, createClientMutationId(), crypto.randomUUID()).then(
+      async (result) => {
+        if (!result.ok) {
+          setCreateError(result.message);
+          return;
+        }
+        setCreateOpen(false);
+        setCompanyName("");
+        setCreateError("");
+        await hydrateWorkspaceStore();
+        router.push("/home");
+        closeMobileSidebar();
+        setFeedback("Empresa creada correctamente.");
+      },
+    );
   };
 
   const handleDelete = () => {
     if (!companyToDelete) return;
-    void deleteCompanyAction(companyToDelete.id).then(async (result) => {
+    void deleteCompanyAction(companyToDelete.id, createClientMutationId()).then(async (result) => {
       if (!result.ok) {
         setFeedback(result.message);
         return;

@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { DatabaseSync } from "node:sqlite";
+
+import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
+import { getDatabase } from "@/server/database/client";
 
 export type PendingImportRecord = {
   id: string;
@@ -12,49 +15,74 @@ export type PendingImportRecord = {
   consumedAt: Date | null;
 };
 
-type PendingImportPrismaClient = Pick<PrismaClient, "pendingBackupImport">;
+const toDate = (value: unknown): Date | null => {
+  if (typeof value !== "string") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 
-export const createPendingImportRepository = (prisma: PendingImportPrismaClient) => ({
+const mapRecord = (row: Record<string, unknown>): PendingImportRecord | null => {
+  const expiresAt = toDate(row.expires_at);
+  if (!expiresAt) return null;
+  return {
+    id: String(row.id),
+    importIdHash: String(row.import_id_hash),
+    localBrowserSessionHash: String(row.local_browser_session_hash),
+    checksum: String(row.checksum),
+    relativePath: String(row.relative_path),
+    expiresAt,
+    consumedAt: toDate(row.consumed_at),
+  };
+};
+
+export const createPendingImportRepository = (database: DatabaseSync = getDatabase()) => ({
   create: async (data: Omit<PendingImportRecord, "id" | "consumedAt">) =>
-    prisma.pendingBackupImport.create({
-      data: {
-        id: data.importIdHash,
-        importIdHash: data.importIdHash,
-        localBrowserSessionHash: data.localBrowserSessionHash,
-        checksum: data.checksum,
-        relativePath: data.relativePath,
-        expiresAt: data.expiresAt,
-      },
+    withRepositoryWrite(async () => {
+      database
+        .prepare(
+          "INSERT INTO pending_backup_imports (id, import_id_hash, local_browser_session_hash, checksum, relative_path, expires_at, consumed_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?)",
+        )
+        .run(
+          data.importIdHash,
+          data.importIdHash,
+          data.localBrowserSessionHash,
+          data.checksum,
+          data.relativePath,
+          data.expiresAt.toISOString(),
+          new Date().toISOString(),
+          new Date().toISOString(),
+        );
     }),
-  get: (importIdHash: string) =>
-    prisma.pendingBackupImport.findUnique({
-      where: { importIdHash },
-      select: {
-        id: true,
-        importIdHash: true,
-        localBrowserSessionHash: true,
-        checksum: true,
-        relativePath: true,
-        expiresAt: true,
-        consumedAt: true,
-      },
-    }),
-  consume: async (importIdHash: string, sessionHash: string, now: Date) => {
-    const result = await prisma.pendingBackupImport.updateMany({
-      where: {
-        importIdHash,
-        localBrowserSessionHash: sessionHash,
-        consumedAt: null,
-        expiresAt: { gt: now },
-      },
-      data: { consumedAt: now },
-    });
-    return result.count === 1;
+  get: async (importIdHash: string) => {
+    const row = database
+      .prepare(
+        "SELECT id, import_id_hash, local_browser_session_hash, checksum, relative_path, expires_at, consumed_at FROM pending_backup_imports WHERE import_id_hash = ?",
+      )
+      .get(importIdHash);
+    return row ? mapRecord(row) : null;
   },
-  delete: (importIdHash: string) =>
-    prisma.pendingBackupImport.deleteMany({ where: { importIdHash } }),
-  deleteExpired: (now: Date) =>
-    prisma.pendingBackupImport.deleteMany({
-      where: { OR: [{ expiresAt: { lte: now } }, { consumedAt: { not: null } }] },
+  consume: async (importIdHash: string, sessionHash: string, now: Date) =>
+    withRepositoryWrite(async () => {
+      const result = database
+        .prepare(
+          "UPDATE pending_backup_imports SET consumed_at = ?, updated_at = ? WHERE import_id_hash = ? AND local_browser_session_hash = ? AND consumed_at IS NULL AND expires_at > ?",
+        )
+        .run(now.toISOString(), now.toISOString(), importIdHash, sessionHash, now.toISOString());
+      return Number(result.changes) === 1;
+    }),
+  delete: async (importIdHash: string) =>
+    withRepositoryWrite(async () => {
+      database
+        .prepare("DELETE FROM pending_backup_imports WHERE import_id_hash = ?")
+        .run(importIdHash);
+    }),
+  deleteExpired: async (now: Date) =>
+    withRepositoryWrite(async () => {
+      const result = database
+        .prepare(
+          "DELETE FROM pending_backup_imports WHERE expires_at <= ? OR consumed_at IS NOT NULL",
+        )
+        .run(now.toISOString());
+      return Number(result.changes);
     }),
 });
