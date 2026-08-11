@@ -17,7 +17,10 @@
       Ajustes, rutas locales y backups saneados.
 - [x] Añadir pruebas unitarias, SQLite, rutas y UI con Testing Library,
       user-event y jsdom.
-- [x] Ejecutar setup temporal, lint, typecheck, 26 archivos/94 pruebas,
+- [x] Corregir el falso rechazo de DEBUG con una única evaluación
+      `isDebugAuthEnabled()`, error de infraestructura diferenciado y prueba
+      integrada página/acción/SQLite.
+- [x] Ejecutar setup temporal, lint, typecheck, 27 archivos/97 pruebas,
       build, `git diff --check` y comprobaciones controladas de login en
       desarrollo/producción.
 

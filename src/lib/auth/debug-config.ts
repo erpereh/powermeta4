@@ -25,11 +25,7 @@ export const getDebugUsername = (): string => {
   return configuredUsername || "DEBUG";
 };
 
-export const assertDebugAuthEnabled = (): void => {
-  if (process.env.NODE_ENV !== "development") {
-    throw new DebugAuthConfigurationError(DEBUG_AUTH_NOT_ALLOWED);
-  }
-  if (process.env.POWERMETA4_DEBUG_AUTH !== "true") {
-    throw new DebugAuthConfigurationError(DEBUG_AUTH_DISABLED);
-  }
-};
+export const createDebugAuthConfigurationError = (): DebugAuthConfigurationError =>
+  new DebugAuthConfigurationError(
+    process.env.NODE_ENV === "development" ? DEBUG_AUTH_DISABLED : DEBUG_AUTH_NOT_ALLOWED,
+  );

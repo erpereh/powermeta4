@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   getBrowserSessionNonce: vi.fn(),
   deleteSessionCookie: vi.fn(),
   redirect: vi.fn(),
+  consoleError: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
@@ -26,6 +27,7 @@ import { DEBUG_AUTH_DISABLED, DEBUG_AUTH_NOT_ALLOWED } from "@/lib/auth/debug-co
 
 beforeEach(() => {
   for (const mock of Object.values(mocks)) mock.mockReset();
+  vi.spyOn(console, "error").mockImplementation(mocks.consoleError);
   mocks.getAuthService.mockReturnValue({
     debugLogin: mocks.debugLogin,
     login: mocks.login,
@@ -37,6 +39,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
 
@@ -81,5 +84,24 @@ describe("authentication actions", () => {
     });
     expect(mocks.getAuthService).not.toHaveBeenCalled();
     expect(mocks.debugLogin).not.toHaveBeenCalled();
+  });
+
+  it("sanitizes unexpected debug session creation failures without configuration codes", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("POWERMETA4_DEBUG_AUTH", "true");
+    const infrastructureError = Object.assign(
+      new Error("table local_browser_sessions has no column named auth_mode; secret=hidden"),
+      { code: "ERR_SQLITE_ERROR" },
+    );
+    mocks.debugLogin.mockRejectedValue(infrastructureError);
+
+    await expect(authActions.debugLoginAction({}, new FormData())).resolves.toEqual({
+      error: "No se ha podido iniciar la sesión de desarrollo.",
+    });
+    expect(mocks.consoleError).toHaveBeenCalledWith("[debug-auth] session creation failed", {
+      name: "Error",
+      code: "ERR_SQLITE_ERROR",
+    });
+    expect(JSON.stringify(mocks.consoleError.mock.calls)).not.toContain("secret=hidden");
   });
 });

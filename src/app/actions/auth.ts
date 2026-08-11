@@ -2,7 +2,11 @@
 
 import { redirect } from "next/navigation";
 
-import { assertDebugAuthEnabled, DebugAuthConfigurationError } from "@/lib/auth/debug-config";
+import {
+  createDebugAuthConfigurationError,
+  DebugAuthConfigurationError,
+  isDebugAuthEnabled,
+} from "@/lib/auth/debug-config";
 import { getAuthService } from "@/lib/auth/server";
 import { deleteSessionCookie, getBrowserSessionNonce, setSessionCookie } from "@/lib/auth/session";
 
@@ -14,6 +18,22 @@ export type LoginState = {
 const genericLoginError =
   "No se pudo iniciar sesión con Meta4. Comprueba el usuario, la contraseña y la conexión.";
 const genericDebugLoginError = "El modo debug no está disponible.";
+const genericDebugSessionCreationError = "No se ha podido iniciar la sesión de desarrollo.";
+
+const getSafeServerErrorDetails = (error: unknown): { name: string; code?: string } => {
+  const details: { name: string; code?: string } = {
+    name: error instanceof Error ? error.name : "UnknownError",
+  };
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string"
+  ) {
+    details.code = error.code;
+  }
+  return details;
+};
 
 export async function loginAction(
   _previousState: LoginState,
@@ -41,14 +61,15 @@ export async function debugLoginAction(
   _formData: FormData,
 ): Promise<LoginState> {
   try {
-    assertDebugAuthEnabled();
+    if (!isDebugAuthEnabled()) throw createDebugAuthConfigurationError();
     const result = await getAuthService().debugLogin();
     await setSessionCookie(result.sessionNonce);
   } catch (error) {
     if (error instanceof DebugAuthConfigurationError) {
       return { error: genericDebugLoginError, errorCode: error.code };
     }
-    return { error: genericDebugLoginError };
+    console.error("[debug-auth] session creation failed", getSafeServerErrorDetails(error));
+    return { error: genericDebugSessionCreationError };
   }
 
   redirect("/home");

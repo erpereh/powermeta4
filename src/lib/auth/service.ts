@@ -2,7 +2,11 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { assertDebugAuthEnabled, getDebugUsername, isDebugAuthEnabled } from "./debug-config";
+import {
+  createDebugAuthConfigurationError,
+  getDebugUsername,
+  isDebugAuthEnabled,
+} from "./debug-config";
 import {
   createOpaqueSessionId,
   hashOpaqueSessionId,
@@ -147,7 +151,7 @@ export const createAuthService = ({
   };
 
   const debugLogin = async () => {
-    assertDebugAuthEnabled();
+    if (!isDebugAuthEnabled()) throw createDebugAuthConfigurationError();
     const { sessionNonce } = await createBrowserSession({
       username: getDebugUsername(),
       authMode: "debug",

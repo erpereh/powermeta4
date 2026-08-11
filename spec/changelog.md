@@ -27,15 +27,23 @@
 - `/login` muestra un segundo formulario sin campos y el botón de debug solo
   cuando el servidor lo autoriza. Sidebar y Ajustes muestran el estado de
   desarrollo, y los ZIP siguen eliminando todas las sesiones.
+- Se corrigió el falso rechazo del login debug cuando la base activa todavía
+  estaba en esquema 1: página, Server Action y servicio usan ahora la misma
+  evaluación `isDebugAuthEnabled()`. Los errores reales de configuración
+  conservan sus códigos exclusivos; SQLite e infraestructura devuelven un
+  mensaje cliente distinto y registran solo nombre/código saneados en servidor.
 
 ### Verificación automática
 
 Se ejecutaron correctamente:
 
 - `POWERMETA4_DATA_DIR=<directorio temporal> npm run setup`
+- `npm run setup` sobre la base activa, seguido de comprobación explícita de
+  migraciones 001/002, columna `auth_mode`, integridad `ok` y cero errores de
+  foreign keys.
 - `npm run lint`
 - `npm run typecheck`
-- `npm test` — 26 archivos y 94 pruebas correctas.
+- `npm test` — 27 archivos y 97 pruebas correctas.
 - `POWERMETA4_DEBUG_AUTH=true npm run build`
 - `git diff --check`
 
@@ -43,6 +51,8 @@ Se ejecutaron correctamente:
 
 - Con desarrollo y flag `false`, `/login` devolvió 200 sin botón debug.
 - Con desarrollo y flag `true`, `/login` devolvió 200 con el botón debug.
+- Tras aplicar la migración 002 a la base activa, el formulario debug real
+  creó la sesión local y navegó a `/home`; workspace respondió 200.
 - En una SQLite temporal se creó una sesión debug y, al desactivar el flag, se
   revocó y resolvió a `null` aun con una SoapSession antigua presente, sin
   utilizarla.
