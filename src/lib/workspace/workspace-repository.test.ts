@@ -7,6 +7,7 @@ import { runMigrations } from "@/server/database/migrations";
 import { createWorkspaceRepository } from "@/lib/workspace/repository";
 
 const databases: DatabaseSync[] = [];
+const META4_AUTH = { mode: "meta4" as const, username: "usuario local", canUseMeta4: true };
 
 const createRepository = () => {
   const database = new DatabaseSync(":memory:");
@@ -22,10 +23,32 @@ afterEach(() => {
 });
 
 describe("workspace repository", () => {
+  it("serializes only the safe auth view into the workspace snapshot", async () => {
+    const { repository } = createRepository();
+    const authWithServerOnlyFields = {
+      mode: "debug" as const,
+      username: "DEBUG",
+      canUseMeta4: false,
+      sessionId: "internal-browser-session",
+      cookieHash: "hash-only",
+      nonce: "opaque-cookie-value",
+      expiresAt: new Date("2026-09-01T00:00:00.000Z"),
+    };
+
+    const snapshot = await repository.getSnapshot(authWithServerOnlyFields);
+
+    expect(snapshot.auth).toEqual({ mode: "debug", username: "DEBUG", canUseMeta4: false });
+    expect(JSON.stringify(snapshot)).not.toContain("sessionId");
+    expect(JSON.stringify(snapshot)).not.toContain("cookieHash");
+    expect(JSON.stringify(snapshot)).not.toContain("opaque-cookie-value");
+    expect(JSON.stringify(snapshot)).not.toContain("expiresAt");
+    expect("session" in snapshot).toBe(false);
+  });
+
   it("bootstraps once, isolates companies and cascades their data", async () => {
     const { database, repository } = createRepository();
 
-    const firstSnapshot = await repository.getSnapshot("usuario local");
+    const firstSnapshot = await repository.getSnapshot(META4_AUTH);
     const initialCompany = firstSnapshot.companies[0];
     if (!initialCompany) throw new Error("The bootstrap company was not created");
     expect(firstSnapshot.companies).toHaveLength(1);
@@ -86,9 +109,7 @@ describe("workspace repository", () => {
       repository.getConversation(secondCompany.id, firstConversation.id),
     ).rejects.toThrow(/no pertenece/);
 
-    const secondWorkspace = (await repository.getSnapshot("usuario local")).workspaces[
-      secondCompany.id
-    ];
+    const secondWorkspace = (await repository.getSnapshot(META4_AUTH)).workspaces[secondCompany.id];
     expect(secondWorkspace?.preferences.selectedModelId).toBe("luma-deep");
     expect(secondWorkspace?.recentTools[0]?.toolId).toBe("users.consult");
 
@@ -105,7 +126,7 @@ describe("workspace repository", () => {
 
   it("preserves branch messages and persists the selected head", async () => {
     const { repository } = createRepository();
-    const company = (await repository.getSnapshot("usuario local")).companies[0];
+    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-branches");
 
@@ -159,7 +180,7 @@ describe("workspace repository", () => {
 
   it("finalizes a response and its conversation head atomically and idempotently", async () => {
     const { database, repository } = createRepository();
-    const company = (await repository.getSnapshot("usuario local")).companies[0];
+    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-finalize");
 
@@ -209,7 +230,7 @@ describe("workspace repository", () => {
 
   it("recovers abandoned running messages as incomplete without resuming them", async () => {
     const { repository } = createRepository();
-    const company = (await repository.getSnapshot("usuario local")).companies[0];
+    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-recovery");
     await repository.upsertMessage({
@@ -223,7 +244,7 @@ describe("workspace repository", () => {
       sequence: 2,
     });
 
-    const snapshot = await repository.getSnapshot("usuario local");
+    const snapshot = await repository.getSnapshot(META4_AUTH);
     const recovered = snapshot.workspaces[company.id]?.chats[0]?.messages[0];
     expect(recovered).toMatchObject({ status: "incomplete", errorCode: "PROCESS_RESTARTED" });
     expect(snapshot.workspaces[company.id]?.chats[0]?.headMessageId).toBe("assistant-abandoned");

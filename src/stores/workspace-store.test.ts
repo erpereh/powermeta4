@@ -56,10 +56,17 @@ const snapshot: WorkspaceSnapshotState = {
       preferences: { selectedModelId: "luma-balanced" },
     },
   },
-  session: { username: "usuario", status: "authenticated", lastValidatedAt: null },
+  auth: { mode: "meta4", username: "usuario", canUseMeta4: true },
 };
 
 describe("server snapshot workspace store", () => {
+  it("keeps only a nullable client auth view in the initial state", () => {
+    const state = createInitialWorkspaceState();
+
+    expect(state.auth).toBeNull();
+    expect("session" in state).toBe(false);
+  });
+
   it("starts empty and has no Zustand persistence API", () => {
     const store = createWorkspaceStore(createInitialWorkspaceState());
 

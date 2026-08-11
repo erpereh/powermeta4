@@ -2,19 +2,15 @@ import { NextResponse } from "next/server";
 
 import { getBackupLimits } from "@/lib/backups/constants";
 import { validateBackup } from "@/lib/backups/service";
-import { getAuthService } from "@/lib/auth/server";
-import { deleteSessionCookie, getSession } from "@/lib/auth/session";
-import { hashOpaqueSessionId } from "@/lib/auth/token";
+import { deleteSessionCookie, getCurrentAuthContext } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<Response> {
-  const session = await getSession();
-  if (!session)
-    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
-  if (!(await getAuthService().restoreSession())) {
+  const authSession = await getCurrentAuthContext();
+  if (!authSession) {
     await deleteSessionCookie();
-    return NextResponse.json({ ok: false, errorCode: "SESSION_EXPIRED" }, { status: 401 });
+    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
   }
 
   try {
@@ -27,7 +23,7 @@ export async function POST(request: Request): Promise<Response> {
     if (file.size <= 0 || file.size > limits.compressedBytes) {
       return NextResponse.json({ ok: false, errorCode: "BACKUP_LIMIT_EXCEEDED" }, { status: 413 });
     }
-    const result = await validateBackup(file.stream(), hashOpaqueSessionId(session.sessionId));
+    const result = await validateBackup(file.stream(), authSession.cookieHash);
     return NextResponse.json(
       { ok: true, data: result },
       { headers: { "Cache-Control": "no-store" } },

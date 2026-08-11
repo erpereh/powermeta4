@@ -52,6 +52,21 @@ assistant-ui. Los mensajes `running` abandonados se recuperan como
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Las pruebas SOAP son simuladas y no llaman a Meta4 real.
 
+Para desarrollar sin una VM, credenciales o conectividad Meta4 puede activarse
+el acceso local de depuración únicamente en `npm run dev`:
+
+```text
+POWERMETA4_DEBUG_AUTH=true
+POWERMETA4_DEBUG_USERNAME=DEBUG
+```
+
+El modo requiere que `NODE_ENV` sea exactamente `development`; con `npm run build`
+y `npm run start` queda deshabilitado incluso si la variable permanece en `true`.
+Una sesión debug solo crea una sesión local SQLite y permite trabajar con
+empresas, chats, ajustes y copias locales. No crea, restaura ni reutiliza una
+sesión Meta4, ni expone tokens. Si se desactiva el flag, la cookie debug se
+revoca y se exige un login Meta4 explícito.
+
 ## Copias locales
 
 El ZIP contiene exclusivamente:
@@ -67,7 +82,7 @@ El manifest tiene exactamente estas cinco propiedades:
 ```json
 {
   "backupVersion": 1,
-  "databaseSchemaVersion": 1,
+  "databaseSchemaVersion": 2,
   "appVersion": "...",
   "createdAt": "...",
   "databasePath": "database/powermeta4.db"
@@ -105,7 +120,7 @@ del proyecto jamás puedan compilar código nativo.
 
 ## Rutas principales
 
-- `/login`: autenticación Meta4 local.
+- `/login`: autenticación Meta4 local y, solo en desarrollo habilitado, modo debug local.
 - `/`, `/home`, `/chat/new` y `/chat/[chatId]`: chat y launchpad.
 - `/settings`: sesión y copias locales.
 - `/tools`, `/tools/users`, `/tools/companies`, `/tools/payroll`,

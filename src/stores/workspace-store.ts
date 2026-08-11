@@ -9,7 +9,7 @@ import {
 } from "@/lib/chat-customization";
 import { getTool } from "@/lib/tools/registry";
 import type { Chat, Message, MessageContent, MessageStatus } from "@/types/chat";
-import type { SessionView } from "@/types/session";
+import type { AuthView } from "@/types/session";
 import type {
   Company,
   CompanyColorName,
@@ -23,7 +23,7 @@ export type WorkspaceSnapshotState = {
   companies: Company[];
   activeCompanyId: CompanyId | null;
   workspaces: Partial<Record<CompanyId, WorkspaceData>>;
-  session: SessionView;
+  auth: AuthView | null;
 };
 
 export type WorkspaceStore = WorkspaceSnapshotState & {
@@ -89,13 +89,13 @@ export const createInitialWorkspaceState = (): WorkspaceSnapshotState => ({
   companies: [],
   activeCompanyId: null,
   workspaces: createInitialWorkspaces(),
-  session: { username: null, status: "anonymous", lastValidatedAt: null },
+  auth: null,
 });
 
 const cloneWorkspaceState = (state: WorkspaceSnapshotState): WorkspaceSnapshotState => ({
   companies: state.companies.map((company) => ({ ...company })),
   activeCompanyId: state.activeCompanyId,
-  session: { ...state.session },
+  auth: state.auth ? { ...state.auth } : null,
   workspaces: Object.fromEntries(
     Object.entries(state.workspaces).flatMap(([companyId, workspace]) => {
       if (!workspace) return [];

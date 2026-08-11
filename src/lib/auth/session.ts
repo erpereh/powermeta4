@@ -4,15 +4,10 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getAuthService } from "./server";
-import {
-  SESSION_COOKIE_NAME,
-  SESSION_DURATION_SECONDS,
-  type SessionPayload,
-  isOpaqueSessionId,
-} from "./token";
+import { SESSION_COOKIE_NAME, SESSION_DURATION_SECONDS, isOpaqueSessionId } from "./token";
+import type { ResolvedAuthSession } from "./service";
 
 export { SESSION_COOKIE_NAME } from "./token";
-export type { SessionPayload } from "./token";
 
 const isHttpsRequest = async (): Promise<boolean> => {
   try {
@@ -24,38 +19,29 @@ const isHttpsRequest = async (): Promise<boolean> => {
   }
 };
 
-export const getSession = async (): Promise<SessionPayload | null> => {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  if (!isOpaqueSessionId(sessionId)) return null;
-
-  const session = await getAuthService().getLocalSession(sessionId);
-  if (!session) return null;
-  return {
-    sessionId,
-    username: session.username,
-    expiresAt: Math.floor(session.expiresAt.getTime() / 1000),
-  };
+export const getBrowserSessionNonce = async (): Promise<string | undefined> => {
+  const sessionNonce = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+  return isOpaqueSessionId(sessionNonce) ? sessionNonce : undefined;
 };
 
-export const requireSession = async (): Promise<SessionPayload> => {
-  const session = await getSession();
-  if (!session) {
-    const sessionId = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
-    redirect(isOpaqueSessionId(sessionId) ? "/login?expired=1" : "/login");
-  }
-
-  const restored = await getAuthService().restoreSession();
-  if (!restored) {
-    redirect("/login?expired=1");
-  }
-  return session;
+export const getCurrentAuthContext = async (): Promise<ResolvedAuthSession | null> => {
+  const sessionNonce = await getBrowserSessionNonce();
+  if (!sessionNonce) return null;
+  return getAuthService().resolveSession(sessionNonce);
 };
 
-export const setSessionCookie = async (sessionId: string) => {
-  if (!isOpaqueSessionId(sessionId)) throw new Error("La sesión local no es válida.");
+export const requireAuthContext = async (): Promise<ResolvedAuthSession> => {
+  const authSession = await getCurrentAuthContext();
+  if (authSession) return authSession;
+
+  const sessionNonce = await getBrowserSessionNonce();
+  redirect(sessionNonce ? "/login?expired=1" : "/login");
+};
+
+export const setSessionCookie = async (sessionNonce: string): Promise<void> => {
+  if (!isOpaqueSessionId(sessionNonce)) throw new Error("La sesión local no es válida.");
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, sessionId, {
+  cookieStore.set(SESSION_COOKIE_NAME, sessionNonce, {
     httpOnly: true,
     sameSite: "strict",
     secure: await isHttpsRequest(),
@@ -64,7 +50,7 @@ export const setSessionCookie = async (sessionId: string) => {
   });
 };
 
-export const deleteSessionCookie = async () => {
+export const deleteSessionCookie = async (): Promise<void> => {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,

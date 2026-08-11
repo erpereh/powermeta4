@@ -6,6 +6,7 @@ import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth";
 import { ThemeMenu } from "@/components/theme/theme-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +25,9 @@ import { useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function UserMenu() {
   const { isMobile } = useSidebar();
-  const username = useWorkspaceStore((state) => state.session.username) ?? "Usuario";
+  const auth = useWorkspaceStore((state) => state.auth);
+  const username = auth?.username ?? "Usuario";
+  const isDebugMode = auth?.mode === "debug";
   const initials =
     username
       .split(/\s+/)
@@ -49,14 +52,29 @@ export function UserMenu() {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="min-w-0 truncate text-left text-sm font-medium group-data-[collapsible=icon]:hidden">
-                {username}
+              <span className="min-w-0 text-left group-data-[collapsible=icon]:hidden">
+                <span className="block truncate text-sm font-medium">{username}</span>
+                {isDebugMode && (
+                  <span className="block truncate text-xs text-muted-foreground">
+                    Modo de desarrollo
+                  </span>
+                )}
               </span>
+              {isDebugMode && (
+                <Badge variant="secondary" className="ml-auto group-data-[collapsible=icon]:hidden">
+                  Debug
+                </Badge>
+              )}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" side={isMobile ? "bottom" : "top"} align="end">
             <DropdownMenuLabel className="font-normal">
               <span className="block truncate text-sm font-medium">{username}</span>
+              {isDebugMode && (
+                <span className="block truncate text-xs text-muted-foreground">
+                  Modo de desarrollo
+                </span>
+              )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

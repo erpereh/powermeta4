@@ -1,6 +1,6 @@
 "use server";
 
-import { requireSession } from "@/lib/auth/session";
+import { requireAuthContext } from "@/lib/auth/session";
 import type { ActionResult, WorkspaceSnapshot } from "@/lib/local-database/dtos";
 import type {
   Chat,
@@ -42,8 +42,8 @@ const requireErrorCode = (value: string | null | undefined): string | null | und
 
 export async function getWorkspaceSnapshotAction(): Promise<ActionResult<WorkspaceSnapshot>> {
   try {
-    const session = await requireSession();
-    return ok(await getWorkspaceSnapshot(session.username));
+    const authSession = await requireAuthContext();
+    return ok(await getWorkspaceSnapshot(authSession.authContext));
   } catch (error) {
     return errorResult(error);
   }
@@ -55,7 +55,7 @@ export async function createCompanyAction(
   companyId?: string,
 ): Promise<ActionResult<Company>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     return ok(
       await getWorkspaceRepository().createCompany({
         name,
@@ -73,7 +73,7 @@ export async function deleteCompanyAction(
   clientMutationId?: string,
 ): Promise<ActionResult<{ activeCompanyId: CompanyId }>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     return ok({
       activeCompanyId: await getWorkspaceRepository().deleteCompany(
         requireId(companyId, "La empresa"),
@@ -90,7 +90,7 @@ export async function setActiveCompanyAction(
   clientMutationId?: string,
 ): Promise<ActionResult<null>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     await getWorkspaceRepository().setActiveCompany(
       requireId(companyId, "La empresa"),
       requireMutationId(clientMutationId),
@@ -107,7 +107,7 @@ export async function createConversationAction(
   clientMutationId?: string,
 ): Promise<ActionResult<Chat>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     return ok(
       await getWorkspaceRepository().createConversation(
         requireId(companyId, "La empresa"),
@@ -126,7 +126,7 @@ export async function selectConversationAction(
   clientMutationId?: string,
 ): Promise<ActionResult<null>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     await getWorkspaceRepository().setActiveConversation(
       requireId(companyId, "La empresa"),
       requireId(conversationId, "La conversación"),
@@ -144,7 +144,7 @@ export async function deleteConversationAction(
   clientMutationId?: string,
 ): Promise<ActionResult<null>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     await getWorkspaceRepository().deleteConversation(
       requireId(companyId, "La empresa"),
       requireId(conversationId, "La conversación"),
@@ -163,7 +163,7 @@ export async function updateConversationAction(
   clientMutationId?: string,
 ): Promise<ActionResult<Chat>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     return ok(
       await getWorkspaceRepository().updateConversation(
         requireId(companyId, "La empresa"),
@@ -191,7 +191,7 @@ export async function upsertMessageAction(input: {
   clientMutationId?: string;
 }): Promise<ActionResult<Message>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     return ok(
       await getWorkspaceRepository().upsertMessage({
         ...input,
@@ -219,7 +219,7 @@ export async function updateMessageAction(input: {
   clientMutationId?: string;
 }): Promise<ActionResult<Message>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     return ok(
       await getWorkspaceRepository().updateMessage({
         ...input,
@@ -247,7 +247,7 @@ export async function finalizeMessageAction(input: {
   clientMutationId?: string;
 }): Promise<ActionResult<Message>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     if (input.status !== "complete" && input.status !== "cancelled" && input.status !== "failed") {
       throw new Error("El estado terminal no es válido.");
     }
@@ -273,7 +273,7 @@ export async function setConversationHeadAction(input: {
   clientMutationId?: string;
 }): Promise<ActionResult<null>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     await getWorkspaceRepository().setConversationHead(
       requireId(input.companyId, "La empresa"),
       requireId(input.conversationId, "La conversación"),
@@ -292,7 +292,7 @@ export async function setSelectedModelAction(
   clientMutationId?: string,
 ): Promise<ActionResult<null>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     await getWorkspaceRepository().setSelectedModel(
       requireId(companyId, "La empresa"),
       requireId(modelId, "El modelo"),
@@ -310,7 +310,7 @@ export async function recordToolVisitAction(
   clientMutationId?: string,
 ): Promise<ActionResult<null>> {
   try {
-    await requireSession();
+    await requireAuthContext();
     await getWorkspaceRepository().recordToolVisit(
       requireId(companyId, "La empresa"),
       requireId(toolId, "La herramienta"),

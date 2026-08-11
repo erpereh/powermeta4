@@ -83,7 +83,8 @@ const formatBytes = (bytes: number): string => {
 
 export function SettingsScreen() {
   const hydrated = useWorkspaceHydrated();
-  const session = useWorkspaceStore((state) => state.session);
+  const auth = useWorkspaceStore((state) => state.auth);
+  const isDebugMode = auth?.mode === "debug";
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [error, setError] = useState("");
@@ -221,23 +222,49 @@ export function SettingsScreen() {
           <TabsContent value="account" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Sesión Meta4</CardTitle>
+                <CardTitle>Sesión</CardTitle>
                 <CardDescription>
                   La autenticación se mantiene únicamente en el servidor local.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium">{session.username ?? "Sin sesión"}</p>
-                    <p className="text-sm text-muted-foreground">
-                      El usuario conserva exactamente el texto introducido.
+                <div className="grid gap-4 text-sm sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground">Modo</p>
+                    <p className="font-medium">
+                      {auth ? (isDebugMode ? "Debug" : "Meta4") : "Sin sesión"}
                     </p>
                   </div>
-                  <Badge variant={session.status === "authenticated" ? "default" : "secondary"}>
-                    {session.status === "authenticated" ? "Sesión activa" : "Sin sesión"}
-                  </Badge>
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground">Usuario</p>
+                    <p className="font-medium">{auth?.username ?? "Sin sesión"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground">Estado</p>
+                    <p className="font-medium">
+                      {auth ? (isDebugMode ? "Modo de desarrollo" : "Sesión activa") : "Sin sesión"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground">Meta4</p>
+                    <p className="font-medium">
+                      {auth?.canUseMeta4 ? "Conectado" : "No conectado"}
+                    </p>
+                  </div>
                 </div>
+                <Badge variant={auth ? "default" : "secondary"}>
+                  {auth ? "Sesión activa" : "Sin sesión"}
+                </Badge>
+                {isDebugMode && (
+                  <Alert>
+                    <AlertCircle />
+                    <AlertTitle>Herramientas Meta4 limitadas</AlertTitle>
+                    <AlertDescription>
+                      Las herramientas que requieren una sesión Meta4 real no están disponibles en
+                      modo debug.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <Separator />
                 <div className="flex items-start gap-3 text-sm text-muted-foreground">
                   <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />

@@ -5,12 +5,6 @@ export const SESSION_DURATION_SECONDS = 30 * 24 * 60 * 60;
 export const SESSION_TOUCH_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const OPAQUE_SESSION_BYTES = 32;
 
-export type SessionPayload = {
-  sessionId: string;
-  username: string;
-  expiresAt: number;
-};
-
 export const createOpaqueSessionId = (): string =>
   randomBytes(OPAQUE_SESSION_BYTES).toString("base64url");
 

@@ -1,5 +1,26 @@
 # powermeta4 - estado de tareas
 
+## Autenticación DEBUG de desarrollo - 2026-08-11
+
+- [x] Añadir `AuthMode`, `AuthContext`, `AuthView` y el resolutor server-only
+      de sesión actual; el snapshot cliente contiene únicamente `auth` seguro.
+- [x] Incorporar la migración aditiva SQLite `002_debug_auth_mode.sql` con
+      `CHECK (auth_mode IN ('meta4', 'debug'))`, versión de esquema `2` e
+      integridad/foreign keys verificados.
+- [x] Implementar sesiones debug locales con nonce opaco hasheado, ID SQLite
+      independiente y sin SOAP, DPAPI, tokens ni fallback a una SoapSession.
+- [x] Mantener logout debug local y logout Meta4 global, incluyendo limpieza
+      de cache, SoapSession y sesiones locales Meta4.
+- [x] Bloquear SOAP antes de sesión operacional, DPAPI, renovación o red para
+      cualquier contexto que no sea `meta4`.
+- [x] Añadir el login debug condicionado por servidor, estado en sidebar y
+      Ajustes, rutas locales y backups saneados.
+- [x] Añadir pruebas unitarias, SQLite, rutas y UI con Testing Library,
+      user-event y jsdom.
+- [x] Ejecutar setup temporal, lint, typecheck, 26 archivos/94 pruebas,
+      build, `git diff --check` y comprobaciones controladas de login en
+      desarrollo/producción.
+
 ## Implementación definitiva de persistencia local - 2026-08-06
 
 - [x] Cortar la persistencia a `node:sqlite`/`DatabaseSync` con Node

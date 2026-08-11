@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { exportBackup } from "@/lib/backups/service";
-import { requireSession } from "@/lib/auth/session";
+import { deleteSessionCookie, getCurrentAuthContext } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 
 export async function GET(): Promise<Response> {
-  await requireSession();
+  if (!(await getCurrentAuthContext())) {
+    await deleteSessionCookie();
+    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
+  }
   try {
     const backup = await exportBackup();
     return new NextResponse(Buffer.from(backup.bytes), {

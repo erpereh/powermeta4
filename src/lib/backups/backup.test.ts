@@ -61,6 +61,11 @@ const createFixture = async () => {
       "INSERT INTO soap_sessions (id, username, jsession_id_encrypted, refresh_session_id_encrypted, created_at, updated_at) VALUES ('global', 'usuario', 'secret', 'secret', ?, ?)",
     )
     .run(timestamp, timestamp);
+  database
+    .prepare(
+      "INSERT INTO local_browser_sessions (id, cookie_hash, username, auth_mode, created_at, last_seen_at, expires_at, revoked_at) VALUES ('debug-browser', 'debug-hash', 'DEBUG', 'debug', ?, ?, '2099-01-01T00:00:00.000Z', NULL)",
+    )
+    .run(timestamp, timestamp);
   await writeFile(path.join(paths.uploadsDir, "hello.txt"), "upload content");
   return { dataDir, paths };
 };
@@ -128,6 +133,9 @@ describe("backup safety and exact format", () => {
         expect(database.prepare("SELECT COUNT(*) AS count FROM soap_sessions").get()).toMatchObject(
           { count: 0 },
         );
+        expect(
+          database.prepare("SELECT COUNT(*) AS count FROM local_browser_sessions").get(),
+        ).toMatchObject({ count: 0 });
         expect(database.prepare("SELECT COUNT(*) AS count FROM messages").get()).toMatchObject({
           count: 1,
         });
@@ -190,6 +198,34 @@ describe("backup safety and exact format", () => {
     const { validateBackup } = await import("@/lib/backups/service");
     await expect(validateBackup(await writer.getData(), "browser-session-hash")).rejects.toThrow(
       /backup/,
+    );
+  });
+
+  it("keeps schema-1 backups incompatible with the schema-2 application", async () => {
+    await createFixture();
+    const writer = new Uint8ArrayWriter();
+    const zip = new ZipWriter(writer);
+    await zip.add(
+      "manifest.json",
+      new Uint8ArrayReader(
+        new TextEncoder().encode(
+          JSON.stringify({
+            backupVersion: BACKUP_VERSION,
+            databaseSchemaVersion: DATABASE_SCHEMA_VERSION - 1,
+            appVersion: "0.1.0",
+            createdAt: new Date().toISOString(),
+            databasePath: BACKUP_DATABASE_PATH,
+          }),
+        ),
+      ),
+    );
+    await zip.add(BACKUP_DATABASE_PATH, new Uint8ArrayReader(new Uint8Array([1, 2, 3])));
+    await zip.add("uploads/", new Uint8ArrayReader(new Uint8Array()));
+    await zip.close();
+
+    const { validateBackup } = await import("@/lib/backups/service");
+    await expect(validateBackup(await writer.getData(), "browser-session-hash")).rejects.toThrow(
+      /base de datos/,
     );
   });
 });

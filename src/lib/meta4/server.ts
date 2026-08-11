@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getAuthService } from "@/lib/auth/server";
+import { getCurrentAuthContext } from "@/lib/auth/session";
 
 import {
   createAuthenticatedSoapClient,
@@ -14,7 +15,12 @@ const globalForMeta4 = globalThis as {
 const getAuthenticatedSoapClient = () => {
   if (!globalForMeta4.__powermeta4AuthenticatedSoapClient) {
     globalForMeta4.__powermeta4AuthenticatedSoapClient = createAuthenticatedSoapClient({
-      auth: getAuthService(),
+      auth: {
+        getCurrentAuthContext,
+        getOperationalSession: (authSession) => getAuthService().getOperationalSession(authSession),
+        renewSession: (authSession) => getAuthService().renewSession(authSession),
+        invalidate: () => getAuthService().invalidate(),
+      },
     });
   }
   return globalForMeta4.__powermeta4AuthenticatedSoapClient;

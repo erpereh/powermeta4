@@ -5,6 +5,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
 import { getDatabase } from "@/server/database/client";
 import { withTransaction } from "@/server/database/transaction";
+import type { AuthMode } from "@/types/session";
 
 export const GLOBAL_SOAP_SESSION_ID = "global";
 
@@ -19,6 +20,7 @@ export type LocalBrowserSessionData = {
   id: string;
   cookieHash: string;
   username: string;
+  authMode: AuthMode;
   expiresAt: Date;
 };
 
@@ -39,11 +41,13 @@ export type AuthRepository = {
   replaceAuthState: (data: SoapSessionData) => Promise<void>;
   updateJSessionId: (encryptedJSessionId: string, lastValidatedAt: Date) => Promise<void>;
   clearAuthState: () => Promise<void>;
+  replaceLocalBrowserSessions: (data: LocalBrowserSessionData) => Promise<void>;
   createLocalBrowserSession: (data: LocalBrowserSessionData) => Promise<void>;
   getLocalBrowserSession: (cookieHash: string) => Promise<{
     id: string;
     username: string;
     cookieHash: string;
+    authMode: AuthMode;
     expiresAt: Date;
     revokedAt: Date | null;
     lastSeenAt: Date;
@@ -110,17 +114,38 @@ export const createAuthRepository = (database: DatabaseSync = getDatabase()): Au
         database.exec("DELETE FROM soap_sessions; DELETE FROM local_browser_sessions;"),
       );
     }),
+  replaceLocalBrowserSessions: async (data) =>
+    withRepositoryWrite(async () =>
+      withTransaction(database, () => {
+        const timestamp = new Date().toISOString();
+        database.exec("DELETE FROM local_browser_sessions;");
+        database
+          .prepare(
+            "INSERT INTO local_browser_sessions (id, cookie_hash, username, auth_mode, created_at, last_seen_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)",
+          )
+          .run(
+            data.id,
+            data.cookieHash,
+            data.username,
+            data.authMode,
+            timestamp,
+            timestamp,
+            data.expiresAt.toISOString(),
+          );
+      }),
+    ),
   createLocalBrowserSession: async (data) =>
     withRepositoryWrite(async () => {
       const timestamp = new Date().toISOString();
       database
         .prepare(
-          "INSERT INTO local_browser_sessions (id, cookie_hash, username, created_at, last_seen_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, NULL)",
+          "INSERT INTO local_browser_sessions (id, cookie_hash, username, auth_mode, created_at, last_seen_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)",
         )
         .run(
           data.id,
           data.cookieHash,
           data.username,
+          data.authMode,
           timestamp,
           timestamp,
           data.expiresAt.toISOString(),
@@ -129,17 +154,19 @@ export const createAuthRepository = (database: DatabaseSync = getDatabase()): Au
   getLocalBrowserSession: async (cookieHash) => {
     const row = database
       .prepare(
-        "SELECT id, cookie_hash, username, expires_at, revoked_at, last_seen_at FROM local_browser_sessions WHERE cookie_hash = ?",
+        "SELECT id, cookie_hash, username, auth_mode, expires_at, revoked_at, last_seen_at FROM local_browser_sessions WHERE cookie_hash = ?",
       )
       .get(cookieHash);
     if (!row) return null;
     const expiresAt = toDate(row.expires_at);
     const lastSeenAt = toDate(row.last_seen_at);
-    if (!expiresAt || !lastSeenAt) return null;
+    const authMode = row.auth_mode;
+    if (!expiresAt || !lastSeenAt || (authMode !== "meta4" && authMode !== "debug")) return null;
     return {
       id: String(row.id),
       username: String(row.username),
       cookieHash: String(row.cookie_hash),
+      authMode,
       expiresAt,
       revokedAt: toDate(row.revoked_at),
       lastSeenAt,

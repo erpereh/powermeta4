@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
 
 import { restoreBackup } from "@/lib/backups/service";
-import { getAuthService } from "@/lib/auth/server";
-import { deleteSessionCookie, getSession } from "@/lib/auth/session";
-import { hashOpaqueSessionId, isOpaqueSessionId } from "@/lib/auth/token";
+import { deleteSessionCookie, getCurrentAuthContext } from "@/lib/auth/session";
+import { isOpaqueSessionId } from "@/lib/auth/token";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<Response> {
-  const session = await getSession();
-  if (!session)
-    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
-  if (!(await getAuthService().restoreSession())) {
+  const authSession = await getCurrentAuthContext();
+  if (!authSession) {
     await deleteSessionCookie();
-    return NextResponse.json({ ok: false, errorCode: "SESSION_EXPIRED" }, { status: 401 });
+    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
   }
 
   try {
@@ -28,7 +25,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!isOpaqueSessionId(importId)) {
       return NextResponse.json({ ok: false, errorCode: "IMPORT_ID_INVALID" }, { status: 400 });
     }
-    const result = await restoreBackup(importId, hashOpaqueSessionId(session.sessionId));
+    const result = await restoreBackup(importId, authSession.cookieHash);
     await deleteSessionCookie();
     return NextResponse.json(
       { ok: true, data: result },

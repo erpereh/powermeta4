@@ -21,11 +21,12 @@ const isWorkspaceSnapshotState = (value: unknown): value is WorkspaceSnapshotSta
   if (!isRecord(value)) return false;
   if (!Array.isArray(value.companies) || !isRecord(value.workspaces)) return false;
   if (value.activeCompanyId !== null && typeof value.activeCompanyId !== "string") return false;
-  if (!isRecord(value.session)) return false;
+  if (value.auth === null) return true;
+  if (!isRecord(value.auth)) return false;
   return (
-    (value.session.username === null || typeof value.session.username === "string") &&
-    (value.session.status === "anonymous" || value.session.status === "authenticated") &&
-    (value.session.lastValidatedAt === null || typeof value.session.lastValidatedAt === "string")
+    (value.auth.mode === "meta4" || value.auth.mode === "debug") &&
+    typeof value.auth.username === "string" &&
+    typeof value.auth.canUseMeta4 === "boolean"
   );
 };
 

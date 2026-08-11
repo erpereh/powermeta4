@@ -1,6 +1,11 @@
 import "server-only";
 
+import type { ResolvedAuthSession } from "@/lib/auth/service";
+
+import { Meta4SessionRequiredError } from "./errors";
 import { isSessionExpiredResponse } from "./session-expiration";
+
+export { Meta4SessionRequiredError } from "./errors";
 
 export class SessionExpiredError extends Error {
   constructor() {
@@ -19,8 +24,11 @@ export type AuthenticatedSoapOperation<T> = {
 };
 
 type AuthenticatedSoapAuth = {
-  getOperationalSession: () => Promise<{ jSessionId: string; refreshSessionId: string } | null>;
-  renewSession: () => Promise<unknown>;
+  getCurrentAuthContext: () => Promise<ResolvedAuthSession | null>;
+  getOperationalSession: (
+    authSession: ResolvedAuthSession,
+  ) => Promise<{ jSessionId: string; refreshSessionId: string } | null>;
+  renewSession: (authSession: ResolvedAuthSession) => Promise<unknown>;
   invalidate: () => Promise<null>;
 };
 
@@ -64,13 +72,16 @@ export const createAuthenticatedSoapClient = ({
 }: AuthenticatedSoapClientOptions) => {
   let renewalFlight: Promise<unknown> | null = null;
 
-  const renewIfNeeded = async (expiredJSessionId: string): Promise<void> => {
-    const latestSession = await auth.getOperationalSession();
+  const renewIfNeeded = async (
+    authSession: ResolvedAuthSession,
+    expiredJSessionId: string,
+  ): Promise<void> => {
+    const latestSession = await auth.getOperationalSession(authSession);
     if (!latestSession) throw new SessionExpiredError();
     if (latestSession.jSessionId !== expiredJSessionId) return;
 
     if (!renewalFlight) {
-      renewalFlight = Promise.resolve(auth.renewSession()).finally(() => {
+      renewalFlight = Promise.resolve(auth.renewSession(authSession)).finally(() => {
         renewalFlight = null;
       });
     }
@@ -79,7 +90,13 @@ export const createAuthenticatedSoapClient = ({
 
   return {
     executeAuthenticatedSoap: async <T>(operation: AuthenticatedSoapOperation<T>): Promise<T> => {
-      const session = await auth.getOperationalSession();
+      const authSession = await auth.getCurrentAuthContext();
+      if (!authSession) throw new SessionExpiredError();
+      if (authSession.authContext.mode !== "meta4" || !authSession.authContext.canUseMeta4) {
+        throw new Meta4SessionRequiredError();
+      }
+
+      const session = await auth.getOperationalSession(authSession);
       if (!session) throw new SessionExpiredError();
 
       const executeOnce = async (jSessionId: string) => {
@@ -98,13 +115,13 @@ export const createAuthenticatedSoapClient = ({
       if (!firstAttempt.expired) return operation.parseResponse(firstAttempt.response);
 
       try {
-        await renewIfNeeded(session.jSessionId);
+        await renewIfNeeded(authSession, session.jSessionId);
       } catch {
         await auth.invalidate();
         throw new SessionExpiredError();
       }
 
-      const renewedSession = await auth.getOperationalSession();
+      const renewedSession = await auth.getOperationalSession(authSession);
       if (!renewedSession) {
         await auth.invalidate();
         throw new SessionExpiredError();

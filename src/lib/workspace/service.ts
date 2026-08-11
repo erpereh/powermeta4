@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getDatabase } from "@/server/database/client";
+import type { AuthView } from "@/types/session";
 
 import { createWorkspaceRepository } from "./repository";
 
@@ -21,7 +22,7 @@ const getRepository = () => {
   return globalForWorkspace.__powermeta4WorkspaceRepository;
 };
 
-export const getWorkspaceSnapshot = (username: string) => getRepository().getSnapshot(username);
+export const getWorkspaceSnapshot = (auth: AuthView) => getRepository().getSnapshot(auth);
 
 export const getWorkspaceRepository = getRepository;
 

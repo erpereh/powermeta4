@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getAuthService } from "@/lib/auth/server";
-import { deleteSessionCookie, getSession } from "@/lib/auth/session";
+import { deleteSessionCookie, getCurrentAuthContext } from "@/lib/auth/session";
 import { getWorkspaceRepository } from "@/lib/workspace/service";
 
 export const runtime = "nodejs";
@@ -10,12 +9,10 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ conversationId: string }> },
 ) {
-  const session = await getSession();
-  if (!session)
-    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
-  if (!(await getAuthService().restoreSession())) {
+  const authSession = await getCurrentAuthContext();
+  if (!authSession) {
     await deleteSessionCookie();
-    return NextResponse.json({ ok: false, errorCode: "SESSION_EXPIRED" }, { status: 401 });
+    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
   }
 
   const companyId = new URL(request.url).searchParams.get("companyId");

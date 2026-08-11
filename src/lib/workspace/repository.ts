@@ -13,6 +13,7 @@ import { withTransaction } from "@/server/database/transaction";
 import { BACKUP_VERSION, DATABASE_SCHEMA_VERSION } from "@/server/database/version";
 import { createCompanyRepository } from "@/server/database/repositories/company-repository";
 import type { WorkspaceSnapshot } from "@/lib/local-database/dtos";
+import type { AuthView } from "@/types/session";
 import type {
   Chat,
   Message,
@@ -69,6 +70,11 @@ const nullableString = (value: unknown): string | null =>
   typeof value === "string" ? value : null;
 const numberValue = (value: unknown, fallback = 0): number =>
   typeof value === "number" ? value : Number(value ?? fallback);
+const toAuthView = (auth: AuthView): AuthView => ({
+  mode: auth.mode,
+  username: auth.username,
+  canUseMeta4: auth.canUseMeta4,
+});
 
 const mapCompany = (row: Row): Company => ({
   id: stringValue(row.id) as CompanyId,
@@ -285,7 +291,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
     };
   };
 
-  const getSnapshot = async (username: string): Promise<WorkspaceSnapshot> => {
+  const getSnapshot = async (auth: AuthView): Promise<WorkspaceSnapshot> => {
     await withRepositoryWrite(async () => {
       withTransaction(database, () => recoverInterruptedMessages(database));
     });
@@ -299,18 +305,11 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
     const activeCompanyId = await getActiveCompanyId(companies);
     const workspaces: Partial<Record<CompanyId, WorkspaceData>> = {};
     for (const company of companies) workspaces[company.id] = getWorkspaceData(company);
-    const soapSession = database
-      .prepare("SELECT last_validated_at FROM soap_sessions WHERE id = 'global'")
-      .get();
     return {
       companies,
       activeCompanyId,
       workspaces,
-      session: {
-        username,
-        status: "authenticated",
-        lastValidatedAt: nullableString(soapSession?.last_validated_at),
-      },
+      auth: toAuthView(auth),
       backupVersion: BACKUP_VERSION,
       databaseSchemaVersion: DATABASE_SCHEMA_VERSION,
       appVersion,

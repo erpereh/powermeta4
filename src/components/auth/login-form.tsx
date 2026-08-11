@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
+import { Bug } from "lucide-react";
 import Link from "next/link";
 
-import { loginAction, type LoginState } from "@/app/actions/auth";
+import { debugLoginAction, loginAction, type LoginState } from "@/app/actions/auth";
 import { PowermetaLogo } from "@/components/branding/powermeta-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,8 +13,13 @@ import { Label } from "@/components/ui/label";
 
 const initialState: LoginState = {};
 
-export function LoginForm() {
-  const [state, formAction, pending] = useActionState(loginAction, initialState);
+export function LoginForm({ debugAuthEnabled }: { debugAuthEnabled: boolean }) {
+  const [meta4State, meta4FormAction, meta4Pending] = useActionState(loginAction, initialState);
+  const [debugState, debugFormAction, debugPending] = useActionState(
+    debugLoginAction,
+    initialState,
+  );
+  const pending = meta4Pending || debugPending;
 
   return (
     <main className="flex min-h-svh items-center justify-center bg-background px-4 py-8">
@@ -28,7 +34,7 @@ export function LoginForm() {
           </div>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="grid gap-5">
+          <form action={meta4FormAction} className="grid gap-5">
             <div className="grid gap-2">
               <Label htmlFor="email">Usuario Meta4</Label>
               <Input id="email" name="email" type="text" autoComplete="username" required />
@@ -43,15 +49,34 @@ export function LoginForm() {
                 required
               />
             </div>
-            {state.error && (
+            {meta4State.error && (
               <p role="alert" className="text-sm text-destructive">
-                {state.error}
+                {meta4State.error}
               </p>
             )}
             <Button type="submit" disabled={pending} aria-busy={pending}>
               {pending ? "Comprobando..." : "Entrar"}
             </Button>
           </form>
+          {debugAuthEnabled && (
+            <>
+              <div className="relative my-6 flex items-center justify-center" aria-hidden="true">
+                <span className="absolute inset-x-0 border-t" />
+                <span className="relative bg-card px-3 text-sm text-muted-foreground">o</span>
+              </div>
+              <form action={debugFormAction} className="grid gap-3">
+                {debugState.error && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {debugState.error}
+                  </p>
+                )}
+                <Button type="submit" variant="outline" disabled={pending} aria-busy={pending}>
+                  <Bug />
+                  {pending ? "Comprobando..." : "Entrar en modo debug"}
+                </Button>
+              </form>
+            </>
+          )}
         </CardContent>
       </Card>
     </main>

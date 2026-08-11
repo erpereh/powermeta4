@@ -1,5 +1,56 @@
 # Changelog
 
+## 2026-08-11 - Autenticación DEBUG aislada para desarrollo
+
+### Cambios
+
+- Se añadió un modo `debug` server-only habilitable exclusivamente con
+  `NODE_ENV=development` y `POWERMETA4_DEBUG_AUTH=true`, con usuario de
+  desarrollo configurable y errores saneados para estado deshabilitado o no
+  permitido.
+- La migración `002_debug_auth_mode.sql` incorpora `auth_mode` restringido a
+  `meta4`/`debug`; las sesiones anteriores migran a `meta4` y el esquema local
+  pasa a la versión 2 sin cambiar el formato de backup (versión 1).
+- La cookie conserva solo un nonce opaco; SQLite guarda un hash y un ID interno
+  independiente. Las sesiones debug no crean ni restauran SoapSession, no usan
+  DPAPI y no pueden caer a una sesión Meta4 antigua.
+- El logout debug revoca solo la sesión local presentada. El logout Meta4
+  mantiene el cierre global: elimina SoapSession, sesiones locales asociadas y
+  cache de restauración.
+- Se separaron el contexto resuelto server-only y `AuthView`; snapshots,
+  Zustand, sidebar y Ajustes no serializan IDs, hashes, nonce, cookies,
+  expiraciones ni tokens. Las rutas de workspace y backups resuelven el
+  contexto central y los imports conservan el hash solo en servidor.
+- El cliente SOAP exige `mode === 'meta4'` antes de cualquier acceso
+  operacional, DPAPI, renovación o red, y devuelve `META4_SESSION_REQUIRED`
+  en debug.
+- `/login` muestra un segundo formulario sin campos y el botón de debug solo
+  cuando el servidor lo autoriza. Sidebar y Ajustes muestran el estado de
+  desarrollo, y los ZIP siguen eliminando todas las sesiones.
+
+### Verificación automática
+
+Se ejecutaron correctamente:
+
+- `POWERMETA4_DATA_DIR=<directorio temporal> npm run setup`
+- `npm run lint`
+- `npm run typecheck`
+- `npm test` — 26 archivos y 94 pruebas correctas.
+- `POWERMETA4_DEBUG_AUTH=true npm run build`
+- `git diff --check`
+
+### Comprobación controlada
+
+- Con desarrollo y flag `false`, `/login` devolvió 200 sin botón debug.
+- Con desarrollo y flag `true`, `/login` devolvió 200 con el botón debug.
+- En una SQLite temporal se creó una sesión debug y, al desactivar el flag, se
+  revocó y resolvió a `null` aun con una SoapSession antigua presente, sin
+  utilizarla.
+- Con `POWERMETA4_DEBUG_AUTH=true`, `npm run start` devolvió `/login` 200 sin
+  botón debug; producción no habilita el bypass.
+- No se realizó una llamada Meta4 real ni una prueba E2E visual con credenciales
+  reales; esas comprobaciones siguen fuera de alcance sin VM/credenciales.
+
 ## 2026-08-06 - Corte definitivo a node:sqlite
 
 ### Cambios

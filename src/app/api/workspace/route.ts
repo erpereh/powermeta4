@@ -1,23 +1,20 @@
 import { NextResponse } from "next/server";
 
-import { getAuthService } from "@/lib/auth/server";
-import { deleteSessionCookie, getSession } from "@/lib/auth/session";
+import { deleteSessionCookie, getCurrentAuthContext } from "@/lib/auth/session";
 import { getWorkspaceSnapshot } from "@/lib/workspace/service";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session)
-    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
-  if (!(await getAuthService().restoreSession())) {
+  const authSession = await getCurrentAuthContext();
+  if (!authSession) {
     await deleteSessionCookie();
-    return NextResponse.json({ ok: false, errorCode: "SESSION_EXPIRED" }, { status: 401 });
+    return NextResponse.json({ ok: false, errorCode: "UNAUTHENTICATED" }, { status: 401 });
   }
 
   try {
     return NextResponse.json(
-      { ok: true, data: await getWorkspaceSnapshot(session.username) },
+      { ok: true, data: await getWorkspaceSnapshot(authSession.authContext) },
       {
         headers: { "Cache-Control": "no-store" },
       },

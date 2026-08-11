@@ -1,5 +1,8 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
+import { assertDebugAuthEnabled, getDebugUsername, isDebugAuthEnabled } from "./debug-config";
 import {
   createOpaqueSessionId,
   hashOpaqueSessionId,
@@ -8,37 +11,61 @@ import {
 } from "./token";
 import type { DpapiAdapter } from "@/lib/security/dpapi";
 import type { Meta4Client } from "@/lib/meta4/client";
+import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
 import type { AuthRepository } from "./session-repository";
+import type { AuthContext, AuthMode } from "@/types/session";
 
 const RESTORE_CACHE_MS = 5 * 60 * 1000;
 
 export type AuthService = ReturnType<typeof createAuthService>;
+
+export type ResolvedAuthSession = {
+  sessionId: string;
+  cookieHash: string;
+  authContext: AuthContext;
+  expiresAt: Date;
+  lastValidatedAt: Date | null;
+};
 
 type AuthServiceOptions = {
   repository: AuthRepository;
   dpapi: DpapiAdapter;
   soap: Meta4Client;
   now?: () => Date;
-  createSessionId?: () => string;
+  createSessionNonce?: () => string;
+  createLocalSessionId?: () => string;
 };
+
+type LocalSession = NonNullable<Awaited<ReturnType<AuthRepository["getLocalBrowserSession"]>>>;
 
 const asErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Error desconocido";
+
+const createAuthContext = (mode: AuthMode, username: string): AuthContext => ({
+  mode,
+  username,
+  canUseMeta4: mode === "meta4",
+});
 
 export const createAuthService = ({
   repository,
   dpapi,
   soap,
   now = () => new Date(),
-  createSessionId = createOpaqueSessionId,
+  createSessionNonce = createOpaqueSessionId,
+  createLocalSessionId = randomUUID,
 }: AuthServiceOptions) => {
   let restoreFlight: Promise<{ username: string } | null> | null = null;
   let restoredUsername: string | null = null;
   let restoreReadyUntil = 0;
 
-  const invalidate = async (): Promise<null> => {
+  const clearRestoreCache = (): void => {
     restoredUsername = null;
     restoreReadyUntil = 0;
+  };
+
+  const invalidate = async (): Promise<null> => {
+    clearRestoreCache();
     await repository.clearAuthState();
     return null;
   };
@@ -75,6 +102,29 @@ export const createAuthService = ({
     return restoreFlight;
   };
 
+  const createBrowserSession = async (input: {
+    username: string;
+    authMode: AuthMode;
+    replaceExistingLocalSessions?: boolean;
+  }) => {
+    const currentTime = now();
+    const sessionNonce = createSessionNonce();
+    const expiresAt = new Date(currentTime.getTime() + SESSION_DURATION_SECONDS * 1000);
+    const data = {
+      id: createLocalSessionId(),
+      cookieHash: hashOpaqueSessionId(sessionNonce),
+      username: input.username,
+      authMode: input.authMode,
+      expiresAt,
+    };
+    if (input.replaceExistingLocalSessions) {
+      await repository.replaceLocalBrowserSessions(data);
+    } else {
+      await repository.createLocalBrowserSession(data);
+    }
+    return { sessionNonce, username: input.username, expiresAt };
+  };
+
   const login = async (username: string, password: string) => {
     if (!username || !password) throw new Error("El usuario y la contraseña son obligatorios.");
 
@@ -90,51 +140,94 @@ export const createAuthService = ({
       refreshSessionIdEncrypted,
       lastValidatedAt: currentTime,
     });
-    const sessionId = createSessionId();
-    await repository.createLocalBrowserSession({
-      id: sessionId,
-      cookieHash: hashOpaqueSessionId(sessionId),
-      username,
-      expiresAt: new Date(currentTime.getTime() + SESSION_DURATION_SECONDS * 1000),
-    });
+    const session = await createBrowserSession({ username, authMode: "meta4" });
     restoredUsername = username;
     restoreReadyUntil = currentTime.getTime() + RESTORE_CACHE_MS;
-    return {
-      sessionId,
-      username,
-      expiresAt: new Date(currentTime.getTime() + SESSION_DURATION_SECONDS * 1000),
-    };
+    return session;
   };
 
-  const getLocalSession = async (sessionId: string) => {
-    const session = await repository.getLocalBrowserSession(hashOpaqueSessionId(sessionId));
+  const debugLogin = async () => {
+    assertDebugAuthEnabled();
+    const { sessionNonce } = await createBrowserSession({
+      username: getDebugUsername(),
+      authMode: "debug",
+      replaceExistingLocalSessions: true,
+    });
+    return { sessionNonce };
+  };
+
+  const getValidLocalBrowserSession = async (
+    sessionNonce: string,
+  ): Promise<LocalSession | null> => {
+    const session = await repository.getLocalBrowserSession(hashOpaqueSessionId(sessionNonce));
     const currentTime = now();
     if (!session || session.revokedAt || session.expiresAt <= currentTime) return null;
 
+    return session;
+  };
+
+  const touchLocalBrowserSession = async (session: LocalSession): Promise<LocalSession> => {
+    const currentTime = now();
     const shouldTouch =
       currentTime.getTime() - session.lastSeenAt.getTime() >= SESSION_TOUCH_INTERVAL_MS;
-    const expiresAt = shouldTouch
-      ? new Date(currentTime.getTime() + SESSION_DURATION_SECONDS * 1000)
-      : session.expiresAt;
-    if (shouldTouch) await repository.touchLocalBrowserSession(session.id, currentTime, expiresAt);
+    if (!shouldTouch) return session;
+    const expiresAt = new Date(currentTime.getTime() + SESSION_DURATION_SECONDS * 1000);
+    await repository.touchLocalBrowserSession(session.id, currentTime, expiresAt);
+    return { ...session, expiresAt, lastSeenAt: currentTime };
+  };
+
+  const resolveSession = async (sessionNonce: string): Promise<ResolvedAuthSession | null> => {
+    const localSession = await getValidLocalBrowserSession(sessionNonce);
+    if (!localSession) return null;
+
+    if (localSession.authMode === "debug") {
+      if (!isDebugAuthEnabled()) {
+        await repository.revokeLocalBrowserSession(localSession.id);
+        return null;
+      }
+      const touchedLocalSession = await touchLocalBrowserSession(localSession);
+      return {
+        sessionId: touchedLocalSession.id,
+        cookieHash: touchedLocalSession.cookieHash,
+        authContext: createAuthContext("debug", touchedLocalSession.username),
+        expiresAt: touchedLocalSession.expiresAt,
+        lastValidatedAt: null,
+      };
+    }
+
+    const restored = await restoreSession();
+    if (!restored) return null;
+    const soapSession = await repository.getSoapSession();
+    if (!soapSession) return null;
+    const touchedLocalSession = await touchLocalBrowserSession(localSession);
     return {
-      sessionId,
-      username: session.username,
-      expiresAt,
-      lastValidatedAt: restoredUsername ? currentTime : null,
+      sessionId: touchedLocalSession.id,
+      cookieHash: touchedLocalSession.cookieHash,
+      authContext: createAuthContext("meta4", touchedLocalSession.username),
+      expiresAt: touchedLocalSession.expiresAt,
+      lastValidatedAt: soapSession.lastValidatedAt,
     };
   };
 
-  const logout = async (sessionId: string | undefined) => {
-    if (sessionId) {
-      const session = await repository.getLocalBrowserSession(hashOpaqueSessionId(sessionId));
-      if (session) await repository.revokeLocalBrowserSession(session.id);
+  const logout = async (sessionNonce: string | undefined): Promise<void> => {
+    if (!sessionNonce) return;
+    const localSession = await repository.getLocalBrowserSession(hashOpaqueSessionId(sessionNonce));
+    if (!localSession) return;
+    if (localSession.authMode === "debug") {
+      await repository.revokeLocalBrowserSession(localSession.id);
+      return;
+    }
+    await invalidate();
+  };
+
+  const assertMeta4Session = (authSession: ResolvedAuthSession): void => {
+    if (authSession.authContext.mode !== "meta4" || !authSession.authContext.canUseMeta4) {
+      throw new Meta4SessionRequiredError();
     }
   };
 
-  const getOperationalSession = async () => {
-    const restored = await restoreSession();
-    if (!restored) return null;
+  const getOperationalSession = async (authSession: ResolvedAuthSession) => {
+    assertMeta4Session(authSession);
     const session = await repository.getSoapSession();
     if (!session?.refreshSessionIdEncrypted) return invalidate();
 
@@ -151,12 +244,16 @@ export const createAuthService = ({
 
   return {
     login,
+    debugLogin,
     restoreSession,
-    getLocalSession,
+    resolveSession,
     logout,
     invalidate,
     getOperationalSession,
-    renewSession: () => restoreSession({ force: true }),
+    renewSession: async (authSession: ResolvedAuthSession) => {
+      assertMeta4Session(authSession);
+      return restoreSession({ force: true });
+    },
     describeError: asErrorMessage,
   };
 };
