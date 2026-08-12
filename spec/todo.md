@@ -60,3 +60,15 @@
 
 Las acciones ERP actuales son un catálogo local honesto; no simulan
 conexiones, resultados ni operaciones externas.
+
+## Nova + Home Command Center - 2026-08-12
+
+- [x] Migrar shadcn de `radix-luma` a `radix-nova` vía CLI oficial; conservar
+      tokens cian `b1temovYm`, Inter (`--font-inter`) y registro `@assistant-ui`.
+- [x] Añadir componentes `empty` y `scroll-area` de shadcn.
+- [x] Extender `searchTools` con nombre de módulo; eliminar acceso rápido del
+      registro (`QUICK_TOOL_IDS` / `getQuickTools`).
+- [x] Rediseñar `/home` como command center: paleta, dock de módulos, tarjetas
+      compactas, actividad reciente y `Ctrl+K` acotado a herramientas en Inicio.
+- [x] Ejecutar lint, typecheck, tests, build, `git diff --check` y
+      `git status --short`.

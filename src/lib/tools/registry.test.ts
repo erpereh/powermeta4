@@ -60,7 +60,7 @@ describe("tool registry", () => {
     expect(userTools.every((tool) => TOOL_ICONS[tool.icon])).toBe(true);
   });
 
-  it("searches modules, actions and keywords", () => {
+  it("searches modules, actions, keywords and module names on tools", () => {
     expect(searchTools("nómina").tools.map((tool) => tool.moduleId)).toEqual([
       "payroll",
       "payroll",
@@ -69,5 +69,6 @@ describe("tool registry", () => {
     ]);
     expect(searchTools("usuarios").modules.map((module) => module.id)).toContain("users");
     expect(searchTools("centro de trabajo").tools[0]?.id).toBe("companies.work-centers");
+    expect(searchTools("empresas").tools.some((tool) => tool.moduleId === "companies")).toBe(true);
   });
 });

@@ -375,14 +375,6 @@ export const TOOL_MODULES = [
 
 export const TOOL_REGISTRY = TOOL_MODULES.flatMap((module) => module.tools);
 
-export const QUICK_TOOL_IDS = [
-  "users.create",
-  "users.consult",
-  "payroll.generate",
-  "payroll.review-incidents",
-  "processes.execute",
-] as const;
-
 const normalize = (value: string) =>
   value
     .normalize("NFD")
@@ -394,10 +386,7 @@ export const getTool = (toolId: string) => TOOL_REGISTRY.find((tool) => tool.id 
 export const getToolModule = (moduleId: ToolModuleId) =>
   TOOL_MODULES.find((module) => module.id === moduleId);
 
-export const getQuickTools = () =>
-  QUICK_TOOL_IDS.map((toolId) => getTool(toolId)).filter(
-    (tool): tool is ToolDefinition => tool !== undefined,
-  );
+export const getModuleTools = (moduleId: ToolModuleId) => getToolModule(moduleId)?.tools ?? [];
 
 export const searchTools = (query: string) => {
   const normalizedQuery = normalize(query.trim());
@@ -411,9 +400,11 @@ export const searchTools = (query: string) => {
     return terms.every((term) => searchableText.includes(term));
   };
 
-  const tools = TOOL_REGISTRY.filter((tool) =>
-    matches([tool.name, tool.description, ...tool.keywords]),
-  );
+  const tools = TOOL_REGISTRY.filter((tool) => {
+    const module = getToolModule(tool.moduleId);
+    const moduleName = module?.name ?? "";
+    return matches([tool.name, tool.description, moduleName, ...tool.keywords]);
+  });
   const modules = TOOL_MODULES.filter(
     (module) =>
       matches([module.name, module.description]) ||

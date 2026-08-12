@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-12 - Nova + Home Command Center
+
+### Cambios
+
+- Migración de shadcn/ui de `radix-luma` a `radix-nova` mediante
+  `npx shadcn@latest apply nova -y`; tokens cian del preset `b1temovYm`,
+  Inter y `registries.@assistant-ui` restaurados tras el apply.
+- Nuevos componentes shadcn: `empty`, `scroll-area`.
+- Inicio (`/home`) rediseñado como command center: trigger de búsqueda,
+  paleta con `CommandDialog` y filtrado vía `searchTools`, dock de módulos con
+  `Tabs` + `ScrollArea`, tarjetas compactas (`ToolCard`) y actividad reciente
+  desde `workspace.recentTools`.
+- `Ctrl+K` en `/home` abre la paleta de herramientas; en otras rutas mantiene
+  la búsqueda de conversaciones en sidebar.
+- Registro: `searchTools` incluye nombre de módulo; eliminados `QUICK_TOOL_IDS`
+  y `getQuickTools`; añadido `getModuleTools`.
+
+### Verificación automática
+
+Se ejecutaron correctamente:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+- `git diff --check`
+- `git status --short`
+
 ## 2026-08-11 - Autenticación DEBUG aislada para desarrollo
 
 ### Cambios

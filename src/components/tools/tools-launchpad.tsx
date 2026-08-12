@@ -1,23 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowUpRight, Clock3, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Input } from "@/components/ui/input";
 import { recordToolVisitAction } from "@/app/actions/workspace";
-import {
-  TOOL_ICONS,
-  TOOL_MODULES,
-  getQuickTools,
-  getTool,
-  searchTools,
-  type ToolDefinition,
-} from "@/lib/tools/registry";
+import { TOOL_REGISTRY, type ToolDefinition } from "@/lib/tools/registry";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
+import { ToolCard } from "@/components/tools/tool-card";
+import { ToolsCommandPalette } from "@/components/tools/tools-command-palette";
+import { ToolsModuleDock, type ModuleFilter } from "@/components/tools/tools-module-dock";
+import { ToolsRecentActivity } from "@/components/tools/tools-recent-activity";
+import { ToolsSearchTrigger } from "@/components/tools/tools-search-trigger";
 
 export function ToolsLaunchpad() {
   const { isMobile, open, openMobile } = useSidebar();
@@ -27,28 +22,45 @@ export function ToolsLaunchpad() {
     state.activeCompanyId ? state.workspaces[state.activeCompanyId] : undefined,
   );
   const recordToolVisit = useWorkspaceStore((state) => state.recordToolVisit);
-  const [query, setQuery] = useState("");
+  const [moduleFilter, setModuleFilter] = useState<ModuleFilter>("all");
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
   const sidebarOpen = isMobile ? openMobile : open;
   const activeCompany = companies.find((company) => company.id === activeCompanyId);
-  const results = useMemo(() => searchTools(query), [query]);
-  const modules = query.trim() ? results.modules : TOOL_MODULES;
-  const quickTools = getQuickTools();
-  const recentVisits = (workspace?.recentTools ?? [])
-    .flatMap((visit) => {
-      const tool = getTool(visit.toolId);
-      return tool ? [{ visit, tool }] : [];
-    })
-    .slice(0, 5);
   const triggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
+
+  const filteredTools = useMemo(() => {
+    if (moduleFilter === "all") return TOOL_REGISTRY;
+    return TOOL_REGISTRY.filter((tool) => tool.moduleId === moduleFilter);
+  }, [moduleFilter]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const handleToolVisit = (toolId: string) => {
     if (!activeCompanyId) return;
+    const tool = TOOL_REGISTRY.find((entry) => entry.id === toolId);
+    if (!tool?.implemented) return;
     recordToolVisit(toolId, activeCompanyId);
     void recordToolVisitAction(activeCompanyId, toolId, createClientMutationId()).then((result) => {
       if (!result.ok) void hydrateWorkspaceStore();
     });
   };
+
+  const handlePaletteSelect = (tool: ToolDefinition) => {
+    if (tool.implemented) handleToolVisit(tool.id);
+  };
+
+  const showUnavailable = () => setFeedback("Esta herramienta estará disponible próximamente.");
 
   return (
     <main className="flex min-h-svh flex-col">
@@ -66,195 +78,43 @@ export function ToolsLaunchpad() {
         <div className="text-sm font-medium">Herramientas</div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-8 sm:py-12">
-        <section className="space-y-3">
-          <p className="text-sm font-medium text-muted-foreground">{activeCompany?.name}</p>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">Herramientas</h1>
-          <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-            Gestiona las operaciones de tu empresa manualmente o con ayuda del asistente.
+      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6 sm:px-6">
+        <section className="space-y-1">
+          <p className="text-xs text-muted-foreground">{activeCompany?.name}</p>
+          <h1 className="text-xl font-semibold tracking-tight">Herramientas</h1>
+          <p className="text-sm text-muted-foreground">
+            Accede a las operaciones de tu empresa manualmente o con el asistente.
           </p>
         </section>
 
-        <div className="relative max-w-xl">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar una herramienta o acción..."
-            aria-label="Buscar una herramienta o acción"
-            className="h-11 pl-9"
-          />
-        </div>
+        <ToolsSearchTrigger onOpen={() => setPaletteOpen(true)} />
 
-        {!query.trim() && (
-          <section className="space-y-4" aria-labelledby="quick-tools-heading">
-            <div className="flex items-center justify-between gap-3">
-              <h2 id="quick-tools-heading" className="text-lg font-medium">
-                Acceso rápido
-              </h2>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {quickTools.map((tool) => {
-                return (
-                  <QuickToolCard
-                    key={tool.id}
-                    tool={tool}
-                    onClick={() => handleToolVisit(tool.id)}
-                    onUnavailable={() =>
-                      setFeedback("Esta herramienta estará disponible próximamente.")
-                    }
-                  />
-                );
-              })}
-            </div>
-          </section>
-        )}
+        <ToolsModuleDock value={moduleFilter} onChange={setModuleFilter} />
 
-        <section className="space-y-4" aria-labelledby="modules-heading">
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="modules-heading" className="text-lg font-medium">
-              {query.trim() ? "Resultados" : "Módulos"}
-            </h2>
-            {query.trim() && (
-              <p className="text-sm text-muted-foreground">
-                {results.tools.length} {results.tools.length === 1 ? "acción" : "acciones"}
-              </p>
-            )}
-          </div>
-          {modules.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-              No hay herramientas que coincidan con tu búsqueda.
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {modules.map((module) => {
-                const Icon = TOOL_ICONS[module.icon];
-                const matchingTools = query.trim()
-                  ? module.tools.filter((tool) =>
-                      results.tools.some((result) => result.id === tool.id),
-                    )
-                  : module.tools;
-                return (
-                  <Link
-                    key={module.id}
-                    href={module.route}
-                    className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-accent"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
-                        <Icon className="size-5" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center justify-between gap-3">
-                          <span className="font-medium">{module.name}</span>
-                          <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                        </span>
-                        <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-                          {module.description}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span className="rounded-full bg-muted px-2.5 py-1">
-                        {module.tools.length} herramientas
-                      </span>
-                      {query.trim() && matchingTools.length > 0 && (
-                        <span className="rounded-full bg-muted px-2.5 py-1">
-                          {matchingTools.length} coinciden
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+        <section className="grid gap-2 sm:grid-cols-2" aria-label="Herramientas disponibles">
+          {filteredTools.map((tool) => (
+            <ToolCard
+              key={tool.id}
+              tool={tool}
+              onVisit={() => handleToolVisit(tool.id)}
+              onUnavailable={showUnavailable}
+            />
+          ))}
         </section>
 
-        <section className="space-y-4" aria-labelledby="recent-tools-heading">
-          <div className="flex items-center gap-2">
-            <Clock3 className="size-4 text-muted-foreground" />
-            <h2 id="recent-tools-heading" className="text-lg font-medium">
-              Actividad reciente
-            </h2>
-          </div>
-          {recentVisits.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-              Todavía no hay actividad en este workspace.
-            </div>
-          ) : (
-            <div className="divide-y divide-border rounded-2xl border border-border bg-card px-4">
-              {recentVisits.map(({ visit, tool }) => {
-                const Icon = TOOL_ICONS[tool.icon];
-                return (
-                  <Link
-                    key={`${tool.id}-${visit.visitedAt}`}
-                    href={tool.route}
-                    className="flex items-center gap-3 py-3 text-sm hover:text-primary"
-                  >
-                    <Icon className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="min-w-0 flex-1 truncate">{tool.name}</span>
-                    <span className="text-xs text-muted-foreground">{tool.moduleId}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
+        <ToolsRecentActivity recentTools={workspace?.recentTools ?? []} />
 
         <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
           {feedback}
         </div>
       </div>
+
+      <ToolsCommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onSelectTool={handlePaletteSelect}
+        onUnavailable={showUnavailable}
+      />
     </main>
-  );
-}
-
-function QuickToolCard({
-  tool,
-  onClick,
-  onUnavailable,
-}: {
-  tool: ToolDefinition;
-  onClick: () => void;
-  onUnavailable: () => void;
-}) {
-  const Icon = TOOL_ICONS[tool.icon];
-  const content = (
-    <>
-      <div className="flex items-start justify-between gap-3">
-        <Icon className="size-5 text-primary" />
-        {tool.implemented && (
-          <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-        )}
-      </div>
-      <p className="mt-5 text-sm font-medium">{tool.name}</p>
-      <p className="mt-1 text-sm leading-6 text-muted-foreground">{tool.description}</p>
-      {!tool.implemented && (
-        <p className="mt-4 text-xs text-muted-foreground">Disponible próximamente</p>
-      )}
-    </>
-  );
-
-  if (!tool.implemented) {
-    return (
-      <button
-        type="button"
-        onClick={onUnavailable}
-        className="group rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        {content}
-      </button>
-    );
-  }
-
-  return (
-    <Link
-      href={tool.route}
-      onClick={onClick}
-      className="group rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      {content}
-    </Link>
   );
 }

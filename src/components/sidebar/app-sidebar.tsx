@@ -90,13 +90,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setSearchOpen(true);
+        if (pathname !== "/home") {
+          setSearchOpen(true);
+        }
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [pathname]);
 
   const closeMobileSidebar = () => {
     if (isMobile) setOpenMobile(false);

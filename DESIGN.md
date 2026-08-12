@@ -8,9 +8,16 @@ mientras Inicio y los workspaces locales organizan acciones preparadas para
 una futura conexión ERP.
 
 La fuente visual es el preset `b1temovYm`, junto con las primitivas existentes
-de shadcn/ui y assistant-ui. La identidad usa un símbolo geométrico simple que
-funciona como marca compacta y wordmark `powermeta4`; no usa estrellas,
-sparkles ni iniciales como decoración.
+de shadcn/ui (estilo `radix-nova`) y assistant-ui. La identidad usa un símbolo
+geométrico simple que funciona como marca compacta y wordmark `powermeta4`; no
+usa estrellas, sparkles ni iniciales como decoración.
+
+Los componentes de interfaz parten de shadcn/ui Nova: no se sustituyen por
+implementaciones paralelas salvo composiciones de producto (command palette,
+module dock, `ToolCard`) que combinan primitivas oficiales (`Command`, `Tabs`,
+`ScrollArea`, `Empty`, `Badge`) o, en el caso de `ToolCard`, una composición
+propia compacta con `Link`/`button` y tokens semánticos (`border`, `card`,
+`accent`) sin envolver el primitivo `Card`.
 
 ## Tipografía, tokens y temas
 
@@ -51,9 +58,28 @@ trigger accesible para la sidebar.
 
 ## Inicio y workspaces
 
-Inicio es un launchpad con empresa activa, búsqueda, acceso rápido, módulos y
-actividad reciente real. Las visitas solo se registran para acciones
-implementadas; la ausencia de visitas tiene un empty state claro.
+Inicio (`/home`) es un command center compacto: cabecera mínima, empresa activa,
+trigger de búsqueda con atajo `Ctrl+K`, dock de módulos, rejilla de tarjetas de
+herramienta y actividad reciente real. No incluye hero, acceso rápido ni
+tarjetas gigantes de módulo.
+
+La búsqueda global de herramientas usa `CommandDialog` con filtrado propio
+(`searchTools` del registro, `shouldFilter={false}`) y agrupa resultados por
+módulo. En `/home`, `Ctrl+K` abre esta paleta; en el resto de rutas abre la
+búsqueda de conversaciones en la sidebar.
+
+El dock de módulos filtra la rejilla mediante `Tabs` en línea con
+`ScrollArea` horizontal; el acento cian (`primary`) aparece solo en el tab
+activo. `ToolCard` es una fila compacta (~75–100 px) con composición propia
+(`Link`/`button`, chip de icono, título, descripción breve y flecha); las no
+implementadas muestran badge `Próximamente` y no registran visita.
+
+El registro central (`src/lib/tools/registry.ts`) es la única fuente de módulos,
+acciones, iconos, rutas y búsqueda. `searchTools` coincide por nombre,
+descripción, keywords y nombre de módulo.
+
+Las visitas solo se registran para acciones implementadas; la ausencia de visitas
+tiene un empty state compacto con `Empty`.
 
 Los cinco workspaces usan una plantilla común: breadcrumb, empresa activa,
 icono, título, descripción, cuatro tarjetas de acciones y estado inferior.
