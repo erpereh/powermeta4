@@ -24,7 +24,12 @@ beforeEach(() => {
 
 describe("workspace route authentication", () => {
   it("allows a debug context to use local workspace data without Meta4 restoration", async () => {
-    const authContext = { mode: "debug" as const, username: "DEBUG", canUseMeta4: false };
+    const authContext = {
+      mode: "debug" as const,
+      username: "DEBUG",
+      canUseMeta4: false,
+      societyCode: null,
+    };
     mocks.getCurrentAuthContext.mockResolvedValue({ authContext });
     mocks.getWorkspaceSnapshot.mockResolvedValue({ auth: authContext, companies: [] });
 

@@ -8,6 +8,7 @@ import { recordToolVisitAction } from "@/app/actions/workspace";
 import { TOOL_REGISTRY, type ToolDefinition } from "@/lib/tools/registry";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
+import { getWorkspaceScopeLabel } from "@/lib/workspaces/scope-label";
 import { ToolCard } from "@/components/tools/tool-card";
 import { ToolsCommandPalette } from "@/components/tools/tools-command-palette";
 import { ToolsModuleDock, type ModuleFilter } from "@/components/tools/tools-module-dock";
@@ -17,7 +18,7 @@ import { ToolsSearchTrigger } from "@/components/tools/tools-search-trigger";
 export function ToolsLaunchpad() {
   const { isMobile, open, openMobile } = useSidebar();
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
-  const companies = useWorkspaceStore((state) => state.companies);
+  const auth = useWorkspaceStore((state) => state.auth);
   const workspace = useWorkspaceStore((state) =>
     state.activeCompanyId ? state.workspaces[state.activeCompanyId] : undefined,
   );
@@ -26,7 +27,7 @@ export function ToolsLaunchpad() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
   const sidebarOpen = isMobile ? openMobile : open;
-  const activeCompany = companies.find((company) => company.id === activeCompanyId);
+  const scopeLabel = getWorkspaceScopeLabel(auth);
   const triggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
 
   const filteredTools = useMemo(() => {
@@ -80,7 +81,7 @@ export function ToolsLaunchpad() {
 
       <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6 sm:px-6">
         <section className="space-y-1">
-          <p className="text-xs text-muted-foreground">{activeCompany?.name}</p>
+          <p className="text-xs text-muted-foreground">{scopeLabel}</p>
           <h1 className="text-xl font-semibold tracking-tight">Herramientas</h1>
           <p className="text-sm text-muted-foreground">
             Accede a las operaciones de tu empresa manualmente o con el asistente.

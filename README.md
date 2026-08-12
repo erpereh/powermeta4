@@ -50,7 +50,12 @@ assistant-ui. Los mensajes `running` abandonados se recuperan como
 `incomplete` y no se reanudan automáticamente.
 
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
-server-only. Las pruebas SOAP son simuladas y no llaman a Meta4 real.
+server-only. Tras un login Meta4 real se consulta el perfil de usuario
+(`CSP_CONSULTA_ORO_INTRAN_NEW`, endpoint provisional configurable) para
+detectar la sociedad (`CYC` → `IBER` → `COLL`) y persistir el perfil cifrado.
+Las pruebas SOAP son simuladas y no llaman a Meta4 real. El endpoint de
+perfil y la necesidad de SOAPAction quedan pendientes de confirmación WSDL
+en la VM corporativa.
 
 Para desarrollar sin una VM, credenciales o conectividad Meta4 puede activarse
 el acceso local de depuración únicamente en `npm run dev`:
@@ -82,7 +87,7 @@ El manifest tiene exactamente estas cinco propiedades:
 ```json
 {
   "backupVersion": 1,
-  "databaseSchemaVersion": 2,
+  "databaseSchemaVersion": 3,
   "appVersion": "...",
   "createdAt": "...",
   "databasePath": "database/powermeta4.db"
@@ -91,8 +96,9 @@ El manifest tiene exactamente estas cinco propiedades:
 
 La instantánea activa el lock de escrituras solo durante `backup()`. El
 saneamiento de la copia, la lectura de uploads y la compresión se realizan sin
-ese lock. Sesiones, imports pendientes e idempotency receipts se eliminan de
-la copia temporal; la base activa no se modifica al exportar.
+ese lock. Sesiones, imports pendientes, recibos de idempotencia y el perfil Meta4
+cifrado se eliminan de la copia temporal; la base activa no se modifica al
+exportar.
 
 La restauración exige coincidencia exacta de `backupVersion` y
 `databaseSchemaVersion` antes de adquirir mantenimiento. Valida seguridad del
@@ -122,7 +128,8 @@ del proyecto jamás puedan compilar código nativo.
 
 - `/login`: autenticación Meta4 local y, solo en desarrollo habilitado, modo debug local.
 - `/`, `/home`, `/chat/new` y `/chat/[chatId]`: chat y launchpad.
-- `/settings`: sesión y copias locales.
+- `/settings`: perfil Meta4 (deep-link) y copias locales; el menú de usuario
+  también abre el mismo contenido en un diálogo.
 - `/tools`, `/tools/users`, `/tools/companies`, `/tools/payroll`,
   `/tools/reports` y `/tools/processes`: catálogo local de herramientas.
 

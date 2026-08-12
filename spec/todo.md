@@ -1,5 +1,21 @@
 # powermeta4 - estado de tareas
 
+## Meta4 society profile + Settings dialog - 2026-08-12
+
+- [x] Migración `003_meta4_user_profile.sql` con perfil singleton, `society_code`
+      y `DATABASE_SCHEMA_VERSION = 3` (`BACKUP_VERSION` permanece en 1).
+- [x] Lookup CSP secuencial CYC→IBER→COLL con poster cookie-scoped, match
+      estricto y errores tipados; endpoint provisional sin SOAPAction inventado.
+- [x] Persistencia atómica de SoapSession + perfil cifrado + company de
+      sociedad + LocalBrowserSession; repair single-flight post-migración.
+- [x] Sociedad operacional solo vía `getMeta4OperationalContext()`; sidebar sin
+      switcher; Settings como Dialog grande + `SettingsContent`.
+- [x] Backups excluyen `meta4_user_profile`; DEBUG sin CSP; docs y suite de
+      verificación actualizadas.
+- [x] Ejecutar setup, lint, typecheck, 32 archivos/110 pruebas, build,
+      `git diff --check`, `git status --short` y comprobación temporal de
+      migraciones 001–003 con `integrity_check` / `foreign_key_check`.
+
 ## Autenticación DEBUG de desarrollo - 2026-08-11
 
 - [x] Añadir `AuthMode`, `AuthContext`, `AuthView` y el resolutor server-only

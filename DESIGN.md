@@ -40,16 +40,19 @@ clase `dark` fija ni de fondos hardcodeados.
 La sidebar usa la base oficial existente con composición inspirada en
 `sidebar-07`:
 
-- la cabecera única integra logo, `powermeta4` y empresa activa;
-- el selector permite cambiar, crear y eliminar workspaces locales;
+- la cabecera única integra logo, `powermeta4` y el alcance activo;
+- en sesión Meta4 muestra la sociedad (`CYC` | `IBER` | `COLL`) de forma
+  no interactiva; en modo debug muestra `Modo desarrollo`;
+- ya no hay selector, creación ni eliminación de workspaces desde la
+  cabecera (el aislamiento interno por `activeCompanyId` / `society_code`
+  se gestiona en servidor);
 - expandida muestra navegación, Herramientas, Favoritos, Chats y usuario;
 - colapsada muestra únicamente controles funcionales, tooltips y avatar;
 - móvil conserva el Sheet/offcanvas nativo, nunca un rail permanente.
 
-El selector usa una sola superficie de activación y submenús de empresa. Crear
-empresa abre un diálogo breve; eliminar exige confirmación, explica que solo
-afecta datos locales y bloquea la última empresa. El cambio navega a Inicio y
-mantiene el aislamiento por `activeCompanyId`.
+El menú de usuario abre Ajustes como un diálogo grande con el perfil Meta4
+y las copias locales; `/settings` reutiliza el mismo contenido como
+deep-link.
 
 El enlace de Herramientas y su expansión son controles independientes. El
 enlace navega a `/tools`; el chevron solo abre o cierra el grupo, anuncia
@@ -58,10 +61,10 @@ trigger accesible para la sidebar.
 
 ## Inicio y workspaces
 
-Inicio (`/home`) es un command center compacto: cabecera mínima, empresa activa,
-trigger de búsqueda con atajo `Ctrl+K`, dock de módulos, rejilla de tarjetas de
-herramienta y actividad reciente real. No incluye hero, acceso rápido ni
-tarjetas gigantes de módulo.
+Inicio (`/home`) es un command center compacto: cabecera mínima, alcance activo
+(sociedad Meta4 o modo desarrollo), trigger de búsqueda con atajo `Ctrl+K`,
+dock de módulos, rejilla de tarjetas de herramienta y actividad reciente real.
+No incluye hero, acceso rápido ni tarjetas gigantes de módulo.
 
 La búsqueda global de herramientas usa `CommandDialog` con filtrado propio
 (`searchTools` del registro, `shouldFilter={false}`) y agrupa resultados por
@@ -81,7 +84,7 @@ descripción, keywords y nombre de módulo.
 Las visitas solo se registran para acciones implementadas; la ausencia de visitas
 tiene un empty state compacto con `Empty`.
 
-Los cinco workspaces usan una plantilla común: breadcrumb, empresa activa,
+Los cinco workspaces usan una plantilla común: breadcrumb, alcance activo,
 icono, título, descripción, cuatro tarjetas de acciones y estado inferior.
 Las acciones futuras muestran `Disponible próximamente` y no navegan, guardan
 datos ni inventan resultados. Usuarios ya no representa personas locales: sus

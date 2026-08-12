@@ -39,7 +39,12 @@ describe("current auth session resolver", () => {
     const resolved = {
       sessionId: "internal-browser-session",
       cookieHash: "hash-only",
-      authContext: { mode: "debug" as const, username: "DEBUG", canUseMeta4: false },
+      authContext: {
+        mode: "debug" as const,
+        username: "DEBUG",
+        canUseMeta4: false,
+        societyCode: null,
+      },
       expiresAt: new Date("2026-09-01T00:00:00.000Z"),
       lastValidatedAt: null,
     };

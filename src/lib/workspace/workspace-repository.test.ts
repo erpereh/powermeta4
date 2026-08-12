@@ -7,7 +7,12 @@ import { runMigrations } from "@/server/database/migrations";
 import { createWorkspaceRepository } from "@/lib/workspace/repository";
 
 const databases: DatabaseSync[] = [];
-const META4_AUTH = { mode: "meta4" as const, username: "usuario local", canUseMeta4: true };
+const META4_AUTH = {
+  mode: "meta4" as const,
+  username: "usuario local",
+  canUseMeta4: true,
+  societyCode: "CYC" as const,
+};
 
 const createRepository = () => {
   const database = new DatabaseSync(":memory:");
@@ -29,6 +34,7 @@ describe("workspace repository", () => {
       mode: "debug" as const,
       username: "DEBUG",
       canUseMeta4: false,
+      societyCode: null,
       sessionId: "internal-browser-session",
       cookieHash: "hash-only",
       nonce: "opaque-cookie-value",
@@ -37,7 +43,12 @@ describe("workspace repository", () => {
 
     const snapshot = await repository.getSnapshot(authWithServerOnlyFields);
 
-    expect(snapshot.auth).toEqual({ mode: "debug", username: "DEBUG", canUseMeta4: false });
+    expect(snapshot.auth).toEqual({
+      mode: "debug",
+      username: "DEBUG",
+      canUseMeta4: false,
+      societyCode: null,
+    });
     expect(JSON.stringify(snapshot)).not.toContain("sessionId");
     expect(JSON.stringify(snapshot)).not.toContain("cookieHash");
     expect(JSON.stringify(snapshot)).not.toContain("opaque-cookie-value");

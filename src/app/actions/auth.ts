@@ -9,16 +9,26 @@ import {
 } from "@/lib/auth/debug-config";
 import { getAuthService } from "@/lib/auth/server";
 import { deleteSessionCookie, getBrowserSessionNonce, setSessionCookie } from "@/lib/auth/session";
+import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
 
 export type LoginState = {
   error?: string;
-  errorCode?: "DEBUG_AUTH_DISABLED" | "DEBUG_AUTH_NOT_ALLOWED";
+  errorCode?:
+    | "DEBUG_AUTH_DISABLED"
+    | "DEBUG_AUTH_NOT_ALLOWED"
+    | "META4_PROFILE_NOT_FOUND"
+    | "META4_PROFILE_LOOKUP_FAILED"
+    | "META4_PROFILE_INVALID_RESPONSE";
 };
 
 const genericLoginError =
   "No se pudo iniciar sesión con Meta4. Comprueba el usuario, la contraseña y la conexión.";
 const genericDebugLoginError = "El modo debug no está disponible.";
 const genericDebugSessionCreationError = "No se ha podido iniciar la sesión de desarrollo.";
+const profileNotFoundError = "No se ha podido identificar tu sociedad en Meta4.";
+const profileLookupFailedAfterLoginError =
+  "Se ha iniciado sesión en Meta4, pero no se han podido cargar los datos del usuario.";
+const profileLookupFailedError = "No se han podido cargar los datos del usuario desde Meta4.";
 
 const getSafeServerErrorDetails = (error: unknown): { name: string; code?: string } => {
   const details: { name: string; code?: string } = {
@@ -49,7 +59,20 @@ export async function loginAction(
   try {
     const result = await getAuthService().login(username, password);
     await setSessionCookie(result.sessionNonce);
-  } catch {
+  } catch (error) {
+    if (isMeta4ProfileError(error)) {
+      console.error("[meta4-auth] profile login failed", getSafeServerErrorDetails(error));
+      if (error.code === "META4_PROFILE_NOT_FOUND") {
+        return { error: profileNotFoundError, errorCode: error.code };
+      }
+      if (error.code === "META4_PROFILE_INVALID_RESPONSE") {
+        return { error: profileLookupFailedAfterLoginError, errorCode: error.code };
+      }
+      return {
+        error: profileLookupFailedAfterLoginError,
+        errorCode: "META4_PROFILE_LOOKUP_FAILED",
+      };
+    }
     return { error: genericLoginError };
   }
 
@@ -81,3 +104,5 @@ export async function logoutAction(_formData: FormData): Promise<never> {
   await deleteSessionCookie();
   redirect("/login");
 }
+
+export { profileLookupFailedError };

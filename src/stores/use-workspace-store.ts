@@ -26,7 +26,11 @@ const isWorkspaceSnapshotState = (value: unknown): value is WorkspaceSnapshotSta
   return (
     (value.auth.mode === "meta4" || value.auth.mode === "debug") &&
     typeof value.auth.username === "string" &&
-    typeof value.auth.canUseMeta4 === "boolean"
+    typeof value.auth.canUseMeta4 === "boolean" &&
+    (value.auth.societyCode === null ||
+      value.auth.societyCode === "CYC" ||
+      value.auth.societyCode === "IBER" ||
+      value.auth.societyCode === "COLL")
   );
 };
 

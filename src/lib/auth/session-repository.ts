@@ -3,11 +3,15 @@ import "server-only";
 import type { DatabaseSync } from "node:sqlite";
 
 import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
+import type { Meta4Society } from "@/lib/meta4/societies";
 import { getDatabase } from "@/server/database/client";
 import { withTransaction } from "@/server/database/transaction";
+import { ensureSocietyCompanyInTransaction } from "@/server/database/repositories/company-repository";
+import { insertEncryptedMeta4Profile } from "@/server/database/repositories/meta4-user-profile-repository";
 import type { AuthMode } from "@/types/session";
 
 export const GLOBAL_SOAP_SESSION_ID = "global";
+export const ACTIVE_COMPANY_SETTING_KEY = "activeCompanyId";
 
 export type SoapSessionData = {
   username: string;
@@ -24,10 +28,65 @@ export type LocalBrowserSessionData = {
   expiresAt: Date;
 };
 
+export type Meta4LoginPersistData = {
+  soap: SoapSessionData;
+  profile: {
+    username: string;
+    society: Meta4Society;
+    displayName: string | null;
+    profileJsonEncrypted: string;
+    lookedUpAt: Date;
+  };
+  browserSession: LocalBrowserSessionData;
+};
+
 const toDate = (value: unknown): Date | null => {
   if (typeof value !== "string") return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const insertSoapSession = (database: DatabaseSync, data: SoapSessionData): void => {
+  const timestamp = new Date().toISOString();
+  database
+    .prepare(
+      "INSERT INTO soap_sessions (id, username, jsession_id_encrypted, refresh_session_id_encrypted, session_id_encrypted, expires_at, last_validated_at, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?)",
+    )
+    .run(
+      GLOBAL_SOAP_SESSION_ID,
+      data.username,
+      data.jsessionIdEncrypted,
+      data.refreshSessionIdEncrypted,
+      data.lastValidatedAt.toISOString(),
+      timestamp,
+      timestamp,
+    );
+};
+
+const insertLocalBrowserSession = (database: DatabaseSync, data: LocalBrowserSessionData): void => {
+  const timestamp = new Date().toISOString();
+  database
+    .prepare(
+      "INSERT INTO local_browser_sessions (id, cookie_hash, username, auth_mode, created_at, last_seen_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)",
+    )
+    .run(
+      data.id,
+      data.cookieHash,
+      data.username,
+      data.authMode,
+      timestamp,
+      timestamp,
+      data.expiresAt.toISOString(),
+    );
+};
+
+const setActiveCompanyId = (database: DatabaseSync, companyId: string): void => {
+  const timestamp = new Date().toISOString();
+  database
+    .prepare(
+      "INSERT INTO app_settings (key, value_json, created_at, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at",
+    )
+    .run(ACTIVE_COMPANY_SETTING_KEY, JSON.stringify(companyId), timestamp, timestamp);
 };
 
 export type AuthRepository = {
@@ -39,6 +98,10 @@ export type AuthRepository = {
     lastValidatedAt: Date | null;
   } | null>;
   replaceAuthState: (data: SoapSessionData) => Promise<void>;
+  persistMeta4LoginState: (data: Meta4LoginPersistData) => Promise<{ companyId: string }>;
+  persistMeta4ProfileRepair: (data: {
+    profile: Meta4LoginPersistData["profile"];
+  }) => Promise<{ companyId: string }>;
   updateJSessionId: (encryptedJSessionId: string, lastValidatedAt: Date) => Promise<void>;
   clearAuthState: () => Promise<void>;
   replaceLocalBrowserSessions: (data: LocalBrowserSessionData) => Promise<void>;
@@ -78,21 +141,35 @@ export const createAuthRepository = (database: DatabaseSync = getDatabase()): Au
   replaceAuthState: async (data) =>
     withRepositoryWrite(async () =>
       withTransaction(database, () => {
-        const timestamp = new Date().toISOString();
-        database.exec("DELETE FROM soap_sessions; DELETE FROM local_browser_sessions;");
-        database
-          .prepare(
-            "INSERT INTO soap_sessions (id, username, jsession_id_encrypted, refresh_session_id_encrypted, session_id_encrypted, expires_at, last_validated_at, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?)",
-          )
-          .run(
-            GLOBAL_SOAP_SESSION_ID,
-            data.username,
-            data.jsessionIdEncrypted,
-            data.refreshSessionIdEncrypted,
-            data.lastValidatedAt.toISOString(),
-            timestamp,
-            timestamp,
-          );
+        // Keep profile cleared with soap/local so a legacy caller cannot leave
+        // an orphaned meta4_user_profile. DEBUG never uses this path.
+        database.exec(
+          "DELETE FROM soap_sessions; DELETE FROM local_browser_sessions; DELETE FROM meta4_user_profile;",
+        );
+        insertSoapSession(database, data);
+      }),
+    ),
+  persistMeta4LoginState: async (data) =>
+    withRepositoryWrite(async () =>
+      withTransaction(database, () => {
+        database.exec(
+          "DELETE FROM soap_sessions; DELETE FROM local_browser_sessions; DELETE FROM meta4_user_profile;",
+        );
+        insertSoapSession(database, data.soap);
+        insertEncryptedMeta4Profile(database, data.profile);
+        const company = ensureSocietyCompanyInTransaction(database, data.profile.society);
+        setActiveCompanyId(database, company.id);
+        insertLocalBrowserSession(database, data.browserSession);
+        return { companyId: company.id };
+      }),
+    ),
+  persistMeta4ProfileRepair: async (data) =>
+    withRepositoryWrite(async () =>
+      withTransaction(database, () => {
+        insertEncryptedMeta4Profile(database, data.profile);
+        const company = ensureSocietyCompanyInTransaction(database, data.profile.society);
+        setActiveCompanyId(database, company.id);
+        return { companyId: company.id };
       }),
     ),
   updateJSessionId: async (encryptedJSessionId, lastValidatedAt) =>
@@ -111,45 +188,21 @@ export const createAuthRepository = (database: DatabaseSync = getDatabase()): Au
   clearAuthState: async () =>
     withRepositoryWrite(async () => {
       withTransaction(database, () =>
-        database.exec("DELETE FROM soap_sessions; DELETE FROM local_browser_sessions;"),
+        database.exec(
+          "DELETE FROM soap_sessions; DELETE FROM local_browser_sessions; DELETE FROM meta4_user_profile;",
+        ),
       );
     }),
   replaceLocalBrowserSessions: async (data) =>
     withRepositoryWrite(async () =>
       withTransaction(database, () => {
-        const timestamp = new Date().toISOString();
         database.exec("DELETE FROM local_browser_sessions;");
-        database
-          .prepare(
-            "INSERT INTO local_browser_sessions (id, cookie_hash, username, auth_mode, created_at, last_seen_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)",
-          )
-          .run(
-            data.id,
-            data.cookieHash,
-            data.username,
-            data.authMode,
-            timestamp,
-            timestamp,
-            data.expiresAt.toISOString(),
-          );
+        insertLocalBrowserSession(database, data);
       }),
     ),
   createLocalBrowserSession: async (data) =>
     withRepositoryWrite(async () => {
-      const timestamp = new Date().toISOString();
-      database
-        .prepare(
-          "INSERT INTO local_browser_sessions (id, cookie_hash, username, auth_mode, created_at, last_seen_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)",
-        )
-        .run(
-          data.id,
-          data.cookieHash,
-          data.username,
-          data.authMode,
-          timestamp,
-          timestamp,
-          data.expiresAt.toISOString(),
-        );
+      insertLocalBrowserSession(database, data);
     }),
   getLocalBrowserSession: async (cookieHash) => {
     const row = database

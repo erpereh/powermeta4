@@ -95,7 +95,14 @@ export const createInitialWorkspaceState = (): WorkspaceSnapshotState => ({
 const cloneWorkspaceState = (state: WorkspaceSnapshotState): WorkspaceSnapshotState => ({
   companies: state.companies.map((company) => ({ ...company })),
   activeCompanyId: state.activeCompanyId,
-  auth: state.auth ? { ...state.auth } : null,
+  auth: state.auth
+    ? {
+        mode: state.auth.mode,
+        username: state.auth.username,
+        canUseMeta4: state.auth.canUseMeta4,
+        societyCode: state.auth.societyCode ?? null,
+      }
+    : null,
   workspaces: Object.fromEntries(
     Object.entries(state.workspaces).flatMap(([companyId, workspace]) => {
       if (!workspace) return [];

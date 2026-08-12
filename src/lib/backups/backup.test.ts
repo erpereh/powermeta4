@@ -66,6 +66,11 @@ const createFixture = async () => {
       "INSERT INTO local_browser_sessions (id, cookie_hash, username, auth_mode, created_at, last_seen_at, expires_at, revoked_at) VALUES ('debug-browser', 'debug-hash', 'DEBUG', 'debug', ?, ?, '2099-01-01T00:00:00.000Z', NULL)",
     )
     .run(timestamp, timestamp);
+  database
+    .prepare(
+      "INSERT INTO meta4_user_profile (id, username, society, display_name, profile_json_encrypted, looked_up_at, created_at, updated_at) VALUES ('global', 'usuario', 'CYC', 'Usuario', 'encrypted-profile', ?, ?, ?)",
+    )
+    .run(timestamp, timestamp, timestamp);
   await writeFile(path.join(paths.uploadsDir, "hello.txt"), "upload content");
   return { dataDir, paths };
 };
@@ -135,6 +140,9 @@ describe("backup safety and exact format", () => {
         );
         expect(
           database.prepare("SELECT COUNT(*) AS count FROM local_browser_sessions").get(),
+        ).toMatchObject({ count: 0 });
+        expect(
+          database.prepare("SELECT COUNT(*) AS count FROM meta4_user_profile").get(),
         ).toMatchObject({ count: 0 });
         expect(database.prepare("SELECT COUNT(*) AS count FROM messages").get()).toMatchObject({
           count: 1,

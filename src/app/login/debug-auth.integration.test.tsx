@@ -57,8 +57,17 @@ describe("debug authentication configuration integration", () => {
     mocks.getAuthService.mockReturnValue(
       createAuthService({
         repository: createAuthRepository(database),
+        profileRepository: {
+          getProfileRow: vi.fn(async () => null),
+          getDecryptedProfile: vi.fn(async () => null),
+          clearProfile: vi.fn(async () => undefined),
+        },
         dpapi: { protectSecret: vi.fn(), unprotectSecret: vi.fn() },
-        soap: { login: vi.fn(), retrieveM4Session: vi.fn() },
+        soap: {
+          login: vi.fn(),
+          retrieveM4Session: vi.fn(),
+          createCookieSoapPoster: vi.fn(() => vi.fn()),
+        },
         createSessionNonce: () => "A".repeat(43),
         createLocalSessionId: () => "debug-integration-session",
       }),

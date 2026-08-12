@@ -10,7 +10,7 @@ import { isSessionExpiredResponse } from "@/lib/meta4/session-expiration";
 const META4_AUTH_SESSION = {
   sessionId: "internal-meta4-session",
   cookieHash: "hash-only",
-  authContext: { mode: "meta4" as const, username: "user", canUseMeta4: true },
+  authContext: { mode: "meta4" as const, username: "user", canUseMeta4: true, societyCode: null },
   expiresAt: new Date("2026-09-01T00:00:00.000Z"),
   lastValidatedAt: new Date("2026-08-01T00:00:00.000Z"),
 };
@@ -41,7 +41,12 @@ describe("authenticated SOAP client", () => {
       getCurrentAuthContext: vi.fn(async () => ({
         sessionId: "internal-debug-session",
         cookieHash: "hash-only",
-        authContext: { mode: "debug" as const, username: "DEBUG", canUseMeta4: false },
+        authContext: {
+          mode: "debug" as const,
+          username: "DEBUG",
+          canUseMeta4: false,
+          societyCode: null,
+        },
         expiresAt: new Date("2026-09-01T00:00:00.000Z"),
         lastValidatedAt: null,
       })),
@@ -74,7 +79,12 @@ describe("authenticated SOAP client", () => {
       getCurrentAuthContext: vi.fn(async () => ({
         sessionId: "internal-debug-session",
         cookieHash: "hash-only",
-        authContext: { mode: "debug" as const, username: "DEBUG", canUseMeta4: true },
+        authContext: {
+          mode: "debug" as const,
+          username: "DEBUG",
+          canUseMeta4: true,
+          societyCode: null,
+        },
         expiresAt: new Date("2026-09-01T00:00:00.000Z"),
         lastValidatedAt: null,
       })),

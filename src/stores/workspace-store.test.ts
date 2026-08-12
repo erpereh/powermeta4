@@ -56,7 +56,7 @@ const snapshot: WorkspaceSnapshotState = {
       preferences: { selectedModelId: "luma-balanced" },
     },
   },
-  auth: { mode: "meta4", username: "usuario", canUseMeta4: true },
+  auth: { mode: "meta4", username: "usuario", canUseMeta4: true, societyCode: null },
 };
 
 describe("server snapshot workspace store", () => {

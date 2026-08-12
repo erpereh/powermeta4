@@ -18,12 +18,13 @@ import { recordToolVisitAction } from "@/app/actions/workspace";
 import { TOOL_ICONS, type ToolDefinition, type ToolModuleDefinition } from "@/lib/tools/registry";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
+import { getWorkspaceScopeLabel } from "@/lib/workspaces/scope-label";
 
 export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
   const { isMobile, open, openMobile } = useSidebar();
-  const companies = useWorkspaceStore((state) => state.companies);
+  const auth = useWorkspaceStore((state) => state.auth);
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
-  const activeCompany = companies.find((company) => company.id === activeCompanyId);
+  const scopeLabel = getWorkspaceScopeLabel(auth);
   const sidebarOpen = isMobile ? openMobile : open;
   const triggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
   const recordToolVisit = useWorkspaceStore((state) => state.recordToolVisit);
@@ -72,7 +73,7 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
         </Breadcrumb>
 
         <section className="space-y-3">
-          <p className="text-sm text-muted-foreground">{activeCompany?.name}</p>
+          <p className="text-sm text-muted-foreground">{scopeLabel}</p>
           <div className="flex items-start gap-4">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-muted text-primary">
               <ModuleIcon className="size-6" />

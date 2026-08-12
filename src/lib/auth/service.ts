@@ -16,6 +16,14 @@ import {
 import type { DpapiAdapter } from "@/lib/security/dpapi";
 import type { Meta4Client } from "@/lib/meta4/client";
 import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
+import { Meta4ProfileError } from "@/lib/meta4/profile-errors";
+import type { Meta4Society } from "@/lib/meta4/societies";
+import { lookupMeta4SocietyProfile, type Meta4SoapPoster } from "@/lib/meta4/user-profile-lookup";
+import {
+  encryptMeta4ProfilePayload,
+  resolveDisplayName,
+  type Meta4UserProfileRepository,
+} from "@/server/database/repositories/meta4-user-profile-repository";
 import type { AuthRepository } from "./session-repository";
 import type { AuthContext, AuthMode } from "@/types/session";
 
@@ -33,11 +41,14 @@ export type ResolvedAuthSession = {
 
 type AuthServiceOptions = {
   repository: AuthRepository;
+  profileRepository: Meta4UserProfileRepository;
   dpapi: DpapiAdapter;
   soap: Meta4Client;
   now?: () => Date;
   createSessionNonce?: () => string;
   createLocalSessionId?: () => string;
+  lookupProfile?: typeof lookupMeta4SocietyProfile;
+  logProfileLookup?: (message: string, details: Record<string, string>) => void;
 };
 
 type LocalSession = NonNullable<Awaited<ReturnType<AuthRepository["getLocalBrowserSession"]>>>;
@@ -45,23 +56,32 @@ type LocalSession = NonNullable<Awaited<ReturnType<AuthRepository["getLocalBrows
 const asErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Error desconocido";
 
-const createAuthContext = (mode: AuthMode, username: string): AuthContext => ({
+const createAuthContext = (
+  mode: AuthMode,
+  username: string,
+  societyCode: Meta4Society | null = null,
+): AuthContext => ({
   mode,
   username,
   canUseMeta4: mode === "meta4",
+  societyCode: mode === "meta4" ? societyCode : null,
 });
 
 export const createAuthService = ({
   repository,
+  profileRepository,
   dpapi,
   soap,
   now = () => new Date(),
   createSessionNonce = createOpaqueSessionId,
   createLocalSessionId = randomUUID,
+  lookupProfile = lookupMeta4SocietyProfile,
+  logProfileLookup,
 }: AuthServiceOptions) => {
   let restoreFlight: Promise<{ username: string } | null> | null = null;
   let restoredUsername: string | null = null;
   let restoreReadyUntil = 0;
+  let profileRepairFlight: Promise<Meta4Society | null> | null = null;
 
   const clearRestoreCache = (): void => {
     restoredUsername = null;
@@ -106,48 +126,133 @@ export const createAuthService = ({
     return restoreFlight;
   };
 
+  const createBrowserSessionPayload = (input: { username: string; authMode: AuthMode }) => {
+    const currentTime = now();
+    const sessionNonce = createSessionNonce();
+    const expiresAt = new Date(currentTime.getTime() + SESSION_DURATION_SECONDS * 1000);
+    return {
+      sessionNonce,
+      expiresAt,
+      data: {
+        id: createLocalSessionId(),
+        cookieHash: hashOpaqueSessionId(sessionNonce),
+        username: input.username,
+        authMode: input.authMode,
+        expiresAt,
+      },
+    };
+  };
+
   const createBrowserSession = async (input: {
     username: string;
     authMode: AuthMode;
     replaceExistingLocalSessions?: boolean;
   }) => {
-    const currentTime = now();
-    const sessionNonce = createSessionNonce();
-    const expiresAt = new Date(currentTime.getTime() + SESSION_DURATION_SECONDS * 1000);
-    const data = {
-      id: createLocalSessionId(),
-      cookieHash: hashOpaqueSessionId(sessionNonce),
-      username: input.username,
-      authMode: input.authMode,
-      expiresAt,
-    };
+    const payload = createBrowserSessionPayload(input);
     if (input.replaceExistingLocalSessions) {
-      await repository.replaceLocalBrowserSessions(data);
+      await repository.replaceLocalBrowserSessions(payload.data);
     } else {
-      await repository.createLocalBrowserSession(data);
+      await repository.createLocalBrowserSession(payload.data);
     }
-    return { sessionNonce, username: input.username, expiresAt };
+    return {
+      sessionNonce: payload.sessionNonce,
+      username: input.username,
+      expiresAt: payload.expiresAt,
+    };
+  };
+
+  const createCookiePoster = (): Meta4SoapPoster => soap.createCookieSoapPoster();
+
+  const repairMissingProfileOnce = async (username: string): Promise<Meta4Society | null> => {
+    if (profileRepairFlight) return profileRepairFlight;
+    profileRepairFlight = (async () => {
+      const session = await repository.getSoapSession();
+      if (!session?.refreshSessionIdEncrypted) return null;
+      const existing = await profileRepository.getProfileRow();
+      if (existing && existing.username === username) return existing.society;
+
+      try {
+        const jSessionId = await dpapi.unprotectSecret(session.jsessionIdEncrypted);
+        const lookup = await lookupProfile({
+          username,
+          jSessionId,
+          postSoap: createCookiePoster(),
+          now,
+          log: logProfileLookup,
+        });
+        const profileJsonEncrypted = await encryptMeta4ProfilePayload(dpapi, lookup.profile);
+        await repository.persistMeta4ProfileRepair({
+          profile: {
+            username,
+            society: lookup.society,
+            displayName: resolveDisplayName(lookup.profile),
+            profileJsonEncrypted,
+            lookedUpAt: new Date(lookup.profile.lookedUpAt),
+          },
+        });
+        return lookup.society;
+      } catch {
+        await invalidate();
+        return null;
+      }
+    })().finally(() => {
+      profileRepairFlight = null;
+    });
+    return profileRepairFlight;
+  };
+
+  const resolveSocietyCode = async (username: string): Promise<Meta4Society | null> => {
+    const existing = await profileRepository.getProfileRow();
+    if (existing && existing.username === username) return existing.society;
+    return repairMissingProfileOnce(username);
   };
 
   const login = async (username: string, password: string) => {
     if (!username || !password) throw new Error("El usuario y la contraseña son obligatorios.");
 
     const loggedIn = await soap.login(username, password);
-    const currentTime = now();
-    const [jsessionIdEncrypted, refreshSessionIdEncrypted] = await Promise.all([
-      dpapi.protectSecret(loggedIn.jSessionId),
-      dpapi.protectSecret(loggedIn.refreshSessionId),
-    ]);
-    await repository.replaceAuthState({
+    const lookup = await lookupProfile({
       username,
-      jsessionIdEncrypted,
-      refreshSessionIdEncrypted,
-      lastValidatedAt: currentTime,
+      jSessionId: loggedIn.jSessionId,
+      postSoap: createCookiePoster(),
+      now,
+      log: logProfileLookup,
     });
-    const session = await createBrowserSession({ username, authMode: "meta4" });
+
+    const currentTime = now();
+    const [jsessionIdEncrypted, refreshSessionIdEncrypted, profileJsonEncrypted] =
+      await Promise.all([
+        dpapi.protectSecret(loggedIn.jSessionId),
+        dpapi.protectSecret(loggedIn.refreshSessionId),
+        encryptMeta4ProfilePayload(dpapi, lookup.profile),
+      ]);
+
+    const browser = createBrowserSessionPayload({ username, authMode: "meta4" });
+    await repository.persistMeta4LoginState({
+      soap: {
+        username,
+        jsessionIdEncrypted,
+        refreshSessionIdEncrypted,
+        lastValidatedAt: currentTime,
+      },
+      profile: {
+        username,
+        society: lookup.society,
+        displayName: resolveDisplayName(lookup.profile),
+        profileJsonEncrypted,
+        lookedUpAt: new Date(lookup.profile.lookedUpAt),
+      },
+      browserSession: browser.data,
+    });
+
     restoredUsername = username;
     restoreReadyUntil = currentTime.getTime() + RESTORE_CACHE_MS;
-    return session;
+    return {
+      sessionNonce: browser.sessionNonce,
+      username,
+      expiresAt: browser.expiresAt,
+      societyCode: lookup.society,
+    };
   };
 
   const debugLogin = async () => {
@@ -193,7 +298,7 @@ export const createAuthService = ({
       return {
         sessionId: touchedLocalSession.id,
         cookieHash: touchedLocalSession.cookieHash,
-        authContext: createAuthContext("debug", touchedLocalSession.username),
+        authContext: createAuthContext("debug", touchedLocalSession.username, null),
         expiresAt: touchedLocalSession.expiresAt,
         lastValidatedAt: null,
       };
@@ -203,11 +308,13 @@ export const createAuthService = ({
     if (!restored) return null;
     const soapSession = await repository.getSoapSession();
     if (!soapSession) return null;
+    const societyCode = await resolveSocietyCode(localSession.username);
+    if (!societyCode) return null;
     const touchedLocalSession = await touchLocalBrowserSession(localSession);
     return {
       sessionId: touchedLocalSession.id,
       cookieHash: touchedLocalSession.cookieHash,
-      authContext: createAuthContext("meta4", touchedLocalSession.username),
+      authContext: createAuthContext("meta4", touchedLocalSession.username, societyCode),
       expiresAt: touchedLocalSession.expiresAt,
       lastValidatedAt: soapSession.lastValidatedAt,
     };
@@ -261,3 +368,5 @@ export const createAuthService = ({
     describeError: asErrorMessage,
   };
 };
+
+export { Meta4ProfileError };

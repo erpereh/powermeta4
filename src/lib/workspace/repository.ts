@@ -74,6 +74,7 @@ const toAuthView = (auth: AuthView): AuthView => ({
   mode: auth.mode,
   username: auth.username,
   canUseMeta4: auth.canUseMeta4,
+  societyCode: auth.societyCode ?? null,
 });
 
 const mapCompany = (row: Row): Company => ({

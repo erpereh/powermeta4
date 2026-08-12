@@ -32,7 +32,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { ChatSidebarItem } from "@/components/sidebar/chat-sidebar-item";
-import { CompanySwitcher } from "@/components/sidebar/company-switcher";
+import { SocietyHeader } from "@/components/sidebar/society-header";
 import { UserMenu } from "@/components/sidebar/user-menu";
 import {
   createConversationAction,
@@ -198,7 +198,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     <>
       <Sidebar collapsible="icon" variant="sidebar" {...props}>
         <SidebarHeader className="border-b border-sidebar-border/70">
-          <CompanySwitcher />
+          <SocietyHeader />
           <SidebarGroup className="px-0 pb-1 pt-0">
             <SidebarGroupContent>
               <SidebarMenu>

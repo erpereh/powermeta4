@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-08-12 - Meta4 society profile + Settings dialog
+
+### Cambios
+
+- Tras login Meta4 real se consulta `CSP_CONSULTA_ORO_INTRAN_NEW` (endpoint
+  provisional `META4_USER_PROFILE_URL`) en secuencia CYC→IBER→COLL, se cifra el
+  perfil con DPAPI y se persiste de forma atómica junto con SoapSession,
+  company de sociedad y LocalBrowserSession.
+- La sociedad operativa se resuelve solo en servidor con
+  `getMeta4OperationalContext()`; el cliente no puede sustituirla.
+- Migración `003_meta4_user_profile.sql` y esquema 3; los backups eliminan el
+  perfil cifrado además de sesiones e imports.
+- La sidebar muestra la sociedad o `Modo desarrollo` sin selector de empresas.
+  Ajustes pasa a un Dialog grande con secciones de perfil Meta4; `/settings`
+  reutiliza el mismo contenido.
+
+### Verificación automática
+
+Se ejecutaron correctamente:
+
+- `npm run setup`
+- `npm run lint`
+- `npm run typecheck`
+- `npm test` — 32 archivos y 110 pruebas correctas.
+- `npm run build`
+- `git diff --check`
+- `git status --short`
+- Migraciones 001/002/003 en SQLite temporal: `user_version=3`,
+  `integrity_check=ok`, `foreign_key_check` vacío, tabla
+  `meta4_user_profile` y columna `companies.society_code` presentes.
+
+No se realizó una llamada Meta4 real ni inspección WSDL en la VM; el
+endpoint CSP permanece provisional.
+
 ## 2026-08-12 - Nova + Home Command Center
 
 ### Cambios

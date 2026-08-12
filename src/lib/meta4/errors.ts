@@ -6,3 +6,6 @@ export class Meta4SessionRequiredError extends Error {
     this.name = "Meta4SessionRequiredError";
   }
 }
+
+export { Meta4ProfileError, isMeta4ProfileError } from "./profile-errors";
+export type { Meta4ProfileErrorCode } from "./profile-errors";

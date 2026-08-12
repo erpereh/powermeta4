@@ -32,7 +32,7 @@ export const bootstrapDatabase = (database: DatabaseSync): { created: boolean; c
       const id = randomUUID();
       database
         .prepare(
-          "INSERT INTO companies (id, name, short_name, icon, color, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          "INSERT INTO companies (id, name, short_name, icon, color, society_code, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NULL, ?, ?)",
         )
         .run(
           id,

@@ -1,9 +1,9 @@
 "use client";
 
 import { FileText, LogOut, Settings } from "lucide-react";
-import Link from "next/link";
 
 import { logoutAction } from "@/app/actions/auth";
+import { useSettingsDialog } from "@/components/app-shell/app-shell";
 import { ThemeMenu } from "@/components/theme/theme-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ import { useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function UserMenu() {
   const { isMobile } = useSidebar();
+  const { openSettings } = useSettingsDialog();
   const auth = useWorkspaceStore((state) => state.auth);
   const username = auth?.username ?? "Usuario";
   const isDebugMode = auth?.mode === "debug";
@@ -77,11 +78,14 @@ export function UserMenu() {
               )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/settings">
-                <Settings />
-                <span>Ajustes</span>
-              </Link>
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                openSettings();
+              }}
+            >
+              <Settings />
+              <span>Ajustes</span>
             </DropdownMenuItem>
             <DropdownMenuItem disabled>
               <FileText />

@@ -8,6 +8,7 @@ import {
   parseLoginResponse,
   parseRetrieveM4SessionResponse,
 } from "./soap-xml";
+import type { Meta4SoapPoster } from "./user-profile-lookup";
 
 export const DEFAULT_META4_LOGIN_URL = "https://meta4desaop.creditocaucion.es/services/Login";
 export const META4_TIMEOUT_MS = 15_000;
@@ -20,6 +21,7 @@ export type Meta4LoginResult = {
 export type Meta4Client = {
   login: (username: string, password: string) => Promise<Meta4LoginResult>;
   retrieveM4Session: (refreshSessionId: string) => Promise<{ jSessionId: string }>;
+  createCookieSoapPoster: () => Meta4SoapPoster;
 };
 
 export class Meta4HttpError extends Error {
@@ -44,21 +46,24 @@ const getLoginUrl = (loginUrl?: string): string => {
   return value;
 };
 
-const postSoapXml = async (
+export const postSoapXml = async (
   fetchImpl: typeof fetch,
   url: string,
   xml: string,
   timeoutMs: number,
+  headers?: HeadersInit,
 ): Promise<Response> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const requestHeaders = new Headers(headers);
+  if (!requestHeaders.has("Accept")) requestHeaders.set("Accept", "text/xml");
+  if (!requestHeaders.has("Content-Type")) {
+    requestHeaders.set("Content-Type", "text/xml; charset=utf-8");
+  }
   try {
     return await fetchImpl(url, {
       method: "POST",
-      headers: {
-        Accept: "text/xml",
-        "Content-Type": "text/xml; charset=utf-8",
-      },
+      headers: requestHeaders,
       body: xml,
       signal: controller.signal,
     });
@@ -117,5 +122,9 @@ export const createMeta4Client = (options: Meta4ClientOptions = {}): Meta4Client
       parseRetrieveM4SessionResponse(body);
       return { jSessionId: extractJSessionId(response.headers) };
     },
+    createCookieSoapPoster:
+      () =>
+      async ({ url: requestUrl, xml, headers }) =>
+        postSoapXml(fetchImpl, requestUrl, xml, timeoutMs, headers),
   };
 };

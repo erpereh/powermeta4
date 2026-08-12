@@ -51,10 +51,11 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 2 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 3 });
       expect(database.prepare("SELECT version, name FROM schema_migrations").all()).toEqual([
         { version: 1, name: "001_initial" },
         { version: 2, name: "002_debug_auth_mode" },
+        { version: 3, name: "003_meta4_user_profile" },
       ]);
       const migrated = database
         .prepare(
@@ -66,6 +67,13 @@ describe("node:sqlite database kernel", () => {
         auth_mode: "meta4",
       });
       expect(migrated.id).not.toBe(legacyNonce);
+      expect(
+        database
+          .prepare(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'meta4_user_profile'",
+          )
+          .get(),
+      ).toMatchObject({ name: "meta4_user_profile" });
       expect(() =>
         database
           .prepare(
@@ -154,6 +162,7 @@ describe("node:sqlite database kernel", () => {
       expect(database.prepare("SELECT version, name FROM schema_migrations").all()).toEqual([
         { version: 1, name: "001_initial" },
         { version: 2, name: "002_debug_auth_mode" },
+        { version: 3, name: "003_meta4_user_profile" },
       ]);
 
       const tables = database
@@ -171,6 +180,7 @@ describe("node:sqlite database kernel", () => {
         "idempotency_receipts",
         "local_browser_sessions",
         "messages",
+        "meta4_user_profile",
         "pending_backup_imports",
         "schema_migrations",
         "soap_sessions",
@@ -182,7 +192,7 @@ describe("node:sqlite database kernel", () => {
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 2,
+        count: 3,
       });
     } finally {
       database.close();
@@ -329,6 +339,10 @@ describe("node:sqlite database kernel", () => {
         migrationPath(directory, "002_test.sql"),
         "CREATE TABLE migration_test_v2 (id TEXT PRIMARY KEY); PRAGMA user_version = 2;",
       );
+      writeFileSync(
+        migrationPath(directory, "003_test.sql"),
+        "CREATE TABLE migration_test_v3 (id TEXT PRIMARY KEY); PRAGMA user_version = 3;",
+      );
       runMigrations(database, directory);
       writeFileSync(
         firstMigrationPath,
@@ -347,13 +361,14 @@ describe("node:sqlite database kernel", () => {
     try {
       writeFileSync(migrationPath(directory, "001_test.sql"), "CREATE TABLE first (id TEXT);");
       writeFileSync(migrationPath(directory, "002_test.sql"), "CREATE TABLE second (id TEXT);");
+      writeFileSync(migrationPath(directory, "003_test.sql"), "CREATE TABLE third (id TEXT);");
       runMigrations(database, directory);
       writeFileSync(migrationPath(directory, "002_future.sql"), "CREATE TABLE future (id TEXT);");
-      expect(() => runMigrations(database, directory)).toThrow(/versión|migraciones/i);
+      expect(() => runMigrations(database, directory)).toThrow(/versión|migraciones|duplicad/i);
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 2,
+        count: 3,
       });
       expect(database.prepare("SELECT name FROM sqlite_master WHERE name = 'future'").get()).toBe(
         undefined,

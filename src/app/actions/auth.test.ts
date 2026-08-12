@@ -104,4 +104,23 @@ describe("authentication actions", () => {
     });
     expect(JSON.stringify(mocks.consoleError.mock.calls)).not.toContain("secret=hidden");
   });
+
+  it("maps Meta4 profile errors to sanitized Spanish login messages", async () => {
+    const { Meta4ProfileError } = await import("@/lib/meta4/profile-errors");
+    mocks.login.mockRejectedValue(
+      new Meta4ProfileError(
+        "META4_PROFILE_NOT_FOUND",
+        "No se ha podido identificar tu sociedad en Meta4.",
+      ),
+    );
+    const formData = new FormData();
+    formData.set("email", "user");
+    formData.set("password", "secret");
+
+    await expect(authActions.loginAction({}, formData)).resolves.toEqual({
+      error: "No se ha podido identificar tu sociedad en Meta4.",
+      errorCode: "META4_PROFILE_NOT_FOUND",
+    });
+    expect(mocks.setSessionCookie).not.toHaveBeenCalled();
+  });
 });

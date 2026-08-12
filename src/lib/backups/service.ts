@@ -178,6 +178,7 @@ const requiredTables = [
   "tool_activity",
   "soap_sessions",
   "local_browser_sessions",
+  "meta4_user_profile",
   "pending_backup_imports",
   "idempotency_receipts",
 ];
@@ -220,6 +221,7 @@ export const assertSqliteIntegrity = (databasePath: string): void => {
     for (const table of [
       "soap_sessions",
       "local_browser_sessions",
+      "meta4_user_profile",
       "pending_backup_imports",
       "idempotency_receipts",
     ]) {
@@ -244,7 +246,7 @@ const sanitizeDatabase = (databasePath: string): void => {
     database.enableLoadExtension(false);
     withTransaction(database, () => {
       database.exec(
-        "DELETE FROM soap_sessions; DELETE FROM local_browser_sessions; DELETE FROM pending_backup_imports; DELETE FROM idempotency_receipts;",
+        "DELETE FROM soap_sessions; DELETE FROM local_browser_sessions; DELETE FROM meta4_user_profile; DELETE FROM pending_backup_imports; DELETE FROM idempotency_receipts;",
       );
     });
   } finally {
