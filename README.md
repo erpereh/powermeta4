@@ -53,9 +53,11 @@ SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Tras un login Meta4 real se consulta el perfil de usuario
 (`CSP_CONSULTA_ORO_INTRAN_NEW`, endpoint provisional configurable) para
 detectar la sociedad (`CYC` → `IBER` → `COLL`) y persistir el perfil cifrado.
-Las pruebas SOAP son simuladas y no llaman a Meta4 real. El endpoint de
-perfil y la necesidad de SOAPAction quedan pendientes de confirmación WSDL
-en la VM corporativa.
+El listado de usuarios (`CSP_POWER4_USER_ALL`, `META4_USERS_LIST_URL`) usa la
+sociedad del contexto operativo del servidor y no persiste resultados en
+SQLite. Las pruebas SOAP son simuladas y no llaman a Meta4 real. Los
+endpoints CSP y la necesidad de SOAPAction quedan pendientes de confirmación
+WSDL en la VM corporativa.
 
 Para desarrollar sin una VM, credenciales o conectividad Meta4 puede activarse
 el acceso local de depuración únicamente en `npm run dev`:
@@ -130,8 +132,9 @@ del proyecto jamás puedan compilar código nativo.
 - `/`, `/home`, `/chat/new` y `/chat/[chatId]`: chat y launchpad.
 - `/settings`: perfil Meta4 (deep-link) y copias locales; el menú de usuario
   también abre el mismo contenido en un diálogo.
-- `/tools`, `/tools/users`, `/tools/companies`, `/tools/payroll`,
-  `/tools/reports` y `/tools/processes`: catálogo local de herramientas.
+- `/tools`, `/tools/users`, `/tools/users/list`, `/tools/companies`,
+  `/tools/payroll`, `/tools/reports` y `/tools/processes`: catálogo local de
+  herramientas; `/tools/users/list` consulta usuarios Meta4 por sociedad.
 
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.

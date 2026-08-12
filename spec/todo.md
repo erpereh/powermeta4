@@ -1,5 +1,20 @@
 # powermeta4 - estado de tareas
 
+## Listado Meta4 de usuarios - 2026-08-12
+
+- [x] Módulo SOAP `CSP_POWER4_USER_ALL` con sociedad solo desde
+      `getMeta4OperationalContext()`, envelope, parser 1|N|0 RecordSets,
+      dedupe por `id_Empleado` y servicio sin envolver errores de sesión.
+- [x] Ruta `/tools/users/list` con Data Table (ID + nombre), búsqueda,
+      ordenación, paginación 25 y estados debug/error/vacío.
+- [x] Registro `users.consult` implementado; `META4_USERS_LIST_URL` en
+      `.env.example`; docs AGENTS/DESIGN/README.
+- [x] Ejecutar lint, typecheck, 36 archivos/137 pruebas, build,
+      `git diff --check` y `git status --short`.
+- [x] Post-review: separar `compareEmployeeIds` de SOAP/`fast-xml-parser`,
+      cabecera «Nombre y apellidos», `server-only` en parser; revalidar lint,
+      typecheck y tests focalizados de users (5/25).
+
 ## Meta4 society profile + Settings dialog - 2026-08-12
 
 - [x] Migración `003_meta4_user_profile.sql` con perfil singleton, `society_code`

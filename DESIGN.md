@@ -94,6 +94,10 @@ anteriores redirigen al catálogo común.
 No se duplican secciones entre Inicio y un workspace, ni se mantienen arrays de
 usuarios o catálogos paralelos fuera del registro central.
 
+Las herramientas SOAP Meta4 obtienen `Meta4Society` (`CYC` | `IBER` | `COLL`)
+exclusivamente desde `getMeta4OperationalContext()` en servidor. El navegador
+no elige ni sustituye la sociedad de la operación.
+
 ## Chat y recomendaciones
 
 El Thread conserva una sola instancia de `ComposerPrimitive.Root`, un único

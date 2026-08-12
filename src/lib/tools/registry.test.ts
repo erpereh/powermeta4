@@ -44,13 +44,26 @@ describe("tool registry", () => {
     ]);
   });
 
-  it("keeps user actions as external ERP placeholders", () => {
+  it("keeps user actions as external ERP placeholders except the users list", () => {
     const userTools = TOOL_REGISTRY.filter((tool) => tool.moduleId === "users");
+    const consult = userTools.find((tool) => tool.id === "users.consult");
 
     expect(userTools).toHaveLength(4);
-    expect(userTools.every((tool) => !tool.implemented && tool.route === "/tools/users")).toBe(
-      true,
+    expect(consult).toMatchObject({
+      name: "Listado de usuarios",
+      description: "Consulta todos los usuarios disponibles en la sociedad actual.",
+      route: "/tools/users/list",
+      icon: "user-search",
+      implemented: true,
+    });
+    expect(consult?.keywords).toEqual(
+      expect.arrayContaining(["usuario", "usuarios", "listado", "consultar", "buscar", "empleado"]),
     );
+    expect(
+      userTools
+        .filter((tool) => tool.id !== "users.consult")
+        .every((tool) => !tool.implemented && tool.route === "/tools/users"),
+    ).toBe(true);
     expect(userTools.map((tool) => tool.aiPrompt)).toEqual([
       "Quiero crear un nuevo usuario",
       "Quiero consultar los datos de un usuario",

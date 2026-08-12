@@ -20,6 +20,7 @@
   "dependencies": {
     "@assistant-ui/react": "latest",
     "@assistant-ui/react-markdown": "latest",
+    "@tanstack/react-table": "^8.21.3",
     "@zip.js/zip.js": "^2.8.34",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

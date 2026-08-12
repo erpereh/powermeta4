@@ -127,13 +127,13 @@ export const TOOL_MODULES = [
       tool({
         id: "users.consult",
         moduleId: "users",
-        name: "Consultar un usuario",
-        description: "Busca usuarios mediante los datos disponibles en el ERP.",
-        route: "/tools/users",
+        name: "Listado de usuarios",
+        description: "Consulta todos los usuarios disponibles en la sociedad actual.",
+        route: "/tools/users/list",
         icon: "user-search",
-        keywords: ["usuario", "consultar", "buscar", "consulta"],
+        keywords: ["usuario", "usuarios", "listado", "consultar", "buscar", "empleado"],
         aiPrompt: "Quiero consultar los datos de un usuario",
-        implemented: false,
+        implemented: true,
       }),
       tool({
         id: "users.modify",

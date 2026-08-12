@@ -99,12 +99,12 @@ Thread salvo petición expresa.
 
 Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/`, `/home`, `/chat/new`, `/chat/[chatId]`, `/settings`, `/tools`,
-`/tools/users`, `/tools/companies`, `/tools/payroll`, `/tools/reports` y
-`/tools/processes`. Los Route Handlers locales de workspace y backups usan
-runtime Node.js y validan la sesión, la empresa y la conversación en servidor.
-Las rutas antiguas `/tools/users/new`, `/tools/users/search` y
-`/tools/users/[userId]` solo redirigen a `/tools/users`. `/login` es pública y
-`/inbox` se eliminó sin redirección.
+`/tools/users`, `/tools/users/list`, `/tools/companies`, `/tools/payroll`,
+`/tools/reports` y `/tools/processes`. Los Route Handlers locales de workspace
+y backups usan runtime Node.js y validan la sesión, la empresa y la
+conversación en servidor. Las rutas antiguas `/tools/users/new`,
+`/tools/users/search` y `/tools/users/[userId]` solo redirigen a
+`/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
 
 No añadir servicios remotos, APIs ficticias, proveedores reales de IA, permisos
 reales, invitaciones, operaciones ERP reales ni persistencia remota. Los Route

@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-08-12 - Listado Meta4 de usuarios
+
+### Cambios
+
+- Primera herramienta funcional de usuarios Meta4: operación
+  `CSP_POWER4_USER_ALL` con `META4_USERS_LIST_URL`, sociedad solo desde
+  `getMeta4OperationalContext()` y cookie vía `executeAuthenticatedSoap`.
+- Parser con normalización 1|N|0 de `Csp_Carga_UsersRecordSet`, validación de
+  estructura vs lista vacía, dedupe por `id_Empleado`, `id` como string con
+  ceros y ordenación numérica-digit sin `Number()`.
+- Ruta `/tools/users/list` con Data Table shadcn + TanStack Table v8: búsqueda
+  sin acentos, ordenación, paginación 25 y estados debug/error/vacío.
+- Registro `users.consult` pasa a implementado (`Listado de usuarios`).
+
+### Verificación automática
+
+Se ejecutaron correctamente:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm test` — 36 archivos y 137 pruebas correctas.
+- `npm run build`
+- `git diff --check`
+- `git status --short`
+
+Corrección post-review: `compareEmployeeIds` movido a
+`employee-id.ts` (sin deps SOAP); `parser.ts` marcado `server-only`; cabecera
+«Nombre y apellidos». Revalidación focalizada: lint, typecheck y
+`npm test -- src/lib/meta4/users src/components/tools/users` (5 archivos /
+25 pruebas).
+
+No se realizó una llamada Meta4 real ni inspección WSDL en la VM.
+
 ## 2026-08-12 - Meta4 society profile + Settings dialog
 
 ### Cambios
