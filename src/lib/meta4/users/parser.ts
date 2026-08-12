@@ -2,6 +2,7 @@ import "server-only";
 
 import { XMLParser } from "fast-xml-parser";
 
+import { decodeXmlEntities } from "@/lib/meta4/format-profile-field";
 import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
 import { isMeta4Society, type Meta4Society } from "@/lib/meta4/societies";
 import { Meta4UsersError } from "./errors";
@@ -18,7 +19,7 @@ const parser = new XMLParser({
 
 const toText = (value: unknown): string | null => {
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-    return String(value);
+    return decodeXmlEntities(String(value));
   }
   if (typeof value === "object" && value !== null && "#text" in value) {
     return toText((value as { "#text": unknown })["#text"]);
@@ -167,7 +168,9 @@ const toUserListItem = (record: Record<string, unknown>): Meta4UserListItem | nu
   );
   if (!fullName) return null;
 
-  return { id, fullName };
+  const claveSelf = fieldFromRecord(record, "clave_Self").trim();
+
+  return { id, fullName, claveSelf };
 };
 
 /** Keeps the first valid occurrence per id_Empleado; preserves Meta4 order. */

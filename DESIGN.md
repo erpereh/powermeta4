@@ -98,6 +98,13 @@ Las herramientas SOAP Meta4 obtienen `Meta4Society` (`CYC` | `IBER` | `COLL`)
 exclusivamente desde `getMeta4OperationalContext()` en servidor. El navegador
 no elige ni sustituye la sociedad de la operación.
 
+En el listado de usuarios, pulsar una fila abre un `Dialog` grande con el
+detalle del empleado (`CSP_POWER4_CONSULTA_ORO`), con la misma convención
+visual que el diálogo de Ajustes: secciones con `dl` de dos columnas y un
+bloque de correos aparte. Toda la fila es interactiva (foco por teclado,
+`aria-label` propio, Enter/Espacio abren el diálogo) sin sustituir su rol
+nativo de fila ni anidar controles dentro de las celdas.
+
 ## Chat y recomendaciones
 
 El Thread conserva una sola instancia de `ComposerPrimitive.Root`, un único

@@ -39,6 +39,7 @@ const successBody = (society: string) => `
               <nombre>Paula</nombre>
               <apellido_1>García</apellido_1>
               <apellido_2>López</apellido_2>
+              <clave_Self>paula</clave_Self>
               <id_Empleado>0001</id_Empleado>
             </Csp_Carga_UsersRecordSet>
           </Csp_Carga_Users>
@@ -71,7 +72,9 @@ describe("listMeta4Users service", () => {
       });
 
       expect(result.society).toBe(society);
-      expect(result.users).toEqual([{ id: "0001", fullName: "Paula García López" }]);
+      expect(result.users).toEqual([
+        { id: "0001", fullName: "Paula García López", claveSelf: "paula" },
+      ]);
       expect(callCount).toBe(1);
     }
   });

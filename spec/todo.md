@@ -1,5 +1,68 @@
 # powermeta4 - estado de tareas
 
+## Columna «Usuario Meta4» (clave_Self) en el listado - 2026-08-12
+
+- [x] `Meta4UserListItem.claveSelf` extraído de `clave_Self`; tercera columna
+      ordenable/buscable en `/tools/users/list`.
+- [x] typecheck, oxlint, 41 archivos/166 pruebas, build, y comprobación
+      manual con sesión real (id `1746`, `vcruzt`, «Víctor Cruz Trueba»).
+
+## Corrección: entidades XML numéricas sin decodificar - 2026-08-12
+
+- [x] `decodeXmlEntities` decodifica ahora `&#xHH;`/`&#NN;` además de las
+      cinco entidades XML predefinidas; aplicado en `toText` de
+      `users/parser.ts` y `users/employee-detail-parser.ts`.
+- [x] typecheck, 41 archivos/164 pruebas, y comprobación manual con sesión
+      Meta4 real: `/tools/users/list` muestra «Antonio Ramón Sánchez Cortés
+      Rodríguez» y otros nombres acentuados correctamente.
+
+## Detalle de empleado Meta4 (CSP_POWER4_CONSULTA_ORO) - 2026-08-12
+
+- [x] Módulo SOAP `CSP_POWER4_CONSULTA_ORO` (`ARG_EMP` únicamente, sin
+      sociedad): `employee-detail-{soap,parser,service,types,errors}.ts` en
+      `src/lib/meta4/users/`, reutilizando `normalizeRecordSets`,
+      `buildFullName` y `escapeXml` ya existentes. Parser distingue nodos
+      estructurales ausentes (`INVALID_RESPONSE`) de RecordSet vacío
+      (`NOT_FOUND`, a diferencia del listado que trata vacío como válido) y
+      separa el RecordSet anidado de correos (`Csp_Power4_Std_Email` →
+      `Csp_Power4_Std_EmailRecordSet`) de los campos planos.
+- [x] Server Action `getMeta4EmployeeDetailViewAction` en
+      `src/app/actions/meta4-employee-detail.ts`: valida que el `employeeId`
+      pertenece al listado de la sociedad activa (`listMeta4Users`) antes de
+      consultar el detalle (defensa en profundidad, ya que la operación SOAP
+      no lleva sociedad como argumento), construye secciones con mapa de
+      etiquetas propio y formatea la fecha centinela `4000-01-01` como
+      «Vigente».
+- [x] `formatFieldValue`/`humanizeKey` extraídos a
+      `src/lib/meta4/format-profile-field.ts` (no pueden vivir en un módulo
+      `"use server"`) y reutilizados desde `meta4-profile.ts` sin cambio de
+      comportamiento.
+- [x] `UserDetailDialog` (Dialog grande, misma convención que Ajustes:
+      secciones `dl` + bloque de correos) se abre al pulsar cualquier fila de
+      `UsersListTable`; la fila mantiene su rol nativo de `row` (foco por
+      teclado, `aria-label`, Enter/Espacio), sin overridear el rol con
+      `role="button"` para no romper la semántica de tabla.
+- [x] `META4_USERS_DETAIL_URL` en `.env.example`; corregidos los comentarios
+      desactualizados de `META4_USER_PROFILE_URL`/`META4_USERS_LIST_URL` que
+      aún decían «omit SOAPAction» pese a que ambos lo requieren
+      (`SOAPAction: ""`, ya gestionado por `executeAuthenticatedSoap`); docs
+      en `AGENTS.md`/`DESIGN.md`.
+- [x] Ejecutar lint (`oxlint` limpio; `oxfmt --check` con hallazgos
+      preexistentes en 219 archivos del repo, incluidos no tocados en este
+      cambio — entorno sin config de oxfmt, no atribuible a este cambio),
+      typecheck, 41 archivos/164 pruebas, build y `git diff --check`.
+- [x] Comprobación manual con sesión Meta4 real (`JORGE.SALVADOR`): SOAP real
+      contra `CSP_POWER4_CONSULTA_ORO` con `ARG_EMP=1013` (script `tsx`
+      desechable) devolvió 71 campos y 3 correos en el orden real, con la
+      fecha centinela `4000-01-01` intacta sin transformar; `/tools/users/list`
+      renderizó 25 filas reales de CYC con `aria-label` correcto y sin
+      errores en el log del servidor.
+- [ ] No se pudo hacer clic real en una fila desde un navegador (sin
+      Playwright ni navegador headless disponible en este entorno). La
+      interacción de clic/teclado que abre el diálogo sí está cubierta por
+      pruebas automatizadas con Testing Library (acción simulada), pero falta
+      una comprobación visual en navegador real del diálogo con datos reales.
+
 ## Listado Meta4 de usuarios - 2026-08-12
 
 - [x] Módulo SOAP `CSP_POWER4_USER_ALL` con sociedad solo desde

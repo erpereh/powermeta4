@@ -27,6 +27,7 @@ import {
 import { compareEmployeeIds } from "@/lib/meta4/users/employee-id";
 import type { Meta4UserListItem } from "@/lib/meta4/users/types";
 import type { Meta4Society } from "@/lib/meta4/societies";
+import { UserDetailDialog } from "@/components/tools/users/user-detail-dialog";
 
 const PAGE_SIZE = 25;
 
@@ -41,6 +42,7 @@ export type UsersListTableProps = {
 export function UsersListTable({ society, users }: UsersListTableProps) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "id", desc: false }]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
   const columns = useMemo<ColumnDef<Meta4UserListItem>[]>(
     () => [
@@ -62,6 +64,26 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
         cell: ({ row }) => (
           <span className="font-mono text-sm tabular-nums">{row.original.id}</span>
         ),
+      },
+      {
+        accessorKey: "claveSelf",
+        header: ({ column }) => (
+          <Button
+            type="button"
+            variant="ghost"
+            className="-ml-2 h-8 px-2"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            aria-label="Ordenar por usuario Meta4"
+          >
+            Usuario Meta4
+            <SortIcon sorted={column.getIsSorted()} />
+          </Button>
+        ),
+        sortingFn: (rowA, rowB) =>
+          rowA.original.claveSelf.localeCompare(rowB.original.claveSelf, "es", {
+            sensitivity: "base",
+          }),
+        cell: ({ row }) => <span className="font-mono text-sm">{row.original.claveSelf}</span>,
       },
       {
         accessorKey: "fullName",
@@ -96,8 +118,9 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
       const query = normalizeSearch(String(filterValue ?? ""));
       if (!query) return true;
       const id = normalizeSearch(row.original.id);
+      const claveSelf = normalizeSearch(row.original.claveSelf);
       const name = normalizeSearch(row.original.fullName);
-      return id.includes(query) || name.includes(query);
+      return id.includes(query) || claveSelf.includes(query) || name.includes(query);
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -136,8 +159,8 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
               setGlobalFilter(event.target.value);
               table.setPageIndex(0);
             }}
-            placeholder="Buscar por ID o nombre..."
-            aria-label="Buscar por ID o nombre"
+            placeholder="Buscar por ID, usuario o nombre..."
+            aria-label="Buscar por ID, usuario o nombre"
             className="max-w-md"
           />
 
@@ -167,7 +190,19 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
                   </TableRow>
                 ) : (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow
+                      key={row.id}
+                      tabIndex={0}
+                      aria-label={`Ver detalle de ${row.original.fullName}`}
+                      onClick={() => setSelectedEmployeeId(row.original.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedEmployeeId(row.original.id);
+                        }
+                      }}
+                      className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -209,6 +244,14 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
           </div>
         </div>
       )}
+
+      <UserDetailDialog
+        employeeId={selectedEmployeeId}
+        open={selectedEmployeeId !== null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setSelectedEmployeeId(null);
+        }}
+      />
     </div>
   );
 }

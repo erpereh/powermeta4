@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAuthContext } from "@/lib/auth/session";
+import { formatFieldValue, humanizeKey } from "@/lib/meta4/format-profile-field";
 import { createDpapiAdapter } from "@/lib/security/dpapi";
 import { META4_SOCIETY_LEGAL_NAMES } from "@/lib/meta4/societies";
 import { getDatabase } from "@/server/database/client";
@@ -64,35 +65,6 @@ const SECTION_TITLES: Record<string, string> = {
   other: "Otros datos",
   session: "Sesión Meta4",
 };
-
-const decodeXmlEntities = (value: string): string =>
-  value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&apos;", "'");
-
-const formatFieldValue = (value: string): string => {
-  const decoded = decodeXmlEntities(value).trim();
-  if (!decoded) return "—";
-  if (/^\d{4}-\d{2}-\d{2}/.test(decoded)) {
-    const date = new Date(decoded);
-    if (!Number.isNaN(date.getTime())) {
-      return new Intl.DateTimeFormat("es-ES", {
-        dateStyle: "medium",
-        timeStyle: decoded.includes("T") ? "short" : undefined,
-      }).format(date);
-    }
-  }
-  return decoded;
-};
-
-const humanizeKey = (key: string): string =>
-  key
-    .replaceAll("_", " ")
-    .replaceAll(/([a-z])([A-Z])/g, "$1 $2")
-    .trim();
 
 const buildSections = (
   profile: Meta4UserProfile,

@@ -1,5 +1,140 @@
 # Changelog
 
+## 2026-08-12 - Columna «Usuario Meta4» (clave_Self) en el listado de usuarios
+
+### Cambios
+
+- `CSP_POWER4_USER_ALL` ya traía `clave_Self` en cada `Csp_Carga_UsersRecordSet`
+  pero el parser lo descartaba. `Meta4UserListItem` gana un campo `claveSelf`
+  (vacío si el registro no lo trae, sin invalidar la fila) y
+  `/tools/users/list` muestra una tercera columna «Usuario Meta4» (ID →
+  Usuario Meta4 → Nombre y apellidos), ordenable y con búsqueda por `clave_Self`
+  además de por ID y nombre, reutilizando el placeholder/aria-label ya
+  actualizados del campo de búsqueda.
+- Misma etiqueta «Usuario Meta4» que ya usan Ajustes y el diálogo de detalle
+  de empleado para `clave_Self`, por consistencia.
+
+### Verificación automática
+
+- `npm run typecheck`, `npx oxlint` (limpio; `oxfmt --check` con el mismo
+  problema de entorno preexistente ya documentado, no atribuible a este
+  cambio), `npm test` — 41 archivos y 166 pruebas correctas, `npm run build`.
+
+### Comprobación manual
+
+- Con la sesión Meta4 real de `JORGE.SALVADOR`, `/tools/users/list` muestra
+  la columna «Usuario Meta4» con datos reales, incluido el registro de
+  ejemplo aportado (id `1746`, `clave_Self` `vcruzt`, «Víctor Cruz Trueba»).
+
+## 2026-08-12 - Corrección: entidades XML numéricas sin decodificar en el listado de usuarios
+
+### Cambios
+
+- Los parsers SOAP usan `processEntities: false` en `fast-xml-parser` como
+  defensa contra inyección de `DOCTYPE`/`ENTITY`, pero eso también dejaba sin
+  decodificar las referencias numéricas de carácter que Meta4 mezcla con
+  UTF-8 literal en la misma respuesta (p. ej. `&#xF3;` para «ó»), por lo que
+  nombres como «Antonio Ram&#xF3;n S&#xE1;nchez Cort&#xE9;s Rodr&#xED;guez»
+  aparecían sin decodificar en `/tools/users/list`.
+- `decodeXmlEntities` (en `src/lib/meta4/format-profile-field.ts`) ahora
+  decodifica también referencias numéricas hexadecimales (`&#xHH;`) y
+  decimales (`&#NN;`) además de las cinco entidades XML predefinidas: se
+  aplica en el punto único de extracción de texto (`toText`) de
+  `src/lib/meta4/users/parser.ts` (listado) y
+  `src/lib/meta4/users/employee-detail-parser.ts` (detalle de empleado,
+  mismo defecto latente antes de mostrar ningún dato real). El diálogo de
+  Ajustes/perfil se beneficia igual sin tocarlo, ya que reutiliza la misma
+  función compartida.
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npm test` — 41 archivos y 164 pruebas correctas (sin cambios de fixtures:
+  las pruebas existentes no usaban referencias numéricas, así que no había
+  ningún caso que se rompiera al empezar a decodificarlas).
+
+### Comprobación manual
+
+- Con la sesión Meta4 real de `JORGE.SALVADOR` ya activa, `/tools/users/list`
+  mostró correctamente «Antonio Ramón Sánchez Cortés Rodríguez» y otros
+  nombres con acentos/ñ antes garbled; cero apariciones de `&#x` atribuibles
+  a datos de Meta4 en el HTML servido (la única aparición restante es
+  `&#x27;` del propio escapado HTML de React dentro de un atributo `class`,
+  no relacionada).
+
+## 2026-08-12 - Detalle de empleado Meta4 (CSP_POWER4_CONSULTA_ORO)
+
+### Cambios
+
+- Nueva operación SOAP autenticada `CSP_POWER4_CONSULTA_ORO` (`ARG_EMP`
+  únicamente): módulo `employee-detail-{soap,parser,service,types,errors}.ts`
+  en `src/lib/meta4/users/`, sin pasar por `getMeta4OperationalContext`
+  (no hace falta sociedad). Parser separa el RecordSet anidado de correos
+  (`Csp_Power4_Std_Email` → `Csp_Power4_Std_EmailRecordSet`, 1|N|0 vía
+  `normalizeRecordSets` ya existente) de los ~50 campos planos del empleado,
+  y distingue nodos estructurales ausentes de un RecordSet vacío
+  (`META4_CONSULTA_ORO_NOT_FOUND`, a diferencia del listado que trata vacío
+  como resultado válido).
+- Pulsar una fila de `/tools/users/list` abre un `Dialog` grande
+  (`UserDetailDialog`) con el detalle: secciones `dl` de dos columnas (mismo
+  patrón que Ajustes) y un bloque de correos aparte, sin inventar una
+  etiqueta para el código no documentado `std_Id_Location_Type`. La fecha
+  centinela de Meta4 (`4000-01-01`) se muestra como «Vigente». La fila
+  conserva su rol nativo `row` (no se sustituye por `role="button"`, lo que
+  habría roto la semántica de tabla y las consultas de accesibilidad
+  existentes) y añade `tabIndex`, `aria-label` y manejo de Enter/Espacio.
+- Server Action `getMeta4EmployeeDetailViewAction` valida en servidor que el
+  `employeeId` pertenece al listado de la sociedad activa
+  (`listMeta4Users`) antes de consultar el detalle, como defensa en
+  profundidad: la operación SOAP no lleva sociedad como argumento y la
+  acción es invocable con cualquier id desde el cliente.
+- `formatFieldValue`/`humanizeKey` se extrajeron de `meta4-profile.ts`
+  (archivo `"use server"`) a `src/lib/meta4/format-profile-field.ts`, ya
+  que ningún export de un módulo de Server Actions puede ser una función
+  síncrona; se reutilizan sin cambio de comportamiento.
+- `.env.example`: nueva `META4_USERS_DETAIL_URL`; se corrigieron los
+  comentarios desactualizados de `META4_USER_PROFILE_URL` y
+  `META4_USERS_LIST_URL` que aún decían «omit SOAPAction» pese a que ambos
+  la requieren (`SOAPAction: ""`, ya gestionada por
+  `executeAuthenticatedSoap` desde una corrección anterior de esta misma
+  sesión). Docs en `AGENTS.md`/`DESIGN.md` actualizadas.
+
+### Verificación automática
+
+Se ejecutaron correctamente:
+
+- `npm run typecheck`
+- `npm test` — 41 archivos y 164 pruebas correctas.
+- `npm run build`
+- `git diff --check`
+- `git status --short`
+
+`npm run lint`: `oxlint` (el linter real) pasó limpio. `oxfmt --check`
+reportó hallazgos en 219 archivos del repositorio, incluidos archivos no
+tocados en este cambio (confirmado con `src/lib/meta4/societies.ts` sin
+modificar) — el entorno no tiene configuración de `oxfmt` («No config
+found, using defaults»), por lo que no es atribuible a este cambio; no se
+reformateó el repositorio completo para no introducir un diff no
+relacionado.
+
+### Comprobación manual
+
+- Con sesión Meta4 real (`JORGE.SALVADOR`), una llamada SOAP real contra
+  `CSP_POWER4_CONSULTA_ORO` con `ARG_EMP=1013` (script `tsx` desechable,
+  eliminado tras la comprobación) devolvió 71 campos y los 3 correos reales
+  en el orden esperado, con la fecha centinela `4000-01-01` intacta sin
+  transformar y sin fuga de las claves contenedoras de correo hacia los
+  campos planos.
+- `/tools/users/list` con la sesión real renderizó 25 filas reales de la
+  sociedad CYC con `aria-label` de detalle correcto por fila y sin errores
+  en el log del servidor de desarrollo.
+- No se realizó un clic real en una fila desde un navegador: no hay
+  Playwright ni un navegador headless instalado en este entorno. La
+  apertura del diálogo por clic y por teclado (Enter/Espacio) sí está
+  cubierta por pruebas automatizadas con Testing Library sobre el
+  componente real (acción de servidor simulada), pero falta una
+  comprobación visual en navegador real.
+
 ## 2026-08-12 - Listado Meta4 de usuarios
 
 ### Cambios

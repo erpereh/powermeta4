@@ -1,28 +1,43 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/app/actions/meta4-employee-detail", () => ({
+  getMeta4EmployeeDetailViewAction: vi.fn(async () => ({
+    available: false,
+    employeeId: "",
+    displayName: null,
+    message: "No se ha podido cargar el detalle del empleado desde Meta4.",
+    sections: [],
+    emails: [],
+  })),
+}));
+
+import { getMeta4EmployeeDetailViewAction } from "@/app/actions/meta4-employee-detail";
 import { UsersListTable } from "@/components/tools/users/users-list-table";
 import type { Meta4UserListItem } from "@/lib/meta4/users/types";
 
+const mockedDetailAction = vi.mocked(getMeta4EmployeeDetailViewAction);
+
 afterEach(() => {
   cleanup();
+  mockedDetailAction.mockClear();
 });
 
 const buildUsers = (count: number): Meta4UserListItem[] =>
   Array.from({ length: count }, (_, index) => {
     const id = String(index + 1).padStart(4, "0");
-    return { id, fullName: `Usuario ${id}` };
+    return { id, fullName: `Usuario ${id}`, claveSelf: `usuario${id}` };
   });
 
 const sampleUsers: Meta4UserListItem[] = [
-  { id: "0001", fullName: "Paula García López" },
-  { id: "0013", fullName: "Mariana Ruiz Soto" },
-  { id: "0021", fullName: "Federica Martín" },
-  { id: "0023", fullName: "Raúl Pérez Núñez" },
-  { id: "0024", fullName: "María Sánchez Díaz" },
+  { id: "0001", fullName: "Paula García López", claveSelf: "paula" },
+  { id: "0013", fullName: "Mariana Ruiz Soto", claveSelf: "mruizs" },
+  { id: "0021", fullName: "Federica Martín", claveSelf: "fmartin" },
+  { id: "0023", fullName: "Raúl Pérez Núñez", claveSelf: "rperezn" },
+  { id: "0024", fullName: "María Sánchez Díaz", claveSelf: "msanchezd" },
 ];
 
 describe("UsersListTable", () => {
@@ -33,11 +48,14 @@ describe("UsersListTable", () => {
     expect(screen.getByText("CYC")).toBeTruthy();
     expect(screen.getByText("Todos los usuarios disponibles en CYC.")).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "ID" })).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "Usuario Meta4" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Nombre y apellidos" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Ordenar por ID" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Ordenar por usuario Meta4" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Ordenar por nombre y apellidos" })).toBeTruthy();
     expect(screen.getByText("Paula García López")).toBeTruthy();
     expect(screen.getByText("0001")).toBeTruthy();
+    expect(screen.getByText("paula")).toBeTruthy();
   });
 
   it("shows empty SOAP copy for each society", () => {
@@ -54,7 +72,7 @@ describe("UsersListTable", () => {
   it("filters by ID, name and accents", async () => {
     const user = userEvent.setup();
     render(<UsersListTable society="CYC" users={sampleUsers} />);
-    const search = screen.getByRole("searchbox", { name: "Buscar por ID o nombre" });
+    const search = screen.getByRole("searchbox", { name: "Buscar por ID, usuario o nombre" });
 
     await user.clear(search);
     await user.type(search, "0013");
@@ -68,6 +86,11 @@ describe("UsersListTable", () => {
     await user.clear(search);
     await user.type(search, "maria");
     expect(screen.getByText("María Sánchez Díaz")).toBeTruthy();
+
+    await user.clear(search);
+    await user.type(search, "mruizs");
+    expect(screen.getByText("Mariana Ruiz Soto")).toBeTruthy();
+    expect(screen.queryByText("Paula García López")).toBeNull();
 
     await user.clear(search);
     await user.type(search, "zzzz");
@@ -111,7 +134,54 @@ describe("UsersListTable", () => {
     const namesAsc = within(table)
       .getAllByRole("row")
       .slice(1)
-      .map((row) => within(row).getAllByRole("cell")[1]?.textContent);
+      .map((row) => within(row).getAllByRole("cell")[2]?.textContent);
     expect(namesAsc?.[0]).toBe("Federica Martín");
+  });
+
+  it("has an accessible, keyboard-focusable row for each user", () => {
+    render(<UsersListTable society="CYC" users={sampleUsers} />);
+
+    const row = screen.getByRole("row", { name: "Ver detalle de Paula García López" });
+    expect(row.getAttribute("tabindex")).toBe("0");
+  });
+
+  it("opens the detail dialog with the right employee on row click", async () => {
+    const user = userEvent.setup();
+    render(<UsersListTable society="CYC" users={sampleUsers} />);
+
+    await user.click(screen.getByRole("row", { name: "Ver detalle de Paula García López" }));
+
+    await waitFor(() => expect(mockedDetailAction).toHaveBeenCalledWith("0001"));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
+  it("opens the detail dialog with Enter on a focused row", async () => {
+    const user = userEvent.setup();
+    render(<UsersListTable society="CYC" users={sampleUsers} />);
+
+    screen.getByRole("row", { name: "Ver detalle de Mariana Ruiz Soto" }).focus();
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => expect(mockedDetailAction).toHaveBeenCalledWith("0013"));
+  });
+
+  it("opens the detail dialog with Space on a focused row", async () => {
+    const user = userEvent.setup();
+    render(<UsersListTable society="CYC" users={sampleUsers} />);
+
+    screen.getByRole("row", { name: "Ver detalle de Mariana Ruiz Soto" }).focus();
+    await user.keyboard(" ");
+
+    await waitFor(() => expect(mockedDetailAction).toHaveBeenCalledWith("0013"));
+  });
+
+  it("does not open the dialog for unrelated keys", async () => {
+    const user = userEvent.setup();
+    render(<UsersListTable society="CYC" users={sampleUsers} />);
+
+    screen.getByRole("row", { name: "Ver detalle de Paula García López" }).focus();
+    await user.keyboard("{Tab}");
+
+    expect(mockedDetailAction).not.toHaveBeenCalled();
   });
 });
