@@ -89,7 +89,7 @@ describe("Meta4 client transport", () => {
       const headers = new Headers(init?.headers);
       expect(headers.get("content-type")).toBe("text/xml; charset=utf-8");
       expect(headers.get("accept")).toBe("text/xml");
-      expect(headers.get("soapaction")).toBeNull();
+      expect(headers.get("soapaction")).toBe('""');
       expect(init?.body).toContain("ai_sUser");
       return new Response(
         "<loginResponse><loginReturn><sessionID>refresh-1</sessionID></loginReturn></loginResponse>",

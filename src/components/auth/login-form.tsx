@@ -37,15 +37,24 @@ export function LoginForm({ debugAuthEnabled }: { debugAuthEnabled: boolean }) {
           <form action={meta4FormAction} className="grid gap-5">
             <div className="grid gap-2">
               <Label htmlFor="email">Usuario Meta4</Label>
-              <Input id="email" name="email" type="text" autoComplete="username" required />
+              <Input
+                id="email"
+                name="email"
+                type="text"
+                autoComplete="username"
+                defaultValue="JORGE.SALVADOR"
+                required
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Contraseña</Label>
+              {/* TODO: quitar defaultValue antes de hacer push, contraseña hardcodeada solo para pruebas locales */}
               <Input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
+                defaultValue={"wvU5k9[Wk|s8rr2-8R531-z$["}
                 required
               />
             </div>

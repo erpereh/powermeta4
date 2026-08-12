@@ -10,7 +10,7 @@ import {
 } from "./soap-xml";
 import type { Meta4SoapPoster } from "./user-profile-lookup";
 
-export const DEFAULT_META4_LOGIN_URL = "https://meta4desaop.creditocaucion.es/services/Login";
+export const DEFAULT_META4_LOGIN_URL = "https://meta4desasoap.creditocaucion.es/services/Login";
 export const META4_TIMEOUT_MS = 15_000;
 
 export type Meta4LoginResult = {
@@ -89,6 +89,7 @@ export const createMeta4Client = (options: Meta4ClientOptions = {}): Meta4Client
         url,
         buildLoginEnvelope(username, password),
         timeoutMs,
+        { SOAPAction: '""' },
       );
       const body = await response.text();
       if (!response.ok) {
@@ -109,6 +110,7 @@ export const createMeta4Client = (options: Meta4ClientOptions = {}): Meta4Client
         url,
         buildRetrieveM4SessionEnvelope(refreshSessionId),
         timeoutMs,
+        { SOAPAction: '""' },
       );
       const body = await response.text();
       if (!response.ok) {

@@ -50,11 +50,11 @@ describe("Meta4 society profile lookup", () => {
     expect(postSoap.mock.calls[0]?.[0]).toMatchObject({
       headers: {
         Cookie: "JSESSIONID=jsession-abc",
+        SOAPAction: '""',
       },
     });
     expect(JSON.stringify(logs)).not.toContain("jsession-abc");
     expect(JSON.stringify(logs)).not.toContain("clave_Self");
-    expect(JSON.stringify(postSoap.mock.calls)).not.toContain("SOAPAction");
   });
 
   it("stops the sequence on infrastructure failure", async () => {

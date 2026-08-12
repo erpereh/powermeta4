@@ -48,6 +48,7 @@ const executeFetch = async (
   headers.set("Cookie", `JSESSIONID=${jSessionId}`);
   headers.set("Content-Type", headers.get("Content-Type") ?? "text/xml; charset=utf-8");
   headers.set("Accept", headers.get("Accept") ?? "text/xml");
+  headers.set("SOAPAction", headers.get("SOAPAction") ?? '""');
 
   try {
     return await fetchImpl(operation.url, {

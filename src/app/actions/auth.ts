@@ -28,7 +28,6 @@ const genericDebugSessionCreationError = "No se ha podido iniciar la sesión de 
 const profileNotFoundError = "No se ha podido identificar tu sociedad en Meta4.";
 const profileLookupFailedAfterLoginError =
   "Se ha iniciado sesión en Meta4, pero no se han podido cargar los datos del usuario.";
-const profileLookupFailedError = "No se han podido cargar los datos del usuario desde Meta4.";
 
 const getSafeServerErrorDetails = (error: unknown): { name: string; code?: string } => {
   const details: { name: string; code?: string } = {
@@ -104,5 +103,3 @@ export async function logoutAction(_formData: FormData): Promise<never> {
   await deleteSessionCookie();
   redirect("/login");
 }
-
-export { profileLookupFailedError };

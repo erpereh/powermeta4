@@ -62,6 +62,7 @@ export const lookupMeta4SocietyProfile = async (
           Cookie: `JSESSIONID=${options.jSessionId}`,
           Accept: "text/xml",
           "Content-Type": "text/xml; charset=utf-8",
+          SOAPAction: '""',
         },
       });
     } catch (error) {
