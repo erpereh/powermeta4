@@ -16,7 +16,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import type { CleanupPolicy } from "@/features/registro-retributivo/assistant/storage/repositories";
 import type { StoredAnalysis } from "@/features/registro-retributivo/types";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
 import { cn } from "@/lib/utils";
@@ -114,13 +113,13 @@ export function HistoryView() {
   const [deletionError, setDeletionError] = useState<string>();
   const rootRef = useRef<HTMLDivElement>(null);
 
-  async function confirmDeletion(policy: CleanupPolicy) {
+  async function confirmDeletion() {
     if (!deleteTarget || deleting) return;
     setDeleting(true);
     setDeletionError(undefined);
     try {
-      if (deleteTarget === "all") await clearStoredHistory(policy);
-      else await removeStoredAnalysis(deleteTarget, policy);
+      if (deleteTarget === "all") await clearStoredHistory();
+      else await removeStoredAnalysis(deleteTarget);
       setDeleteTarget(undefined);
       window.setTimeout(() => rootRef.current?.focus(), 0);
     } catch {
@@ -176,11 +175,10 @@ export function HistoryView() {
         <ModalShell title={deleteTarget === "all" ? "Eliminar historial" : "Eliminar análisis"} eyebrow="Eliminación local" maxWidth="2xl" onClose={() => { if (!deleting) setDeleteTarget(undefined); }} footer={
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" disabled={deleting} onClick={() => setDeleteTarget(undefined)}>Cancelar</Button>
-            <Button type="button" variant="destructive" disabled={deleting} onClick={() => void confirmDeletion("delete_all")}>Eliminar análisis y conversaciones</Button>
-            <Button type="button" variant="secondary" disabled={deleting} onClick={() => void confirmDeletion("preserve_conversations")}>Eliminar análisis conservando conversaciones</Button>
+            <Button type="button" variant="destructive" disabled={deleting} onClick={() => void confirmDeletion()}>Eliminar</Button>
           </div>
         }>
-          <p className="text-sm leading-6 text-muted-foreground">Elige si las conversaciones asociadas deben eliminarse por completo o conservarse como evidencia histórica de solo lectura.</p>
+          <p className="text-sm leading-6 text-muted-foreground">Esta acción elimina el análisis guardado de la base SQLite local. No se pueden recuperar los resultados una vez borrados.</p>
           {deletionError ? <p role="alert" className="mt-3 text-sm font-semibold text-destructive">{deletionError}</p> : null}
           {deleting ? <p role="status" className="mt-3 text-sm font-semibold text-foreground">Eliminando contenido local…</p> : null}
         </ModalShell>

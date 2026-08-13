@@ -1,5 +1,29 @@
 # powermeta4 - estado de tareas
 
+## Registro Retributivo nativo - 2026-08-13
+
+- [x] Feature en `/tools/registro-retributivo`: Inicio, Personas, Cuadre
+      Reg., Agrupaciones, Historial y Ajustes. Sin asistente conversacional
+      retributivo (grep limpio en `src/features/registro-retributivo`).
+- [x] FormData: el payload local `./fuentes` pesa 13 051 814 bytes
+      (21 PDFs = 12 920 361 + Excel = 131 453; 12,45 MiB) y supera el límite
+      de clonado del Proxy Next (10 MB). El matcher de `proxy.ts` excluye
+      solo `/api/registro-retributivo/analyze`. Auth sigue en el Route
+      Handler. Tests: 401, multipart 1/N PDFs, body >10 MB y TypeError
+      mapeado. Analyze con `./fuentes` produce personas, cuadre interno y
+      hojas agrupadas, y persiste en SQLite de prueba.
+- [x] Persistencia SQLite: repos `createRetributivoAnalysisRepository`,
+      `createRetributivoSettingsRepository` y `createRetributivoStateRepository`
+      (PATCH atómico). Backup/restore conserva un análisis. Migración `005`
+      elimina `retributivo_assistant_records`. `DATABASE_SCHEMA_VERSION = 5`.
+      `/fuentes/` en `.gitignore`; no versionado.
+- [x] `AiExplanationPanel` / explain se conservan en Personas y Cuadre.
+      Tab Ajustes/IA y el endpoint de modelos del asistente retributivo
+      eliminados. `implemented: true` en `STANDALONE_TOOLS`.
+- [x] setup, typecheck, oxlint, 58 archivos/278 pruebas (2 skipped), build,
+      `git diff --check`. Origen `reg_retrib_cyc` intacto en
+      `57fdf4366c6e30bdfdb98c97ebf3563199d18d9b`. Sin commit.
+
 ## Logo oficial + Acciones / Herramientas - 2026-08-13
 
 - [x] `powermeta4-mark.svg` untracked movido con `Move-Item` a

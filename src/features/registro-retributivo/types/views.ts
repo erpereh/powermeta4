@@ -6,7 +6,6 @@ export const RETRIBUTIVO_VIEW_LABELS: Record<AppView, string> = {
   personas: "Personas",
   "cuadre-excel": "Cuadre Reg.",
   agrupaciones: "Agrupaciones",
-  asistente: "Asistente",
   historial: "Historial",
   ajustes: "Ajustes",
 };

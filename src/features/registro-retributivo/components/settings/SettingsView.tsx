@@ -1,24 +1,22 @@
 "use client";
 
 import { CheckCircle2, LockKeyhole, ShieldCheck, SlidersHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { SectionTabs } from "@/features/registro-retributivo/components/common/SectionTabs";
 import { EmployeeExclusionsCard } from "@/features/registro-retributivo/components/settings/EmployeeExclusionsCard";
 import { ConceptMapEditor } from "@/features/registro-retributivo/components/settings/concept-map/ConceptMapEditor";
-import { AssistantAiSettings } from "@/features/registro-retributivo/components/settings/AssistantAiSettings";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-type SettingsSection = "general" | "exclusions" | "concepts" | "ai" | "privacy";
+type SettingsSection = "general" | "exclusions" | "concepts" | "privacy";
 
 const SETTINGS_SECTIONS = [
   { value: "general", label: "General", tabId: "settings-general-tab", panelId: "settings-general-panel" },
   { value: "exclusions", label: "Exclusiones", tabId: "settings-exclusions-tab", panelId: "settings-exclusions-panel" },
   { value: "concepts", label: "Conceptos", tabId: "settings-concepts-tab", panelId: "settings-concepts-panel" },
-  { value: "ai", label: "IA", tabId: "settings-ai-tab", panelId: "settings-ai-panel" },
   { value: "privacy", label: "Privacidad", tabId: "settings-privacy-tab", panelId: "settings-privacy-panel" },
 ] as const;
 
@@ -37,15 +35,9 @@ function SettingsPanel({ id, labelledBy, label, active, children }: Readonly<{ i
 }
 
 export function SettingsView() {
-  const { settings, updateSettings, assistantNavigationIntent, consumeAssistantNavigationIntent } = useAppState();
+  const { settings, updateSettings } = useAppState();
   const [activeSection, setActiveSection] = useState<SettingsSection>("general");
   const [visited, setVisited] = useState<ReadonlySet<SettingsSection>>(() => new Set(["general"]));
-  useEffect(() => {
-    if (assistantNavigationIntent?.type !== "settings_ai") return;
-    setVisited((current) => new Set(current).add("ai"));
-    setActiveSection("ai");
-    consumeAssistantNavigationIntent();
-  }, [assistantNavigationIntent, consumeAssistantNavigationIntent]);
 
   function selectSection(value: SettingsSection) {
     setVisited((current) => new Set(current).add(value));
@@ -92,8 +84,6 @@ export function SettingsView() {
           <ConceptMapEditor />
         </SettingsPanel>
       ) : null}
-
-      {visited.has("ai") ? <SettingsPanel id="settings-ai-panel" labelledBy="settings-ai-tab" label="IA" active={activeSection === "ai"}><AssistantAiSettings /></SettingsPanel> : null}
 
       {visited.has("privacy") ? (
         <SettingsPanel id="settings-privacy-panel" labelledBy="settings-privacy-tab" label="Privacidad" active={activeSection === "privacy"}>

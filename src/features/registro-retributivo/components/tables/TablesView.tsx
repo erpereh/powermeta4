@@ -1,7 +1,7 @@
 "use client";
 
 import { Copy, Search, Table2 } from "lucide-react";
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { AiExplanationPanel } from "@/features/registro-retributivo/components/ai/AiExplanationPanel";
 import { useAppState, type DashboardFilters, EMPTY_FILTERS, matchesQuery } from "@/features/registro-retributivo/state/AppState";
 import { Badge } from "@/features/registro-retributivo/components/common/Badge";
@@ -36,9 +36,7 @@ import { describeConceptCause, describePersonCause, type ProbableCause } from "@
 import { diffClass, rowTone } from "@/features/registro-retributivo/ui/statusStyles";
 import { cn } from "@/features/registro-retributivo/utils/classNames";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
-import { selectPersonProfileFromRow } from "@/features/registro-retributivo/assistant/tools/sharedSelectors";
-import { useOptionalAssistant } from "@/features/registro-retributivo/components/assistant/AssistantProvider";
-import { PersonDetail } from "@/features/registro-retributivo/components/tables/PersonDetail";
+import { selectPersonProfileFromRow } from "@/features/registro-retributivo/selectors/sharedSelectors";
 
 interface TableHeader {
   readonly key: string;
@@ -496,9 +494,6 @@ function DetailModal({
   unmappedConcepts,
   onClose,
 }: Readonly<{ state: DetailModalState; tolerance: number; concepts: readonly ConceptComparisonRow[]; unmappedConcepts: readonly UnmappedConceptRow[]; onClose: () => void }>) {
-  const assistant = useOptionalAssistant();
-  const { setView } = useAppState();
-  const [continuing, setContinuing] = useState(false);
   const title = state.kind === "person" ? "Detalle persona" : state.kind === "concept" ? "Detalle concepto" : "Detalle concepto no incluido";
   const cause =
     state.kind === "person"
@@ -535,10 +530,6 @@ function DetailModal({
       }
     >
       <div data-surface="person-detail-content" className="min-w-0 max-w-full">
-        {state.kind === "person" && assistant ? <PersonDetail row={state.row} ready={assistant.ready} busy={continuing} onContinue={async (personId) => {
-          setContinuing(true);
-          try { await assistant.continuePersonInAssistant(personId); onClose(); setView("asistente"); } catch { /* provider exposes the sanitized failure */ } finally { setContinuing(false); }
-        }} /> : null}
         <div data-surface={state.kind === "person" ? "person-overview" : "detail-overview"} className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {state.kind === "person" ? (
             <>
@@ -821,19 +812,12 @@ function viewSubtitle(mode: Extract<AppView, "personas" | "agrupaciones">): stri
 }
 
 export function TablesView({ mode }: Readonly<{ mode: Extract<AppView, "personas" | "agrupaciones"> }>) {
-  const { result, filters, setFilters, assistantNavigationIntent, consumeAssistantNavigationIntent } = useAppState();
+  const { result, filters, setFilters } = useAppState();
   const density: TableDensity = "compact";
   const [modal, setModal] = useState<DetailModalState | undefined>();
   const people = result?.people ?? [];
   const centers = unique(people.map((item) => item.workplace));
   const groups = unique(people.flatMap((item) => [item.position, item.category]));
-
-  useEffect(() => {
-    if (mode !== "personas" || assistantNavigationIntent?.type !== "open_person" || !result) return;
-    const row = result.people.find((item) => item.employeeNumber === assistantNavigationIntent.personId);
-    if (row) setModal({ kind: "person", row });
-    consumeAssistantNavigationIntent();
-  }, [assistantNavigationIntent, consumeAssistantNavigationIntent, mode, result]);
 
   if (!result) {
     return (

@@ -28,7 +28,7 @@ export type NonIncludedDecisionType = "Pendiente revision" | "Sin mapear real" |
 export type AnalysisStatus = "OK" | "Revisar" | "Diferencia" | "Sin mapear" | "Sin PDF" | "Sin Registro" | "Sin datos";
 export type SalaryStatus = AnalysisStatus;
 export type GroupingPdfStatus = AnalysisStatus | "No aplica";
-export type AppView = "dashboard" | "personas" | "cuadre-excel" | "agrupaciones" | "asistente" | "historial" | "ajustes";
+export type AppView = "dashboard" | "personas" | "cuadre-excel" | "agrupaciones" | "historial" | "ajustes";
 export type GroupingType = "puesto" | "valoracionPuesto" | "categoria" | "familiaPuesto" | "agrupacionCategoriaPersonal";
 export type GroupingBlock = RetributionBlock;
 

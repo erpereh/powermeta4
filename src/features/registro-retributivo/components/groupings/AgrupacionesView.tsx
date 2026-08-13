@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, Table2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { DataTableShell } from "@/features/registro-retributivo/components/common/DataTableShell";
 import { SectionTabs } from "@/features/registro-retributivo/components/common/SectionTabs";
@@ -243,18 +243,10 @@ function headerStickyColumnClass(cell: GroupedExcelHeaderCell, stickyCount: numb
 }
 
 export function AgrupacionesView() {
-  const { result, assistantNavigationIntent, consumeAssistantNavigationIntent } = useAppState();
+  const { result } = useAppState();
   const groupedExcelSheets = result?.groupedExcelSheets;
   const [activeSheetName, setActiveSheetName] = useState<GroupedSheetName>(GROUPED_SHEETS[0].fullName);
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    if (assistantNavigationIntent?.type !== "open_grouping" || !groupedExcelSheets) return;
-    const target = groupedExcelSheets.find((sheet) => sheet.rows.some((row) => rowMatchesQuery(row, sheet, assistantNavigationIntent.groupingId)));
-    if (target && GROUPED_SHEETS.some((sheet) => sheet.fullName === target.sheetName)) setActiveSheetName(target.sheetName as GroupedSheetName);
-    setQuery(assistantNavigationIntent.groupingId);
-    consumeAssistantNavigationIntent();
-  }, [assistantNavigationIntent, consumeAssistantNavigationIntent, groupedExcelSheets]);
 
   const activeSheet = useMemo(() => {
     return groupedExcelSheets?.find((sheet) => sheet.sheetName === activeSheetName) ?? placeholderSheet(activeSheetName);

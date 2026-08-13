@@ -9,7 +9,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
 import type { AppView } from "@/features/registro-retributivo/types/views";
 
 import { RetributivoInnerHeader } from "./RetributivoInnerHeader";
@@ -59,12 +58,7 @@ export function RetributivoShell({
         <aside className="hidden min-h-0 w-52 shrink-0 overflow-y-auto border-r p-2 md:flex md:flex-col">
           <RetributivoInnerNav view={view} onSelectView={selectView} />
         </aside>
-        <main
-          className={cn(
-            "flex min-h-0 min-w-0 flex-1 flex-col",
-            view === "asistente" ? "overflow-hidden p-2 lg:p-3" : "overflow-auto p-4 md:p-6",
-          )}
-        >
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-auto p-4 md:p-6">
           {children}
         </main>
       </div>

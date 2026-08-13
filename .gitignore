@@ -20,6 +20,9 @@
 # local runtime data and generated artifacts
 /data/
 
+# local Registro Retributivo source files (PII). Do not version.
+/fuentes/
+
 # production
 /build
 

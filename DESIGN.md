@@ -92,7 +92,8 @@ acciones, iconos, rutas y búsqueda, con dos slices independientes:
 `TOOL_MODULES` / `TOOL_REGISTRY` alimentan Inicio (Acciones ERP);
 `STANDALONE_TOOLS` alimenta el submenu Herramientas de la sidebar.
 Las herramientas standalone pueden tener una ruta placeholder navegable aunque
-`implemented` sea `false`. `searchTools` busca solo Acciones ERP por nombre,
+`implemented` sea `false`. Registro Retributivo está implementado (`true`) y
+vive en `/tools/registro-retributivo`. `searchTools` busca solo Acciones ERP por nombre,
 descripción, keywords y nombre de módulo.
 
 Las visitas solo se registran para acciones implementadas; la ausencia de visitas

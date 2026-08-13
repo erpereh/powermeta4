@@ -113,7 +113,7 @@ describe("tool registry", () => {
       shortName: "Reg. Retrib.",
       route: "/tools/registro-retributivo",
       icon: "registro-retributivo",
-      implemented: false,
+      implemented: true,
     });
     expect(registro && TOOL_ICONS[registro.icon]).toBeTruthy();
     expect(registro && isStandaloneTool(registro)).toBe(true);

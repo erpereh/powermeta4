@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-08-13 - Registro Retributivo nativo en powermeta4
+
+### Cambios
+
+- `/tools/registro-retributivo` pasa de placeholder a herramienta nativa
+  con Inicio, Personas, Cuadre Reg., Agrupaciones, Historial y Ajustes.
+  Se eliminó por completo el asistente conversacional retributivo (nav,
+  provider, PersonDetail, tab IA, API `/assistant/models` y tabla
+  `retributivo_assistant_records` vía migración `005`).
+- Causa FormData: el análisis local de `./fuentes` envía 13 051 814 bytes
+  (21 PDFs 12 920 361 + Excel 131 453 = 12,45 MiB). El Proxy de Next clona
+  el body con `DEFAULT_BODY_CLONE_SIZE_LIMIT` = 10 MB y trunca el
+  multipart (`Failed to parse body as FormData.`). Arreglo A: el matcher
+  de `proxy.ts` excluye solo `/api/registro-retributivo/analyze` con
+  string estática compilable. No se subió `proxyClientMaxBodySize`. El
+  Route Handler sigue validando la sesión. El handler aislado (Vitest,
+  sin Proxy) ya parseaba FormData.
+- Persistencia en `data/powermeta4.db` con repositorios explícitos de
+  análisis, settings y state; PATCH atómico; backup/restore con un
+  análisis. `/fuentes/` ignorado (PII). Suite con sintéticos; e2e local
+  `describe.skipIf(!existsSync("fuentes"))`.
+- `STANDALONE_TOOLS.registro-retributivo.implemented = true`. Se
+  conservan explain/`AiExplanationPanel` en Personas y Cuadre. Se
+  eliminaron `mammoth`, `rehype-sanitize` y `undici` al no tener imports.
+
+### Verificación automática
+
+- `npm run setup` (migrate + `integrity_check` / `foreign_key_check` + bootstrap)
+- `npm run typecheck`
+- `npx oxlint` (warnings preexistentes de helpers no usados en export/tablas;
+  `oxfmt --check` con hallazgos preexistentes — entorno sin config de oxfmt)
+- `npm test` — 58 archivos y 278 pruebas correctas (2 skipped)
+- `npm run build` — incluye `/tools/registro-retributivo` y
+  `/api/registro-retributivo/analyze`; no incluye `/assistant/models`
+- `git diff --check`
+- rama: `feat/integrate-registro-retributivo` (sin commit)
+- origen `../reg_retrib_cyc` HEAD `57fdf4366c6e30bdfdb98c97ebf3563199d18d9b`
+
+### Comprobación manual
+
+- Analyze real con `./fuentes` (21 PDFs + Excel IBER) vía
+  `runRetributivoAnalyze`: `people.length > 0`, métricas agregadas y
+  persistencia SQLite en test, sin aserciones PII.
+- `source-parity.domain.test.ts` ya no afirma nombres, matrículas ni
+  importes identificables de recibos reales; usa agregados y exclusiones
+  derivadas en runtime.
+- Navegación de las 6 vistas cubierta por Testing Library. No se recorrió
+  el upload de 12,45 MiB en navegador en este entorno.
+
 ## 2026-08-13 - Logo oficial, Acciones en Inicio y Herramientas standalone
 
 ### Cambios

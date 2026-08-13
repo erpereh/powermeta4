@@ -87,44 +87,6 @@ export const createRetributivoAnalysisRepository = (database: DatabaseSync = get
     return row ? mapAnalysis(row) : undefined;
   };
 
-  const loadSettings = (companyId: CompanyId): AppSettings => {
-    ensureCompany(database, companyId);
-    const row = database
-      .prepare("SELECT settings_json FROM retributivo_settings WHERE company_id = ?")
-      .get(companyId) as Row | undefined;
-    return row ? parseJson(row.settings_json, DEFAULT_SETTINGS) : DEFAULT_SETTINGS;
-  };
-
-  const loadActiveAnalysisId = (companyId: CompanyId): string | null => {
-    ensureCompany(database, companyId);
-    const row = database
-      .prepare("SELECT active_analysis_id FROM retributivo_state WHERE company_id = ?")
-      .get(companyId) as Row | undefined;
-    return typeof row?.active_analysis_id === "string" ? row.active_analysis_id : null;
-  };
-
-  const snapshot = (companyId: CompanyId): RetributivoStateSnapshot => {
-    const analyses = listAnalyses(companyId);
-    const activeAnalysisId = loadActiveAnalysisId(companyId);
-    return {
-      settings: loadSettings(companyId),
-      analyses,
-      activeAnalysisId:
-        activeAnalysisId && analyses.some((item) => item.id === activeAnalysisId)
-          ? activeAnalysisId
-          : null,
-    };
-  };
-
-  const writeSettings = (companyId: CompanyId, settings: AppSettings): void => {
-    const timestamp = now();
-    database
-      .prepare(
-        "INSERT INTO retributivo_settings (company_id, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(company_id) DO UPDATE SET settings_json = excluded.settings_json, updated_at = excluded.updated_at",
-      )
-      .run(companyId, JSON.stringify(settings), timestamp, timestamp);
-  };
-
   const writeAnalysis = (companyId: CompanyId, record: StoredAnalysis): void => {
     const timestamp = now();
     database
@@ -147,8 +109,58 @@ export const createRetributivoAnalysisRepository = (database: DatabaseSync = get
     }
   };
 
+  const writeDeleteAnalysis = (companyId: CompanyId, id: string): void => {
+    database
+      .prepare("DELETE FROM retributivo_analyses WHERE id = ? AND company_id = ?")
+      .run(id, companyId);
+  };
+
+  return {
+    listAnalyses,
+    getAnalysis,
+    writeAnalysis,
+    writeDeleteAnalysis,
+  };
+};
+
+export const createRetributivoSettingsRepository = (database: DatabaseSync = getDatabase()) => {
+  const loadSettings = (companyId: CompanyId): AppSettings => {
+    ensureCompany(database, companyId);
+    const row = database
+      .prepare("SELECT settings_json FROM retributivo_settings WHERE company_id = ?")
+      .get(companyId) as Row | undefined;
+    return row ? parseJson(row.settings_json, DEFAULT_SETTINGS) : DEFAULT_SETTINGS;
+  };
+
+  const writeSettings = (companyId: CompanyId, settings: AppSettings): void => {
+    const timestamp = now();
+    database
+      .prepare(
+        "INSERT INTO retributivo_settings (company_id, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(company_id) DO UPDATE SET settings_json = excluded.settings_json, updated_at = excluded.updated_at",
+      )
+      .run(companyId, JSON.stringify(settings), timestamp, timestamp);
+  };
+
+  return {
+    loadSettings,
+    writeSettings,
+  };
+};
+
+export const createRetributivoStateRepository = (database: DatabaseSync = getDatabase()) => {
+  const analyses = createRetributivoAnalysisRepository(database);
+  const settings = createRetributivoSettingsRepository(database);
+
+  const loadActiveAnalysisId = (companyId: CompanyId): string | null => {
+    ensureCompany(database, companyId);
+    const row = database
+      .prepare("SELECT active_analysis_id FROM retributivo_state WHERE company_id = ?")
+      .get(companyId) as Row | undefined;
+    return typeof row?.active_analysis_id === "string" ? row.active_analysis_id : null;
+  };
+
   const writeActiveAnalysisId = (companyId: CompanyId, id: string | null): void => {
-    if (id && !getAnalysis(companyId, id)) {
+    if (id && !analyses.getAnalysis(companyId, id)) {
       throw new Error("El análisis no pertenece a la empresa activa.");
     }
     database
@@ -158,18 +170,25 @@ export const createRetributivoAnalysisRepository = (database: DatabaseSync = get
       .run(companyId, id, now());
   };
 
-  const writeDeleteAnalysis = (companyId: CompanyId, id: string): void => {
-    database
-      .prepare("DELETE FROM retributivo_analyses WHERE id = ? AND company_id = ?")
-      .run(id, companyId);
+  const snapshot = (companyId: CompanyId): RetributivoStateSnapshot => {
+    const listed = analyses.listAnalyses(companyId);
+    const activeAnalysisId = loadActiveAnalysisId(companyId);
+    return {
+      settings: settings.loadSettings(companyId),
+      analyses: listed,
+      activeAnalysisId:
+        activeAnalysisId && listed.some((item) => item.id === activeAnalysisId)
+          ? activeAnalysisId
+          : null,
+    };
   };
 
   const applyPatchSync = (companyId: CompanyId, patch: RetributivoStatePatch): RetributivoStateSnapshot => {
     ensureCompany(database, companyId);
-    if (patch.settings) writeSettings(companyId, patch.settings);
-    if (patch.analysis) writeAnalysis(companyId, patch.analysis);
-    if (patch.deleteAnalysisId) writeDeleteAnalysis(companyId, patch.deleteAnalysisId);
-    for (const id of patch.deleteAnalysisIds ?? []) writeDeleteAnalysis(companyId, id);
+    if (patch.settings) settings.writeSettings(companyId, patch.settings);
+    if (patch.analysis) analyses.writeAnalysis(companyId, patch.analysis);
+    if (patch.deleteAnalysisId) analyses.writeDeleteAnalysis(companyId, patch.deleteAnalysisId);
+    for (const id of patch.deleteAnalysisIds ?? []) analyses.writeDeleteAnalysis(companyId, id);
     if ("activeAnalysisId" in patch) writeActiveAnalysisId(companyId, patch.activeAnalysisId ?? null);
     return snapshot(companyId);
   };
@@ -181,14 +200,11 @@ export const createRetributivoAnalysisRepository = (database: DatabaseSync = get
     withRepositoryWrite(async () => withTransaction(database, () => applyPatchSync(companyId, patch)));
 
   return {
-    listAnalyses,
-    getAnalysis,
-    loadSettings,
     loadActiveAnalysisId,
     snapshot,
     applyPatch,
-    saveSettings: (companyId: CompanyId, settings: AppSettings) =>
-      applyPatch(companyId, { settings }).then((data) => data.settings),
+    saveSettings: (companyId: CompanyId, nextSettings: AppSettings) =>
+      applyPatch(companyId, { settings: nextSettings }).then((data) => data.settings),
     saveAnalysis: (companyId: CompanyId, record: StoredAnalysis) =>
       applyPatch(companyId, { analysis: record }).then((data) => {
         const saved = data.analyses.find((item) => item.id === record.id);

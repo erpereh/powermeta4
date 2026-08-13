@@ -38,18 +38,16 @@ export function RetributivoInnerHeader({
       ) : null}
       <h1 className="min-w-0 flex-1 truncate text-base font-medium">{RETRIBUTIVO_VIEW_LABELS[view]}</h1>
       <div className="flex shrink-0 items-center gap-2">
-        {view !== "asistente" ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={!canExport || exporting}
-            onClick={onExport}
-          >
-            <DownloadIcon data-icon="inline-start" />
-            Exportar Excel
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={!canExport || exporting}
+          onClick={onExport}
+        >
+          <DownloadIcon data-icon="inline-start" />
+          Exportar Excel
+        </Button>
         <Button type="button" variant="default" size="sm" onClick={onNewAnalysis}>
           <RotateCcwIcon data-icon="inline-start" />
           Nuevo análisis

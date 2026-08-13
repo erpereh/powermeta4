@@ -10,18 +10,6 @@ import { SettingsView } from "@/features/registro-retributivo/components/setting
 import { TablesView } from "@/features/registro-retributivo/components/tables/TablesView";
 import { RetributivoShell } from "@/features/registro-retributivo/components/shell/RetributivoShell";
 
-function AssistantPendingView() {
-  return (
-    <section className="flex min-h-0 flex-1 flex-col gap-2">
-      <h2 className="text-2xl font-semibold tracking-tight">Asistente</h2>
-      <p className="max-w-2xl text-sm text-muted-foreground">
-        El asistente retributivo se conectará cuando su almacenamiento SQLite y el protocolo de
-        comandos estén listos. El resto de vistas ya usan el análisis activo de esta empresa.
-      </p>
-    </section>
-  );
-}
-
 function ActiveView() {
   const { view } = useAppState();
 
@@ -33,8 +21,6 @@ function ActiveView() {
       return <CuadreExcelView />;
     case "historial":
       return <HistoryView />;
-    case "asistente":
-      return <AssistantPendingView />;
     case "ajustes":
       return <SettingsView />;
     case "dashboard":

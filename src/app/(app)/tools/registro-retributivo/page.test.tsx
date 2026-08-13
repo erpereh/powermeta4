@@ -79,12 +79,12 @@ describe("Registro Retributivo page", () => {
     expect(screen.getByRole("button", { name: "Nuevo análisis" })).toBeTruthy();
   });
 
-  it("keeps the seven local views navigable while the registry stays unimplemented", async () => {
+  it("keeps the six local views navigable and marks the tool as implemented", async () => {
     const user = userEvent.setup();
     renderPage();
 
     const nav = screen.getByRole("navigation", { name: "Navegación de Registro Retributivo" });
-    const labels = ["Inicio", "Personas", "Cuadre Reg.", "Agrupaciones", "Asistente", "Historial", "Ajustes"];
+    const labels = ["Inicio", "Personas", "Cuadre Reg.", "Agrupaciones", "Historial", "Ajustes"];
     for (const label of labels) {
       expect(within(nav).getByRole("button", { name: label })).toBeTruthy();
     }
@@ -93,7 +93,7 @@ describe("Registro Retributivo page", () => {
     expect((await screen.findAllByRole("heading", { name: "Personas" })).length).toBeGreaterThan(0);
 
     expect(STANDALONE_TOOLS.find((tool) => tool.id === "registro-retributivo")?.implemented).toBe(
-      false,
+      true,
     );
   });
 });

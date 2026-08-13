@@ -184,7 +184,6 @@ const requiredTables = [
   "retributivo_analyses",
   "retributivo_settings",
   "retributivo_state",
-  "retributivo_assistant_records",
 ];
 
 export const assertSqliteIntegrity = (databasePath: string): void => {

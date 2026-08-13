@@ -19,8 +19,6 @@ import {
   type AppSettings,
 } from "@/features/registro-retributivo/storage/analysisClient";
 import { normalizeComparableText, normalizeEmployeeId } from "@/features/registro-retributivo/utils/normalize";
-import type { CleanupPolicy } from "@/features/registro-retributivo/assistant/storage/repositories";
-import type { AppNavigationIntent } from "@/features/registro-retributivo/assistant/integrations/actions";
 
 export interface DashboardFilters {
   readonly query: string;
@@ -59,12 +57,7 @@ interface AppStateValue {
   readonly exporting: boolean;
   readonly hydrating: boolean;
   readonly aiStatus?: AiStatus;
-  readonly aiTesting: boolean;
-  readonly aiTestMessage?: string;
-  readonly assistantNavigationIntent?: AppNavigationIntent;
   readonly setView: (view: AppView) => void;
-  readonly navigateAssistantIntent: (intent: AppNavigationIntent) => void;
-  readonly consumeAssistantNavigationIntent: () => void;
   readonly setPdfFiles: (files: readonly File[]) => void;
   readonly setRegistroFile: (file?: File) => void;
   readonly updateSettings: (settings: Partial<AppSettings>) => void;
@@ -78,10 +71,9 @@ interface AppStateValue {
   readonly exportStoredAnalysis: (analysis: StoredAnalysis) => Promise<void>;
   readonly resetForNewAnalysis: () => void;
   readonly openStoredAnalysis: (id: string) => Promise<void>;
-  readonly removeStoredAnalysis: (id: string, policy: CleanupPolicy) => Promise<void>;
-  readonly clearStoredHistory: (policy: CleanupPolicy) => Promise<void>;
+  readonly removeStoredAnalysis: (id: string) => Promise<void>;
+  readonly clearStoredHistory: () => Promise<void>;
   readonly refreshAiStatus: () => Promise<void>;
-  readonly testAiConnection: () => Promise<void>;
 }
 
 const AppStateContext = createContext<AppStateValue | undefined>(undefined);
@@ -143,7 +135,6 @@ function buildExportMetadata(analysis: StoredAnalysis, settings: AppSettings, ex
 
 export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [view, setView] = useState<AppView>("dashboard");
-  const [assistantNavigationIntent, setAssistantNavigationIntent] = useState<AppNavigationIntent>();
   const [pdfFiles, setPdfFiles] = useState<readonly File[]>([]);
   const [registroFile, setRegistroFile] = useState<File | undefined>();
   const [activeAnalysis, setActiveAnalysis] = useState<StoredAnalysis | undefined>();
@@ -158,8 +149,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
   const [exporting, setExporting] = useState(false);
   const [hydrating, setHydrating] = useState(true);
   const [aiStatus, setAiStatus] = useState<AiStatus | undefined>();
-  const [aiTesting, setAiTesting] = useState(false);
-  const [aiTestMessage, setAiTestMessage] = useState<string | undefined>();
 
   const dismissToast = useCallback((id: string) => {
     setToasts((current) => current.filter((toast) => toast.id !== id));
@@ -270,8 +259,12 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
     try {
       const response = await fetch("/api/registro-retributivo/analyze", { method: "POST", body: formData });
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "No se pudo analizar.");
+        const payload = (await response.json()) as { error?: string; hint?: string };
+        throw new Error(
+          payload.error && !/Failed to parse body as FormData/i.test(payload.error)
+            ? payload.error
+            : "No se ha podido analizar la documentación.",
+        );
       }
 
       const result = (await response.json()) as AnalysisResult;
@@ -422,8 +415,7 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
   }, [persistError, pushMessageToast]);
 
   const removeStoredAnalysis = useCallback(
-    async (id: string, _policy: CleanupPolicy) => {
-      void _policy;
+    async (id: string) => {
       await deleteAnalysis(id);
       if (activeAnalysis?.id === id) {
         setActiveAnalysis(undefined);
@@ -436,8 +428,7 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
     [activeAnalysis?.id, pushMessageToast, refreshHistory],
   );
 
-  const clearStoredHistory = useCallback(async (_policy: CleanupPolicy) => {
-    void _policy;
+  const clearStoredHistory = useCallback(async () => {
     await deleteAnalyses(history.map((analysis) => analysis.id));
     const remaining = await listAnalyses();
     setHistory(remaining);
@@ -448,49 +439,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
     setSuccess("Historial eliminado.");
     pushMessageToast("info", "Historial eliminado", "Se eliminaron los análisis guardados.");
   }, [activeAnalysis, history, pushMessageToast]);
-
-  const navigateAssistantIntent = useCallback((intent: AppNavigationIntent) => {
-    if ("analysisId" in intent && activeAnalysis?.id !== intent.analysisId) return;
-    setAssistantNavigationIntent(intent);
-    if (intent.type === "settings_ai") {
-      setView("ajustes");
-    } else if (intent.type === "open_person") {
-      setFilters((current) => ({ ...current, query: intent.personId }));
-      setView("personas");
-    } else if (intent.type === "open_cuadre") {
-      if (intent.personId) setFilters((current) => ({ ...current, query: intent.personId ?? "" }));
-      setView("cuadre-excel");
-    } else if (intent.type === "open_grouping") {
-      setFilters((current) => ({ ...current, query: intent.groupingId }));
-      setView("agrupaciones");
-    } else {
-      setView("asistente");
-    }
-  }, [activeAnalysis?.id]);
-  const consumeAssistantNavigationIntent = useCallback(() => setAssistantNavigationIntent(undefined), []);
-
-  const testAiConnection = useCallback(async () => {
-    setAiTesting(true);
-    setAiTestMessage(undefined);
-
-    try {
-      const response = await fetch("/api/registro-retributivo/ai/test", { method: "POST" });
-      const payload = (await response.json()) as { ok?: boolean; error?: string; model?: string };
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error ?? "No se pudo probar la conexión IA.");
-      }
-
-      setAiTestMessage(`Conexión IA correcta con ${payload.model ?? settings.aiModel}.`);
-      pushMessageToast("success", "IA configurada", `Conexion IA correcta con ${payload.model ?? settings.aiModel}.`);
-      await refreshAiStatus();
-    } catch (caught) {
-      const message = caught instanceof Error ? caught.message : "No se pudo probar la conexión IA.";
-      setAiTestMessage(message);
-      pushMessageToast("error", "IA no disponible", message);
-    } finally {
-      setAiTesting(false);
-    }
-  }, [pushMessageToast, refreshAiStatus, settings.aiModel]);
 
   const value = useMemo<AppStateValue>(
     () => ({
@@ -510,12 +458,7 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
       exporting,
       hydrating,
       aiStatus,
-      aiTesting,
-      aiTestMessage,
-      assistantNavigationIntent,
       setView,
-      navigateAssistantIntent,
-      consumeAssistantNavigationIntent,
       setPdfFiles,
       setRegistroFile,
       updateSettings,
@@ -532,19 +475,14 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
       removeStoredAnalysis,
       clearStoredHistory,
       refreshAiStatus,
-      testAiConnection,
     }),
     [
       activeAnalysis,
-      assistantNavigationIntent,
       aiStatus,
-      aiTestMessage,
-      aiTesting,
       analyze,
       saveConceptMapAndRefresh,
       saveExclusionsAndRefresh,
       clearStoredHistory,
-      consumeAssistantNavigationIntent,
       dismissToast,
       error,
       exportActiveAnalysis,
@@ -553,7 +491,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
       exporting,
       filters,
       history,
-      navigateAssistantIntent,
       hydrating,
       openStoredAnalysis,
       pdfFiles,
@@ -565,7 +502,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
       settings,
       status,
       success,
-      testAiConnection,
       toasts,
       updateSettings,
       view,

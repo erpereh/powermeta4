@@ -404,7 +404,7 @@ export const STANDALONE_TOOLS = [
     description: "Consulta y genera información para el registro retributivo.",
     route: "/tools/registro-retributivo",
     icon: "registro-retributivo",
-    implemented: false,
+    implemented: true,
     keywords: ["registro", "retributivo", "retrib", "salario", "igualdad", "brecha"],
   },
 ] as const satisfies readonly StandaloneToolDefinition[];

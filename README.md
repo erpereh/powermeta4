@@ -134,8 +134,9 @@ del proyecto jamás puedan compilar código nativo.
   también abre el mismo contenido en un diálogo.
 - `/tools`, `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
   `/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`:
-  catálogo local de herramientas; `/tools/registro-retributivo` es un
-  placeholder; `/tools/users/list` consulta usuarios Meta4 por sociedad.
+  catálogo local de herramientas; `/tools/registro-retributivo` analiza el
+  Registro Retributivo y los recibos en local; `/tools/users/list` consulta
+  usuarios Meta4 por sociedad.
 
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.

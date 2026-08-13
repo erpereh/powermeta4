@@ -6,7 +6,11 @@ import { DEFAULT_SETTINGS, STORAGE_SCHEMA_VERSION } from "@/features/registro-re
 import type { AnalysisResult, StoredAnalysis } from "@/features/registro-retributivo/types";
 import { bootstrapDatabase } from "@/server/database/bootstrap";
 import { runMigrations } from "@/server/database/migrations";
-import { createRetributivoAnalysisRepository } from "@/server/database/repositories/retributivo-analysis-repository";
+import {
+  createRetributivoAnalysisRepository,
+  createRetributivoSettingsRepository,
+  createRetributivoStateRepository,
+} from "@/server/database/repositories/retributivo-analysis-repository";
 import type { CompanyId } from "@/types/workspace";
 
 const databases: DatabaseSync[] = [];
@@ -69,7 +73,9 @@ const createRepository = () => {
   return {
     database,
     companyId: company.id as CompanyId,
-    repository: createRetributivoAnalysisRepository(database),
+    analyses: createRetributivoAnalysisRepository(database),
+    settings: createRetributivoSettingsRepository(database),
+    state: createRetributivoStateRepository(database),
   };
 };
 
@@ -87,19 +93,19 @@ afterEach(() => {
   while (databases.length > 0) databases.pop()?.close();
 });
 
-describe("retributivo analysis repository", () => {
+describe("retributivo repositories", () => {
   it("isolates analyses and settings by company", async () => {
-    const { database, companyId, repository } = createRepository();
+    const { database, companyId, analyses, settings, state } = createRepository();
     const otherCompanyId = insertCompany(database, "company-other", "Otra empresa");
 
-    await repository.applyPatch(companyId, {
+    await state.applyPatch(companyId, {
       settings: { ...DEFAULT_SETTINGS, defaultTolerance: 7 },
       analysis: sampleAnalysis("analysis-a"),
       activeAnalysisId: "analysis-a",
     });
 
-    const first = repository.snapshot(companyId);
-    const second = repository.snapshot(otherCompanyId);
+    const first = state.snapshot(companyId);
+    const second = state.snapshot(otherCompanyId);
 
     expect(first.settings.defaultTolerance).toBe(7);
     expect(first.analyses).toHaveLength(1);
@@ -107,27 +113,28 @@ describe("retributivo analysis repository", () => {
     expect(second.settings).toEqual(DEFAULT_SETTINGS);
     expect(second.analyses).toHaveLength(0);
     expect(second.activeAnalysisId).toBeNull();
-    expect(repository.getAnalysis(otherCompanyId, "analysis-a")).toBeUndefined();
+    expect(analyses.getAnalysis(otherCompanyId, "analysis-a")).toBeUndefined();
+    expect(settings.loadSettings(otherCompanyId)).toEqual(DEFAULT_SETTINGS);
   });
 
   it("applies a composite patch in one write and refuses cross-company active ids", async () => {
-    const { database, companyId, repository } = createRepository();
+    const { database, companyId, state } = createRepository();
     const otherCompanyId = insertCompany(database, "company-other", "Otra empresa");
-    await repository.saveAnalysis(otherCompanyId, sampleAnalysis("analysis-b"));
+    await state.saveAnalysis(otherCompanyId, sampleAnalysis("analysis-b"));
 
     await expect(
-      repository.saveActiveAnalysisId(companyId, "analysis-b"),
+      state.saveActiveAnalysisId(companyId, "analysis-b"),
     ).rejects.toThrow(/no pertenece/);
 
-    await repository.applyPatch(companyId, {
+    await state.applyPatch(companyId, {
       analysis: sampleAnalysis("analysis-a"),
       activeAnalysisId: "analysis-a",
     });
-    await repository.deleteAnalysis(companyId, "analysis-a");
+    await state.deleteAnalysis(companyId, "analysis-a");
 
-    const snapshot = repository.snapshot(companyId);
+    const snapshot = state.snapshot(companyId);
     expect(snapshot.analyses).toHaveLength(0);
     expect(snapshot.activeAnalysisId).toBeNull();
-    expect(repository.snapshot(otherCompanyId).analyses).toHaveLength(1);
+    expect(state.snapshot(otherCompanyId).analyses).toHaveLength(1);
   });
 });
