@@ -11,6 +11,7 @@ import {
   Play,
   ReceiptText,
   Search,
+  TableProperties,
   UserRoundCog,
   UserRoundPlus,
   UserRoundX,
@@ -47,7 +48,8 @@ export type ToolIconName =
   | "process-run"
   | "process-status"
   | "process-errors"
-  | "process-history";
+  | "process-history"
+  | "registro-retributivo";
 
 export type ToolDefinition = {
   id: string;
@@ -70,6 +72,26 @@ export type ToolModuleDefinition = {
   icon: ToolIconName;
   tools: readonly ToolDefinition[];
 };
+
+export type StandaloneToolDefinition = {
+  id: string;
+  name: string;
+  shortName: string;
+  description: string;
+  route: string;
+  icon: ToolIconName;
+  implemented: boolean;
+  keywords: readonly string[];
+};
+
+export type SidebarToolItem = {
+  id: string;
+  name: string;
+  route: string;
+  icon: ToolIconName;
+};
+
+export type RegistryTool = ToolDefinition | StandaloneToolDefinition;
 
 export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   users: Users,
@@ -96,6 +118,7 @@ export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   "process-status": ChartNoAxesCombined,
   "process-errors": CircleAlert,
   "process-history": History,
+  "registro-retributivo": TableProperties,
 };
 
 const tool = (
@@ -373,6 +396,26 @@ export const TOOL_MODULES = [
   },
 ] as const satisfies readonly ToolModuleDefinition[];
 
+export const STANDALONE_TOOLS = [
+  {
+    id: "registro-retributivo",
+    name: "Registro Retributivo",
+    shortName: "Reg. Retrib.",
+    description: "Consulta y genera información para el registro retributivo.",
+    route: "/tools/registro-retributivo",
+    icon: "registro-retributivo",
+    implemented: true,
+    keywords: ["registro", "retributivo", "retrib", "salario", "igualdad", "brecha"],
+  },
+] as const satisfies readonly StandaloneToolDefinition[];
+
+export const SIDEBAR_TOOL_ITEMS: readonly SidebarToolItem[] = STANDALONE_TOOLS.map((tool) => ({
+  id: tool.id,
+  name: tool.shortName,
+  route: tool.route,
+  icon: tool.icon,
+}));
+
 export const TOOL_REGISTRY = TOOL_MODULES.flatMap((module) => module.tools);
 
 const normalize = (value: string) =>
@@ -381,7 +424,16 @@ const normalize = (value: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase();
 
+export const isStandaloneTool = (tool: RegistryTool): tool is StandaloneToolDefinition =>
+  !("moduleId" in tool);
+
+export const isToolRouteNavigable = (tool: RegistryTool) =>
+  isStandaloneTool(tool) || tool.implemented;
+
 export const getTool = (toolId: string) => TOOL_REGISTRY.find((tool) => tool.id === toolId);
+
+export const getStandaloneTool = (toolId: string) =>
+  STANDALONE_TOOLS.find((tool) => tool.id === toolId);
 
 export const getToolModule = (moduleId: ToolModuleId) =>
   TOOL_MODULES.find((module) => module.id === moduleId);

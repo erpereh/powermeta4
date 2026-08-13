@@ -1,5 +1,82 @@
 # powermeta4 - estado de tareas
 
+## Personas viewport, modal y periodos - 2026-08-13
+
+- [x] Tabla Personas encajada en el `main` (`flex-1`, sin `max-h-[70dvh]`).
+      El scroll de filas queda dentro de la tabla.
+- [x] Modal de detalle: ancho acotado a `100vw-2rem`, body con
+      `overflow-x-hidden`, chips sin `shrink` (no recortan «Del '»).
+- [x] Periodos ordenados ene→dic por año (`sortPeriodLabels`) en análisis
+      nuevos y en chips de detalle persistidos.
+- [x] typecheck, page.test (detalle + chips), `spanish-dates.test`,
+      `npm test` 59/281 (2 skipped), oxlint (warning preexistente
+      `ConceptosTable`), `git diff --check`.
+
+## Layout Registro Retributivo - 2026-08-13
+
+- [x] Modal de detalle contenido en viewport (`max-w` + overflow-x hidden);
+      chips de periodo con wrap; tablas internas con scroll horizontal.
+      «Copiar resumen» eliminado en Personas y Cuadre.
+- [x] Títulos h2 duplicados quitados de Personas, Cuadre, Agrupaciones,
+      Historial y Ajustes. Inicio conserva «Comparativa Recibos vs Registro
+      Retributivo».
+- [x] «Análisis activo» en el pie de la sidebar local (y Sheet móvil).
+      Dashboard ya no muestra esa tarjeta.
+- [x] typecheck, page.test (2), `npm test` 58/278 (2 skipped), oxlint
+      (warnings preexistentes), build, `git diff --check`.
+
+## Registro Retributivo nativo - 2026-08-13
+
+- [x] Feature en `/tools/registro-retributivo`: Inicio, Personas, Cuadre
+      Reg., Agrupaciones, Historial y Ajustes. Sin asistente conversacional
+      retributivo (grep limpio en `src/features/registro-retributivo`).
+- [x] FormData: el payload local `./fuentes` pesa 13 051 814 bytes
+      (21 PDFs = 12 920 361 + Excel = 131 453; 12,45 MiB) y supera el límite
+      de clonado del Proxy Next (10 MB). El matcher de `proxy.ts` excluye
+      solo `/api/registro-retributivo/analyze`. Auth sigue en el Route
+      Handler. Tests: 401, multipart 1/N PDFs, body >10 MB y TypeError
+      mapeado. Analyze con `./fuentes` produce personas, cuadre interno y
+      hojas agrupadas, y persiste en SQLite de prueba.
+- [x] Persistencia SQLite: repos `createRetributivoAnalysisRepository`,
+      `createRetributivoSettingsRepository` y `createRetributivoStateRepository`
+      (PATCH atómico). Backup/restore conserva un análisis. Migración `005`
+      elimina `retributivo_assistant_records`. `DATABASE_SCHEMA_VERSION = 5`.
+      `/fuentes/` en `.gitignore`; no versionado.
+- [x] `AiExplanationPanel` / explain se conservan en Personas y Cuadre.
+      Tab Ajustes/IA y el endpoint de modelos del asistente retributivo
+      eliminados. `implemented: true` en `STANDALONE_TOOLS`.
+- [x] setup, typecheck, oxlint, 58 archivos/278 pruebas (2 skipped), build,
+      `git diff --check`. Origen `reg_retrib_cyc` intacto en
+      `57fdf4366c6e30bdfdb98c97ebf3563199d18d9b`. Sin commit.
+
+## Logo oficial + Acciones / Herramientas - 2026-08-13
+
+- [x] `powermeta4-mark.svg` untracked movido con `Move-Item` a
+      `public/brand/powermeta4-mark.svg` (sin `git mv`, sin duplicar, sin
+      modificar el SVG).
+- [x] `PowermetaLogo` es la única API de branding: compact = isotipo;
+      normal = isotipo + wordmark `powermeta4`. Eliminado el mark inline cyan.
+- [x] Inicio muestra Acciones (`TOOL_MODULES` / `TOOL_REGISTRY`). Registro
+      Retributivo no aparece en launcher, buscador ni command palette.
+- [x] Sidebar Herramientas consume solo `STANDALONE_TOOLS` (`Reg. Retrib.`).
+      Breadcrumb de workspaces ERP: Acciones → `/home`.
+- [x] lint, typecheck, tests, build, `git diff --check`.
+
+## Branding sidebar + Registro Retributivo - 2026-08-13
+
+- [x] Branch `feat/sidebar-branding-reg-retrib` desde `main` limpio.
+- [x] `PowermetaLogo` sigue siendo la API única; el isotipo oficial quedó en
+      `public/brand/powermeta4-mark.svg` (ver tarea siguiente).
+- [x] Herramientas es un `Collapsible` de una sola superficie (no navega a
+      `/tools`). En desktop colapsada, el icono Wrench expande la sidebar y
+      abre el submenu.
+- [x] `STANDALONE_TOOLS` + `SIDEBAR_TOOL_ITEMS`: `Reg. Retrib.`, ruta
+      `/tools/registro-retributivo`, `implemented: false` y navegable.
+- [x] Pantalla placeholder con título, badge `Próximamente` y copy de estado.
+- [x] typecheck, oxlint, 45 archivos/177 pruebas, build y `git diff --check`.
+- [x] Colocar el SVG oficial en `public/brand/powermeta4-mark.svg` y cambiar
+      la fuente visual solo en `PowermetaLogo`.
+
 ## Columna «Usuario Meta4» (clave_Self) en el listado - 2026-08-12
 
 - [x] `Meta4UserListItem.claveSelf` extraído de `clave_Self`; tercera columna

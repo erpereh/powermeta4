@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
+import { ChevronDown, Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
 
 import {
   CommandDialog,
@@ -23,7 +23,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -46,7 +45,7 @@ import {
   useWorkspaceStore,
   workspaceStore,
 } from "@/stores/use-workspace-store";
-import { TOOL_ICONS, TOOL_MODULES } from "@/lib/tools/registry";
+import { SIDEBAR_TOOL_ITEMS, TOOL_ICONS } from "@/lib/tools/registry";
 import {
   CHAT_COLORS,
   CHAT_ICONS,
@@ -61,7 +60,7 @@ const mainNavigation = [{ label: "Inicio", href: "/home", icon: Home }] as const
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpen, setOpenMobile, state } = useSidebar();
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
   const workspace = useWorkspaceStore((state) =>
     state.activeCompanyId ? state.workspaces[state.activeCompanyId] : undefined,
@@ -102,6 +101,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   const closeMobileSidebar = () => {
     if (isMobile) setOpenMobile(false);
+  };
+
+  const handleToolsOpenChange = (next: boolean) => {
+    if (!isMobile && state === "collapsed") {
+      setOpen(true);
+      setToolsOpen(true);
+      return;
+    }
+    setToolsOpen(next);
   };
 
   const handleNewChat = () => {
@@ -238,44 +246,33 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
         <SidebarContent>
           <SidebarGroup className="pt-1">
-            <Collapsible open={toolsOpen} onOpenChange={setToolsOpen}>
+            <Collapsible
+              open={toolsOpen}
+              onOpenChange={handleToolsOpenChange}
+              className="group/collapsible"
+            >
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === "/tools"}
-                    tooltip="Herramientas"
-                  >
-                    <Link href="/tools" onClick={closeMobileSidebar}>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip="Herramientas" aria-controls="sidebar-tools-submenu">
                       <Wrench />
                       <span>Herramientas</span>
-                    </Link>
-                  </SidebarMenuButton>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuAction
-                      type="button"
-                      showOnHover
-                      aria-expanded={toolsOpen}
-                      aria-controls="sidebar-tools-submenu"
-                      aria-label={toolsOpen ? "Ocultar herramientas" : "Mostrar herramientas"}
-                      title={toolsOpen ? "Ocultar herramientas" : "Mostrar herramientas"}
-                    >
-                      {toolsOpen ? <ChevronDown /> : <ChevronRight />}
-                    </SidebarMenuAction>
+                      <ChevronDown className="ml-auto transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180" />
+                    </SidebarMenuButton>
                   </CollapsibleTrigger>
-                  <CollapsibleContent id="sidebar-tools-submenu">
-                    <SidebarMenuSub>
-                      {TOOL_MODULES.map((module) => {
-                        const Icon = TOOL_ICONS[module.icon];
+                  <CollapsibleContent>
+                    <SidebarMenuSub id="sidebar-tools-submenu">
+                      {SIDEBAR_TOOL_ITEMS.map((item) => {
+                        const Icon = TOOL_ICONS[item.icon];
                         return (
-                          <SidebarMenuSubItem key={module.id}>
+                          <SidebarMenuSubItem key={item.id}>
                             <SidebarMenuSubButton
                               asChild
-                              isActive={pathname.startsWith(module.route)}
+                              isActive={pathname.startsWith(item.route)}
                             >
-                              <Link href={module.route} onClick={closeMobileSidebar}>
+                              <Link href={item.route} onClick={closeMobileSidebar}>
                                 <Icon />
-                                <span>{module.name}</span>
+                                <span>{item.name}</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>

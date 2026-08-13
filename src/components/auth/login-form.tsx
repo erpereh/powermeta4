@@ -26,7 +26,7 @@ export function LoginForm({ debugAuthEnabled }: { debugAuthEnabled: boolean }) {
       <Card className="w-full max-w-md">
         <CardHeader className="gap-5">
           <Link href="/login" aria-label="powermeta4" className="w-fit">
-            <PowermetaLogo />
+            <PowermetaLogo markClassName="size-10" />
           </Link>
           <div className="space-y-1.5">
             <CardTitle className="text-2xl">Accede a powermeta4</CardTitle>

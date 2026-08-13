@@ -62,7 +62,7 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/tools">Herramientas</Link>
+                <Link href="/home">Acciones</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

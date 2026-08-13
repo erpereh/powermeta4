@@ -4,6 +4,14 @@ import { isOpaqueSessionId, SESSION_COOKIE_NAME, SESSION_DURATION_SECONDS } from
 
 const isPublicPath = (pathname: string) => pathname === "/login";
 
+export const RETRIBUTIVO_ANALYZE_PATH = "/api/registro-retributivo/analyze";
+
+export const PROXY_MATCHER =
+  "/((?!_next/static|_next/image|favicon.ico|api/registro-retributivo/analyze(?:/.*)?$|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)";
+
+export const matchesProxyMatcher = (pathname: string): boolean =>
+  new RegExp(`^${PROXY_MATCHER}$`).test(pathname);
+
 const refreshOpaqueCookie = (
   response: NextResponse,
   sessionId: string,
@@ -61,6 +69,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/registro-retributivo/analyze(?:/.*)?$|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

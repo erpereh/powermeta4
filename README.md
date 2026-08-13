@@ -132,9 +132,11 @@ del proyecto jamás puedan compilar código nativo.
 - `/`, `/home`, `/chat/new` y `/chat/[chatId]`: chat y launchpad.
 - `/settings`: perfil Meta4 (deep-link) y copias locales; el menú de usuario
   también abre el mismo contenido en un diálogo.
-- `/tools`, `/tools/users`, `/tools/users/list`, `/tools/companies`,
-  `/tools/payroll`, `/tools/reports` y `/tools/processes`: catálogo local de
-  herramientas; `/tools/users/list` consulta usuarios Meta4 por sociedad.
+- `/tools`, `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
+  `/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`:
+  catálogo local de herramientas; `/tools/registro-retributivo` analiza el
+  Registro Retributivo y los recibos en local; `/tools/users/list` consulta
+  usuarios Meta4 por sociedad.
 
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.

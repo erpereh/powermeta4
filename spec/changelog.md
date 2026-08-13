@@ -1,5 +1,180 @@
 # Changelog
 
+## 2026-08-13 - Personas: viewport, modal y periodos
+
+### Cambios
+
+- La tabla de Personas ocupa el alto restante del `main` (flex) en lugar
+  de `max-h-[70dvh]`, para que la última fila visible no quede cortada
+  por el borde de la ventana. El scroll de las filas es interno.
+- El modal de detalle usa ancho explícito `min(64rem, 100vw - 2rem)` y
+  un body con overflow vertical; los chips de periodo ya no se encogen
+  (`shrink-0`) y envuelven de línea.
+- `sortPeriodLabels` ordena periodos por año y de enero a diciembre.
+  Se aplica al comparar PDFs y al pintar chips (análisis ya guardados).
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npx oxlint` — warning preexistente `ConceptosTable`
+- `npx vitest run` page.test + `spanish-dates.test`
+- `npm test` — 59 archivos y 281 pruebas correctas (2 skipped)
+- `git diff --check`
+
+### Comprobación en página
+
+- `http://localhost:3000/tools/registro-retributivo` está en marcha; sin
+  cookie de sesión la petición anónima redirige a `/login`. El flujo
+  Personas → detalle → chips ordenados se cubre en `page.test.tsx`.
+
+## 2026-08-13 - Layout Registro Retributivo
+
+### Cambios
+
+- El modal de detalle de persona cabe en pantalla: ancho
+  `max-w-[min(64rem,calc(100vw-2rem))]`, viewport del ScrollArea con
+  `overflow-x: hidden`, chips de periodo con wrap y tablas internas con
+  scroll horizontal. Se eliminó «Copiar resumen» en Personas y Cuadre.
+- Cada pestaña deja de repetir el `h1` del encabezado interno. Inicio
+  conserva el título de la comparativa.
+- La tarjeta «Análisis activo» pasa al pie de la sidebar local (y del
+  Sheet móvil). Sin análisis muestra «Sin análisis activo».
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npx oxlint` — warnings preexistentes (`ConceptosTable` y helpers de export)
+- `npx vitest run src/app/(app)/tools/registro-retributivo/page.test.tsx`
+  — 1 archivo / 2 pruebas
+- `npm test` — 58 archivos y 278 pruebas correctas (2 skipped)
+- `npm run build`
+- `git diff --check`
+
+## 2026-08-13 - Registro Retributivo nativo en powermeta4
+
+### Cambios
+
+- `/tools/registro-retributivo` pasa de placeholder a herramienta nativa
+  con Inicio, Personas, Cuadre Reg., Agrupaciones, Historial y Ajustes.
+  Se eliminó por completo el asistente conversacional retributivo (nav,
+  provider, PersonDetail, tab IA, API `/assistant/models` y tabla
+  `retributivo_assistant_records` vía migración `005`).
+- Causa FormData: el análisis local de `./fuentes` envía 13 051 814 bytes
+  (21 PDFs 12 920 361 + Excel 131 453 = 12,45 MiB). El Proxy de Next clona
+  el body con `DEFAULT_BODY_CLONE_SIZE_LIMIT` = 10 MB y trunca el
+  multipart (`Failed to parse body as FormData.`). Arreglo A: el matcher
+  de `proxy.ts` excluye solo `/api/registro-retributivo/analyze` con
+  string estática compilable. No se subió `proxyClientMaxBodySize`. El
+  Route Handler sigue validando la sesión. El handler aislado (Vitest,
+  sin Proxy) ya parseaba FormData.
+- Persistencia en `data/powermeta4.db` con repositorios explícitos de
+  análisis, settings y state; PATCH atómico; backup/restore con un
+  análisis. `/fuentes/` ignorado (PII). Suite con sintéticos; e2e local
+  `describe.skipIf(!existsSync("fuentes"))`.
+- `STANDALONE_TOOLS.registro-retributivo.implemented = true`. Se
+  conservan explain/`AiExplanationPanel` en Personas y Cuadre. Se
+  eliminaron `mammoth`, `rehype-sanitize` y `undici` al no tener imports.
+
+### Verificación automática
+
+- `npm run setup` (migrate + `integrity_check` / `foreign_key_check` + bootstrap)
+- `npm run typecheck`
+- `npx oxlint` (warnings preexistentes de helpers no usados en export/tablas;
+  `oxfmt --check` con hallazgos preexistentes — entorno sin config de oxfmt)
+- `npm test` — 58 archivos y 278 pruebas correctas (2 skipped)
+- `npm run build` — incluye `/tools/registro-retributivo` y
+  `/api/registro-retributivo/analyze`; no incluye `/assistant/models`
+- `git diff --check`
+- rama: `feat/integrate-registro-retributivo` (sin commit)
+- origen `../reg_retrib_cyc` HEAD `57fdf4366c6e30bdfdb98c97ebf3563199d18d9b`
+
+### Comprobación manual
+
+- Analyze real con `./fuentes` (21 PDFs + Excel IBER) vía
+  `runRetributivoAnalyze`: `people.length > 0`, métricas agregadas y
+  persistencia SQLite en test, sin aserciones PII.
+- `source-parity.domain.test.ts` ya no afirma nombres, matrículas ni
+  importes identificables de recibos reales; usa agregados y exclusiones
+  derivadas en runtime.
+- Navegación de las 6 vistas cubierta por Testing Library. No se recorrió
+  el upload de 12,45 MiB en navegador en este entorno.
+
+## 2026-08-13 - Logo oficial, Acciones en Inicio y Herramientas standalone
+
+### Cambios
+
+- El isotipo untracked `powermeta4-mark.svg` se movió a
+  `public/brand/powermeta4-mark.svg` (`Move-Item`, sin `git mv` ni cambios
+  al SVG). `PowermetaLogo` es la única API de branding: compact muestra el
+  isotipo; el modo normal añade el wordmark textual `powermeta4`. Se eliminó
+  el mark geométrico inline y el recuadro cyan.
+- Acciones (ERP/Meta4: Usuarios, Empresas, Nóminas, Informes, Procesos) se
+  muestran solo en Inicio. Herramientas (standalone) se muestran solo en la
+  sidebar. `searchTools` ya no incluye standalone. `SIDEBAR_TOOL_ITEMS`
+  consume únicamente `STANDALONE_TOOLS` (`Reg. Retrib.`).
+- Breadcrumb de workspaces ERP: Acciones → `/home`. `/tools` permanece como
+  redirect de compatibilidad.
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npx oxlint` (limpio; `oxfmt --check` con hallazgos preexistentes en
+  archivos no introducidos por este cambio — entorno sin config de oxfmt,
+  no atribuible a este cambio)
+- `npm test` — 47 archivos y 183 pruebas correctas
+- `npm run build` — incluye `/home` y `/tools/registro-retributivo`
+- `git diff --check`
+- rama: `feat/sidebar-branding-reg-retrib` (sin commit)
+
+### Comprobación manual
+
+- El SVG se movió desde la raíz untracked a `public/brand/powermeta4-mark.svg`;
+  no queda copia en `./powermeta4-mark.svg`. Las referencias runtime del
+  asset están en `PowermetaLogo`.
+- No se recorrió la UI en navegador (temas, sociedades y viewport) en este
+  entorno. Home/Acciones, sidebar/Herramientas, branding y collapsible
+  quedan cubiertos por pruebas de Testing Library.
+
+## 2026-08-13 - Branding de sidebar, Herramientas colapsable y Registro Retributivo
+
+### Cambios
+
+- `PowermetaLogo` permanece como único punto de branding. La ruta oficial
+  `/brand/powermeta4-logo.svg` queda documentada; el mark geométrico actual se
+  conserva como fallback de desarrollo porque `public/brand/` aún no existe.
+  SocietyHeader y login no renderizan el asset por su cuenta.
+- Herramientas deja de ser un enlace a `/tools`. Todo el row es el
+  `CollapsibleTrigger` (sin `SidebarMenuAction`). No toma estado de página
+  activa. En desktop con sidebar colapsada, pulsar el icono Wrench llama a
+  `setOpen(true)`, deja `toolsOpen=true` y muestra el submenu; no hay Popover
+  ni DropdownMenu. En móvil el grupo abre/cierra sin cerrar el Sheet; los
+  hijos sí cierran la sidebar al navegar.
+- El registry admite herramientas standalone. `Reg. Retrib.` (`Registro
+  Retributivo`) es la primera entrada del submenu, con icono `TableProperties`
+  y ruta `/tools/registro-retributivo`. `implemented` sigue en `false`; la
+  ruta placeholder es navegable desde sidebar, Home y Command Palette sin
+  registrar visita. Las 20 acciones ERP no cambian de semántica.
+- Nueva pantalla vacía en `/tools/registro-retributivo` con badge
+  `Próximamente` y el copy de estado. `/tools` sigue redirigiendo a `/home`.
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npx oxlint` (limpio; `oxfmt --check` con hallazgos preexistentes en 30
+  archivos no tocados en este cambio — entorno sin config de oxfmt, no
+  atribuible a este cambio)
+- `npm test` — 45 archivos y 177 pruebas correctas
+- `npm run build` — incluye `/tools/registro-retributivo`
+- `git diff --check`
+- rama: `feat/sidebar-branding-reg-retrib` (sin commit)
+
+### Comprobación manual
+
+- No se colocó el SVG oficial; el fallback de desarrollo es el mark visible.
+- No se recorrió la UI en navegador (sociedades Meta4, temas y móvil) en este
+  entorno. El comportamiento de Herramientas colapsada/expandida y la ruta
+  placeholder quedan cubiertos por pruebas de Testing Library.
+
 ## 2026-08-12 - Columna «Usuario Meta4» (clave_Self) en el listado de usuarios
 
 ### Cambios

@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { TOOL_ICONS, TOOL_MODULES, TOOL_REGISTRY, searchTools } from "@/lib/tools/registry";
+import {
+  SIDEBAR_TOOL_ITEMS,
+  STANDALONE_TOOLS,
+  TOOL_ICONS,
+  TOOL_MODULES,
+  TOOL_REGISTRY,
+  isStandaloneTool,
+  isToolRouteNavigable,
+  searchTools,
+} from "@/lib/tools/registry";
 
 describe("tool registry", () => {
   it("contains five modules with four actions each", () => {
@@ -83,5 +92,46 @@ describe("tool registry", () => {
     expect(searchTools("usuarios").modules.map((module) => module.id)).toContain("users");
     expect(searchTools("centro de trabajo").tools[0]?.id).toBe("companies.work-centers");
     expect(searchTools("empresas").tools.some((tool) => tool.moduleId === "companies")).toBe(true);
+  });
+
+  it("keeps Registro Retributivo as the only sidebar standalone tool", () => {
+    const registro = STANDALONE_TOOLS.find((tool) => tool.id === "registro-retributivo");
+
+    expect(TOOL_MODULES.map((module) => module.name)).toEqual([
+      "Usuarios",
+      "Empresas",
+      "Nóminas",
+      "Informes",
+      "Procesos",
+    ]);
+    expect(SIDEBAR_TOOL_ITEMS.map((item) => item.name)).toEqual(["Reg. Retrib."]);
+    expect(
+      SIDEBAR_TOOL_ITEMS.every((item) => !TOOL_MODULES.some((module) => module.id === item.id)),
+    ).toBe(true);
+    expect(registro).toMatchObject({
+      name: "Registro Retributivo",
+      shortName: "Reg. Retrib.",
+      route: "/tools/registro-retributivo",
+      icon: "registro-retributivo",
+      implemented: true,
+    });
+    expect(registro && TOOL_ICONS[registro.icon]).toBeTruthy();
+    expect(registro && isStandaloneTool(registro)).toBe(true);
+    expect(registro && isToolRouteNavigable(registro)).toBe(true);
+    expect(TOOL_MODULES).toHaveLength(5);
+    expect(TOOL_REGISTRY.every((tool) => tool.id !== "registro-retributivo")).toBe(true);
+    expect(isToolRouteNavigable(TOOL_REGISTRY.find((tool) => tool.id === "users.create")!)).toBe(
+      false,
+    );
+    expect(isToolRouteNavigable(TOOL_REGISTRY.find((tool) => tool.id === "users.consult")!)).toBe(
+      true,
+    );
+  });
+
+  it("does not include standalone tools in Acciones search", () => {
+    expect(searchTools("registro").tools).toEqual([]);
+    expect(searchTools("registro").modules).toEqual([]);
+    expect(searchTools("retributivo").tools).toEqual([]);
+    expect(searchTools("usuario").tools.some((tool) => tool.moduleId === "users")).toBe(true);
   });
 });

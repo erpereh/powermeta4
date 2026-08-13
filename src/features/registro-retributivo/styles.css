@@ -1,0 +1,21 @@
+[data-registro-retributivo-root] {
+  isolation: isolate;
+}
+
+[data-slot="modal-shell"] {
+  max-width: min(64rem, calc(100vw - 2rem));
+}
+
+[data-registro-retributivo-root] [data-slot="table-viewport"] thead {
+  background-color: var(--muted);
+}
+
+[data-registro-retributivo-root] [data-slot="table-viewport"] th {
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+[data-registro-retributivo-root] .tabular-nums,
+[data-registro-retributivo-root] td[align="right"] {
+  font-variant-numeric: tabular-nums;
+}

@@ -182,6 +182,83 @@ describe("backup safety and exact format", () => {
     }
   });
 
+  it("preserves a registro-retributivo analysis through backup and restore", async () => {
+    await createFixture();
+    const { createRetributivoStateRepository } = await import(
+      "@/server/database/repositories/retributivo-analysis-repository"
+    );
+    const { DEFAULT_SETTINGS, STORAGE_SCHEMA_VERSION } = await import(
+      "@/features/registro-retributivo/settings/defaults"
+    );
+    const liveDatabase = getDatabase();
+    const company = liveDatabase.prepare("SELECT id FROM companies LIMIT 1").get() as { id: string };
+    await createRetributivoStateRepository(liveDatabase).applyPatch(company.id, {
+      analysis: {
+        id: "analysis-backup",
+        schemaVersion: STORAGE_SCHEMA_VERSION,
+        createdAt: "2026-08-13T10:00:00.000Z",
+        registroFileName: "registro.xlsx",
+        pdfCount: 2,
+        result: {
+          summary: {
+            generatedAt: "2026-08-13T00:00:00.000Z",
+            pdfsAnalyzed: 1,
+            pdfsFailed: 0,
+            uniquePeople: 1,
+            peopleWithDifferences: 0,
+            totalSalaryDifference: 0,
+            totalSalaryComplementDifference: 0,
+            totalExtraSalaryDifference: 0,
+            totalGlobalDifference: 0,
+            conceptsUnmapped: 0,
+            internalExcelDifferences: 0,
+            groupingDifferences: 0,
+            tolerance: 1,
+          },
+          payrollRecords: [],
+          registroEmployees: [],
+          people: [],
+          normalizedVsReal: [],
+          concepts: [],
+          unmappedConcepts: [],
+          ignoredConcepts: [],
+          groupings: [],
+          internalExcelChecks: [],
+          conceptMap: [],
+          excludedEmployeeIdsApplied: [],
+          errors: [],
+          criteria: [],
+        },
+        config: {
+          tolerance: 1,
+          enableAI: false,
+          aiModel: DEFAULT_SETTINGS.aiModel,
+          thresholds: {
+            reviewThreshold: DEFAULT_SETTINGS.reviewThreshold,
+            incidentThreshold: DEFAULT_SETTINGS.incidentThreshold,
+          },
+        },
+      },
+      activeAnalysisId: "analysis-backup",
+    });
+
+    const { exportBackup, restoreBackup, validateBackup } = await import("@/lib/backups/service");
+    const exported = await exportBackup();
+    const validation = await validateBackup(exported.bytes, "browser-session-hash");
+    await restoreBackup(validation.importId, "browser-session-hash");
+
+    const restored = getDatabase();
+    try {
+      const snapshot = createRetributivoStateRepository(restored).snapshot(company.id);
+      expect(snapshot.analyses).toHaveLength(1);
+      expect(snapshot.analyses[0]?.id).toBe("analysis-backup");
+      expect(snapshot.activeAnalysisId).toBe("analysis-backup");
+      expect(snapshot.analyses[0]?.result.summary.uniquePeople).toBe(1);
+    } finally {
+      closeDatabase();
+    }
+  });
+
   it("rejects a version mismatch before restoring", async () => {
     await createFixture();
     const writer = new Uint8ArrayWriter();

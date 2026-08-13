@@ -36,7 +36,7 @@ describe("local database setup", () => {
     const secondBootstrap = bootstrapDatabase(database);
 
     expect(BACKUP_VERSION).toBe(1);
-    expect(DATABASE_SCHEMA_VERSION).toBe(3);
+    expect(DATABASE_SCHEMA_VERSION).toBe(5);
     expect(firstBootstrap.created).toBe(true);
     expect(secondBootstrap.created).toBe(false);
     expect(database.prepare("SELECT COUNT(*) AS count FROM companies").get()?.count).toBe(1);
@@ -46,7 +46,7 @@ describe("local database setup", () => {
       database.prepare("SELECT value_json FROM app_settings WHERE key = 'activeCompanyId'").get(),
     ).toBeTruthy();
     expect(database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get()?.count).toBe(
-      3,
+      5,
     );
   });
 

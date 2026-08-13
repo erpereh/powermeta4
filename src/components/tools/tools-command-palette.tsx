@@ -57,13 +57,13 @@ export function ToolsCommandPalette({
         onOpenChange(next);
         if (!next) setQuery("");
       }}
-      title="Buscar herramientas"
-      description="Busca y abre una herramienta o acción"
+      title="Buscar acciones"
+      description="Busca y abre una acción"
     >
       <Command shouldFilter={false}>
-        <CommandInput placeholder="Buscar herramientas..." value={query} onValueChange={setQuery} />
+        <CommandInput placeholder="Buscar acciones..." value={query} onValueChange={setQuery} />
         <CommandList>
-          <CommandEmpty>No hay herramientas que coincidan.</CommandEmpty>
+          <CommandEmpty>No hay acciones que coincidan.</CommandEmpty>
           {groupedTools.map(({ module, tools }) => (
             <CommandGroup key={module.id} heading={module.name}>
               {tools.map((tool) => {
