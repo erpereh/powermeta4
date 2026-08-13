@@ -9,12 +9,11 @@ una futura conexión ERP.
 
 La fuente visual es el preset `b1temovYm`, junto con las primitivas existentes
 de shadcn/ui (estilo `radix-nova`) y assistant-ui. La identidad visual se
-centraliza en `PowermetaLogo`. La fuente oficial será
-`/brand/powermeta4-logo.svg` (isotipo compacto opcional:
-`/brand/powermeta4-mark.svg`) cuando el SVG exista en `public/brand/`. Hasta
-entonces el componente conserva el mark geométrico de desarrollo y no renderiza
-un `<img>` hacia un archivo inexistente. SocietyHeader y login consumen ese
-componente; no duplican el asset.
+centraliza en `PowermetaLogo`, única API de branding. El isotipo oficial vive
+en `public/brand/powermeta4-mark.svg` y se sirve como `/brand/powermeta4-mark.svg`.
+`PowermetaLogo compact` muestra solo el isotipo; el modo normal añade el
+wordmark textual `powermeta4`. SocietyHeader, login, cabeceras y settings
+consumen ese componente; no importan el SVG.
 
 Los componentes de interfaz parten de shadcn/ui Nova: no se sustituyen por
 implementaciones paralelas salvo composiciones de producto (command palette,
@@ -63,39 +62,44 @@ deep-link.
 
 Herramientas es un grupo colapsable, no una ruta de navegación. Todo el row
 es el `CollapsibleTrigger`: abre o cierra el submenu, anuncia `aria-expanded`
-y no navega a `/tools`. El hijo activo (por ejemplo `Reg. Retrib.`) muestra
+y no navega a `/tools`. El submenu consume solo `STANDALONE_TOOLS` (hoy
+`Reg. Retrib.`); los módulos ERP no aparecen ahí. El hijo activo muestra
 estado seleccionado; el grupo no. El contenido principal conserva un único
 trigger accesible para la sidebar.
 
 ## Inicio y workspaces
 
-Inicio (`/home`) es un command center compacto: cabecera mínima, alcance activo
-(sociedad Meta4 o modo desarrollo), trigger de búsqueda con atajo `Ctrl+K`,
-dock de módulos, rejilla de tarjetas de herramienta y actividad reciente real.
-No incluye hero, acceso rápido ni tarjetas gigantes de módulo.
+Inicio (`/home`) es un command center compacto de **Acciones** (operaciones
+ERP/Meta4): cabecera mínima, alcance activo (sociedad Meta4 o modo desarrollo),
+trigger de búsqueda con atajo `Ctrl+K`, dock de módulos, rejilla de tarjetas y
+actividad reciente real. No incluye hero, acceso rápido ni tarjetas gigantes
+de módulo. Las **Herramientas** (utilidades independientes de powermeta4) no
+aparecen en Inicio; se listan solo en el submenu de la sidebar.
 
-La búsqueda global de herramientas usa `CommandDialog` con filtrado propio
+La búsqueda de Acciones usa `CommandDialog` con filtrado propio
 (`searchTools` del registro, `shouldFilter={false}`) y agrupa resultados por
-módulo. En `/home`, `Ctrl+K` abre esta paleta; en el resto de rutas abre la
-búsqueda de conversaciones en la sidebar.
+módulo ERP. No incluye herramientas standalone. En `/home`, `Ctrl+K` abre esta
+paleta; en el resto de rutas abre la búsqueda de conversaciones en la sidebar.
 
 El dock de módulos filtra la rejilla mediante `Tabs` en línea con
 `ScrollArea` horizontal; el acento cian (`primary`) aparece solo en el tab
 activo. `ToolCard` es una fila compacta (~75–100 px) con composición propia
 (`Link`/`button`, chip de icono, título, descripción breve y flecha); las no
-implementadas muestran badge `Próximamente` y no registran visita. Las
-herramientas standalone con ruta placeholder sí navegan a esa pantalla.
+implementadas muestran badge `Próximamente` y no registran visita.
 
 El registro central (`src/lib/tools/registry.ts`) es la única fuente de módulos,
-acciones, iconos, rutas y búsqueda. Admite herramientas standalone (sin las
-cuatro acciones de un módulo): aparecen primero en el submenu de Herramientas
-y pueden tener una ruta placeholder navegable aunque `implemented` sea `false`.
-`searchTools` coincide por nombre, descripción, keywords y nombre de módulo.
+acciones, iconos, rutas y búsqueda, con dos slices independientes:
+`TOOL_MODULES` / `TOOL_REGISTRY` alimentan Inicio (Acciones ERP);
+`STANDALONE_TOOLS` alimenta el submenu Herramientas de la sidebar.
+Las herramientas standalone pueden tener una ruta placeholder navegable aunque
+`implemented` sea `false`. `searchTools` busca solo Acciones ERP por nombre,
+descripción, keywords y nombre de módulo.
 
 Las visitas solo se registran para acciones implementadas; la ausencia de visitas
 tiene un empty state compacto con `Empty`.
 
-Los cinco workspaces usan una plantilla común: breadcrumb, alcance activo,
+Los cinco workspaces ERP usan una plantilla común: breadcrumb (`Acciones` →
+`/home`), alcance activo,
 icono, título, descripción, cuatro tarjetas de acciones y estado inferior.
 Las acciones futuras muestran `Disponible próximamente` y no navegan, guardan
 datos ni inventan resultados. Usuarios ya no representa personas locales: sus

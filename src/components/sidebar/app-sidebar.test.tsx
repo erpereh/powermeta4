@@ -1,12 +1,14 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { useEffect } from "react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   pathname: "/home",
   push: vi.fn(),
+  isMobile: false,
   auth: {
     mode: "meta4" as "debug" | "meta4",
     username: "usuario",
@@ -18,6 +20,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock("next/navigation", () => ({
   usePathname: () => mocks.pathname,
   useRouter: () => ({ push: mocks.push }),
+}));
+
+vi.mock("@/hooks/use-mobile", () => ({
+  useIsMobile: () => mocks.isMobile,
 }));
 
 vi.mock("@/app/actions/workspace", () => ({
@@ -81,7 +87,7 @@ vi.mock("@/components/sidebar/user-menu", () => ({
   UserMenu: () => <div>User menu</div>,
 }));
 
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppSidebar } from "./app-sidebar";
 
@@ -92,6 +98,7 @@ afterEach(() => {
 beforeEach(() => {
   mocks.pathname = "/home";
   mocks.push.mockReset();
+  mocks.isMobile = false;
   mocks.auth = {
     mode: "meta4",
     username: "usuario",
@@ -117,10 +124,20 @@ beforeEach(() => {
   );
 });
 
-function renderSidebar(defaultOpen = true) {
+function OpenMobileSidebar() {
+  const { setOpenMobile } = useSidebar();
+  useEffect(() => {
+    setOpenMobile(true);
+  }, [setOpenMobile]);
+  return null;
+}
+
+function renderSidebar({ defaultOpen = true, mobile = false } = {}) {
+  mocks.isMobile = mobile;
   return render(
     <TooltipProvider>
       <SidebarProvider defaultOpen={defaultOpen}>
+        {mobile ? <OpenMobileSidebar /> : null}
         <AppSidebar />
       </SidebarProvider>
     </TooltipProvider>,
@@ -131,20 +148,27 @@ function toolsTrigger() {
   return screen.getByRole("button", { name: "Herramientas" });
 }
 
+function toolsSubmenu() {
+  const submenu = document.getElementById("sidebar-tools-submenu");
+  if (!submenu) throw new Error("expected tools submenu");
+  return within(submenu);
+}
+
 describe("app sidebar tools group", () => {
   it("makes Herramientas a single collapsible control instead of a /tools link", async () => {
     const user = userEvent.setup();
     const { container } = renderSidebar();
 
     expect(container.querySelector('a[href="/tools"]')).toBeNull();
-    expect(screen.getByRole("link", { name: "Reg. Retrib." }).getAttribute("href")).toBe(
+    const submenu = toolsSubmenu();
+    expect(submenu.getByRole("link", { name: "Reg. Retrib." }).getAttribute("href")).toBe(
       "/tools/registro-retributivo",
     );
-    expect(screen.getByRole("link", { name: "Usuarios" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Empresas" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Nóminas" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Informes" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Procesos" })).toBeTruthy();
+    expect(submenu.queryByRole("link", { name: "Usuarios" })).toBeNull();
+    expect(submenu.queryByRole("link", { name: "Empresas" })).toBeNull();
+    expect(submenu.queryByRole("link", { name: "Nóminas" })).toBeNull();
+    expect(submenu.queryByRole("link", { name: "Informes" })).toBeNull();
+    expect(submenu.queryByRole("link", { name: "Procesos" })).toBeNull();
 
     const trigger = toolsTrigger();
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
@@ -157,12 +181,12 @@ describe("app sidebar tools group", () => {
 
     await user.click(trigger);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(screen.getByRole("link", { name: "Reg. Retrib." })).toBeTruthy();
+    expect(toolsSubmenu().getByRole("link", { name: "Reg. Retrib." })).toBeTruthy();
   });
 
   it("expands a collapsed desktop sidebar and opens the tools submenu", async () => {
     const user = userEvent.setup();
-    const { container } = renderSidebar(false);
+    const { container } = renderSidebar({ defaultOpen: false });
 
     const sidebar = container.querySelector("[data-slot='sidebar']");
     expect(sidebar?.getAttribute("data-state")).toBe("collapsed");
@@ -172,7 +196,7 @@ describe("app sidebar tools group", () => {
 
     expect(sidebar?.getAttribute("data-state")).toBe("expanded");
     expect(toolsTrigger().getAttribute("aria-expanded")).toBe("true");
-    expect(screen.getByRole("link", { name: "Reg. Retrib." })).toBeTruthy();
+    expect(toolsSubmenu().getByRole("link", { name: "Reg. Retrib." })).toBeTruthy();
     expect(mocks.push).not.toHaveBeenCalled();
   });
 
@@ -182,9 +206,34 @@ describe("app sidebar tools group", () => {
 
     const trigger = toolsTrigger();
     expect(trigger.getAttribute("data-active")).toBe("false");
-    expect(screen.getByRole("link", { name: "Reg. Retrib." }).getAttribute("data-active")).toBe(
-      "true",
-    );
+    expect(
+      toolsSubmenu().getByRole("link", { name: "Reg. Retrib." }).getAttribute("data-active"),
+    ).toBe("true");
+  });
+
+  it("keeps the mobile sidebar open when toggling Herramientas and closes it when navigating", async () => {
+    const user = userEvent.setup();
+    renderSidebar({ mobile: true });
+
+    await waitFor(() => {
+      expect(toolsTrigger()).toBeTruthy();
+    });
+
+    const trigger = toolsTrigger();
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(toolsSubmenu().getByRole("link", { name: "Reg. Retrib." })).toBeTruthy();
+
+    await user.click(trigger);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("button", { name: "Herramientas" })).toBeTruthy();
+    expect(mocks.push).not.toHaveBeenCalled();
+
+    await user.click(trigger);
+    await user.click(toolsSubmenu().getByRole("link", { name: "Reg. Retrib." }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Herramientas" })).toBeNull();
+    });
   });
 
   it("keeps society and development labels in the header", () => {

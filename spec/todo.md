@@ -1,20 +1,32 @@
 # powermeta4 - estado de tareas
 
+## Logo oficial + Acciones / Herramientas - 2026-08-13
+
+- [x] `powermeta4-mark.svg` untracked movido con `Move-Item` a
+      `public/brand/powermeta4-mark.svg` (sin `git mv`, sin duplicar, sin
+      modificar el SVG).
+- [x] `PowermetaLogo` es la única API de branding: compact = isotipo;
+      normal = isotipo + wordmark `powermeta4`. Eliminado el mark inline cyan.
+- [x] Inicio muestra Acciones (`TOOL_MODULES` / `TOOL_REGISTRY`). Registro
+      Retributivo no aparece en launcher, buscador ni command palette.
+- [x] Sidebar Herramientas consume solo `STANDALONE_TOOLS` (`Reg. Retrib.`).
+      Breadcrumb de workspaces ERP: Acciones → `/home`.
+- [x] lint, typecheck, tests, build, `git diff --check`.
+
 ## Branding sidebar + Registro Retributivo - 2026-08-13
 
 - [x] Branch `feat/sidebar-branding-reg-retrib` desde `main` limpio.
-- [x] `PowermetaLogo` sigue siendo la API única; fallback de desarrollo
-      conservado. Falta el SVG definitivo en `public/brand/powermeta4-logo.svg`.
+- [x] `PowermetaLogo` sigue siendo la API única; el isotipo oficial quedó en
+      `public/brand/powermeta4-mark.svg` (ver tarea siguiente).
 - [x] Herramientas es un `Collapsible` de una sola superficie (no navega a
       `/tools`). En desktop colapsada, el icono Wrench expande la sidebar y
       abre el submenu.
-- [x] `STANDALONE_TOOLS` + `SIDEBAR_TOOL_ITEMS`: `Reg. Retrib.` primero, ruta
+- [x] `STANDALONE_TOOLS` + `SIDEBAR_TOOL_ITEMS`: `Reg. Retrib.`, ruta
       `/tools/registro-retributivo`, `implemented: false` y navegable.
 - [x] Pantalla placeholder con título, badge `Próximamente` y copy de estado.
 - [x] typecheck, oxlint, 45 archivos/177 pruebas, build y `git diff --check`.
-- [ ] Colocar el SVG oficial en `public/brand/powermeta4-logo.svg` (y, si hace
-      falta, `powermeta4-mark.svg`) y cambiar la fuente visual solo en
-      `PowermetaLogo`.
+- [x] Colocar el SVG oficial en `public/brand/powermeta4-mark.svg` y cambiar
+      la fuente visual solo en `PowermetaLogo`.
 
 ## Columna «Usuario Meta4» (clave_Self) en el listado - 2026-08-12
 

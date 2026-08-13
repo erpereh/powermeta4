@@ -409,20 +409,12 @@ export const STANDALONE_TOOLS = [
   },
 ] as const satisfies readonly StandaloneToolDefinition[];
 
-export const SIDEBAR_TOOL_ITEMS: readonly SidebarToolItem[] = [
-  ...STANDALONE_TOOLS.map((tool) => ({
-    id: tool.id,
-    name: tool.shortName,
-    route: tool.route,
-    icon: tool.icon,
-  })),
-  ...TOOL_MODULES.map((module) => ({
-    id: module.id,
-    name: module.name,
-    route: module.route,
-    icon: module.icon,
-  })),
-];
+export const SIDEBAR_TOOL_ITEMS: readonly SidebarToolItem[] = STANDALONE_TOOLS.map((tool) => ({
+  id: tool.id,
+  name: tool.shortName,
+  route: tool.route,
+  icon: tool.icon,
+}));
 
 export const TOOL_REGISTRY = TOOL_MODULES.flatMap((module) => module.tools);
 
@@ -451,7 +443,7 @@ export const getModuleTools = (moduleId: ToolModuleId) => getToolModule(moduleId
 export const searchTools = (query: string) => {
   const normalizedQuery = normalize(query.trim());
   if (!normalizedQuery) {
-    return { modules: TOOL_MODULES, tools: TOOL_REGISTRY, standalone: STANDALONE_TOOLS };
+    return { modules: TOOL_MODULES, tools: TOOL_REGISTRY };
   }
 
   const terms = normalizedQuery.split(/\s+/).filter(Boolean);
@@ -470,11 +462,8 @@ export const searchTools = (query: string) => {
       matches([module.name, module.description]) ||
       tools.some((tool) => tool.moduleId === module.id),
   );
-  const standalone = STANDALONE_TOOLS.filter((tool) =>
-    matches([tool.name, tool.shortName, tool.description, ...tool.keywords]),
-  );
 
-  return { modules, tools, standalone };
+  return { modules, tools };
 };
 
 export const isToolVisit = (value: ToolVisit): boolean => Boolean(getTool(value.toolId));

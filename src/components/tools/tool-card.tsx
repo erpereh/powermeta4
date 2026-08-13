@@ -4,17 +4,16 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { TOOL_ICONS, isToolRouteNavigable, type RegistryTool } from "@/lib/tools/registry";
+import { TOOL_ICONS, type ToolDefinition } from "@/lib/tools/registry";
 
 type ToolCardProps = {
-  tool: RegistryTool;
+  tool: ToolDefinition;
   onVisit?: () => void;
   onUnavailable?: () => void;
 };
 
 export function ToolCard({ tool, onVisit, onUnavailable }: ToolCardProps) {
   const Icon = TOOL_ICONS[tool.icon];
-  const navigable = isToolRouteNavigable(tool);
 
   const content = (
     <div className="flex min-h-[4.75rem] items-center gap-3 px-3 py-2.5">
@@ -46,7 +45,7 @@ export function ToolCard({ tool, onVisit, onUnavailable }: ToolCardProps) {
   const className =
     "group block rounded-xl border border-border bg-card text-left transition-colors hover:border-primary/30 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-  if (!navigable) {
+  if (!tool.implemented) {
     return (
       <button type="button" onClick={onUnavailable} className={className}>
         {content}

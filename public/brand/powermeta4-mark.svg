@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">powermeta4 mark</title>
+  <desc id="desc">Geometric P4 monogram for powermeta4</desc>
+  <g fill="none" stroke="#08B8D8" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 52V12h15c8 0 13 4.5 13 11s-5 11-13 11H16"/>
+    <path d="M48 52V27L31 44h22"/>
+  </g>
+</svg>

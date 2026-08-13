@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-08-13 - Logo oficial, Acciones en Inicio y Herramientas standalone
+
+### Cambios
+
+- El isotipo untracked `powermeta4-mark.svg` se movió a
+  `public/brand/powermeta4-mark.svg` (`Move-Item`, sin `git mv` ni cambios
+  al SVG). `PowermetaLogo` es la única API de branding: compact muestra el
+  isotipo; el modo normal añade el wordmark textual `powermeta4`. Se eliminó
+  el mark geométrico inline y el recuadro cyan.
+- Acciones (ERP/Meta4: Usuarios, Empresas, Nóminas, Informes, Procesos) se
+  muestran solo en Inicio. Herramientas (standalone) se muestran solo en la
+  sidebar. `searchTools` ya no incluye standalone. `SIDEBAR_TOOL_ITEMS`
+  consume únicamente `STANDALONE_TOOLS` (`Reg. Retrib.`).
+- Breadcrumb de workspaces ERP: Acciones → `/home`. `/tools` permanece como
+  redirect de compatibilidad.
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npx oxlint` (limpio; `oxfmt --check` con hallazgos preexistentes en
+  archivos no introducidos por este cambio — entorno sin config de oxfmt,
+  no atribuible a este cambio)
+- `npm test` — 47 archivos y 183 pruebas correctas
+- `npm run build` — incluye `/home` y `/tools/registro-retributivo`
+- `git diff --check`
+- rama: `feat/sidebar-branding-reg-retrib` (sin commit)
+
+### Comprobación manual
+
+- El SVG se movió desde la raíz untracked a `public/brand/powermeta4-mark.svg`;
+  no queda copia en `./powermeta4-mark.svg`. Las referencias runtime del
+  asset están en `PowermetaLogo`.
+- No se recorrió la UI en navegador (temas, sociedades y viewport) en este
+  entorno. Home/Acciones, sidebar/Herramientas, branding y collapsible
+  quedan cubiertos por pruebas de Testing Library.
+
 ## 2026-08-13 - Branding de sidebar, Herramientas colapsable y Registro Retributivo
 
 ### Cambios

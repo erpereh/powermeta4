@@ -40,7 +40,7 @@ export function ToolsRecentActivity({ recentTools }: ToolsRecentActivityProps) {
               <Clock3 aria-hidden="true" />
             </EmptyMedia>
             <EmptyTitle>Sin actividad reciente</EmptyTitle>
-            <EmptyDescription>Las herramientas que uses aparecerán aquí.</EmptyDescription>
+            <EmptyDescription>Las acciones que uses aparecerán aquí.</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (

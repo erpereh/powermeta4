@@ -94,17 +94,20 @@ describe("tool registry", () => {
     expect(searchTools("empresas").tools.some((tool) => tool.moduleId === "companies")).toBe(true);
   });
 
-  it("lists Registro Retributivo first as a navigable standalone tool", () => {
+  it("keeps Registro Retributivo as the only sidebar standalone tool", () => {
     const registro = STANDALONE_TOOLS.find((tool) => tool.id === "registro-retributivo");
 
-    expect(SIDEBAR_TOOL_ITEMS.map((item) => item.name)).toEqual([
-      "Reg. Retrib.",
+    expect(TOOL_MODULES.map((module) => module.name)).toEqual([
       "Usuarios",
       "Empresas",
       "Nóminas",
       "Informes",
       "Procesos",
     ]);
+    expect(SIDEBAR_TOOL_ITEMS.map((item) => item.name)).toEqual(["Reg. Retrib."]);
+    expect(
+      SIDEBAR_TOOL_ITEMS.every((item) => !TOOL_MODULES.some((module) => module.id === item.id)),
+    ).toBe(true);
     expect(registro).toMatchObject({
       name: "Registro Retributivo",
       shortName: "Reg. Retrib.",
@@ -125,10 +128,10 @@ describe("tool registry", () => {
     );
   });
 
-  it("finds standalone tools by name and keywords", () => {
-    expect(searchTools("registro retributivo").standalone.map((tool) => tool.id)).toEqual([
-      "registro-retributivo",
-    ]);
-    expect(searchTools("retrib").standalone[0]?.shortName).toBe("Reg. Retrib.");
+  it("does not include standalone tools in Acciones search", () => {
+    expect(searchTools("registro").tools).toEqual([]);
+    expect(searchTools("registro").modules).toEqual([]);
+    expect(searchTools("retributivo").tools).toEqual([]);
+    expect(searchTools("usuario").tools.some((tool) => tool.moduleId === "users")).toBe(true);
   });
 });

@@ -19,6 +19,7 @@ vi.mock("@/stores/use-workspace-store", () => ({
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { POWERMETA_MARK_SRC } from "@/components/branding/powermeta-logo";
 import { SocietyHeader } from "./society-header";
 
 beforeEach(() => {
@@ -38,22 +39,38 @@ beforeEach(() => {
   );
 });
 
+function renderHeader() {
+  return render(
+    <TooltipProvider>
+      <SidebarProvider>
+        <SocietyHeader />
+      </SidebarProvider>
+    </TooltipProvider>,
+  );
+}
+
 describe("society header", () => {
   it("shows the Meta4 society code without switcher controls", () => {
-    render(
-      <TooltipProvider>
-        <SidebarProvider>
-          <SocietyHeader />
-        </SidebarProvider>
-      </TooltipProvider>,
-    );
+    renderHeader();
 
     expect(screen.getByText("powermeta4")).toBeTruthy();
     expect(screen.getByText("CYC")).toBeTruthy();
+    expect(document.querySelector(`img[src="${POWERMETA_MARK_SRC}"]`)).toBeTruthy();
     expect(screen.queryByText("Crear empresa")).toBeNull();
     expect(screen.queryByText("Eliminar empresa")).toBeNull();
     expect(screen.queryByLabelText(/Abrir empresas/i)).toBeNull();
-    expect(document.querySelector('img[src="/brand/powermeta4-logo.svg"]')).toBeNull();
+  });
+
+  it("shows IBER for the IBER society", () => {
+    mocks.auth.societyCode = "IBER";
+    renderHeader();
+    expect(screen.getByText("IBER")).toBeTruthy();
+  });
+
+  it("shows COLL for the COLL society", () => {
+    mocks.auth.societyCode = "COLL";
+    renderHeader();
+    expect(screen.getByText("COLL")).toBeTruthy();
   });
 
   it("shows development mode for debug auth", () => {
@@ -64,14 +81,9 @@ describe("society header", () => {
       societyCode: null,
     };
 
-    render(
-      <TooltipProvider>
-        <SidebarProvider>
-          <SocietyHeader />
-        </SidebarProvider>
-      </TooltipProvider>,
-    );
+    renderHeader();
 
     expect(screen.getByText("Modo desarrollo")).toBeTruthy();
+    expect(document.querySelector(`img[src="${POWERMETA_MARK_SRC}"]`)).toBeTruthy();
   });
 });

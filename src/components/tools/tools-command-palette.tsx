@@ -12,18 +12,12 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  TOOL_ICONS,
-  TOOL_MODULES,
-  isToolRouteNavigable,
-  searchTools,
-  type RegistryTool,
-} from "@/lib/tools/registry";
+import { TOOL_ICONS, TOOL_MODULES, searchTools, type ToolDefinition } from "@/lib/tools/registry";
 
 type ToolsCommandPaletteProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectTool: (tool: RegistryTool) => void;
+  onSelectTool: (tool: ToolDefinition) => void;
   onUnavailable: () => void;
 };
 
@@ -45,10 +39,10 @@ export function ToolsCommandPalette({
     return modulesWithTools.filter((group) => group.tools.length > 0);
   }, [results.tools]);
 
-  const handleSelect = (tool: RegistryTool) => {
+  const handleSelect = (tool: ToolDefinition) => {
     onOpenChange(false);
     setQuery("");
-    if (!isToolRouteNavigable(tool)) {
+    if (!tool.implemented) {
       onUnavailable();
       return;
     }
@@ -63,29 +57,13 @@ export function ToolsCommandPalette({
         onOpenChange(next);
         if (!next) setQuery("");
       }}
-      title="Buscar herramientas"
-      description="Busca y abre una herramienta o acción"
+      title="Buscar acciones"
+      description="Busca y abre una acción"
     >
       <Command shouldFilter={false}>
-        <CommandInput placeholder="Buscar herramientas..." value={query} onValueChange={setQuery} />
+        <CommandInput placeholder="Buscar acciones..." value={query} onValueChange={setQuery} />
         <CommandList>
-          <CommandEmpty>No hay herramientas que coincidan.</CommandEmpty>
-          {results.standalone.length > 0 && (
-            <CommandGroup>
-              {results.standalone.map((tool) => {
-                const Icon = TOOL_ICONS[tool.icon];
-                return (
-                  <CommandItem key={tool.id} value={tool.id} onSelect={() => handleSelect(tool)}>
-                    <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <span className="min-w-0 truncate">{tool.name}</span>
-                    {!tool.implemented && (
-                      <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
-                    )}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          )}
+          <CommandEmpty>No hay acciones que coincidan.</CommandEmpty>
           {groupedTools.map(({ module, tools }) => (
             <CommandGroup key={module.id} heading={module.name}>
               {tools.map((tool) => {

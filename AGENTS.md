@@ -69,8 +69,14 @@ Thread salvo petición expresa.
 ## Herramientas y recomendaciones
 
 - `src/lib/tools/registry.ts` es el registro único y tipado de módulos,
-  acciones, prompts, iconos, rutas y permisos. Inicio, sidebar, búsqueda,
-  workspaces, actividad y recomendaciones deben consumirlo.
+  acciones, prompts, iconos, rutas y permisos. Acciones ERP
+  (`TOOL_MODULES` / `TOOL_REGISTRY`) se muestran en Inicio. Herramientas
+  standalone (`STANDALONE_TOOLS`) se muestran en la sidebar. Búsqueda de
+  Inicio, workspaces, actividad y recomendaciones consumen las Acciones ERP.
+- Acciones: operaciones ERP/Meta4 mostradas desde Inicio. Herramientas:
+  utilidades independientes de powermeta4 mostradas desde la sidebar.
+- `PowermetaLogo` es la única API de branding. El isotipo oficial está en
+  `public/brand/powermeta4-mark.svg`.
 - Las recomendaciones son acciones no ejecutables: solo preparan texto
   editable en el composer y dejan el envío bajo control explícito del usuario.
 - Los workspaces futuros muestran estados honestos de disponibilidad; no

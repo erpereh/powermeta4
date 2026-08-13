@@ -5,12 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { recordToolVisitAction } from "@/app/actions/workspace";
-import {
-  STANDALONE_TOOLS,
-  TOOL_REGISTRY,
-  isStandaloneTool,
-  type RegistryTool,
-} from "@/lib/tools/registry";
+import { TOOL_REGISTRY, type ToolDefinition } from "@/lib/tools/registry";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import { getWorkspaceScopeLabel } from "@/lib/workspaces/scope-label";
@@ -36,7 +31,7 @@ export function ToolsLaunchpad() {
   const triggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
 
   const filteredTools = useMemo(() => {
-    if (moduleFilter === "all") return [...STANDALONE_TOOLS, ...TOOL_REGISTRY];
+    if (moduleFilter === "all") return TOOL_REGISTRY;
     return TOOL_REGISTRY.filter((tool) => tool.moduleId === moduleFilter);
   }, [moduleFilter]);
 
@@ -62,11 +57,11 @@ export function ToolsLaunchpad() {
     });
   };
 
-  const handlePaletteSelect = (tool: RegistryTool) => {
-    if (!isStandaloneTool(tool) && tool.implemented) handleToolVisit(tool.id);
+  const handlePaletteSelect = (tool: ToolDefinition) => {
+    if (tool.implemented) handleToolVisit(tool.id);
   };
 
-  const showUnavailable = () => setFeedback("Esta herramienta estará disponible próximamente.");
+  const showUnavailable = () => setFeedback("Esta acción estará disponible próximamente.");
 
   return (
     <main className="flex min-h-svh flex-col">
@@ -81,15 +76,15 @@ export function ToolsLaunchpad() {
           </TooltipTrigger>
           <TooltipContent side="bottom">{triggerLabel}</TooltipContent>
         </Tooltip>
-        <div className="text-sm font-medium">Herramientas</div>
+        <div className="text-sm font-medium">Acciones</div>
       </header>
 
       <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6 sm:px-6">
         <section className="space-y-1">
           <p className="text-xs text-muted-foreground">{scopeLabel}</p>
-          <h1 className="text-xl font-semibold tracking-tight">Herramientas</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Acciones</h1>
           <p className="text-sm text-muted-foreground">
-            Accede a las operaciones de tu empresa manualmente o con el asistente.
+            Accede a las operaciones de tu empresa manualmente.
           </p>
         </section>
 
@@ -97,7 +92,7 @@ export function ToolsLaunchpad() {
 
         <ToolsModuleDock value={moduleFilter} onChange={setModuleFilter} />
 
-        <section className="grid gap-2 sm:grid-cols-2" aria-label="Herramientas disponibles">
+        <section className="grid gap-2 sm:grid-cols-2" aria-label="Acciones disponibles">
           {filteredTools.map((tool) => (
             <ToolCard
               key={tool.id}
