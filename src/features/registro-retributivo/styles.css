@@ -2,6 +2,10 @@
   isolation: isolate;
 }
 
+[data-slot="modal-shell"] {
+  max-width: min(64rem, calc(100vw - 2rem));
+}
+
 [data-registro-retributivo-root] [data-slot="table-viewport"] thead {
   background-color: var(--muted);
 }

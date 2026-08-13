@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface ModalShellProps {
@@ -23,11 +22,11 @@ interface ModalShellProps {
 }
 
 const WIDTH_CLASS: Record<NonNullable<ModalShellProps["maxWidth"]>, string> = {
-  xl: "sm:max-w-xl",
-  "2xl": "sm:max-w-2xl",
-  "3xl": "sm:max-w-3xl",
-  "4xl": "sm:max-w-4xl",
-  "5xl": "sm:max-w-5xl",
+  xl: "w-[min(36rem,calc(100vw-2rem))] max-w-[min(36rem,calc(100vw-2rem))] sm:max-w-[min(36rem,calc(100vw-2rem))]",
+  "2xl": "w-[min(42rem,calc(100vw-2rem))] max-w-[min(42rem,calc(100vw-2rem))] sm:max-w-[min(42rem,calc(100vw-2rem))]",
+  "3xl": "w-[min(48rem,calc(100vw-2rem))] max-w-[min(48rem,calc(100vw-2rem))] sm:max-w-[min(48rem,calc(100vw-2rem))]",
+  "4xl": "w-[min(56rem,calc(100vw-2rem))] max-w-[min(56rem,calc(100vw-2rem))] sm:max-w-[min(56rem,calc(100vw-2rem))]",
+  "5xl": "w-[min(64rem,calc(100vw-2rem))] max-w-[min(64rem,calc(100vw-2rem))] sm:max-w-[min(64rem,calc(100vw-2rem))]",
 };
 
 export function ModalShell({
@@ -53,7 +52,7 @@ export function ModalShell({
         data-slot="modal-shell"
         showCloseButton
         className={cn(
-          "grid max-h-[min(94dvh,100dvh)] w-full min-w-0 max-w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden p-0 sm:max-w-[calc(100%-2rem)]",
+          "grid max-h-[min(94dvh,100dvh)] min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden overflow-x-hidden p-0",
           WIDTH_CLASS[maxWidth],
           className,
         )}
@@ -64,9 +63,9 @@ export function ModalShell({
           </DialogDescription>
           <DialogTitle className="text-xl sm:text-2xl">{title}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="min-h-0 min-w-0 max-w-full overflow-x-hidden px-5 py-5 sm:px-6">
-          {children}
-        </ScrollArea>
+        <div className="min-h-0 min-w-0 overflow-x-hidden overflow-y-auto px-5 py-5 sm:px-6">
+          <div className="min-w-0 max-w-full">{children}</div>
+        </div>
         {footer ? <DialogFooter className="min-w-0 border-t px-5 py-4 sm:px-6">{footer}</DialogFooter> : null}
       </DialogContent>
     </Dialog>

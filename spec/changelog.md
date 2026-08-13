@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-08-13 - Personas: viewport, modal y periodos
+
+### Cambios
+
+- La tabla de Personas ocupa el alto restante del `main` (flex) en lugar
+  de `max-h-[70dvh]`, para que la última fila visible no quede cortada
+  por el borde de la ventana. El scroll de las filas es interno.
+- El modal de detalle usa ancho explícito `min(64rem, 100vw - 2rem)` y
+  un body con overflow vertical; los chips de periodo ya no se encogen
+  (`shrink-0`) y envuelven de línea.
+- `sortPeriodLabels` ordena periodos por año y de enero a diciembre.
+  Se aplica al comparar PDFs y al pintar chips (análisis ya guardados).
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npx oxlint` — warning preexistente `ConceptosTable`
+- `npx vitest run` page.test + `spanish-dates.test`
+- `npm test` — 59 archivos y 281 pruebas correctas (2 skipped)
+- `git diff --check`
+
+### Comprobación en página
+
+- `http://localhost:3000/tools/registro-retributivo` está en marcha; sin
+  cookie de sesión la petición anónima redirige a `/login`. El flujo
+  Personas → detalle → chips ordenados se cubre en `page.test.tsx`.
+
+## 2026-08-13 - Layout Registro Retributivo
+
+### Cambios
+
+- El modal de detalle de persona cabe en pantalla: ancho
+  `max-w-[min(64rem,calc(100vw-2rem))]`, viewport del ScrollArea con
+  `overflow-x: hidden`, chips de periodo con wrap y tablas internas con
+  scroll horizontal. Se eliminó «Copiar resumen» en Personas y Cuadre.
+- Cada pestaña deja de repetir el `h1` del encabezado interno. Inicio
+  conserva el título de la comparativa.
+- La tarjeta «Análisis activo» pasa al pie de la sidebar local (y del
+  Sheet móvil). Sin análisis muestra «Sin análisis activo».
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npx oxlint` — warnings preexistentes (`ConceptosTable` y helpers de export)
+- `npx vitest run src/app/(app)/tools/registro-retributivo/page.test.tsx`
+  — 1 archivo / 2 pruebas
+- `npm test` — 58 archivos y 278 pruebas correctas (2 skipped)
+- `npm run build`
+- `git diff --check`
+
 ## 2026-08-13 - Registro Retributivo nativo en powermeta4
 
 ### Cambios

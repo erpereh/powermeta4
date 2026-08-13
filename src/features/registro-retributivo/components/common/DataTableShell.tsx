@@ -18,14 +18,14 @@ export function DataTableShell({
   viewportClassName?: string;
 }>) {
   return (
-    <Card data-surface="table-shell" className={cn("w-full min-w-0 max-w-full gap-0 overflow-hidden py-0", className)}>
+    <Card data-surface="table-shell" className={cn("flex w-full min-w-0 max-w-full flex-col gap-0 overflow-hidden py-0", className)}>
       {toolbar ? (
-        <div data-slot="table-toolbar" className="min-w-0 border-b px-4 py-4 sm:px-5">
+        <div data-slot="table-toolbar" className="min-w-0 shrink-0 border-b px-4 py-4 sm:px-5">
           {toolbar}
         </div>
       ) : null}
       {summary ? (
-        <div data-slot="table-summary" className="min-w-0 border-b bg-muted/40 px-4 py-3 sm:px-5">
+        <div data-slot="table-summary" className="min-w-0 shrink-0 border-b bg-muted/40 px-4 py-3 sm:px-5">
           {summary}
         </div>
       ) : null}

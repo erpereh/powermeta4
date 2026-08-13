@@ -46,21 +46,50 @@ export function toIsoDate(value: unknown): string | undefined {
   return undefined;
 }
 
+function monthNumber(name: string): string | undefined {
+  return MONTHS[name.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase()];
+}
+
 export function parsePayrollPeriod(value: string): ParsedPayrollPeriod {
   const label = value.trim().replace(/\s+/g, " ");
-  const match = label.match(/Del\s+(\d{1,2})\s+al\s+(\d{1,2})\s+([A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)\s+(\d{4})/i);
-  if (!match) {
-    return { label };
+  const range = label.match(/Del\s+(\d{1,2})\s+al\s+(\d{1,2})\s+([A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)\s+(\d{4})/i);
+  if (range) {
+    const month = monthNumber(range[3]);
+    if (month) {
+      return {
+        label,
+        start: `${range[4]}-${month}-${pad(range[1])}`,
+        end: `${range[4]}-${month}-${pad(range[2])}`,
+      };
+    }
   }
 
-  const month = MONTHS[match[3].normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase()];
-  if (!month) {
-    return { label };
+  const simple = label.match(/^([A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)\s+(\d{4})$/i);
+  if (simple) {
+    const month = monthNumber(simple[1]);
+    if (month) {
+      return {
+        label,
+        start: `${simple[2]}-${month}-01`,
+        end: `${simple[2]}-${month}-01`,
+      };
+    }
   }
 
-  return {
-    label,
-    start: `${match[4]}-${month}-${pad(match[1])}`,
-    end: `${match[4]}-${month}-${pad(match[2])}`,
-  };
+  return { label };
+}
+
+function periodSortKey(label: string): string {
+  return parsePayrollPeriod(label).start ?? `9999-99-99-${label}`;
+}
+
+export function sortPeriodLabels(labels: readonly string[]): string[] {
+  return [...labels].sort((left, right) => {
+    const leftKey = periodSortKey(left);
+    const rightKey = periodSortKey(right);
+    if (leftKey !== rightKey) {
+      return leftKey < rightKey ? -1 : 1;
+    }
+    return left.localeCompare(right, "es");
+  });
 }

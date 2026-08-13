@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Search, Table2 } from "lucide-react";
+import { Search, Table2 } from "lucide-react";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { AiExplanationPanel } from "@/features/registro-retributivo/components/ai/AiExplanationPanel";
 import { useAppState, type DashboardFilters, EMPTY_FILTERS, matchesQuery } from "@/features/registro-retributivo/state/AppState";
@@ -37,6 +37,7 @@ import { diffClass, rowTone } from "@/features/registro-retributivo/ui/statusSty
 import { cn } from "@/features/registro-retributivo/utils/classNames";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
 import { selectPersonProfileFromRow } from "@/features/registro-retributivo/selectors/sharedSelectors";
+import { sortPeriodLabels } from "@/features/registro-retributivo/utils/spanishDates";
 
 interface TableHeader {
   readonly key: string;
@@ -240,16 +241,19 @@ function ModalField({ label, value }: Readonly<{ label: string; value?: string |
 }
 
 function PeriodChips({ periods }: Readonly<{ periods: readonly string[] }>) {
+  const ordered = useMemo(() => sortPeriodLabels(periods), [periods]);
+
   return (
-    <div className="col-span-full min-w-0">
+    <div className="col-span-full min-w-0 max-w-full">
       <p className="text-xs font-semibold uppercase text-muted-foreground">Periodos</p>
-      {periods.length ? (
-        <div className="mt-2 flex max-h-24 min-w-0 max-w-full flex-wrap gap-2 overflow-y-auto pr-1">
-          {periods.map((period) => (
+      {ordered.length ? (
+        <div className="mt-2 flex min-w-0 max-w-full flex-wrap gap-2">
+          {ordered.map((period) => (
             <UiBadge
               key={period}
               data-testid="period-chip"
               variant="outline"
+              className="max-w-full shrink-0 whitespace-normal"
             >
               {displayText(period)}
             </UiBadge>
@@ -388,7 +392,7 @@ function PersonConceptsSection({
       </div>
 
       {personConcepts.length ? (
-        <div data-surface="person-concepts-scroll" className="mt-4 min-w-0 max-w-full max-h-[420px] overflow-auto rounded-2xl border border-border">
+        <div data-surface="person-concepts-scroll" className="mt-4 min-w-0 max-w-full max-h-[420px] overflow-x-auto overflow-y-auto rounded-2xl border border-border">
           <table className="w-full min-w-[920px] border-separate border-spacing-0 text-left text-sm">
             <thead className="sticky top-0 z-20 bg-muted text-muted-foreground shadow-sm">
               <tr>
@@ -459,7 +463,7 @@ function PersonConceptsSection({
       {relatedUnmapped.length ? (
         <div className="mt-5 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
           <h4 className="text-sm font-semibold text-foreground">Conceptos no incluidos de esta persona</h4>
-          <div className="mt-3 overflow-auto rounded-xl border border-border bg-card">
+          <div className="mt-3 min-w-0 max-w-full overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="bg-muted text-muted-foreground">
                 <tr>
@@ -505,7 +509,6 @@ function DetailModal({
             description: displayText(state.row.reason) || "Concepto no incluido en el cálculo principal.",
             review: displayText(state.row.recommendedAction) || "Revisar criterio de decisión.",
           };
-  const copySummary = `${title}: ${cause.label} - ${cause.description}`;
   const aiType = state.kind === "person" ? "person" : state.kind === "concept" ? "concept" : "notIncludedConcept";
   const aiPayload =
     state.kind === "person"
@@ -520,17 +523,9 @@ function DetailModal({
       title={title}
       onClose={onClose}
       maxWidth="5xl"
-      footer={
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={() => void navigator.clipboard?.writeText(copySummary)}>
-            <Copy aria-hidden="true" />
-            Copiar resumen
-          </Button>
-        </div>
-      }
     >
-      <div data-surface="person-detail-content" className="min-w-0 max-w-full">
-        <div data-surface={state.kind === "person" ? "person-overview" : "detail-overview"} className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div data-surface="person-detail-content" className="min-w-0 max-w-full overflow-x-hidden">
+        <div data-surface={state.kind === "person" ? "person-overview" : "detail-overview"} className="grid min-w-0 max-w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {state.kind === "person" ? (
             <>
               <ModalField label="Matrícula" value={state.row.employeeNumber} />
@@ -623,8 +618,10 @@ function PersonasTable({ density, onOpen, toolbar }: Readonly<{ density: TableDe
   const pdfWithoutRegistro = rows.filter((row) => row.status === "Sin Registro").reduce((sum, row) => sum + row.pdfTotal, 0);
 
   return (
-    <div>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <DataTableShell
+        className="min-h-0 flex-1"
+        viewportClassName="min-h-0 flex-1"
         toolbar={toolbar}
         summary={<TableSummary visible={rows.length} total={allRows.length} difference={totalDifference} extra={`Recibo sin Reg. Retrib. visible: ${formatEuro(pdfWithoutRegistro)}`} />}
         empty={!rows.length ? <p className="p-6 text-sm text-muted-foreground">Sin personas con los filtros actuales.</p> : null}
@@ -799,18 +796,6 @@ function AgrupacionesTable() {
   return <AgrupacionesView />;
 }
 
-function viewTitle(mode: Extract<AppView, "personas" | "agrupaciones">): string {
-  if (mode === "personas") return "Personas";
-  return "Agrupaciones";
-}
-
-function viewSubtitle(mode: Extract<AppView, "personas" | "agrupaciones">): string {
-  if (mode === "personas") {
-    return "Compara por matrícula los importes del Reg. Retrib. frente a los importes detectados en recibos, separados por Salario, Complemento Salarial y Extrasalarial.";
-  }
-  return "Consulta las hojas agrupadas incluidas en el Excel Reg. Retrib.";
-}
-
 export function TablesView({ mode }: Readonly<{ mode: Extract<AppView, "personas" | "agrupaciones"> }>) {
   const { result, filters, setFilters } = useAppState();
   const density: TableDensity = "compact";
@@ -821,28 +806,18 @@ export function TablesView({ mode }: Readonly<{ mode: Extract<AppView, "personas
 
   if (!result) {
     return (
-      <div className="flex flex-col gap-6">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">{viewTitle(mode)}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{viewSubtitle(mode)}</p>
-        </div>
-        <Empty className="border">
-          <EmptyHeader>
-            <EmptyMedia variant="icon"><Table2 /></EmptyMedia>
-            <EmptyTitle>No hay análisis activo</EmptyTitle>
-            <EmptyDescription>Carga el Registro Retributivo y los recibos para generar una comparativa antes de revisar esta sección.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon"><Table2 /></EmptyMedia>
+          <EmptyTitle>No hay análisis activo</EmptyTitle>
+          <EmptyDescription>Carga el Registro Retributivo y los recibos para generar una comparativa antes de revisar esta sección.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   return (
-    <div className="flex min-w-0 w-full flex-col gap-6">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">{viewTitle(mode)}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{viewSubtitle(mode)}</p>
-      </div>
+    <div className={cn("flex min-w-0 w-full flex-col", mode === "personas" ? "min-h-0 flex-1" : "gap-6")}>
       {mode === "personas" ? (
         <PersonasTable
           density={density}

@@ -1,5 +1,30 @@
 # powermeta4 - estado de tareas
 
+## Personas viewport, modal y periodos - 2026-08-13
+
+- [x] Tabla Personas encajada en el `main` (`flex-1`, sin `max-h-[70dvh]`).
+      El scroll de filas queda dentro de la tabla.
+- [x] Modal de detalle: ancho acotado a `100vw-2rem`, body con
+      `overflow-x-hidden`, chips sin `shrink` (no recortan «Del '»).
+- [x] Periodos ordenados ene→dic por año (`sortPeriodLabels`) en análisis
+      nuevos y en chips de detalle persistidos.
+- [x] typecheck, page.test (detalle + chips), `spanish-dates.test`,
+      `npm test` 59/281 (2 skipped), oxlint (warning preexistente
+      `ConceptosTable`), `git diff --check`.
+
+## Layout Registro Retributivo - 2026-08-13
+
+- [x] Modal de detalle contenido en viewport (`max-w` + overflow-x hidden);
+      chips de periodo con wrap; tablas internas con scroll horizontal.
+      «Copiar resumen» eliminado en Personas y Cuadre.
+- [x] Títulos h2 duplicados quitados de Personas, Cuadre, Agrupaciones,
+      Historial y Ajustes. Inicio conserva «Comparativa Recibos vs Registro
+      Retributivo».
+- [x] «Análisis activo» en el pie de la sidebar local (y Sheet móvil).
+      Dashboard ya no muestra esa tarjeta.
+- [x] typecheck, page.test (2), `npm test` 58/278 (2 skipped), oxlint
+      (warnings preexistentes), build, `git diff --check`.
+
 ## Registro Retributivo nativo - 2026-08-13
 
 - [x] Feature en `/tools/registro-retributivo`: Inicio, Personas, Cuadre

@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Copy, FileCheck2, Search, Sigma, Table2 } from "lucide-react";
+import { CheckCircle2, FileCheck2, Search, Sigma, Table2 } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { AiExplanationPanel } from "@/features/registro-retributivo/components/ai/AiExplanationPanel";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
@@ -10,7 +10,6 @@ import { DataTableShell } from "@/features/registro-retributivo/components/commo
 import { ModalShell } from "@/features/registro-retributivo/components/common/ModalShell";
 import { SectionTabs } from "@/features/registro-retributivo/components/common/SectionTabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyDescription,
@@ -105,9 +104,9 @@ function matchesText(value: string | number | undefined, query: string): boolean
 
 function ModalField({ label, value }: Readonly<{ label: string; value?: string | number }>) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-xs font-semibold uppercase text-muted-foreground">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-foreground">{displayText(value) || "Sin dato"}</p>
+      <p className="mt-1 min-w-0 break-words text-sm font-semibold text-foreground">{displayText(value) || "Sin dato"}</p>
     </div>
   );
 }
@@ -127,7 +126,6 @@ function MoneyTriplet({ label, period, breakdown, diff }: Readonly<{ label: stri
 
 function DetailModal({ row, onClose }: Readonly<{ row: InternalExcelCheckRow; onClose: () => void }>) {
   const projection = selectBreakdownProjection(row);
-  const copySummary = `Cuadre Reg. ${projection.personId}: ${projection.status} - ${displayText(row.detail)}`;
   const aiPayload = buildInternalExcelExplainPayload(row);
 
   return (
@@ -135,9 +133,8 @@ function DetailModal({ row, onClose }: Readonly<{ row: InternalExcelCheckRow; on
       title="Detalle Cuadre Reg."
       onClose={onClose}
       maxWidth="4xl"
-      footer={<div className="flex justify-end"><Button type="button" variant="outline" onClick={() => void navigator.clipboard?.writeText(copySummary)}><Copy data-icon="inline-start" />Copiar resumen</Button></div>}
     >
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid min-w-0 gap-4 md:grid-cols-4">
           <ModalField label="Matrícula" value={projection.personId} />
           <ModalField label="Estado" value={projection.status} />
           <ModalField label="Centro" value={row.workplace} />
@@ -421,29 +418,18 @@ export function CuadreExcelView() {
 
   if (!result) {
     return (
-      <div className="flex flex-col gap-6">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Cuadre Reg.</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Consulta los cuadres internos del Excel Reg. Retrib.</p>
-        </div>
-        <Empty className="border">
-          <EmptyHeader>
-            <EmptyMedia variant="icon"><FileCheck2 /></EmptyMedia>
-            <EmptyTitle>No hay análisis activo</EmptyTitle>
-            <EmptyDescription>Carga el Registro Retributivo y los recibos para generar el Cuadre Reg.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon"><FileCheck2 /></EmptyMedia>
+          <EmptyTitle>No hay análisis activo</EmptyTitle>
+          <EmptyDescription>Carga el Registro Retributivo y los recibos para generar el Cuadre Reg.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Cuadre Reg.</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Consulta los cuadres internos del Excel Reg. Retrib.</p>
-      </div>
-
       <SectionTabs
         label="Vistas de Cuadre Reg."
         value={activeMode}

@@ -17,6 +17,7 @@ import type {
 import { findConceptRule, isRuleEnabledForComparison, mappingStatusFromConceptType } from "@/features/registro-retributivo/compare/conceptMapping";
 import { salaryStatus } from "@/features/registro-retributivo/compare/salaryDiff";
 import { roundMoney } from "@/features/registro-retributivo/utils/money";
+import { sortPeriodLabels } from "@/features/registro-retributivo/utils/spanishDates";
 import { normalizeComparableText, normalizeEmployeeId, normalizeEmployeeNumber } from "@/features/registro-retributivo/utils/normalize";
 
 export interface CompareOptions {
@@ -718,7 +719,7 @@ export async function compareAnalysis(
       unmappedConceptsCount: unmappedCount,
       status,
       detail: personDetail({ salaryDifference, salaryComplementDifference, extraSalaryDifference, totalDifference, options }),
-      periods: [...new Set(records.map((record) => record.periodLabel))],
+      periods: sortPeriodLabels([...new Set(records.map((record) => record.periodLabel))]),
       files: [...new Set(records.map((record) => `${record.sourceFile}${record.pageNumber ? ` p.${record.pageNumber}` : ""}`))],
     });
 

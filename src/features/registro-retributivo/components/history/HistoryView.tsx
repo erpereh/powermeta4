@@ -129,18 +129,14 @@ export function HistoryView() {
 
   return (
     <div ref={rootRef} tabIndex={-1} aria-label="Historial de análisis" className="flex flex-col gap-6 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Historial de análisis</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Recupera análisis anteriores guardados localmente, cambia el análisis activo o exporta comparativas ya generadas.</p>
-        </div>
-        {history.length ? (
+      {history.length ? (
+        <div className="flex justify-end">
           <Button type="button" variant="destructive" onClick={() => { setDeletionError(undefined); setDeleteTarget("all"); }}>
             <Trash2 data-icon="inline-start" />
             Limpiar historial
           </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {!history.length ? (
         <Empty className="border">

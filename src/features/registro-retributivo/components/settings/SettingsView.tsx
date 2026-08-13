@@ -46,10 +46,6 @@ export function SettingsView() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Ajustes</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Configura el análisis, las exclusiones y los conceptos sin alterar los resultados ya calculados.</p>
-      </div>
       <SectionTabs label="Secciones de ajustes" value={activeSection} items={SETTINGS_SECTIONS} onValueChange={selectSection} />
 
       {visited.has("general") ? (

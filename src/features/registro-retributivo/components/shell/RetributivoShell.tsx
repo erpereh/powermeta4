@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import type { AppView } from "@/features/registro-retributivo/types/views";
 
+import { ActiveAnalysisCard } from "./ActiveAnalysisCard";
 import { RetributivoInnerHeader } from "./RetributivoInnerHeader";
 import { RetributivoInnerNav } from "./RetributivoInnerNav";
 
@@ -56,9 +57,10 @@ export function RetributivoShell({
       />
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         <aside className="hidden min-h-0 w-52 shrink-0 overflow-y-auto border-r p-2 md:flex md:flex-col">
-          <RetributivoInnerNav view={view} onSelectView={selectView} />
+          <RetributivoInnerNav className="flex-1" view={view} onSelectView={selectView} />
+          <ActiveAnalysisCard />
         </aside>
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-auto p-4 md:p-6">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 md:p-6">
           {children}
         </main>
       </div>
@@ -68,8 +70,9 @@ export function RetributivoShell({
             <SheetHeader>
               <SheetTitle>Registro Retributivo</SheetTitle>
             </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
-              <RetributivoInnerNav view={view} onSelectView={selectView} />
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-4">
+              <RetributivoInnerNav className="flex-1" view={view} onSelectView={selectView} />
+              <ActiveAnalysisCard />
             </div>
           </SheetContent>
         </Sheet>
