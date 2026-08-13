@@ -1,5 +1,21 @@
 # powermeta4 - estado de tareas
 
+## Branding sidebar + Registro Retributivo - 2026-08-13
+
+- [x] Branch `feat/sidebar-branding-reg-retrib` desde `main` limpio.
+- [x] `PowermetaLogo` sigue siendo la API única; fallback de desarrollo
+      conservado. Falta el SVG definitivo en `public/brand/powermeta4-logo.svg`.
+- [x] Herramientas es un `Collapsible` de una sola superficie (no navega a
+      `/tools`). En desktop colapsada, el icono Wrench expande la sidebar y
+      abre el submenu.
+- [x] `STANDALONE_TOOLS` + `SIDEBAR_TOOL_ITEMS`: `Reg. Retrib.` primero, ruta
+      `/tools/registro-retributivo`, `implemented: false` y navegable.
+- [x] Pantalla placeholder con título, badge `Próximamente` y copy de estado.
+- [x] typecheck, oxlint, 45 archivos/177 pruebas, build y `git diff --check`.
+- [ ] Colocar el SVG oficial en `public/brand/powermeta4-logo.svg` (y, si hace
+      falta, `powermeta4-mark.svg`) y cambiar la fuente visual solo en
+      `PowermetaLogo`.
+
 ## Columna «Usuario Meta4» (clave_Self) en el listado - 2026-08-12
 
 - [x] `Meta4UserListItem.claveSelf` extraído de `clave_Self`; tercera columna

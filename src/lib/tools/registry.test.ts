@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { TOOL_ICONS, TOOL_MODULES, TOOL_REGISTRY, searchTools } from "@/lib/tools/registry";
+import {
+  SIDEBAR_TOOL_ITEMS,
+  STANDALONE_TOOLS,
+  TOOL_ICONS,
+  TOOL_MODULES,
+  TOOL_REGISTRY,
+  isStandaloneTool,
+  isToolRouteNavigable,
+  searchTools,
+} from "@/lib/tools/registry";
 
 describe("tool registry", () => {
   it("contains five modules with four actions each", () => {
@@ -83,5 +92,43 @@ describe("tool registry", () => {
     expect(searchTools("usuarios").modules.map((module) => module.id)).toContain("users");
     expect(searchTools("centro de trabajo").tools[0]?.id).toBe("companies.work-centers");
     expect(searchTools("empresas").tools.some((tool) => tool.moduleId === "companies")).toBe(true);
+  });
+
+  it("lists Registro Retributivo first as a navigable standalone tool", () => {
+    const registro = STANDALONE_TOOLS.find((tool) => tool.id === "registro-retributivo");
+
+    expect(SIDEBAR_TOOL_ITEMS.map((item) => item.name)).toEqual([
+      "Reg. Retrib.",
+      "Usuarios",
+      "Empresas",
+      "Nóminas",
+      "Informes",
+      "Procesos",
+    ]);
+    expect(registro).toMatchObject({
+      name: "Registro Retributivo",
+      shortName: "Reg. Retrib.",
+      route: "/tools/registro-retributivo",
+      icon: "registro-retributivo",
+      implemented: false,
+    });
+    expect(registro && TOOL_ICONS[registro.icon]).toBeTruthy();
+    expect(registro && isStandaloneTool(registro)).toBe(true);
+    expect(registro && isToolRouteNavigable(registro)).toBe(true);
+    expect(TOOL_MODULES).toHaveLength(5);
+    expect(TOOL_REGISTRY.every((tool) => tool.id !== "registro-retributivo")).toBe(true);
+    expect(isToolRouteNavigable(TOOL_REGISTRY.find((tool) => tool.id === "users.create")!)).toBe(
+      false,
+    );
+    expect(isToolRouteNavigable(TOOL_REGISTRY.find((tool) => tool.id === "users.consult")!)).toBe(
+      true,
+    );
+  });
+
+  it("finds standalone tools by name and keywords", () => {
+    expect(searchTools("registro retributivo").standalone.map((tool) => tool.id)).toEqual([
+      "registro-retributivo",
+    ]);
+    expect(searchTools("retrib").standalone[0]?.shortName).toBe("Reg. Retrib.");
   });
 });

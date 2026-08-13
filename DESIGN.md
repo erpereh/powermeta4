@@ -8,9 +8,13 @@ mientras Inicio y los workspaces locales organizan acciones preparadas para
 una futura conexión ERP.
 
 La fuente visual es el preset `b1temovYm`, junto con las primitivas existentes
-de shadcn/ui (estilo `radix-nova`) y assistant-ui. La identidad usa un símbolo
-geométrico simple que funciona como marca compacta y wordmark `powermeta4`; no
-usa estrellas, sparkles ni iniciales como decoración.
+de shadcn/ui (estilo `radix-nova`) y assistant-ui. La identidad visual se
+centraliza en `PowermetaLogo`. La fuente oficial será
+`/brand/powermeta4-logo.svg` (isotipo compacto opcional:
+`/brand/powermeta4-mark.svg`) cuando el SVG exista en `public/brand/`. Hasta
+entonces el componente conserva el mark geométrico de desarrollo y no renderiza
+un `<img>` hacia un archivo inexistente. SocietyHeader y login consumen ese
+componente; no duplican el asset.
 
 Los componentes de interfaz parten de shadcn/ui Nova: no se sustituyen por
 implementaciones paralelas salvo composiciones de producto (command palette,
@@ -46,17 +50,21 @@ La sidebar usa la base oficial existente con composición inspirada en
 - ya no hay selector, creación ni eliminación de workspaces desde la
   cabecera (el aislamiento interno por `activeCompanyId` / `society_code`
   se gestiona en servidor);
-- expandida muestra navegación, Herramientas, Favoritos, Chats y usuario;
+- expandida muestra navegación, el grupo Herramientas, Favoritos, Chats y usuario;
 - colapsada muestra únicamente controles funcionales, tooltips y avatar;
+- en desktop colapsada, pulsar el icono de Herramientas expande la sidebar
+  (`useSidebar().setOpen(true)`), abre el grupo y muestra el submenu; no usa
+  Popover ni DropdownMenu;
 - móvil conserva el Sheet/offcanvas nativo, nunca un rail permanente.
 
 El menú de usuario abre Ajustes como un diálogo grande con el perfil Meta4
 y las copias locales; `/settings` reutiliza el mismo contenido como
 deep-link.
 
-El enlace de Herramientas y su expansión son controles independientes. El
-enlace navega a `/tools`; el chevron solo abre o cierra el grupo, anuncia
-`aria-expanded` y no crea historial. El contenido principal conserva un único
+Herramientas es un grupo colapsable, no una ruta de navegación. Todo el row
+es el `CollapsibleTrigger`: abre o cierra el submenu, anuncia `aria-expanded`
+y no navega a `/tools`. El hijo activo (por ejemplo `Reg. Retrib.`) muestra
+estado seleccionado; el grupo no. El contenido principal conserva un único
 trigger accesible para la sidebar.
 
 ## Inicio y workspaces
@@ -75,11 +83,14 @@ El dock de módulos filtra la rejilla mediante `Tabs` en línea con
 `ScrollArea` horizontal; el acento cian (`primary`) aparece solo en el tab
 activo. `ToolCard` es una fila compacta (~75–100 px) con composición propia
 (`Link`/`button`, chip de icono, título, descripción breve y flecha); las no
-implementadas muestran badge `Próximamente` y no registran visita.
+implementadas muestran badge `Próximamente` y no registran visita. Las
+herramientas standalone con ruta placeholder sí navegan a esa pantalla.
 
 El registro central (`src/lib/tools/registry.ts`) es la única fuente de módulos,
-acciones, iconos, rutas y búsqueda. `searchTools` coincide por nombre,
-descripción, keywords y nombre de módulo.
+acciones, iconos, rutas y búsqueda. Admite herramientas standalone (sin las
+cuatro acciones de un módulo): aparecen primero en el submenu de Herramientas
+y pueden tener una ruta placeholder navegable aunque `implemented` sea `false`.
+`searchTools` coincide por nombre, descripción, keywords y nombre de módulo.
 
 Las visitas solo se registran para acciones implementadas; la ausencia de visitas
 tiene un empty state compacto con `Empty`.

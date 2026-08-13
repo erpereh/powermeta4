@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-08-13 - Branding de sidebar, Herramientas colapsable y Registro Retributivo
+
+### Cambios
+
+- `PowermetaLogo` permanece como único punto de branding. La ruta oficial
+  `/brand/powermeta4-logo.svg` queda documentada; el mark geométrico actual se
+  conserva como fallback de desarrollo porque `public/brand/` aún no existe.
+  SocietyHeader y login no renderizan el asset por su cuenta.
+- Herramientas deja de ser un enlace a `/tools`. Todo el row es el
+  `CollapsibleTrigger` (sin `SidebarMenuAction`). No toma estado de página
+  activa. En desktop con sidebar colapsada, pulsar el icono Wrench llama a
+  `setOpen(true)`, deja `toolsOpen=true` y muestra el submenu; no hay Popover
+  ni DropdownMenu. En móvil el grupo abre/cierra sin cerrar el Sheet; los
+  hijos sí cierran la sidebar al navegar.
+- El registry admite herramientas standalone. `Reg. Retrib.` (`Registro
+  Retributivo`) es la primera entrada del submenu, con icono `TableProperties`
+  y ruta `/tools/registro-retributivo`. `implemented` sigue en `false`; la
+  ruta placeholder es navegable desde sidebar, Home y Command Palette sin
+  registrar visita. Las 20 acciones ERP no cambian de semántica.
+- Nueva pantalla vacía en `/tools/registro-retributivo` con badge
+  `Próximamente` y el copy de estado. `/tools` sigue redirigiendo a `/home`.
+
+### Verificación automática
+
+- `npm run typecheck`
+- `npx oxlint` (limpio; `oxfmt --check` con hallazgos preexistentes en 30
+  archivos no tocados en este cambio — entorno sin config de oxfmt, no
+  atribuible a este cambio)
+- `npm test` — 45 archivos y 177 pruebas correctas
+- `npm run build` — incluye `/tools/registro-retributivo`
+- `git diff --check`
+- rama: `feat/sidebar-branding-reg-retrib` (sin commit)
+
+### Comprobación manual
+
+- No se colocó el SVG oficial; el fallback de desarrollo es el mark visible.
+- No se recorrió la UI en navegador (sociedades Meta4, temas y móvil) en este
+  entorno. El comportamiento de Herramientas colapsada/expandida y la ruta
+  placeholder quedan cubiertos por pruebas de Testing Library.
+
 ## 2026-08-12 - Columna «Usuario Meta4» (clave_Self) en el listado de usuarios
 
 ### Cambios

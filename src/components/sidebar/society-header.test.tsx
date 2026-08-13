@@ -53,6 +53,7 @@ describe("society header", () => {
     expect(screen.queryByText("Crear empresa")).toBeNull();
     expect(screen.queryByText("Eliminar empresa")).toBeNull();
     expect(screen.queryByLabelText(/Abrir empresas/i)).toBeNull();
+    expect(document.querySelector('img[src="/brand/powermeta4-logo.svg"]')).toBeNull();
   });
 
   it("shows development mode for debug auth", () => {

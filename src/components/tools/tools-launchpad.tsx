@@ -5,7 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { recordToolVisitAction } from "@/app/actions/workspace";
-import { TOOL_REGISTRY, type ToolDefinition } from "@/lib/tools/registry";
+import {
+  STANDALONE_TOOLS,
+  TOOL_REGISTRY,
+  isStandaloneTool,
+  type RegistryTool,
+} from "@/lib/tools/registry";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import { getWorkspaceScopeLabel } from "@/lib/workspaces/scope-label";
@@ -31,7 +36,7 @@ export function ToolsLaunchpad() {
   const triggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
 
   const filteredTools = useMemo(() => {
-    if (moduleFilter === "all") return TOOL_REGISTRY;
+    if (moduleFilter === "all") return [...STANDALONE_TOOLS, ...TOOL_REGISTRY];
     return TOOL_REGISTRY.filter((tool) => tool.moduleId === moduleFilter);
   }, [moduleFilter]);
 
@@ -57,8 +62,8 @@ export function ToolsLaunchpad() {
     });
   };
 
-  const handlePaletteSelect = (tool: ToolDefinition) => {
-    if (tool.implemented) handleToolVisit(tool.id);
+  const handlePaletteSelect = (tool: RegistryTool) => {
+    if (!isStandaloneTool(tool) && tool.implemented) handleToolVisit(tool.id);
   };
 
   const showUnavailable = () => setFeedback("Esta herramienta estará disponible próximamente.");
