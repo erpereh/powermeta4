@@ -181,6 +181,10 @@ const requiredTables = [
   "meta4_user_profile",
   "pending_backup_imports",
   "idempotency_receipts",
+  "retributivo_analyses",
+  "retributivo_settings",
+  "retributivo_state",
+  "retributivo_assistant_records",
 ];
 
 export const assertSqliteIntegrity = (databasePath: string): void => {

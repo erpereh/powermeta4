@@ -1,0 +1,42 @@
+[data-registro-retributivo-root] {
+  isolation: isolate;
+}
+
+[data-registro-retributivo-root] .assistant-markdown {
+  overflow-wrap: anywhere;
+  color: var(--card-foreground);
+}
+
+[data-registro-retributivo-root] .assistant-markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+[data-registro-retributivo-root] .assistant-markdown th,
+[data-registro-retributivo-root] .assistant-markdown td {
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  text-align: start;
+}
+
+[data-registro-retributivo-root] .assistant-markdown th {
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+[data-registro-retributivo-root] [data-slot="table-viewport"] thead {
+  background-color: var(--muted);
+}
+
+[data-registro-retributivo-root] [data-slot="table-viewport"] th {
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+[data-registro-retributivo-root] .tabular-nums,
+[data-registro-retributivo-root] td[align="right"] {
+  font-variant-numeric: tabular-nums;
+}
