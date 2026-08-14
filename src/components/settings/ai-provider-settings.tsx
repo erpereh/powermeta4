@@ -9,6 +9,7 @@ import {
   getAiProviderConfigsAction,
   updateAiProviderConfigAction,
 } from "@/app/actions/ai-provider-configs";
+import { hydrateWorkspaceStore } from "@/stores/use-workspace-store";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -95,6 +96,7 @@ export function AiProviderSettings() {
       setConfigs((current) => [result.data, ...current]);
       setForm(EMPTY_FORM);
       setNotice("Configuración de IA creada correctamente.");
+      await hydrateWorkspaceStore();
     } catch (createError: unknown) {
       setError(errorMessage(createError));
     } finally {
@@ -120,6 +122,7 @@ export function AiProviderSettings() {
       }
       setConfigs((current) => current.map((item) => (item.id === config.id ? result.data : item)));
       setNotice("Configuración de IA actualizada correctamente.");
+      await hydrateWorkspaceStore();
     } catch (updateError: unknown) {
       setError(errorMessage(updateError));
     } finally {
@@ -142,6 +145,7 @@ export function AiProviderSettings() {
       setConfigs((current) => current.filter((item) => item.id !== config.id));
       setPendingDelete(null);
       setNotice("Configuración de IA eliminada correctamente.");
+      await hydrateWorkspaceStore();
     } catch (deleteError: unknown) {
       setError(errorMessage(deleteError));
     } finally {

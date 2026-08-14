@@ -2,13 +2,10 @@
 
 import {
   AssistantRuntimeProvider,
-  fromThreadMessageLike,
   useExternalStoreRuntime,
   type AppendMessage,
   type ExportedMessageRepository,
-  type MessageStatus as RuntimeMessageStatus,
   type ThreadMessage,
-  type ThreadMessageLike,
 } from "@assistant-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -28,7 +25,8 @@ import {
   createStreamingPersistenceScheduler,
   type StreamingPersistenceScheduler,
 } from "@/lib/chat/stream-persistence";
-import { toAssistantUiMessageStatus, toInterruptedStatus } from "@/lib/chat/message-status";
+import { toInterruptedStatus } from "@/lib/chat/message-status";
+import { toThreadMessage } from "@/lib/chat/to-thread-message";
 import {
   hydrateWorkspaceStore,
   useWorkspaceStore,
@@ -70,24 +68,6 @@ const mergeMessages = (messages: readonly Message[], additions: readonly Message
     const rightDate = right.createdAt;
     return leftDate.localeCompare(rightDate) || left.id.localeCompare(right.id);
   });
-};
-
-const toThreadMessageLike = (message: Message): ThreadMessageLike => ({
-  role: message.role,
-  id: message.id,
-  createdAt: new Date(message.createdAt),
-  content: message.content,
-  ...(message.role === "assistant"
-    ? { status: toAssistantUiMessageStatus(message.status, message.errorCode) }
-    : { status: { type: "complete", reason: "stop" } }),
-});
-
-const toThreadMessage = (message: Message): ThreadMessage => {
-  const status: RuntimeMessageStatus =
-    message.role === "assistant"
-      ? toAssistantUiMessageStatus(message.status, message.errorCode)
-      : { type: "complete", reason: "stop" };
-  return fromThreadMessageLike(toThreadMessageLike(message), message.id, status);
 };
 
 const actionFailed = (result: { ok: boolean; message?: string }) =>
@@ -452,7 +432,7 @@ export function ChatRuntimeProvider({
         messageRepository,
         convertMessage: (message: ThreadMessage) => message,
         isRunning: runningMessageId !== null,
-        isSendDisabled: runningMessageId !== null,
+        isSendDisabled: runningMessageId !== null || selectedProviderConfigId === null,
         setMessages: () => undefined,
         unstable_onBranchChange: onBranchChange,
         onNew,
@@ -460,7 +440,16 @@ export function ChatRuntimeProvider({
         onReload,
         onCancel,
       }),
-      [messageRepository, onBranchChange, onCancel, onEdit, onNew, onReload, runningMessageId],
+      [
+        messageRepository,
+        onBranchChange,
+        onCancel,
+        onEdit,
+        onNew,
+        onReload,
+        runningMessageId,
+        selectedProviderConfigId,
+      ],
     ),
   );
 

@@ -5,6 +5,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import { bootstrapDatabase } from "@/server/database/bootstrap";
 import { runMigrations } from "@/server/database/migrations";
 import { createWorkspaceRepository } from "@/lib/workspace/repository";
+import { createAiProviderConfigRepository } from "@/server/database/repositories/ai-provider-config-repository";
+import { createDpapiAdapter } from "@/lib/security/dpapi";
+import type { AiProviderConfigInput } from "@/types/ai-provider-config";
 
 const databases: DatabaseSync[] = [];
 const META4_AUTH = {
@@ -14,13 +17,30 @@ const META4_AUTH = {
   societyCode: "CYC" as const,
 };
 
+const testDpapi = createDpapiAdapter({
+  platform: "win32",
+  runner: async (operation, value) =>
+    operation === "protect" ? `protected:${value}` : value.replace("protected:", ""),
+});
+
 const createRepository = () => {
   const database = new DatabaseSync(":memory:");
   database.exec("PRAGMA foreign_keys = ON");
   runMigrations(database);
   bootstrapDatabase(database);
   databases.push(database);
-  return { database, repository: createWorkspaceRepository(database) };
+  return {
+    database,
+    repository: createWorkspaceRepository(database),
+    providerConfigs: createAiProviderConfigRepository(database, testDpapi),
+  };
+};
+
+const CONFIG_INPUT: AiProviderConfigInput = {
+  name: "Gemini Flash",
+  baseUrl: "https://api.example.com/v1",
+  model: "gemini-flash",
+  apiKey: "secret-key",
 };
 
 afterEach(() => {
@@ -258,5 +278,81 @@ describe("workspace repository", () => {
     const recovered = snapshot.workspaces[company.id]?.chats[0]?.messages[0];
     expect(recovered).toMatchObject({ status: "incomplete", errorCode: "PROCESS_RESTARTED" });
     expect(snapshot.workspaces[company.id]?.chats[0]?.headMessageId).toBe("assistant-abandoned");
+  });
+
+  it("exposes newly created ai provider configs and auto-repairs the selection end to end", async () => {
+    const { repository, providerConfigs } = createRepository();
+    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    if (!company) throw new Error("The bootstrap company was not created");
+
+    const gemini = await providerConfigs.create(company.id, CONFIG_INPUT);
+    const firstSnapshot = await repository.getSnapshot(META4_AUTH);
+    const firstWorkspace = firstSnapshot.workspaces[company.id];
+    expect(firstWorkspace?.aiProviderConfigs).toEqual([gemini]);
+    expect(firstWorkspace?.preferences.selectedProviderConfigId).toBe(gemini.id);
+
+    const grok = await providerConfigs.create(company.id, {
+      ...CONFIG_INPUT,
+      name: "Grok Fast",
+      model: "grok-4-fast",
+    });
+    const secondSnapshot = await repository.getSnapshot(META4_AUTH);
+    const secondConfigs = secondSnapshot.workspaces[company.id]?.aiProviderConfigs ?? [];
+    expect(secondConfigs.map((config) => config.id).sort()).toEqual([gemini.id, grok.id].sort());
+
+    await repository.setSelectedProviderConfig(company.id, grok.id);
+    const reloadedSnapshot = await repository.getSnapshot(META4_AUTH);
+    expect(reloadedSnapshot.workspaces[company.id]?.preferences.selectedProviderConfigId).toBe(
+      grok.id,
+    );
+
+    await providerConfigs.delete(company.id, grok.id);
+    const afterDeleteSelected = await repository.getSnapshot(META4_AUTH);
+    expect(afterDeleteSelected.workspaces[company.id]?.preferences.selectedProviderConfigId).toBe(
+      gemini.id,
+    );
+    expect(afterDeleteSelected.workspaces[company.id]?.aiProviderConfigs).toEqual([gemini]);
+
+    await providerConfigs.delete(company.id, gemini.id);
+    const afterDeleteAll = await repository.getSnapshot(META4_AUTH);
+    expect(afterDeleteAll.workspaces[company.id]?.preferences.selectedProviderConfigId).toBeNull();
+    expect(afterDeleteAll.workspaces[company.id]?.aiProviderConfigs).toEqual([]);
+  });
+
+  it("never leaks an ai provider config into another company's snapshot", async () => {
+    const { repository, providerConfigs } = createRepository();
+    const firstCompany = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    if (!firstCompany) throw new Error("The bootstrap company was not created");
+    const secondCompany = await repository.createCompany({
+      id: "company-scope-test",
+      name: "Empresa aislada",
+    });
+
+    await providerConfigs.create(firstCompany.id, CONFIG_INPUT);
+    const snapshot = await repository.getSnapshot(META4_AUTH);
+    expect(snapshot.workspaces[firstCompany.id]?.aiProviderConfigs).toHaveLength(1);
+    expect(snapshot.workspaces[secondCompany.id]?.aiProviderConfigs).toEqual([]);
+    expect(snapshot.workspaces[secondCompany.id]?.preferences.selectedProviderConfigId).toBeNull();
+  });
+
+  it("keeps an incomplete config (empty model) out of the usable/selectable set", async () => {
+    const { repository, providerConfigs } = createRepository();
+    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    if (!company) throw new Error("The bootstrap company was not created");
+
+    const incomplete = await providerConfigs.create(company.id, CONFIG_INPUT);
+    await providerConfigs.update(company.id, incomplete.id, {
+      name: incomplete.name,
+      baseUrl: incomplete.baseUrl,
+      model: "",
+    });
+
+    expect(providerConfigs.list(company.id)).toHaveLength(1);
+    expect(providerConfigs.listUsable(company.id)).toHaveLength(0);
+
+    const snapshot = await repository.getSnapshot(META4_AUTH);
+    const workspace = snapshot.workspaces[company.id];
+    expect(workspace?.aiProviderConfigs).toHaveLength(1);
+    expect(workspace?.preferences.selectedProviderConfigId).toBeNull();
   });
 });
