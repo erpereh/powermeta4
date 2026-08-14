@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, Download, FileArchive, ShieldCheck } from "lucide-react";
 
 import { getMeta4ProfileViewAction } from "@/app/actions/meta4-profile";
+import { AiProviderSettings } from "@/components/settings/ai-provider-settings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -40,23 +41,11 @@ type ValidationResult = {
   importId: string;
 };
 
-type SettingsSectionId =
-  | "account"
-  | "organization"
-  | "role"
-  | "workplace"
-  | "labor"
-  | "session"
-  | "backups"
-  | "other";
+type SettingsSectionId = "person" | "ai" | "backups";
 
 const NAV_ITEMS: Array<{ id: SettingsSectionId; label: string }> = [
-  { id: "account", label: "Cuenta" },
-  { id: "organization", label: "Organización" },
-  { id: "role", label: "Puesto" },
-  { id: "workplace", label: "Centro de trabajo" },
-  { id: "labor", label: "Datos laborales" },
-  { id: "session", label: "Sesión Meta4" },
+  { id: "person", label: "Datos de la persona" },
+  { id: "ai", label: "Inteligencia artificial" },
   { id: "backups", label: "Datos y copias" },
 ];
 
@@ -110,7 +99,7 @@ export type SettingsContentProps = {
 export function SettingsContent({ variant = "page", className }: SettingsContentProps) {
   const auth = useWorkspaceStore((state) => state.auth);
   const isDebugMode = auth?.mode === "debug";
-  const [activeSection, setActiveSection] = useState<SettingsSectionId>("account");
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>("person");
   const [profile, setProfile] = useState<Meta4ProfileView | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -237,12 +226,6 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
     }
   };
 
-  const profileSection =
-    profile?.sections.find((section) => section.id === activeSection) ??
-    (activeSection === "other"
-      ? profile?.sections.find((section) => section.id === "other")
-      : undefined);
-
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col gap-4", className)}>
       {(error || notice) && (
@@ -353,6 +336,8 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                   </Button>
                 </section>
               </div>
+            ) : activeSection === "ai" ? (
+              <AiProviderSettings />
             ) : profileLoading ? (
               <div className="space-y-3" aria-busy="true">
                 <Skeleton className="h-7 w-40" />
@@ -376,33 +361,45 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                 </AlertDescription>
               </Alert>
             ) : (
-              <section className="space-y-4">
+              <section className="space-y-6">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-semibold">
-                    {NAV_ITEMS.find((item) => item.id === activeSection)?.label ?? "Ajustes"}
-                  </h2>
+                  <h2 className="text-lg font-semibold">Datos de la persona</h2>
                   {profile.societyCode && <Badge variant="secondary">{profile.societyCode}</Badge>}
                 </div>
-                {profileSection ? (
-                  <dl className="grid gap-4 sm:grid-cols-2">
-                    {profileSection.fields.map((field) => (
-                      <div key={`${profileSection.id}-${field.key}`} className="space-y-1">
-                        <dt className="text-sm text-muted-foreground">{field.label}</dt>
-                        <dd className="text-sm font-medium break-words">{field.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
+                {profile.sections.length > 0 ? (
+                  profile.sections.map((section) => (
+                    <section
+                      key={section.id}
+                      className="space-y-3"
+                      aria-labelledby={`settings-${section.id}-heading`}
+                    >
+                      <h3
+                        id={`settings-${section.id}-heading`}
+                        className="font-heading text-base font-medium"
+                      >
+                        {section.title}
+                      </h3>
+                      <dl className="grid gap-4 sm:grid-cols-2">
+                        {section.fields.map((field) => (
+                          <div key={`${section.id}-${field.key}`} className="space-y-1">
+                            <dt className="text-sm text-muted-foreground">{field.label}</dt>
+                            <dd className="text-sm font-medium break-words">{field.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                      {section.id === "session" && (
+                        <div className="flex items-start gap-3 text-sm text-muted-foreground">
+                          <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                          <p>
+                            Las cookies son opacas y HttpOnly. Los tokens Meta4 no se muestran ni
+                            se guardan en el navegador.
+                          </p>
+                        </div>
+                      )}
+                    </section>
+                  ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">No hay datos en esta sección.</p>
-                )}
-                {activeSection === "session" && (
-                  <div className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-                    <p>
-                      Las cookies son opacas y HttpOnly. Los tokens Meta4 no se muestran ni se
-                      guardan en el navegador.
-                    </p>
-                  </div>
+                  <p className="text-sm text-muted-foreground">No hay datos de la persona.</p>
                 )}
               </section>
             )}

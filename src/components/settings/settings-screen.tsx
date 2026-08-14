@@ -26,7 +26,8 @@ export function SettingsScreen() {
           <p className="text-sm font-medium text-muted-foreground">Configuración local</p>
           <h1 className="text-3xl font-semibold tracking-tight">Ajustes</h1>
           <p className="max-w-2xl text-muted-foreground">
-            Consulta tu perfil Meta4 y protege la información guardada en este equipo.
+            Consulta tu perfil Meta4, guarda configuraciones de IA y protege la información local
+            de este equipo.
           </p>
         </header>
         <SettingsContent variant="page" />

@@ -1,0 +1,285 @@
+"use client";
+
+import { useEffect, useState, type FormEvent } from "react";
+import { AlertCircle, CheckCircle2, KeyRound, Plus, Trash2 } from "lucide-react";
+
+import {
+  createAiProviderConfigAction,
+  deleteAiProviderConfigAction,
+  getAiProviderConfigsAction,
+} from "@/app/actions/ai-provider-configs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { AiProviderConfigView } from "@/types/ai-provider-config";
+
+type AiProviderForm = {
+  name: string;
+  baseUrl: string;
+  apiKey: string;
+};
+
+const EMPTY_FORM: AiProviderForm = { name: "", baseUrl: "", apiKey: "" };
+
+const errorMessage = (value: unknown): string =>
+  value instanceof Error ? value.message : "No se pudo completar la operación.";
+
+export function AiProviderSettings() {
+  const [configs, setConfigs] = useState<AiProviderConfigView[]>([]);
+  const [form, setForm] = useState<AiProviderForm>(EMPTY_FORM);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<"create" | "delete" | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<AiProviderConfigView | null>(null);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    void getAiProviderConfigsAction()
+      .then((result) => {
+        if (!mounted) return;
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        setConfigs(result.data);
+      })
+      .catch((loadError: unknown) => {
+        if (mounted) setError(errorMessage(loadError));
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy("create");
+    setError("");
+    setNotice("");
+    try {
+      const result = await createAiProviderConfigAction(form);
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setConfigs((current) => [result.data, ...current]);
+      setForm(EMPTY_FORM);
+      setNotice("Configuración de IA creada correctamente.");
+    } catch (createError: unknown) {
+      setError(errorMessage(createError));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+    const config = pendingDelete;
+    setBusy("delete");
+    setError("");
+    setNotice("");
+    try {
+      const result = await deleteAiProviderConfigAction(config.id);
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setConfigs((current) => current.filter((item) => item.id !== config.id));
+      setPendingDelete(null);
+      setNotice("Configuración de IA eliminada correctamente.");
+    } catch (deleteError: unknown) {
+      setError(errorMessage(deleteError));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {(error || notice) && (
+        <Alert variant={error ? "destructive" : "default"}>
+          {error ? <AlertCircle /> : <CheckCircle2 />}
+          <AlertTitle>
+            {error ? "No se pudo completar la operación" : "Operación completada"}
+          </AlertTitle>
+          <AlertDescription>{error || notice}</AlertDescription>
+        </Alert>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Configuraciones de inteligencia artificial</h2>
+          </CardTitle>
+          <CardDescription>
+            Guarda endpoints compatibles para usarlos en futuras integraciones locales. La API key
+            se cifra en este equipo y no se muestra completa.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="grid gap-4" onSubmit={(event) => void handleCreate(event)}>
+            <div className="grid gap-2">
+              <Label htmlFor="ai-provider-name">Nombre</Label>
+              <Input
+                id="ai-provider-name"
+                value={form.name}
+                onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                placeholder="Servidor local"
+                maxLength={120}
+                required
+                disabled={busy !== null}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ai-provider-base-url">Base URL</Label>
+              <Input
+                id="ai-provider-base-url"
+                type="url"
+                value={form.baseUrl}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, baseUrl: event.target.value }))
+                }
+                placeholder="https://api.example.com/v1"
+                maxLength={2048}
+                required
+                disabled={busy !== null}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ai-provider-api-key">API key</Label>
+              <Input
+                id="ai-provider-api-key"
+                type="password"
+                value={form.apiKey}
+                onChange={(event) => setForm((current) => ({ ...current, apiKey: event.target.value }))}
+                autoComplete="new-password"
+                maxLength={4096}
+                required
+                disabled={busy !== null}
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={busy !== null}>
+                <Plus />
+                Añadir configuración
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <section className="space-y-3" aria-labelledby="ai-provider-configs-heading">
+        <div className="space-y-1">
+          <h3 id="ai-provider-configs-heading" className="font-heading text-base font-medium">
+            Configuraciones creadas
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Estas configuraciones pertenecen a la empresa activa.
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="space-y-2" aria-busy="true" aria-label="Cargando configuraciones">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        ) : configs.length === 0 ? (
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyContent>
+                <EmptyTitle>No hay configuraciones de IA</EmptyTitle>
+                <EmptyDescription>
+                  Añade una Base URL y una API key para guardar tu primera configuración.
+                </EmptyDescription>
+              </EmptyContent>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <div className="space-y-2">
+            {configs.map((config) => (
+              <Card key={config.id} size="sm">
+                <CardContent className="flex items-center justify-between gap-4">
+                  <div className="min-w-0 space-y-1">
+                    <p className="font-medium break-words">{config.name}</p>
+                    <p className="break-all text-sm text-muted-foreground">{config.baseUrl}</p>
+                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <KeyRound className="size-3.5" aria-hidden="true" />
+                      {config.hasApiKey ? "API key: ••••••••" : "API key no disponible"}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Eliminar configuración ${config.name}`}
+                    onClick={() => setPendingDelete(config)}
+                    disabled={busy !== null}
+                  >
+                    <Trash2 />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <AlertDialog
+        open={Boolean(pendingDelete)}
+        onOpenChange={(open) => {
+          if (!open && busy !== "delete") setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar configuración de IA</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Eliminar la configuración «{pendingDelete?.name}»? Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy === "delete"}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDelete();
+              }}
+              disabled={busy === "delete"}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

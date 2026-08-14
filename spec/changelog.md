@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-14 - Ajustes: datos de la persona e inteligencia artificial
+
+### Cambios
+
+- Ajustes se reduce a tres opciones: `Datos de la persona`, `Inteligencia
+  artificial` y `Datos y copias`. El perfil Meta4 conserva todas sus secciones
+  en una única vista y el aviso de modo debug permanece disponible.
+- Se añade la tabla SQLite `ai_provider_configs`, aislada por `activeCompanyId`,
+  con repositorio y Server Actions de listado, alta y borrado. El nombre y la
+  Base URL se devuelven al cliente; las API keys se cifran con DPAPI CurrentUser
+  y se exponen únicamente como `hasApiKey`.
+- La nueva vista usa componentes shadcn existentes (`Card`, `Label`, `Input`,
+  `Button`, `AlertDialog`, `Empty`, `Separator` y `Skeleton`), limpia el
+  formulario tras el alta y muestra el borrado enmascarado con confirmación.
+- Los backups conservan los metadatos de cada configuración, pero sustituyen
+  `api_key_encrypted` por `null` durante el saneado.
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npm test` — 61 archivos, 290 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 compiló las rutas privadas
+  existentes, incluida `/settings`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` terminó sin errores del cambio y dejó 7 avisos
+  preexistentes; `oxfmt --check` no tiene configuración en este repositorio y
+  detectó formato en 156 archivos, incluidos archivos no tocados.
+
 ## 2026-08-13 - Personas: viewport, modal y periodos
 
 ### Cambios

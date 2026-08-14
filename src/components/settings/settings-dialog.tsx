@@ -24,7 +24,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         <DialogHeader className="shrink-0">
           <DialogTitle>Ajustes</DialogTitle>
           <DialogDescription>
-            Perfil Meta4, sesión local y copias de seguridad de este equipo.
+            Perfil Meta4, configuraciones de IA y copias locales de este equipo.
           </DialogDescription>
         </DialogHeader>
         <SettingsContent variant="dialog" className="min-h-0" />

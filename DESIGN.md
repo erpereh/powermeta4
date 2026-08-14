@@ -56,9 +56,9 @@ La sidebar usa la base oficial existente con composición inspirada en
   Popover ni DropdownMenu;
 - móvil conserva el Sheet/offcanvas nativo, nunca un rail permanente.
 
-El menú de usuario abre Ajustes como un diálogo grande con el perfil Meta4
-y las copias locales; `/settings` reutiliza el mismo contenido como
-deep-link.
+El menú de usuario abre Ajustes como un diálogo grande con los datos de la
+persona, las configuraciones locales de IA y las copias locales; `/settings`
+reutiliza el mismo contenido como deep-link.
 
 Herramientas es un grupo colapsable, no una ruta de navegación. Todo el row
 es el `CollapsibleTrigger`: abre o cierra el submenu, anuncia `aria-expanded`

@@ -71,6 +71,11 @@ const createFixture = async () => {
       "INSERT INTO meta4_user_profile (id, username, society, display_name, profile_json_encrypted, looked_up_at, created_at, updated_at) VALUES ('global', 'usuario', 'CYC', 'Usuario', 'encrypted-profile', ?, ?, ?)",
     )
     .run(timestamp, timestamp, timestamp);
+  database
+    .prepare(
+      "INSERT INTO ai_provider_configs (id, company_id, name, base_url, api_key_encrypted, created_at, updated_at) VALUES ('ai-config-backup', ?, 'Servidor local', 'http://localhost:11434/v1', 'encrypted-api-key', ?, ?)",
+    )
+    .run(company.id, timestamp, timestamp);
   await writeFile(path.join(paths.uploadsDir, "hello.txt"), "upload content");
   return { dataDir, paths };
 };
@@ -146,6 +151,17 @@ describe("backup safety and exact format", () => {
         ).toMatchObject({ count: 0 });
         expect(database.prepare("SELECT COUNT(*) AS count FROM messages").get()).toMatchObject({
           count: 1,
+        });
+        expect(
+          database
+            .prepare(
+              "SELECT name, base_url, api_key_encrypted FROM ai_provider_configs WHERE id = 'ai-config-backup'",
+            )
+            .get(),
+        ).toEqual({
+          name: "Servidor local",
+          base_url: "http://localhost:11434/v1",
+          api_key_encrypted: null,
         });
       } finally {
         database.close();

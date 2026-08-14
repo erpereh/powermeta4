@@ -70,9 +70,11 @@ POWERMETA4_DEBUG_USERNAME=DEBUG
 El modo requiere que `NODE_ENV` sea exactamente `development`; con `npm run build`
 y `npm run start` queda deshabilitado incluso si la variable permanece en `true`.
 Una sesión debug solo crea una sesión local SQLite y permite trabajar con
-empresas, chats, ajustes y copias locales. No crea, restaura ni reutiliza una
-sesión Meta4, ni expone tokens. Si se desactiva el flag, la cookie debug se
-revoca y se exige un login Meta4 explícito.
+empresas, chats, ajustes, configuraciones de IA y copias locales. No crea,
+restaura ni reutiliza una sesión Meta4, ni expone tokens. Las API keys de IA se
+cifran con DPAPI CurrentUser y solo se devuelve al cliente si están
+configuradas; las copias eliminan ese cifrado. Si se desactiva el flag, la
+cookie debug se revoca y se exige un login Meta4 explícito.
 
 ## Copias locales
 
@@ -89,7 +91,7 @@ El manifest tiene exactamente estas cinco propiedades:
 ```json
 {
   "backupVersion": 1,
-  "databaseSchemaVersion": 3,
+  "databaseSchemaVersion": 6,
   "appVersion": "...",
   "createdAt": "...",
   "databasePath": "database/powermeta4.db"
@@ -99,8 +101,9 @@ El manifest tiene exactamente estas cinco propiedades:
 La instantánea activa el lock de escrituras solo durante `backup()`. El
 saneamiento de la copia, la lectura de uploads y la compresión se realizan sin
 ese lock. Sesiones, imports pendientes, recibos de idempotencia y el perfil Meta4
-cifrado se eliminan de la copia temporal; la base activa no se modifica al
-exportar.
+cifrado se eliminan de la copia temporal. Las configuraciones de IA conservan
+nombre y Base URL, pero su API key cifrada se sustituye por `null`; la base
+activa no se modifica al exportar.
 
 La restauración exige coincidencia exacta de `backupVersion` y
 `databaseSchemaVersion` antes de adquirir mantenimiento. Valida seguridad del
@@ -130,8 +133,8 @@ del proyecto jamás puedan compilar código nativo.
 
 - `/login`: autenticación Meta4 local y, solo en desarrollo habilitado, modo debug local.
 - `/`, `/home`, `/chat/new` y `/chat/[chatId]`: chat y launchpad.
-- `/settings`: perfil Meta4 (deep-link) y copias locales; el menú de usuario
-  también abre el mismo contenido en un diálogo.
+- `/settings`: datos de la persona, configuraciones locales de IA y datos/copias;
+  el menú de usuario también abre el mismo contenido en un diálogo.
 - `/tools`, `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
   `/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`:
   catálogo local de herramientas; `/tools/registro-retributivo` analiza el

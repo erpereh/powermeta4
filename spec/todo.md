@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Ajustes: datos de la persona e inteligencia artificial - 2026-08-14
+
+- [x] Ajustes queda reducido a `Datos de la persona`, `Inteligencia artificial`
+      y `Datos y copias`, en ese orden. Todas las secciones disponibles del
+      perfil Meta4 se muestran agrupadas en una sola vista y se conserva el
+      aviso de modo debug.
+- [x] Añadida la persistencia `ai_provider_configs`, aislada por empresa
+      activa, con repositorio y Server Actions para listar, crear y eliminar.
+      Las API keys se cifran con DPAPI y el cliente recibe únicamente
+      `hasApiKey`; las copias conservan metadatos y eliminan el cifrado.
+- [x] Añadido formulario shadcn con nombre, Base URL y API key, listado
+      enmascarado y borrado confirmado mediante `AlertDialog`, incluyendo
+      validación de URLs absolutas `http`/`https`.
+- [x] Verificación final: `npm run typecheck`, `npm test` (61 archivos, 290
+      pruebas correctas y 2 omitidas), `npm run build` y `git diff --check`.
+      `npm run lint` ejecuta `oxlint` sin errores del cambio, pero el comando
+      completo no pasa porque `oxfmt --check` carece de configuración y detecta
+      formato en 156 archivos del repositorio, incluidos archivos no tocados.
+
 ## Personas viewport, modal y periodos - 2026-08-13
 
 - [x] Tabla Personas encajada en el `main` (`flex-1`, sin `max-h-[70dvh]`).
