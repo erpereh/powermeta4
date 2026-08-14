@@ -12,6 +12,7 @@ import {
 } from "@assistant-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { confirmAgentDisambiguationAction } from "@/app/actions/agent";
 import {
   createConversationAction,
   finalizeMessageAction,
@@ -20,7 +21,9 @@ import {
   upsertMessageAction,
   updateMessageAction,
 } from "@/app/actions/workspace";
-import { mockChatModel } from "@/lib/mock-runtime";
+import { AgentDisambiguationProvider } from "@/components/chat/agent-disambiguation-context";
+import { runAgentChatStream } from "@/lib/chat/agent-runtime-adapter";
+import { visibleMessages } from "@/lib/chat/visible-messages";
 import {
   createStreamingPersistenceScheduler,
   type StreamingPersistenceScheduler,
@@ -38,7 +41,7 @@ type ChatRuntimeProviderProps = {
   companyId: CompanyId;
   chatId: string;
   children: ReactNode;
-  selectedModelId: string;
+  selectedProviderConfigId: string | null;
 };
 
 type RunOptions = {
@@ -69,21 +72,6 @@ const mergeMessages = (messages: readonly Message[], additions: readonly Message
   });
 };
 
-const visibleMessages = (chat: Chat): Message[] => {
-  const byId = new Map(chat.messages.map((message) => [message.id, message]));
-  let currentId = chat.headMessageId ?? chat.messages.at(-1)?.id ?? null;
-  const path: Message[] = [];
-  const visited = new Set<string>();
-  while (currentId && !visited.has(currentId)) {
-    visited.add(currentId);
-    const current = byId.get(currentId);
-    if (!current) break;
-    path.push(current);
-    currentId = current.parentMessageId ?? null;
-  }
-  return path.reverse();
-};
-
 const toThreadMessageLike = (message: Message): ThreadMessageLike => ({
   role: message.role,
   id: message.id,
@@ -109,7 +97,7 @@ export function ChatRuntimeProvider({
   companyId,
   chatId,
   children,
-  selectedModelId,
+  selectedProviderConfigId,
 }: ChatRuntimeProviderProps) {
   const chat = useWorkspaceStore((state) =>
     getChat(state.workspaces[companyId]?.chats ?? [], chatId),
@@ -174,14 +162,10 @@ export function ChatRuntimeProvider({
         currentMessages,
         options.preserveUserMessage ? [assistantMessage] : [userMessage, assistantMessage],
       );
-      const threadMessages = [
-        ...baseMessages.filter((message) => message.id !== assistantMessage.id),
-        ...(options.preserveUserMessage ? [] : [userMessage]),
-      ].map(toThreadMessage);
       const controller = new AbortController();
       const scheduler = createStreamingPersistenceScheduler();
       schedulerRef.current = scheduler;
-      let latestContent = "";
+      let latestContent: MessageContent = [];
       let sequence = 0;
       let persistenceError: Error | null = null;
 
@@ -267,24 +251,21 @@ export function ChatRuntimeProvider({
         const assistantError = actionFailed(assistantResult);
         if (assistantError) throw assistantError;
 
-        const stream = mockChatModel.run({
-          messages: threadMessages,
-          runConfig: runConfig ?? {},
+        const stream = runAgentChatStream({
+          companyId,
+          providerConfigId: selectedProviderConfigId,
+          conversationId: chatId,
+          assistantMessageId: assistantMessage.id,
           abortSignal: controller.signal,
-          context: { config: { modelName: selectedModelId } },
-          unstable_parentId: parentId,
-          unstable_assistantMessageId: assistantMessage.id,
-          unstable_threadId: chatId,
-          unstable_getMessage: () => threadMessages.at(-1)!,
         });
 
         for await (const result of stream) {
           if (controller.signal.aborted) break;
-          latestContent = getContentText(result.content ?? "");
-          if (!latestContent) continue;
-          const content: MessageContent = [{ type: "text", text: latestContent }];
-          setMessageContent(chatId, assistantMessage.id, content, companyId);
-          scheduler.push(latestContent, persistPartial);
+          const nextContent = (result.content ?? []) as MessageContent;
+          if (!Array.isArray(nextContent) || nextContent.length === 0) continue;
+          latestContent = nextContent;
+          setMessageContent(chatId, assistantMessage.id, latestContent, companyId);
+          scheduler.push(getContentText(latestContent), persistPartial);
         }
 
         await scheduler.flush(persistPartial);
@@ -294,9 +275,7 @@ export function ChatRuntimeProvider({
           ? "cancelled"
           : "complete";
         sequence += 1;
-        const finalContent: MessageContent = latestContent
-          ? [{ type: "text", text: latestContent }]
-          : [];
+        const finalContent: MessageContent = latestContent.length > 0 ? latestContent : [];
         const finalResult = await finalizeMessageAction({
           companyId,
           conversationId: chatId,
@@ -317,9 +296,7 @@ export function ChatRuntimeProvider({
         try {
           await scheduler.flush(persistPartial);
           sequence += 1;
-          const failedContent: MessageContent = latestContent
-            ? [{ type: "text", text: latestContent }]
-            : [];
+          const failedContent: MessageContent = latestContent.length > 0 ? latestContent : [];
           await finalizeMessageAction({
             companyId,
             conversationId: chatId,
@@ -347,7 +324,7 @@ export function ChatRuntimeProvider({
     [
       chatId,
       companyId,
-      selectedModelId,
+      selectedProviderConfigId,
       setChatHead,
       setChatMessages,
       setChatTitle,
@@ -368,6 +345,32 @@ export function ChatRuntimeProvider({
         visibleMessages(currentChat),
         message.parentId,
         message.runConfig,
+      );
+    },
+    [chatId, companyId, runConversation],
+  );
+
+  const confirmDisambiguation = useCallback(
+    async (pendingId: string, choiceId: string) => {
+      const result = await confirmAgentDisambiguationAction({
+        companyId,
+        conversationId: chatId,
+        pendingId,
+        choiceId,
+      });
+      if (!result.ok) {
+        await hydrateWorkspaceStore();
+        return;
+      }
+      const currentChat = getChat(
+        workspaceStore.getState().workspaces[companyId]?.chats ?? [],
+        chatId,
+      );
+      if (!currentChat) return;
+      await runConversation(
+        result.data.rewrittenText,
+        visibleMessages(currentChat),
+        currentChat.headMessageId ?? null,
       );
     },
     [chatId, companyId, runConversation],
@@ -461,5 +464,11 @@ export function ChatRuntimeProvider({
     ),
   );
 
-  return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
+  return (
+    <AssistantRuntimeProvider runtime={runtime}>
+      <AgentDisambiguationProvider value={confirmDisambiguation}>
+        {children}
+      </AgentDisambiguationProvider>
+    </AssistantRuntimeProvider>
+  );
 }

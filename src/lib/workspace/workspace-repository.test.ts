@@ -113,7 +113,6 @@ describe("workspace repository", () => {
       status: "incomplete",
       clientMutationId: "55555555-5555-4555-8555-555555555555",
     });
-    await repository.setSelectedModel(secondCompany.id, "luma-deep");
     await repository.recordToolVisit(secondCompany.id, "users.consult");
 
     await expect(
@@ -121,7 +120,7 @@ describe("workspace repository", () => {
     ).rejects.toThrow(/no pertenece/);
 
     const secondWorkspace = (await repository.getSnapshot(META4_AUTH)).workspaces[secondCompany.id];
-    expect(secondWorkspace?.preferences.selectedModelId).toBe("luma-deep");
+    expect(secondWorkspace?.preferences.selectedProviderConfigId).toBeNull();
     expect(secondWorkspace?.recentTools[0]?.toolId).toBe("users.consult");
 
     expect(await repository.deleteCompany(secondCompany.id)).toBe(initialCompany.id);

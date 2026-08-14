@@ -6,17 +6,17 @@ import { useRouter } from "next/navigation";
 import { Thread } from "@/components/assistant-ui/thread";
 import { useWorkspaceHydrated } from "@/components/app-shell/app-shell";
 import { ChatRuntimeProvider } from "@/components/chat/chat-runtime-provider";
-import { mockModels } from "@/data/mock-models";
 import {
   createConversationAction,
   selectConversationAction,
-  setSelectedModelAction,
+  setSelectedProviderConfigAction,
 } from "@/app/actions/workspace";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { isUsableAiProviderConfig } from "@/types/ai-provider-config";
 import type { CompanyId } from "@/types/workspace";
 
 type ChatScreenProps = {
@@ -33,7 +33,7 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
   );
   const createChat = useWorkspaceStore((state) => state.createChat);
   const selectChat = useWorkspaceStore((state) => state.selectChat);
-  const setSelectedModel = useWorkspaceStore((state) => state.setSelectedModel);
+  const setSelectedProviderConfig = useWorkspaceStore((state) => state.setSelectedProviderConfig);
   const sidebarOpen = isMobile ? openMobile : open;
   const sidebarTriggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
   const activeChat = requestedChatId
@@ -80,7 +80,12 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
 
   if (!hydrated || !companyId || !activeChat || !workspace) return null;
 
-  const selectedModelId = workspace.preferences.selectedModelId || mockModels[0].id;
+  const usableModels = (workspace.aiProviderConfigs ?? []).filter(isUsableAiProviderConfig);
+  const selectedProviderConfigId =
+    workspace.preferences.selectedProviderConfigId &&
+    usableModels.some((config) => config.id === workspace.preferences.selectedProviderConfigId)
+      ? workspace.preferences.selectedProviderConfigId
+      : (usableModels[0]?.id ?? null);
 
   return (
     <main className="flex h-svh min-h-0 flex-col">
@@ -104,18 +109,20 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
           key={`${companyId}:${activeChat.id}`}
           companyId={companyId as CompanyId}
           chatId={activeChat.id}
-          selectedModelId={selectedModelId}
+          selectedProviderConfigId={selectedProviderConfigId}
         >
           <Thread
-            models={mockModels}
-            selectedModelId={selectedModelId}
-            onModelChange={(modelId) => {
-              setSelectedModel(modelId, companyId);
-              void setSelectedModelAction(companyId, modelId, createClientMutationId()).then(
-                (result) => {
-                  if (!result.ok) void hydrateWorkspaceStore();
-                },
-              );
+            models={usableModels.map((config) => ({ id: config.id, name: config.name }))}
+            selectedProviderConfigId={selectedProviderConfigId}
+            onProviderChange={(providerConfigId) => {
+              setSelectedProviderConfig(providerConfigId, companyId);
+              void setSelectedProviderConfigAction(
+                companyId,
+                providerConfigId,
+                createClientMutationId(),
+              ).then((result) => {
+                if (!result.ok) void hydrateWorkspaceStore();
+              });
             }}
           />
         </ChatRuntimeProvider>

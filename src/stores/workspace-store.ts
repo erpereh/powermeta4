@@ -1,6 +1,5 @@
 import { createStore, type StateCreator, type StoreApi } from "zustand/vanilla";
 
-import { mockModels } from "@/data/mock-models";
 import {
   DEFAULT_CHAT_COLOR,
   DEFAULT_CHAT_ICON,
@@ -54,7 +53,7 @@ export type WorkspaceStore = WorkspaceSnapshotState & {
     status: MessageStatus,
     companyId?: CompanyId,
   ) => void;
-  setSelectedModel: (modelId: string, companyId?: CompanyId) => void;
+  setSelectedProviderConfig: (providerConfigId: string, companyId?: CompanyId) => void;
   recordToolVisit: (toolId: string, companyId?: CompanyId) => void;
 };
 
@@ -79,8 +78,9 @@ const createWorkspaceData = (): WorkspaceData => ({
   activeChatId: null,
   recentTools: [],
   preferences: {
-    selectedModelId: mockModels[0]?.id ?? "luma-balanced",
+    selectedProviderConfigId: null,
   },
+  aiProviderConfigs: [],
 });
 
 export const createInitialWorkspaces = (): Partial<Record<CompanyId, WorkspaceData>> => ({});
@@ -117,6 +117,7 @@ const cloneWorkspaceState = (state: WorkspaceSnapshotState): WorkspaceSnapshotSt
             })),
             recentTools: workspace.recentTools.map((visit) => ({ ...visit })),
             preferences: { ...workspace.preferences },
+            aiProviderConfigs: (workspace.aiProviderConfigs ?? []).map((config) => ({ ...config })),
           },
         ] as const,
       ];
@@ -395,12 +396,12 @@ const createWorkspaceStoreState =
         })),
       );
     },
-    setSelectedModel: (modelId, companyId) => {
+    setSelectedProviderConfig: (providerConfigId, companyId) => {
       const targetCompanyId = resolveCompanyId(get(), companyId);
       set((state) =>
         updateWorkspace(state, targetCompanyId, (workspace) => ({
           ...workspace,
-          preferences: { ...workspace.preferences, selectedModelId: modelId },
+          preferences: { ...workspace.preferences, selectedProviderConfigId: providerConfigId },
         })),
       );
     },

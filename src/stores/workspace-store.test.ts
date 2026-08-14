@@ -47,13 +47,15 @@ const snapshot: WorkspaceSnapshotState = {
       ],
       activeChatId: "chat-one",
       recentTools: [],
-      preferences: { selectedModelId: "luma-balanced" },
+      preferences: { selectedProviderConfigId: null },
+      aiProviderConfigs: [],
     },
     "company-two": {
       chats: [],
       activeChatId: null,
       recentTools: [],
-      preferences: { selectedModelId: "luma-balanced" },
+      preferences: { selectedProviderConfigId: null },
+      aiProviderConfigs: [],
     },
   },
   auth: { mode: "meta4", username: "usuario", canUseMeta4: true, societyCode: null },
@@ -92,12 +94,12 @@ describe("server snapshot workspace store", () => {
     store.getState().applySnapshot(snapshot);
 
     store.getState().toggleFavorite("chat-one", "company-one");
-    store.getState().setSelectedModel("luma-deep", "company-one");
+    store.getState().setSelectedProviderConfig("config-deep", "company-one");
     const newChatId = store.getState().createChat("company-two");
 
     expect(store.getState().workspaces["company-one"]?.chats[0]?.favorite).toBe(true);
-    expect(store.getState().workspaces["company-one"]?.preferences.selectedModelId).toBe(
-      "luma-deep",
+    expect(store.getState().workspaces["company-one"]?.preferences.selectedProviderConfigId).toBe(
+      "config-deep",
     );
     expect(store.getState().workspaces["company-two"]?.chats[0]?.id).toBe(newChatId);
   });

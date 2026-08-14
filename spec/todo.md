@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Agent runtime + Privacy Gateway - 2026-08-14
+
+- [x] Migración `007_agent_runtime`: `ai_provider_configs.model` nullable,
+      vault `agent_privacy_bindings` (solo `EMP_*`), `agent_turn_projections`
+      y `agent_pending_disambiguation`. `DATABASE_SCHEMA_VERSION = 7`.
+- [x] Picker del composer alimentado por configs usables de la empresa
+      activa (`selectedProviderConfigId`). Sin lista Luma. El servidor no
+      confía el `providerConfigId` del cliente.
+- [x] Privacy gateway fail-closed: el transcript SQLite visible permanece
+      real; el LLM solo recibe proyecciones. Sin proyección + PII en un
+      turno del asistente → no hay `fetch` al proveedor y el historial no
+      se borra. Sin vault `VAL_*`. Una sola herramienta real:
+      `employee.get_field`. WRITE no se ejecuta.
+- [x] Contrato de privacidad: body JSON completo sin PII; respuesta visible
+      local con nombre y puesto; follow-up reutiliza `EMP_*`; debug sin SOAP;
+      proyección ausente bloquea el proveedor y conserva el mensaje real.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin errores
+      del cambio (warnings preexistentes de Registro Retributivo);
+      `npm test` 62 archivos, 300 pruebas correctas y 2 omitidas;
+      `npm run build` correcto (incluye `POST /api/agent/run`);
+      `git diff --check` correcto. `npm run lint` falla en `oxfmt --check`
+      (sin configuración; 178 archivos, incluidos no tocados). Sin commit.
+
 ## Ajustes: datos de la persona e inteligencia artificial - 2026-08-14
 
 - [x] Ajustes queda reducido a `Datos de la persona`, `Inteligencia artificial`

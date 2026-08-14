@@ -49,6 +49,19 @@ Las conversaciones conservan ramas mediante `parentMessageId`,
 assistant-ui. Los mensajes `running` abandonados se recuperan como
 `incomplete` y no se reanudan automáticamente.
 
+El asistente usa `POST /api/agent/run` (SSE, Node.js) con un proveedor
+OpenAI-compatible configurado en Ajustes (`name`, Base URL, `model` nullable
+hasta completarlo, API key cifrada con DPAPI). El picker del composer no es
+una lista estática: solo configs usables de la empresa activa. El esquema
+actual es `DATABASE_SCHEMA_VERSION = 7` (migración `007_agent_runtime`:
+columna `model`, vault `EMP_*`, proyecciones y desambiguación pendiente).
+
+El transcript visible en SQLite conserva el texto real (nombres, puestos,
+ramas). La historia enviada al modelo es una proyección sanitizada
+(`EMP_*` + semántica de tools). Si falta esa proyección y el turno visible
+tiene datos protegidos, no se llama al proveedor y el historial no se
+modifica. En modo debug, las preguntas de empleado no ejecutan SOAP.
+
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Tras un login Meta4 real se consulta el perfil de usuario
 (`CSP_CONSULTA_ORO_INTRAN_NEW`, endpoint provisional configurable) para

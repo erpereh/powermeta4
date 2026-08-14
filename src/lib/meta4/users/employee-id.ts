@@ -15,3 +15,6 @@ export const compareEmployeeIds = (a: string, b: string): number => {
   }
   return a.localeCompare(b);
 };
+
+export const employeeIdsEqual = (left: string, right: string): boolean =>
+  compareEmployeeIds(left, right) === 0;

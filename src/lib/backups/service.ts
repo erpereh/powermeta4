@@ -168,6 +168,9 @@ const inspectZip = async (bytes: Uint8Array, limits: BackupLimits): Promise<Insp
 };
 
 const requiredTables = [
+  "agent_pending_disambiguation",
+  "agent_privacy_bindings",
+  "agent_turn_projections",
   "ai_provider_configs",
   "schema_migrations",
   "companies",

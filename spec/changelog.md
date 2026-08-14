@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-14 - Agent runtime y Privacy Gateway
+
+### Cambios
+
+- El chat deja el mock y usa `POST /api/agent/run` (SSE, Node.js) con un
+  proveedor OpenAI-compatible configurado en Ajustes. El composer lista
+  configs usables (`model` + API key); el servidor valida empresa, sesión y
+  config antes de descifrar la clave.
+- El transcript visible en SQLite sigue siendo el historial real. La historia
+  hacia el LLM es una proyección (`EMP_*` y semántica de tools). Si falta la
+  proyección de un turno con datos protegidos, no se llama al proveedor y no
+  se reescribe ni se borra el chat.
+- Primera herramienta SOAP: `employee.get_field` (plantilla local). Las
+  menciones ambiguas se resuelven en servidor con botones; modo debug no
+  llama a Meta4 ni al modelo para preguntas de empleado.
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en Registro
+  Retributivo.
+- `npm test` — 62 archivos, 300 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 incluye `POST /api/agent/run`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en 178 archivos, incluidos
+  archivos no tocados. Sin commit.
+
 ## 2026-08-14 - Ajustes: datos de la persona e inteligencia artificial
 
 ### Cambios

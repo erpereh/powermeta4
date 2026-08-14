@@ -1,4 +1,5 @@
 import type { Chat } from "@/types/chat";
+import type { AiProviderConfigView } from "@/types/ai-provider-config";
 
 export type CompanyId = string;
 
@@ -20,7 +21,7 @@ export type ToolVisit = {
 };
 
 export type WorkspacePreferences = {
-  selectedModelId: string;
+  selectedProviderConfigId: string | null;
 };
 
 export type WorkspaceData = {
@@ -28,4 +29,5 @@ export type WorkspaceData = {
   activeChatId: string | null;
   recentTools: ToolVisit[];
   preferences: WorkspacePreferences;
+  aiProviderConfigs: AiProviderConfigView[];
 };

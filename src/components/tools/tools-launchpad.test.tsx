@@ -23,7 +23,8 @@ vi.mock("@/stores/use-workspace-store", () => ({
           chats: never[];
           activeChatId: null;
           recentTools: never[];
-          preferences: { selectedModelId: string };
+      preferences: { selectedProviderConfigId: string | null };
+      aiProviderConfigs: never[];
         }
       >;
       recordToolVisit: () => void;
@@ -42,7 +43,8 @@ vi.mock("@/stores/use-workspace-store", () => ({
           chats: [],
           activeChatId: null,
           recentTools: [],
-          preferences: { selectedModelId: "local" },
+          preferences: { selectedProviderConfigId: null },
+          aiProviderConfigs: [],
         },
       },
       recordToolVisit: () => undefined,

@@ -7,6 +7,7 @@ import { getDatabase } from "@/server/database/client";
 import { createAiProviderConfigRepository } from "@/server/database/repositories/ai-provider-config-repository";
 import type {
   AiProviderConfigInput,
+  AiProviderConfigUpdate,
   AiProviderConfigView,
 } from "@/types/ai-provider-config";
 import type { ActionResult } from "@/lib/local-database/dtos";
@@ -28,14 +29,13 @@ const readTrimmedString = (value: unknown, label: string): string => {
   return value.trim();
 };
 
-const validateInput = (value: unknown): AiProviderConfigInput => {
-  if (!isRecord(value)) throw new Error("La configuración de IA no es válida.");
+const validateBaseFields = (value: Record<string, unknown>) => {
   const name = readTrimmedString(value.name, "El nombre");
   const baseUrl = readTrimmedString(value.baseUrl, "La Base URL");
-  const apiKey = readTrimmedString(value.apiKey, "La API key");
+  const model = readTrimmedString(value.model, "El model id");
 
   if (name.length > 120) throw new Error("El nombre no puede superar 120 caracteres.");
-  if (apiKey.length > 4096) throw new Error("La API key no puede superar 4096 caracteres.");
+  if (model.length > 200) throw new Error("El model id no puede superar 200 caracteres.");
 
   let parsedUrl: URL;
   try {
@@ -48,7 +48,23 @@ const validateInput = (value: unknown): AiProviderConfigInput => {
   }
   if (baseUrl.length > 2048) throw new Error("La Base URL no puede superar 2048 caracteres.");
 
-  return { name, baseUrl, apiKey };
+  return { name, baseUrl, model };
+};
+
+const validateInput = (value: unknown): AiProviderConfigInput => {
+  if (!isRecord(value)) throw new Error("La configuración de IA no es válida.");
+  const apiKey = readTrimmedString(value.apiKey, "La API key");
+  if (apiKey.length > 4096) throw new Error("La API key no puede superar 4096 caracteres.");
+  return { ...validateBaseFields(value), apiKey };
+};
+
+const validateUpdate = (value: unknown): AiProviderConfigUpdate => {
+  if (!isRecord(value)) throw new Error("La configuración de IA no es válida.");
+  const base = validateBaseFields(value);
+  if (value.apiKey === undefined || value.apiKey === "") return base;
+  const apiKey = readTrimmedString(value.apiKey, "La API key");
+  if (apiKey.length > 4096) throw new Error("La API key no puede superar 4096 caracteres.");
+  return { ...base, apiKey };
 };
 
 const toSafeView = (value: unknown): AiProviderConfigView => {
@@ -61,10 +77,13 @@ const toSafeView = (value: unknown): AiProviderConfigView => {
   ) {
     throw new Error("La configuración de IA devuelta no es válida.");
   }
+  const model =
+    typeof value.model === "string" && value.model.trim() ? value.model.trim() : null;
   return {
     id: value.id,
     name: value.name,
     baseUrl: value.baseUrl,
+    model,
     hasApiKey: value.hasApiKey,
   };
 };
@@ -102,14 +121,34 @@ export async function createAiProviderConfigAction(
   }
 }
 
+export async function updateAiProviderConfigAction(
+  id: string,
+  input: AiProviderConfigUpdate,
+): Promise<ActionResult<AiProviderConfigView>> {
+  try {
+    const configId = readTrimmedString(id, "La configuración");
+    if (configId.length > 160) throw new Error("La configuración no es válida.");
+    const companyId = await requireActiveCompany();
+    return {
+      ok: true,
+      data: toSafeView(await getRepository().update(companyId, configId, validateUpdate(input))),
+    };
+  } catch (error) {
+    return errorResult(error);
+  }
+}
+
 export async function deleteAiProviderConfigAction(
   id: string,
 ): Promise<ActionResult<null>> {
   try {
     const configId = readTrimmedString(id, "La configuración");
     if (configId.length > 160) throw new Error("La configuración no es válida.");
-    const companyId = await requireActiveCompany();
-    await getRepository().delete(companyId, configId);
+    const authSession = await requireAuthContext();
+    const snapshot = await getWorkspaceSnapshot(authSession.authContext);
+    if (!snapshot.activeCompanyId) throw new Error("No hay una empresa activa.");
+    await getRepository().delete(snapshot.activeCompanyId, configId);
+    await getWorkspaceSnapshot(authSession.authContext);
     return { ok: true, data: null };
   } catch (error) {
     return errorResult(error);

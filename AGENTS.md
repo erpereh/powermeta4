@@ -3,9 +3,11 @@
 ## Propósito
 
 `powermeta4` es una aplicación local híbrida para conversar con un asistente y
-organizar herramientas operativas por workspace de empresa. La autenticación,
-los datos y el runtime de IA son de desarrollo: no se integran proveedores
-reales, base de datos ni servicios ERP externos.
+organizar herramientas operativas por workspace de empresa. La autenticación y
+los datos de producto viven en SQLite local. El runtime de IA llama a un
+endpoint OpenAI-compatible configurado por el usuario en Ajustes; no hay
+proveedor embebido ni picker estático. El modelo nunca recibe PII de Meta4:
+nombres, matrículas, sociedad, puestos, correos ni valores SOAP.
 
 ## Fuentes de verdad y orden de lectura
 
@@ -46,13 +48,16 @@ Thread salvo petición expresa.
 ## Estado, sesión y workspaces
 
 - `workspaceStore` es la única fuente global del snapshot temporal de chats,
-  mensajes, favoritos, modelo, empresas y actividad. La fuente de verdad
-  es SQLite mediante el servidor; tras una hidratación correcta solo se
-  retiran las claves funcionales legacy `powermeta4-workspace-store` y
-  `powermeta4-chat-store`. `next-themes` conserva su almacenamiento de tema.
+  mensajes, favoritos, proveedor de IA seleccionado, empresas y actividad. La
+  fuente de verdad es SQLite mediante el servidor; tras una hidratación
+  correcta solo se retiran las claves funcionales legacy
+  `powermeta4-workspace-store` y `powermeta4-chat-store`. `next-themes`
+  conserva su almacenamiento de tema.
 - Todo dato de producto debe resolverse mediante `activeCompanyId`. El runtime
   recibe un `companyId` capturado y sus escrituras deben conservarlo durante
-  streaming, edición y cancelación.
+  streaming, edición y cancelación. `providerConfigId` del cliente no se
+  confía: el servidor valida empresa, sesión y que la config sea usable
+  (`model` + `hasApiKey`).
 - Los favoritos se derivan de `Chat.favorite`; no crear arrays paralelos.
 - Una empresa autenticada es un workspace local de powermeta4, no una entidad
   ERP sincronizada. Crear o eliminarla no debe presentarse como una operación
@@ -64,7 +69,33 @@ Thread salvo petición expresa.
   reinicia al recargar.
 - La autenticación se valida en servidor con SOAP Meta4 y una cookie opaca
   HttpOnly. JSESSIONID y refreshSessionId se cifran con DPAPI CurrentUser.
-  Secretos y tokens nunca se guardan en Zustand, localStorage o sessionStorage.
+  Secretos, tokens EMP y API keys nunca se guardan en Zustand, localStorage o
+  sessionStorage.
+
+## Agente, privacidad y herramientas SOAP
+
+El transcript visible en SQLite es la fuente real del chat: mensajes del
+usuario, respuestas locales, nombres, puestos, ramas, edición, regeneración y
+reload. No se borra ni se reescribe para anonimizar. `ON DELETE CASCADE` de
+bindings y proyecciones solo aplica si el usuario elimina deliberadamente una
+conversación o un mensaje.
+
+La historia que viaja al LLM es independiente (`agent_turn_projections`):
+tokens `EMP_*` y semántica de tools (`Consultado employee.get_field(EMP_…,
+JOB_TITLE).`). Nunca hay fallback `content_json` real → proveedor. Si un
+turno del asistente contiene datos protegidos y falta su proyección, se
+bloquea la llamada al modelo, se muestra un error seguro y el historial
+visible permanece intacto.
+
+El interceptor `assertOutboundPayload` recorre el JSON completo antes de
+`fetch` (fail-closed). No hay vault `VAL_*` en esta fase. La única
+herramienta real es `employee.get_field`; WRITE no se ejecuta
+(`CONFIRMATION_REQUIRED`). Añadir otra herramienta SOAP es servicio +
+`createXTool` + una línea en `buildAgentTools()`, sin cambiar el gateway.
+
+En modo debug, una pregunta de empleado responde `META4_SESSION_REQUIRED`
+sin SOAP ni llamada al proveedor. La sociedad no la elige el navegador; los
+tokens no se resuelven en el cliente.
 
 ## Herramientas y recomendaciones
 
@@ -109,15 +140,20 @@ Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`.
 Los Route Handlers locales de workspace
 y backups usan runtime Node.js y validan la sesión, la empresa y la
-conversación en servidor. Las rutas antiguas `/tools/users/new`,
+conversación en servidor. `POST /api/agent/run` es el runtime del asistente
+(SSE, Node.js): valida sesión, empresa y conversación, resuelve el proveedor
+usable en servidor y aplica el privacy gateway antes de cualquier `fetch`.
+Las rutas antiguas `/tools/users/new`,
 `/tools/users/search` y `/tools/users/[userId]` solo redirigen a
 `/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
 
-No añadir servicios remotos, APIs ficticias, proveedores reales de IA, permisos
-reales, invitaciones, operaciones ERP reales ni persistencia remota. Los Route
-Handlers y Server Actions locales de SQLite, autenticación y backups forman
-parte de la implementación aprobada. No ejecutar Prisma, DPAPI ni SOAP desde
-proxy/middleware.
+No añadir APIs ficticias, permisos reales, invitaciones, operaciones ERP de
+escritura reales ni persistencia remota. El endpoint OpenAI-compatible lo
+configura el usuario en Ajustes (Base URL, modelo y API key cifrada con
+DPAPI); no hay proveedor embebido ni claves en el cliente. Los Route
+Handlers y Server Actions locales de SQLite, autenticación, backups y el
+agente forman parte de la implementación aprobada. No ejecutar Prisma, DPAPI
+ni SOAP desde proxy/middleware.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

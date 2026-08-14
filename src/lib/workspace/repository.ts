@@ -2,7 +2,7 @@ import "server-only";
 
 import type { DatabaseSync } from "node:sqlite";
 
-import { mockModels } from "@/data/mock-models";
+import { isUsableAiProviderConfig, type AiProviderConfigView } from "@/types/ai-provider-config";
 import { isChatColorName, isChatIconName } from "@/lib/chat-customization";
 import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
 import { getTool } from "@/lib/tools/registry";
@@ -25,7 +25,7 @@ import type { Company, CompanyId, WorkspaceData } from "@/types/workspace";
 
 export const ACTIVE_COMPANY_SETTING_KEY = "activeCompanyId";
 export const ACTIVE_CHAT_SETTING_KEY = "activeChatId";
-export const SELECTED_MODEL_SETTING_KEY = "selectedModelId";
+export const SELECTED_PROVIDER_CONFIG_SETTING_KEY = "selectedProviderConfigId";
 
 type Row = Record<string, unknown>;
 
@@ -115,6 +115,54 @@ const mapConversation = (row: Row, messages: Message[]): Chat => ({
 const parseSettingString = (value: unknown): string | null => {
   const parsed = safeJsonParse(value);
   return typeof parsed === "string" ? parsed : typeof value === "string" ? value : null;
+};
+
+const listProviderConfigViews = (
+  database: DatabaseSync,
+  companyId: CompanyId,
+): AiProviderConfigView[] => {
+  const rows = database
+    .prepare(
+      "SELECT id, name, base_url, model, api_key_encrypted FROM ai_provider_configs WHERE company_id = ? ORDER BY created_at DESC, id DESC",
+    )
+    .all(companyId) as Row[];
+  return rows.map((row) => ({
+    id: stringValue(row.id),
+    name: stringValue(row.name),
+    baseUrl: stringValue(row.base_url),
+    model: typeof row.model === "string" && row.model.trim() ? row.model.trim() : null,
+    hasApiKey:
+      typeof row.api_key_encrypted === "string" && row.api_key_encrypted.length > 0,
+  }));
+};
+
+const repairSelectedProviderConfigId = (
+  database: DatabaseSync,
+  companyId: CompanyId,
+  configs: readonly AiProviderConfigView[],
+): string | null => {
+  const usable = configs.filter(isUsableAiProviderConfig);
+  const stored = parseSettingString(
+    (
+      database
+        .prepare(
+          "SELECT value_json FROM workspace_settings WHERE company_id = ? AND key = ?",
+        )
+        .get(companyId, SELECTED_PROVIDER_CONFIG_SETTING_KEY) as Row | undefined
+    )?.value_json,
+  );
+  const selected =
+    stored && usable.some((config) => config.id === stored) ? stored : (usable[0]?.id ?? null);
+  if (selected !== stored) {
+    updateSetting(
+      database,
+      "workspace_settings",
+      SELECTED_PROVIDER_CONFIG_SETTING_KEY,
+      selected,
+      companyId,
+    );
+  }
+  return selected;
 };
 
 const ensureCompany = (database: DatabaseSync, companyId: CompanyId): Row => {
@@ -261,12 +309,12 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
         "SELECT tool_id, created_at FROM tool_activity WHERE company_id = ? ORDER BY created_at DESC LIMIT 8",
       )
       .all(company.id) as Row[];
-    const selectedModelId =
-      parseSettingString(
-        settings.find((setting) => setting.key === SELECTED_MODEL_SETTING_KEY)?.value_json,
-      ) ??
-      mockModels[0]?.id ??
-      "luma-balanced";
+    const aiProviderConfigs = listProviderConfigViews(database, company.id);
+    const selectedProviderConfigId = repairSelectedProviderConfigId(
+      database,
+      company.id,
+      aiProviderConfigs,
+    );
     const requestedActiveChatId = parseSettingString(
       settings.find((setting) => setting.key === ACTIVE_CHAT_SETTING_KEY)?.value_json,
     );
@@ -288,7 +336,8 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
           toolId: stringValue(visit.tool_id),
           visitedAt: stringValue(visit.created_at),
         })),
-      preferences: { selectedModelId },
+      preferences: { selectedProviderConfigId },
+      aiProviderConfigs,
     };
   };
 
@@ -845,19 +894,26 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
       }
     });
 
-  const setSelectedModel = async (
+  const setSelectedProviderConfig = async (
     companyId: CompanyId,
-    modelId: string,
+    providerConfigId: string | null,
     clientMutationId?: string,
   ) =>
     withRepositoryWrite(async () => {
       const operation = () => {
         ensureCompany(database, companyId);
+        if (providerConfigId) {
+          const configs = listProviderConfigViews(database, companyId);
+          const usable = configs.filter(isUsableAiProviderConfig);
+          if (!usable.some((config) => config.id === providerConfigId)) {
+            throw new Error("La configuración de IA no está disponible para esta empresa.");
+          }
+        }
         updateSetting(
           database,
           "workspace_settings",
-          SELECTED_MODEL_SETTING_KEY,
-          modelId,
+          SELECTED_PROVIDER_CONFIG_SETTING_KEY,
+          providerConfigId,
           companyId,
         );
         return null;
@@ -865,7 +921,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
       if (clientMutationId) {
         runIdempotent(database, {
           clientMutationId,
-          operation: "workspace.model",
+          operation: "workspace.providerConfig",
           resourceType: "workspace_setting",
           resourceId: companyId,
           execute: operation,
@@ -914,7 +970,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
     updateMessage,
     finalizeMessage,
     setConversationHead,
-    setSelectedModel,
+    setSelectedProviderConfig,
     recordToolVisit,
   };
 };

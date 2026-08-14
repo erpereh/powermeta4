@@ -74,6 +74,7 @@ beforeEach(() => {
       id: "config-created",
       name: "Servidor local",
       baseUrl: "http://localhost:11434/v1",
+      model: "grok-4-1-fast",
       hasApiKey: true,
     },
   });
@@ -146,18 +147,21 @@ describe("settings content", () => {
 
     await user.type(screen.getByLabelText("Nombre"), "Servidor local");
     await user.type(screen.getByLabelText("Base URL"), "http://localhost:11434/v1");
+    await user.type(screen.getByLabelText("Model id"), "grok-4-1-fast");
     await user.type(screen.getByLabelText("API key"), "local-secret");
     await user.click(screen.getByRole("button", { name: "Añadir configuración" }));
 
     expect(mocks.createAiProviderConfigAction).toHaveBeenCalledWith({
       name: "Servidor local",
       baseUrl: "http://localhost:11434/v1",
+      model: "grok-4-1-fast",
       apiKey: "local-secret",
     });
     expect(await screen.findByText("Servidor local")).toBeTruthy();
     expect(screen.getByText("API key: ••••••••")).toBeTruthy();
     expect((screen.getByLabelText("Nombre") as HTMLInputElement).value).toBe("");
     expect((screen.getByLabelText("Base URL") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("Model id") as HTMLInputElement).value).toBe("");
     expect((screen.getByLabelText("API key") as HTMLInputElement).value).toBe("");
   });
 
@@ -170,6 +174,7 @@ describe("settings content", () => {
           id: "config-existing",
           name: "Servidor local",
           baseUrl: "http://localhost:11434/v1",
+          model: "grok-4-1-fast",
           hasApiKey: true,
         },
       ],

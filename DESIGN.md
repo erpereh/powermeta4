@@ -133,6 +133,13 @@ No hay selección inicial. Las acciones usan `ThreadPrimitive.Suggestion` con
 `send={false}` para preparar texto editable sin ejecutar operaciones ni
 duplicar el estado del composer.
 
+El composer lista las configuraciones de IA usables (`ai_provider_configs` con
+modelo y API key) de la empresa activa. Sin configs usables muestra
+«Configura un modelo en Ajustes». La desambiguación de empleados es una
+tarjeta local con botones; el modelo no elige entre homónimos. El historial
+pintado en el Thread es el transcript SQLite real; la proyección hacia el
+LLM no se muestra al usuario.
+
 ## Responsive y accesibilidad
 
 Revisar 1440 px, 1024 px, 768 px y 390 px. Evitar overflow horizontal,

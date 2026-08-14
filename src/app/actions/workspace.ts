@@ -286,16 +286,16 @@ export async function setConversationHeadAction(input: {
   }
 }
 
-export async function setSelectedModelAction(
+export async function setSelectedProviderConfigAction(
   companyId: CompanyId,
-  modelId: string,
+  providerConfigId: string,
   clientMutationId?: string,
 ): Promise<ActionResult<null>> {
   try {
     await requireAuthContext();
-    await getWorkspaceRepository().setSelectedModel(
+    await getWorkspaceRepository().setSelectedProviderConfig(
       requireId(companyId, "La empresa"),
-      requireId(modelId, "El modelo"),
+      requireId(providerConfigId, "La configuración de IA"),
       requireMutationId(clientMutationId),
     );
     return ok(null);

@@ -7,6 +7,7 @@ import {
   createAiProviderConfigAction,
   deleteAiProviderConfigAction,
   getAiProviderConfigsAction,
+  updateAiProviderConfigAction,
 } from "@/app/actions/ai-provider-configs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -32,15 +33,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AiProviderConfigView } from "@/types/ai-provider-config";
+import { Badge } from "@/components/ui/badge";
+import { isUsableAiProviderConfig, type AiProviderConfigView } from "@/types/ai-provider-config";
 
 type AiProviderForm = {
   name: string;
   baseUrl: string;
+  model: string;
   apiKey: string;
 };
 
-const EMPTY_FORM: AiProviderForm = { name: "", baseUrl: "", apiKey: "" };
+const EMPTY_FORM: AiProviderForm = { name: "", baseUrl: "", model: "", apiKey: "" };
 
 const errorMessage = (value: unknown): string =>
   value instanceof Error ? value.message : "No se pudo completar la operación.";
@@ -49,8 +52,9 @@ export function AiProviderSettings() {
   const [configs, setConfigs] = useState<AiProviderConfigView[]>([]);
   const [form, setForm] = useState<AiProviderForm>(EMPTY_FORM);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState<"create" | "delete" | null>(null);
+  const [busy, setBusy] = useState<"create" | "delete" | "update" | null>(null);
   const [pendingDelete, setPendingDelete] = useState<AiProviderConfigView | null>(null);
+  const [completeModel, setCompleteModel] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -98,6 +102,31 @@ export function AiProviderSettings() {
     }
   };
 
+  const handleComplete = async (config: AiProviderConfigView) => {
+    const model = (completeModel[config.id] ?? "").trim();
+    if (!model) return;
+    setBusy("update");
+    setError("");
+    setNotice("");
+    try {
+      const result = await updateAiProviderConfigAction(config.id, {
+        name: config.name,
+        baseUrl: config.baseUrl,
+        model,
+      });
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setConfigs((current) => current.map((item) => (item.id === config.id ? result.data : item)));
+      setNotice("Configuración de IA actualizada correctamente.");
+    } catch (updateError: unknown) {
+      setError(errorMessage(updateError));
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const handleDelete = async () => {
     if (!pendingDelete) return;
     const config = pendingDelete;
@@ -138,8 +167,9 @@ export function AiProviderSettings() {
             <h2>Configuraciones de inteligencia artificial</h2>
           </CardTitle>
           <CardDescription>
-            Guarda endpoints compatibles para usarlos en futuras integraciones locales. La API key
-            se cifra en este equipo y no se muestra completa.
+            Guarda un modelo utilizable por el chat: nombre visible, Base URL compatible
+            OpenAI, model id del proveedor y API key. La API key se cifra en este equipo y no
+            se muestra completa.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -167,6 +197,20 @@ export function AiProviderSettings() {
                 }
                 placeholder="https://api.example.com/v1"
                 maxLength={2048}
+                required
+                disabled={busy !== null}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ai-provider-model">Model id</Label>
+              <Input
+                id="ai-provider-model"
+                value={form.model}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, model: event.target.value }))
+                }
+                placeholder="grok-4-1-fast"
+                maxLength={200}
                 required
                 disabled={busy !== null}
               />
@@ -226,10 +270,45 @@ export function AiProviderSettings() {
           <div className="space-y-2">
             {configs.map((config) => (
               <Card key={config.id} size="sm">
-                <CardContent className="flex items-center justify-between gap-4">
-                  <div className="min-w-0 space-y-1">
-                    <p className="font-medium break-words">{config.name}</p>
+                <CardContent className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium break-words">{config.name}</p>
+                      {!isUsableAiProviderConfig(config) ? (
+                        <Badge variant="outline">Incompleta</Badge>
+                      ) : null}
+                    </div>
                     <p className="break-all text-sm text-muted-foreground">{config.baseUrl}</p>
+                    {config.model ? (
+                      <p className="text-sm text-muted-foreground">model: {config.model}</p>
+                    ) : (
+                      <div className="flex flex-wrap items-end gap-2 pt-1">
+                        <div className="grid min-w-40 flex-1 gap-1">
+                          <Label htmlFor={`ai-provider-complete-model-${config.id}`}>Model id</Label>
+                          <Input
+                            id={`ai-provider-complete-model-${config.id}`}
+                            value={completeModel[config.id] ?? ""}
+                            onChange={(event) =>
+                              setCompleteModel((current) => ({
+                                ...current,
+                                [config.id]: event.target.value,
+                              }))
+                            }
+                            placeholder="gpt-5.6"
+                            maxLength={200}
+                            disabled={busy !== null}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => void handleComplete(config)}
+                          disabled={busy !== null || !(completeModel[config.id] ?? "").trim()}
+                        >
+                          Completar
+                        </Button>
+                      </div>
+                    )}
                     <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <KeyRound className="size-3.5" aria-hidden="true" />
                       {config.hasApiKey ? "API key: ••••••••" : "API key no disponible"}

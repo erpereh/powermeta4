@@ -52,6 +52,7 @@ beforeEach(() => {
       id: "config-1",
       name: "Local",
       baseUrl: "http://localhost:11434/v1",
+      model: "local-model",
       hasApiKey: true,
       apiKey: "secret",
     },
@@ -60,6 +61,7 @@ beforeEach(() => {
     id: "config-2",
     name: "Cloud",
     baseUrl: "https://api.example.com/v1",
+    model: "gpt-5.6",
     hasApiKey: true,
     apiKey: "secret",
   });
@@ -70,7 +72,7 @@ describe("AI provider config actions", () => {
     await expect(getAiProviderConfigsAction()).resolves.toEqual({
       ok: true,
       data: [
-        { id: "config-1", name: "Local", baseUrl: "http://localhost:11434/v1", hasApiKey: true },
+        { id: "config-1", name: "Local", baseUrl: "http://localhost:11434/v1", model: "local-model", hasApiKey: true },
       ],
     });
 
@@ -82,6 +84,7 @@ describe("AI provider config actions", () => {
       createAiProviderConfigAction({
         name: "Servidor",
         baseUrl: "javascript:alert(1)",
+        model: "gpt-5.6",
         apiKey: "secret",
       }),
     ).resolves.toMatchObject({ ok: false, message: expect.stringMatching(/URL/i) });
@@ -93,6 +96,7 @@ describe("AI provider config actions", () => {
     const result = await createAiProviderConfigAction({
       name: "  Cloud  ",
       baseUrl: " https://api.example.com/v1 ",
+      model: " gpt-5.6 ",
       apiKey: "  secret  ",
     });
     expect(result).toEqual({
@@ -101,6 +105,7 @@ describe("AI provider config actions", () => {
         id: "config-2",
         name: "Cloud",
         baseUrl: "https://api.example.com/v1",
+        model: "gpt-5.6",
         hasApiKey: true,
       },
     });
@@ -109,6 +114,7 @@ describe("AI provider config actions", () => {
     expect(mocks.repository.create).toHaveBeenCalledWith("company-active", {
       name: "Cloud",
       baseUrl: "https://api.example.com/v1",
+      model: "gpt-5.6",
       apiKey: "secret",
     });
   });

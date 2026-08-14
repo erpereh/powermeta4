@@ -29,6 +29,7 @@ import {
 
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { EmployeeDisambiguationCard } from "@/components/chat/employee-disambiguation-card";
 import { ErpRecommendations } from "@/components/chat/erp-recommendations";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,19 +39,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { isEmployeeDisambiguationPart } from "@/lib/agent/disambiguation";
 import { cn } from "@/lib/utils";
-import type { ModelOption } from "@/types/model";
+
+type ChatModelOption = {
+  id: string;
+  name: string;
+};
 
 type ThreadProps = {
-  models: readonly ModelOption[];
-  selectedModelId: string;
-  onModelChange: (modelId: string) => void;
+  models: readonly ChatModelOption[];
+  selectedProviderConfigId: string | null;
+  onProviderChange: (providerConfigId: string) => void;
 };
 
 const isNewChatView = (state: AssistantState) =>
   state.thread.messages.length === 0 && (!state.thread.isLoading || state.threads.isLoading);
 
-export function Thread({ models, selectedModelId, onModelChange }: ThreadProps) {
+export function Thread({ models, selectedProviderConfigId, onProviderChange }: ThreadProps) {
   const composerInputRef = useRef<HTMLTextAreaElement>(null);
   const isEmpty = useAuiState(isNewChatView);
 
@@ -94,8 +100,8 @@ export function Thread({ models, selectedModelId, onModelChange }: ThreadProps) 
             <Composer
               inputRef={composerInputRef}
               models={models}
-              selectedModelId={selectedModelId}
-              onModelChange={onModelChange}
+              selectedProviderConfigId={selectedProviderConfigId}
+              onProviderChange={onProviderChange}
             />
             <AuiIf condition={(state) => isNewChatView(state) && state.composer.isEmpty}>
               <ThreadSuggestions inputRef={composerInputRef} />
@@ -149,7 +155,7 @@ type ComposerProps = ThreadProps & {
   inputRef: RefObject<HTMLTextAreaElement | null>;
 };
 
-const Composer = ({ inputRef, models, selectedModelId, onModelChange }: ComposerProps) => (
+const Composer = ({ inputRef, models, selectedProviderConfigId, onProviderChange }: ComposerProps) => (
   <ComposerPrimitive.Root className="relative flex w-full flex-col">
     <div className="flex w-full flex-col gap-2 rounded-(--composer-radius) border border-border/60 bg-(--composer-bg) p-(--composer-padding) transition-[border-color] focus-within:border-ring/70">
       <ComposerPrimitive.Input
@@ -165,24 +171,28 @@ const Composer = ({ inputRef, models, selectedModelId, onModelChange }: Composer
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <div className="flex min-w-0 items-center gap-1.5">
           <AttachmentButton />
-          <Select value={selectedModelId} onValueChange={onModelChange}>
-            <SelectTrigger className="h-8 w-auto min-w-36 gap-1.5 rounded-full border-transparent bg-transparent px-2.5 text-xs text-muted-foreground shadow-none hover:bg-muted hover:text-foreground focus:ring-0">
-              <SelectValue aria-label="Modelo seleccionado" />
-            </SelectTrigger>
-            <SelectContent
-              align="start"
-              position="popper"
-              side="top"
-              sideOffset={4}
-              avoidCollisions={false}
-            >
-              {models.map((model) => (
-                <SelectItem key={model.id} value={model.id}>
-                  {model.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {models.length === 0 || !selectedProviderConfigId ? (
+            <p className="px-2.5 text-xs text-muted-foreground">Configura un modelo en Ajustes</p>
+          ) : (
+            <Select value={selectedProviderConfigId} onValueChange={onProviderChange}>
+              <SelectTrigger className="h-8 w-auto min-w-36 gap-1.5 rounded-full border-transparent bg-transparent px-2.5 text-xs text-muted-foreground shadow-none hover:bg-muted hover:text-foreground focus:ring-0">
+                <SelectValue aria-label="Modelo seleccionado" />
+              </SelectTrigger>
+              <SelectContent
+                align="start"
+                position="popper"
+                side="top"
+                sideOffset={4}
+                avoidCollisions={false}
+              >
+                {models.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <div className="flex items-center gap-1.5">
           <AuiIf condition={(state) => !state.thread.isRunning}>
@@ -244,6 +254,10 @@ const AssistantMessage: FC = () => (
       <MessagePrimitive.Parts>
         {({ part }) => {
           if (part.type === "text") return <MarkdownText />;
+          const unknownPart: unknown = part;
+          if (isEmployeeDisambiguationPart(unknownPart)) {
+            return <EmployeeDisambiguationCard data={unknownPart.data} />;
+          }
           return null;
         }}
       </MessagePrimitive.Parts>

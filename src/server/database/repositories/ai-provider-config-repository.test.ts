@@ -50,12 +50,14 @@ describe("AI provider config repository", () => {
     const created = await repository.create(companyId, {
       name: "Servidor local",
       baseUrl: "https://api.example.com/v1",
+      model: "grok-4-1-fast",
       apiKey: "sk-secret-value",
     });
 
     expect(created).toMatchObject({
       name: "Servidor local",
       baseUrl: "https://api.example.com/v1",
+      model: "grok-4-1-fast",
       hasApiKey: true,
     });
     expect(JSON.stringify(created)).not.toContain("sk-secret-value");
@@ -73,6 +75,7 @@ describe("AI provider config repository", () => {
     const created = await repository.create(companyId, {
       name: "Servidor local",
       baseUrl: "http://localhost:11434/v1",
+      model: "local-model",
       apiKey: "local-key",
     });
 
