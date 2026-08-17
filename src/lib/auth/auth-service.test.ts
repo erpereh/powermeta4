@@ -394,7 +394,10 @@ describe("Meta4 auth service", () => {
       })),
     });
 
-    await expect(service.login("user", "password")).rejects.toThrow(/dpapi/);
+    await expect(service.login("user", "password")).rejects.toMatchObject({
+      name: "LocalSessionStoreError",
+      code: "META4_LOCAL_SESSION_FAILED",
+    });
     expect(repository.persistMeta4LoginState).not.toHaveBeenCalled();
     expect(localSessions).toEqual([]);
   });

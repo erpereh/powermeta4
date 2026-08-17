@@ -1,6 +1,6 @@
 import "server-only";
 
-import { spawn } from "node:child_process";
+import { bindCrypt32Native, createCrypt32DpapiRunner, type KoffiLike } from "./dpapi-crypt32";
 
 export type DpapiOperation = "protect" | "unprotect";
 export type DpapiRunner = (operation: DpapiOperation, value: string) => Promise<string>;
@@ -10,75 +10,34 @@ export type DpapiAdapter = {
   unprotectSecret: (value: string) => Promise<string>;
 };
 
-const POWERSHELL_TIMEOUT_MS = 10_000;
-const powershellScript = (operation: DpapiOperation) => {
-  const operationExpression =
-    operation === "protect"
-      ? "[System.Security.Cryptography.ProtectedData]::Protect($bytes, $null, [System.Security.Cryptography.DataProtectionScope]::CurrentUser)"
-      : "[System.Security.Cryptography.ProtectedData]::Unprotect($bytes, $null, [System.Security.Cryptography.DataProtectionScope]::CurrentUser)";
-  const outputExpression =
-    operation === "protect"
-      ? "[Console]::Write([Convert]::ToBase64String($result))"
-      : "[Console]::Write([Text.Encoding]::UTF8.GetString($result))";
+let defaultRunner: Promise<DpapiRunner> | null = null;
 
-  return [
-    "Add-Type -AssemblyName System.Security",
-    "$inputText = [Console]::In.ReadToEnd()",
-    operation === "protect"
-      ? "$bytes = [Text.Encoding]::UTF8.GetBytes($inputText)"
-      : "$bytes = [Convert]::FromBase64String($inputText)",
-    `$result = ${operationExpression}`,
-    outputExpression,
-  ].join("; ");
+const loadKoffi = async (): Promise<KoffiLike> => {
+  const koffi = await import("koffi");
+  return {
+    struct: (name, def) => koffi.struct(name, def),
+    load: (name) => koffi.load(name),
+    view: (ptr, byteLength) => koffi.view(ptr, byteLength),
+  };
 };
 
-const runPowerShellDpapi: DpapiRunner = (operation, value) =>
-  new Promise((resolve, reject) => {
-    const child = spawn(
-      "powershell.exe",
-      ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", powershellScript(operation)],
-      { windowsHide: true, stdio: ["pipe", "pipe", "pipe"] },
-    );
-    let stdout = "";
-    let stderr = "";
-    let settled = false;
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      child.kill();
-      reject(new Error("La operación DPAPI excedió el tiempo de espera."));
-    }, POWERSHELL_TIMEOUT_MS);
+const getCrypt32Runner = (): Promise<DpapiRunner> => {
+  if (!defaultRunner) {
+    defaultRunner = loadKoffi()
+      .then((koffi) => createCrypt32DpapiRunner(bindCrypt32Native(koffi)))
+      .catch((error: unknown) => {
+        defaultRunner = null;
+        const message = error instanceof Error ? error.message : "Error desconocido";
+        throw new Error(`No se pudo iniciar DPAPI: ${message.slice(0, 160)}`);
+      });
+  }
+  return defaultRunner;
+};
 
-    child.stdout.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString("utf8");
-    });
-    child.stderr.on("data", (chunk: Buffer) => {
-      stderr += chunk.toString("utf8");
-    });
-    child.on("error", (error) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      reject(new Error(`No se pudo iniciar DPAPI: ${error.message.slice(0, 160)}`));
-    });
-    child.on("close", (code) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      if (code !== 0) {
-        reject(new Error(`DPAPI rechazó la operación (${code ?? "sin código"}).`));
-        return;
-      }
-      const result = stdout.trimEnd();
-      if (!result) {
-        reject(new Error(`DPAPI no devolvió un resultado (${stderr.trim().slice(0, 120)}).`));
-        return;
-      }
-      resolve(result);
-    });
-
-    child.stdin.end(operation === "protect" ? value : value, "utf8");
-  });
+const runCrypt32Dpapi: DpapiRunner = async (operation, value) => {
+  const runner = await getCrypt32Runner();
+  return runner(operation, value);
+};
 
 export const createDpapiAdapter = (
   options: {
@@ -87,7 +46,7 @@ export const createDpapiAdapter = (
   } = {},
 ): DpapiAdapter => {
   const platform = options.platform ?? process.platform;
-  const runner = options.runner ?? runPowerShellDpapi;
+  const runner = options.runner ?? runCrypt32Dpapi;
 
   const run = (operation: DpapiOperation, value: string) => {
     if (platform !== "win32") {

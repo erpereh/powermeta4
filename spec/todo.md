@@ -1,5 +1,27 @@
 # powermeta4 - estado de tareas
 
+## Login Meta4 en VM / DPAPI crypt32 - 2026-08-17
+
+- [x] Diagnóstico: SOAP Login y `CSP_CONSULTA_ORO` en CYC hacían
+      `match`; el POST `/login` devolvía 200 con el error genérico de
+      credenciales porque `loginAction` tragaba fallos posteriores
+      (DPAPI vía PowerShell o persistencia SQLite) sin log.
+- [x] DPAPI CurrentUser pasa a `CryptProtectData` /
+      `CryptUnprotectData` in-process (`koffi` + `crypt32.dll`), sin
+      `powershell.exe`. El adapter sigue inyectable en tests.
+- [x] Tras un perfil válido, cifrado, SQLite o cookie fallidos lanzan
+      `LocalSessionStoreError` y la UI dice que Meta4 autenticó pero no
+      se pudo guardar la sesión local. SOAP/red conservan el mensaje de
+      usuario/contraseña/conexión. `no such table` añade hint
+      `npm run setup` en el log, sin secretos.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin
+      errores del cambio (warnings preexistentes de Registro
+      Retributivo); `npm test` 68 archivos, 346 pruebas correctas y 2
+      omitidas (incluye roundtrip DPAPI CurrentUser en Windows);
+      `npm run build` correcto; `git diff --check` correcto.
+      `npm run lint` falla en `oxfmt --check` (sin configuración; 191
+      archivos, incluidos no tocados). Sin commit.
+
 ## Fix 1013 / employee.get_field - 2026-08-14
 
 - [x] Diagnóstico A vs B: el string persistido e hidratado de `"1013"` no

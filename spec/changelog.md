@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-17 - Login Meta4 en VM / DPAPI crypt32
+
+### Cambios
+
+- El login SOAP y el lookup de perfil CYC ya autenticaban en la VM, pero
+  el fallo posterior (DPAPI vía PowerShell o persistencia local) se
+  mostraba como error de usuario, contraseña o conexión.
+- DPAPI CurrentUser deja de spawnar `powershell.exe` y llama a
+  `CryptProtectData` / `CryptUnprotectData` in-process con `koffi`.
+  `koffi` queda como `serverExternalPackages` y su script de prebuild
+  está permitido.
+- Si Meta4 ya autenticó y falla el cifrado, SQLite o la cookie, la UI
+  informa de sesión local y el servidor registra
+  `[meta4-auth] session creation failed` con nombre/`code` sanitizados.
+  Un esquema ausente añade el hint `npm run setup` en ese log.
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en Registro
+  Retributivo.
+- `npm test` — 68 archivos, 346 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en 191 archivos, incluidos
+  archivos no tocados. Sin commit.
+
 ## 2026-08-14 - Fix 1013 / employee.get_field
 
 ### Cambios
@@ -60,7 +88,7 @@
 ### Cambios
 
 - Ajustes se reduce a tres opciones: `Datos de la persona`, `Inteligencia
-  artificial` y `Datos y copias`. El perfil Meta4 conserva todas sus secciones
+artificial` y `Datos y copias`. El perfil Meta4 conserva todas sus secciones
   en una única vista y el aviso de modo debug permanece disponible.
 - Se añade la tabla SQLite `ai_provider_configs`, aislada por `activeCompanyId`,
   con repositorio y Server Actions de listado, alta y borrado. El nombre y la
@@ -233,7 +261,7 @@
   ni DropdownMenu. En móvil el grupo abre/cierra sin cerrar el Sheet; los
   hijos sí cierran la sidebar al navegar.
 - El registry admite herramientas standalone. `Reg. Retrib.` (`Registro
-  Retributivo`) es la primera entrada del submenu, con icono `TableProperties`
+Retributivo`) es la primera entrada del submenu, con icono `TableProperties`
   y ruta `/tools/registro-retributivo`. `implemented` sigue en `false`; la
   ruta placeholder es navegable desde sidebar, Home y Command Palette sin
   registrar visita. Las 20 acciones ERP no cambian de semántica.

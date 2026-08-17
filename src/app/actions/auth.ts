@@ -7,6 +7,11 @@ import {
   DebugAuthConfigurationError,
   isDebugAuthEnabled,
 } from "@/lib/auth/debug-config";
+import {
+  isLocalSessionStoreError,
+  LocalSessionStoreError,
+  META4_LOCAL_SESSION_FAILED,
+} from "@/lib/auth/local-session-store-error";
 import { getAuthService } from "@/lib/auth/server";
 import { deleteSessionCookie, getBrowserSessionNonce, setSessionCookie } from "@/lib/auth/session";
 import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
@@ -18,7 +23,8 @@ export type LoginState = {
     | "DEBUG_AUTH_NOT_ALLOWED"
     | "META4_PROFILE_NOT_FOUND"
     | "META4_PROFILE_LOOKUP_FAILED"
-    | "META4_PROFILE_INVALID_RESPONSE";
+    | "META4_PROFILE_INVALID_RESPONSE"
+    | typeof META4_LOCAL_SESSION_FAILED;
 };
 
 const genericLoginError =
@@ -28,9 +34,25 @@ const genericDebugSessionCreationError = "No se ha podido iniciar la sesión de 
 const profileNotFoundError = "No se ha podido identificar tu sociedad en Meta4.";
 const profileLookupFailedAfterLoginError =
   "Se ha iniciado sesión en Meta4, pero no se han podido cargar los datos del usuario.";
+const localSessionStoreError =
+  "Se ha iniciado sesión en Meta4, pero no se ha podido guardar la sesión local.";
 
-const getSafeServerErrorDetails = (error: unknown): { name: string; code?: string } => {
-  const details: { name: string; code?: string } = {
+const getSafeServerErrorDetails = (
+  error: unknown,
+): {
+  name: string;
+  code?: string;
+  causeName?: string;
+  causeCode?: string;
+  hint?: string;
+} => {
+  const details: {
+    name: string;
+    code?: string;
+    causeName?: string;
+    causeCode?: string;
+    hint?: string;
+  } = {
     name: error instanceof Error ? error.name : "UnknownError",
   };
   if (
@@ -41,8 +63,30 @@ const getSafeServerErrorDetails = (error: unknown): { name: string; code?: strin
   ) {
     details.code = error.code;
   }
+  if (error instanceof Error && error.cause !== undefined) {
+    const cause = error.cause;
+    details.causeName = cause instanceof Error ? cause.name : "UnknownError";
+    if (
+      typeof cause === "object" &&
+      cause !== null &&
+      "code" in cause &&
+      typeof cause.code === "string"
+    ) {
+      details.causeCode = cause.code;
+    }
+  }
+  if (isMissingSchemaError(error)) details.hint = "npm run setup";
   return details;
 };
+
+const collectErrorText = (error: unknown): string => {
+  if (!(error instanceof Error)) return "";
+  const causeText = error.cause instanceof Error ? collectErrorText(error.cause) : "";
+  return causeText ? `${error.message} ${causeText}` : error.message;
+};
+
+const isMissingSchemaError = (error: unknown): boolean =>
+  /no such table/i.test(collectErrorText(error));
 
 export async function loginAction(
   _previousState: LoginState,
@@ -57,7 +101,11 @@ export async function loginAction(
 
   try {
     const result = await getAuthService().login(username, password);
-    await setSessionCookie(result.sessionNonce);
+    try {
+      await setSessionCookie(result.sessionNonce);
+    } catch (error) {
+      throw new LocalSessionStoreError(undefined, { cause: error });
+    }
   } catch (error) {
     if (isMeta4ProfileError(error)) {
       console.error("[meta4-auth] profile login failed", getSafeServerErrorDetails(error));
@@ -71,6 +119,10 @@ export async function loginAction(
         error: profileLookupFailedAfterLoginError,
         errorCode: "META4_PROFILE_LOOKUP_FAILED",
       };
+    }
+    console.error("[meta4-auth] session creation failed", getSafeServerErrorDetails(error));
+    if (isLocalSessionStoreError(error)) {
+      return { error: localSessionStoreError, errorCode: error.code };
     }
     return { error: genericLoginError };
   }

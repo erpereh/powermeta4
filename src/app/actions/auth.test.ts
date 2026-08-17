@@ -123,4 +123,71 @@ describe("authentication actions", () => {
     });
     expect(mocks.setSessionCookie).not.toHaveBeenCalled();
   });
+
+  it("keeps credential errors for SOAP failures and logs a sanitized cause", async () => {
+    const { Meta4HttpError } = await import("@/lib/meta4/client");
+    mocks.login.mockRejectedValue(new Meta4HttpError(401));
+    const formData = new FormData();
+    formData.set("email", "user");
+    formData.set("password", "secret");
+
+    await expect(authActions.loginAction({}, formData)).resolves.toEqual({
+      error:
+        "No se pudo iniciar sesión con Meta4. Comprueba el usuario, la contraseña y la conexión.",
+    });
+    expect(mocks.consoleError).toHaveBeenCalledWith("[meta4-auth] session creation failed", {
+      name: "Meta4HttpError",
+    });
+    expect(JSON.stringify(mocks.consoleError.mock.calls)).not.toContain("secret");
+  });
+
+  it("maps post-profile local persistence failures without leaking secrets", async () => {
+    const { LocalSessionStoreError } = await import("@/lib/auth/local-session-store-error");
+    const infrastructureError = Object.assign(
+      new Error("no such table: soap_sessions; secret=hidden"),
+      { code: "ERR_SQLITE_ERROR" },
+    );
+    mocks.login.mockRejectedValue(
+      new LocalSessionStoreError(undefined, { cause: infrastructureError }),
+    );
+    const formData = new FormData();
+    formData.set("email", "user");
+    formData.set("password", "secret");
+
+    await expect(authActions.loginAction({}, formData)).resolves.toEqual({
+      error: "Se ha iniciado sesión en Meta4, pero no se ha podido guardar la sesión local.",
+      errorCode: "META4_LOCAL_SESSION_FAILED",
+    });
+    expect(mocks.consoleError).toHaveBeenCalledWith("[meta4-auth] session creation failed", {
+      name: "LocalSessionStoreError",
+      code: "META4_LOCAL_SESSION_FAILED",
+      causeName: "Error",
+      causeCode: "ERR_SQLITE_ERROR",
+      hint: "npm run setup",
+    });
+    expect(JSON.stringify(mocks.consoleError.mock.calls)).not.toContain("secret=hidden");
+  });
+
+  it("maps cookie failures after a successful Meta4 login to a local session error", async () => {
+    mocks.login.mockResolvedValue({
+      sessionNonce: "A".repeat(43),
+      username: "user",
+      expiresAt: new Date("2026-09-01T00:00:00.000Z"),
+    });
+    mocks.setSessionCookie.mockRejectedValue(new Error("cookie; secret=hidden"));
+    const formData = new FormData();
+    formData.set("email", "user");
+    formData.set("password", "secret");
+
+    await expect(authActions.loginAction({}, formData)).resolves.toEqual({
+      error: "Se ha iniciado sesión en Meta4, pero no se ha podido guardar la sesión local.",
+      errorCode: "META4_LOCAL_SESSION_FAILED",
+    });
+    expect(mocks.consoleError).toHaveBeenCalledWith("[meta4-auth] session creation failed", {
+      name: "LocalSessionStoreError",
+      code: "META4_LOCAL_SESSION_FAILED",
+      causeName: "Error",
+    });
+    expect(JSON.stringify(mocks.consoleError.mock.calls)).not.toContain("secret=hidden");
+  });
 });

@@ -29,4 +29,15 @@ describe("DPAPI adapter", () => {
 
     await expect(adapter.protectSecret("token-value")).rejects.toThrow(/Windows DPAPI/);
   });
+
+  it.skipIf(process.platform !== "win32")(
+    "roundtrips a secret with Windows DPAPI CurrentUser",
+    async () => {
+      const adapter = createDpapiAdapter();
+      const encrypted = await adapter.protectSecret("token-value");
+
+      await expect(adapter.unprotectSecret(encrypted)).resolves.toBe("token-value");
+      expect(encrypted).not.toContain("token-value");
+    },
+  );
 });

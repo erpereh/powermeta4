@@ -13,6 +13,7 @@ import {
   SESSION_DURATION_SECONDS,
   SESSION_TOUCH_INTERVAL_MS,
 } from "./token";
+import { toLocalSessionStoreError } from "./local-session-store-error";
 import type { DpapiAdapter } from "@/lib/security/dpapi";
 import type { Meta4Client } from "@/lib/meta4/client";
 import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
@@ -219,40 +220,44 @@ export const createAuthService = ({
       log: logProfileLookup,
     });
 
-    const currentTime = now();
-    const [jsessionIdEncrypted, refreshSessionIdEncrypted, profileJsonEncrypted] =
-      await Promise.all([
-        dpapi.protectSecret(loggedIn.jSessionId),
-        dpapi.protectSecret(loggedIn.refreshSessionId),
-        encryptMeta4ProfilePayload(dpapi, lookup.profile),
-      ]);
+    try {
+      const currentTime = now();
+      const [jsessionIdEncrypted, refreshSessionIdEncrypted, profileJsonEncrypted] =
+        await Promise.all([
+          dpapi.protectSecret(loggedIn.jSessionId),
+          dpapi.protectSecret(loggedIn.refreshSessionId),
+          encryptMeta4ProfilePayload(dpapi, lookup.profile),
+        ]);
 
-    const browser = createBrowserSessionPayload({ username, authMode: "meta4" });
-    await repository.persistMeta4LoginState({
-      soap: {
-        username,
-        jsessionIdEncrypted,
-        refreshSessionIdEncrypted,
-        lastValidatedAt: currentTime,
-      },
-      profile: {
-        username,
-        society: lookup.society,
-        displayName: resolveDisplayName(lookup.profile),
-        profileJsonEncrypted,
-        lookedUpAt: new Date(lookup.profile.lookedUpAt),
-      },
-      browserSession: browser.data,
-    });
+      const browser = createBrowserSessionPayload({ username, authMode: "meta4" });
+      await repository.persistMeta4LoginState({
+        soap: {
+          username,
+          jsessionIdEncrypted,
+          refreshSessionIdEncrypted,
+          lastValidatedAt: currentTime,
+        },
+        profile: {
+          username,
+          society: lookup.society,
+          displayName: resolveDisplayName(lookup.profile),
+          profileJsonEncrypted,
+          lookedUpAt: new Date(lookup.profile.lookedUpAt),
+        },
+        browserSession: browser.data,
+      });
 
-    restoredUsername = username;
-    restoreReadyUntil = currentTime.getTime() + RESTORE_CACHE_MS;
-    return {
-      sessionNonce: browser.sessionNonce,
-      username,
-      expiresAt: browser.expiresAt,
-      societyCode: lookup.society,
-    };
+      restoredUsername = username;
+      restoreReadyUntil = currentTime.getTime() + RESTORE_CACHE_MS;
+      return {
+        sessionNonce: browser.sessionNonce,
+        username,
+        expiresAt: browser.expiresAt,
+        societyCode: lookup.society,
+      };
+    } catch (error) {
+      throw toLocalSessionStoreError(error);
+    }
   };
 
   const debugLogin = async () => {
