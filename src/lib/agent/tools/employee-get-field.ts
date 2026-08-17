@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { AgentToolError } from "@/lib/agent/errors";
 import type { AgentToolDefinition } from "@/lib/agent/tools/types";
+import { employeeIdsEqual } from "@/lib/meta4/users/employee-id";
 import type { Meta4EmployeeDetailResult } from "@/lib/meta4/users/employee-detail-types";
 import type { Meta4UserListItem } from "@/lib/meta4/users/types";
 
@@ -97,7 +98,7 @@ export const createEmployeeGetFieldTool = (
     const parsed = inputSchema.parse(input);
     const employeeId = await context.resolveEmployeeRef(parsed.employeeRef);
     const users = await deps.listUsers();
-    const listed = users.find((user) => user.id === employeeId);
+    const listed = users.find((user) => employeeIdsEqual(user.id, employeeId));
     if (!listed) {
       throw new AgentToolError(
         "FORBIDDEN",

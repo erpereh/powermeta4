@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-08-14 - Fix 1013 / employee.get_field
+
+### Cambios
+
+- El mensaje visible `"1013"` se conserva exacto en SQLite y al hidratar.
+  El wrap `10` / `13` era CSS: el bubble de usuario usa ahora `break-words`
+  y `word-break: normal`, no `wrap-break-word`.
+- Tras resolver una matrícula, el leftover ya no usa `.includes()` sobre
+  todo el directorio (IDs cortos y partículas como `El` no marcan el
+  mensaje como no identificado). El LLM recibe `EMP_*`; la tool no acepta
+  `1013` crudo; SOAP se llama con el `employeeId` exacto.
+- El vault reminta el token si el hex contiene una matrícula del
+  directorio y resuelve `emp_*` en minúsculas. Nombre y matrícula del
+  mismo empleado reutilizan el mismo `EMP_*` en la conversación.
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en Registro
+  Retributivo.
+- `npm test` — 67 archivos, 338 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 incluye `POST /api/agent/run`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en 186 archivos, incluidos
+  archivos no tocados. Sin commit.
+
 ## 2026-08-14 - Agent runtime y Privacy Gateway
 
 ### Cambios

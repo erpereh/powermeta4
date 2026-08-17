@@ -66,12 +66,15 @@ export type EmployeeResolveResult =
 
 const hasEmployeeIntent = (text: string): boolean => EMPLOYEE_INTENT.test(normalizeSearchText(text));
 
+export const isEmployeeSearchStopword = (value: string): boolean =>
+  STOPWORDS.has(normalizeSearchText(value));
+
 const wholeWordMatch = (haystack: string, needle: string): boolean => {
   const pattern = new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(needle)}([^\\p{L}\\p{N}]|$)`, "iu");
   return pattern.test(haystack);
 };
 
-const collectDigitSpans = (text: string): string[] => text.match(/\b\d{2,}\b/g) ?? [];
+export const collectDigitSpans = (text: string): string[] => text.match(/\b\d{2,}\b/g) ?? [];
 
 const collectNameLikeSpans = (text: string): string[] => {
   const matches = text.match(/[A-ZÁÉÍÓÚÑ][\p{L}'’.-]*(?:\s+[A-ZÁÉÍÓÚÑ][\p{L}'’.-]*)*/gu) ?? [];
@@ -183,7 +186,11 @@ export const resolveEmployeeMention = (
 export const messageHasEmployeeIntent = (text: string): boolean => hasEmployeeIntent(text);
 
 export const replaceMentionWithToken = (text: string, span: string, token: string): string => {
-  const pattern = new RegExp(escapeRegExp(span), "iu");
-  if (pattern.test(text)) return text.replace(pattern, token);
-  return text;
+  const trimmed = span.trim();
+  if (!trimmed) return text;
+  const pattern = new RegExp(
+    `(^|[^\\p{L}\\p{N}])${escapeRegExp(trimmed)}([^\\p{L}\\p{N}]|$)`,
+    "iu",
+  );
+  return text.replace(pattern, `$1${token}$2`);
 };

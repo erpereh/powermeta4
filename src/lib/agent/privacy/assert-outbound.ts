@@ -1,3 +1,5 @@
+import { escapeRegExp } from "@/lib/agent/normalize";
+
 const collectStrings = (value: unknown, acc: string[]): void => {
   if (typeof value === "string") {
     acc.push(value);
@@ -12,9 +14,14 @@ const collectStrings = (value: unknown, acc: string[]): void => {
   }
 };
 
-const includesInsensitive = (haystack: string, needle: string): boolean => {
-  if (!needle.trim()) return false;
-  return haystack.toLocaleLowerCase("es").includes(needle.toLocaleLowerCase("es"));
+export const containsWholeToken = (haystack: string, needle: string): boolean => {
+  const trimmed = needle.trim();
+  if (!trimmed) return false;
+  const pattern = new RegExp(
+    `(^|[^\\p{L}\\p{N}])${escapeRegExp(trimmed)}([^\\p{L}\\p{N}]|$)`,
+    "iu",
+  );
+  return pattern.test(haystack);
 };
 
 export const collectOutboundStrings = (payload: unknown): string[] => {
@@ -29,9 +36,7 @@ export const serializeOutboundPayload = (payload: unknown): string =>
 export const assertOutboundPayload = (payload: unknown, forbidden: readonly string[]): void => {
   const blob = collectOutboundStrings(payload).join("\n");
   for (const value of forbidden) {
-    const trimmed = value.trim();
-    if (!trimmed) continue;
-    if (includesInsensitive(blob, trimmed)) {
+    if (containsWholeToken(blob, value)) {
       throw new Error("PRIVACY_FAIL_CLOSED");
     }
   }
@@ -39,5 +44,5 @@ export const assertOutboundPayload = (payload: unknown, forbidden: readonly stri
 
 export const payloadContainsAny = (payload: unknown, needles: readonly string[]): boolean => {
   const blob = collectOutboundStrings(payload).join("\n");
-  return needles.some((needle) => needle.trim() && includesInsensitive(blob, needle));
+  return needles.some((needle) => containsWholeToken(blob, needle));
 };

@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Fix 1013 / employee.get_field - 2026-08-14
+
+- [x] Diagnóstico A vs B: el string persistido e hidratado de `"1013"` no
+      contiene `\\n` (codepoints 49,48,49,51). El wrap visual era CSS
+      (`wrap-break-word` + `pre-line` de assistant-ui). Bubble de usuario
+      pasa a `break-words [word-break:normal]`.
+- [x] Leftover/outbound dejaron de usar `.includes()`: coincidencia de token
+      completo. `collectUserPlaintext` no mete partículas/stopwords. El
+      vault reminta `EMP_*` si el hex embebe una matrícula. Lookup
+      case-insensitive. `employee.get_field` sigue rechazando `1013` crudo.
+- [x] Resolver: `1013`/`0001`/`0013`/`1001512` son un token; `"0013"` se
+      conserva; replace con límite de palabra. Primer turno crea el binding.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin errores
+      del cambio (warnings preexistentes de Registro Retributivo);
+      `npm test` 67 archivos, 338 pruebas correctas y 2 omitidas;
+      `npm run build` correcto; `git diff --check` correcto.
+      `npm run lint` falla en `oxfmt --check` (sin configuración; 186
+      archivos, incluidos no tocados). Sin commit.
+
 ## Agent runtime + Privacy Gateway - 2026-08-14
 
 - [x] Migración `007_agent_runtime`: `ai_provider_configs.model` nullable,

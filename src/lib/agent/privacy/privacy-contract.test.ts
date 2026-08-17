@@ -38,6 +38,22 @@ const JUAN_GARCIA: Meta4UserListItem = {
 
 const USERS = [JUAN, JUAN_GARCIA];
 
+const DIRTY_USERS: Meta4UserListItem[] = [
+  { id: "10", fullName: "El Carmen Ruiz", claveSelf: "ecruiz" },
+  { id: "13", fullName: "De La Fuente", claveSelf: "dfuente" },
+  { id: "0013", fullName: "Mariana Ruiz Soto", claveSelf: "mruiz" },
+  JUAN,
+  JUAN_GARCIA,
+];
+
+const providerConfig = {
+  id: "provider-1",
+  name: "Grok 4.1 Fast",
+  baseUrl: "https://api.example.invalid/v1",
+  model: "grok-4-1-fast",
+  apiKey: "sk-test",
+} as const;
+
 const PRIVATE_VALUES = [
   "Juan",
   "Pérez",
@@ -189,6 +205,11 @@ describe("employee mention resolver", () => {
       { id: "9", fullName: "María López", claveSelf: "mlopez" },
     ]);
     expect(result.status).toBe("unresolved");
+  });
+
+  it("resolves 1013 even when the directory also has 10, 13 and 0013", () => {
+    const result = resolveEmployeeMention("¿Qué puesto tiene el 1013?", DIRTY_USERS);
+    expect(result).toMatchObject({ status: "unique", employee: { employeeId: "1013" } });
   });
 });
 
@@ -648,5 +669,204 @@ describe("agent privacy contract", () => {
           })) as typeof fetch,
       }),
     ).rejects.toBeTruthy();
+  });
+
+  it("resolves 1013 on a first turn with a dirty directory, fake LLM and fake SOAP", async () => {
+    const { database, companyId, privacy } = createHarness();
+    const outbound: unknown[] = [];
+    const queriedIds: string[] = [];
+    const original = userMessage("user-1", "¿Qué puesto tiene el 1013?");
+    const originalContent = JSON.stringify(original.content);
+    const assistant = assistantMessage("assistant-1", "user-1");
+    persistMessages(database, [original, assistant]);
+
+    const result = await runAgentTurn({
+      companyId,
+      conversationId: "conversation-1",
+      assistantMessageId: assistant.id,
+      messages: [original, assistant],
+      privacy,
+      listUsers: async () => ({ society: "CYC", users: DIRTY_USERS }),
+      tools: buildAgentTools({
+        listUsers: async () => DIRTY_USERS,
+        getDetail: async (employeeId) => {
+          queriedIds.push(employeeId);
+          return juanDetail();
+        },
+      }),
+      resolveProvider: async () => providerConfig,
+      fetchImpl: (async (_input, init) => {
+        const payload = JSON.parse(String(init?.body ?? "{}")) as unknown;
+        outbound.push(payload);
+        const serialized = serializeOutboundPayload(payload);
+        expect(serialized).not.toContain("1013");
+        expect(payloadContainsAny(payload, ["1013", "10", "13", "0013", "Juan Pérez", "CYC"])).toBe(
+          false,
+        );
+        return toolCallResponse("employee.get_field", {
+          employeeRef: extractEmpToken(payload),
+          field: "JOB_TITLE",
+        });
+      }) as typeof fetch,
+    });
+
+    expect(JSON.stringify(original.content)).toBe(originalContent);
+    expect(
+      JSON.parse(
+        (database.prepare("SELECT content_json FROM messages WHERE id = 'user-1'").get() as {
+          content_json: string;
+        }).content_json,
+      ),
+    ).toEqual([{ type: "text", text: "¿Qué puesto tiene el 1013?" }]);
+    expect(queriedIds).toEqual(["1013"]);
+    expect(outbound).toHaveLength(1);
+    const token = extractEmpToken(outbound[0]);
+    expect(token).toMatch(/^EMP_[0-9A-F]{8}$/i);
+    expect(await privacy.getEmployeeId("conversation-1", companyId, token)).toBe("1013");
+    expect(await privacy.getEmployeeId("conversation-1", companyId, token.toLowerCase())).toBe(
+      "1013",
+    );
+    expect(result.content).toEqual([
+      { type: "text", text: "Juan Pérez tiene el puesto de Analista Programador." },
+    ]);
+    expect(privacy.getProjection(assistant.id)).toMatchObject({
+      kind: "tool_result",
+      text: `Consultado employee.get_field(${token}, JOB_TITLE).`,
+    });
+
+    const followUpUser = userMessage("user-2", "¿Y en qué unidad trabaja?", assistant.id);
+    const followUpAssistant = assistantMessage("assistant-2", "user-2");
+    persistMessages(database, [
+      { ...original, status: "complete" },
+      {
+        ...assistant,
+        status: "complete",
+        content: [{ type: "text", text: "Juan Pérez tiene el puesto de Analista Programador." }],
+      },
+      followUpUser,
+      followUpAssistant,
+    ]);
+    const followUpOutbound: unknown[] = [];
+    const followUpIds: string[] = [];
+
+    const followUp = await runAgentTurn({
+      companyId,
+      conversationId: "conversation-1",
+      assistantMessageId: followUpAssistant.id,
+      messages: [
+        { ...original, status: "complete" },
+        {
+          ...assistant,
+          status: "complete",
+          content: [{ type: "text", text: "Juan Pérez tiene el puesto de Analista Programador." }],
+        },
+        followUpUser,
+        followUpAssistant,
+      ],
+      privacy,
+      listUsers: async () => ({ society: "CYC", users: DIRTY_USERS }),
+      tools: buildAgentTools({
+        listUsers: async () => DIRTY_USERS,
+        getDetail: async (employeeId) => {
+          followUpIds.push(employeeId);
+          return juanDetail();
+        },
+      }),
+      resolveProvider: async () => providerConfig,
+      fetchImpl: (async (_input, init) => {
+        const payload = JSON.parse(String(init?.body ?? "{}")) as unknown;
+        followUpOutbound.push(payload);
+        const serialized = serializeOutboundPayload(payload);
+        expect(serialized).toContain(token);
+        expect(serialized).not.toContain("1013");
+        return toolCallResponse("employee.get_field", {
+          employeeRef: token,
+          field: "UNIT",
+        });
+      }) as typeof fetch,
+    });
+
+    expect(followUpIds).toEqual(["1013"]);
+    expect(followUp.content).toEqual([
+      { type: "text", text: "Juan Pérez tiene la unidad de Recursos Humanos." },
+    ]);
+  });
+
+  it("binds the same EMP token for a name and the matching enrolment in one conversation", async () => {
+    const { database, companyId, privacy } = createHarness();
+    const byId = [
+      userMessage("user-id", "¿Qué puesto tiene el 1013?"),
+      assistantMessage("assistant-id", "user-id"),
+    ];
+    persistMessages(database, byId);
+    await runAgentTurn({
+      companyId,
+      conversationId: "conversation-1",
+      assistantMessageId: "assistant-id",
+      messages: byId,
+      privacy,
+      listUsers: async () => ({ society: "CYC", users: DIRTY_USERS }),
+      tools: buildAgentTools({
+        listUsers: async () => DIRTY_USERS,
+        getDetail: async () => juanDetail(),
+      }),
+      resolveProvider: async () => providerConfig,
+      fetchImpl: (async (_input, init) => {
+        const payload = JSON.parse(String(init?.body ?? "{}")) as unknown;
+        return toolCallResponse("employee.get_field", {
+          employeeRef: extractEmpToken(payload),
+          field: "JOB_TITLE",
+        });
+      }) as typeof fetch,
+    });
+    const token = (await privacy.listEmployeeBindings("conversation-1", companyId))[0]?.token;
+    expect(token).toMatch(/^EMP_[0-9A-F]{8}$/i);
+
+    const byName = [
+      userMessage("user-name", "¿Qué puesto tiene Juan Pérez?", "assistant-id"),
+      assistantMessage("assistant-name", "user-name"),
+    ];
+    persistMessages(database, [
+      { ...byId[0], status: "complete" } as Message,
+      {
+        ...byId[1],
+        status: "complete",
+        content: [{ type: "text", text: "Juan Pérez tiene el puesto de Analista Programador." }],
+      } as Message,
+      ...byName,
+    ]);
+    await runAgentTurn({
+      companyId,
+      conversationId: "conversation-1",
+      assistantMessageId: "assistant-name",
+      messages: [
+        { ...byId[0], status: "complete" } as Message,
+        {
+          ...byId[1],
+          status: "complete",
+          content: [{ type: "text", text: "Juan Pérez tiene el puesto de Analista Programador." }],
+        } as Message,
+        ...byName,
+      ],
+      privacy,
+      listUsers: async () => ({ society: "CYC", users: DIRTY_USERS }),
+      tools: buildAgentTools({
+        listUsers: async () => DIRTY_USERS,
+        getDetail: async () => juanDetail(),
+      }),
+      resolveProvider: async () => providerConfig,
+      fetchImpl: (async (_input, init) => {
+        const payload = JSON.parse(String(init?.body ?? "{}")) as unknown;
+        expect(extractEmpToken(payload)).toBe(token);
+        return toolCallResponse("employee.get_field", {
+          employeeRef: token ?? "",
+          field: "JOB_TITLE",
+        });
+      }) as typeof fetch,
+    });
+    const bindings = await privacy.listEmployeeBindings("conversation-1", companyId);
+    expect(bindings).toHaveLength(1);
+    expect(bindings[0]?.employeeId).toBe("1013");
+    expect(bindings[0]?.token).toBe(token);
   });
 });

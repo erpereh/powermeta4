@@ -6,12 +6,14 @@ import { AgentPrivacyError, AgentProviderConfigError, AgentToolError } from "@/l
 import type { EmployeeDisambiguationData } from "@/lib/agent/disambiguation";
 import { completeOpenAiChat } from "@/lib/agent/llm/openai-compatible";
 import type { OpenAiChatMessage } from "@/lib/agent/llm/openai-compatible";
-import { payloadContainsAny } from "@/lib/agent/privacy/assert-outbound";
+import { containsWholeToken, payloadContainsAny } from "@/lib/agent/privacy/assert-outbound";
 import {
+  isEmployeeSearchStopword,
   messageHasEmployeeIntent,
   replaceMentionWithToken,
   resolveEmployeeMention,
 } from "@/lib/agent/resolve/employee-resolver";
+import { employeeIdsEqual } from "@/lib/meta4/users/employee-id";
 import { toOpenAiToolDefinitions } from "@/lib/agent/tools/registry";
 import type { AnyAgentTool } from "@/lib/agent/tools/types";
 import type { createAgentPrivacyRepository } from "@/server/database/repositories/agent-privacy-repository";
@@ -76,14 +78,26 @@ const uniqueForbidden = (values: readonly string[]): string[] => {
 
 const collectUserPlaintext = (users: readonly Meta4UserListItem[]): string[] => {
   const values: string[] = [];
+  const push = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    if (isEmployeeSearchStopword(trimmed)) return;
+    values.push(trimmed);
+  };
   for (const user of users) {
-    values.push(user.id, user.fullName, user.claveSelf);
+    if (user.id.trim()) values.push(user.id.trim());
+    push(user.fullName);
+    push(user.claveSelf);
     for (const part of user.fullName.split(/\s+/)) {
-      if (part.length >= 2) values.push(part);
+      if (part.length < 3) continue;
+      push(part);
     }
   }
   return values;
 };
+
+const plaintextKeys = (values: readonly string[]): Set<string> =>
+  new Set(values.map((value) => value.toLocaleLowerCase("es")));
 
 const textParts = (text: string): AgentContentPart[] => [{ type: "text", text }];
 
@@ -360,14 +374,29 @@ const sanitizeUserMessage = async (options: {
     return { status: "local", message: resolved.message };
   }
   if (resolved.status === "unique") {
+    const resolvedUser = options.users.find((user) =>
+      employeeIdsEqual(user.id, resolved.employee.employeeId),
+    );
+    const excluded = plaintextKeys([
+      resolved.employee.employeeId,
+      resolved.employee.fullName,
+      resolved.employee.matchedSpan,
+      ...collectUserPlaintext(resolvedUser ? [resolvedUser] : []),
+    ]);
+    const leftover = collectUserPlaintext(options.users).filter(
+      (value) => !excluded.has(value.toLocaleLowerCase("es")),
+    );
     const token = await options.privacy.bindEmployee(
       options.conversationId,
       options.companyId,
       resolved.employee.employeeId,
+      { avoidSubstrings: options.users.map((user) => user.id) },
     );
     const sanitized = replaceMentionWithToken(options.text, resolved.employee.matchedSpan, token);
-    const leftover = collectUserPlaintext(options.users);
-    if (payloadContainsAny(sanitized, leftover.filter((value) => value !== token))) {
+    if (
+      containsWholeToken(sanitized, resolved.employee.matchedSpan) ||
+      payloadContainsAny(sanitized, leftover)
+    ) {
       return { status: "local", message: UNRESOLVED_MESSAGE };
     }
     await options.privacy.putProjection(options.message.id, options.conversationId, {

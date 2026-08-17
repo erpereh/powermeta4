@@ -355,4 +355,38 @@ describe("workspace repository", () => {
     expect(workspace?.aiProviderConfigs).toHaveLength(1);
     expect(workspace?.preferences.selectedProviderConfigId).toBeNull();
   });
+
+  it("persists user content 1013 exactly, without a newline", async () => {
+    const { repository, database } = createRepository();
+    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    if (!company) throw new Error("The bootstrap company was not created");
+    const conversation = await repository.createConversation(company.id, "conversation-1013");
+    await repository.upsertMessage({
+      companyId: company.id,
+      conversationId: conversation.id,
+      id: "message-1013",
+      role: "user",
+      content: [{ type: "text", text: "1013" }],
+      status: "complete",
+    });
+
+    const stored = await repository.getConversation(company.id, conversation.id);
+    const message = stored.messages.find((item) => item.id === "message-1013");
+    const content = message?.content;
+    expect(Array.isArray(content)).toBe(true);
+    if (!Array.isArray(content)) throw new Error("Expected text parts");
+    const part = content[0];
+    expect(part).toEqual({ type: "text", text: "1013" });
+    if (!part || typeof part === "string" || part.type !== "text" || !("text" in part)) {
+      throw new Error("Expected a text part");
+    }
+    expect(JSON.stringify(part.text)).toBe('"1013"');
+    expect([...part.text].map((char) => char.codePointAt(0))).toEqual([49, 48, 49, 51]);
+    expect(part.text).not.toContain("\n");
+
+    const row = database
+      .prepare("SELECT content_json FROM messages WHERE id = ?")
+      .get("message-1013") as { content_json: string };
+    expect(JSON.parse(row.content_json)).toEqual([{ type: "text", text: "1013" }]);
+  });
 });

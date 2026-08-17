@@ -330,7 +330,7 @@ const UserMessage: FC = () => (
     className="grid grid-cols-[minmax(24px,1fr)_auto] gap-y-2 px-2"
     data-role="user"
   >
-    <div className="col-start-2 max-w-[min(85%,48rem)] rounded-2xl bg-muted px-4 py-3 text-sm leading-6 wrap-break-word">
+    <div className="col-start-2 max-w-[min(85%,48rem)] rounded-2xl bg-muted px-4 py-3 text-sm leading-6 break-words [word-break:normal]">
       <MessagePrimitive.Parts />
     </div>
     <div className="col-span-full col-start-1 row-start-3 flex justify-end">

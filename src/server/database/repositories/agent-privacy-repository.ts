@@ -80,6 +80,15 @@ const mintEmployeeToken = (conversationId: string, employeeId: string): string =
   return `EMP_${digest}`;
 };
 
+const tokenEmbedsSubstring = (token: string, needles: readonly string[]): boolean => {
+  const haystack = token.toUpperCase();
+  return needles.some((needle) => {
+    const trimmed = needle.trim().toUpperCase();
+    if (trimmed.length < 2) return false;
+    return haystack.includes(trimmed);
+  });
+};
+
 export const createAgentPrivacyRepository = (
   database: DatabaseSync = getDatabase(),
   dpapi: DpapiAdapter,
@@ -112,14 +121,24 @@ export const createAgentPrivacyRepository = (
     conversationId: string,
     companyId: CompanyId,
     employeeId: string,
+    options?: { avoidSubstrings?: readonly string[] },
   ): Promise<string> => {
     const existing = await listEmployeeBindings(conversationId, companyId);
     const found = existing.find((binding) => binding.employeeId === employeeId);
     if (found) return found.token;
 
+    const avoidSubstrings = options?.avoidSubstrings ?? [];
+    const takenByOther = (candidate: string): boolean =>
+      existing.some((binding) => binding.token === candidate && binding.employeeId !== employeeId);
+
+    let nonce = 0;
     let token = mintEmployeeToken(conversationId, employeeId);
-    if (existing.some((binding) => binding.token === token && binding.employeeId !== employeeId)) {
-      token = mintEmployeeToken(conversationId, `${employeeId}:${existing.length}`);
+    while (
+      (takenByOther(token) || tokenEmbedsSubstring(token, avoidSubstrings)) &&
+      nonce < 64
+    ) {
+      nonce += 1;
+      token = mintEmployeeToken(conversationId, `${employeeId}:${nonce}`);
     }
 
     const encrypted = await dpapi.protectSecret(JSON.stringify({ employeeId }));
@@ -141,7 +160,10 @@ export const createAgentPrivacyRepository = (
     token: string,
   ): Promise<string | null> => {
     const bindings = await listEmployeeBindings(conversationId, companyId);
-    return bindings.find((binding) => binding.token === token)?.employeeId ?? null;
+    const normalized = token.trim().toUpperCase();
+    return (
+      bindings.find((binding) => binding.token.toUpperCase() === normalized)?.employeeId ?? null
+    );
   };
 
   const putProjection = async (
