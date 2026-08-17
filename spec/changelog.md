@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-08-17 - Probe Gemini alineado con el curl oficial
+
+### Cambios
+
+- El probe de Gemini envía el mismo JSON que la documentación
+  (`contents[].parts[].text`, sin `role` ni `systemInstruction`) y la
+  cabecera `X-goog-api-key`.
+- Si el chat nativo responde 200 y el POST de tools falla, el error es
+  «el modelo no admite las herramientas», no «API key no válida».
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en Registro
+  Retributivo.
+- `npm test` — 78 archivos, 397 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 incluye `POST /api/agent/run`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en archivos no tocados.
+
 ## 2026-08-17 - Auth nativo de Gemini (keys AQ. y 3.1 Flash Lite)
 
 ### Cambios

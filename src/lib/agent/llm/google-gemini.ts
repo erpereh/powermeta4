@@ -45,8 +45,28 @@ export const resolveGeminiGenerateContentUrl = (baseUrl: string, model: string):
 
 export const geminiRequestHeaders = (apiKey: string): Record<string, string> => ({
   "Content-Type": "application/json",
-  "x-goog-api-key": apiKey,
+  "X-goog-api-key": apiKey,
 });
+
+export const toGeminiOfficialProbeBody = (options?: {
+  tools?: readonly OpenAiToolDefinition[];
+}): Record<string, unknown> => {
+  const body: Record<string, unknown> = {
+    contents: [{ parts: [{ text: "OK" }] }],
+  };
+  if (options?.tools && options.tools.length > 0) {
+    body.tools = [
+      {
+        functionDeclarations: options.tools.map((tool) => ({
+          name: tool.function.name,
+          description: tool.function.description,
+          parameters: tool.function.parameters,
+        })),
+      },
+    ];
+  }
+  return body;
+};
 
 type GeminiTextPart = { text: string };
 type GeminiContent = { role: "user" | "model"; parts: GeminiTextPart[] };

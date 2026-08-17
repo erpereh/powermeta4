@@ -30,7 +30,7 @@ const OPENAI_INPUT = {
 };
 
 describe("probeOpenAiCompatibleProvider", () => {
-  it("probes Gemini on generateContent with x-goog-api-key and without Bearer", async () => {
+  it("probes Gemini with the official generateContent curl shape", async () => {
     const fetchImpl = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
       async () => jsonResponse(200, geminiOkBody),
     );
@@ -45,11 +45,16 @@ describe("probeOpenAiCompatibleProvider", () => {
     expect(firstUrl).not.toContain("/openai/chat/completions");
     expect(firstUrl).not.toContain("key=");
     const firstHeaders = fetchImpl.mock.calls[0]?.[1]?.headers as Record<string, string>;
-    expect(firstHeaders["x-goog-api-key"]).toBe("AQ.secret-key");
+    expect(firstHeaders["X-goog-api-key"]).toBe("AQ.secret-key");
     expect(firstHeaders.Authorization).toBeUndefined();
-    const firstBody = JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body ?? "{}")) as {
-      contents: unknown;
-    };
+    const firstBody = JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body ?? "{}")) as Record<
+      string,
+      unknown
+    >;
+    expect(firstBody).toEqual({ contents: [{ parts: [{ text: "OK" }] }] });
+    expect(firstBody).not.toHaveProperty("systemInstruction");
+    expect(firstBody).not.toHaveProperty("generationConfig");
+    expect(JSON.stringify(firstBody)).not.toContain('"role"');
     expect(JSON.stringify(firstBody.contents)).not.toMatch(/empleado|CYC|1013/i);
     const secondBody = JSON.parse(String(fetchImpl.mock.calls[1]?.[1]?.body ?? "{}")) as {
       tools: { functionDeclarations: { name: string }[] }[];
@@ -59,7 +64,7 @@ describe("probeOpenAiCompatibleProvider", () => {
     expect(JSON.stringify(fetchImpl.mock.calls)).not.toContain("Authorization");
   });
 
-  it("maps a Gemini native 403 to an invalid API key error", async () => {
+  it("maps a Gemini native 403 on the first POST to an invalid API key error", async () => {
     const fetchImpl = vi.fn(async () => jsonResponse(403, { error: { message: "API key not valid" } }));
     await expect(
       probeOpenAiCompatibleProvider({
@@ -69,6 +74,24 @@ describe("probeOpenAiCompatibleProvider", () => {
     ).rejects.toMatchObject({
       errorCode: "PROVIDER_API_KEY_INVALID",
       message: "API key no válida.",
+    });
+  });
+
+  it("maps a Gemini tools 403 after a successful chat to tools unsupported, not an invalid key", async () => {
+    const fetchImpl = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async (_input, init) => {
+        const body = JSON.parse(String(init?.body ?? "{}")) as { tools?: unknown };
+        if (body.tools) {
+          return jsonResponse(403, { error: { status: "PERMISSION_DENIED", message: "permission" } });
+        }
+        return jsonResponse(200, geminiOkBody);
+      },
+    );
+    await expect(
+      probeOpenAiCompatibleProvider({ ...GEMINI_INPUT, fetchImpl }),
+    ).rejects.toMatchObject({
+      errorCode: "PROVIDER_TOOLS_UNSUPPORTED",
+      message: "El modelo no admite las herramientas requeridas por powermeta4.",
     });
   });
 

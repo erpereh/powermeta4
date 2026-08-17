@@ -7,6 +7,7 @@ import {
   parseGeminiGenerateContent,
   resolveGeminiGenerateContentUrl,
   toGeminiGenerateContentBody,
+  toGeminiOfficialProbeBody,
 } from "@/lib/agent/llm/google-gemini";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/openai";
@@ -36,11 +37,33 @@ describe("google gemini native transport", () => {
     );
   });
 
-  it("sends x-goog-api-key and never an Authorization header", () => {
+  it("sends X-goog-api-key and never an Authorization header", () => {
     const headers = geminiRequestHeaders("AQ.secret");
-    expect(headers["x-goog-api-key"]).toBe("AQ.secret");
+    expect(headers["X-goog-api-key"]).toBe("AQ.secret");
     expect(headers.Authorization).toBeUndefined();
     expect(Object.keys(headers)).not.toContain("Authorization");
+  });
+
+  it("builds the official generateContent probe body without role or systemInstruction", () => {
+    const body = toGeminiOfficialProbeBody();
+    expect(body).toEqual({ contents: [{ parts: [{ text: "OK" }] }] });
+    expect(body).not.toHaveProperty("systemInstruction");
+    expect(body).not.toHaveProperty("generationConfig");
+    expect(JSON.stringify(body)).not.toContain('"role"');
+    const withTools = toGeminiOfficialProbeBody({
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "test_tool",
+            description: "Synthetic connectivity probe. Call with value PING.",
+            parameters: { type: "object", properties: { value: { type: "string" } } },
+          },
+        },
+      ],
+    });
+    const tools = withTools.tools as { functionDeclarations: { name: string }[] }[];
+    expect(tools[0]?.functionDeclarations[0]?.name).toBe("test_tool");
   });
 
   it("maps OpenAI messages and tools to native generateContent JSON", () => {

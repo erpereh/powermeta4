@@ -1,5 +1,22 @@
 # powermeta4 - estado de tareas
 
+## Probe Gemini = curl oficial - 2026-08-17
+
+- [x] Diagnóstico: el curl de Gemini (PC) era 200 con body mínimo; el
+      probe metía `systemInstruction`, `role` y `generationConfig`, y
+      un 403 del POST de tools se etiquetaba como API key inválida.
+- [x] Primer POST Gemini: `{ contents: [{ parts: [{ text: "OK" }] }] }`
+      y cabecera `X-goog-api-key`. Segundo POST: el mismo body +
+      `test_tool`. Si el chat fue 200 y tools falla → tools unsupported,
+      no key inválida. Runtime del chat no cambia (sigue con system
+      prompt y roles).
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin
+      errores del cambio (warnings preexistentes de Registro
+      Retributivo); `npm test` 78 archivos, 397 pruebas correctas y 2
+      omitidas; `npm run build` correcto; `git diff --check` correcto.
+      `npm run lint` falla en `oxfmt --check` (sin configuración;
+      preexistente).
+
 ## Auth nativo Gemini AQ. / 3.1 Flash Lite - 2026-08-17
 
 - [x] Diagnóstico: guardar Gemini fallaba con 403 «API key no válida»

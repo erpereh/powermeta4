@@ -32,7 +32,7 @@ describe("completeOpenAiChat", () => {
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
     );
     const headers = fetchImpl.mock.calls[0]?.[1]?.headers as Record<string, string>;
-    expect(headers["x-goog-api-key"]).toBe("AQ.secret");
+    expect(headers["X-goog-api-key"]).toBe("AQ.secret");
     expect(headers.Authorization).toBeUndefined();
     const body = JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body ?? "{}")) as {
       systemInstruction: { parts: { text: string }[] };

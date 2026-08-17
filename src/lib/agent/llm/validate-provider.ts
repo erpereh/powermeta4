@@ -4,7 +4,7 @@ import {
   isGoogleGenerativeLanguageHost,
   looksLikeGeminiGenerateContent,
   resolveGeminiGenerateContentUrl,
-  toGeminiGenerateContentBody,
+  toGeminiOfficialProbeBody,
 } from "@/lib/agent/llm/google-gemini";
 import { resolveChatCompletionsUrl, providerHostForLog } from "@/lib/agent/llm/provider-url";
 import type { OpenAiChatMessage, OpenAiToolDefinition } from "@/lib/agent/llm/openai-compatible";
@@ -32,16 +32,20 @@ const TEST_TOOL: OpenAiToolDefinition = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+type ProbeTransport = "gemini-native" | "openai-compatible";
+
 const logProbeFailure = (info: {
   host: string;
   status: number | null;
   errorCode: string;
+  transport: ProbeTransport;
 }): void => {
   console.info("[provider-config]", {
     source: "probe",
     host: info.host,
     status: info.status,
     errorCode: info.errorCode,
+    transport: info.transport,
   });
 };
 
@@ -50,8 +54,9 @@ const fail = (
   message: string,
   host: string,
   status: number | null,
+  transport: ProbeTransport,
 ): never => {
-  logProbeFailure({ host, status, errorCode });
+  logProbeFailure({ host, status, errorCode, transport });
   throw new ProviderValidationError(errorCode, message);
 };
 
@@ -82,13 +87,6 @@ const looksLikeAuthError = (hint: string): boolean =>
   hint.includes("permission") ||
   hint.includes("invalid key");
 
-const looksLikeToolsError = (hint: string): boolean =>
-  hint.includes("tool") ||
-  hint.includes("function call") ||
-  hint.includes("function_call") ||
-  hint.includes("tools are not supported") ||
-  hint.includes("tool_choice");
-
 const looksLikeCompatibleShape = (raw: unknown): boolean => {
   if (!isRecord(raw) || !Array.isArray(raw.choices) || raw.choices.length === 0) return false;
   const first = raw.choices[0];
@@ -96,17 +94,24 @@ const looksLikeCompatibleShape = (raw: unknown): boolean => {
   return isRecord(first.message) || typeof first.text === "string";
 };
 
-const mapHttpFailure = (status: number, hint: string, host: string, toolsProbe: boolean): never => {
-  if (status === 401 || status === 403 || looksLikeAuthError(hint)) {
-    return fail("PROVIDER_API_KEY_INVALID", "API key no válida.", host, status);
-  }
-  if (toolsProbe && (status === 400 || status === 422) && looksLikeToolsError(hint)) {
+const mapHttpFailure = (
+  status: number,
+  hint: string,
+  host: string,
+  toolsProbe: boolean,
+  transport: ProbeTransport,
+): never => {
+  if (toolsProbe) {
     return fail(
       "PROVIDER_TOOLS_UNSUPPORTED",
       "El modelo no admite las herramientas requeridas por powermeta4.",
       host,
       status,
+      transport,
     );
+  }
+  if (status === 401 || status === 403 || looksLikeAuthError(hint)) {
+    return fail("PROVIDER_API_KEY_INVALID", "API key no válida.", host, status, transport);
   }
   if (status === 404 && looksLikeModelError(hint)) {
     return fail(
@@ -114,6 +119,7 @@ const mapHttpFailure = (status: number, hint: string, host: string, toolsProbe: 
       "El modelo indicado no existe o no está disponible.",
       host,
       status,
+      transport,
     );
   }
   if (status === 400 && looksLikeModelError(hint)) {
@@ -122,16 +128,24 @@ const mapHttpFailure = (status: number, hint: string, host: string, toolsProbe: 
       "El modelo indicado no existe o no está disponible.",
       host,
       status,
+      transport,
     );
   }
   if (status === 404) {
-    return fail("PROVIDER_BASE_URL_INCOMPATIBLE", "La Base URL no es compatible.", host, status);
+    return fail(
+      "PROVIDER_BASE_URL_INCOMPATIBLE",
+      "La Base URL no es compatible.",
+      host,
+      status,
+      transport,
+    );
   }
   return fail(
     "PROVIDER_INVALID_RESPONSE",
     "El proveedor respondió con un formato no válido.",
     host,
     status,
+    transport,
   );
 };
 
@@ -167,13 +181,20 @@ export const probeOpenAiCompatibleProvider = async (options: {
   const fetchImpl = options.fetchImpl ?? fetch;
   const host = providerHostForLog(options.baseUrl);
   const gemini = isGoogleGenerativeLanguageHost(options.baseUrl);
+  const transport: ProbeTransport = gemini ? "gemini-native" : "openai-compatible";
   let url: string;
   try {
     url = gemini
       ? resolveGeminiGenerateContentUrl(options.baseUrl, options.model)
       : resolveChatCompletionsUrl(options.baseUrl);
   } catch {
-    return fail("PROVIDER_BASE_URL_INCOMPATIBLE", "La Base URL no es compatible.", host, null);
+    return fail(
+      "PROVIDER_BASE_URL_INCOMPATIBLE",
+      "La Base URL no es compatible.",
+      host,
+      null,
+      transport,
+    );
   }
 
   const openaiChatBody = {
@@ -186,11 +207,8 @@ export const probeOpenAiCompatibleProvider = async (options: {
     tools: [TEST_TOOL],
     tool_choice: "auto",
   };
-  const geminiChatBody = toGeminiGenerateContentBody({ messages: SYNTHETIC_MESSAGES });
-  const geminiToolsBody = toGeminiGenerateContentBody({
-    messages: SYNTHETIC_MESSAGES,
-    tools: [TEST_TOOL],
-  });
+  const geminiChatBody = toGeminiOfficialProbeBody();
+  const geminiToolsBody = toGeminiOfficialProbeBody({ tools: [TEST_TOOL] });
   const headers = gemini
     ? geminiRequestHeaders(options.apiKey)
     : {
@@ -210,13 +228,19 @@ export const probeOpenAiCompatibleProvider = async (options: {
       });
     } catch (error) {
       if (error instanceof ProviderValidationError) throw error;
-      return fail("PROVIDER_UNREACHABLE", "No se ha podido conectar con el proveedor.", host, null);
+      return fail(
+        "PROVIDER_UNREACHABLE",
+        "No se ha podido conectar con el proveedor.",
+        host,
+        null,
+        transport,
+      );
     }
   };
 
   const chatResult = await requestProbe(gemini ? geminiChatBody : openaiChatBody);
   if (!chatResult.ok) {
-    mapHttpFailure(chatResult.status, inspectErrorHint(chatResult.raw), host, false);
+    mapHttpFailure(chatResult.status, inspectErrorHint(chatResult.raw), host, false, transport);
   }
   if (!looksSuccessful(chatResult.raw)) {
     return fail(
@@ -224,12 +248,13 @@ export const probeOpenAiCompatibleProvider = async (options: {
       "El proveedor respondió con un formato no válido.",
       host,
       chatResult.status,
+      transport,
     );
   }
 
   const toolsResult = await requestProbe(gemini ? geminiToolsBody : openaiToolsBody);
   if (!toolsResult.ok) {
-    mapHttpFailure(toolsResult.status, inspectErrorHint(toolsResult.raw), host, true);
+    mapHttpFailure(toolsResult.status, inspectErrorHint(toolsResult.raw), host, true, transport);
   }
   if (!looksSuccessful(toolsResult.raw)) {
     return fail(
@@ -237,6 +262,7 @@ export const probeOpenAiCompatibleProvider = async (options: {
       "El proveedor respondió con un formato no válido.",
       host,
       toolsResult.status,
+      transport,
     );
   }
 };
