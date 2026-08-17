@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isUsableAiProviderConfig, type AiProviderConfigView } from "@/types/ai-provider-config";
+import { isUsableAiProviderConfig, resolveSelectedProviderConfigId, type AiProviderConfigView } from "@/types/ai-provider-config";
 
 const VALID: AiProviderConfigView = {
   id: "config-1",
@@ -30,5 +30,27 @@ describe("isUsableAiProviderConfig", () => {
 
   it("rejects a configuration with an unparsable base URL", () => {
     expect(isUsableAiProviderConfig({ ...VALID, baseUrl: "not-a-url" })).toBe(false);
+  });
+});
+
+describe("resolveSelectedProviderConfigId", () => {
+  it("returns null when there are no usable configs", () => {
+    expect(resolveSelectedProviderConfigId([], null)).toBeNull();
+    expect(resolveSelectedProviderConfigId([], "config-1")).toBeNull();
+  });
+
+  it("repairs a null selection to the first usable config", () => {
+    expect(resolveSelectedProviderConfigId([VALID, { ...VALID, id: "config-2" }], null)).toBe(
+      "config-1",
+    );
+  });
+
+  it("repairs a deleted selection to another usable config", () => {
+    expect(resolveSelectedProviderConfigId([VALID], "config-deleted")).toBe("config-1");
+  });
+
+  it("keeps a valid stored selection", () => {
+    const second = { ...VALID, id: "config-2" };
+    expect(resolveSelectedProviderConfigId([VALID, second], "config-2")).toBe("config-2");
   });
 });

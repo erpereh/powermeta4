@@ -250,8 +250,11 @@ export const runAgentTurn = async (deps: AgentRunnerDeps): Promise<AgentRunResul
   let provider: AiProviderRuntimeConfig;
   try {
     provider = await deps.resolveProvider();
-  } catch {
-    return { content: textParts(NO_PROVIDER_MESSAGE), outboundPayloads: [] };
+  } catch (error) {
+    if (error instanceof AgentProviderConfigError) {
+      return { content: textParts(NO_PROVIDER_MESSAGE), outboundPayloads: [] };
+    }
+    throw error;
   }
 
   const tools = deps.tools;

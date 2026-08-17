@@ -89,6 +89,8 @@ export function ChatRuntimeProvider({
   const setMessageStatus = useWorkspaceStore((state) => state.setMessageStatus);
   const controllerRef = useRef<AbortController | null>(null);
   const schedulerRef = useRef<StreamingPersistenceScheduler | null>(null);
+  const selectedProviderConfigIdRef = useRef(selectedProviderConfigId);
+  selectedProviderConfigIdRef.current = selectedProviderConfigId;
   const [runningMessageId, setRunningMessageId] = useState<string | null>(null);
 
   const messageRepository = useMemo<ExportedMessageRepository>(() => {
@@ -233,7 +235,7 @@ export function ChatRuntimeProvider({
 
         const stream = runAgentChatStream({
           companyId,
-          providerConfigId: selectedProviderConfigId,
+          providerConfigId: selectedProviderConfigIdRef.current,
           conversationId: chatId,
           assistantMessageId: assistantMessage.id,
           abortSignal: controller.signal,

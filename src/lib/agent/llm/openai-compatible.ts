@@ -1,4 +1,5 @@
 import { AgentPrivacyError } from "@/lib/agent/errors";
+import { resolveChatCompletionsUrl } from "@/lib/agent/llm/provider-url";
 import { assertOutboundPayload } from "@/lib/agent/privacy/assert-outbound";
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt";
 
@@ -24,11 +25,6 @@ export type OpenAiToolDefinition = {
     description: string;
     parameters: Record<string, unknown>;
   };
-};
-
-const completionsUrl = (baseUrl: string): string => {
-  const root = baseUrl.replace(/\/+$/, "");
-  return root.endsWith("/chat/completions") ? root : `${root}/chat/completions`;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -60,7 +56,7 @@ export const completeOpenAiChat = async (options: {
     );
   }
 
-  const response = await options.fetchImpl(completionsUrl(options.baseUrl), {
+  const response = await options.fetchImpl(resolveChatCompletionsUrl(options.baseUrl), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${options.apiKey}`,

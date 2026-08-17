@@ -41,6 +41,10 @@ import {
 } from "@/components/ui/select";
 import { isEmployeeDisambiguationPart } from "@/lib/agent/disambiguation";
 import { cn } from "@/lib/utils";
+import {
+  USER_MESSAGE_BUBBLE_CLASS,
+  USER_MESSAGE_ROOT_CLASS,
+} from "@/components/assistant-ui/user-message-layout";
 
 type ChatModelOption = {
   id: string;
@@ -203,6 +207,7 @@ const Composer = ({ inputRef, models, selectedProviderConfigId, onProviderChange
                 variant="default"
                 className="size-8 rounded-full"
                 aria-label="Enviar mensaje"
+                disabled={models.length === 0 || !selectedProviderConfigId}
               >
                 <ArrowUp className="size-4" />
               </TooltipIconButton>
@@ -326,14 +331,11 @@ const AssistantActionBar: FC = () => (
 );
 
 const UserMessage: FC = () => (
-  <MessagePrimitive.Root
-    className="grid grid-cols-[minmax(24px,1fr)_auto] gap-y-2 px-2"
-    data-role="user"
-  >
-    <div className="col-start-2 max-w-[min(85%,48rem)] rounded-2xl bg-muted px-4 py-3 text-sm leading-6 break-words [word-break:normal]">
+  <MessagePrimitive.Root className={USER_MESSAGE_ROOT_CLASS} data-role="user">
+    <div className={USER_MESSAGE_BUBBLE_CLASS}>
       <MessagePrimitive.Parts />
     </div>
-    <div className="col-span-full col-start-1 row-start-3 flex justify-end">
+    <div className="flex w-full justify-end">
       <BranchPicker />
     </div>
     <ActionBarPrimitive.Root className="absolute start-0 top-1/2 -translate-x-full -translate-y-1/2 pe-2">

@@ -165,6 +165,15 @@ export const createAiProviderConfigRepository = (
     };
   };
 
+  const readApiKey = async (companyId: CompanyId, id: string): Promise<string> => {
+    ensureCompany(database, companyId);
+    const row = getRow(database, companyId, id);
+    if (!row.api_key_encrypted) {
+      throw new Error("La configuración de IA no está completa.");
+    }
+    return dpapi.unprotectSecret(row.api_key_encrypted);
+  };
+
   const remove = async (companyId: CompanyId, id: string): Promise<void> =>
     withRepositoryWrite(async () =>
       withTransaction(database, () => {
@@ -178,5 +187,5 @@ export const createAiProviderConfigRepository = (
       }),
     );
 
-  return { get, list, listUsable, create, update, resolveRuntime, delete: remove };
+  return { get, list, listUsable, create, update, resolveRuntime, readApiKey, delete: remove };
 };

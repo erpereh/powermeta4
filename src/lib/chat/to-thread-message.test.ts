@@ -46,6 +46,24 @@ describe("toThreadMessageLike", () => {
     expect(thread.role).toBe("user");
   });
 
+  it("preserves the exact user text hola without inserting a newline", () => {
+    const message: Message = {
+      ...baseUserMessage,
+      content: [{ type: "text", text: "hola" }],
+    };
+    const like = toThreadMessageLike(message);
+    const content = like.content;
+    const text =
+      typeof content === "string"
+        ? content
+        : content
+            .filter((part) => part.type === "text")
+            .map((part) => ("text" in part ? part.text : ""))
+            .join("");
+    expect(JSON.stringify(text)).toBe('"hola"');
+    expect(text).not.toContain("\n");
+  });
+
   it("puts a status key on an assistant message", () => {
     const like = toThreadMessageLike(baseAssistantMessage);
     expect(like.status).toEqual({ type: "complete", reason: "stop" });

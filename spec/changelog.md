@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-08-17 - Picker de modelo, validación de proveedor y wrap de `hola`
+
+### Cambios
+
+- El selector del composer y el Agent Runner comparten
+  `selectedProviderConfigId`. Un fallback visual ya no deja Gemini
+  seleccionado en UI y ausente en el runtime; si la lectura de la API
+  key falla, el error deja de disfrazarse como «no hay modelo».
+- Guardar una configuración prueba de verdad el contrato
+  OpenAI-compatible (mensaje sintético y una tool `test_tool`) y solo
+  entonces cifra la API key. Las Base URL se normalizan con `URL`.
+- El bubble de usuario deja la columna grid `auto` que partía `hola` en
+  `ho` / `la`; el texto persistido sigue siendo exactamente `"hola"`.
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en Registro
+  Retributivo.
+- `npm test` — 75 archivos, 376 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 incluye `POST /api/agent/run`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en 195 archivos, incluidos
+  archivos no tocados.
+
 ## 2026-08-17 - Login Meta4 en VM / DPAPI crypt32
 
 ### Cambios

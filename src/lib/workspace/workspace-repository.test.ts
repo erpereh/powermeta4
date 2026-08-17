@@ -389,4 +389,37 @@ describe("workspace repository", () => {
       .get("message-1013") as { content_json: string };
     expect(JSON.parse(row.content_json)).toEqual([{ type: "text", text: "1013" }]);
   });
+
+  it("persists user content hola exactly, without a newline", async () => {
+    const { repository, database } = createRepository();
+    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    if (!company) throw new Error("The bootstrap company was not created");
+    const conversation = await repository.createConversation(company.id, "conversation-hola");
+    await repository.upsertMessage({
+      companyId: company.id,
+      conversationId: conversation.id,
+      id: "message-hola",
+      role: "user",
+      content: [{ type: "text", text: "hola" }],
+      status: "complete",
+    });
+
+    const stored = await repository.getConversation(company.id, conversation.id);
+    const message = stored.messages.find((item) => item.id === "message-hola");
+    const content = message?.content;
+    expect(Array.isArray(content)).toBe(true);
+    if (!Array.isArray(content)) throw new Error("Expected text parts");
+    const part = content[0];
+    expect(part).toEqual({ type: "text", text: "hola" });
+    if (!part || typeof part === "string" || part.type !== "text" || !("text" in part)) {
+      throw new Error("Expected a text part");
+    }
+    expect(JSON.stringify(part.text)).toBe('"hola"');
+    expect(part.text).not.toContain("\n");
+
+    const row = database
+      .prepare("SELECT content_json FROM messages WHERE id = ?")
+      .get("message-hola") as { content_json: string };
+    expect(JSON.parse(row.content_json)).toEqual([{ type: "text", text: "hola" }]);
+  });
 });

@@ -30,3 +30,11 @@ export const isUsableAiProviderConfig = (config: AiProviderConfigView): boolean 
     return false;
   }
 };
+
+export const resolveSelectedProviderConfigId = (
+  usable: readonly Pick<AiProviderConfigView, "id">[],
+  stored: string | null | undefined,
+): string | null => {
+  if (stored && usable.some((config) => config.id === stored)) return stored;
+  return usable[0]?.id ?? null;
+};

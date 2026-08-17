@@ -8,6 +8,7 @@ const getAiProviderConfigsAction = vi.fn();
 const createAiProviderConfigAction = vi.fn();
 const updateAiProviderConfigAction = vi.fn();
 const deleteAiProviderConfigAction = vi.fn();
+const probeAiProviderConfigAction = vi.fn();
 const hydrateWorkspaceStore = vi.fn();
 
 vi.mock("@/app/actions/ai-provider-configs", () => ({
@@ -15,6 +16,7 @@ vi.mock("@/app/actions/ai-provider-configs", () => ({
   createAiProviderConfigAction: (...args: unknown[]) => createAiProviderConfigAction(...args),
   updateAiProviderConfigAction: (...args: unknown[]) => updateAiProviderConfigAction(...args),
   deleteAiProviderConfigAction: (...args: unknown[]) => deleteAiProviderConfigAction(...args),
+  probeAiProviderConfigAction: (...args: unknown[]) => probeAiProviderConfigAction(...args),
 }));
 
 vi.mock("@/stores/use-workspace-store", () => ({
@@ -36,6 +38,7 @@ beforeEach(() => {
   createAiProviderConfigAction.mockReset();
   updateAiProviderConfigAction.mockReset();
   deleteAiProviderConfigAction.mockReset();
+  probeAiProviderConfigAction.mockReset().mockResolvedValue({ ok: true, data: null });
   hydrateWorkspaceStore.mockReset().mockResolvedValue(true);
 });
 
@@ -59,6 +62,7 @@ describe("AiProviderSettings", () => {
 
     await waitFor(() => expect(hydrateWorkspaceStore).toHaveBeenCalledTimes(1));
     expect(screen.getByText(CONFIG.name)).toBeTruthy();
+    expect(screen.getByText("Configuración válida")).toBeTruthy();
   });
 
   it("does not reconcile the workspace store when create fails", async () => {

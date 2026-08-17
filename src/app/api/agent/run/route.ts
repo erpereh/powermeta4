@@ -4,6 +4,7 @@ import { getCurrentAuthContext, deleteSessionCookie } from "@/lib/auth/session";
 import { runAgentTurn } from "@/lib/agent/runner";
 import type { AgentContentPart } from "@/lib/agent/runner";
 import { resolveUsableProviderConfig } from "@/lib/agent/llm/provider";
+import { logProviderSelection } from "@/lib/agent/llm/provider-selection-log";
 import { buildAgentTools } from "@/lib/agent/tools/build";
 import { visibleMessages } from "@/lib/chat/visible-messages";
 import { createDpapiAdapter } from "@/lib/security/dpapi";
@@ -69,8 +70,22 @@ export async function POST(request: Request) {
   const dpapi = createDpapiAdapter();
   const privacy = createAgentPrivacyRepository(database, dpapi);
   const providerRepo = createAiProviderConfigRepository(database, dpapi);
+  const usable = providerRepo.listUsable(companyId as CompanyId);
   const persistedId =
     snapshot.workspaces[companyId as CompanyId]?.preferences.selectedProviderConfigId ?? null;
+  logProviderSelection({
+    source: "agent-run",
+    companyId,
+    configCount: usable.length,
+    configIds: usable.map((config) => config.id),
+    selectedProviderConfigId: requestedProviderConfigId,
+    requestedId: requestedProviderConfigId,
+    persistedId,
+    model: usable.find((config) => config.id === (requestedProviderConfigId ?? persistedId))?.model ?? null,
+    hasApiKey:
+      usable.find((config) => config.id === (requestedProviderConfigId ?? persistedId))?.hasApiKey ??
+      false,
+  });
 
   let chat;
   try {

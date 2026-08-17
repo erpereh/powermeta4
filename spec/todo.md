@@ -1,5 +1,27 @@
 # powermeta4 - estado de tareas
 
+## Picker, validación de proveedor y wrap de `hola` - 2026-08-17
+
+- [x] Diagnóstico: el picker podía mostrar Gemini con un fallback de UI
+      no persistido; el runner convertía cualquier fallo de
+      `resolveProvider` (incluido DPAPI) en «Configura un modelo en
+      Ajustes». `hola` → `ho`/`la` era CSS (columna grid `auto` + wrap),
+      no un `\n` en `content_json`.
+- [x] Una sola fuente: `ai_provider_configs` + `selectedProviderConfigId`.
+      Repair persistido; el send usa un ref del id actual; el runner solo
+      muestra el copy de Ajustes ante `AgentProviderConfigError`.
+- [x] Al guardar se prueba el proveedor (chat sintético «Reply only with
+      OK» + tool `test_tool`) y no se persiste si falla. Base URL
+      canónica con `URL`.
+- [x] Bubble de usuario: flex a ancho completo, `break-words` y
+      `word-break: normal`.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin
+      errores del cambio (warnings preexistentes de Registro
+      Retributivo); `npm test` 75 archivos, 376 pruebas correctas y 2
+      omitidas; `npm run build` correcto; `git diff --check` correcto.
+      `npm run lint` falla en `oxfmt --check` (sin configuración; 195
+      archivos, incluidos no tocados).
+
 ## Login Meta4 en VM / DPAPI crypt32 - 2026-08-17
 
 - [x] Diagnóstico: SOAP Login y `CSP_CONSULTA_ORO` en CYC hacían

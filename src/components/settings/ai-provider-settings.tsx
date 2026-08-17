@@ -7,6 +7,7 @@ import {
   createAiProviderConfigAction,
   deleteAiProviderConfigAction,
   getAiProviderConfigsAction,
+  probeAiProviderConfigAction,
   updateAiProviderConfigAction,
 } from "@/app/actions/ai-provider-configs";
 import { hydrateWorkspaceStore } from "@/stores/use-workspace-store";
@@ -53,7 +54,7 @@ export function AiProviderSettings() {
   const [configs, setConfigs] = useState<AiProviderConfigView[]>([]);
   const [form, setForm] = useState<AiProviderForm>(EMPTY_FORM);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState<"create" | "delete" | "update" | null>(null);
+  const [busy, setBusy] = useState<"create" | "delete" | "update" | "probe" | null>(null);
   const [pendingDelete, setPendingDelete] = useState<AiProviderConfigView | null>(null);
   const [completeModel, setCompleteModel] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
@@ -95,10 +96,28 @@ export function AiProviderSettings() {
       }
       setConfigs((current) => [result.data, ...current]);
       setForm(EMPTY_FORM);
-      setNotice("Configuración de IA creada correctamente.");
+      setNotice("Configuración válida");
       await hydrateWorkspaceStore();
     } catch (createError: unknown) {
       setError(errorMessage(createError));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleProbe = async () => {
+    setBusy("probe");
+    setError("");
+    setNotice("");
+    try {
+      const result = await probeAiProviderConfigAction(form);
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setNotice("La conexión con el proveedor es válida.");
+    } catch (probeError: unknown) {
+      setError(errorMessage(probeError));
     } finally {
       setBusy(null);
     }
@@ -159,7 +178,7 @@ export function AiProviderSettings() {
         <Alert variant={error ? "destructive" : "default"}>
           {error ? <AlertCircle /> : <CheckCircle2 />}
           <AlertTitle>
-            {error ? "No se pudo completar la operación" : "Operación completada"}
+            {error ? "No se pudo validar la configuración" : "Operación completada"}
           </AlertTitle>
           <AlertDescription>{error || notice}</AlertDescription>
         </Alert>
@@ -232,10 +251,24 @@ export function AiProviderSettings() {
                 disabled={busy !== null}
               />
             </div>
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy !== null}
+                onClick={() => void handleProbe()}
+              >
+                {busy === "probe" ? "Comprobando conexión..." : "Probar conexión"}
+              </Button>
               <Button type="submit" disabled={busy !== null}>
-                <Plus />
-                Añadir configuración
+                {busy === "create" ? (
+                  "Comprobando conexión..."
+                ) : (
+                  <>
+                    <Plus />
+                    Añadir configuración
+                  </>
+                )}
               </Button>
             </div>
           </form>

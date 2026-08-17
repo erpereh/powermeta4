@@ -16,7 +16,10 @@ import { createClientMutationId } from "@/lib/client-mutation-id";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { isUsableAiProviderConfig } from "@/types/ai-provider-config";
+import {
+  isUsableAiProviderConfig,
+  resolveSelectedProviderConfigId,
+} from "@/types/ai-provider-config";
 import type { CompanyId } from "@/types/workspace";
 
 type ChatScreenProps = {
@@ -39,6 +42,8 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
   const activeChat = requestedChatId
     ? workspace?.chats.find((chat) => chat.id === requestedChatId)
     : workspace?.chats.find((chat) => chat.id === workspace.activeChatId);
+  const storedProviderConfigId = workspace?.preferences.selectedProviderConfigId ?? null;
+  const aiProviderConfigs = workspace?.aiProviderConfigs;
 
   useEffect(() => {
     if (!hydrated) return;
@@ -78,14 +83,32 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
     workspace?.activeChatId,
   ]);
 
+  useEffect(() => {
+    if (!hydrated || !companyId) return;
+    const usable = (aiProviderConfigs ?? []).filter(isUsableAiProviderConfig);
+    const resolved = resolveSelectedProviderConfigId(usable, storedProviderConfigId);
+    if (!resolved || resolved === storedProviderConfigId) return;
+    setSelectedProviderConfig(resolved, companyId);
+    void setSelectedProviderConfigAction(companyId, resolved, createClientMutationId()).then(
+      (result) => {
+        if (!result.ok) void hydrateWorkspaceStore();
+      },
+    );
+  }, [
+    aiProviderConfigs,
+    companyId,
+    hydrated,
+    setSelectedProviderConfig,
+    storedProviderConfigId,
+  ]);
+
   if (!hydrated || !companyId || !activeChat || !workspace) return null;
 
   const usableModels = (workspace.aiProviderConfigs ?? []).filter(isUsableAiProviderConfig);
-  const selectedProviderConfigId =
-    workspace.preferences.selectedProviderConfigId &&
-    usableModels.some((config) => config.id === workspace.preferences.selectedProviderConfigId)
-      ? workspace.preferences.selectedProviderConfigId
-      : (usableModels[0]?.id ?? null);
+  const selectedProviderConfigId = resolveSelectedProviderConfigId(
+    usableModels,
+    storedProviderConfigId,
+  );
 
   return (
     <main className="flex h-svh min-h-0 flex-col">

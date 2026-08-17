@@ -1,8 +1,11 @@
 "use server";
 
+import { ProviderValidationError } from "@/lib/agent/errors";
+import { probeOpenAiCompatibleProvider } from "@/lib/agent/llm/validate-provider";
+import { normalizeProviderBaseUrl } from "@/lib/agent/llm/provider-url";
 import { requireAuthContext } from "@/lib/auth/session";
 import { createDpapiAdapter } from "@/lib/security/dpapi";
-import { getWorkspaceSnapshot } from "@/lib/workspace/service";
+import { getWorkspaceRepository, getWorkspaceSnapshot } from "@/lib/workspace/service";
 import { getDatabase } from "@/server/database/client";
 import { createAiProviderConfigRepository } from "@/server/database/repositories/ai-provider-config-repository";
 import type {
@@ -11,11 +14,15 @@ import type {
   AiProviderConfigView,
 } from "@/types/ai-provider-config";
 import type { ActionResult } from "@/lib/local-database/dtos";
+import type { CompanyId } from "@/types/workspace";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
 const errorResult = (error: unknown): ActionResult<never> => {
+  if (error instanceof ProviderValidationError) {
+    return { ok: false, errorCode: error.errorCode, message: error.message };
+  }
   const message = error instanceof Error ? error.message : "No se pudo completar la operación.";
   return {
     ok: false,
@@ -31,23 +38,14 @@ const readTrimmedString = (value: unknown, label: string): string => {
 
 const validateBaseFields = (value: Record<string, unknown>) => {
   const name = readTrimmedString(value.name, "El nombre");
-  const baseUrl = readTrimmedString(value.baseUrl, "La Base URL");
+  const rawBaseUrl = readTrimmedString(value.baseUrl, "La Base URL");
   const model = readTrimmedString(value.model, "El model id");
 
   if (name.length > 120) throw new Error("El nombre no puede superar 120 caracteres.");
   if (model.length > 200) throw new Error("El model id no puede superar 200 caracteres.");
+  if (rawBaseUrl.length > 2048) throw new Error("La Base URL no puede superar 2048 caracteres.");
 
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(baseUrl);
-  } catch {
-    throw new Error("La Base URL debe ser una URL válida.");
-  }
-  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
-    throw new Error("La Base URL debe usar http o https.");
-  }
-  if (baseUrl.length > 2048) throw new Error("La Base URL no puede superar 2048 caracteres.");
-
+  const baseUrl = normalizeProviderBaseUrl(rawBaseUrl);
   return { name, baseUrl, model };
 };
 
@@ -98,10 +96,37 @@ const requireActiveCompany = async () => {
 const getRepository = () =>
   createAiProviderConfigRepository(getDatabase(), createDpapiAdapter());
 
+const selectIfNoneSelected = async (companyId: CompanyId, configId: string): Promise<void> => {
+  const authSession = await requireAuthContext();
+  const snapshot = await getWorkspaceSnapshot(authSession.authContext);
+  const selected =
+    snapshot.workspaces[companyId]?.preferences.selectedProviderConfigId ?? null;
+  if (!selected) {
+    await getWorkspaceRepository().setSelectedProviderConfig(companyId, configId);
+  }
+};
+
 export async function getAiProviderConfigsAction(): Promise<ActionResult<AiProviderConfigView[]>> {
   try {
     const companyId = await requireActiveCompany();
     return { ok: true, data: getRepository().list(companyId).map(toSafeView) };
+  } catch (error) {
+    return errorResult(error);
+  }
+}
+
+export async function probeAiProviderConfigAction(
+  input: AiProviderConfigInput,
+): Promise<ActionResult<null>> {
+  try {
+    await requireActiveCompany();
+    const validated = validateInput(input);
+    await probeOpenAiCompatibleProvider({
+      baseUrl: validated.baseUrl,
+      apiKey: validated.apiKey,
+      model: validated.model,
+    });
+    return { ok: true, data: null };
   } catch (error) {
     return errorResult(error);
   }
@@ -112,10 +137,15 @@ export async function createAiProviderConfigAction(
 ): Promise<ActionResult<AiProviderConfigView>> {
   try {
     const companyId = await requireActiveCompany();
-    return {
-      ok: true,
-      data: toSafeView(await getRepository().create(companyId, validateInput(input))),
-    };
+    const validated = validateInput(input);
+    await probeOpenAiCompatibleProvider({
+      baseUrl: validated.baseUrl,
+      apiKey: validated.apiKey,
+      model: validated.model,
+    });
+    const created = await getRepository().create(companyId, validated);
+    await selectIfNoneSelected(companyId, created.id);
+    return { ok: true, data: toSafeView(created) };
   } catch (error) {
     return errorResult(error);
   }
@@ -129,9 +159,18 @@ export async function updateAiProviderConfigAction(
     const configId = readTrimmedString(id, "La configuración");
     if (configId.length > 160) throw new Error("La configuración no es válida.");
     const companyId = await requireActiveCompany();
+    const validated = validateUpdate(input);
+    const repository = getRepository();
+    const apiKey =
+      validated.apiKey ?? (await repository.readApiKey(companyId, configId));
+    await probeOpenAiCompatibleProvider({
+      baseUrl: validated.baseUrl,
+      apiKey,
+      model: validated.model,
+    });
     return {
       ok: true,
-      data: toSafeView(await getRepository().update(companyId, configId, validateUpdate(input))),
+      data: toSafeView(await repository.update(companyId, configId, validated)),
     };
   } catch (error) {
     return errorResult(error);

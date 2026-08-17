@@ -2,7 +2,7 @@ import "server-only";
 
 import type { DatabaseSync } from "node:sqlite";
 
-import { isUsableAiProviderConfig, type AiProviderConfigView } from "@/types/ai-provider-config";
+import { isUsableAiProviderConfig, resolveSelectedProviderConfigId, type AiProviderConfigView } from "@/types/ai-provider-config";
 import { isChatColorName, isChatIconName } from "@/lib/chat-customization";
 import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
 import { getTool } from "@/lib/tools/registry";
@@ -151,8 +151,7 @@ const repairSelectedProviderConfigId = (
         .get(companyId, SELECTED_PROVIDER_CONFIG_SETTING_KEY) as Row | undefined
     )?.value_json,
   );
-  const selected =
-    stored && usable.some((config) => config.id === stored) ? stored : (usable[0]?.id ?? null);
+  const selected = resolveSelectedProviderConfigId(usable, stored);
   if (selected !== stored) {
     updateSetting(
       database,

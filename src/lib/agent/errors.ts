@@ -22,6 +22,23 @@ export class AgentProviderConfigError extends AgentError {
   }
 }
 
+export class AgentProviderRuntimeError extends AgentError {
+  constructor(message: string) {
+    super("PROVIDER_RUNTIME_FAILED", message);
+    this.name = "AgentProviderRuntimeError";
+  }
+}
+
+export class ProviderValidationError extends Error {
+  readonly errorCode: string;
+
+  constructor(errorCode: string, message: string) {
+    super(message);
+    this.name = "ProviderValidationError";
+    this.errorCode = errorCode;
+  }
+}
+
 export class AgentToolError extends AgentError {
   constructor(code: string, message: string) {
     super(code, message);
