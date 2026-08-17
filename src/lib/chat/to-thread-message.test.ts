@@ -97,13 +97,44 @@ describe("toThreadMessage", () => {
     expect(result.status).toEqual(expected);
   });
 
-  it("maps a failed assistant message with an errorCode", () => {
-    const message: Message = { ...baseAssistantMessage, status: "failed", errorCode: "MODEL_REQUEST_FAILED" };
+  it("maps a failed assistant message with an errorCode to a string error", () => {
+    const message: Message = {
+      ...baseAssistantMessage,
+      status: "failed",
+      errorCode: "MODEL_REQUEST_FAILED",
+    };
     const result = toThreadMessage(message);
-    expect(result.status).toEqual({
+    const status = result.status;
+    expect(status).toEqual({
       type: "incomplete",
       reason: "error",
-      error: { code: "MODEL_REQUEST_FAILED" },
+      error: "No se pudo completar la respuesta del asistente.",
     });
+    const error = status && "error" in status ? status.error : undefined;
+    expect(typeof error).toBe("string");
+    expect(String(error)).not.toBe("[object Object]");
+  });
+
+  it("uses persisted assistant text when a failed turn has no errorCode", () => {
+    const message: Message = {
+      ...baseAssistantMessage,
+      status: "failed",
+      errorCode: null,
+      content: [
+        {
+          type: "text",
+          text: "No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes.",
+        },
+      ],
+    };
+    const result = toThreadMessage(message);
+    const status = result.status;
+    expect(status).toEqual({
+      type: "incomplete",
+      reason: "error",
+      error: "No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes.",
+    });
+    const error = status && "error" in status ? status.error : undefined;
+    expect(String(error)).not.toBe("[object Object]");
   });
 });

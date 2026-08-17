@@ -20,13 +20,17 @@ import {
 } from "@/app/actions/workspace";
 import { AgentDisambiguationProvider } from "@/components/chat/agent-disambiguation-context";
 import { runAgentChatStream } from "@/lib/chat/agent-runtime-adapter";
-import { visibleMessages } from "@/lib/chat/visible-messages";
+import { toExportedMessageRepository } from "@/lib/chat/message-repository";
+import {
+  getCaughtErrorMessage,
+  inferFailedErrorCode,
+  toInterruptedStatus,
+} from "@/lib/chat/message-status";
 import {
   createStreamingPersistenceScheduler,
   type StreamingPersistenceScheduler,
 } from "@/lib/chat/stream-persistence";
-import { toInterruptedStatus } from "@/lib/chat/message-status";
-import { toThreadMessage } from "@/lib/chat/to-thread-message";
+import { visibleMessages } from "@/lib/chat/visible-messages";
 import {
   hydrateWorkspaceStore,
   useWorkspaceStore,
@@ -95,13 +99,7 @@ export function ChatRuntimeProvider({
 
   const messageRepository = useMemo<ExportedMessageRepository>(() => {
     if (!chat) return { headId: null, messages: [] };
-    return {
-      headId: chat.headMessageId ?? chat.messages.at(-1)?.id ?? null,
-      messages: chat.messages.map((message) => ({
-        message: toThreadMessage(message),
-        parentId: message.parentMessageId ?? null,
-      })),
-    };
+    return toExportedMessageRepository(chat);
   }, [chat]);
 
   const runConversation = useCallback(
@@ -272,13 +270,21 @@ export function ChatRuntimeProvider({
         if (finalError) throw finalError;
         setMessageContent(chatId, assistantMessage.id, finalContent, companyId);
         setMessageStatus(chatId, assistantMessage.id, finalStatus, companyId);
-      } catch {
+      } catch (error) {
         const interruptedStatus: Extract<PersistedMessageStatus, "cancelled" | "failed"> =
           toInterruptedStatus(controller.signal.aborted);
+        const errorMessage = getCaughtErrorMessage(error);
+        const failedContent: MessageContent =
+          latestContent.length > 0
+            ? latestContent
+            : interruptedStatus === "failed"
+              ? [{ type: "text", text: errorMessage }]
+              : [];
+        const errorCode =
+          interruptedStatus === "failed" ? inferFailedErrorCode(errorMessage) : null;
         try {
           await scheduler.flush(persistPartial);
           sequence += 1;
-          const failedContent: MessageContent = latestContent.length > 0 ? latestContent : [];
           await finalizeMessageAction({
             companyId,
             conversationId: chatId,
@@ -287,14 +293,14 @@ export function ChatRuntimeProvider({
             status: interruptedStatus,
             generationId,
             sequence,
-            errorCode: interruptedStatus === "failed" ? "MODEL_REQUEST_FAILED" : null,
+            errorCode,
             clientMutationId: createRuntimeId(),
           });
-          setMessageContent(chatId, assistantMessage.id, failedContent, companyId);
-          setMessageStatus(chatId, assistantMessage.id, interruptedStatus, companyId);
         } catch {
           // The persisted terminal state is best effort after an earlier storage failure.
         }
+        setMessageContent(chatId, assistantMessage.id, failedContent, companyId);
+        setMessageStatus(chatId, assistantMessage.id, interruptedStatus, companyId);
         await hydrateWorkspaceStore();
       } finally {
         scheduler.dispose();

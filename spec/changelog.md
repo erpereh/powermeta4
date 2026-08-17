@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-08-17 - Errores de chat legibles y grafo padre/hijo
+
+### Cambios
+
+- Un fallo del asistente ya no pinta `[object Object]`: el status de
+  assistant-ui lleva un string, y el turno `failed` guarda el mensaje
+  real en el bubble.
+- El `ExportedMessageRepository` sale en orden topológico (padres antes
+  que hijos) y sin aristas a padres inexistentes, para no tumbar el
+  Thread con `Parent message not found` al hidratar tras un error.
+- El contrato 1013 no cambia: el modelo sigue viendo `EMP_*` y
+  `employee.get_field`; el transcript visible conserva matrícula y puesto.
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en Registro
+  Retributivo.
+- `npm test` — 76 archivos, 384 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 incluye `POST /api/agent/run`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en archivos no tocados.
+
 ## 2026-08-17 - Picker de modelo, validación de proveedor y wrap de `hola`
 
 ### Cambios

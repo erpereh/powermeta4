@@ -1,5 +1,26 @@
 # powermeta4 - estado de tareas
 
+## Errores de chat y grafo padre/hijo - 2026-08-17
+
+- [x] Diagnóstico: el Thread pintaba `[object Object]` porque el status
+      `failed` llevaba `error: { code }`. Tras el fallo, assistant-ui
+      lanzaba `Parent message not found` al reconstruir el repositorio
+      ordenado por `createdAt` + UUID (hijo antes que padre).
+- [x] El error de assistant-ui es un string en castellano. El `catch` de
+      `runConversation` persiste `error.message` como contenido del
+      asistente y status `failed`; no deja el bubble vacío con solo el
+      código.
+- [x] `toExportedMessageRepository` exporta en orden topológico, reescribe
+      padres huérfanos a `null` y no usa un `headId` fuera del set.
+- [x] Privacy Gateway 1013 sin cambios: transcript visible real, LLM con
+      `EMP_*` + `employee.get_field`, SOAP solo en servidor.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin
+      errores del cambio (warnings preexistentes de Registro
+      Retributivo); `npm test` 76 archivos, 384 pruebas correctas y 2
+      omitidas (incluye `privacy-contract`); `npm run build` correcto;
+      `git diff --check` correcto. `npm run lint` falla en
+      `oxfmt --check` (sin configuración; preexistente).
+
 ## Picker, validación de proveedor y wrap de `hola` - 2026-08-17
 
 - [x] Diagnóstico: el picker podía mostrar Gemini con un fallback de UI
