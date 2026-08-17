@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-08-17 - Auth nativo de Gemini (keys AQ. y 3.1 Flash Lite)
+
+### Cambios
+
+- El probe y el runtime detectan `generativelanguage.googleapis.com` y
+  llaman a `models/{model}:generateContent` con `x-goog-api-key`, sin
+  `Authorization: Bearer` ni `?key=` en la URL.
+- Así se pueden guardar y usar keys nuevas de AI Studio (`AQ.`) y
+  `gemini-3.1-flash-lite`. El resto de proveedores no cambia.
+- El body nativo sigue pasando por `assertOutboundPayload` antes del
+  `fetch`. Un 403 nativo sigue siendo «API key no válida».
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en Registro
+  Retributivo.
+- `npm test` — 78 archivos, 395 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 incluye `POST /api/agent/run`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en archivos no tocados.
+
 ## 2026-08-17 - Errores de chat legibles y grafo padre/hijo
 
 ### Cambios

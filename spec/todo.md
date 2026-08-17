@@ -1,5 +1,23 @@
 # powermeta4 - estado de tareas
 
+## Auth nativo Gemini AQ. / 3.1 Flash Lite - 2026-08-17
+
+- [x] Diagnóstico: guardar Gemini fallaba con 403 «API key no válida»
+      porque el probe usaba `Authorization: Bearer` contra
+      `/v1beta/openai/chat/completions`. Las keys `AQ.` y modelos 3.1
+      responden en la API nativa, no en esa capa.
+- [x] Si el host es `generativelanguage.googleapis.com`, probe y runtime
+      llaman a `:generateContent` con solo `x-goog-api-key`. El resto de
+      proveedores siguen en Bearer + `/chat/completions`.
+- [x] El JSON nativo pasa por `assertOutboundPayload`. No se relaja el
+      guardado: sin 200 no hay persistencia.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin
+      errores del cambio (warnings preexistentes de Registro
+      Retributivo); `npm test` 78 archivos, 395 pruebas correctas y 2
+      omitidas; `npm run build` correcto; `git diff --check` correcto.
+      `npm run lint` falla en `oxfmt --check` (sin configuración;
+      preexistente).
+
 ## Errores de chat y grafo padre/hijo - 2026-08-17
 
 - [x] Diagnóstico: el Thread pintaba `[object Object]` porque el status

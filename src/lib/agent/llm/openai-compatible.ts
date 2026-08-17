@@ -1,4 +1,11 @@
 import { AgentPrivacyError } from "@/lib/agent/errors";
+import {
+  geminiRequestHeaders,
+  isGoogleGenerativeLanguageHost,
+  parseGeminiGenerateContent,
+  resolveGeminiGenerateContentUrl,
+  toGeminiGenerateContentBody,
+} from "@/lib/agent/llm/google-gemini";
 import { resolveChatCompletionsUrl } from "@/lib/agent/llm/provider-url";
 import { assertOutboundPayload } from "@/lib/agent/privacy/assert-outbound";
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt";
@@ -30,6 +37,16 @@ export type OpenAiToolDefinition = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+const assertPrivatePayload = (outboundPayload: unknown, forbidden: readonly string[]): void => {
+  try {
+    assertOutboundPayload(outboundPayload, forbidden);
+  } catch {
+    throw new AgentPrivacyError(
+      "No se puede enviar el mensaje al modelo porque no está anonimizado con seguridad.",
+    );
+  }
+};
+
 export const completeOpenAiChat = async (options: {
   baseUrl: string;
   apiKey: string;
@@ -40,21 +57,42 @@ export const completeOpenAiChat = async (options: {
   fetchImpl: typeof fetch;
   abortSignal?: AbortSignal;
 }): Promise<{ result: OpenAiCompletionResult; outboundPayload: unknown }> => {
+  const systemAndUser: OpenAiChatMessage[] = [
+    { role: "system", content: AGENT_SYSTEM_PROMPT },
+    ...options.messages,
+  ];
+
+  if (isGoogleGenerativeLanguageHost(options.baseUrl)) {
+    const outboundPayload = toGeminiGenerateContentBody({
+      messages: systemAndUser,
+      tools: options.tools,
+      temperature: 0,
+    });
+    assertPrivatePayload(outboundPayload, options.forbidden);
+    const response = await options.fetchImpl(
+      resolveGeminiGenerateContentUrl(options.baseUrl, options.model),
+      {
+        method: "POST",
+        headers: geminiRequestHeaders(options.apiKey),
+        body: JSON.stringify(outboundPayload),
+        signal: options.abortSignal,
+      },
+    );
+    const raw = (await response.json()) as unknown;
+    if (!response.ok) {
+      throw new Error("El proveedor de IA no pudo completar la solicitud.");
+    }
+    return { result: parseGeminiGenerateContent(raw), outboundPayload };
+  }
+
   const outboundPayload = {
     model: options.model,
     temperature: 0,
-    messages: [{ role: "system", content: AGENT_SYSTEM_PROMPT }, ...options.messages],
+    messages: systemAndUser,
     tools: options.tools,
     tool_choice: "auto",
   };
-
-  try {
-    assertOutboundPayload(outboundPayload, options.forbidden);
-  } catch {
-    throw new AgentPrivacyError(
-      "No se puede enviar el mensaje al modelo porque no está anonimizado con seguridad.",
-    );
-  }
+  assertPrivatePayload(outboundPayload, options.forbidden);
 
   const response = await options.fetchImpl(resolveChatCompletionsUrl(options.baseUrl), {
     method: "POST",

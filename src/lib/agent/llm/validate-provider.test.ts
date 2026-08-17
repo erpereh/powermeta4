@@ -3,8 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { ProviderValidationError } from "@/lib/agent/errors";
 import { probeOpenAiCompatibleProvider } from "@/lib/agent/llm/validate-provider";
 
-const okBody = {
+const openaiOkBody = {
   choices: [{ message: { role: "assistant", content: "OK" } }],
+};
+
+const geminiOkBody = {
+  candidates: [{ content: { parts: [{ text: "OK" }] } }],
 };
 
 const jsonResponse = (status: number, body: unknown): Response =>
@@ -13,40 +17,82 @@ const jsonResponse = (status: number, body: unknown): Response =>
     headers: { "Content-Type": "application/json" },
   });
 
-const INPUT = {
+const GEMINI_INPUT = {
   baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+  apiKey: "AQ.secret-key",
+  model: "gemini-3.1-flash-lite",
+};
+
+const OPENAI_INPUT = {
+  baseUrl: "https://api.example.com/v1",
   apiKey: "secret-key",
-  model: "gemini-2.5-flash-lite",
+  model: "grok-4-fast",
 };
 
 describe("probeOpenAiCompatibleProvider", () => {
-  it("accepts a valid OpenAI-compatible chat and tools response", async () => {
+  it("probes Gemini on generateContent with x-goog-api-key and without Bearer", async () => {
     const fetchImpl = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
-      async () => jsonResponse(200, okBody),
+      async () => jsonResponse(200, geminiOkBody),
     );
     await expect(
-      probeOpenAiCompatibleProvider({ ...INPUT, fetchImpl }),
+      probeOpenAiCompatibleProvider({ ...GEMINI_INPUT, fetchImpl }),
     ).resolves.toBeUndefined();
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     const firstUrl = String(fetchImpl.mock.calls[0]?.[0]);
     expect(firstUrl).toBe(
-      "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
     );
+    expect(firstUrl).not.toContain("/openai/chat/completions");
+    expect(firstUrl).not.toContain("key=");
+    const firstHeaders = fetchImpl.mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(firstHeaders["x-goog-api-key"]).toBe("AQ.secret-key");
+    expect(firstHeaders.Authorization).toBeUndefined();
     const firstBody = JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body ?? "{}")) as {
-      messages: unknown;
+      contents: unknown;
     };
-    expect(JSON.stringify(firstBody.messages)).not.toMatch(/empleado|CYC|1013/i);
+    expect(JSON.stringify(firstBody.contents)).not.toMatch(/empleado|CYC|1013/i);
     const secondBody = JSON.parse(String(fetchImpl.mock.calls[1]?.[1]?.body ?? "{}")) as {
-      tools: { function: { name: string } }[];
+      tools: { functionDeclarations: { name: string }[] }[];
     };
-    expect(secondBody.tools[0]?.function.name).toBe("test_tool");
+    expect(secondBody.tools[0]?.functionDeclarations[0]?.name).toBe("test_tool");
     expect(JSON.stringify(fetchImpl.mock.calls)).not.toContain("employee.get_field");
+    expect(JSON.stringify(fetchImpl.mock.calls)).not.toContain("Authorization");
+  });
+
+  it("maps a Gemini native 403 to an invalid API key error", async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(403, { error: { message: "API key not valid" } }));
+    await expect(
+      probeOpenAiCompatibleProvider({
+        ...GEMINI_INPUT,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      }),
+    ).rejects.toMatchObject({
+      errorCode: "PROVIDER_API_KEY_INVALID",
+      message: "API key no válida.",
+    });
+  });
+
+  it("keeps Bearer plus chat/completions for non-Gemini hosts", async () => {
+    const fetchImpl = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async () => jsonResponse(200, openaiOkBody),
+    );
+    await expect(
+      probeOpenAiCompatibleProvider({ ...OPENAI_INPUT, fetchImpl }),
+    ).resolves.toBeUndefined();
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe("https://api.example.com/v1/chat/completions");
+    const headers = fetchImpl.mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer secret-key");
+    expect(headers["x-goog-api-key"]).toBeUndefined();
   });
 
   it("maps 401 to an invalid API key error", async () => {
     const fetchImpl = vi.fn(async () => jsonResponse(401, { error: { message: "invalid api key" } }));
     await expect(
-      probeOpenAiCompatibleProvider({ ...INPUT, fetchImpl: fetchImpl as unknown as typeof fetch }),
+      probeOpenAiCompatibleProvider({
+        ...OPENAI_INPUT,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      }),
     ).rejects.toMatchObject({
       errorCode: "PROVIDER_API_KEY_INVALID",
       message: "API key no válida.",
@@ -58,7 +104,10 @@ describe("probeOpenAiCompatibleProvider", () => {
       jsonResponse(404, { error: { code: "model_not_found", message: "models/nope is not found" } }),
     );
     await expect(
-      probeOpenAiCompatibleProvider({ ...INPUT, fetchImpl: fetchImpl as unknown as typeof fetch }),
+      probeOpenAiCompatibleProvider({
+        ...GEMINI_INPUT,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      }),
     ).rejects.toMatchObject({
       errorCode: "PROVIDER_MODEL_UNAVAILABLE",
       message: "El modelo indicado no existe o no está disponible.",
@@ -70,7 +119,10 @@ describe("probeOpenAiCompatibleProvider", () => {
       throw new TypeError("fetch failed");
     });
     await expect(
-      probeOpenAiCompatibleProvider({ ...INPUT, fetchImpl: fetchImpl as unknown as typeof fetch }),
+      probeOpenAiCompatibleProvider({
+        ...GEMINI_INPUT,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      }),
     ).rejects.toMatchObject({
       errorCode: "PROVIDER_UNREACHABLE",
       message: "No se ha podido conectar con el proveedor.",
@@ -83,10 +135,13 @@ describe("probeOpenAiCompatibleProvider", () => {
       if (body.tools) {
         return jsonResponse(400, { error: { message: "tools are not supported" } });
       }
-      return jsonResponse(200, okBody);
+      return jsonResponse(200, openaiOkBody);
     });
     await expect(
-      probeOpenAiCompatibleProvider({ ...INPUT, fetchImpl: fetchImpl as unknown as typeof fetch }),
+      probeOpenAiCompatibleProvider({
+        ...OPENAI_INPUT,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      }),
     ).rejects.toMatchObject({
       errorCode: "PROVIDER_TOOLS_UNSUPPORTED",
       message: "El modelo no admite las herramientas requeridas por powermeta4.",
@@ -95,14 +150,14 @@ describe("probeOpenAiCompatibleProvider", () => {
 
   it("does not include the API key or response body in the thrown message", async () => {
     const fetchImpl = vi.fn(async () =>
-      jsonResponse(401, { error: { message: "secret-key leaked in provider body" } }),
+      jsonResponse(401, { error: { message: "AQ.secret-key leaked in provider body" } }),
     );
     await probeOpenAiCompatibleProvider({
-      ...INPUT,
+      ...GEMINI_INPUT,
       fetchImpl: fetchImpl as unknown as typeof fetch,
     }).catch((error: unknown) => {
       expect(error).toBeInstanceOf(ProviderValidationError);
-      expect(String(error)).not.toContain("secret-key");
+      expect(String(error)).not.toContain("AQ.secret-key");
       expect(String(error)).not.toContain("leaked");
     });
   });

@@ -75,10 +75,13 @@ const assistantMessage = (): Message => ({
 });
 
 const textResponse = (text: string): Response =>
-  new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: text } }] }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  new Response(
+    JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
 
 afterEach(() => {
   while (databases.length > 0) databases.pop()?.close();

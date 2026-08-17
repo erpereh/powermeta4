@@ -1,12 +1,20 @@
 import { ProviderValidationError } from "@/lib/agent/errors";
+import {
+  geminiRequestHeaders,
+  isGoogleGenerativeLanguageHost,
+  looksLikeGeminiGenerateContent,
+  resolveGeminiGenerateContentUrl,
+  toGeminiGenerateContentBody,
+} from "@/lib/agent/llm/google-gemini";
 import { resolveChatCompletionsUrl, providerHostForLog } from "@/lib/agent/llm/provider-url";
+import type { OpenAiChatMessage, OpenAiToolDefinition } from "@/lib/agent/llm/openai-compatible";
 
-const SYNTHETIC_MESSAGES = [
+const SYNTHETIC_MESSAGES: OpenAiChatMessage[] = [
   { role: "system", content: "Reply only with OK" },
   { role: "user", content: "OK" },
-] as const;
+];
 
-const TEST_TOOL = {
+const TEST_TOOL: OpenAiToolDefinition = {
   type: "function",
   function: {
     name: "test_tool",
@@ -19,7 +27,7 @@ const TEST_TOOL = {
       required: ["value"],
     },
   },
-} as const;
+};
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -127,19 +135,16 @@ const mapHttpFailure = (status: number, hint: string, host: string, toolsProbe: 
   );
 };
 
-const postCompletions = async (options: {
+const postJson = async (options: {
   url: string;
-  apiKey: string;
+  headers: Record<string, string>;
   body: unknown;
   fetchImpl: typeof fetch;
   abortSignal?: AbortSignal;
 }): Promise<{ status: number; raw: unknown; ok: boolean }> => {
   const response = await options.fetchImpl(options.url, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${options.apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: options.headers,
     body: JSON.stringify(options.body),
     signal: options.abortSignal,
   });
@@ -161,29 +166,44 @@ export const probeOpenAiCompatibleProvider = async (options: {
 }): Promise<void> => {
   const fetchImpl = options.fetchImpl ?? fetch;
   const host = providerHostForLog(options.baseUrl);
+  const gemini = isGoogleGenerativeLanguageHost(options.baseUrl);
   let url: string;
   try {
-    url = resolveChatCompletionsUrl(options.baseUrl);
+    url = gemini
+      ? resolveGeminiGenerateContentUrl(options.baseUrl, options.model)
+      : resolveChatCompletionsUrl(options.baseUrl);
   } catch {
     return fail("PROVIDER_BASE_URL_INCOMPATIBLE", "La Base URL no es compatible.", host, null);
   }
 
-  const chatBody = {
+  const openaiChatBody = {
     model: options.model,
     temperature: 0,
     messages: SYNTHETIC_MESSAGES,
   };
-  const toolsBody = {
-    ...chatBody,
+  const openaiToolsBody = {
+    ...openaiChatBody,
     tools: [TEST_TOOL],
     tool_choice: "auto",
   };
+  const geminiChatBody = toGeminiGenerateContentBody({ messages: SYNTHETIC_MESSAGES });
+  const geminiToolsBody = toGeminiGenerateContentBody({
+    messages: SYNTHETIC_MESSAGES,
+    tools: [TEST_TOOL],
+  });
+  const headers = gemini
+    ? geminiRequestHeaders(options.apiKey)
+    : {
+        Authorization: `Bearer ${options.apiKey}`,
+        "Content-Type": "application/json",
+      };
+  const looksSuccessful = gemini ? looksLikeGeminiGenerateContent : looksLikeCompatibleShape;
 
-  const requestCompletions = async (body: unknown) => {
+  const requestProbe = async (body: unknown) => {
     try {
-      return await postCompletions({
+      return await postJson({
         url,
-        apiKey: options.apiKey,
+        headers,
         body,
         fetchImpl,
         abortSignal: options.abortSignal,
@@ -194,11 +214,11 @@ export const probeOpenAiCompatibleProvider = async (options: {
     }
   };
 
-  const chatResult = await requestCompletions(chatBody);
+  const chatResult = await requestProbe(gemini ? geminiChatBody : openaiChatBody);
   if (!chatResult.ok) {
     mapHttpFailure(chatResult.status, inspectErrorHint(chatResult.raw), host, false);
   }
-  if (!looksLikeCompatibleShape(chatResult.raw)) {
+  if (!looksSuccessful(chatResult.raw)) {
     return fail(
       "PROVIDER_INVALID_RESPONSE",
       "El proveedor respondió con un formato no válido.",
@@ -207,11 +227,11 @@ export const probeOpenAiCompatibleProvider = async (options: {
     );
   }
 
-  const toolsResult = await requestCompletions(toolsBody);
+  const toolsResult = await requestProbe(gemini ? geminiToolsBody : openaiToolsBody);
   if (!toolsResult.ok) {
     mapHttpFailure(toolsResult.status, inspectErrorHint(toolsResult.raw), host, true);
   }
-  if (!looksLikeCompatibleShape(toolsResult.raw)) {
+  if (!looksSuccessful(toolsResult.raw)) {
     return fail(
       "PROVIDER_INVALID_RESPONSE",
       "El proveedor respondió con un formato no válido.",
