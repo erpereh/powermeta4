@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 
 import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
-import type { Meta4Society } from "@/lib/meta4/societies";
+import { isMeta4Society, type Meta4Society } from "@/lib/meta4/societies";
 import type { Company, CompanyColorName, CompanyIconName } from "@/types/workspace";
 
 import { getDatabase } from "../client";
@@ -57,6 +57,13 @@ export const createCompanyRepository = (database: DatabaseSync = getDatabase()) 
       )
       .get(society) as CompanyRow | undefined;
     return row ? mapCompany(row) : null;
+  };
+
+  const getSocietyCode = (companyId: string): Meta4Society | null => {
+    const row = database
+      .prepare("SELECT society_code FROM companies WHERE id = ?")
+      .get(companyId) as { society_code?: unknown } | undefined;
+    return isMeta4Society(row?.society_code) ? row.society_code : null;
   };
 
   const createCompany = async (input: {
@@ -117,6 +124,7 @@ export const createCompanyRepository = (database: DatabaseSync = getDatabase()) 
     getFirst: (): Company | null => list()[0] ?? null,
     getById,
     getBySocietyCode,
+    getSocietyCode,
     createCompany,
     ensureSocietyCompanySync,
     ensureSocietyCompany: async (society: Meta4Society): Promise<Company> =>

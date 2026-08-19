@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
     username: "DEBUG",
     canUseMeta4: false,
     societyCode: null as "CYC" | "IBER" | "COLL" | null,
+    availableSocieties: [] as Array<"CYC" | "IBER" | "COLL">,
   },
   openSettings: vi.fn(),
 }));
@@ -28,7 +29,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserMenu } from "./user-menu";
 
 beforeEach(() => {
-  mocks.auth = { mode: "debug", username: "DEBUG", canUseMeta4: false, societyCode: null };
+  mocks.auth = { mode: "debug", username: "DEBUG", canUseMeta4: false, societyCode: null, availableSocieties: [] };
   mocks.openSettings.mockReset();
   vi.stubGlobal(
     "matchMedia",
@@ -58,6 +59,7 @@ describe("sidebar user menu", () => {
       username: "Meta4 User",
       canUseMeta4: true,
       societyCode: "CYC",
+      availableSocieties: ["CYC"],
     };
     rerender(
       <TooltipProvider>

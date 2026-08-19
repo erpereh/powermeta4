@@ -5,7 +5,7 @@ import { Meta4SoapFaultError } from "./soap-xml";
 import { Meta4ProfileError } from "./profile-errors";
 import { META4_SOCIETIES, type Meta4Society } from "./societies";
 import { buildUserProfileEnvelope, classifyUserProfileResponse } from "./user-profile-soap";
-import type { SocietyLookupSuccess } from "./user-profile-types";
+import type { SocietyLookupMatch, SocietyLookupMatches } from "./user-profile-types";
 
 export const DEFAULT_META4_USER_PROFILE_URL =
   "https://meta4desasoap.creditocaucion.es/services/CSP_CONSULTA_ORO_INTRAN_NEW";
@@ -45,12 +45,13 @@ const safeLog = (
   log?.("meta4-profile-lookup", { society, outcome });
 };
 
-export const lookupMeta4SocietyProfile = async (
+export const lookupMeta4SocietyProfiles = async (
   options: LookupMeta4SocietyProfileOptions,
-): Promise<SocietyLookupSuccess> => {
+): Promise<SocietyLookupMatches> => {
   const url = getProfileUrl(options.profileUrl);
   const societies = options.societies ?? META4_SOCIETIES;
   const now = options.now ?? (() => new Date());
+  const matches: SocietyLookupMatch[] = [];
 
   for (const society of societies) {
     let response: Response;
@@ -141,16 +142,21 @@ export const lookupMeta4SocietyProfile = async (
 
     if (classified.outcome === "match") {
       safeLog(options.log, society, "match");
-      return { society: classified.society, profile: classified.profile };
+      matches.push({ society: classified.society, profile: classified.profile });
+      continue;
     }
 
     safeLog(options.log, society, `no-match:${classified.reason}`);
   }
 
-  throw new Meta4ProfileError(
-    "META4_PROFILE_NOT_FOUND",
-    "No se ha podido identificar tu sociedad en Meta4.",
-  );
+  if (matches.length === 0) {
+    throw new Meta4ProfileError(
+      "META4_PROFILE_NOT_FOUND",
+      "No se ha podido identificar tu sociedad en Meta4.",
+    );
+  }
+
+  return { matches };
 };
 
 export { Meta4HttpError };

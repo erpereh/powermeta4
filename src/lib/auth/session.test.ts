@@ -44,6 +44,7 @@ describe("current auth session resolver", () => {
         username: "DEBUG",
         canUseMeta4: false,
         societyCode: null,
+        availableSocieties: [],
       },
       expiresAt: new Date("2026-09-01T00:00:00.000Z"),
       lastValidatedAt: null,

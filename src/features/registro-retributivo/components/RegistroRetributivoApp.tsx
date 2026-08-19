@@ -9,6 +9,7 @@ import { HistoryView } from "@/features/registro-retributivo/components/history/
 import { SettingsView } from "@/features/registro-retributivo/components/settings/SettingsView";
 import { TablesView } from "@/features/registro-retributivo/components/tables/TablesView";
 import { RetributivoShell } from "@/features/registro-retributivo/components/shell/RetributivoShell";
+import { useWorkspaceStore } from "@/stores/use-workspace-store";
 
 function ActiveView() {
   const { view } = useAppState();
@@ -60,8 +61,9 @@ function RetributivoAppFrame() {
 }
 
 export function RegistroRetributivoApp() {
+  const companyId = useWorkspaceStore((state) => state.activeCompanyId);
   return (
-    <AppStateProvider>
+    <AppStateProvider key={companyId ?? "local"}>
       <RetributivoAppFrame />
     </AppStateProvider>
   );

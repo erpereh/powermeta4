@@ -10,7 +10,7 @@ import { isSessionExpiredResponse } from "@/lib/meta4/session-expiration";
 const META4_AUTH_SESSION = {
   sessionId: "internal-meta4-session",
   cookieHash: "hash-only",
-  authContext: { mode: "meta4" as const, username: "user", canUseMeta4: true, societyCode: null },
+  authContext: { mode: "meta4" as const, username: "user", canUseMeta4: true, societyCode: null, availableSocieties: [] },
   expiresAt: new Date("2026-09-01T00:00:00.000Z"),
   lastValidatedAt: new Date("2026-08-01T00:00:00.000Z"),
 };
@@ -46,6 +46,7 @@ describe("authenticated SOAP client", () => {
           username: "DEBUG",
           canUseMeta4: false,
           societyCode: null,
+          availableSocieties: [],
         },
         expiresAt: new Date("2026-09-01T00:00:00.000Z"),
         lastValidatedAt: null,
@@ -84,6 +85,7 @@ describe("authenticated SOAP client", () => {
           username: "DEBUG",
           canUseMeta4: true,
           societyCode: null,
+          availableSocieties: [],
         },
         expiresAt: new Date("2026-09-01T00:00:00.000Z"),
         lastValidatedAt: null,

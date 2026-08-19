@@ -58,7 +58,7 @@ const snapshot: WorkspaceSnapshotState = {
       aiProviderConfigs: [],
     },
   },
-  auth: { mode: "meta4", username: "usuario", canUseMeta4: true, societyCode: null },
+  auth: { mode: "meta4", username: "usuario", canUseMeta4: true, societyCode: null, availableSocieties: [] },
 };
 
 describe("server snapshot workspace store", () => {

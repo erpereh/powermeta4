@@ -144,8 +144,16 @@ export async function getMeta4ProfileViewAction(): Promise<Meta4ProfileView> {
   }
 
   const repository = createMeta4UserProfileRepository(getDatabase(), createDpapiAdapter());
-  const row = await repository.getProfileRow();
-  const profile = await repository.getDecryptedProfile();
+  const societyCode = authSession.authContext.societyCode;
+  if (!societyCode) {
+    return emptyView({
+      debugMode: false,
+      username: authSession.authContext.username,
+    });
+  }
+
+  const row = await repository.getProfileRow(societyCode);
+  const profile = await repository.getDecryptedProfile(societyCode);
   if (!row || !profile) {
     return emptyView({
       debugMode: false,

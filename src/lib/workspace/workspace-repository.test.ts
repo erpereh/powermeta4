@@ -5,16 +5,18 @@ import { afterEach, describe, expect, it } from "vitest";
 import { bootstrapDatabase } from "@/server/database/bootstrap";
 import { runMigrations } from "@/server/database/migrations";
 import { createWorkspaceRepository } from "@/lib/workspace/repository";
+import { createCompanyRepository } from "@/server/database/repositories/company-repository";
 import { createAiProviderConfigRepository } from "@/server/database/repositories/ai-provider-config-repository";
 import { createDpapiAdapter } from "@/lib/security/dpapi";
 import type { AiProviderConfigInput } from "@/types/ai-provider-config";
 
 const databases: DatabaseSync[] = [];
-const META4_AUTH = {
-  mode: "meta4" as const,
-  username: "usuario local",
-  canUseMeta4: true,
-  societyCode: "CYC" as const,
+const AUTH = {
+  mode: "debug" as const,
+  username: "DEBUG",
+  canUseMeta4: false,
+  societyCode: null,
+  availableSocieties: [] as Array<"CYC" | "IBER" | "COLL">,
 };
 
 const testDpapi = createDpapiAdapter({
@@ -55,6 +57,7 @@ describe("workspace repository", () => {
       username: "DEBUG",
       canUseMeta4: false,
       societyCode: null,
+      availableSocieties: [],
       sessionId: "internal-browser-session",
       cookieHash: "hash-only",
       nonce: "opaque-cookie-value",
@@ -68,6 +71,7 @@ describe("workspace repository", () => {
       username: "DEBUG",
       canUseMeta4: false,
       societyCode: null,
+      availableSocieties: [],
     });
     expect(JSON.stringify(snapshot)).not.toContain("sessionId");
     expect(JSON.stringify(snapshot)).not.toContain("cookieHash");
@@ -76,10 +80,35 @@ describe("workspace repository", () => {
     expect("session" in snapshot).toBe(false);
   });
 
+  it("filters Meta4 snapshots to the authenticated societies", async () => {
+    const { database, repository } = createRepository();
+    const companies = createCompanyRepository(database);
+    companies.ensureSocietyCompanySync("CYC");
+    companies.ensureSocietyCompanySync("IBER");
+    companies.ensureSocietyCompanySync("COLL");
+
+    const snapshot = await repository.getSnapshot({
+      mode: "meta4",
+      username: "usuario",
+      canUseMeta4: true,
+      societyCode: "CYC",
+      availableSocieties: ["CYC", "IBER"],
+    });
+
+    expect(snapshot.companies.map((company) => company.name)).toEqual(["CYC", "IBER"]);
+    expect(snapshot.auth).toEqual({
+      mode: "meta4",
+      username: "usuario",
+      canUseMeta4: true,
+      societyCode: "CYC",
+      availableSocieties: ["CYC", "IBER"],
+    });
+  });
+
   it("bootstraps once, isolates companies and cascades their data", async () => {
     const { database, repository } = createRepository();
 
-    const firstSnapshot = await repository.getSnapshot(META4_AUTH);
+    const firstSnapshot = await repository.getSnapshot(AUTH);
     const initialCompany = firstSnapshot.companies[0];
     if (!initialCompany) throw new Error("The bootstrap company was not created");
     expect(firstSnapshot.companies).toHaveLength(1);
@@ -139,7 +168,7 @@ describe("workspace repository", () => {
       repository.getConversation(secondCompany.id, firstConversation.id),
     ).rejects.toThrow(/no pertenece/);
 
-    const secondWorkspace = (await repository.getSnapshot(META4_AUTH)).workspaces[secondCompany.id];
+    const secondWorkspace = (await repository.getSnapshot(AUTH)).workspaces[secondCompany.id];
     expect(secondWorkspace?.preferences.selectedProviderConfigId).toBeNull();
     expect(secondWorkspace?.recentTools[0]?.toolId).toBe("users.consult");
 
@@ -156,7 +185,7 @@ describe("workspace repository", () => {
 
   it("preserves branch messages and persists the selected head", async () => {
     const { repository } = createRepository();
-    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    const company = (await repository.getSnapshot(AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-branches");
 
@@ -210,7 +239,7 @@ describe("workspace repository", () => {
 
   it("finalizes a response and its conversation head atomically and idempotently", async () => {
     const { database, repository } = createRepository();
-    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    const company = (await repository.getSnapshot(AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-finalize");
 
@@ -260,7 +289,7 @@ describe("workspace repository", () => {
 
   it("recovers abandoned running messages as incomplete without resuming them", async () => {
     const { repository } = createRepository();
-    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    const company = (await repository.getSnapshot(AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-recovery");
     await repository.upsertMessage({
@@ -274,7 +303,7 @@ describe("workspace repository", () => {
       sequence: 2,
     });
 
-    const snapshot = await repository.getSnapshot(META4_AUTH);
+    const snapshot = await repository.getSnapshot(AUTH);
     const recovered = snapshot.workspaces[company.id]?.chats[0]?.messages[0];
     expect(recovered).toMatchObject({ status: "incomplete", errorCode: "PROCESS_RESTARTED" });
     expect(snapshot.workspaces[company.id]?.chats[0]?.headMessageId).toBe("assistant-abandoned");
@@ -282,11 +311,11 @@ describe("workspace repository", () => {
 
   it("exposes newly created ai provider configs and auto-repairs the selection end to end", async () => {
     const { repository, providerConfigs } = createRepository();
-    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    const company = (await repository.getSnapshot(AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
 
     const gemini = await providerConfigs.create(company.id, CONFIG_INPUT);
-    const firstSnapshot = await repository.getSnapshot(META4_AUTH);
+    const firstSnapshot = await repository.getSnapshot(AUTH);
     const firstWorkspace = firstSnapshot.workspaces[company.id];
     expect(firstWorkspace?.aiProviderConfigs).toEqual([gemini]);
     expect(firstWorkspace?.preferences.selectedProviderConfigId).toBe(gemini.id);
@@ -296,32 +325,32 @@ describe("workspace repository", () => {
       name: "Grok Fast",
       model: "grok-4-fast",
     });
-    const secondSnapshot = await repository.getSnapshot(META4_AUTH);
+    const secondSnapshot = await repository.getSnapshot(AUTH);
     const secondConfigs = secondSnapshot.workspaces[company.id]?.aiProviderConfigs ?? [];
     expect(secondConfigs.map((config) => config.id).sort()).toEqual([gemini.id, grok.id].sort());
 
     await repository.setSelectedProviderConfig(company.id, grok.id);
-    const reloadedSnapshot = await repository.getSnapshot(META4_AUTH);
+    const reloadedSnapshot = await repository.getSnapshot(AUTH);
     expect(reloadedSnapshot.workspaces[company.id]?.preferences.selectedProviderConfigId).toBe(
       grok.id,
     );
 
     await providerConfigs.delete(company.id, grok.id);
-    const afterDeleteSelected = await repository.getSnapshot(META4_AUTH);
+    const afterDeleteSelected = await repository.getSnapshot(AUTH);
     expect(afterDeleteSelected.workspaces[company.id]?.preferences.selectedProviderConfigId).toBe(
       gemini.id,
     );
     expect(afterDeleteSelected.workspaces[company.id]?.aiProviderConfigs).toEqual([gemini]);
 
     await providerConfigs.delete(company.id, gemini.id);
-    const afterDeleteAll = await repository.getSnapshot(META4_AUTH);
+    const afterDeleteAll = await repository.getSnapshot(AUTH);
     expect(afterDeleteAll.workspaces[company.id]?.preferences.selectedProviderConfigId).toBeNull();
     expect(afterDeleteAll.workspaces[company.id]?.aiProviderConfigs).toEqual([]);
   });
 
   it("never leaks an ai provider config into another company's snapshot", async () => {
     const { repository, providerConfigs } = createRepository();
-    const firstCompany = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    const firstCompany = (await repository.getSnapshot(AUTH)).companies[0];
     if (!firstCompany) throw new Error("The bootstrap company was not created");
     const secondCompany = await repository.createCompany({
       id: "company-scope-test",
@@ -329,7 +358,7 @@ describe("workspace repository", () => {
     });
 
     await providerConfigs.create(firstCompany.id, CONFIG_INPUT);
-    const snapshot = await repository.getSnapshot(META4_AUTH);
+    const snapshot = await repository.getSnapshot(AUTH);
     expect(snapshot.workspaces[firstCompany.id]?.aiProviderConfigs).toHaveLength(1);
     expect(snapshot.workspaces[secondCompany.id]?.aiProviderConfigs).toEqual([]);
     expect(snapshot.workspaces[secondCompany.id]?.preferences.selectedProviderConfigId).toBeNull();
@@ -337,7 +366,7 @@ describe("workspace repository", () => {
 
   it("keeps an incomplete config (empty model) out of the usable/selectable set", async () => {
     const { repository, providerConfigs } = createRepository();
-    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    const company = (await repository.getSnapshot(AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
 
     const incomplete = await providerConfigs.create(company.id, CONFIG_INPUT);
@@ -350,7 +379,7 @@ describe("workspace repository", () => {
     expect(providerConfigs.list(company.id)).toHaveLength(1);
     expect(providerConfigs.listUsable(company.id)).toHaveLength(0);
 
-    const snapshot = await repository.getSnapshot(META4_AUTH);
+    const snapshot = await repository.getSnapshot(AUTH);
     const workspace = snapshot.workspaces[company.id];
     expect(workspace?.aiProviderConfigs).toHaveLength(1);
     expect(workspace?.preferences.selectedProviderConfigId).toBeNull();
@@ -358,7 +387,7 @@ describe("workspace repository", () => {
 
   it("persists user content 1013 exactly, without a newline", async () => {
     const { repository, database } = createRepository();
-    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    const company = (await repository.getSnapshot(AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-1013");
     await repository.upsertMessage({
@@ -392,7 +421,7 @@ describe("workspace repository", () => {
 
   it("persists user content hola exactly, without a newline", async () => {
     const { repository, database } = createRepository();
-    const company = (await repository.getSnapshot(META4_AUTH)).companies[0];
+    const company = (await repository.getSnapshot(AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-hola");
     await repository.upsertMessage({

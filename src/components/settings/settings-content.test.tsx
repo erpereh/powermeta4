@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
       username: "DEBUG",
       canUseMeta4: false,
       societyCode: null,
+      availableSocieties: [],
     } as AuthView,
   },
 }));
@@ -56,6 +57,7 @@ beforeEach(() => {
     username: "DEBUG",
     canUseMeta4: false,
     societyCode: null,
+    availableSocieties: [],
   };
   mocks.getMeta4ProfileViewAction.mockResolvedValue({
     available: false,
@@ -99,6 +101,7 @@ describe("settings content", () => {
       username: "usuario",
       canUseMeta4: true,
       societyCode: "CYC",
+      availableSocieties: ["CYC"],
     };
     mocks.getMeta4ProfileViewAction.mockResolvedValue({
       available: true,

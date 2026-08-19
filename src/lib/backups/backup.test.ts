@@ -68,7 +68,7 @@ const createFixture = async () => {
     .run(timestamp, timestamp);
   database
     .prepare(
-      "INSERT INTO meta4_user_profile (id, username, society, display_name, profile_json_encrypted, looked_up_at, created_at, updated_at) VALUES ('global', 'usuario', 'CYC', 'Usuario', 'encrypted-profile', ?, ?, ?)",
+      "INSERT INTO meta4_user_profile (society, username, display_name, profile_json_encrypted, looked_up_at, created_at, updated_at) VALUES ('CYC', 'usuario', 'Usuario', 'encrypted-profile', ?, ?, ?)",
     )
     .run(timestamp, timestamp, timestamp);
   database

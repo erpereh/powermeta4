@@ -55,7 +55,14 @@ export async function createCompanyAction(
   companyId?: string,
 ): Promise<ActionResult<Company>> {
   try {
-    await requireAuthContext();
+    const authSession = await requireAuthContext();
+    if (authSession.authContext.mode === "meta4") {
+      return {
+        ok: false,
+        errorCode: "SOCIETY_WORKSPACE_READONLY",
+        message: "Las sociedades Meta4 no se pueden crear manualmente.",
+      };
+    }
     return ok(
       await getWorkspaceRepository().createCompany({
         name,
@@ -73,7 +80,14 @@ export async function deleteCompanyAction(
   clientMutationId?: string,
 ): Promise<ActionResult<{ activeCompanyId: CompanyId }>> {
   try {
-    await requireAuthContext();
+    const authSession = await requireAuthContext();
+    if (authSession.authContext.mode === "meta4") {
+      return {
+        ok: false,
+        errorCode: "SOCIETY_WORKSPACE_READONLY",
+        message: "Las sociedades Meta4 no se pueden eliminar.",
+      };
+    }
     return ok({
       activeCompanyId: await getWorkspaceRepository().deleteCompany(
         requireId(companyId, "La empresa"),
@@ -90,7 +104,14 @@ export async function setActiveCompanyAction(
   clientMutationId?: string,
 ): Promise<ActionResult<null>> {
   try {
-    await requireAuthContext();
+    const authSession = await requireAuthContext();
+    if (authSession.authContext.mode === "meta4") {
+      return {
+        ok: false,
+        errorCode: "SOCIETY_WORKSPACE_READONLY",
+        message: "Usa el selector de sociedades para cambiar de workspace Meta4.",
+      };
+    }
     await getWorkspaceRepository().setActiveCompany(
       requireId(companyId, "La empresa"),
       requireMutationId(clientMutationId),

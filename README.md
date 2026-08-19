@@ -53,8 +53,10 @@ El asistente usa `POST /api/agent/run` (SSE, Node.js) con un proveedor
 OpenAI-compatible configurado en Ajustes (`name`, Base URL, `model` nullable
 hasta completarlo, API key cifrada con DPAPI). El picker del composer no es
 una lista estática: solo configs usables de la empresa activa. El esquema
-actual es `DATABASE_SCHEMA_VERSION = 7` (migración `007_agent_runtime`:
-columna `model`, vault `EMP_*`, proyecciones y desambiguación pendiente).
+actual es `DATABASE_SCHEMA_VERSION = 8` (migración
+`008_meta4_multi_society`: perfil Meta4 con PK por sociedad `CYC` |
+`IBER` | `COLL`; el workspace activo gobierna `companyId` y
+`ARG_SOCIEDAD` sobre un único `JSESSIONID`).
 
 El transcript visible en SQLite conserva el texto real (nombres, puestos,
 ramas). La historia enviada al modelo es una proyección sanitizada
@@ -65,9 +67,12 @@ modifica. En modo debug, las preguntas de empleado no ejecutan SOAP.
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Tras un login Meta4 real se consulta el perfil de usuario
 (`CSP_CONSULTA_ORO_INTRAN_NEW`, endpoint provisional configurable) para
-detectar la sociedad (`CYC` → `IBER` → `COLL`) y persistir el perfil cifrado.
+detectar todas las sociedades disponibles (`CYC` → `IBER` → `COLL`) y
+persistir un perfil cifrado por sociedad. Un error de infraestructura
+durante esa detección aborta el login para no mostrar una lista incompleta.
 El listado de usuarios (`CSP_POWER4_USER_ALL`, `META4_USERS_LIST_URL`) usa la
-sociedad del contexto operativo del servidor y no persiste resultados en
+sociedad activa del contexto operativo del servidor (`ARG_SOCIEDAD` sobre
+un único `JSESSIONID`) y no persiste resultados en
 SQLite. Las pruebas SOAP son simuladas y no llaman a Meta4 real. Los
 endpoints CSP y la necesidad de SOAPAction quedan pendientes de confirmación
 WSDL en la VM corporativa.

@@ -31,7 +31,11 @@ export type SocietyProbeNoMatch = {
 
 export type SocietyProbeResult = SocietyProbeMatch | SocietyProbeNoMatch;
 
-export type SocietyLookupSuccess = {
+export type SocietyLookupMatch = {
   society: Meta4Society;
   profile: Meta4UserProfile;
+};
+
+export type SocietyLookupMatches = {
+  matches: SocietyLookupMatch[];
 };

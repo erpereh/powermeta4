@@ -36,12 +36,15 @@ const discoverMigrations = (directory: string): DiscoveredMigration[] => {
   return migrations;
 };
 
-const checksumFor = (sql: string): string => createHash("sha256").update(sql, "utf8").digest("hex");
+const normalizeMigrationSql = (sql: string): string => sql.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+
+export const checksumMigrationSql = (sql: string): string =>
+  createHash("sha256").update(normalizeMigrationSql(sql), "utf8").digest("hex");
 
 const loadMigrations = (directory: string): Migration[] =>
   discoverMigrations(directory).map((migration) => {
     const sql = readFileSync(path.join(directory, migration.filename), "utf8");
-    return { ...migration, sql, checksum: checksumFor(sql) };
+    return { ...migration, sql: normalizeMigrationSql(sql), checksum: checksumMigrationSql(sql) };
   });
 
 const assertMigrationTableHasChecksums = (database: DatabaseSync): void => {

@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-08-19 - Workspaces Meta4 multi-sociedad
+
+### Cambios
+
+- El login SOAP sigue siendo una sola sesión (`JSESSIONID` +
+  `refreshSessionId`). El probe recorre siempre `CYC` → `IBER` → `COLL`
+  y persiste todas las coincidencias; un fallo de infraestructura a
+  mitad de secuencia aborta el login para no presentar una lista
+  incompleta.
+- Cada sociedad detectada es un workspace read-only (`companyId` +
+  `ARG_SOCIEDAD`). El selector de SocietyHeader no crea ni elimina
+  sociedades; con una sola el header no es interactivo; DEBUG no inventa
+  CYC/IBER/COLL.
+- Migración `008_meta4_multi_society`: PK de `meta4_user_profile` por
+  `society`. Las huellas de `schema_migrations` normalizan CRLF a LF
+  para que `npm run setup` coincida con bases aplicadas desde Git.
+
+### Verificación automática
+
+- `npm run setup` — correcto; `PRAGMA user_version` = 8,
+  `integrity_check` ok, `foreign_key_check` vacío.
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en
+  Registro Retributivo.
+- `npm test` — 79 archivos, 407 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 incluye `POST /api/agent/run`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en archivos no tocados.
+
 ## 2026-08-17 - Probe Gemini alineado con el curl oficial
 
 ### Cambios

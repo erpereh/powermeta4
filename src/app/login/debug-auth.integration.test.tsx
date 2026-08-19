@@ -58,8 +58,10 @@ describe("debug authentication configuration integration", () => {
       createAuthService({
         repository: createAuthRepository(database),
         profileRepository: {
+          listProfileRows: vi.fn(async () => []),
           getProfileRow: vi.fn(async () => null),
           getDecryptedProfile: vi.fn(async () => null),
+          listAvailableSocieties: vi.fn(async () => []),
           clearProfile: vi.fn(async () => undefined),
         },
         dpapi: { protectSecret: vi.fn(), unprotectSecret: vi.fn() },

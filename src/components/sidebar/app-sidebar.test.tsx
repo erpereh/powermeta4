@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
     username: "usuario",
     canUseMeta4: true,
     societyCode: "CYC" as "CYC" | "IBER" | "COLL" | null,
+    availableSocieties: ["CYC"] as Array<"CYC" | "IBER" | "COLL">,
   },
 }));
 
@@ -106,6 +107,7 @@ beforeEach(() => {
     username: "usuario",
     canUseMeta4: true,
     societyCode: "CYC",
+    availableSocieties: ["CYC"],
   };
   vi.stubGlobal(
     "matchMedia",
@@ -248,6 +250,7 @@ describe("app sidebar tools group", () => {
       username: "DEBUG",
       canUseMeta4: false,
       societyCode: null,
+      availableSocieties: [],
     };
     renderSidebar();
     expect(screen.getByText("Modo desarrollo")).toBeTruthy();

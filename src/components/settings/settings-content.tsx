@@ -135,7 +135,7 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
     return () => {
       mounted = false;
     };
-  }, [auth?.username, isDebugMode]);
+  }, [auth?.username, auth?.societyCode, isDebugMode]);
 
   const handleExport = async () => {
     setBusy("export");
@@ -364,7 +364,9 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
               <section className="space-y-6">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-lg font-semibold">Datos de la persona</h2>
-                  {profile.societyCode && <Badge variant="secondary">{profile.societyCode}</Badge>}
+                  {profile.societyCode && (
+                    <Badge variant="secondary">Sociedad activa: {profile.societyCode}</Badge>
+                  )}
                 </div>
                 {profile.sections.length > 0 ? (
                   profile.sections.map((section) => (

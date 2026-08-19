@@ -43,12 +43,13 @@ clase `dark` fija ni de fondos hardcodeados.
 La sidebar usa la base oficial existente con composición inspirada en
 `sidebar-07`:
 
-- la cabecera única integra logo, `powermeta4` y el alcance activo;
-- en sesión Meta4 muestra la sociedad (`CYC` | `IBER` | `COLL`) de forma
-  no interactiva; en modo debug muestra `Modo desarrollo`;
-- ya no hay selector, creación ni eliminación de workspaces desde la
-  cabecera (el aislamiento interno por `activeCompanyId` / `society_code`
-  se gestiona en servidor);
+- la cabecera única integra el isotipo, la sociedad activa y el alcance;
+- en sesión Meta4 con varias sociedades muestra un selector de solo lectura
+  (`CYC` | `IBER` | `COLL` detectadas) sin crear ni eliminar workspaces;
+  con una sola sociedad el header no es interactivo; en modo debug muestra
+  `Modo desarrollo` sin sociedades inventadas;
+- el aislamiento interno por `activeCompanyId` / `society_code` se gestiona
+  en servidor: el navegador no elige la sociedad de una operación SOAP;
 - expandida muestra navegación, el grupo Herramientas, Favoritos, Chats y usuario;
 - colapsada muestra únicamente controles funcionales, tooltips y avatar;
 - en desktop colapsada, pulsar el icono de Herramientas expande la sidebar
@@ -111,8 +112,10 @@ No se duplican secciones entre Inicio y un workspace, ni se mantienen arrays de
 usuarios o catálogos paralelos fuera del registro central.
 
 Las herramientas SOAP Meta4 obtienen `Meta4Society` (`CYC` | `IBER` | `COLL`)
-exclusivamente desde `getMeta4OperationalContext()` en servidor. El navegador
-no elige ni sustituye la sociedad de la operación.
+y el `companyId` interno exclusivamente desde `getMeta4OperationalContext()`
+en servidor, usando el workspace activo validado. El navegador no elige ni
+sustituye la sociedad de la operación. Una autenticación Meta4 puede exponer
+1–3 sociedades; cada una es un workspace read-only.
 
 En el listado de usuarios, pulsar una fila abre un `Dialog` grande con el
 detalle del empleado (`CSP_POWER4_CONSULTA_ORO`), con la misma convención

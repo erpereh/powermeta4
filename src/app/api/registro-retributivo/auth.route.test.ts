@@ -50,6 +50,7 @@ describe("registro-retributivo API authentication", () => {
         username: "DEBUG",
         canUseMeta4: false,
         societyCode: null,
+        availableSocieties: [],
       },
     });
 

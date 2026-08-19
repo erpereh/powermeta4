@@ -7,5 +7,14 @@ export class Meta4SessionRequiredError extends Error {
   }
 }
 
+export class Meta4SocietyNotAllowedError extends Error {
+  readonly code = "SOCIETY_NOT_ALLOWED" as const;
+
+  constructor() {
+    super("No tienes acceso a esa sociedad Meta4.");
+    this.name = "Meta4SocietyNotAllowedError";
+  }
+}
+
 export { Meta4ProfileError, isMeta4ProfileError } from "./profile-errors";
 export type { Meta4ProfileErrorCode } from "./profile-errors";

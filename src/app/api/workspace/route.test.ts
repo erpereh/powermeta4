@@ -29,6 +29,7 @@ describe("workspace route authentication", () => {
       username: "DEBUG",
       canUseMeta4: false,
       societyCode: null,
+      availableSocieties: [],
     };
     mocks.getCurrentAuthContext.mockResolvedValue({ authContext });
     mocks.getWorkspaceSnapshot.mockResolvedValue({ auth: authContext, companies: [] });

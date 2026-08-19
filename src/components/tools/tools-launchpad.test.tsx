@@ -16,7 +16,7 @@ vi.mock("@/stores/use-workspace-store", () => ({
   useWorkspaceStore: (
     selector: (state: {
       activeCompanyId: string;
-      auth: { mode: "debug"; username: string; canUseMeta4: false; societyCode: null };
+      auth: { mode: "debug"; username: string; canUseMeta4: false; societyCode: null; availableSocieties: never[] };
       workspaces: Record<
         string,
         {
@@ -37,6 +37,7 @@ vi.mock("@/stores/use-workspace-store", () => ({
         username: "DEBUG",
         canUseMeta4: false,
         societyCode: null,
+        availableSocieties: [],
       },
       workspaces: {
         "company-1": {

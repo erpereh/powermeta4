@@ -23,6 +23,7 @@ const debugSession = {
     username: "DEBUG",
     canUseMeta4: false,
     societyCode: null,
+    availableSocieties: [],
   },
 };
 
@@ -32,6 +33,7 @@ const meta4Session = {
     username: "usuario",
     canUseMeta4: true,
     societyCode: "IBER" as const,
+    availableSocieties: ["IBER"],
   },
 };
 

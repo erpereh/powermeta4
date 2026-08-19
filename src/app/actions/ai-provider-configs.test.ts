@@ -65,6 +65,7 @@ beforeEach(() => {
       username: "DEBUG",
       canUseMeta4: false,
       societyCode: null,
+      availableSocieties: [],
     },
   });
   mocks.getWorkspaceSnapshot.mockResolvedValue(SNAPSHOT);

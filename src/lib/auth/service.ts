@@ -16,10 +16,14 @@ import {
 import { toLocalSessionStoreError } from "./local-session-store-error";
 import type { DpapiAdapter } from "@/lib/security/dpapi";
 import type { Meta4Client } from "@/lib/meta4/client";
-import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
+import { Meta4SessionRequiredError, Meta4SocietyNotAllowedError } from "@/lib/meta4/errors";
 import { Meta4ProfileError } from "@/lib/meta4/profile-errors";
-import type { Meta4Society } from "@/lib/meta4/societies";
-import { lookupMeta4SocietyProfile, type Meta4SoapPoster } from "@/lib/meta4/user-profile-lookup";
+import { orderMeta4Societies, type Meta4Society } from "@/lib/meta4/societies";
+import {
+  lookupMeta4SocietyProfiles,
+  type Meta4SoapPoster,
+} from "@/lib/meta4/user-profile-lookup";
+import type { SocietyLookupMatch } from "@/lib/meta4/user-profile-types";
 import {
   encryptMeta4ProfilePayload,
   resolveDisplayName,
@@ -48,11 +52,17 @@ type AuthServiceOptions = {
   now?: () => Date;
   createSessionNonce?: () => string;
   createLocalSessionId?: () => string;
-  lookupProfile?: typeof lookupMeta4SocietyProfile;
+  lookupProfile?: typeof lookupMeta4SocietyProfiles;
   logProfileLookup?: (message: string, details: Record<string, string>) => void;
 };
 
 type LocalSession = NonNullable<Awaited<ReturnType<AuthRepository["getLocalBrowserSession"]>>>;
+
+type ReconciledAuthSocieties = {
+  society: Meta4Society;
+  companyId: string;
+  availableSocieties: Meta4Society[];
+};
 
 const asErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Error desconocido";
@@ -61,11 +71,13 @@ const createAuthContext = (
   mode: AuthMode,
   username: string,
   societyCode: Meta4Society | null = null,
+  availableSocieties: readonly Meta4Society[] = [],
 ): AuthContext => ({
   mode,
   username,
   canUseMeta4: mode === "meta4",
   societyCode: mode === "meta4" ? societyCode : null,
+  availableSocieties: mode === "meta4" ? orderMeta4Societies(availableSocieties) : [],
 });
 
 export const createAuthService = ({
@@ -76,13 +88,13 @@ export const createAuthService = ({
   now = () => new Date(),
   createSessionNonce = createOpaqueSessionId,
   createLocalSessionId = randomUUID,
-  lookupProfile = lookupMeta4SocietyProfile,
+  lookupProfile = lookupMeta4SocietyProfiles,
   logProfileLookup,
 }: AuthServiceOptions) => {
   let restoreFlight: Promise<{ username: string } | null> | null = null;
   let restoredUsername: string | null = null;
   let restoreReadyUntil = 0;
-  let profileRepairFlight: Promise<Meta4Society | null> | null = null;
+  let profileRepairFlight: Promise<ReconciledAuthSocieties | null> | null = null;
 
   const clearRestoreCache = (): void => {
     restoredUsername = null;
@@ -164,13 +176,28 @@ export const createAuthService = ({
 
   const createCookiePoster = (): Meta4SoapPoster => soap.createCookieSoapPoster();
 
-  const repairMissingProfileOnce = async (username: string): Promise<Meta4Society | null> => {
+  const encryptMatches = async (matches: readonly SocietyLookupMatch[]) =>
+    Promise.all(
+      matches.map(async (match) => ({
+        username: match.profile.consultedUsername,
+        society: match.society,
+        displayName: resolveDisplayName(match.profile),
+        profileJsonEncrypted: await encryptMeta4ProfilePayload(dpapi, match.profile),
+        lookedUpAt: new Date(match.profile.lookedUpAt),
+      })),
+    );
+
+  const repairMissingProfilesOnce = async (
+    username: string,
+  ): Promise<ReconciledAuthSocieties | null> => {
     if (profileRepairFlight) return profileRepairFlight;
     profileRepairFlight = (async () => {
       const session = await repository.getSoapSession();
       if (!session?.refreshSessionIdEncrypted) return null;
-      const existing = await profileRepository.getProfileRow();
-      if (existing && existing.username === username) return existing.society;
+      const existing = await profileRepository.listAvailableSocieties(username);
+      if (existing.length > 0) {
+        return repository.reconcileActiveWorkspace(existing);
+      }
 
       try {
         const jSessionId = await dpapi.unprotectSecret(session.jsessionIdEncrypted);
@@ -181,17 +208,13 @@ export const createAuthService = ({
           now,
           log: logProfileLookup,
         });
-        const profileJsonEncrypted = await encryptMeta4ProfilePayload(dpapi, lookup.profile);
-        await repository.persistMeta4ProfileRepair({
-          profile: {
-            username,
-            society: lookup.society,
-            displayName: resolveDisplayName(lookup.profile),
-            profileJsonEncrypted,
-            lookedUpAt: new Date(lookup.profile.lookedUpAt),
-          },
-        });
-        return lookup.society;
+        const profiles = await encryptMatches(
+          lookup.matches.map((match) => ({
+            ...match,
+            profile: { ...match.profile, consultedUsername: username },
+          })),
+        );
+        return repository.persistMeta4ProfileRepair({ profiles });
       } catch {
         await invalidate();
         return null;
@@ -202,10 +225,14 @@ export const createAuthService = ({
     return profileRepairFlight;
   };
 
-  const resolveSocietyCode = async (username: string): Promise<Meta4Society | null> => {
-    const existing = await profileRepository.getProfileRow();
-    if (existing && existing.username === username) return existing.society;
-    return repairMissingProfileOnce(username);
+  const resolveWorkspace = async (
+    username: string,
+  ): Promise<ReconciledAuthSocieties | null> => {
+    const available = await profileRepository.listAvailableSocieties(username);
+    if (available.length > 0) {
+      return repository.reconcileActiveWorkspace(available);
+    }
+    return repairMissingProfilesOnce(username);
   };
 
   const login = async (username: string, password: string) => {
@@ -222,28 +249,26 @@ export const createAuthService = ({
 
     try {
       const currentTime = now();
-      const [jsessionIdEncrypted, refreshSessionIdEncrypted, profileJsonEncrypted] =
-        await Promise.all([
-          dpapi.protectSecret(loggedIn.jSessionId),
-          dpapi.protectSecret(loggedIn.refreshSessionId),
-          encryptMeta4ProfilePayload(dpapi, lookup.profile),
-        ]);
+      const [jsessionIdEncrypted, refreshSessionIdEncrypted, profiles] = await Promise.all([
+        dpapi.protectSecret(loggedIn.jSessionId),
+        dpapi.protectSecret(loggedIn.refreshSessionId),
+        encryptMatches(
+          lookup.matches.map((match) => ({
+            ...match,
+            profile: { ...match.profile, consultedUsername: username },
+          })),
+        ),
+      ]);
 
       const browser = createBrowserSessionPayload({ username, authMode: "meta4" });
-      await repository.persistMeta4LoginState({
+      const workspace = await repository.persistMeta4LoginState({
         soap: {
           username,
           jsessionIdEncrypted,
           refreshSessionIdEncrypted,
           lastValidatedAt: currentTime,
         },
-        profile: {
-          username,
-          society: lookup.society,
-          displayName: resolveDisplayName(lookup.profile),
-          profileJsonEncrypted,
-          lookedUpAt: new Date(lookup.profile.lookedUpAt),
-        },
+        profiles,
         browserSession: browser.data,
       });
 
@@ -253,7 +278,9 @@ export const createAuthService = ({
         sessionNonce: browser.sessionNonce,
         username,
         expiresAt: browser.expiresAt,
-        societyCode: lookup.society,
+        societyCode: workspace.society,
+        availableSocieties: workspace.availableSocieties,
+        companyId: workspace.companyId,
       };
     } catch (error) {
       throw toLocalSessionStoreError(error);
@@ -303,7 +330,7 @@ export const createAuthService = ({
       return {
         sessionId: touchedLocalSession.id,
         cookieHash: touchedLocalSession.cookieHash,
-        authContext: createAuthContext("debug", touchedLocalSession.username, null),
+        authContext: createAuthContext("debug", touchedLocalSession.username),
         expiresAt: touchedLocalSession.expiresAt,
         lastValidatedAt: null,
       };
@@ -313,13 +340,18 @@ export const createAuthService = ({
     if (!restored) return null;
     const soapSession = await repository.getSoapSession();
     if (!soapSession) return null;
-    const societyCode = await resolveSocietyCode(localSession.username);
-    if (!societyCode) return null;
+    const workspace = await resolveWorkspace(localSession.username);
+    if (!workspace) return null;
     const touchedLocalSession = await touchLocalBrowserSession(localSession);
     return {
       sessionId: touchedLocalSession.id,
       cookieHash: touchedLocalSession.cookieHash,
-      authContext: createAuthContext("meta4", touchedLocalSession.username, societyCode),
+      authContext: createAuthContext(
+        "meta4",
+        touchedLocalSession.username,
+        workspace.society,
+        workspace.availableSocieties,
+      ),
       expiresAt: touchedLocalSession.expiresAt,
       lastValidatedAt: soapSession.lastValidatedAt,
     };
@@ -358,6 +390,18 @@ export const createAuthService = ({
     }
   };
 
+  const switchWorkspace = async (
+    authSession: ResolvedAuthSession,
+    society: Meta4Society,
+  ): Promise<ReconciledAuthSocieties> => {
+    assertMeta4Session(authSession);
+    const available = await profileRepository.listAvailableSocieties(authSession.authContext.username);
+    if (!available.includes(society)) {
+      throw new Meta4SocietyNotAllowedError();
+    }
+    return repository.activateWorkspace(society, available);
+  };
+
   return {
     login,
     debugLogin,
@@ -366,6 +410,7 @@ export const createAuthService = ({
     logout,
     invalidate,
     getOperationalSession,
+    switchWorkspace,
     renewSession: async (authSession: ResolvedAuthSession) => {
       assertMeta4Session(authSession);
       return restoreSession({ force: true });

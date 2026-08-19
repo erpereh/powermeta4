@@ -23,7 +23,7 @@ vi.mock("@/app/actions/meta4-profile", () => ({
 vi.mock("@/stores/use-workspace-store", () => ({
   useWorkspaceStore: (selector: (state: { auth: unknown }) => unknown) =>
     selector({
-      auth: { mode: "debug", username: "DEBUG", canUseMeta4: false, societyCode: null },
+      auth: { mode: "debug", username: "DEBUG", canUseMeta4: false, societyCode: null, availableSocieties: [] },
     }),
 }));
 

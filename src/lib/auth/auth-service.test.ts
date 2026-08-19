@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { AuthRepository } from "@/lib/auth/session-repository";
+import type { AuthRepository, Meta4LoginPersistData } from "@/lib/auth/session-repository";
 import { createAuthService } from "@/lib/auth/service";
 import { Meta4SessionRequiredError } from "@/lib/meta4/authenticated-soap-client";
+import { Meta4SocietyNotAllowedError } from "@/lib/meta4/errors";
 import { Meta4ProfileError } from "@/lib/meta4/profile-errors";
 import type { Meta4UserProfile } from "@/lib/meta4/user-profile-types";
 import type { Meta4UserProfileRepository } from "@/server/database/repositories/meta4-user-profile-repository";
@@ -25,13 +26,13 @@ const createRepository = (
   soapSession: Awaited<ReturnType<AuthRepository["getSoapSession"]>> = null,
 ) => {
   let currentSoapSession = soapSession;
-  let currentProfile: {
+  let currentProfiles: Array<{
     username: string;
     society: Meta4Society;
     displayName: string | null;
     profileJsonEncrypted: string;
     lookedUpAt: Date;
-  } | null = null;
+  }> = [];
   const localSessions: Array<{
     id: string;
     cookieHash: string;
@@ -54,7 +55,7 @@ const createRepository = (
       };
       localSessions.length = 0;
     }),
-    persistMeta4LoginState: vi.fn(async (data) => {
+    persistMeta4LoginState: vi.fn(async (data: Meta4LoginPersistData) => {
       currentSoapSession = {
         id: "global",
         username: data.soap.username,
@@ -62,15 +63,37 @@ const createRepository = (
         refreshSessionIdEncrypted: data.soap.refreshSessionIdEncrypted,
         lastValidatedAt: data.soap.lastValidatedAt,
       };
-      currentProfile = data.profile;
+      currentProfiles = [...data.profiles];
       localSessions.length = 0;
       localSessions.push({ ...data.browserSession, revokedAt: null, lastSeenAt: now });
-      return { companyId: `company-${data.profile.society}` };
+      return {
+        society: data.profiles[0]?.society ?? "CYC",
+        companyId: `company-${data.profiles[0]?.society ?? "CYC"}`,
+        availableSocieties: data.profiles.map((profile) => profile.society),
+      };
     }),
-    persistMeta4ProfileRepair: vi.fn(async (data) => {
-      currentProfile = data.profile;
-      return { companyId: `company-${data.profile.society}` };
+    persistMeta4ProfileRepair: vi.fn(async (data: { profiles: Meta4LoginPersistData["profiles"] }) => {
+      currentProfiles = [...data.profiles];
+      return {
+        society: data.profiles[0]?.society ?? "CYC",
+        companyId: `company-${data.profiles[0]?.society ?? "CYC"}`,
+        availableSocieties: data.profiles.map((profile) => profile.society),
+      };
     }),
+    reconcileActiveWorkspace: vi.fn(async (availableSocieties) => {
+      if (availableSocieties.length === 0) return null;
+      const society = availableSocieties[0]!;
+      return {
+        society,
+        companyId: `company-${society}`,
+        availableSocieties: [...availableSocieties],
+      };
+    }),
+    activateWorkspace: vi.fn(async (society, availableSocieties) => ({
+      society,
+      companyId: `company-${society}`,
+      availableSocieties: [...availableSocieties],
+    })),
     updateJSessionId: vi.fn(async (encryptedJSessionId, lastValidatedAt) => {
       if (!currentSoapSession) throw new Error("missing session");
       currentSoapSession = {
@@ -81,7 +104,7 @@ const createRepository = (
     }),
     clearAuthState: vi.fn(async () => {
       currentSoapSession = null;
-      currentProfile = null;
+      currentProfiles = [];
       localSessions.length = 0;
     }),
     replaceLocalBrowserSessions: vi.fn(async (data) => {
@@ -113,23 +136,37 @@ const createRepository = (
   } satisfies AuthRepository;
 
   const profileRepository = {
-    getProfileRow: vi.fn(async () =>
-      currentProfile
+    listProfileRows: vi.fn(async () =>
+      currentProfiles.map((profile) => ({
+        username: profile.username,
+        society: profile.society,
+        displayName: profile.displayName,
+        profileJsonEncrypted: profile.profileJsonEncrypted,
+        lookedUpAt: profile.lookedUpAt,
+        createdAt: now,
+        updatedAt: now,
+      })),
+    ),
+    getProfileRow: vi.fn(async (society: Meta4Society) => {
+      const profile = currentProfiles.find((item) => item.society === society);
+      return profile
         ? {
-            id: "global",
-            username: currentProfile.username,
-            society: currentProfile.society,
-            displayName: currentProfile.displayName,
-            profileJsonEncrypted: currentProfile.profileJsonEncrypted,
-            lookedUpAt: currentProfile.lookedUpAt,
+            username: profile.username,
+            society: profile.society,
+            displayName: profile.displayName,
+            profileJsonEncrypted: profile.profileJsonEncrypted,
+            lookedUpAt: profile.lookedUpAt,
             createdAt: now,
             updatedAt: now,
           }
-        : null,
-    ),
+        : null;
+    }),
     getDecryptedProfile: vi.fn(async () => null),
+    listAvailableSocieties: vi.fn(async (username: string) =>
+      currentProfiles.filter((profile) => profile.username === username).map((profile) => profile.society),
+    ),
     clearProfile: vi.fn(async () => {
-      currentProfile = null;
+      currentProfiles = [];
     }),
   } satisfies Meta4UserProfileRepository;
 
@@ -137,9 +174,17 @@ const createRepository = (
     repository,
     profileRepository,
     localSessions,
-    getProfile: () => currentProfile,
-    setProfile: (profile: typeof currentProfile) => {
-      currentProfile = profile;
+    getProfile: () => currentProfiles[0] ?? null,
+    setProfile: (
+      profile: {
+        username: string;
+        society: Meta4Society;
+        displayName: string | null;
+        profileJsonEncrypted: string;
+        lookedUpAt: Date;
+      } | null,
+    ) => {
+      currentProfiles = profile ? [profile] : [];
     },
   };
 };
@@ -255,6 +300,7 @@ describe("Meta4 auth service", () => {
         username: "DEBUG",
         canUseMeta4: false,
         societyCode: null,
+        availableSocieties: [],
       },
       lastValidatedAt: null,
     });
@@ -307,8 +353,7 @@ describe("Meta4 auth service", () => {
     const soap = createSoap();
     soap.login.mockResolvedValue({ jSessionId: "jsession-1", refreshSessionId: "refresh-1" });
     const lookupProfile = vi.fn(async () => ({
-      society: "IBER" as const,
-      profile: createProfile("IBER", " USER&NAME "),
+      matches: [{ society: "IBER" as const, profile: createProfile("IBER", " USER&NAME ") }],
     }));
     const service = createAuthService({
       repository,
@@ -337,10 +382,12 @@ describe("Meta4 auth service", () => {
           jsessionIdEncrypted: "encrypted:jsession-1",
           refreshSessionIdEncrypted: "encrypted:refresh-1",
         }),
-        profile: expect.objectContaining({
-          society: "IBER",
-          profileJsonEncrypted: expect.stringContaining("encrypted:"),
-        }),
+        profiles: [
+          expect.objectContaining({
+            society: "IBER",
+            profileJsonEncrypted: expect.stringContaining("encrypted:"),
+          }),
+        ],
         browserSession: expect.objectContaining({
           id: "meta4-session",
           authMode: "meta4",
@@ -389,8 +436,7 @@ describe("Meta4 auth service", () => {
       soap: createSoap(),
       now: () => now,
       lookupProfile: vi.fn(async () => ({
-        society: "CYC" as const,
-        profile: createProfile("CYC"),
+        matches: [{ society: "CYC" as const, profile: createProfile("CYC") }],
       })),
     });
 
@@ -413,8 +459,7 @@ describe("Meta4 auth service", () => {
       createSessionNonce: () => "F".repeat(43),
       createLocalSessionId: () => "meta4-logout-session",
       lookupProfile: vi.fn(async () => ({
-        society: "COLL" as const,
-        profile: createProfile("COLL", "meta4-user"),
+        matches: [{ society: "COLL" as const, profile: createProfile("COLL", "meta4-user") }],
       })),
     });
     const login = await service.login("meta4-user", "password");
@@ -475,7 +520,7 @@ describe("Meta4 auth service", () => {
     });
     const lookupProfile = vi.fn(async () => {
       await new Promise((resolve) => setTimeout(resolve, 5));
-      return { society: "CYC" as const, profile: createProfile("CYC", "user") };
+      return { matches: [{ society: "CYC" as const, profile: createProfile("CYC", "user") }] };
     });
     const hashModule = await import("@/lib/auth/token");
     const nonce = "H".repeat(43);
@@ -550,5 +595,58 @@ describe("Meta4 auth service", () => {
 
     await expect(failingService.restoreSession()).resolves.toBeNull();
     expect(failing.repository.clearAuthState).toHaveBeenCalledOnce();
+  });
+
+  it("persists every matched society and switches only authorized workspaces", async () => {
+    const fixture = createRepository();
+    const service = createAuthService({
+      repository: fixture.repository,
+      profileRepository: fixture.profileRepository,
+      dpapi: createDpapi(),
+      soap: createSoap(),
+      now: () => now,
+      createSessionNonce: () => "I".repeat(43),
+      createLocalSessionId: () => "multi-session",
+      lookupProfile: vi.fn(async () => ({
+        matches: [
+          { society: "CYC" as const, profile: createProfile("CYC", "user") },
+          { society: "IBER" as const, profile: createProfile("IBER", "user") },
+        ],
+      })),
+    });
+
+    const login = await service.login("user", "password");
+    expect(login.availableSocieties).toEqual(["CYC", "IBER"]);
+    expect(fixture.repository.persistMeta4LoginState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        profiles: [
+          expect.objectContaining({ society: "CYC" }),
+          expect.objectContaining({ society: "IBER" }),
+        ],
+      }),
+    );
+
+    const authSession = {
+      sessionId: "multi-session",
+      cookieHash: "hash",
+      authContext: {
+        mode: "meta4" as const,
+        username: "user",
+        canUseMeta4: true,
+        societyCode: "CYC" as const,
+        availableSocieties: ["CYC", "IBER"] as Array<"CYC" | "IBER" | "COLL">,
+      },
+      expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+      lastValidatedAt: now,
+    };
+
+    await expect(service.switchWorkspace(authSession, "IBER")).resolves.toMatchObject({
+      society: "IBER",
+      companyId: "company-IBER",
+    });
+    expect(fixture.repository.activateWorkspace).toHaveBeenCalledWith("IBER", ["CYC", "IBER"]);
+    await expect(service.switchWorkspace(authSession, "COLL")).rejects.toBeInstanceOf(
+      Meta4SocietyNotAllowedError,
+    );
   });
 });

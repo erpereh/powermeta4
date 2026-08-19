@@ -1,5 +1,32 @@
 # powermeta4 - estado de tareas
 
+## Workspaces Meta4 multi-sociedad - 2026-08-19
+
+- [x] Lookup `CYC` → `IBER` → `COLL` siempre las tres comprobaciones;
+      `match` acumula, `no-match` continúa, infra/HTTP/Fault/XML aborta
+      el login sin persistir coincidencias parciales. Cero matches →
+      `META4_PROFILE_NOT_FOUND`. Un `JSESSIONID` global; `ARG_SOCIEDAD`
+      según el workspace activo.
+- [x] Migración `008_meta4_multi_society`: `meta4_user_profile` con PK
+      `society`; copia de la fila singleton; `DATABASE_SCHEMA_VERSION = 8`.
+      Las huellas de migración ignoran CRLF para coincidir con SQLite en
+      Windows.
+- [x] Login persiste N perfiles, `ensureSocietyCompany` por match y
+      `availableSocieties` en `AuthView`. `activeCompanyId` se restaura
+      si sigue autorizada; si no, primera en orden CYC → IBER → COLL.
+- [x] `getMeta4OperationalContext` resuelve sociedad + `companyId` desde
+      el workspace activo validado. `switchMeta4WorkspaceAction` es la
+      única mutación; create/delete/`setActiveCompany` se rechazan en
+      Meta4. SocietyHeader: N≥2 dropdown sin Add; N=1 no interactivo;
+      DEBUG sin sociedades inventadas.
+- [x] Verificación: `npm run setup` correcto (`user_version` 8);
+      `PRAGMA integrity_check` ok y `foreign_key_check` vacío;
+      `npm run typecheck` correcto; `npx oxlint` sin errores del cambio
+      (warnings preexistentes de Registro Retributivo); `npm test` 79
+      archivos, 407 pruebas correctas y 2 omitidas; `npm run build`
+      correcto; `git diff --check` correcto. `npm run lint` falla en
+      `oxfmt --check` (sin configuración; preexistente). Sin commit.
+
 ## Probe Gemini = curl oficial - 2026-08-17
 
 - [x] Diagnóstico: el curl de Gemini (PC) era 200 con body mínimo; el

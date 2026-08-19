@@ -13,6 +13,7 @@ import { withTransaction } from "@/server/database/transaction";
 import { BACKUP_VERSION, DATABASE_SCHEMA_VERSION } from "@/server/database/version";
 import { createCompanyRepository } from "@/server/database/repositories/company-repository";
 import type { WorkspaceSnapshot } from "@/lib/local-database/dtos";
+import { META4_SOCIETIES, orderMeta4Societies } from "@/lib/meta4/societies";
 import type { AuthView } from "@/types/session";
 import type {
   Chat,
@@ -74,7 +75,9 @@ const toAuthView = (auth: AuthView): AuthView => ({
   mode: auth.mode,
   username: auth.username,
   canUseMeta4: auth.canUseMeta4,
-  societyCode: auth.societyCode ?? null,
+  societyCode: auth.mode === "meta4" ? (auth.societyCode ?? null) : null,
+  availableSocieties:
+    auth.mode === "meta4" ? orderMeta4Societies(auth.availableSocieties ?? []) : [],
 });
 
 const mapCompany = (row: Row): Company => ({
@@ -350,6 +353,22 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
         bootstrapDatabase(database);
       });
       companies = getCompanies();
+    }
+    if (auth.mode === "meta4") {
+      const allowed = new Set(toAuthView(auth).availableSocieties);
+      companies = companies
+        .filter((company) => {
+          const society = companyRepository.getSocietyCode(company.id);
+          return society !== null && allowed.has(society);
+        })
+        .sort((left, right) => {
+          const leftSociety = companyRepository.getSocietyCode(left.id);
+          const rightSociety = companyRepository.getSocietyCode(right.id);
+          return (
+            META4_SOCIETIES.indexOf(leftSociety ?? "CYC") -
+            META4_SOCIETIES.indexOf(rightSociety ?? "CYC")
+          );
+        });
     }
     const activeCompanyId = await getActiveCompanyId(companies);
     const workspaces: Partial<Record<CompanyId, WorkspaceData>> = {};

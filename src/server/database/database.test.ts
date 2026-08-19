@@ -1,13 +1,12 @@
 import { DatabaseSync } from "node:sqlite";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { bootstrapDatabase } from "@/server/database/bootstrap";
-import { runMigrations } from "@/server/database/migrations";
+import { checksumMigrationSql, runMigrations } from "@/server/database/migrations";
 import { withTransaction } from "@/server/database/transaction";
 import { createAuthRepository } from "@/lib/auth/session-repository";
 
@@ -40,7 +39,7 @@ describe("node:sqlite database kernel", () => {
           "INSERT INTO schema_migrations (version, name, checksum, applied_at) VALUES (1, '001_initial', ?, ?)",
         )
         .run(
-          createHash("sha256").update(initialSql, "utf8").digest("hex"),
+          checksumMigrationSql(initialSql),
           new Date().toISOString(),
         );
       database
@@ -51,7 +50,7 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 7 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 8 });
       expect(database.prepare("SELECT version, name FROM schema_migrations").all()).toEqual([
         { version: 1, name: "001_initial" },
         { version: 2, name: "002_debug_auth_mode" },
@@ -60,6 +59,7 @@ describe("node:sqlite database kernel", () => {
         { version: 5, name: "005_drop_retributivo_assistant" },
         { version: 6, name: "006_ai_provider_configs" },
         { version: 7, name: "007_agent_runtime" },
+        { version: 8, name: "008_meta4_multi_society" },
       ]);
       const migrated = database
         .prepare(
@@ -171,6 +171,7 @@ describe("node:sqlite database kernel", () => {
         { version: 5, name: "005_drop_retributivo_assistant" },
         { version: 6, name: "006_ai_provider_configs" },
         { version: 7, name: "007_agent_runtime" },
+        { version: 8, name: "008_meta4_multi_society" },
       ]);
 
       const tables = database
@@ -207,8 +208,69 @@ describe("node:sqlite database kernel", () => {
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 7,
+        count: 8,
       });
+    } finally {
+      database.close();
+    }
+  });
+
+  it("migrates the singleton Meta4 profile to a society primary key", () => {
+    const database = new DatabaseSync(":memory:");
+    const migrationsDirectory = path.join(process.cwd(), "src", "server", "database", "migrations");
+    const timestamp = new Date().toISOString();
+    try {
+      database.exec("PRAGMA foreign_keys = ON");
+      for (const filename of [
+        "001_initial.sql",
+        "002_debug_auth_mode.sql",
+        "003_meta4_user_profile.sql",
+        "004_registro_retributivo.sql",
+        "005_drop_retributivo_assistant.sql",
+        "006_ai_provider_configs.sql",
+        "007_agent_runtime.sql",
+      ]) {
+        const sql = readFileSync(path.join(migrationsDirectory, filename), "utf8");
+        database.exec(sql);
+        database
+          .prepare(
+            "INSERT INTO schema_migrations (version, name, checksum, applied_at) VALUES (?, ?, ?, ?)",
+          )
+          .run(
+            Number(filename.slice(0, 3)),
+            filename.slice(0, -4),
+            checksumMigrationSql(sql),
+            timestamp,
+          );
+      }
+      database
+        .prepare(
+          "INSERT INTO meta4_user_profile (id, username, society, display_name, profile_json_encrypted, looked_up_at, created_at, updated_at) VALUES ('global', 'usuario', 'IBER', 'Usuario', 'encrypted-profile', ?, ?, ?)",
+        )
+        .run(timestamp, timestamp, timestamp);
+
+      runMigrations(database);
+
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 8 });
+      expect(
+        database
+          .prepare("SELECT society, username FROM meta4_user_profile")
+          .all(),
+      ).toEqual([{ society: "IBER", username: "usuario" }]);
+      const columns = (
+        database.prepare("PRAGMA table_info(meta4_user_profile)").all() as Array<{ name: string }>
+      ).map((column) => column.name);
+      expect(columns).toEqual([
+        "society",
+        "username",
+        "display_name",
+        "profile_json_encrypted",
+        "looked_up_at",
+        "created_at",
+        "updated_at",
+      ]);
+      expect(database.prepare("PRAGMA integrity_check").get()).toEqual({ integrity_check: "ok" });
+      expect(database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     } finally {
       database.close();
     }
@@ -341,6 +403,12 @@ describe("node:sqlite database kernel", () => {
     }
   });
 
+  it("treats CRLF and LF migration files as the same checksum", () => {
+    expect(checksumMigrationSql("CREATE TABLE x (id TEXT);\r\n")).toBe(
+      checksumMigrationSql("CREATE TABLE x (id TEXT);\n"),
+    );
+  });
+
   it("rejects a modified migration after it has been applied", () => {
     const directory = mkdtempSync(path.join(os.tmpdir(), "powermeta4-migrations-test-"));
     const firstMigrationPath = path.join(directory, "001_test.sql");
@@ -374,6 +442,10 @@ describe("node:sqlite database kernel", () => {
         migrationPath(directory, "007_test.sql"),
         "CREATE TABLE migration_test_v7 (id TEXT PRIMARY KEY); PRAGMA user_version = 7;",
       );
+      writeFileSync(
+        migrationPath(directory, "008_test.sql"),
+        "CREATE TABLE migration_test_v8 (id TEXT PRIMARY KEY); PRAGMA user_version = 8;",
+      );
       runMigrations(database, directory);
       writeFileSync(
         firstMigrationPath,
@@ -397,13 +469,14 @@ describe("node:sqlite database kernel", () => {
       writeFileSync(migrationPath(directory, "005_test.sql"), "CREATE TABLE fifth (id TEXT);");
       writeFileSync(migrationPath(directory, "006_test.sql"), "CREATE TABLE sixth (id TEXT);");
       writeFileSync(migrationPath(directory, "007_test.sql"), "CREATE TABLE seventh (id TEXT);");
+      writeFileSync(migrationPath(directory, "008_test.sql"), "CREATE TABLE eighth (id TEXT);");
       runMigrations(database, directory);
       writeFileSync(migrationPath(directory, "002_future.sql"), "CREATE TABLE future (id TEXT);");
       expect(() => runMigrations(database, directory)).toThrow(/versión|migraciones|duplicad/i);
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 7,
+        count: 8,
       });
       expect(database.prepare("SELECT name FROM sqlite_master WHERE name = 'future'").get()).toBe(
         undefined,

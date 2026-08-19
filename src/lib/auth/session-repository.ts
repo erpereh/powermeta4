@@ -4,10 +4,18 @@ import type { DatabaseSync } from "node:sqlite";
 
 import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
 import type { Meta4Society } from "@/lib/meta4/societies";
+import {
+  activateMeta4Workspace,
+  reconcileMeta4Workspace,
+  type ReconciledMeta4Workspace,
+} from "@/lib/meta4/workspace-scope";
 import { getDatabase } from "@/server/database/client";
 import { withTransaction } from "@/server/database/transaction";
 import { ensureSocietyCompanyInTransaction } from "@/server/database/repositories/company-repository";
-import { insertEncryptedMeta4Profile } from "@/server/database/repositories/meta4-user-profile-repository";
+import {
+  insertEncryptedMeta4Profile,
+  replaceEncryptedMeta4Profiles,
+} from "@/server/database/repositories/meta4-user-profile-repository";
 import type { AuthMode } from "@/types/session";
 
 export const GLOBAL_SOAP_SESSION_ID = "global";
@@ -30,15 +38,17 @@ export type LocalBrowserSessionData = {
 
 export type Meta4LoginPersistData = {
   soap: SoapSessionData;
-  profile: {
+  profiles: Array<{
     username: string;
     society: Meta4Society;
     displayName: string | null;
     profileJsonEncrypted: string;
     lookedUpAt: Date;
-  };
+  }>;
   browserSession: LocalBrowserSessionData;
 };
+
+export type Meta4WorkspacePersistResult = ReconciledMeta4Workspace;
 
 const toDate = (value: unknown): Date | null => {
   if (typeof value !== "string") return null;
@@ -80,13 +90,31 @@ const insertLocalBrowserSession = (database: DatabaseSync, data: LocalBrowserSes
     );
 };
 
-const setActiveCompanyId = (database: DatabaseSync, companyId: string): void => {
-  const timestamp = new Date().toISOString();
-  database
-    .prepare(
-      "INSERT INTO app_settings (key, value_json, created_at, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at",
-    )
-    .run(ACTIVE_COMPANY_SETTING_KEY, JSON.stringify(companyId), timestamp, timestamp);
+const applyMatchedCompanies = (
+  database: DatabaseSync,
+  societies: readonly Meta4Society[],
+): ReconciledMeta4Workspace => {
+  for (const society of societies) {
+    ensureSocietyCompanyInTransaction(database, society);
+  }
+  const reconciled = reconcileMeta4Workspace(database, societies);
+  if (!reconciled) {
+    throw new Error("No se ha podido identificar tu sociedad en Meta4.");
+  }
+  return reconciled;
+};
+
+const persistMatchedWorkspaces = (
+  database: DatabaseSync,
+  profiles: Meta4LoginPersistData["profiles"],
+): ReconciledMeta4Workspace => {
+  for (const profile of profiles) {
+    insertEncryptedMeta4Profile(database, profile);
+  }
+  return applyMatchedCompanies(
+    database,
+    profiles.map((profile) => profile.society),
+  );
 };
 
 export type AuthRepository = {
@@ -98,10 +126,17 @@ export type AuthRepository = {
     lastValidatedAt: Date | null;
   } | null>;
   replaceAuthState: (data: SoapSessionData) => Promise<void>;
-  persistMeta4LoginState: (data: Meta4LoginPersistData) => Promise<{ companyId: string }>;
+  persistMeta4LoginState: (data: Meta4LoginPersistData) => Promise<Meta4WorkspacePersistResult>;
   persistMeta4ProfileRepair: (data: {
-    profile: Meta4LoginPersistData["profile"];
-  }) => Promise<{ companyId: string }>;
+    profiles: Meta4LoginPersistData["profiles"];
+  }) => Promise<Meta4WorkspacePersistResult>;
+  reconcileActiveWorkspace: (
+    availableSocieties: readonly Meta4Society[],
+  ) => Promise<Meta4WorkspacePersistResult | null>;
+  activateWorkspace: (
+    society: Meta4Society,
+    availableSocieties: readonly Meta4Society[],
+  ) => Promise<Meta4WorkspacePersistResult>;
   updateJSessionId: (encryptedJSessionId: string, lastValidatedAt: Date) => Promise<void>;
   clearAuthState: () => Promise<void>;
   replaceLocalBrowserSessions: (data: LocalBrowserSessionData) => Promise<void>;
@@ -156,21 +191,28 @@ export const createAuthRepository = (database: DatabaseSync = getDatabase()): Au
           "DELETE FROM soap_sessions; DELETE FROM local_browser_sessions; DELETE FROM meta4_user_profile;",
         );
         insertSoapSession(database, data.soap);
-        insertEncryptedMeta4Profile(database, data.profile);
-        const company = ensureSocietyCompanyInTransaction(database, data.profile.society);
-        setActiveCompanyId(database, company.id);
+        const workspace = persistMatchedWorkspaces(database, data.profiles);
         insertLocalBrowserSession(database, data.browserSession);
-        return { companyId: company.id };
+        return workspace;
       }),
     ),
   persistMeta4ProfileRepair: async (data) =>
     withRepositoryWrite(async () =>
       withTransaction(database, () => {
-        insertEncryptedMeta4Profile(database, data.profile);
-        const company = ensureSocietyCompanyInTransaction(database, data.profile.society);
-        setActiveCompanyId(database, company.id);
-        return { companyId: company.id };
+        replaceEncryptedMeta4Profiles(database, data.profiles);
+        return applyMatchedCompanies(
+          database,
+          data.profiles.map((profile) => profile.society),
+        );
       }),
+    ),
+  reconcileActiveWorkspace: async (availableSocieties) =>
+    withRepositoryWrite(async () =>
+      withTransaction(database, () => reconcileMeta4Workspace(database, availableSocieties)),
+    ),
+  activateWorkspace: async (society, availableSocieties) =>
+    withRepositoryWrite(async () =>
+      withTransaction(database, () => activateMeta4Workspace(database, society, availableSocieties)),
     ),
   updateJSessionId: async (encryptedJSessionId, lastValidatedAt) =>
     withRepositoryWrite(async () => {

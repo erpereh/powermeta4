@@ -17,6 +17,12 @@ export const useWorkspaceStore = <T>(selector: (state: WorkspaceStore) => T): T 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+const isMeta4Society = (value: unknown): value is "CYC" | "IBER" | "COLL" =>
+  value === "CYC" || value === "IBER" || value === "COLL";
+
+const isAvailableSocieties = (value: unknown): value is Array<"CYC" | "IBER" | "COLL"> =>
+  Array.isArray(value) && value.every(isMeta4Society);
+
 const isWorkspaceSnapshotState = (value: unknown): value is WorkspaceSnapshotState => {
   if (!isRecord(value)) return false;
   if (!Array.isArray(value.companies) || !isRecord(value.workspaces)) return false;
@@ -27,10 +33,8 @@ const isWorkspaceSnapshotState = (value: unknown): value is WorkspaceSnapshotSta
     (value.auth.mode === "meta4" || value.auth.mode === "debug") &&
     typeof value.auth.username === "string" &&
     typeof value.auth.canUseMeta4 === "boolean" &&
-    (value.auth.societyCode === null ||
-      value.auth.societyCode === "CYC" ||
-      value.auth.societyCode === "IBER" ||
-      value.auth.societyCode === "COLL")
+    (value.auth.societyCode === null || isMeta4Society(value.auth.societyCode)) &&
+    isAvailableSocieties(value.auth.availableSocieties)
   );
 };
 

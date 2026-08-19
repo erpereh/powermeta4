@@ -101,6 +101,12 @@ const cloneWorkspaceState = (state: WorkspaceSnapshotState): WorkspaceSnapshotSt
         username: state.auth.username,
         canUseMeta4: state.auth.canUseMeta4,
         societyCode: state.auth.societyCode ?? null,
+        availableSocieties: Array.isArray(state.auth.availableSocieties)
+          ? state.auth.availableSocieties.filter(
+              (society): society is "CYC" | "IBER" | "COLL" =>
+                society === "CYC" || society === "IBER" || society === "COLL",
+            )
+          : [],
       }
     : null,
   workspaces: Object.fromEntries(

@@ -22,6 +22,7 @@ const AUTH_SESSION = {
     username: "user",
     canUseMeta4: true,
     societyCode: "CYC" as const,
+    availableSocieties: ["CYC"],
   },
   expiresAt: new Date("2026-09-01T00:00:00.000Z"),
   lastValidatedAt: new Date("2026-08-01T00:00:00.000Z"),
@@ -66,6 +67,7 @@ describe("listMeta4Users service", () => {
           username: "user",
           society,
           jSessionId: "jsession-should-not-leak",
+          companyId: `company-${society}`,
         }),
         executeSoap,
         usersListUrl: "https://example.test/CSP_POWER4_USER_ALL",
@@ -85,6 +87,7 @@ describe("listMeta4Users service", () => {
       username: "user",
       society: "IBER" as const,
       jSessionId: "server-jsession",
+      companyId: "company-iber",
     }));
     let callCount = 0;
     const executeSoap: SoapExecute = async (operation) => {
@@ -139,6 +142,7 @@ describe("listMeta4Users service", () => {
             username: "user",
             society: "CYC",
             jSessionId: "js",
+            companyId: "company-cyc",
           }),
           executeSoap: async () => {
             throw error;
@@ -154,6 +158,7 @@ describe("listMeta4Users service", () => {
           username: "user",
           society: "CYC",
           jSessionId: "js",
+          companyId: "company-cyc",
         }),
         executeSoap: async () => {
           throw new Error("network cable melted");
@@ -170,6 +175,7 @@ describe("listMeta4Users service", () => {
         username: "user",
         society: "CYC",
         jSessionId: "secret-jsession",
+        companyId: "company-cyc",
       }),
       executeSoap: async (operation) =>
         operation.parseResponse(new Response(successBody("CYC"), { status: 200 })),
