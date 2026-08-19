@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
 
 import {
+  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -348,29 +349,31 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         title="Buscar conversaciones"
         description="Busca y abre una conversación"
       >
-        <CommandInput
-          placeholder="Buscar en tus conversaciones..."
-          value={searchQuery}
-          onValueChange={setSearchQuery}
-        />
-        <CommandList>
-          <CommandEmpty>No hay conversaciones que coincidan.</CommandEmpty>
-          <CommandGroup heading="Conversaciones">
-            {searchResults.map((chat) => (
-              <CommandItem
-                key={chat.id}
-                value={`${chat.id} ${chat.title}`}
-                onSelect={() => {
-                  handleSelectChat(chat.id);
-                  setSearchOpen(false);
-                }}
-              >
-                <SearchChatIcon chat={chat} />
-                <span className="min-w-0 truncate">{chat.title}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder="Buscar en tus conversaciones..."
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
+          <CommandList>
+            <CommandEmpty>No hay conversaciones que coincidan.</CommandEmpty>
+            <CommandGroup heading="Conversaciones">
+              {searchResults.map((chat) => (
+                <CommandItem
+                  key={chat.id}
+                  value={`${chat.id} ${chat.title}`}
+                  onSelect={() => {
+                    handleSelectChat(chat.id);
+                    setSearchOpen(false);
+                  }}
+                >
+                  <SearchChatIcon chat={chat} />
+                  <span className="min-w-0 truncate">{chat.title}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
       </CommandDialog>
     </>
   );

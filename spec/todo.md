@@ -1,5 +1,23 @@
 # powermeta4 - estado de tareas
 
+## Buscar de sidebar: Command de cmdk - 2026-08-19
+
+- [x] El diálogo de Buscar de la sidebar montaba `CommandInput` /
+      `CommandList` fuera del raíz `Command`. cmdk no tenía contexto y
+      al abrir la paleta fallaba con `Cannot read properties of
+      undefined (reading 'subscribe')`.
+- [x] `AppSidebar` envuelve la paleta con `Command shouldFilter={false}`
+      (filtrado propio vía `filterChats`), igual que
+      `ToolsCommandPalette`. `CommandDialog` no se cambia para no
+      anidar raíces.
+- [x] Test: pulsar Buscar abre el input y el empty state sin TypeError.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin
+      errores del cambio (warnings preexistentes de Registro
+      Retributivo); `npm test` 79 archivos, 408 pruebas correctas y 2
+      omitidas; `npm run build` correcto; `git diff --check` correcto.
+      `npm run lint` falla en `oxfmt --check` (sin configuración;
+      preexistente). Sin commit.
+
 ## Workspaces Meta4 multi-sociedad - 2026-08-19
 
 - [x] Lookup `CYC` → `IBER` → `COLL` siempre las tres comprobaciones;

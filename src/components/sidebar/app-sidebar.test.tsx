@@ -109,6 +109,7 @@ beforeEach(() => {
     societyCode: "CYC",
     availableSocieties: ["CYC"],
   };
+  HTMLElement.prototype.scrollIntoView = vi.fn();
   vi.stubGlobal(
     "matchMedia",
     vi.fn().mockImplementation((query: string) => ({
@@ -254,5 +255,15 @@ describe("app sidebar tools group", () => {
     };
     renderSidebar();
     expect(screen.getByText("Modo desarrollo")).toBeTruthy();
+  });
+
+  it("opens the conversation search dialog from Buscar without crashing", async () => {
+    const user = userEvent.setup();
+    renderSidebar();
+
+    await user.click(screen.getByRole("button", { name: "Buscar" }));
+
+    expect(screen.getByPlaceholderText("Buscar en tus conversaciones...")).toBeTruthy();
+    expect(screen.getByText("No hay conversaciones que coincidan.")).toBeTruthy();
   });
 });

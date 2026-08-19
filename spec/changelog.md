@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-19 - Buscar de sidebar: contexto cmdk
+
+### Cambios
+
+- El botón Buscar de la sidebar abre `CommandDialog` con un raíz
+  `Command shouldFilter={false}` alrededor de input y lista, el mismo
+  patrón que la paleta de Inicio. Sin ese contexto, cmdk lanzaba
+  `Cannot read properties of undefined (reading 'subscribe')`.
+- El filtrado sigue en `filterChats`; no se restaura un `Command`
+  interno en `CommandDialog` para no anidar raíces.
+
+### Verificación automática
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; warnings preexistentes en
+  Registro Retributivo.
+- `npm test` — 79 archivos, 408 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; Next.js 16.3.0 incluye `POST /api/agent/run`.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  no tiene configuración y detecta formato en archivos no tocados.
+
 ## 2026-08-19 - Workspaces Meta4 multi-sociedad
 
 ### Cambios
