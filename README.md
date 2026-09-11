@@ -49,20 +49,24 @@ Las conversaciones conservan ramas mediante `parentMessageId`,
 assistant-ui. Los mensajes `running` abandonados se recuperan como
 `incomplete` y no se reanudan automáticamente.
 
-El asistente usa `POST /api/agent/run` (SSE, Node.js) con un proveedor
-OpenAI-compatible configurado en Ajustes (`name`, Base URL, `model` nullable
-hasta completarlo, API key cifrada con DPAPI). El picker del composer no es
-una lista estática: solo configs usables de la empresa activa. El esquema
-actual es `DATABASE_SCHEMA_VERSION = 8` (migración
-`008_meta4_multi_society`: perfil Meta4 con PK por sociedad `CYC` |
-`IBER` | `COLL`; el workspace activo gobierna `companyId` y
-`ARG_SOCIEDAD` sobre un único `JSESSIONID`).
+El chat usa `POST /api/chat/run` (SSE, Node.js) y un endpoint
+OpenAI-compatible global configurado exclusivamente en el servidor mediante
+`AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`. Las tres variables son obligatorias;
+no se guardan en SQLite ni se exponen al navegador. La UI solo recibe el
+estado seguro `{ configured, model }` y muestra `IA · <AI_MODEL>` o
+`IA no configurada`.
 
-El transcript visible en SQLite conserva el texto real (nombres, puestos,
-ramas). La historia enviada al modelo es una proyección sanitizada
-(`EMP_*` + semántica de tools). Si falta esa proyección y el turno visible
-tiene datos protegidos, no se llama al proveedor y el historial no se
-modifica. En modo debug, las preguntas de empleado no ejecutan SOAP.
+El transcript visible en SQLite conserva el texto real, ramas, edición,
+regeneración y reload. Para cada ejecución el servidor sigue
+`parentMessageId` desde el mensaje asistente en curso y envía únicamente
+ancestros `user`/`assistant` con texto no vacío. Excluye el placeholder actual,
+partes no textuales, system prompts, tools, function calling y cualquier dato
+de Meta4. El cliente compatible normaliza la raíz de `AI_BASE_URL` a
+`/chat/completions`, envía `{ model, messages, stream: true }`, procesa SSE y
+persiste contenido incremental y estados `complete`, `cancelled` o `failed`.
+El esquema actual es `DATABASE_SCHEMA_VERSION = 9`; la migración 009 elimina
+la infraestructura exclusiva del agente y las configuraciones de proveedor,
+sin tocar conversaciones, mensajes, attachments ni el grafo de padres.
 
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Tras un login Meta4 real se consulta el perfil de usuario
@@ -88,11 +92,9 @@ POWERMETA4_DEBUG_USERNAME=DEBUG
 El modo requiere que `NODE_ENV` sea exactamente `development`; con `npm run build`
 y `npm run start` queda deshabilitado incluso si la variable permanece en `true`.
 Una sesión debug solo crea una sesión local SQLite y permite trabajar con
-empresas, chats, ajustes, configuraciones de IA y copias locales. No crea,
-restaura ni reutiliza una sesión Meta4, ni expone tokens. Las API keys de IA se
-cifran con DPAPI CurrentUser y solo se devuelve al cliente si están
-configuradas; las copias eliminan ese cifrado. Si se desactiva el flag, la
-cookie debug se revoca y se exige un login Meta4 explícito.
+empresas, chats, ajustes y copias locales. No crea, restaura ni reutiliza una
+sesión Meta4, ni expone tokens. Si se desactiva el flag, la cookie debug se
+revoca y se exige un login Meta4 explícito.
 
 ## Copias locales
 
@@ -109,7 +111,7 @@ El manifest tiene exactamente estas cinco propiedades:
 ```json
 {
   "backupVersion": 1,
-  "databaseSchemaVersion": 6,
+  "databaseSchemaVersion": 9,
   "appVersion": "...",
   "createdAt": "...",
   "databasePath": "database/powermeta4.db"
@@ -119,9 +121,9 @@ El manifest tiene exactamente estas cinco propiedades:
 La instantánea activa el lock de escrituras solo durante `backup()`. El
 saneamiento de la copia, la lectura de uploads y la compresión se realizan sin
 ese lock. Sesiones, imports pendientes, recibos de idempotencia y el perfil Meta4
-cifrado se eliminan de la copia temporal. Las configuraciones de IA conservan
-nombre y Base URL, pero su API key cifrada se sustituye por `null`; la base
-activa no se modifica al exportar.
+cifrado se eliminan de la copia temporal; la base activa no se modifica al
+exportar. Los backups de esquema 8 no se restauran directamente: la política
+vigente exige coincidencia exacta con el esquema 9.
 
 La restauración exige coincidencia exacta de `backupVersion` y
 `databaseSchemaVersion` antes de adquirir mantenimiento. Valida seguridad del
@@ -151,7 +153,7 @@ del proyecto jamás puedan compilar código nativo.
 
 - `/login`: autenticación Meta4 local y, solo en desarrollo habilitado, modo debug local.
 - `/`, `/home`, `/chat/new` y `/chat/[chatId]`: chat y launchpad.
-- `/settings`: datos de la persona, configuraciones locales de IA y datos/copias;
+- `/settings`: datos de la persona y datos/copias;
   el menú de usuario también abre el mismo contenido en un diálogo.
 - `/tools`, `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
   `/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`:

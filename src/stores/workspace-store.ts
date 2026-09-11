@@ -53,7 +53,6 @@ export type WorkspaceStore = WorkspaceSnapshotState & {
     status: MessageStatus,
     companyId?: CompanyId,
   ) => void;
-  setSelectedProviderConfig: (providerConfigId: string, companyId?: CompanyId) => void;
   recordToolVisit: (toolId: string, companyId?: CompanyId) => void;
 };
 
@@ -77,10 +76,6 @@ const createWorkspaceData = (): WorkspaceData => ({
   chats: [],
   activeChatId: null,
   recentTools: [],
-  preferences: {
-    selectedProviderConfigId: null,
-  },
-  aiProviderConfigs: [],
 });
 
 export const createInitialWorkspaces = (): Partial<Record<CompanyId, WorkspaceData>> => ({});
@@ -122,8 +117,6 @@ const cloneWorkspaceState = (state: WorkspaceSnapshotState): WorkspaceSnapshotSt
               messages: chat.messages.map((message) => ({ ...message })),
             })),
             recentTools: workspace.recentTools.map((visit) => ({ ...visit })),
-            preferences: { ...workspace.preferences },
-            aiProviderConfigs: (workspace.aiProviderConfigs ?? []).map((config) => ({ ...config })),
           },
         ] as const,
       ];
@@ -399,15 +392,6 @@ const createWorkspaceStoreState =
                 }
               : chat,
           ),
-        })),
-      );
-    },
-    setSelectedProviderConfig: (providerConfigId, companyId) => {
-      const targetCompanyId = resolveCompanyId(get(), companyId);
-      set((state) =>
-        updateWorkspace(state, targetCompanyId, (workspace) => ({
-          ...workspace,
-          preferences: { ...workspace.preferences, selectedProviderConfigId: providerConfigId },
         })),
       );
     },

@@ -9,7 +9,6 @@ import {
 } from "@assistant-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { confirmAgentDisambiguationAction } from "@/app/actions/agent";
 import {
   createConversationAction,
   finalizeMessageAction,
@@ -18,10 +17,11 @@ import {
   upsertMessageAction,
   updateMessageAction,
 } from "@/app/actions/workspace";
-import { AgentDisambiguationProvider } from "@/components/chat/agent-disambiguation-context";
-import { runAgentChatStream } from "@/lib/chat/agent-runtime-adapter";
+import { runGlobalChatStream } from "@/lib/chat/chat-runtime-adapter";
+import { isChatSendDisabled, type ChatStatus } from "@/lib/chat/chat-status";
 import { toExportedMessageRepository } from "@/lib/chat/message-repository";
 import {
+  getCaughtErrorCode,
   getCaughtErrorMessage,
   inferFailedErrorCode,
   toInterruptedStatus,
@@ -43,7 +43,7 @@ type ChatRuntimeProviderProps = {
   companyId: CompanyId;
   chatId: string;
   children: ReactNode;
-  selectedProviderConfigId: string | null;
+  chatStatus: ChatStatus;
 };
 
 type RunOptions = {
@@ -81,7 +81,7 @@ export function ChatRuntimeProvider({
   companyId,
   chatId,
   children,
-  selectedProviderConfigId,
+  chatStatus,
 }: ChatRuntimeProviderProps) {
   const chat = useWorkspaceStore((state) =>
     getChat(state.workspaces[companyId]?.chats ?? [], chatId),
@@ -93,8 +93,6 @@ export function ChatRuntimeProvider({
   const setMessageStatus = useWorkspaceStore((state) => state.setMessageStatus);
   const controllerRef = useRef<AbortController | null>(null);
   const schedulerRef = useRef<StreamingPersistenceScheduler | null>(null);
-  const selectedProviderConfigIdRef = useRef(selectedProviderConfigId);
-  selectedProviderConfigIdRef.current = selectedProviderConfigId;
   const [runningMessageId, setRunningMessageId] = useState<string | null>(null);
 
   const messageRepository = useMemo<ExportedMessageRepository>(() => {
@@ -231,9 +229,8 @@ export function ChatRuntimeProvider({
         const assistantError = actionFailed(assistantResult);
         if (assistantError) throw assistantError;
 
-        const stream = runAgentChatStream({
+        const stream = runGlobalChatStream({
           companyId,
-          providerConfigId: selectedProviderConfigIdRef.current,
           conversationId: chatId,
           assistantMessageId: assistantMessage.id,
           abortSignal: controller.signal,
@@ -281,7 +278,9 @@ export function ChatRuntimeProvider({
               ? [{ type: "text", text: errorMessage }]
               : [];
         const errorCode =
-          interruptedStatus === "failed" ? inferFailedErrorCode(errorMessage) : null;
+          interruptedStatus === "failed"
+            ? (getCaughtErrorCode(error) ?? inferFailedErrorCode(errorMessage))
+            : null;
         try {
           await scheduler.flush(persistPartial);
           sequence += 1;
@@ -312,7 +311,6 @@ export function ChatRuntimeProvider({
     [
       chatId,
       companyId,
-      selectedProviderConfigId,
       setChatHead,
       setChatMessages,
       setChatTitle,
@@ -333,32 +331,6 @@ export function ChatRuntimeProvider({
         visibleMessages(currentChat),
         message.parentId,
         message.runConfig,
-      );
-    },
-    [chatId, companyId, runConversation],
-  );
-
-  const confirmDisambiguation = useCallback(
-    async (pendingId: string, choiceId: string) => {
-      const result = await confirmAgentDisambiguationAction({
-        companyId,
-        conversationId: chatId,
-        pendingId,
-        choiceId,
-      });
-      if (!result.ok) {
-        await hydrateWorkspaceStore();
-        return;
-      }
-      const currentChat = getChat(
-        workspaceStore.getState().workspaces[companyId]?.chats ?? [],
-        chatId,
-      );
-      if (!currentChat) return;
-      await runConversation(
-        result.data.rewrittenText,
-        visibleMessages(currentChat),
-        currentChat.headMessageId ?? null,
       );
     },
     [chatId, companyId, runConversation],
@@ -440,7 +412,7 @@ export function ChatRuntimeProvider({
         messageRepository,
         convertMessage: (message: ThreadMessage) => message,
         isRunning: runningMessageId !== null,
-        isSendDisabled: runningMessageId !== null || selectedProviderConfigId === null,
+        isSendDisabled: isChatSendDisabled(chatStatus, runningMessageId !== null),
         setMessages: () => undefined,
         unstable_onBranchChange: onBranchChange,
         onNew,
@@ -456,16 +428,14 @@ export function ChatRuntimeProvider({
         onNew,
         onReload,
         runningMessageId,
-        selectedProviderConfigId,
+        chatStatus,
       ],
     ),
   );
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <AgentDisambiguationProvider value={confirmDisambiguation}>
-        {children}
-      </AgentDisambiguationProvider>
+      {children}
     </AssistantRuntimeProvider>
   );
 }

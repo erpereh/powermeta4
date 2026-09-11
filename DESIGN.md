@@ -58,8 +58,8 @@ La sidebar usa la base oficial existente con composición inspirada en
 - móvil conserva el Sheet/offcanvas nativo, nunca un rail permanente.
 
 El menú de usuario abre Ajustes como un diálogo grande con los datos de la
-persona, las configuraciones locales de IA y las copias locales; `/settings`
-reutiliza el mismo contenido como deep-link.
+persona y las copias locales; `/settings` reutiliza el mismo contenido como
+deep-link. La configuración del chat no vive en Ajustes.
 
 Herramientas es un grupo colapsable, no una ruta de navegación. Todo el row
 es el `CollapsibleTrigger`: abre o cierra el submenu, anuncia `aria-expanded`
@@ -136,12 +136,19 @@ No hay selección inicial. Las acciones usan `ThreadPrimitive.Suggestion` con
 `send={false}` para preparar texto editable sin ejecutar operaciones ni
 duplicar el estado del composer.
 
-El composer lista las configuraciones de IA usables (`ai_provider_configs` con
-modelo y API key) de la empresa activa. Sin configs usables muestra
-«Configura un modelo en Ajustes». La desambiguación de empleados es una
-tarjeta local con botones; el modelo no elige entre homónimos. El historial
-pintado en el Thread es el transcript SQLite real; la proyección hacia el
-LLM no se muestra al usuario.
+El chat es global para todos los workspaces locales y se configura
+server-side con `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`. El composer muestra
+el indicador no interactivo `IA · <AI_MODEL>`; si falta cualquier variable
+muestra `IA no configurada` y desactiva Enviar. No hay picker, CRUD de
+proveedores ni preferencias de proveedor en la interfaz.
+
+El historial pintado en el Thread es el transcript SQLite real. Cada ejecución
+reconstruye la rama exacta desde el `parentMessageId` del mensaje asistente en
+curso y envía al endpoint únicamente texto no vacío de mensajes `user` y
+`assistant`; excluye el placeholder actual y partes no textuales. El endpoint
+no recibe system prompts, tools, function calling ni datos de Meta4. Se
+conservan streaming, cancelación, estados persistidos, edición, regeneración,
+ramas y `headMessageId`.
 
 ## Responsive y accesibilidad
 

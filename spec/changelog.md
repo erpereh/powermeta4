@@ -1,5 +1,50 @@
 # Changelog
 
+Las entradas fechadas antes del 2026-09-11 describen decisiones históricas;
+las referencias a las migraciones 006/007, Agent Runtime y proveedores no
+representan la arquitectura vigente.
+
+## 2026-09-11 - Chat global OpenAI-compatible
+
+### Cambios
+
+- El chat usa `POST /api/chat/run` y una configuración única server-side:
+  `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`. Se normaliza la URL a
+  `/chat/completions`, se envía únicamente `{ model, messages, stream: true }`
+  y se procesan deltas textuales SSE.
+- La rama se reconstruye desde `parentMessageId`; el placeholder asistente,
+  partes no textuales, system prompts, tools, function calling y datos Meta4
+  quedan fuera de la petición. Se mantienen SQLite, ExternalStoreRuntime,
+  streaming, persistencia incremental, cancelación, edición, regeneración,
+  ramas y estados terminales.
+- La UI elimina picker, CRUD y preferencias de proveedores, disambiguación,
+  renderers de tools y aprobaciones. El composer muestra solo `IA · <modelo>`
+  o `IA no configurada`.
+- La migración `009_remove_agent_and_provider_configs.sql` sube el esquema a
+  9 y elimina `agent_pending_disambiguation`, `agent_turn_projections`,
+  `agent_privacy_bindings`, `ai_provider_configs` y la preferencia legacy,
+  preservando el historial de chats. Las migraciones 006/007 permanecen como
+  historia, no como arquitectura vigente.
+- Backups y documentación quedan alineados con el esquema 9. Se conserva
+  `@google/genai` únicamente por Registro Retributivo; se elimina la
+  dependencia `tw-shimmer` al desaparecer el renderer de tools.
+
+### Verificación
+
+- `npm run setup` — correcto; la base local queda en `user_version = 9`,
+  `integrity_check` es `ok`, `foreign_key_check` está vacío y no existen las
+  tablas ni la preferencia legacy.
+- `npm run typecheck` — correcto.
+- `npm test` — 70 archivos, 363 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto; incluye `POST /api/chat/run` y no incluye la
+  ruta antigua del agente.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio, con warnings
+  preexistentes de Registro Retributivo; `oxfmt --check` falla porque no hay
+  configuración y detecta formato en archivos preexistentes.
+- La verificación manual con un endpoint real sigue pendiente de que el
+  usuario configure las tres variables en `.env.local`.
+
 ## 2026-08-19 - Buscar de sidebar: contexto cmdk
 
 ### Cambios

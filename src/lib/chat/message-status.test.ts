@@ -28,11 +28,11 @@ describe("assistant message statuses", () => {
   });
 
   it("maps failed statuses to a string error, never an object", () => {
-    const status = toAssistantUiMessageStatus("failed", "MODEL_REQUEST_FAILED");
+    const status = toAssistantUiMessageStatus("failed", "CHAT_INVALID_RESPONSE");
     expect(status).toEqual({
       type: "incomplete",
       reason: "error",
-      error: DEFAULT_ASSISTANT_ERROR_MESSAGE,
+      error: "La respuesta del proveedor de chat no es válida.",
     });
     expect(typeof status).toBe("object");
     if (status.type !== "incomplete") throw new Error("expected incomplete status");
@@ -40,15 +40,24 @@ describe("assistant message statuses", () => {
     expect(String(status.error)).not.toBe("[object Object]");
   });
 
-  it("uses a sanitized copy for known provider and privacy codes", () => {
-    expect(assistantErrorText("PROVIDER_RUNTIME_FAILED")).toBe(
-      "No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes.",
+  it("uses a sanitized copy for global chat error codes", () => {
+    expect(assistantErrorText("CHAT_CONFIG_UNAVAILABLE")).toBe(
+      "La IA no está configurada en el servidor.",
     );
-    expect(assistantErrorText("PROVIDER_CONFIG_UNAVAILABLE")).toBe(
-      "Configura un modelo en Ajustes para usar el asistente.",
+    expect(assistantErrorText("CHAT_AUTH_FAILED")).toBe(
+      "No se pudo autenticar con el proveedor de chat.",
     );
-    expect(assistantErrorText("PRIVACY_FAIL_CLOSED")).toBe(
-      "No se puede enviar el mensaje al modelo porque no está anonimizado con seguridad.",
+    expect(assistantErrorText("CHAT_MODEL_NOT_FOUND")).toBe(
+      "El modelo configurado no está disponible.",
+    );
+    expect(assistantErrorText("CHAT_RATE_LIMITED")).toBe(
+      "El proveedor de chat ha limitado las solicitudes.",
+    );
+    expect(assistantErrorText("CHAT_NETWORK_ERROR")).toBe(
+      "No se pudo conectar con el proveedor de chat.",
+    );
+    expect(assistantErrorText("CHAT_INVALID_RESPONSE")).toBe(
+      "La respuesta del proveedor de chat no es válida.",
     );
   });
 
@@ -58,14 +67,9 @@ describe("assistant message statuses", () => {
         new Error("No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes."),
       ),
     ).toBe("No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes.");
-    expect(inferFailedErrorCode(getCaughtErrorMessage(new Error("fallo de Gemini")))).toBe(
-      "MODEL_REQUEST_FAILED",
+    expect(inferFailedErrorCode(getCaughtErrorMessage(new Error("fallo del chat")))).toBe(
+      "CHAT_INVALID_RESPONSE",
     );
-    expect(
-      inferFailedErrorCode(
-        "No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes.",
-      ),
-    ).toBe("PROVIDER_RUNTIME_FAILED");
   });
 
   it("distinguishes cancellation from generation failure", () => {

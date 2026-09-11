@@ -9,24 +9,21 @@ import { ChatRuntimeProvider } from "@/components/chat/chat-runtime-provider";
 import {
   createConversationAction,
   selectConversationAction,
-  setSelectedProviderConfigAction,
 } from "@/app/actions/workspace";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  isUsableAiProviderConfig,
-  resolveSelectedProviderConfigId,
-} from "@/types/ai-provider-config";
+import type { GlobalChatStatus } from "@/lib/chat/global-chat-client";
 import type { CompanyId } from "@/types/workspace";
 
 type ChatScreenProps = {
   requestedChatId?: string;
+  chatStatus: GlobalChatStatus;
 };
 
-export function ChatScreen({ requestedChatId }: ChatScreenProps) {
+export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
   const router = useRouter();
   const { isMobile, open, openMobile } = useSidebar();
   const hydrated = useWorkspaceHydrated();
@@ -36,14 +33,11 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
   );
   const createChat = useWorkspaceStore((state) => state.createChat);
   const selectChat = useWorkspaceStore((state) => state.selectChat);
-  const setSelectedProviderConfig = useWorkspaceStore((state) => state.setSelectedProviderConfig);
   const sidebarOpen = isMobile ? openMobile : open;
   const sidebarTriggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
   const activeChat = requestedChatId
     ? workspace?.chats.find((chat) => chat.id === requestedChatId)
     : workspace?.chats.find((chat) => chat.id === workspace.activeChatId);
-  const storedProviderConfigId = workspace?.preferences.selectedProviderConfigId ?? null;
-  const aiProviderConfigs = workspace?.aiProviderConfigs;
 
   useEffect(() => {
     if (!hydrated) return;
@@ -83,32 +77,7 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
     workspace?.activeChatId,
   ]);
 
-  useEffect(() => {
-    if (!hydrated || !companyId) return;
-    const usable = (aiProviderConfigs ?? []).filter(isUsableAiProviderConfig);
-    const resolved = resolveSelectedProviderConfigId(usable, storedProviderConfigId);
-    if (!resolved || resolved === storedProviderConfigId) return;
-    setSelectedProviderConfig(resolved, companyId);
-    void setSelectedProviderConfigAction(companyId, resolved, createClientMutationId()).then(
-      (result) => {
-        if (!result.ok) void hydrateWorkspaceStore();
-      },
-    );
-  }, [
-    aiProviderConfigs,
-    companyId,
-    hydrated,
-    setSelectedProviderConfig,
-    storedProviderConfigId,
-  ]);
-
   if (!hydrated || !companyId || !activeChat || !workspace) return null;
-
-  const usableModels = (workspace.aiProviderConfigs ?? []).filter(isUsableAiProviderConfig);
-  const selectedProviderConfigId = resolveSelectedProviderConfigId(
-    usableModels,
-    storedProviderConfigId,
-  );
 
   return (
     <main className="flex h-svh min-h-0 flex-col">
@@ -132,22 +101,9 @@ export function ChatScreen({ requestedChatId }: ChatScreenProps) {
           key={`${companyId}:${activeChat.id}`}
           companyId={companyId as CompanyId}
           chatId={activeChat.id}
-          selectedProviderConfigId={selectedProviderConfigId}
+          chatStatus={chatStatus}
         >
-          <Thread
-            models={usableModels.map((config) => ({ id: config.id, name: config.name }))}
-            selectedProviderConfigId={selectedProviderConfigId}
-            onProviderChange={(providerConfigId) => {
-              setSelectedProviderConfig(providerConfigId, companyId);
-              void setSelectedProviderConfigAction(
-                companyId,
-                providerConfigId,
-                createClientMutationId(),
-              ).then((result) => {
-                if (!result.ok) void hydrateWorkspaceStore();
-              });
-            }}
-          />
+          <Thread chatStatus={chatStatus} />
         </ChatRuntimeProvider>
       </div>
     </main>

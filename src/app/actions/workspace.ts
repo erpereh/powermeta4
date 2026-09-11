@@ -307,24 +307,6 @@ export async function setConversationHeadAction(input: {
   }
 }
 
-export async function setSelectedProviderConfigAction(
-  companyId: CompanyId,
-  providerConfigId: string,
-  clientMutationId?: string,
-): Promise<ActionResult<null>> {
-  try {
-    await requireAuthContext();
-    await getWorkspaceRepository().setSelectedProviderConfig(
-      requireId(companyId, "La empresa"),
-      requireId(providerConfigId, "La configuración de IA"),
-      requireMutationId(clientMutationId),
-    );
-    return ok(null);
-  } catch (error) {
-    return errorResult(error);
-  }
-}
-
 export async function recordToolVisitAction(
   companyId: CompanyId,
   toolId: string,

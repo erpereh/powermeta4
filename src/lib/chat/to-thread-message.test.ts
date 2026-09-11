@@ -101,14 +101,14 @@ describe("toThreadMessage", () => {
     const message: Message = {
       ...baseAssistantMessage,
       status: "failed",
-      errorCode: "MODEL_REQUEST_FAILED",
+      errorCode: "CHAT_INVALID_RESPONSE",
     };
     const result = toThreadMessage(message);
     const status = result.status;
     expect(status).toEqual({
       type: "incomplete",
       reason: "error",
-      error: "No se pudo completar la respuesta del asistente.",
+      error: "La respuesta del proveedor de chat no es válida.",
     });
     const error = status && "error" in status ? status.error : undefined;
     expect(typeof error).toBe("string");
@@ -123,7 +123,7 @@ describe("toThreadMessage", () => {
       content: [
         {
           type: "text",
-          text: "No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes.",
+          text: "La respuesta del proveedor de chat no es válida.",
         },
       ],
     };
@@ -132,7 +132,7 @@ describe("toThreadMessage", () => {
     expect(status).toEqual({
       type: "incomplete",
       reason: "error",
-      error: "No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes.",
+      error: "La respuesta del proveedor de chat no es válida.",
     });
     const error = status && "error" in status ? status.error : undefined;
     expect(String(error)).not.toBe("[object Object]");

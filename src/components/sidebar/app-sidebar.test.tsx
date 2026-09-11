@@ -53,8 +53,6 @@ vi.mock("@/stores/use-workspace-store", () => ({
           chats: never[];
           activeChatId: null;
           recentTools: never[];
-          preferences: { selectedProviderConfigId: string | null };
-          aiProviderConfigs: never[];
         }
       >;
       createChat: () => string;
@@ -73,8 +71,6 @@ vi.mock("@/stores/use-workspace-store", () => ({
           chats: [],
           activeChatId: null,
           recentTools: [],
-          preferences: { selectedProviderConfigId: null },
-          aiProviderConfigs: [],
         },
       },
       createChat: () => "chat-1",

@@ -4,10 +4,11 @@
 
 `powermeta4` es una aplicación local híbrida para conversar con un asistente y
 organizar herramientas operativas por workspace de empresa. La autenticación y
-los datos de producto viven en SQLite local. El runtime de IA llama a un
-endpoint OpenAI-compatible configurado por el usuario en Ajustes; no hay
-proveedor embebido ni picker estático. El modelo nunca recibe PII de Meta4:
-nombres, matrículas, sociedad, puestos, correos ni valores SOAP.
+los datos de producto viven en SQLite local. El chat usa una única configuración
+OpenAI-compatible global y server-side mediante `AI_BASE_URL`, `AI_API_KEY` y
+`AI_MODEL`; no hay configuración por empresa ni picker interactivo. El modelo
+solo recibe texto de la rama de conversación seleccionada: no recibe datos,
+contexto ni resultados de Meta4.
 
 ## Fuentes de verdad y orden de lectura
 
@@ -48,16 +49,15 @@ Thread salvo petición expresa.
 ## Estado, sesión y workspaces
 
 - `workspaceStore` es la única fuente global del snapshot temporal de chats,
-  mensajes, favoritos, proveedor de IA seleccionado, empresas y actividad. La
+  mensajes, favoritos, empresas y actividad. La
   fuente de verdad es SQLite mediante el servidor; tras una hidratación
   correcta solo se retiran las claves funcionales legacy
   `powermeta4-workspace-store` y `powermeta4-chat-store`. `next-themes`
   conserva su almacenamiento de tema.
 - Todo dato de producto debe resolverse mediante `activeCompanyId`. El runtime
   recibe un `companyId` capturado y sus escrituras deben conservarlo durante
-  streaming, edición y cancelación. `providerConfigId` del cliente no se
-  confía: el servidor valida empresa, sesión y que la config sea usable
-  (`model` + `hasApiKey`).
+  streaming, edición y cancelación. La configuración del chat nunca procede
+  del cliente ni del workspace: se lee exclusivamente del entorno del servidor.
 - Los favoritos se derivan de `Chat.favorite`; no crear arrays paralelos.
 - Una empresa autenticada es un workspace local de powermeta4, no una entidad
   ERP sincronizada. Crear o eliminarla no debe presentarse como una operación
@@ -69,33 +69,30 @@ Thread salvo petición expresa.
   reinicia al recargar.
 - La autenticación se valida en servidor con SOAP Meta4 y una cookie opaca
   HttpOnly. JSESSIONID y refreshSessionId se cifran con DPAPI CurrentUser.
-  Secretos, tokens EMP y API keys nunca se guardan en Zustand, localStorage o
+  Secretos, tokens y API keys nunca se guardan en Zustand, localStorage o
   sessionStorage.
 
-## Agente, privacidad y herramientas SOAP
+## Chat global y herramientas SOAP
 
 El transcript visible en SQLite es la fuente real del chat: mensajes del
-usuario, respuestas locales, nombres, puestos, ramas, edición, regeneración y
-reload. No se borra ni se reescribe para anonimizar. `ON DELETE CASCADE` de
-bindings y proyecciones solo aplica si el usuario elimina deliberadamente una
-conversación o un mensaje.
+usuario, respuestas locales, ramas, edición, regeneración y reload. No se borra
+ni se reescribe para enviarlo al modelo. Las tablas exclusivas del runtime
+anterior se eliminan mediante la migración `009_remove_agent_and_provider_configs`;
+las migraciones 006/007 se conservan únicamente como historia de esquema.
 
-La historia que viaja al LLM es independiente (`agent_turn_projections`):
-tokens `EMP_*` y semántica de tools (`Consultado employee.get_field(EMP_…,
-JOB_TITLE).`). Nunca hay fallback `content_json` real → proveedor. Si un
-turno del asistente contiene datos protegidos y falta su proyección, se
-bloquea la llamada al modelo, se muestra un error seguro y el historial
-visible permanece intacto.
+`POST /api/chat/run` valida sesión, empresa, conversación y mensaje asistente,
+reconstruye la rama exacta con `parentMessageId` y envía únicamente ancestros
+`user`/`assistant` con texto no vacío. Excluye el placeholder asistente actual,
+partes no textuales, system prompts, tools y function calling.
 
-El interceptor `assertOutboundPayload` recorre el JSON completo antes de
-`fetch` (fail-closed). No hay vault `VAL_*` en esta fase. La única
-herramienta real es `employee.get_field`; WRITE no se ejecuta
-(`CONFIRMATION_REQUIRED`). Añadir otra herramienta SOAP es servicio +
-`createXTool` + una línea en `buildAgentTools()`, sin cambiar el gateway.
+El cliente server-only normaliza `AI_BASE_URL` a `/chat/completions`, envía
+`model`, `messages` y `stream: true`, y procesa solo deltas textuales SSE.
+`AI_API_KEY` nunca sale del servidor. La UI solo recibe `{ configured, model }`;
+si falta una variable muestra `IA no configurada` y bloquea el envío.
 
-En modo debug, una pregunta de empleado responde `META4_SESSION_REQUIRED`
-sin SOAP ni llamada al proveedor. La sociedad no la elige el navegador; los
-tokens no se resuelven en el cliente.
+El chat no importa ni invoca SOAP, resolvers, privacidad ni herramientas. Las
+herramientas SOAP y el Registro Retributivo siguen siendo funciones normales de
+producto fuera del chat. La sociedad no la elige el navegador.
 
 ## Herramientas y recomendaciones
 
@@ -140,20 +137,20 @@ Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`.
 Los Route Handlers locales de workspace
 y backups usan runtime Node.js y validan la sesión, la empresa y la
-conversación en servidor. `POST /api/agent/run` es el runtime del asistente
-(SSE, Node.js): valida sesión, empresa y conversación, resuelve el proveedor
-usable en servidor y aplica el privacy gateway antes de cualquier `fetch`.
+conversación en servidor. `POST /api/chat/run` es el runtime de chat
+(SSE, Node.js): valida sesión, empresa y conversación, reconstruye la rama
+  por `parentMessageId` y llama al endpoint OpenAI-compatible global.
 Las rutas antiguas `/tools/users/new`,
 `/tools/users/search` y `/tools/users/[userId]` solo redirigen a
 `/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
 
 No añadir APIs ficticias, permisos reales, invitaciones, operaciones ERP de
-escritura reales ni persistencia remota. El endpoint OpenAI-compatible lo
-configura el usuario en Ajustes (Base URL, modelo y API key cifrada con
-DPAPI); no hay proveedor embebido ni claves en el cliente. Los Route
-Handlers y Server Actions locales de SQLite, autenticación, backups y el
-agente forman parte de la implementación aprobada. No ejecutar Prisma, DPAPI
-ni SOAP desde proxy/middleware.
+escritura reales ni persistencia remota. El endpoint OpenAI-compatible global
+se configura mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL` en el entorno
+server-side; nunca se documentan credenciales ni se exponen claves al cliente.
+Los Route Handlers y Server Actions locales de SQLite, autenticación y backups
+forman parte de la implementación aprobada. No ejecutar Prisma, DPAPI ni SOAP
+desde proxy/middleware.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

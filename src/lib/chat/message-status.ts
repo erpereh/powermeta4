@@ -6,12 +6,12 @@ export const DEFAULT_ASSISTANT_ERROR_MESSAGE =
   "No se pudo completar la respuesta del asistente.";
 
 const ERROR_CODE_MESSAGES: Readonly<Record<string, string>> = {
-  MODEL_REQUEST_FAILED: DEFAULT_ASSISTANT_ERROR_MESSAGE,
-  PROVIDER_RUNTIME_FAILED:
-    "No se pudo leer la configuración de IA. Vuelve a guardar el modelo en Ajustes.",
-  PROVIDER_CONFIG_UNAVAILABLE: "Configura un modelo en Ajustes para usar el asistente.",
-  PRIVACY_FAIL_CLOSED:
-    "No se puede enviar el mensaje al modelo porque no está anonimizado con seguridad.",
+  CHAT_CONFIG_UNAVAILABLE: "La IA no está configurada en el servidor.",
+  CHAT_AUTH_FAILED: "No se pudo autenticar con el proveedor de chat.",
+  CHAT_MODEL_NOT_FOUND: "El modelo configurado no está disponible.",
+  CHAT_RATE_LIMITED: "El proveedor de chat ha limitado las solicitudes.",
+  CHAT_NETWORK_ERROR: "No se pudo conectar con el proveedor de chat.",
+  CHAT_INVALID_RESPONSE: "La respuesta del proveedor de chat no es válida.",
 };
 
 const isUsableErrorText = (value: string | null | undefined): value is string => {
@@ -28,14 +28,24 @@ export const assistantErrorText = (
   return DEFAULT_ASSISTANT_ERROR_MESSAGE;
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isKnownErrorCode = (value: unknown): value is string =>
+  typeof value === "string" && Object.hasOwn(ERROR_CODE_MESSAGES, value);
+
+export const getCaughtErrorCode = (error: unknown): string | null =>
+  isRecord(error) && isKnownErrorCode(error.code) ? error.code : null;
+
 export const inferFailedErrorCode = (errorMessage: string): string => {
   const trimmed = errorMessage.trim();
   const match = Object.entries(ERROR_CODE_MESSAGES).find(([, copy]) => copy === trimmed);
-  return match?.[0] ?? "MODEL_REQUEST_FAILED";
+  return match?.[0] ?? "CHAT_INVALID_RESPONSE";
 };
 
 export const getCaughtErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) return assistantErrorText(null, error.message);
+  const errorCode = getCaughtErrorCode(error);
+  if (error instanceof Error) return assistantErrorText(errorCode, error.message);
   if (typeof error === "string") return assistantErrorText(null, error);
   return DEFAULT_ASSISTANT_ERROR_MESSAGE;
 };

@@ -168,10 +168,6 @@ const inspectZip = async (bytes: Uint8Array, limits: BackupLimits): Promise<Insp
 };
 
 const requiredTables = [
-  "agent_pending_disambiguation",
-  "agent_privacy_bindings",
-  "agent_turn_projections",
-  "ai_provider_configs",
   "schema_migrations",
   "companies",
   "conversations",
@@ -253,7 +249,7 @@ const sanitizeDatabase = (databasePath: string): void => {
     database.enableLoadExtension(false);
     withTransaction(database, () => {
       database.exec(
-        "UPDATE ai_provider_configs SET api_key_encrypted = NULL; DELETE FROM soap_sessions; DELETE FROM local_browser_sessions; DELETE FROM meta4_user_profile; DELETE FROM pending_backup_imports; DELETE FROM idempotency_receipts;",
+        "DELETE FROM soap_sessions; DELETE FROM local_browser_sessions; DELETE FROM meta4_user_profile; DELETE FROM pending_backup_imports; DELETE FROM idempotency_receipts;",
       );
     });
   } finally {

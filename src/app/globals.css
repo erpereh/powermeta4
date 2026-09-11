@@ -23,14 +23,6 @@
       height: 0;
     }
   }
-  @keyframes shimmer-sweep {
-    from {
-      background-position: 150% 0;
-    }
-    to {
-      background-position: -100% 0;
-    }
-  }
   --font-heading: var(--font-inter);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-inter);
@@ -72,7 +64,6 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --animate-shimmer: shimmer-sweep var(--shimmer-duration, 1000ms) linear infinite both;
 }
 
 @custom-variant dark (&:is(.dark *));

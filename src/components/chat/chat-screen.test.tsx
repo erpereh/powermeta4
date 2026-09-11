@@ -4,12 +4,9 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
-import type { AiProviderConfigView } from "@/types/ai-provider-config";
+import type { GlobalChatStatus } from "@/lib/chat/global-chat-client";
 import type { Chat } from "@/types/chat";
 import type { CompanyId, WorkspaceData } from "@/types/workspace";
-
-const setSelectedProviderConfig = vi.fn();
-const setSelectedProviderConfigAction = vi.fn();
 
 let workspaceState: {
   activeCompanyId: CompanyId;
@@ -27,47 +24,31 @@ vi.mock("@/components/app-shell/app-shell", () => ({
 vi.mock("@/app/actions/workspace", () => ({
   createConversationAction: vi.fn(),
   selectConversationAction: vi.fn(),
-  setSelectedProviderConfigAction: (...args: unknown[]) => setSelectedProviderConfigAction(...args),
 }));
 
 vi.mock("@/stores/use-workspace-store", () => ({
   hydrateWorkspaceStore: vi.fn(),
-  useWorkspaceStore: (selector: (state: typeof workspaceState & { createChat: () => string; selectChat: () => void; setSelectedProviderConfig: typeof setSelectedProviderConfig }) => unknown) =>
+  useWorkspaceStore: (selector: (state: typeof workspaceState & { createChat: () => string; selectChat: () => void }) => unknown) =>
     selector({
       ...workspaceState,
       createChat: () => "chat-1",
       selectChat: () => undefined,
-      setSelectedProviderConfig,
     }),
 }));
 
 vi.mock("@/components/chat/chat-runtime-provider", () => ({
-  ChatRuntimeProvider: ({
-    children,
-    selectedProviderConfigId,
-  }: {
-    children: ReactNode;
-    selectedProviderConfigId: string | null;
-  }) => <div data-testid="runtime" data-selected={selectedProviderConfigId ?? "none"}>{children}</div>,
+  ChatRuntimeProvider: ({ children, chatStatus }: { children: ReactNode; chatStatus: GlobalChatStatus }) => (
+    <div data-testid="runtime" data-configured={String(chatStatus.configured)} data-model={chatStatus.model ?? "none"}>
+      {children}
+    </div>
+  ),
 }));
 
 vi.mock("@/components/assistant-ui/thread", () => ({
-  Thread: ({
-    models,
-    selectedProviderConfigId,
-  }: {
-    models: { id: string; name: string }[];
-    selectedProviderConfigId: string | null;
-  }) => (
+  Thread: ({ chatStatus }: { chatStatus: GlobalChatStatus }) => (
     <div>
-      {models.length === 0 || !selectedProviderConfigId ? (
-        <p>Configura un modelo en Ajustes</p>
-      ) : (
-        <div>
-          <span>{models.find((model) => model.id === selectedProviderConfigId)?.name}</span>
-          <button type="button">Enviar mensaje</button>
-        </div>
-      )}
+      <p>{chatStatus.configured ? `IA · ${chatStatus.model}` : "IA no configurada"}</p>
+      <button type="button" disabled={!chatStatus.configured}>Enviar mensaje</button>
     </div>
   ),
 }));
@@ -84,33 +65,16 @@ const CHAT: Chat = {
   messages: [],
 };
 
-const GEMINI: AiProviderConfigView = {
-  id: "config-gemini",
-  name: "Gemini",
-  baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
-  model: "gemini-2.5-flash-lite",
-  hasApiKey: true,
-};
-
-const workspaceWith = (
-  configs: AiProviderConfigView[],
-  selectedProviderConfigId: string | null,
-): WorkspaceData => ({
+const workspaceWith = (): WorkspaceData => ({
   chats: [CHAT],
   activeChatId: CHAT.id,
   recentTools: [],
-  preferences: { selectedProviderConfigId },
-  aiProviderConfigs: configs,
 });
 
 beforeEach(() => {
-  setSelectedProviderConfig.mockReset();
-  setSelectedProviderConfigAction.mockReset().mockResolvedValue({ ok: true, data: null });
   workspaceState = {
     activeCompanyId: "company-1",
-    workspaces: {
-      "company-1": workspaceWith([], null),
-    },
+    workspaces: { "company-1": workspaceWith() },
   };
   vi.stubGlobal(
     "matchMedia",
@@ -125,31 +89,35 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
 });
 
-const renderChat = () =>
+const renderChat = (chatStatus: GlobalChatStatus) =>
   render(
     <TooltipProvider>
       <SidebarProvider>
-        <ChatScreen requestedChatId="chat-1" />
+        <ChatScreen requestedChatId="chat-1" chatStatus={chatStatus} />
       </SidebarProvider>
     </TooltipProvider>,
   );
 
-describe("ChatScreen provider picker", () => {
-  it("blocks send and asks to configure a model when there are no configs", () => {
-    renderChat();
-    expect(screen.getByText("Configura un modelo en Ajustes")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Enviar mensaje" })).toBeNull();
-    expect(screen.getByTestId("runtime").getAttribute("data-selected")).toBe("none");
+describe("ChatScreen global chat status", () => {
+  it("forwards an incomplete global configuration and blocks send", () => {
+    renderChat({ configured: false, model: null });
+
+    expect(screen.getByText("IA no configurada")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Enviar mensaje" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByTestId("runtime").getAttribute("data-configured")).toBe("false");
+    expect(screen.getByTestId("runtime").getAttribute("data-model")).toBe("none");
   });
 
-  it("shows a newly hydrated Gemini config in the picker even if stored selection is null", () => {
-    workspaceState.workspaces["company-1"] = workspaceWith([GEMINI], null);
-    renderChat();
-    expect(screen.getByText("Gemini")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Enviar mensaje" })).toBeTruthy();
-    expect(screen.getByTestId("runtime").getAttribute("data-selected")).toBe("config-gemini");
-    expect(setSelectedProviderConfig).toHaveBeenCalledWith("config-gemini", "company-1");
+  it("forwards the configured model without reading a workspace provider picker", () => {
+    renderChat({ configured: true, model: "gemini-2.5-flash" });
+
+    expect(screen.getByText("IA · gemini-2.5-flash")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Enviar mensaje" }) as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByTestId("runtime").getAttribute("data-configured")).toBe("true");
+    expect(screen.getByTestId("runtime").getAttribute("data-model")).toBe("gemini-2.5-flash");
+    expect(screen.queryByRole("combobox")).toBeNull();
   });
 });

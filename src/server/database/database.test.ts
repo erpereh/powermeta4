@@ -50,7 +50,7 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 8 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 9 });
       expect(database.prepare("SELECT version, name FROM schema_migrations").all()).toEqual([
         { version: 1, name: "001_initial" },
         { version: 2, name: "002_debug_auth_mode" },
@@ -60,6 +60,7 @@ describe("node:sqlite database kernel", () => {
         { version: 6, name: "006_ai_provider_configs" },
         { version: 7, name: "007_agent_runtime" },
         { version: 8, name: "008_meta4_multi_society" },
+        { version: 9, name: "009_remove_agent_and_provider_configs" },
       ]);
       const migrated = database
         .prepare(
@@ -172,6 +173,7 @@ describe("node:sqlite database kernel", () => {
         { version: 6, name: "006_ai_provider_configs" },
         { version: 7, name: "007_agent_runtime" },
         { version: 8, name: "008_meta4_multi_society" },
+        { version: 9, name: "009_remove_agent_and_provider_configs" },
       ]);
 
       const tables = database
@@ -182,10 +184,6 @@ describe("node:sqlite database kernel", () => {
         .map((row) => row.name);
 
       expect(tables).toEqual([
-        "agent_pending_disambiguation",
-        "agent_privacy_bindings",
-        "agent_turn_projections",
-        "ai_provider_configs",
         "app_settings",
         "attachments",
         "companies",
@@ -208,8 +206,154 @@ describe("node:sqlite database kernel", () => {
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 8,
+        count: 9,
       });
+    } finally {
+      database.close();
+    }
+  });
+
+  it("removes only agent and provider state when migrating schema 8", () => {
+    const database = new DatabaseSync(":memory:");
+    const migrationsDirectory = path.join(process.cwd(), "src", "server", "database", "migrations");
+    const timestamp = "2026-09-11T00:00:00.000Z";
+
+    try {
+      database.exec("PRAGMA foreign_keys = ON");
+      for (const filename of [
+        "001_initial.sql",
+        "002_debug_auth_mode.sql",
+        "003_meta4_user_profile.sql",
+        "004_registro_retributivo.sql",
+        "005_drop_retributivo_assistant.sql",
+        "006_ai_provider_configs.sql",
+        "007_agent_runtime.sql",
+        "008_meta4_multi_society.sql",
+      ]) {
+        const sql = readFileSync(path.join(migrationsDirectory, filename), "utf8");
+        database.exec(sql);
+        database
+          .prepare(
+            "INSERT INTO schema_migrations (version, name, checksum, applied_at) VALUES (?, ?, ?, ?)",
+          )
+          .run(
+            Number(filename.slice(0, 3)),
+            filename.slice(0, -4),
+            checksumMigrationSql(sql),
+            timestamp,
+          );
+      }
+      database
+        .prepare(
+          "INSERT INTO companies (id, name, short_name, icon, color, created_at, updated_at) VALUES ('migration-company', 'Migración', 'Migración', 'building', 'blue', ?, ?)",
+        )
+        .run(timestamp, timestamp);
+      database
+        .prepare(
+          "INSERT INTO conversations (id, company_id, title, favorite, created_at, updated_at) VALUES ('migration-chat', 'migration-company', 'Historial', 0, ?, ?)",
+        )
+        .run(timestamp, timestamp);
+      database
+        .prepare(
+          "INSERT INTO messages (id, conversation_id, role, content_json, status, sequence, created_at, updated_at) VALUES ('migration-user', 'migration-chat', 'user', '[{\"type\":\"text\",\"text\":\"Conservar\"}]', 'complete', 0, ?, ?)",
+        )
+        .run(timestamp, timestamp);
+      database
+        .prepare(
+          "INSERT INTO messages (id, conversation_id, parent_message_id, role, content_json, status, sequence, created_at, updated_at) VALUES ('migration-assistant', 'migration-chat', 'migration-user', 'assistant', '[{\"type\":\"text\",\"text\":\"Respuesta histórica\"}]', 'complete', 1, ?, ?)",
+        )
+        .run(timestamp, timestamp);
+      database
+        .prepare("UPDATE conversations SET head_message_id = 'migration-assistant' WHERE id = 'migration-chat'")
+        .run();
+      database
+        .prepare(
+          "INSERT INTO attachments (id, conversation_id, message_id, file_name, mime_type, size_bytes, checksum, relative_path, created_at) VALUES ('migration-attachment', 'migration-chat', 'migration-user', 'historico.txt', 'text/plain', 9, 'checksum', 'uploads/historico.txt', ?)",
+        )
+        .run(timestamp);
+      database
+        .prepare(
+          "INSERT INTO workspace_settings (id, company_id, key, value_json, created_at, updated_at) VALUES ('legacy-setting', 'migration-company', 'selectedProviderConfigId', '\"legacy-config\"', ?, ?)",
+        )
+        .run(timestamp, timestamp);
+      database
+        .prepare(
+          "INSERT INTO ai_provider_configs (id, company_id, name, base_url, model, api_key_encrypted, created_at, updated_at) VALUES ('legacy-config', 'migration-company', 'Legacy', 'https://example.test', 'legacy-model', 'encrypted', ?, ?)",
+        )
+        .run(timestamp, timestamp);
+
+      runMigrations(database);
+
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 9 });
+      expect(
+        database
+          .prepare("SELECT id, company_id, title, head_message_id FROM conversations")
+          .all(),
+      ).toEqual([
+        {
+          id: "migration-chat",
+          company_id: "migration-company",
+          title: "Historial",
+          head_message_id: "migration-assistant",
+        },
+      ]);
+      expect(
+        database
+          .prepare("SELECT id, parent_message_id, role, content_json, status, sequence FROM messages ORDER BY sequence")
+          .all(),
+      ).toEqual([
+        {
+          id: "migration-user",
+          parent_message_id: null,
+          role: "user",
+          content_json: '[{"type":"text","text":"Conservar"}]',
+          status: "complete",
+          sequence: 0,
+        },
+        {
+          id: "migration-assistant",
+          parent_message_id: "migration-user",
+          role: "assistant",
+          content_json: '[{"type":"text","text":"Respuesta histórica"}]',
+          status: "complete",
+          sequence: 1,
+        },
+      ]);
+      expect(
+        database
+          .prepare(
+            "SELECT id, conversation_id, message_id, file_name, mime_type, size_bytes, checksum, relative_path FROM attachments",
+          )
+          .all(),
+      ).toEqual([
+        {
+          id: "migration-attachment",
+          conversation_id: "migration-chat",
+          message_id: "migration-user",
+          file_name: "historico.txt",
+          mime_type: "text/plain",
+          size_bytes: 9,
+          checksum: "checksum",
+          relative_path: "uploads/historico.txt",
+        },
+      ]);
+      expect(
+        database
+          .prepare("SELECT value_json FROM workspace_settings WHERE key = 'selectedProviderConfigId'")
+          .get(),
+      ).toBeUndefined();
+      for (const table of [
+        "agent_pending_disambiguation",
+        "agent_privacy_bindings",
+        "agent_turn_projections",
+        "ai_provider_configs",
+      ]) {
+        expect(
+          database.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table),
+        ).toBeUndefined();
+      }
+      expect(database.prepare("PRAGMA integrity_check").get()).toEqual({ integrity_check: "ok" });
+      expect(database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     } finally {
       database.close();
     }
@@ -251,7 +395,7 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 8 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 9 });
       expect(
         database
           .prepare("SELECT society, username FROM meta4_user_profile")
@@ -446,6 +590,10 @@ describe("node:sqlite database kernel", () => {
         migrationPath(directory, "008_test.sql"),
         "CREATE TABLE migration_test_v8 (id TEXT PRIMARY KEY); PRAGMA user_version = 8;",
       );
+      writeFileSync(
+        migrationPath(directory, "009_test.sql"),
+        "CREATE TABLE migration_test_v9 (id TEXT PRIMARY KEY); PRAGMA user_version = 9;",
+      );
       runMigrations(database, directory);
       writeFileSync(
         firstMigrationPath,
@@ -470,13 +618,14 @@ describe("node:sqlite database kernel", () => {
       writeFileSync(migrationPath(directory, "006_test.sql"), "CREATE TABLE sixth (id TEXT);");
       writeFileSync(migrationPath(directory, "007_test.sql"), "CREATE TABLE seventh (id TEXT);");
       writeFileSync(migrationPath(directory, "008_test.sql"), "CREATE TABLE eighth (id TEXT);");
+      writeFileSync(migrationPath(directory, "009_test.sql"), "CREATE TABLE ninth (id TEXT);");
       runMigrations(database, directory);
       writeFileSync(migrationPath(directory, "002_future.sql"), "CREATE TABLE future (id TEXT);");
       expect(() => runMigrations(database, directory)).toThrow(/versión|migraciones|duplicad/i);
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 8,
+        count: 9,
       });
       expect(database.prepare("SELECT name FROM sqlite_master WHERE name = 'future'").get()).toBe(
         undefined,

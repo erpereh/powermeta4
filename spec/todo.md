@@ -1,5 +1,42 @@
 # powermeta4 - estado de tareas
 
+## Chat global OpenAI-compatible - 2026-09-11
+
+- [x] Sustituir el Agent Runtime por `POST /api/chat/run` y un cliente
+      server-only configurado con `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`.
+      La configuración es global para todos los workspaces y la UI solo
+      recibe `{ configured, model }`.
+- [x] Reconstruir la rama exacta desde `parentMessageId`, excluyendo el
+      placeholder asistente y partes no textuales; conservar historial,
+      ramas, edición, regeneración, streaming, cancelación y estados
+      persistidos.
+- [x] Eliminar picker, CRUD y preferencias de proveedores, disambiguación,
+      renderers de tools, aprobación/ejecución, Privacy Gateway, proyecciones,
+      bindings, resolvers y ruta antigua del agente. Se conserva el registro
+      normal de herramientas de producto y `@google/genai` para Registro
+      Retributivo.
+- [x] Añadir la migración `009_remove_agent_and_provider_configs.sql` sin
+      modificar 006/007: elimina las cuatro tablas exclusivas y la preferencia
+      `selectedProviderConfigId`; `DATABASE_SCHEMA_VERSION = 9`. Conversaciones,
+      mensajes, attachments y el grafo de padres permanecen intactos.
+- [x] Actualizar backups, fixtures, Ajustes, `.env.example`, documentación y
+      la especificación arquitectónica en `docs/superpowers/specs/`.
+- [x] Verificación ejecutada: `npm run setup`, `npm run typecheck`, `npm test`
+      (70 archivos, 363 pruebas correctas y 2 omitidas), `npm run build`,
+      `git diff --check`, `PRAGMA integrity_check` y `PRAGMA foreign_key_check`.
+- [ ] `npm run lint` completo: `oxlint` termina sin errores del cambio
+      (solo warnings preexistentes de Registro Retributivo), pero
+      `oxfmt --check` falla porque no hay configuración y detecta formato en
+      archivos preexistentes.
+- [ ] Verificación manual contra un endpoint configurado por el usuario:
+      primer/segundo turno, reload, nuevo chat, regeneración, edición y
+      cancelación; confirmar cero llamadas SOAP y cero tools desde el chat.
+
+Las secciones fechadas que aparecen después de este bloque conservan el backlog
+histórico del proyecto. En particular, sus referencias a las migraciones 006/007,
+proveedores o Agent Runtime describen decisiones anteriores y no la arquitectura
+vigente del chat global.
+
 ## Buscar de sidebar: Command de cmdk - 2026-08-19
 
 - [x] El diálogo de Buscar de la sidebar montaba `CommandInput` /
@@ -429,7 +466,8 @@
 
 - [ ] Comprobación manual de Meta4 real con credenciales válidas, conectividad
       y salida verificable. Las pruebas automáticas nunca llaman al proveedor.
-- [ ] Sustituir el adaptador simulado de IA por AI SDK y un proveedor real.
+- [ ] Ejecutar la verificación manual del chat global con las tres variables
+      configuradas por el usuario.
 - [ ] Incorporar permisos reales, invitaciones y administración completa de
       empresas.
 - [ ] Implementar operaciones ERP externas y subida real de adjuntos.

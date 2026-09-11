@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, Download, FileArchive, ShieldCheck } from "lucide-react";
 
 import { getMeta4ProfileViewAction } from "@/app/actions/meta4-profile";
-import { AiProviderSettings } from "@/components/settings/ai-provider-settings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -41,11 +40,10 @@ type ValidationResult = {
   importId: string;
 };
 
-type SettingsSectionId = "person" | "ai" | "backups";
+type SettingsSectionId = "person" | "backups";
 
 const NAV_ITEMS: Array<{ id: SettingsSectionId; label: string }> = [
   { id: "person", label: "Datos de la persona" },
-  { id: "ai", label: "Inteligencia artificial" },
   { id: "backups", label: "Datos y copias" },
 ];
 
@@ -336,8 +334,6 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                   </Button>
                 </section>
               </div>
-            ) : activeSection === "ai" ? (
-              <AiProviderSettings />
             ) : profileLoading ? (
               <div className="space-y-3" aria-busy="true">
                 <Skeleton className="h-7 w-40" />

@@ -71,11 +71,6 @@ const createFixture = async () => {
       "INSERT INTO meta4_user_profile (society, username, display_name, profile_json_encrypted, looked_up_at, created_at, updated_at) VALUES ('CYC', 'usuario', 'Usuario', 'encrypted-profile', ?, ?, ?)",
     )
     .run(timestamp, timestamp, timestamp);
-  database
-    .prepare(
-      "INSERT INTO ai_provider_configs (id, company_id, name, base_url, api_key_encrypted, created_at, updated_at) VALUES ('ai-config-backup', ?, 'Servidor local', 'http://localhost:11434/v1', 'encrypted-api-key', ?, ?)",
-    )
-    .run(company.id, timestamp, timestamp);
   await writeFile(path.join(paths.uploadsDir, "hello.txt"), "upload content");
   return { dataDir, paths };
 };
@@ -152,17 +147,20 @@ describe("backup safety and exact format", () => {
         expect(database.prepare("SELECT COUNT(*) AS count FROM messages").get()).toMatchObject({
           count: 1,
         });
-        expect(
-          database
-            .prepare(
-              "SELECT name, base_url, api_key_encrypted FROM ai_provider_configs WHERE id = 'ai-config-backup'",
-            )
-            .get(),
-        ).toEqual({
-          name: "Servidor local",
-          base_url: "http://localhost:11434/v1",
-          api_key_encrypted: null,
+        expect(database.prepare("SELECT title FROM conversations WHERE id = 'conversation-backup'").get()).toEqual({
+          title: "Copia",
         });
+        expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 9 });
+        for (const table of [
+          "agent_pending_disambiguation",
+          "agent_privacy_bindings",
+          "agent_turn_projections",
+          "ai_provider_configs",
+        ]) {
+          expect(
+            database.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table),
+          ).toBeUndefined();
+        }
       } finally {
         database.close();
         await rm(temporaryPath, { force: true });
@@ -302,7 +300,7 @@ describe("backup safety and exact format", () => {
     );
   });
 
-  it("keeps schema-1 backups incompatible with the schema-2 application", async () => {
+  it("keeps schema-8 backups incompatible with the schema-9 application", async () => {
     await createFixture();
     const writer = new Uint8ArrayWriter();
     const zip = new ZipWriter(writer);
