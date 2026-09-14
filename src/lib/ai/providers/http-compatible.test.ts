@@ -35,6 +35,58 @@ describe("httpCompatibleEmbeddingProvider status", () => {
   });
 });
 
+describe("independent embedding connection", () => {
+  it("falls back to the chat connection when no embedding-specific one is set", async () => {
+    configuredEnvironment();
+    const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async () => new Response(JSON.stringify({ data: [{ index: 0, embedding: [1] }] }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await httpCompatibleEmbeddingProvider.embed(["x"], "document");
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe("https://embeddings.example.test/v1/embeddings");
+    expect(init?.headers).toMatchObject({ Authorization: "Bearer key-123" });
+  });
+
+  it("uses EMBEDDING_BASE_URL/EMBEDDING_API_KEY instead of the chat connection when set", async () => {
+    configuredEnvironment();
+    vi.stubEnv("EMBEDDING_BASE_URL", "https://openrouter.example.test/api/v1");
+    vi.stubEnv("EMBEDDING_API_KEY", "or-key-456");
+    const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async () => new Response(JSON.stringify({ data: [{ index: 0, embedding: [1] }] }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await httpCompatibleEmbeddingProvider.embed(["x"], "document");
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe("https://openrouter.example.test/api/v1/embeddings");
+    expect(init?.headers).toMatchObject({ Authorization: "Bearer or-key-456" });
+  });
+
+  it("reports the independent embedding connection as configured even without an embedding-specific key, via fallback", () => {
+    configuredEnvironment();
+    expect(httpCompatibleEmbeddingProvider.getStatus().configured).toBe(true);
+  });
+
+  it("strips a trailing /chat/completions before appending /embeddings (a pasted chat URL should still work)", async () => {
+    vi.stubEnv("EMBEDDING_BASE_URL", "https://openrouter.example.test/api/v1/chat/completions");
+    vi.stubEnv("EMBEDDING_API_KEY", "or-key-456");
+    vi.stubEnv("EMBEDDING_MODEL", "embed-1");
+    const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async () => new Response(JSON.stringify({ data: [{ index: 0, embedding: [1] }] }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await httpCompatibleEmbeddingProvider.embed(["x"], "document");
+
+    const [url] = fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe("https://openrouter.example.test/api/v1/embeddings");
+  });
+});
+
 describe("httpCompatibleEmbeddingProvider.embed", () => {
   it("posts a batch request to the resolved /embeddings endpoint", async () => {
     configuredEnvironment();

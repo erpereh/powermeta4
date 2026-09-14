@@ -57,12 +57,25 @@ export class EmbeddingProviderError extends Error {
 }
 
 const EMBEDDINGS_PATH = "/embeddings";
+const CHAT_COMPLETIONS_PATH = "/chat/completions";
 
-const requiredSetting = (name: "AI_BASE_URL" | "AI_API_KEY" | "EMBEDDING_MODEL"): string => {
+const requiredSetting = (
+  name: "AI_BASE_URL" | "AI_API_KEY" | "EMBEDDING_MODEL" | "EMBEDDING_BASE_URL" | "EMBEDDING_API_KEY",
+): string => {
   const value = process.env[name]?.trim();
   if (!value) throw new EmbeddingConfigurationError();
   return value;
 };
+
+/** Falls back to the chat connection (AI_BASE_URL/AI_API_KEY) when no
+ * embedding-specific value is set, so a single-provider setup (chat and
+ * embeddings on the same service) needs zero extra configuration. Setting
+ * EMBEDDING_BASE_URL/EMBEDDING_API_KEY points embeddings at a different
+ * service entirely, independent of whatever the chat model uses. */
+const requiredSettingWithFallback = (
+  name: "EMBEDDING_BASE_URL" | "EMBEDDING_API_KEY",
+  fallbackName: "AI_BASE_URL" | "AI_API_KEY",
+): string => process.env[name]?.trim() || requiredSetting(fallbackName);
 
 const resolveEmbeddingsUrl = (baseUrl: string): string => {
   let parsed: URL;
@@ -76,7 +89,13 @@ const resolveEmbeddingsUrl = (baseUrl: string): string => {
   }
   parsed.hash = "";
   parsed.search = "";
-  const path = parsed.pathname.replace(/\/+$/, "") || "";
+  let path = parsed.pathname.replace(/\/+$/, "") || "";
+  // Forgive a pasted-in chat-completions URL (an easy mistake when a
+  // provider's docs show that URL prominently) by treating it as the
+  // same base the chat-completions resolver would have started from.
+  if (path.endsWith(CHAT_COMPLETIONS_PATH)) {
+    path = path.slice(0, -CHAT_COMPLETIONS_PATH.length);
+  }
   parsed.pathname = path.endsWith(EMBEDDINGS_PATH) ? path : `${path}${EMBEDDINGS_PATH}`;
   return parsed.toString();
 };
@@ -89,8 +108,8 @@ const readDimensions = (): number | null => {
 };
 
 const readEmbeddingConfiguration = () => ({
-  endpoint: resolveEmbeddingsUrl(requiredSetting("AI_BASE_URL")),
-  apiKey: requiredSetting("AI_API_KEY"),
+  endpoint: resolveEmbeddingsUrl(requiredSettingWithFallback("EMBEDDING_BASE_URL", "AI_BASE_URL")),
+  apiKey: requiredSettingWithFallback("EMBEDDING_API_KEY", "AI_API_KEY"),
   model: requiredSetting("EMBEDDING_MODEL"),
   dimensions: readDimensions(),
 });
