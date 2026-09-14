@@ -1,15 +1,32 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentAuthContext, deleteSessionCookie } from "@/lib/auth/session";
+import type { ChatMessage } from "@/lib/ai/chat-provider";
+import { getChatProvider } from "@/lib/ai/get-chat-provider";
 import { ChatHistoryError, buildChatHistory } from "@/lib/chat/chat-history";
-import { GlobalChatError, streamGlobalChat } from "@/lib/chat/global-chat-client";
 import { getWorkspaceRepository, getWorkspaceSnapshot } from "@/lib/workspace/service";
+import { buildRagSystemMessage } from "@/lib/knowledge/prompt";
+import { retrieveRelevantChunks } from "@/lib/knowledge/retrieval-service";
 
 export const runtime = "nodejs";
 
 type InternalChatEvent =
   | { type: "content"; content: [{ type: "text"; text: string }] }
   | { type: "error"; errorCode: string; message: string };
+
+// Any ChatProvider implementation is expected to throw an error shaped like
+// this on failure (see src/lib/ai/providers/http-compatible.ts, which
+// reuses global-chat-client.ts's GlobalChatError for exactly these codes).
+// Duck-typed on purpose: the route never imports a concrete provider's
+// error class, only the small string contract.
+const CHAT_ERROR_CODES = new Set([
+  "CHAT_CONFIG_UNAVAILABLE",
+  "CHAT_AUTH_FAILED",
+  "CHAT_MODEL_NOT_FOUND",
+  "CHAT_RATE_LIMITED",
+  "CHAT_NETWORK_ERROR",
+  "CHAT_INVALID_RESPONSE",
+]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -24,7 +41,13 @@ const isAbortError = (error: unknown, abortSignal: AbortSignal): boolean =>
   (isRecord(error) && typeof error.name === "string" && error.name === "AbortError");
 
 const toInternalError = (error: unknown): Extract<InternalChatEvent, { type: "error" }> => {
-  if (error instanceof GlobalChatError) {
+  if (
+    isRecord(error) &&
+    typeof error.code === "string" &&
+    CHAT_ERROR_CODES.has(error.code) &&
+    typeof error.message === "string" &&
+    error.message.trim()
+  ) {
     return { type: "error", errorCode: error.code, message: error.message };
   }
   return {
@@ -93,6 +116,34 @@ export async function POST(request: Request) {
     throw error;
   }
 
+  const latestQuestion =
+    messages.length > 0 && messages[messages.length - 1]!.role === "user"
+      ? messages[messages.length - 1]!.content
+      : "";
+
+  // Knowledge-base lookup happens once per turn, before the provider is
+  // ever called - the provider only ever sees the (few) relevant fragments,
+  // never the full manuals. A retrieval failure degrades to "no context
+  // found" rather than breaking the chat turn.
+  const retrievedChunks = await retrieveRelevantChunks(latestQuestion).catch((error: unknown) => {
+    console.error("[knowledge] retrieval failed", error instanceof Error ? error.message : error);
+    return [];
+  });
+
+  const chatProvider = getChatProvider();
+  console.info("[knowledge] query", {
+    provider: chatProvider.name,
+    chunkCount: retrievedChunks.length,
+    sources: retrievedChunks.map((chunk) => ({
+      document: chunk.documentName,
+      page: chunk.page,
+      score: Number(chunk.score.toFixed(3)),
+    })),
+  });
+
+  const systemMessage: ChatMessage = { role: "system", content: buildRagSystemMessage(retrievedChunks) };
+  const providerMessages: ChatMessage[] = [systemMessage, ...messages];
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -108,7 +159,10 @@ export async function POST(request: Request) {
 
       try {
         let accumulated = "";
-        for await (const delta of streamGlobalChat({ messages, abortSignal: request.signal })) {
+        for await (const delta of chatProvider.streamResponse({
+          messages: providerMessages,
+          abortSignal: request.signal,
+        })) {
           if (request.signal.aborted) return;
           accumulated += delta;
           if (!send({ type: "content", content: [{ type: "text", text: accumulated }] })) return;

@@ -14,6 +14,8 @@ const requiredTables = [
   "local_browser_sessions",
   "pending_backup_imports",
   "idempotency_receipts",
+  "kb_documents",
+  "kb_chunks",
 ];
 
 const database = createDatabase();

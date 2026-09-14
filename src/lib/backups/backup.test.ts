@@ -150,7 +150,7 @@ describe("backup safety and exact format", () => {
         expect(database.prepare("SELECT title FROM conversations WHERE id = 'conversation-backup'").get()).toEqual({
           title: "Copia",
         });
-        expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 9 });
+        expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 10 });
         for (const table of [
           "agent_pending_disambiguation",
           "agent_privacy_bindings",

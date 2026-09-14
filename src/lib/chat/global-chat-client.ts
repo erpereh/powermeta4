@@ -68,7 +68,7 @@ const readGlobalChatConfiguration = () => ({
 });
 
 export type GlobalChatMessage = {
-  role: "user" | "assistant";
+  role: "system" | "user" | "assistant";
   content: string;
 };
 

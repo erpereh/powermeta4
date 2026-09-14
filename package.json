@@ -10,6 +10,7 @@
     "db:validate": "node --conditions=react-server --import tsx scripts/db-validate.ts",
     "db:bootstrap": "node --conditions=react-server --import tsx scripts/db-bootstrap.ts",
     "setup": "npm run db:migrate && npm run db:validate && npm run db:bootstrap",
+    "kb:ingest": "node --conditions=react-server --import tsx scripts/kb-ingest.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "format": "oxfmt --check",
