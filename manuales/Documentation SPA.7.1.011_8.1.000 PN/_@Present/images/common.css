@@ -1,0 +1,610 @@
+@charset "utf-8";
+@import url("custom.css");
+/* CSS Document */
+
+body{
+	background-color:#0c4a78;
+	background-image:url(background.jpg);
+	background-position:top;
+	background-repeat:no-repeat;
+	margin:0px;
+	padding:0px;
+}
+.bloque{
+	min-height:300px;
+	padding:30px;
+}
+img{
+	border:0px;
+}
+.left{
+	float:left;
+	width:auto;
+}
+.right{
+	float:right;
+	width:auto;
+}
+#banner{
+	height:82px;
+	width:1020px;
+	padding-bottom:1px;
+	background-image:url(bg_header2.gif);
+	/*background-repeat:repeat-x;*/
+	z-index:500;
+ 	/*border-bottom:2px solid #bbbbbb;*/
+	margin-left:auto;
+	margin-right:auto;
+}
+ul{
+	list-style-image:url(bullet.gif);
+}
+li{
+	margin-bottom:10px;
+}
+ul.nobullet{
+	list-style-type:none;
+	list-style-image:none;
+}
+
+/******************** cabecera ****************/
+.z100{
+	z-index:100;
+	position:relative;
+}
+.z150{
+	z-index:150;
+	position:relative;
+}
+.bannerItems{
+	width:1000px;
+	height:51px;
+}
+.logoBanner{
+	margin-left:25px;
+	margin-top:7px;
+	width:137px;
+	float:left;	
+}
+#bannerNube {
+	font-style:normal;
+	float:left;
+	margin-left:19px;
+	width:270px;
+	padding-top:12px;
+}
+.logosBanner{
+	float:left;
+	margin-left:10px;
+	width:220px;
+	text-align:center;
+	display:block;
+}
+.bannerDerecha {
+	width:309px;
+	margin-left:10px;
+	float:left;
+}
+	.bannerDerechaTop{
+		height:21px;
+		position:relative;
+		background-image:url(../images/structure/header/tab_header.jpg);
+		background-repeat:no-repeat;
+		z-index:155;
+		}
+	.cssbutton{
+		width:80px;
+		background-image:url(/images/structure/header/botonacceso.jpg);
+		background-repeat:no-repeat;
+		background-position:center;
+		text-align:center;
+		color:white;
+		}
+	ul#tbaner a:hover, ul#tbaner li:hover{
+		color:#333;
+		} 
+	
+	.bannerDerechaTop ul{
+		list-style:none;	
+		margin:0;
+		padding:0;
+		}
+	ul#tbaner li{
+		float:left;
+		position:relative;
+		}
+	ul#tbaner a{
+		text-align:center;
+		padding-top:5px;
+		height:10px;
+		font-family:verdana, arial;
+		font-size:10px;
+		color: #000000;
+		text-decoration: none;
+		display:block;
+		line-height:normal;
+		}
+	ul#tbaner .current{
+		color:#ffffff; !important
+	}
+	ul#tbaner ul{
+		z-index:100;
+		position:absolute;
+		float:left;
+		display:none;
+		text-align:left;
+		background-color:#EFEFEF;
+		border:solid 1px #999;
+		width:118px;
+		}
+	ul#tbaner li:hover ul{
+		display:block;
+		z-index:1549;
+	}
+	ul#tbaner li:hover ul li{
+		margin:0;
+	}
+	ul#tbaner li:hover ul li a{
+		z-index:155;
+		width:115px;
+		padding-left:3px;
+		text-align:left;
+		color:#000;
+		padding-top:6px;
+		height:10px;
+	}
+	ul#tbaner li:hover ul a:hover{
+		background:#DFDFDF;
+	}
+	
+
+	.bannerDerechaBot{
+		height:20px;
+		padding-top:0px;
+		padding-left:80px;
+		
+		}
+#tbaner .paiswrap{
+	padding-left:5px;
+	width:65px;
+	float:left;
+}
+#tbaner .flagwrap{
+	padding-left:5px;
+	width:16px;
+	float:left;
+}
+.genviar{
+	float:left;
+	padding-botom:4px;
+	margin-left:-2px;
+}
+.gcaja{
+	float:left;
+}
+
+/****************** cuerpo ********************/
+#cuerpo{
+	margin-top:0px;
+	width:1020px;
+	z-index:50;
+	margin-bottom:30px;
+	margin-left:auto;
+	margin-right:auto;
+}
+.timage{
+	width:1000px;
+	vertical-align:top;
+	line-height:0px;
+	position:relative;
+	display:block;
+	z-index:10;
+}
+.transborder{
+	background-image:url(transp_borde.png);
+	padding-left:10px;
+	padding-right:10px;
+	width:1000px;
+	margin-top:0px;
+	margin-bottom:0px;
+}
+.contwrap{
+	padding-top:20px;
+	padding-bottom:20px;
+	background-color:white;
+	/*background-image:url(/images/structure/index/mantel.png);*/
+	background-repeat:repeat;
+	width:1000px;
+}
+
+.col2{
+	float:left;
+	width:900px;
+	margin-left:50px;
+}
+
+.pestinf{
+	background-image:url(pestinf.png);
+	background-repeat:no-repeat;
+	background-position:center;
+	width:1020px;
+	margin-top:0px;
+	height:32px;
+	display:block;
+}
+.redbar{
+	background-image:url(barraroja.jpg);
+	background-repeat:repeat-x;
+	width:1000px;
+	height:22px;
+	color:white;
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:11px;
+	text-align:center;
+	padding-top:8px;
+	margin-top:-9px;
+}
+.navegacion {
+	width:100%;
+	color:#666;
+	font:Verdana, Geneva, sans-serif;
+	font-size:10px;
+	padding-bottom:5px;
+	border-bottom-color:#0067c6;
+	border-bottom-style:solid;
+	border-bottom-width:1px;
+	margin-bottom:20px;
+}
+	.navegacion a{
+		color:#666;
+		text-decoration:none;
+		
+	}
+	.navegacion a:hover{
+		color:#0067c6;
+	}
+
+/*************************   PIE    ******************************/
+#pie {
+	/*background-image:url(/images/structure/footer/bg_footer.gif);*/
+	/*background-repeat:repeat-x;*/
+	height:96px;
+	padding-top:20px;
+	width:1020px;
+	margin-left:auto;
+	margin-right:auto;
+}
+	.piemapa{
+		vertical-align:top;
+		width:1020px;
+	}
+	.mapblock{
+		vertical-align:top;
+		width:163px;
+		display:inline-block;
+		
+	}
+	.copyright{
+		margin-top:10px;
+		width:1000px;
+		text-align:center;
+	}
+	.rsocial {
+		margin-left:auto;
+		margin-right:auto;
+		width:568px;
+	}
+		.twitter{
+			display:block;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/twitter.png);
+			float:left;
+		}
+		.twitter:hover{
+			background-image:url(/images/structure/social/twitter2.png)
+		}
+		.facebook{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/facebook.png);
+		}
+		.facebook:hover{
+			background-image:url(/images/structure/social/facebook2.png);
+		}
+		.delicious{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/delicious.png);
+		}
+		.delicious:hover{
+			background-image:url(/images/structure/social/delicious2.png);
+		}
+		.digg{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/digg.png);
+		}
+		.digg:hover{
+			background-image:url(/images/structure/social/digg2.png);
+		}
+		.flickr{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/flickr.png);
+		}
+		.flickr:hover{
+			background-image:url(/images/structure/social/flickr2.png);
+		}
+		.linkedin{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/linked-in.png);
+		}
+		.linkedin:hover{
+			background-image:url(/images/structure/social/linked-in2.png);
+		}
+		.blog{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/meta4-blog.png);
+		}
+		.blog:hover{
+			background-image:url(/images/structure/social/meta4-blog2.png);
+		}
+		.youtube{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/youtube.png);
+		}
+		.youtube:hover{
+			background-image:url(/images/structure/social/youtube2.png);
+		}
+		.google{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/google.png);
+		}
+		.google:hover{
+			background-image:url(/images/structure/social/google2.png);
+		}
+		.comunity{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/community.png);
+		}
+		.comunity:hover{
+			background-image:url(/images/structure/social/community2.png);
+		}
+		.xing{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/xing.png);
+		}
+		.xing:hover{
+			background-image:url(/images/structure/social/xing2.png);
+		}
+		.rss{
+			display:block;
+			float:left;
+			width:66px;
+			height:88px;
+			background-image:url(/images/structure/social/rss.png);
+		}
+		.rss:hover{
+			background-image:url(/images/structure/social/rss2.png);
+		}
+		.sleft{
+			display:block;
+			float:left;
+			width:20px;
+			height:88px;
+			background-image:url(/images/structure/social/left.png);
+		}
+		.sright{
+			display:block;
+			float:left;
+			width:20px;
+			height:88px;
+			background-image:url(/images/structure/social/right.png);
+		}
+
+.clear{
+	clear:both;
+}
+/************************************* Estilos columna 1 (menu) **************************************/
+.col1{
+	float:left;
+	width:200px;
+	
+}
+.lmenuholder {
+	padding-left:5px;
+	width:195px;
+	text-align:left;
+	vertical-align:top;
+}
+.lmenutablehead {
+	background-image:url(empty.jpg);
+	background-position:bottom;
+	background-repeat:no-repeat;
+	font-family:verdana,arial;
+	font-size:12px;
+	font-weight:bold;
+	color:#EEE;
+	margin-bottom:-3px;
+	height:24px;
+	width:186px;
+	padding-top:14px;
+	display:block;
+	padding-left:9px;
+	z-index:4;
+	text-decoration:none;
+	text-shadow:#000;
+}
+	.lmenutablehead:hover {
+	background-image:url(empty_hover.jpg);
+	background-position:bottom;
+	background-repeat:no-repeat;
+	text-decoration:none;
+	color:#EEE;
+	
+}
+.lmenutablefield, .lmenutablefieldnodsp {
+	background-color:#EFEFEF;
+	height:32px;
+	width:184px;
+	background-image:url(menudiv.jpg);
+	background-repeat:no-repeat;
+	background-position:top;
+	padding-left:11px;
+	font-family:verdana,arial;
+	font-size:10px;
+	text-decoration:none;
+	color:#565656;
+	padding-top:18px;
+	z-index:0;
+	display:block;
+	margin-bottom:-2px;
+}
+	.lmenutablefielddesp{
+		background-image:url(/images/structure/header/menudiv_desp.png);
+	}
+	.lmenutablefieldnodsp{
+		background-image:url(images/menudiv_sindsp.png); !important
+	}
+		.lmenutablefieldnodsp:hover, .lmenutablefielddesp:hover{
+			background-color:#DFDFDF;
+		}
+.lmenutablefield2, .lmenutablefield2nodsp { /* sin borde negro superior*/
+	background-color:#EFEFEF;
+	background-repeat:no-repeat;
+	background-position:top;
+	height:32px;
+	width:184px;
+	padding-left:11px;
+	font-family:verdana,arial;
+	font-size:10px;
+	text-decoration:none;
+	color:#565656;
+	padding-top:11px;
+	z-index:0;
+	display:block;
+	margin-bottom:-2px;
+}
+	.lmenutablefield:hover, .lmenutablefield2:hover, .lmenutablefield2nodsp:hover, .lmenutablefiel2ddesp {
+		background-color:#DFDFDF;
+	}
+	.lmenutablefiel2ddesp{
+		background-image:url(/images/structure/header/menudiv_desp2.png); !important
+	}
+	.lmenutablefield2nodsp{
+		background-image:url(/images/structure/header/menudiv_sindsp2.png);  !important
+	}
+		
+	/* menu de 2º nivel */
+.lmenutablesub {
+	width:178px;
+	background-color:#FFFFFF;
+	height:25px;
+	border-right-width: 1px;
+	border-left-width: 1px;
+	border-top-style: none;
+	border-right-style: solid;
+	border-left-style: solid;
+	border-right-color: #EFEFEF;
+	border-left-color: #EFEFEF;
+	font-family:verdana, arial;
+	font-size:9px;
+	text-decoration:none;
+	color:#565656;
+	padding-top:10px;
+	padding-left:15px;
+	display:block;
+	margin-bottom:-2px;
+}
+	.lmenutablesub:hover {
+		background-color:#F0F0F0;
+	}
+.lmenubottom {
+	margin-top:-2px;
+	background-image:url(images/down_menu_left_grey.jpg);
+	height:8px;
+	background-repeat:no-repeat;
+	width:195px;
+}
+.lsubmenu{
+		visibility:hidden;
+		height:0;
+}
+/* Caja de contacto de las páginas interiores */
+.box_contact{
+	margin-top:30px;
+	background-image:url(../images/index/box_contacto.png);
+	background-repeat:no-repeat;
+	padding-left:18px;
+	padding-right:18px;
+	padding-top:57px;
+	width:164px;
+	height:228px;
+	margin-bottom:20px;
+	font-family:verdana, arial; 
+	font-size:11px; 
+	color: #0052AD;
+	line-height:16px;
+}
+.division {
+	width:165px;
+	height:25px;
+	background-image:url(../images/index/lineadivisoria.jpg);
+	background-repeat:no-repeat;
+	background-position:center;
+}
+/** listas **/
+ul.circulo{
+	list-style-type:disc;
+	list-style-image:none;
+}
+/** Cabecera y pie de destacados **/
+.superior{
+	margin-left:-14px;
+	width:130px;
+	height:29px;
+	padding-left:70px;
+	padding-top:20px;
+	background-image:url(/images/structure/cderecha/top_destacados.jpg);
+	background-repeat:no-repeat;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:16px;
+	font-weight:bold;
+	display:block;
+	margin-bottom:0px;
+	color:3a3a3b;
+}
+.inferior{
+	margin-left:-14px;
+	width:200px;
+	height:12px;
+	background-image:url(../images/structure/cderecha/bottom_destacados.jpg);
+	background-repeat:no-repeat;
+}

@@ -1,0 +1,270 @@
+@charset "utf-8";
+/* CSS Document */
+
+/*.col2 a, .col2 a:active, .col2 a:visited{
+	font:inherit;
+	color:#0067C6;
+	text-decoration:none;
+}
+	.col2 a:hover {
+		color:#2183dd; 
+		text-decoration:underline;
+	}
+*/
+
+body {
+	font-family: Verdana, Arial, sans-serif;
+	/*font-size:62.5%;*/
+}
+/********* Texto Azul *************/
+h1 {
+	margin-top:0px;
+	margin-bottom:20px;
+	font-family:  Verdana, Arial,  sans-serif; 
+	font-size:18px; 
+	color: #0052AD;  
+	text-decoration: none;
+}
+h2 {
+	margin-top:40px;
+	margin-bottom:18px;
+	font-family:  Verdana, Arial,  sans-serif; 
+	font-size:14px; 
+	color: #03acd6;  
+	text-decoration: none;
+}
+h3{
+	font-size:13px;
+}
+h4 {
+	margin-top:10px;
+	margin-bottom:0px;
+}
+.V0A, a .V0A, a .V0A:active, a .V0A:visited, .V0A a, .V0A a:active, .V0A a:visited{
+	/*font:verdana, arial;*/
+	font-family:  Verdana, Arial,  sans-serif;
+	/*color:#0067C6;*/
+	color:#555555;
+	text-decoration:none;
+	font-size:10px;
+}
+	a .V0A:hover, .V0A a:hover{
+		color:#2183dd; 
+		text-decoration:underline;
+	}
+.V1A, a .V1A, a .V1A:active, a .V1A:visited, .V1A a, .V1A a:active, .V1A a:visited{
+	/*font:verdana, arial;*/
+	font-family:  Verdana, Arial,  sans-serif;
+	color:#0067C6;
+	/*color:#555555;*/
+	text-decoration:none;
+	font-size:11px;
+}
+	a .V1A:hover, .V1A a:hover{
+		color:#2183dd; 
+		text-decoration:underline;
+	}
+
+.V2A {
+	font-family:  Verdana, Arial,  sans-serif;
+	font-size:12px;
+	color: #0052AD;
+	text-decoration: none;
+}
+.V3A {
+	font-family:  Verdana, Arial,  sans-serif;
+	font-size:14px;
+	color: #0052AD;
+	text-decoration: none;
+}
+/************** Texto azul botones de contacto ******************/
+
+.V1AZ {
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:11px;
+	color:#142f6e;
+	text-decoration:none;
+}
+
+/************* Texto blanco ***********/
+.V1W, a .V1W, a.V1W:visited, a .V1W:active {
+	font-family:  Verdana, Arial,  sans-serif;
+	font-size:10px; 
+	color: #FFF; 
+	text-decoration: none;
+}
+	a.V1W:hover {
+		color: #c0c0c0; 
+		text-decoration:underline;
+	}
+/************* Texto gris***********/
+.V1G, a .V1G, a.V1G:visited, a .V1G:active {
+	font-family:  Verdana, Arial,  sans-serif;
+	font-size:10px; 
+	color: #565656; 
+	text-decoration: none;
+	line-height:13px;
+}
+	a.V1G:hover {
+		color: #454545; 
+		text-decoration:underline;
+	}
+.V2G {
+	font-family:  Verdana, Arial,  sans-serif;
+	font-size:12px; 
+	color: #595959; 
+	text-decoration: none;
+}
+.V3G {
+	font-family:  Verdana, Arial,  sans-serif;
+	font-size:13px; 
+	color: #565656; 
+	text-decoration: none;
+}
+.V0LG, a.V0LG, a.V0LG:active, a.V0LG:visited{
+	font-family:  Verdana, Arial,  sans-serif;
+	font-size:10px;
+	color:#DDD;
+	text-decoration: none;
+	line-height:13px;
+}
+	a.V0LG:hover{
+		color:#FFF;
+		text-decoration:underline;
+	}
+/************ texto negro ***********/
+.V0N, a .V0N, a .V0N:active, a .V0N:visited, .V0N a, .V0N a:active, .V0N a:visited {
+	font-family: Verdana, Arial,sans-serif;
+	font-size:10px;
+	color:#000;
+	text-decoration: none;
+	line-height:13px;
+}
+	a .V0N, a .V0N:active, a .V0N:visited, .V0N a, .V0N a:active, .V0N a:visited {
+		color:#0067C6;
+	}
+	a .V0N:hover, .V0N a:hover{
+		color:#666;
+	}
+	
+	a .V0NF, a .V0NF:active, a .V0NF:visited {
+		text-decoration: none;
+		color:#0067C6;
+	}
+		a .V0NF:hover{
+			color:#666;
+		}
+	
+.V1N, a .V1N, a .V1N:active, a .V1N:visited, .V1N a, .V1N a:active, .V1N a:visited {
+	font-family: Verdana, Arial,sans-serif;
+	font-size:12px;
+	color:#000;
+	text-decoration: none;
+	line-height:18px;
+}
+	a .V1N, a .V1N:active, a .V1N:visited, .V1N a, .V1N a:active, .V1N a:visited {
+		color:#0067C6;
+	}
+	a .V1N:hover, .V1N a:hover{
+		color:#666;
+	}
+
+/********** Formato de texto *******/
+.V1W, a .V1W, a .V1W:active, a .V1W:visited, .V1W a, .V1W a:active, .V1W a:visited {
+	font-family:  Verdana, Arial,  sans-serif;
+	font-size:10px;
+	color:#fff;
+	text-decoration: none;
+	/*line-height: 15px;*/
+}
+	a .V1W, a .V1W:active, a .V1W:visited, .V1W a, .V1W a:active, .V1W a:visited {
+		color:#fff;
+	}
+	a .V1W:hover, .V1W a:hover{
+		color:#fff;
+	}
+.capitalize{
+		text-transform:capitalize;
+}
+.centrarTexto{
+	text-align:center;
+}
+.textoIzquierda{
+	text-align:left;
+}
+.textoDerecha{
+	text-align:right;
+}
+.textoJustificar{
+	text-align:justify;
+}
+.rojo{
+}
+.azul{
+}
+.blanco{
+	color:white;!important
+}
+.textoGrande{
+	font-size:18px;!important
+}
+.textoEnorme{
+	font-size:28px;!important
+}
+.sombra{
+	text-shadow:#333 1px 2px 2px;
+}
+.margenTop20{
+	margin-top:20px;
+}
+.margentdi10{
+	margin-top:5px;
+	margin-right:10px;
+	margin-bottom:20px;
+}
+.margenTop40{
+	margin-top:40px;
+}
+.margenTop10{
+	margin-top:10px;
+}
+.margenBottom20{
+	margin-bottom:20px;
+}
+.margenBottom30{
+	margin-bottom:30px;
+}
+.margenLeft10{
+	margin-left:10px;
+}
+.margenLeft20{
+	margin-left:20px;
+}
+.paddingLeft20{
+	padding-left:20px;
+}
+.ancho60{
+	width:60px;!important
+}
+.ancho100{
+	width:100px;!important
+}
+.ancho120{
+	width:120px;
+}
+.ancho130{
+	width:130px;
+}
+.ancho140{
+	width:140px;
+}
+.ancho980{
+	width:980px;
+}
+.whitebg{
+	background-color:#FFF;!important
+}
+/**********************************/
+.link{
+	text-decoration:none;
+}
