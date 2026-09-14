@@ -129,14 +129,60 @@ describe("streamGlobalChat", () => {
     [404, "CHAT_MODEL_NOT_FOUND"],
     [429, "CHAT_RATE_LIMITED"],
     [500, "CHAT_INVALID_RESPONSE"],
-  ])("maps HTTP %i to the sanitized %s error", async (status, code) => {
+  ])("maps HTTP %i to the sanitized %s error, without retrying", async (status, code) => {
     configuredEnvironment();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => new Response('{"error":{"message":"key-123 leaked"}}', { status })),
+    const fetchMock = vi.fn(
+      async () => new Response('{"error":{"message":"key-123 leaked"}}', { status }),
     );
+    vi.stubGlobal("fetch", fetchMock);
 
     await expect(collectDeltas()).rejects.toMatchObject({ code });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([502, 503, 504])(
+    "retries an HTTP %i (upstream temporarily unavailable) and succeeds once it clears",
+    async (status) => {
+      configuredEnvironment();
+      let call = 0;
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => {
+          call += 1;
+          if (call < 3) return new Response("overloaded", { status });
+          return new Response('data: {"choices":[{"delta":{"content":"Hola"}}]}\n\ndata: [DONE]\n\n', {
+            status: 200,
+          });
+        }),
+      );
+
+      await expect(collectDeltas()).resolves.toEqual(["Hola"]);
+      expect(call).toBe(3);
+    },
+  );
+
+  it("gives up after exhausting retries on a persistent 503 and reports CHAT_SERVICE_UNAVAILABLE", async () => {
+    configuredEnvironment();
+    const fetchMock = vi.fn(async () => new Response("overloaded", { status: 503 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(collectDeltas()).rejects.toMatchObject({ code: "CHAT_SERVICE_UNAVAILABLE" });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("stops retrying immediately when aborted mid-backoff", async () => {
+    configuredEnvironment();
+    const controller = new AbortController();
+    const fetchMock = vi.fn(async () => new Response("overloaded", { status: 503 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const pending = collectDeltas(controller.signal);
+    // Let the first attempt fail and enter the retry backoff, then abort.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    controller.abort();
+
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+    expect(fetchMock.mock.calls.length).toBeLessThan(4);
   });
 
   it("sanitizes provider network failures instead of exposing their message", async () => {

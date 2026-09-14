@@ -10,6 +10,7 @@ export type GlobalChatErrorCode =
   | "CHAT_AUTH_FAILED"
   | "CHAT_MODEL_NOT_FOUND"
   | "CHAT_RATE_LIMITED"
+  | "CHAT_SERVICE_UNAVAILABLE"
   | "CHAT_NETWORK_ERROR"
   | "CHAT_INVALID_RESPONSE";
 
@@ -18,6 +19,8 @@ const ERROR_MESSAGES: Record<GlobalChatErrorCode, string> = {
   CHAT_AUTH_FAILED: "No se pudo autenticar con el proveedor de chat.",
   CHAT_MODEL_NOT_FOUND: "El modelo configurado no está disponible.",
   CHAT_RATE_LIMITED: "El proveedor de chat ha limitado las solicitudes.",
+  CHAT_SERVICE_UNAVAILABLE:
+    "El proveedor de chat está saturado ahora mismo. Inténtalo de nuevo en unos segundos.",
   CHAT_NETWORK_ERROR: "No se pudo conectar con el proveedor de chat.",
   CHAT_INVALID_RESPONSE: "La respuesta del proveedor de chat no es válida.",
 };
@@ -118,7 +121,77 @@ const errorForStatus = (status: number): GlobalChatError => {
   if (status === 401 || status === 403) return new GlobalChatError("CHAT_AUTH_FAILED");
   if (status === 404) return new GlobalChatError("CHAT_MODEL_NOT_FOUND");
   if (status === 429) return new GlobalChatError("CHAT_RATE_LIMITED");
+  // 502/503/504 are the standard "upstream temporarily unavailable" gateway
+  // statuses - observed in practice from Gemini's OpenAI-compatible endpoint
+  // as a 503 "This model is currently experiencing high demand" during
+  // demand spikes, which clears up within a couple of seconds. Distinct
+  // from CHAT_INVALID_RESPONSE (a structurally malformed response) - this
+  // is a transient condition worth retrying (see fetchChatCompletion).
+  if (status === 502 || status === 503 || status === 504) {
+    return new GlobalChatError("CHAT_SERVICE_UNAVAILABLE");
+  }
   return new GlobalChatError("CHAT_INVALID_RESPONSE");
+};
+
+const RETRYABLE_STATUSES = new Set([502, 503, 504]);
+const MAX_FETCH_ATTEMPTS = 4;
+const RETRY_DELAYS_MS = [400, 900, 1800];
+
+const sleep = (ms: number, abortSignal?: AbortSignal): Promise<void> =>
+  new Promise((resolve, reject) => {
+    if (abortSignal?.aborted) {
+      reject(Object.assign(new Error("aborted"), { name: "AbortError" }));
+      return;
+    }
+    const timer = setTimeout(resolve, ms);
+    abortSignal?.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        reject(Object.assign(new Error("aborted"), { name: "AbortError" }));
+      },
+      { once: true },
+    );
+  });
+
+/**
+ * Retries only the initial connection (before any content has been yielded
+ * to the caller), and only for transient "upstream unavailable" statuses -
+ * never for auth/rate-limit/not-found, which won't resolve by retrying.
+ */
+const fetchChatCompletion = async (
+  configuration: { endpoint: string; apiKey: string; model: string },
+  messages: readonly GlobalChatMessage[],
+  abortSignal?: AbortSignal,
+): Promise<Response> => {
+  for (let attempt = 0; attempt < MAX_FETCH_ATTEMPTS; attempt += 1) {
+    let response: Response;
+    try {
+      response = await fetch(configuration.endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${configuration.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: configuration.model,
+          messages,
+          stream: true,
+        }),
+        signal: abortSignal,
+      });
+    } catch (error) {
+      if (isAbortError(error, abortSignal)) throw error;
+      throw new GlobalChatError("CHAT_NETWORK_ERROR");
+    }
+    if (response.ok) return response;
+    const statusError = errorForStatus(response.status);
+    const isLastAttempt = attempt === MAX_FETCH_ATTEMPTS - 1;
+    if (!RETRYABLE_STATUSES.has(response.status) || isLastAttempt) throw statusError;
+    await sleep(RETRY_DELAYS_MS[attempt] ?? RETRY_DELAYS_MS.at(-1)!, abortSignal);
+  }
+  // Unreachable - the loop always returns or throws - but keeps TS satisfied.
+  throw new GlobalChatError("CHAT_SERVICE_UNAVAILABLE");
 };
 
 export async function* streamGlobalChat(options: {
@@ -126,26 +199,7 @@ export async function* streamGlobalChat(options: {
   abortSignal?: AbortSignal;
 }): AsyncGenerator<string> {
   const configuration = readGlobalChatConfiguration();
-  let response: Response;
-  try {
-    response = await fetch(configuration.endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${configuration.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: configuration.model,
-        messages: options.messages,
-        stream: true,
-      }),
-      signal: options.abortSignal,
-    });
-  } catch (error) {
-    if (isAbortError(error, options.abortSignal)) throw error;
-    throw new GlobalChatError("CHAT_NETWORK_ERROR");
-  }
-  if (!response.ok) throw errorForStatus(response.status);
+  const response = await fetchChatCompletion(configuration, options.messages, options.abortSignal);
   if (!response.body) throw new GlobalChatError("CHAT_INVALID_RESPONSE");
 
   const reader = response.body.getReader();

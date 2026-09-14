@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { NO_ANSWER_SENTENCE } from "@/lib/knowledge/prompt";
 import type { Chat, Message } from "@/types/chat";
 import type { WorkspaceSnapshot } from "@/lib/local-database/dtos";
 
@@ -231,7 +232,7 @@ describe("POST /api/chat/run", () => {
     await POST(request(validBody));
 
     const call = mocks.streamResponse.mock.calls[0]?.[0];
-    expect(call.messages[0].content).toContain("Manual de Instalación.pdf, página 37");
+    expect(call.messages[0].content).toContain("Manual de Instalación.pdf, p.37");
     expect(call.messages[0].content).toContain("16 bar");
   });
 
@@ -242,9 +243,7 @@ describe("POST /api/chat/run", () => {
 
     expect(response.status).toBe(200);
     const call = mocks.streamResponse.mock.calls[0]?.[0];
-    expect(call.messages[0].content).toContain(
-      "No he encontrado información suficiente en los manuales disponibles",
-    );
+    expect(call.messages[0].content).toContain(NO_ANSWER_SENTENCE);
   });
 
   it("returns a safe internal SSE error for a typed chat failure", async () => {

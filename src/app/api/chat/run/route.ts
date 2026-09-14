@@ -24,6 +24,7 @@ const CHAT_ERROR_CODES = new Set([
   "CHAT_AUTH_FAILED",
   "CHAT_MODEL_NOT_FOUND",
   "CHAT_RATE_LIMITED",
+  "CHAT_SERVICE_UNAVAILABLE",
   "CHAT_NETWORK_ERROR",
   "CHAT_INVALID_RESPONSE",
 ]);
@@ -169,6 +170,12 @@ export async function POST(request: Request) {
         }
       } catch (error) {
         if (!isAbortError(error, request.signal)) {
+          console.error(
+            "[chat] provider streaming failed",
+            error instanceof Error
+              ? { name: error.name, message: error.message, code: (error as { code?: string }).code }
+              : error,
+          );
           send(toInternalError(error));
         }
       } finally {

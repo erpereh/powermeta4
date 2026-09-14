@@ -1,8 +1,10 @@
 # Base de conocimiento (RAG sobre manuales PDF)
 
 El chat puede responder basándose en manuales PDF indexados de antemano, en
-lugar de solo con lo que el modelo ya sabe. Cada respuesta que use esa
-documentación cita el documento y la página de donde viene.
+lugar de solo con lo que el modelo ya sabe. Responde como un experto de
+PeopleNet que ya conoce esa información, no como un buscador de
+documentación: nunca dice "según el manual" ni cita página o fragmento (ver
+[Persona y umbral de confianza](#persona-y-umbral-de-confianza)).
 
 ## Arquitectura
 
@@ -18,8 +20,8 @@ Pregunta del usuario (por turno, en /api/chat/run)
   → embedding de la pregunta
   → similitud coseno sobre los vectores + candidatos por palabra clave (FTS5)
   → top-K por encima de un umbral de confianza
-  → system message con las citas (documento + página) como DATOS
-  → proveedor de IA configurado → respuesta
+  → system message con ese contexto como DATO interno (nunca citado)
+  → proveedor de IA configurado → respuesta, en tono de experto PeopleNet
 ```
 
 Todo lo relacionado con "hablar con un proveedor de IA" vive en
@@ -128,19 +130,32 @@ documento automáticamente.
 3. Elige un `KB_MIN_SCORE` entre el techo de las irrelevantes y el suelo de
    las relevantes (con margen de seguridad a ambos lados).
 
-## Umbral de confianza y citas
+## Persona y umbral de confianza
+
+El chat responde como **PowerMeta4**, un asistente experto en PeopleNet/
+Meta4 - no como un buscador de documentación. El system message
+(`src/lib/knowledge/prompt.ts`) le prohíbe explícitamente decir "según el
+manual", "en la página X", "la documentación indica" o mencionar de
+cualquier forma que existen manuales, PDFs, fragmentos, embeddings o un
+proceso de búsqueda; debe responder como si ya conociera la información por
+su propia experiencia con el producto.
+
+Cada fragmento recuperado sí sigue llevando documento y página como
+metadato **interno** (útil para que el modelo note si dos fuentes se
+contradicen, y para el log de trazabilidad del lado servidor en
+`route.ts`), pero las reglas dejan claro que eso es solo para su
+razonamiento, nunca algo que deba repetir en la respuesta.
 
 Si no se recupera ningún fragmento por encima de `KB_MIN_SCORE`, el chat no
-intenta responder con conocimiento general: el system message construido en
-`src/lib/knowledge/prompt.ts` instruye explícitamente responder con "No he
-encontrado información suficiente en los manuales disponibles para responder
-con seguridad a esta pregunta." Cuando sí hay contexto, cada fragmento va
-etiquetado con documento y página para que la respuesta pueda citarlos.
+intenta responder con conocimiento general: debe decir, con sus propias
+palabras y sin mencionar manuales, que no tiene información suficiente para
+responder con seguridad (frase base en `NO_ANSWER_SENTENCE`).
 
 ## Seguridad frente a contenido de los PDF
 
-El bloque de documentación recuperada se manda siempre como DATO, nunca como
+El bloque de contexto interno se manda siempre como DATO, nunca como
 instrucción: el system message le dice explícitamente al modelo que ignore
 cualquier texto dentro de los manuales que intente darle órdenes o cambiar
-las reglas. La pregunta real del usuario viaja aparte, en los mensajes de la
-conversación, nunca mezclada dentro del bloque de contexto.
+las reglas, y que nunca revele que ese contexto existe. La pregunta real del
+usuario viaja aparte, en los mensajes de la conversación, nunca mezclada
+dentro del bloque de contexto.
