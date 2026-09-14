@@ -56,19 +56,29 @@ export const sanitizeFileName = (originalName: string): string => {
 const sha256 = (data: Uint8Array): string => createHash("sha256").update(data).digest("hex");
 
 const listSourcePdfFiles = async (sourceDir: string): Promise<string[]> => {
-  const entries = await readdir(sourceDir, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isFile() && /\.pdf$/i.test(entry.name))
-    .map((entry) => entry.name)
-    .sort((a, b) => a.localeCompare(b));
+  const visit = async (directory: string, relativeDirectory = ""): Promise<string[]> => {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const files = await Promise.all(
+      entries.map(async (entry) => {
+        const relativePath = path.posix.join(relativeDirectory, entry.name);
+        if (entry.isDirectory()) {
+          return visit(path.join(directory, entry.name), relativePath);
+        }
+        return entry.isFile() && /\.pdf$/i.test(entry.name) ? [relativePath] : [];
+      }),
+    );
+    return files.flat();
+  };
+
+  return (await visit(sourceDir)).sort((a, b) => a.localeCompare(b));
 };
 
 /**
- * Ingests every PDF in sourceDir into the knowledge base: unchanged files
- * (same content hash and embedding model as last time) are skipped, new
- * files are indexed, and changed files are fully reindexed (old chunks
- * replaced). Never processes anything at question-answering time - this is
- * meant to run offline, e.g. via `npm run kb:ingest`.
+ * Ingests every PDF in sourceDir and its subdirectories into the knowledge
+ * base: unchanged files (same content hash and embedding model as last time)
+ * are skipped, new files are indexed, and changed files are fully reindexed
+ * (old chunks replaced). Never processes anything at question-answering time
+ * - this is meant to run offline, e.g. via `npm run kb:ingest`.
  */
 export const ingestManualsDirectory = async (options: IngestOptions): Promise<IngestSummary> => {
   const repository = options.repository ?? createKnowledgeRepository();

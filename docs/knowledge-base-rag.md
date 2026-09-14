@@ -58,6 +58,9 @@ cercanos, sin tocar el resto de la arquitectura.
 ## Cómo añadir o actualizar manuales
 
 1. Coloca los PDF en la carpeta que apunte `KB_SOURCE_DIR` (en `.env.local`).
+   La ingesta recorre todas sus subcarpetas, por lo que se puede mantener la
+   clasificación `configuracion/`, `usuario/` y `tecnologia/` de
+   `manuales/oficiales/`.
 2. Ejecuta `npm run kb:ingest`.
 
 Un PDF cuyo contenido no ha cambiado (mismo hash) y cuyo modelo de

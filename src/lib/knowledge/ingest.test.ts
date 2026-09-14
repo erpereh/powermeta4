@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -58,6 +58,26 @@ describe("sanitizeFileName", () => {
 });
 
 describe("ingestManualsDirectory", () => {
+  it("indexes PDFs recursively from categorized manual directories", async () => {
+    const categoryDir = path.join(sourceDir, "oficiales", "usuario", "nomina");
+    await mkdir(categoryDir, { recursive: true });
+    await writeFile(path.join(categoryDir, "Guía de nómina.pdf"), "Contenido oficial de nómina.");
+    const repository = createRepository();
+
+    const summary = await ingestManualsDirectory({
+      sourceDir,
+      uploadsDir,
+      repository,
+      embeddingProvider: createMockEmbeddingProvider(),
+      extractPdf: fakeExtractPdf,
+    });
+
+    expect(summary.outcomes).toEqual([
+      { status: "created", fileName: "oficiales/usuario/nomina/Guía de nómina.pdf", chunkCount: 1 },
+    ]);
+    expect(repository.listDocuments()).toHaveLength(1);
+  });
+
   it("indexes a new PDF: extracts, chunks, embeds, stores, and copies it into managed uploads", async () => {
     await writeFile(
       path.join(sourceDir, "Manual de prueba.pdf"),
@@ -92,7 +112,10 @@ describe("ingestManualsDirectory", () => {
 
     const copiedFiles = await readdir(path.join(uploadsDir, "manuals"));
     expect(copiedFiles).toEqual(["manual-de-prueba.pdf"]);
-    const copiedContent = await readFile(path.join(uploadsDir, "manuals", "manual-de-prueba.pdf"), "utf8");
+    const copiedContent = await readFile(
+      path.join(uploadsDir, "manuals", "manual-de-prueba.pdf"),
+      "utf8",
+    );
     expect(copiedContent).toContain("presión máxima de la válvula X");
   });
 

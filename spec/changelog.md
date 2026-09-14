@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-09-14 - Biblioteca oficial de manuales
+
+### Cambios
+
+- Auditoría individual de los 204 archivos incorporados en `manuales/`:
+  contenido extraído, metadatos, hashes binarios y de texto, edición y
+  procedencia editorial.
+- La biblioteca queda en 74 PDF oficiales organizados por configuración,
+  usuario y tecnología. Se eliminan 68 PDF duplicados, sustituidos u obsoletos
+  y 62 archivos auxiliares o apuntes no oficiales.
+- `manuales/README.md` deja el inventario conservado, los criterios y todas las
+  decisiones de descarte agrupadas para futuras revisiones.
+- El manual oficial SOAP/REST de 2024 recibe una capa OCR en español: mantiene
+  134 páginas y la misma representación visual, pero pasa de cero a 27.612
+  palabras extraíbles.
+- La ingesta de conocimiento recorre `KB_SOURCE_DIR` de forma recursiva y la
+  configuración de ejemplo apunta a `./manuales/oficiales`.
+
+### Verificación
+
+- Auditoría documental — 74/74 PDF con texto extraíble y marca Meta4/Cegid;
+  cero duplicados binarios o textuales.
+- `tsc --noEmit` — correcto.
+- `vitest run` — 79 archivos correctos y 1 omitido; 399 pruebas correctas y
+  37 omitidas.
+- `next build` — correcto.
+- `oxlint` — sin errores; conserva 7 warnings preexistentes.
+- `oxfmt --check` — fallo global preexistente: no tiene configuración y marca
+  117 archivos. La comprobación dirigida pasa para el código, el inventario y
+  el changelog tocados; `spec/todo.md` vuelve a quedar marcado justo después de
+  que el propio formateador lo reescriba.
+- `git diff --check` — correcto.
+
 Las entradas fechadas antes del 2026-09-11 describen decisiones históricas;
 las referencias a las migraciones 006/007, Agent Runtime y proveedores no
 representan la arquitectura vigente.

@@ -1,5 +1,27 @@
 # powermeta4 - estado de tareas
 
+## Curación de manuales oficiales - 2026-09-14
+
+- [x] Revisar los 204 archivos de `manuales/` por contenido, metadatos,
+      duplicidad, edición y procedencia.
+- [x] Conservar 74 PDF oficiales Meta4/Cegid y clasificarlos en configuración
+      (14), usuario (23) y tecnología (37).
+- [x] Eliminar 130 archivos duplicados, sustituidos, obsoletos, auxiliares o no
+      oficiales y documentar la decisión en `manuales/README.md`.
+- [x] Añadir OCR al manual oficial SOAP/REST de 2024, que carecía de texto, sin
+      cambiar sus 134 páginas ni su representación visual.
+- [x] Hacer recursiva la ingesta de `KB_SOURCE_DIR` y cubrir la estructura por
+      categorías con una prueba automatizada.
+- [x] Verificación: `tsc --noEmit`, 79 archivos de pruebas y 399 pruebas
+      activas, `next build`, auditoría final de los 74 PDF y
+      `git diff --check`, correctos. `oxlint` no devuelve errores (mantiene 7
+      warnings preexistentes). `oxfmt --check` sigue fallando por el problema
+      global ya registrado: sin configuración, marca 117 archivos
+      preexistentes. La comprobación dirigida pasa para el código, el
+      inventario y el changelog tocados; `spec/todo.md` sigue marcado por el
+      propio comando inmediatamente después de reescribirlo.
+- [x] Preparar el cambio verificado para publicarlo en `main`.
+
 ## Chat global OpenAI-compatible - 2026-09-11
 
 - [x] Sustituir el Agent Runtime por `POST /api/chat/run` y un cliente
