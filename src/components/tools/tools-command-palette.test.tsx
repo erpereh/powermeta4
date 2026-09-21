@@ -59,6 +59,6 @@ describe("tools command palette", () => {
     await user.clear(screen.getByPlaceholderText("Buscar acciones..."));
     await user.type(screen.getByPlaceholderText("Buscar acciones..."), "usuario");
     expect(screen.getByText("Listado de usuarios")).toBeTruthy();
-    expect(screen.getByText("Crear nuevo usuario")).toBeTruthy();
+    expect(screen.getByText("Alta de personas")).toBeTruthy();
   });
 });

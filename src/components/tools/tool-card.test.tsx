@@ -21,10 +21,20 @@ describe("ToolCard", () => {
     expect(screen.getByText("Listado de usuarios")).toBeTruthy();
   });
 
-  it("keeps unimplemented ERP actions as non-navigating buttons", () => {
-    const onUnavailable = vi.fn();
+  it("links the implemented Alta de personas action", () => {
     const tool = TOOL_REGISTRY.find((entry) => entry.id === "users.create");
     if (!tool) throw new Error("expected users.create");
+
+    render(<ToolCard tool={tool} />);
+
+    expect(screen.getByRole("link").getAttribute("href")).toBe("/tools/users/new");
+    expect(screen.getByText("Alta de personas")).toBeTruthy();
+  });
+
+  it("keeps unimplemented ERP actions as non-navigating buttons", () => {
+    const onUnavailable = vi.fn();
+    const tool = TOOL_REGISTRY.find((entry) => entry.id === "users.modify");
+    if (!tool) throw new Error("expected users.modify");
 
     render(<ToolCard tool={tool} onUnavailable={onUnavailable} />);
 

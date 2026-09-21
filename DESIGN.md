@@ -104,9 +104,9 @@ Los cinco workspaces ERP usan una plantilla común: breadcrumb (`Acciones` →
 `/home`), alcance activo,
 icono, título, descripción, cuatro tarjetas de acciones y estado inferior.
 Las acciones futuras muestran `Disponible próximamente` y no navegan, guardan
-datos ni inventan resultados. Usuarios ya no representa personas locales: sus
-cuatro tarjetas preparan operaciones para sistemas ERP externos y las rutas
-anteriores redirigen al catálogo común.
+datos ni inventan resultados. Usuarios ya no representa personas locales: el
+listado y el alta de personas llaman a Meta4; las rutas antiguas de búsqueda y
+detalle redirigen al catálogo común.
 
 No se duplican secciones entre Inicio y un workspace, ni se mantienen arrays de
 usuarios o catálogos paralelos fuera del registro central.
@@ -123,6 +123,12 @@ visual que el diálogo de Ajustes: secciones con `dl` de dos columnas y un
 bloque de correos aparte. Toda la fila es interactiva (foco por teclado,
 `aria-label` propio, Enter/Espacio abren el diálogo) sin sustituir su rol
 nativo de fila ni anidar controles dentro de las celdas.
+
+El alta de personas vive en `/tools/users/new`: formulario de 1..N personas,
+`AlertDialog` de confirmación («Se van a procesar X personas en Meta4») y
+Server Action. La sociedad y la entidad legal salen del contexto operativo y
+de `META4_HIRE_LEGAL_ENTITY_*`; el navegador no las elige. Los datos personales
+no se persisten en SQLite.
 
 ## Chat y recomendaciones
 

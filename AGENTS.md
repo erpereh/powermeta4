@@ -134,18 +134,24 @@ producto fuera del chat. La sociedad no la elige el navegador.
 Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/`, `/home`, `/chat/new`, `/chat/[chatId]`, `/settings`, `/tools`,
 `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
-`/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`.
+`/tools/users/new`, `/tools/companies`, `/tools/payroll`, `/tools/reports` y
+`/tools/processes`.
 Los Route Handlers locales de workspace
 y backups usan runtime Node.js y validan la sesión, la empresa y la
 conversación en servidor. `POST /api/chat/run` es el runtime de chat
 (SSE, Node.js): valida sesión, empresa y conversación, reconstruye la rama
   por `parentMessageId` y llama al endpoint OpenAI-compatible global.
-Las rutas antiguas `/tools/users/new`,
-`/tools/users/search` y `/tools/users/[userId]` solo redirigen a
-`/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
+`/tools/users/new` es el alta de personas Meta4 (`SRTC_LAUNCH_IMPORT`). Las
+rutas antiguas `/tools/users/search` y `/tools/users/[userId]` solo redirigen
+a `/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
 
-No añadir APIs ficticias, permisos reales, invitaciones, operaciones ERP de
-escritura reales ni persistencia remota. El endpoint OpenAI-compatible global
+No añadir APIs ficticias, permisos reales, invitaciones ni persistencia remota.
+El alta de personas es la excepción de escritura ERP aprobada: genera Hire.xls
+en servidor desde `Hire_VACIO.xls` (`xlsx` aplana fórmulas y nombres), lo
+escribe en `META4_HIRE_FILE_PATH` y llama a `META4_HIRE_URL`; no persiste
+datos personales en SQLite. La entidad legal sale de
+`META4_HIRE_LEGAL_ENTITY_<SOCIETY>`.
+El endpoint OpenAI-compatible global
 se configura mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL` en el entorno
 server-side; nunca se documentan credenciales ni se exponen claves al cliente.
 Los Route Handlers y Server Actions locales de SQLite, autenticación y backups

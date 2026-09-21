@@ -1,5 +1,25 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4 - 2026-09-21
+
+- [x] Primera versión funcional de alta de personas en `/tools/users/new`
+      (`users.create` implementado). Formulario de 1..N personas, confirmación
+      y Server Action que genera Hire.xls y llama a `SRTC_LAUNCH_IMPORT`.
+- [x] Mapping desde Hire_VACIO / 1_PERSONA / 3_PERSONAS: solo campos MANUAL
+      demostrados (nombre, apellidos, tipo y número de documento, correo,
+      fecha de alta) más empresa server-side. Sin copiar PII de los ejemplos.
+- [x] `xlsx.write` a BIFF/OLE2; se documenta que aplana fórmulas y nombres
+      definidos. Escritura a UNC con temp + rename (no atómica en SMB).
+- [x] SOAP reutiliza `executeAuthenticatedSoap`. Éxito solo si el retorno es
+      numéricamente 0. Tests con SOAP mockeado; sin alta real.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin errores
+      del cambio (warnings preexistentes de Registro Retributivo);
+      `npm test` 91 archivos, 471 pruebas correctas y 2 omitidas;
+      `npm run build` correcto (`/tools/users/new` en el manifiesto);
+      `git diff --check` correcto. `npm run lint` falla en `oxfmt --check`
+      (sin configuración; 233 archivos, preexistente). Sin alta real a
+      Meta4 ni commit.
+
 ## Curación de manuales oficiales - 2026-09-14
 
 - [x] Revisar los 204 archivos de `manuales/` por contenido, metadatos,

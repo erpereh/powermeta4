@@ -1,0 +1,53 @@
+import { describe, expect, it } from "vitest";
+
+import { escapeXml } from "@/lib/meta4/user-profile-soap";
+
+import { Meta4HireError } from "./errors";
+import {
+  buildLaunchImportEnvelope,
+  getMeta4HireFilePath,
+  getMeta4HireLegalEntity,
+  getMeta4HireUrl,
+} from "./soap";
+
+describe("Meta4 hire SOAP builder", () => {
+  it("builds SRTC_LAUNCH_IMPORT with escaped UNC path and without SOAPAction", () => {
+    const filePath = String.raw`\\WMETA4PRE2\powermeta4\Hire.xls`;
+    const xml = buildLaunchImportEnvelope(filePath);
+
+    expect(xml).toContain("<sch:SRTC_LAUNCH_IMPORT>");
+    expect(xml).toContain("<sch:ARG_ID_GROUP_INTERFACE>INIT_EMPLOYEES_FD</sch:ARG_ID_GROUP_INTERFACE>");
+    expect(xml).toContain(`<sch:ARG_PATH_FILE>${escapeXml(filePath)}</sch:ARG_PATH_FILE>`);
+    expect(xml).toContain("<sch:ARG_LIST_EMAIL>0</sch:ARG_LIST_EMAIL>");
+    expect(xml).toContain("<sch:ARG_ATTACH_FILE>0</sch:ARG_ATTACH_FILE>");
+    expect(xml).toContain("<sch:ARG_SCHEDULE_TASK>0</sch:ARG_SCHEDULE_TASK>");
+    expect(xml).not.toContain("SOAPAction");
+  });
+
+  it("escapes XML special characters in the UNC path", () => {
+    const xml = buildLaunchImportEnvelope(String.raw`\\host\share\a&b<c>.xls`);
+    expect(xml).toContain("&amp;");
+    expect(xml).toContain("&lt;");
+    expect(xml).toContain("&gt;");
+    expect(xml).not.toContain("<c>");
+  });
+
+  it("requires HTTPS hire URL and a file path", () => {
+    expect(() => getMeta4HireUrl("")).toThrow(Meta4HireError);
+    expect(() => getMeta4HireUrl("http://insecure/services/SRTC_LAUNCH_IMPORT")).toThrow(/HTTPS/);
+    expect(
+      getMeta4HireUrl("https://meta4desasoap.creditocaucion.es/services/SRTC_LAUNCH_IMPORT"),
+    ).toBe("https://meta4desasoap.creditocaucion.es/services/SRTC_LAUNCH_IMPORT");
+    expect(() => getMeta4HireFilePath("")).toThrow(/META4_HIRE_FILE_PATH/);
+    expect(getMeta4HireFilePath(String.raw`\\WMETA4PRE2\powermeta4\Hire.xls`)).toBe(
+      String.raw`\\WMETA4PRE2\powermeta4\Hire.xls`,
+    );
+  });
+
+  it("resolves legal entity from society env and never defaults to example values", () => {
+    expect(
+      getMeta4HireLegalEntity("CYC", { META4_HIRE_LEGAL_ENTITY_CYC: "ACYC_ES" }),
+    ).toBe("ACYC_ES");
+    expect(() => getMeta4HireLegalEntity("IBER", {})).toThrow(/META4_HIRE_LEGAL_ENTITY_IBER/);
+  });
+});

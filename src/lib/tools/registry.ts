@@ -139,13 +139,13 @@ export const TOOL_MODULES = [
       tool({
         id: "users.create",
         moduleId: "users",
-        name: "Crear nuevo usuario",
-        description: "Prepara el alta de un usuario en el sistema externo.",
-        route: "/tools/users",
+        name: "Alta de personas",
+        description: "Da de alta una o varias personas en Meta4.",
+        route: "/tools/users/new",
         icon: "user-plus",
         keywords: ["usuario", "crear", "alta", "persona"],
         aiPrompt: "Quiero crear un nuevo usuario",
-        implemented: false,
+        implemented: true,
       }),
       tool({
         id: "users.consult",

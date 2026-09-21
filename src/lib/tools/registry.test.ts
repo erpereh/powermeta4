@@ -68,9 +68,15 @@ describe("tool registry", () => {
     expect(consult?.keywords).toEqual(
       expect.arrayContaining(["usuario", "usuarios", "listado", "consultar", "buscar", "empleado"]),
     );
+    const create = userTools.find((tool) => tool.id === "users.create");
+    expect(create).toMatchObject({
+      name: "Alta de personas",
+      route: "/tools/users/new",
+      implemented: true,
+    });
     expect(
       userTools
-        .filter((tool) => tool.id !== "users.consult")
+        .filter((tool) => tool.id !== "users.consult" && tool.id !== "users.create")
         .every((tool) => !tool.implemented && tool.route === "/tools/users"),
     ).toBe(true);
     expect(userTools.map((tool) => tool.aiPrompt)).toEqual([
@@ -121,7 +127,7 @@ describe("tool registry", () => {
     expect(TOOL_MODULES).toHaveLength(5);
     expect(TOOL_REGISTRY.every((tool) => tool.id !== "registro-retributivo")).toBe(true);
     expect(isToolRouteNavigable(TOOL_REGISTRY.find((tool) => tool.id === "users.create")!)).toBe(
-      false,
+      true,
     );
     expect(isToolRouteNavigable(TOOL_REGISTRY.find((tool) => tool.id === "users.consult")!)).toBe(
       true,

@@ -77,7 +77,9 @@ durante esa detección aborta el login para no mostrar una lista incompleta.
 El listado de usuarios (`CSP_POWER4_USER_ALL`, `META4_USERS_LIST_URL`) usa la
 sociedad activa del contexto operativo del servidor (`ARG_SOCIEDAD` sobre
 un único `JSESSIONID`) y no persiste resultados en
-SQLite. Las pruebas SOAP son simuladas y no llaman a Meta4 real. Los
+SQLite. El alta de personas (`SRTC_LAUNCH_IMPORT`, `META4_HIRE_URL`) genera
+`Hire.xls` en servidor desde `Hire_VACIO.xls` y no guarda datos personales
+en SQLite. Las pruebas SOAP son simuladas y no llaman a Meta4 real. Los
 endpoints CSP y la necesidad de SOAPAction quedan pendientes de confirmación
 WSDL en la VM corporativa.
 

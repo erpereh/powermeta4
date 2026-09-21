@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-21 - Alta de personas Meta4
+
+### Cambios
+
+- `/tools/users/new` deja de redirigir y ofrece el alta de 1..N personas.
+  `users.create` pasa a «Alta de personas», `implemented: true`.
+- El servidor clona `Hire_VACIO.xls`, escribe solo campos manuales y la
+  entidad legal de la sociedad activa, guarda `Hire.xls` en
+  `META4_HIRE_FILE_PATH` y lanza `SRTC_LAUNCH_IMPORT` con
+  `executeAuthenticatedSoap`.
+- No se copian fechas, teléfonos, dirección, IBAN, salario ni demás datos
+  de las plantillas de ejemplo. `xlsx.write` genera BIFF/OLE2 pero aplana
+  fórmulas y nombres definidos de la plantilla Meta4.
+- Datos personales no se persisten en SQLite ni se escriben en logs.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio; conserva 7 warnings preexistentes
+  de Registro Retributivo.
+- `npm test` — 91 archivos correctos; 471 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto. `/tools/users/new` aparece en el manifiesto.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` termina sin errores del cambio; `oxfmt --check`
+  falla porque no hay configuración y marca 233 archivos, incluidos no
+  tocados (preexistente).
+- Sin alta real a Meta4. SOAP mockeado en tests. Sin commit.
+
 ## 2026-09-14 - Biblioteca oficial de manuales
 
 ### Cambios

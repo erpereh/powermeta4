@@ -1,0 +1,63 @@
+import { escapeXml } from "@/lib/meta4/user-profile-soap";
+
+import { Meta4HireError } from "./errors";
+
+const SOAP_NAMESPACE = "http://schemas.xmlsoap.org/soap/envelope/";
+const META4_NAMESPACE = "http://schemas.meta4.com/";
+
+const GROUP_INTERFACE = "INIT_EMPLOYEES_FD";
+const FLAG_OFF = "0";
+
+export const getMeta4HireUrl = (override?: string): string => {
+  const value = (override ?? process.env.META4_HIRE_URL ?? "").trim();
+  if (!value) {
+    throw new Meta4HireError("META4_HIRE_CONFIG", "META4_HIRE_URL es obligatoria.");
+  }
+  if (!value.startsWith("https://")) {
+    throw new Meta4HireError("META4_HIRE_CONFIG", "META4_HIRE_URL debe usar HTTPS.");
+  }
+  return value;
+};
+
+export const getMeta4HireFilePath = (override?: string): string => {
+  const value = (override ?? process.env.META4_HIRE_FILE_PATH ?? "").trim();
+  if (!value) {
+    throw new Meta4HireError("META4_HIRE_CONFIG", "META4_HIRE_FILE_PATH es obligatoria.");
+  }
+  return value;
+};
+
+export const getMeta4HireTemplatePath = (override?: string): string => {
+  const value = (override ?? process.env.META4_HIRE_TEMPLATE_PATH ?? "").trim();
+  if (value) return value;
+  return "./fuentes/HIRE/Hire_VACIO.xls";
+};
+
+export const getMeta4HireLegalEntity = (
+  society: string,
+  env: Record<string, string | undefined> = process.env,
+): string => {
+  const key = `META4_HIRE_LEGAL_ENTITY_${society}`;
+  const value = env[key]?.trim() ?? "";
+  if (!value) {
+    throw new Meta4HireError(
+      "META4_HIRE_CONFIG",
+      `${key} es obligatoria para la sociedad activa.`,
+    );
+  }
+  return value;
+};
+
+export const buildLaunchImportEnvelope = (filePath: string): string =>
+  `<soapenv:Envelope xmlns:soapenv="${SOAP_NAMESPACE}" xmlns:sch="${META4_NAMESPACE}">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <sch:SRTC_LAUNCH_IMPORT>
+      <sch:ARG_ID_GROUP_INTERFACE>${escapeXml(GROUP_INTERFACE)}</sch:ARG_ID_GROUP_INTERFACE>
+      <sch:ARG_PATH_FILE>${escapeXml(filePath)}</sch:ARG_PATH_FILE>
+      <sch:ARG_LIST_EMAIL>${FLAG_OFF}</sch:ARG_LIST_EMAIL>
+      <sch:ARG_ATTACH_FILE>${FLAG_OFF}</sch:ARG_ATTACH_FILE>
+      <sch:ARG_SCHEDULE_TASK>${FLAG_OFF}</sch:ARG_SCHEDULE_TASK>
+    </sch:SRTC_LAUNCH_IMPORT>
+  </soapenv:Body>
+</soapenv:Envelope>`;
