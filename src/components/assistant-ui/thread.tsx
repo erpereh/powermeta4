@@ -142,56 +142,59 @@ type ComposerProps = ThreadProps & {
   inputRef: RefObject<HTMLTextAreaElement | null>;
 };
 
-const Composer = ({ inputRef, chatStatus }: ComposerProps) => (
-  <ComposerPrimitive.Root className="relative flex w-full flex-col">
-    <div className="flex w-full flex-col gap-2 rounded-(--composer-radius) border border-border/60 bg-(--composer-bg) p-(--composer-padding) transition-[border-color] focus-within:border-ring/70">
-      <ComposerPrimitive.Input
-        ref={inputRef}
-        placeholder="Escribe un mensaje..."
-        className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none placeholder:text-muted-foreground/70"
-        rows={1}
-        autoFocus
-        enterKeyHint="send"
-        aria-label="Mensaje"
-        unstable_insertNewlineOnTouchEnter
-      />
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <AttachmentButton />
-          <p className="px-2.5 text-xs text-muted-foreground">{getChatStatusLabel(chatStatus)}</p>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <AuiIf condition={(state) => !state.thread.isRunning}>
-            <ComposerPrimitive.Send asChild>
-              <TooltipIconButton
-                tooltip="Enviar mensaje"
-                type="button"
-                variant="default"
-                className="size-8 rounded-full"
-                aria-label="Enviar mensaje"
-                disabled={isChatSendDisabled(chatStatus, false)}
-              >
-                <ArrowUp className="size-4" />
-              </TooltipIconButton>
-            </ComposerPrimitive.Send>
-          </AuiIf>
-          <AuiIf condition={(state) => state.thread.isRunning}>
-            <ComposerPrimitive.Cancel asChild>
-              <Button
-                type="button"
-                size="icon"
-                className="size-8 rounded-full"
-                aria-label="Detener respuesta"
-              >
-                <Square className="size-3.5 fill-current" />
-              </Button>
-            </ComposerPrimitive.Cancel>
-          </AuiIf>
+const Composer = ({ inputRef, chatStatus }: ComposerProps) => {
+  const statusLabel = getChatStatusLabel(chatStatus);
+  return (
+    <ComposerPrimitive.Root className="relative flex w-full flex-col">
+      <div className="flex w-full flex-col gap-2 rounded-(--composer-radius) border border-border/60 bg-(--composer-bg) p-(--composer-padding) transition-[border-color] focus-within:border-ring/70">
+        <ComposerPrimitive.Input
+          ref={inputRef}
+          placeholder="Escribe un mensaje..."
+          className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none placeholder:text-muted-foreground/70"
+          rows={1}
+          autoFocus
+          enterKeyHint="send"
+          aria-label="Mensaje"
+          unstable_insertNewlineOnTouchEnter
+        />
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <AttachmentButton />
+            {statusLabel && <p className="px-2.5 text-xs text-muted-foreground">{statusLabel}</p>}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <AuiIf condition={(state) => !state.thread.isRunning}>
+              <ComposerPrimitive.Send asChild>
+                <TooltipIconButton
+                  tooltip="Enviar mensaje"
+                  type="button"
+                  variant="default"
+                  className="size-8 rounded-full"
+                  aria-label="Enviar mensaje"
+                  disabled={isChatSendDisabled(chatStatus, false)}
+                >
+                  <ArrowUp className="size-4" />
+                </TooltipIconButton>
+              </ComposerPrimitive.Send>
+            </AuiIf>
+            <AuiIf condition={(state) => state.thread.isRunning}>
+              <ComposerPrimitive.Cancel asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  className="size-8 rounded-full"
+                  aria-label="Detener respuesta"
+                >
+                  <Square className="size-3.5 fill-current" />
+                </Button>
+              </ComposerPrimitive.Cancel>
+            </AuiIf>
+          </div>
         </div>
       </div>
-    </div>
-  </ComposerPrimitive.Root>
-);
+    </ComposerPrimitive.Root>
+  );
+};
 
 const AttachmentButton: FC = () => {
   const [noticeVisible, setNoticeVisible] = useState(false);

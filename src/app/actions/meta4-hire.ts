@@ -26,9 +26,13 @@ const resolveHireErrorMessage = (error: unknown): { errorCode: string; message: 
     return { errorCode: "SESSION_EXPIRED", message: error.message };
   }
   if (error instanceof Meta4SoapFaultError) {
+    // error.message already carries Meta4's own fault text ("SOAP Fault
+    // <code>: <faultstring>") - surfacing it (instead of a generic string)
+    // is what actually lets the person filling the form self-diagnose
+    // things like "empleado ya existe" without escalating to IT each time.
     return {
       errorCode: "SOAP_FAULT",
-      message: "Meta4 rechazó el alta de personas.",
+      message: `Meta4 rechazó el alta de personas: ${error.message}`,
     };
   }
   if (error instanceof Meta4HttpError) {
@@ -49,10 +53,16 @@ export async function launchMeta4HireAction(
   try {
     const parsed = parseHirePeople(people);
     const authSession = await requireAuthContext();
-    const result = await launchMeta4Hire(authSession, parsed);
+    const result = await launchMeta4Hire(authSession, parsed, {
+      log: (message, details) => console.info(`[${message}]`, details),
+    });
     return { ok: true, data: { personCount: result.personCount, fileName: result.fileName } };
   } catch (error) {
     const resolved = resolveHireErrorMessage(error);
+    console.error("[meta4-hire] launchMeta4HireAction failed", {
+      errorCode: resolved.errorCode,
+      message: error instanceof Error ? error.message : String(error),
+    });
     return { ok: false, errorCode: resolved.errorCode, message: resolved.message };
   }
 }

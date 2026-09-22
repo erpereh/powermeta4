@@ -23,15 +23,22 @@ const matchXml = (society: string, extras = "") => `
   </soap:Envelope>`;
 
 describe("Meta4 user profile SOAP", () => {
-  it("builds the CSP envelope with exact username escaping and without SOAPAction", () => {
-    const xml = buildUserProfileEnvelope("CYC", ' USER&<" ');
+  it("builds the CSP envelope with exact escaping and without SOAPAction", () => {
+    const xml = buildUserProfileEnvelope("CYC", ' user&<" ');
 
     expect(xml).toContain("<sch:ARG_SOCIEDAD>CYC</sch:ARG_SOCIEDAD>");
     expect(xml).toContain("<sch:ARG_ID_EMPLEADO>0</sch:ARG_ID_EMPLEADO>");
-    expect(xml).toContain(`<sch:ARG_CVE_SELF>${escapeXml(' USER&<" ')}</sch:ARG_CVE_SELF>`);
+    expect(xml).toContain(`<sch:ARG_CVE_SELF>${escapeXml(' user&<" ')}</sch:ARG_CVE_SELF>`);
     expect(xml).toContain("<sch:ARG_COMPUTA>1</sch:ARG_COMPUTA>");
     expect(xml).toContain("<sch:ARG_DIRECTOR>0</sch:ARG_DIRECTOR>");
     expect(xml).not.toContain("SOAPAction");
+  });
+
+  it("lower-cases ARG_CVE_SELF - Meta4 only matches its stored key that way, confirmed live", () => {
+    const xml = buildUserProfileEnvelope("CYC", "JORGE.SALVADOR");
+
+    expect(xml).toContain("<sch:ARG_CVE_SELF>jorge.salvador</sch:ARG_CVE_SELF>");
+    expect(xml).not.toContain("JORGE.SALVADOR");
   });
 
   it("matches when society and usable RecordSet are present even if return is 1.0", () => {

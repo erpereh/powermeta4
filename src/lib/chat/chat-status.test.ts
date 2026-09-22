@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { getChatStatusLabel, isChatSendDisabled } from "@/lib/chat/chat-status";
 
 describe("global chat composer status", () => {
-  it("labels a configured model and allows sending", () => {
+  it("shows no label when configured and allows sending - never reveals the model/provider", () => {
     const status = { configured: true, model: "global-model" } as const;
 
-    expect(getChatStatusLabel(status)).toBe("IA · global-model");
+    expect(getChatStatusLabel(status)).toBe("");
     expect(isChatSendDisabled(status, false)).toBe(false);
   });
 

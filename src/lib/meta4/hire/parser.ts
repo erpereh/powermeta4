@@ -132,7 +132,7 @@ export const parseLaunchImportResponse = (xml: string): { returnCode: string } =
   if (numeric !== 0) {
     throw new Meta4HireError(
       "META4_HIRE_IMPORT_FAILED",
-      "Meta4 rechazó el alta de personas.",
+      `Meta4 rechazó el alta de personas (código de retorno ${returnCode}).`,
     );
   }
 

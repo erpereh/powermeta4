@@ -125,10 +125,16 @@ export const launchMeta4Hire = async (
               parseLaunchImportResponse(body);
             } catch (error) {
               if (error instanceof Meta4SoapFaultError) {
+                // Safe to log verbatim: this call only ever sends
+                // ARG_ID_GROUP_INTERFACE/ARG_PATH_FILE/flags to Meta4, never
+                // any person field, so nothing personal can come back in a
+                // fault on this specific operation.
                 safeLog(deps.log, {
                   operation: "SRTC_LAUNCH_IMPORT",
                   status: String(response.status),
                   code: "SOAP_FAULT",
+                  faultCode: error.code ?? "",
+                  faultMessage: error.message,
                   personCount: String(people.length),
                 });
                 throw error;
@@ -163,6 +169,8 @@ export const launchMeta4Hire = async (
                 operation: "SRTC_LAUNCH_IMPORT",
                 status: String(response.status),
                 code: "SOAP_FAULT",
+                faultCode: error.code ?? "",
+                faultMessage: error.message,
                 personCount: String(people.length),
               });
               throw error;
@@ -172,6 +180,9 @@ export const launchMeta4Hire = async (
                 operation: "SRTC_LAUNCH_IMPORT",
                 status: String(response.status),
                 code: error.code,
+                // Just Meta4's numeric return code / a fixed template
+                // string, per parseLaunchImportResponse - never person data.
+                detail: error.message,
                 personCount: String(people.length),
               });
               throw error;

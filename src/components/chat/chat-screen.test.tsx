@@ -45,9 +45,11 @@ vi.mock("@/components/chat/chat-runtime-provider", () => ({
 }));
 
 vi.mock("@/components/assistant-ui/thread", () => ({
+  // Mirrors src/lib/chat/chat-status.ts's getChatStatusLabel: no label at
+  // all once configured - never reveals which model/provider is active.
   Thread: ({ chatStatus }: { chatStatus: GlobalChatStatus }) => (
     <div>
-      <p>{chatStatus.configured ? `IA · ${chatStatus.model}` : "IA no configurada"}</p>
+      <p>{chatStatus.configured && chatStatus.model ? "" : "IA no configurada"}</p>
       <button type="button" disabled={!chatStatus.configured}>Enviar mensaje</button>
     </div>
   ),
@@ -111,10 +113,10 @@ describe("ChatScreen global chat status", () => {
     expect(screen.getByTestId("runtime").getAttribute("data-model")).toBe("none");
   });
 
-  it("forwards the configured model without reading a workspace provider picker", () => {
+  it("forwards the configured model internally without ever displaying it", () => {
     renderChat({ configured: true, model: "gemini-2.5-flash" });
 
-    expect(screen.getByText("IA · gemini-2.5-flash")).toBeTruthy();
+    expect(screen.queryByText(/gemini/i)).toBeNull();
     expect((screen.getByRole("button", { name: "Enviar mensaje" }) as HTMLButtonElement).disabled).toBe(false);
     expect(screen.getByTestId("runtime").getAttribute("data-configured")).toBe("true");
     expect(screen.getByTestId("runtime").getAttribute("data-model")).toBe("gemini-2.5-flash");

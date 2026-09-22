@@ -219,7 +219,11 @@ export const buildUserProfileEnvelope = (
     <sch:CSP_CONSULTA_ORO_INTRAN_NEW>
       <sch:ARG_SOCIEDAD>${escapeXml(society)}</sch:ARG_SOCIEDAD>
       <sch:ARG_ID_EMPLEADO>0</sch:ARG_ID_EMPLEADO>
-      <sch:ARG_CVE_SELF>${escapeXml(username)}</sch:ARG_CVE_SELF>
+      <!-- ARG_CVE_SELF only matches Meta4's stored key (e.g. "jorge.salvador")
+           when sent lower-case - an upper-case login username (as typed/
+           stored) returns a validly-shaped but empty RecordSet, confirmed
+           against a real environment. -->
+      <sch:ARG_CVE_SELF>${escapeXml(username.toLowerCase())}</sch:ARG_CVE_SELF>
       <sch:ARG_COMPUTA>1</sch:ARG_COMPUTA>
       <sch:ARG_DIRECTOR>0</sch:ARG_DIRECTOR>
     </sch:CSP_CONSULTA_ORO_INTRAN_NEW>
