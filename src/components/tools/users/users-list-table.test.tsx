@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/app/actions/meta4-employee-detail", () => ({
   getMeta4EmployeeDetailViewAction: vi.fn(async () => ({
@@ -21,9 +21,88 @@ import type { Meta4UserListItem } from "@/lib/meta4/users/types";
 
 const mockedDetailAction = vi.mocked(getMeta4EmployeeDetailViewAction);
 
+const viewportRect = {
+  x: 0,
+  y: 0,
+  top: 0,
+  left: 0,
+  bottom: 800,
+  right: 1200,
+  width: 1200,
+  height: 800,
+  toJSON() {
+    return this;
+  },
+};
+
+beforeEach(() => {
+  Object.defineProperty(HTMLElement.prototype, "clientHeight", {
+    configurable: true,
+    get() {
+      return 800;
+    },
+  });
+  Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+    configurable: true,
+    get() {
+      return 1200;
+    },
+  });
+  Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+    configurable: true,
+    get() {
+      return 800;
+    },
+  });
+  Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+    configurable: true,
+    get() {
+      return 1200;
+    },
+  });
+  Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+    configurable: true,
+    get() {
+      return 2400;
+    },
+  });
+  HTMLElement.prototype.getBoundingClientRect = function getBoundingClientRect() {
+    return { ...viewportRect };
+  };
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      private readonly callback: ResizeObserverCallback;
+
+      constructor(callback: ResizeObserverCallback) {
+        this.callback = callback;
+      }
+
+      observe(target: Element) {
+        this.callback(
+          [
+            {
+              target,
+              contentRect: viewportRect,
+              borderBoxSize: [],
+              contentBoxSize: [],
+              devicePixelContentBoxSize: [],
+            } as ResizeObserverEntry,
+          ],
+          this,
+        );
+      }
+
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+});
+
 afterEach(() => {
   cleanup();
   mockedDetailAction.mockClear();
+  vi.unstubAllGlobals();
 });
 
 const buildUsers = (count: number): Meta4UserListItem[] =>
@@ -50,9 +129,9 @@ describe("UsersListTable", () => {
     expect(screen.getByRole("columnheader", { name: "ID" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Usuario Meta4" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Nombre y apellidos" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Ordenar por ID" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Ordenar por usuario Meta4" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Ordenar por nombre y apellidos" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "ID" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Usuario Meta4" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Nombre y apellidos" })).toBeTruthy();
     expect(screen.getByText("Paula García López")).toBeTruthy();
     expect(screen.getByText("0001")).toBeTruthy();
     expect(screen.getByText("paula")).toBeTruthy();
@@ -127,10 +206,10 @@ describe("UsersListTable", () => {
     // Default ID asc with zero-preserving digit comparison
     expect(rows()).toEqual(["0001", "0013", "0021", "0023", "0024"]);
 
-    await user.click(screen.getByRole("button", { name: "Ordenar por ID" }));
+    await user.click(screen.getByRole("button", { name: "ID" }));
     expect(rows()).toEqual(["0024", "0023", "0021", "0013", "0001"]);
 
-    await user.click(screen.getByRole("button", { name: "Ordenar por nombre y apellidos" }));
+    await user.click(screen.getByRole("button", { name: "Nombre y apellidos" }));
     const namesAsc = within(table)
       .getAllByRole("row")
       .slice(1)

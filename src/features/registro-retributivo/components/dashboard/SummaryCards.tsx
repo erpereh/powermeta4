@@ -1,15 +1,7 @@
 "use client";
 
 import { AlertCircle, BadgeEuro, FileCheck2, FileText, Sigma, Users, UserX, type LucideIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { AnimatedNumber, Badge } from "@/components/system";
 import type { AnalysisSummary, InternalExcelCheckRow } from "@/features/registro-retributivo/types";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
 
@@ -18,10 +10,10 @@ interface SummaryCardsProps {
   readonly internalExcelChecks?: readonly InternalExcelCheckRow[];
 }
 
-function internalTone(rows: readonly InternalExcelCheckRow[]): "default" | "secondary" | "destructive" {
-  if (rows.some((row) => row.status === "Diferencia")) return "destructive";
-  if (rows.some((row) => row.status === "Revisar")) return "secondary";
-  return "default";
+function internalStatus(rows: readonly InternalExcelCheckRow[]): "success" | "warning" | "danger" {
+  if (rows.some((row) => row.status === "Diferencia")) return "danger";
+  if (rows.some((row) => row.status === "Revisar")) return "warning";
+  return "success";
 }
 
 function PrimaryKpi({
@@ -29,20 +21,29 @@ function PrimaryKpi({
   value,
   detail,
   icon: Icon,
-}: Readonly<{ label: string; value: string | number; detail: string; icon: LucideIcon }>) {
+  numeric,
+}: Readonly<{
+  label: string;
+  value: string | number;
+  detail: string;
+  icon: LucideIcon;
+  numeric?: number;
+}>) {
   return (
-    <Card className="@container/card">
-      <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{value}</CardTitle>
-      </CardHeader>
-      <CardFooter className="flex-col items-start gap-1.5 text-sm">
-        <div className="flex gap-2 font-medium">
-          <Icon />
-          {detail}
-        </div>
-      </CardFooter>
-    </Card>
+    <div className="@container/card rounded-xl border border-border bg-card p-4">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground @[250px]/card:text-3xl">
+        {numeric !== undefined ? (
+          <AnimatedNumber value={numeric} startOnView duration={0.9} />
+        ) : (
+          value
+        )}
+      </p>
+      <div className="mt-3 flex items-center gap-2 text-sm font-medium text-foreground">
+        <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        {detail}
+      </div>
+    </div>
   );
 }
 
@@ -51,26 +52,26 @@ function DetailRow({
   value,
   detail,
   icon: Icon,
-  badgeVariant = "outline",
+  badgeStatus = "neutral",
 }: Readonly<{
   label: string;
   value: string | number;
   detail: string;
   icon: LucideIcon;
-  badgeVariant?: "default" | "secondary" | "destructive" | "outline";
+  badgeStatus?: "neutral" | "info" | "success" | "warning" | "danger";
 }>) {
   return (
-    <div data-variant="row" className="flex items-start justify-between gap-4 border-b py-3 last:border-b-0">
+    <div data-variant="row" className="flex items-start justify-between gap-4 border-b border-border py-3 last:border-b-0">
       <div className="flex min-w-0 items-start gap-3">
         <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-          <Icon />
+          <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <p className="font-medium">{label}</p>
+          <p className="font-medium text-foreground">{label}</p>
           <p className="text-sm text-muted-foreground">{detail}</p>
         </div>
       </div>
-      <Badge variant={badgeVariant} className="shrink-0 tabular-nums">
+      <Badge status={badgeStatus} size="sm" className="shrink-0 tabular-nums">
         {value}
       </Badge>
     </div>
@@ -79,7 +80,7 @@ function DetailRow({
 
 export function SummaryCards({ summary, internalExcelChecks = [] }: SummaryCardsProps) {
   const internalOk = internalExcelChecks.filter((row) => row.status === "OK").length;
-  const internalBadgeVariant = internalTone(internalExcelChecks);
+  const badgeStatus = internalStatus(internalExcelChecks);
 
   return (
     <div className="flex flex-col gap-4">
@@ -92,6 +93,7 @@ export function SummaryCards({ summary, internalExcelChecks = [] }: SummaryCards
           <PrimaryKpi
             label="Personas analizadas"
             value={summary?.uniquePeople ?? 0}
+            numeric={summary?.uniquePeople ?? 0}
             detail={`${summary?.matchedPeople ?? 0} con Reg. Retrib. y Recibo`}
             icon={Users}
           />
@@ -100,6 +102,7 @@ export function SummaryCards({ summary, internalExcelChecks = [] }: SummaryCards
           <PrimaryKpi
             label="Personas con diferencia"
             value={summary?.peopleWithDifferences ?? 0}
+            numeric={summary?.peopleWithDifferences ?? 0}
             detail="Matched fuera de tolerancia"
             icon={Users}
           />
@@ -116,6 +119,7 @@ export function SummaryCards({ summary, internalExcelChecks = [] }: SummaryCards
           <PrimaryKpi
             label="Recibo sin Reg. Retrib."
             value={summary?.peopleInPdfWithoutRegistro ?? 0}
+            numeric={summary?.peopleInPdfWithoutRegistro ?? 0}
             detail={formatEuro(summary?.totalPdfWithoutRegistro ?? 0)}
             icon={Sigma}
           />
@@ -123,18 +127,16 @@ export function SummaryCards({ summary, internalExcelChecks = [] }: SummaryCards
       </section>
 
       <section className="grid items-start gap-4 xl:grid-cols-2">
-        <Card role="region" aria-label="Estado del análisis">
-          <CardHeader>
-            <CardTitle>Estado del análisis</CardTitle>
-            <CardDescription>Cobertura y consistencia de los datos procesados.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <section role="region" aria-label="Estado del análisis" className="rounded-xl border border-border bg-card p-4">
+          <h3 className="text-base font-semibold text-foreground">Estado del análisis</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Cobertura y consistencia de los datos procesados.</p>
+          <div className="mt-2">
             <DetailRow
               label="Cuadre Reg."
               value={`${internalOk} / ${internalExcelChecks.length} OK`}
               detail="Periodo completo vs desglose. No compara contra recibos."
               icon={FileCheck2}
-              badgeVariant={internalBadgeVariant}
+              badgeStatus={badgeStatus}
             />
             <DetailRow
               label="Recibos procesados"
@@ -148,28 +150,26 @@ export function SummaryCards({ summary, internalExcelChecks = [] }: SummaryCards
               detail="Personas del Excel sin recibo asociado"
               icon={UserX}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        <Card role="region" aria-label="Revisión pendiente">
-          <CardHeader>
-            <CardTitle>Revisión pendiente</CardTitle>
-            <CardDescription>Decisiones y configuración que requieren atención.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <section role="region" aria-label="Revisión pendiente" className="rounded-xl border border-border bg-card p-4">
+          <h3 className="text-base font-semibold text-foreground">Revisión pendiente</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Decisiones y configuración que requieren atención.</p>
+          <div className="mt-2">
             <DetailRow
               label="Conceptos pendientes de revisión"
               value={summary?.conceptsPendingReview ?? 0}
               detail="Requieren decisión; no se incluyen en el cálculo principal."
               icon={AlertCircle}
-              badgeVariant="secondary"
+              badgeStatus="warning"
             />
             <DetailRow
               label="Importe pendiente de decisión"
               value={formatEuro(summary?.pendingDecisionPdfTotal ?? 0)}
               detail="Importe Recibo pendiente de decisión, no incluido en el cálculo principal"
               icon={BadgeEuro}
-              badgeVariant="secondary"
+              badgeStatus="warning"
             />
             <DetailRow
               label="Conceptos desactivados"
@@ -182,10 +182,10 @@ export function SummaryCards({ summary, internalExcelChecks = [] }: SummaryCards
               value={summary?.conceptsRealUnmapped ?? 0}
               detail="Problema real de mapeo: sin código Reg. Retrib. claro"
               icon={AlertCircle}
-              badgeVariant="destructive"
+              badgeStatus="danger"
             />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </section>
     </div>
   );

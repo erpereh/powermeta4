@@ -2,8 +2,7 @@
 
 import { type ComponentPropsWithRef, forwardRef } from "react";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
+import { Button, Tooltip } from "@/components/system";
 import { cn } from "@/lib/utils";
 
 export type TooltipIconButtonProps = ComponentPropsWithRef<typeof Button> & {
@@ -12,25 +11,20 @@ export type TooltipIconButtonProps = ComponentPropsWithRef<typeof Button> & {
 };
 
 export const TooltipIconButton = forwardRef<HTMLButtonElement, TooltipIconButtonProps>(
-  ({ children, tooltip, side = "bottom", className, ...rest }, ref) => {
+  ({ children, tooltip, side = "bottom", className, variant = "ghost", size = "icon", ...rest }, ref) => {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              {...rest}
-              aria-label={rest["aria-label"] ?? tooltip}
-              className={cn("aui-button-icon size-6 p-1 active:scale-90", className)}
-              ref={ref}
-            >
-              {children}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side={side}>{tooltip}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip content={tooltip} side={side}>
+        <Button
+          variant={variant}
+          size={size}
+          {...rest}
+          aria-label={rest["aria-label"] ?? tooltip}
+          className={cn("size-7 shrink-0", className)}
+          ref={ref}
+        >
+          {children}
+        </Button>
+      </Tooltip>
     );
   },
 );

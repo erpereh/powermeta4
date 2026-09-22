@@ -3,12 +3,8 @@
 import { RotateCw, Trash2, UserMinus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
-import { Card } from "@/features/registro-retributivo/components/common/Card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Badge, Button } from "@/components/system";
 import { Textarea } from "@/components/ui/textarea";
-import { STATUS_BADGE_TONE } from "@/features/registro-retributivo/ui/statusStyles";
 import { normalizeEmployeeId } from "@/features/registro-retributivo/utils/normalize";
 
 function parseEmployeeIds(value: string): string[] {
@@ -78,23 +74,32 @@ export function EmployeeExclusionsCard() {
   }
 
   return (
-    <Card data-surface="employee-exclusions" className="p-4 sm:p-6">
+    <section
+      data-surface="employee-exclusions"
+      className="rounded-xl border border-border bg-card p-4 sm:p-6"
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300">
+          <span className="flex size-11 items-center justify-center rounded-lg bg-muted text-muted-foreground">
             <UserMinus aria-hidden="true" />
           </span>
           <div>
             <h2 className="text-xl font-semibold text-foreground">Exclusiones por matrícula</h2>
-            <p className="text-sm text-muted-foreground">Las matrículas excluidas no se tendrán en cuenta en ninguna comparativa ni exportación.</p>
+            <p className="text-sm text-muted-foreground">
+              Las matrículas excluidas no se tendrán en cuenta en ninguna comparativa ni exportación.
+            </p>
           </div>
         </div>
-        <Badge variant="secondary" className="px-3 py-1 text-sm font-semibold">{countLabel(ids.length)}</Badge>
+        <Badge status="warning" size="sm" className="px-3 py-1 text-sm font-semibold">
+          {countLabel(ids.length)}
+        </Badge>
       </div>
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <div className="min-w-0 flex-1">
-          <Label htmlFor="employee-exclusion-input">Matrícula / ID RH</Label>
+          <label htmlFor="employee-exclusion-input" className="text-sm font-medium text-foreground">
+            Matrícula / ID RH
+          </label>
           <Textarea
             id="employee-exclusion-input"
             value={input}
@@ -111,11 +116,18 @@ export function EmployeeExclusionsCard() {
           />
         </div>
         <div className="flex items-end gap-2">
-          <Button type="button" onClick={addIds} className="h-12 px-5">
+          <Button type="button" variant="primary" size="sm" onClick={addIds} className="h-12 rounded-lg px-5">
             Añadir
           </Button>
-          <Button type="button" variant="outline" onClick={clearIds} disabled={!ids.length} className="h-12 px-5">
-            <Trash2 className="h-4 w-4" aria-hidden="true" />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={clearIds}
+            disabled={!ids.length}
+            className="h-12 rounded-lg px-5"
+          >
+            <Trash2 className="size-4" aria-hidden="true" />
             Limpiar lista
           </Button>
         </div>
@@ -124,27 +136,46 @@ export function EmployeeExclusionsCard() {
       <div className="mt-4 flex flex-wrap gap-2">
         {sortedIds.length ? (
           sortedIds.map((id) => (
-            <Badge key={id} variant="outline" className={`gap-2 px-3 py-2 font-mono text-sm font-semibold ${STATUS_BADGE_TONE.warning}`}>
+            <Badge
+              key={id}
+              status="warning"
+              size="sm"
+              className="gap-2 px-3 py-2 font-mono text-sm font-semibold"
+            >
               {id}
-              <Button type="button" variant="ghost" size="icon-xs" aria-label={`Quitar ${id}`} onClick={() => removeId(id)} className="size-6 rounded-full">
-                <X className="h-3.5 w-3.5" aria-hidden="true" />
-              </Button>
+              <button
+                type="button"
+                aria-label={`Quitar ${id}`}
+                onClick={() => removeId(id)}
+                className="inline-flex size-6 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <X className="size-3.5" aria-hidden="true" />
+              </button>
             </Badge>
           ))
         ) : (
-          <p className="w-full border-y border-border bg-muted/30 px-1 py-3 text-sm text-muted-foreground">No hay matrículas excluidas.</p>
+          <p className="w-full border-y border-border bg-muted/30 px-1 py-3 text-sm text-muted-foreground">
+            No hay matrículas excluidas.
+          </p>
         )}
       </div>
 
       {dirty ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-y border-primary/20 bg-primary/10 px-1 py-3 text-sm font-semibold text-foreground">
           <span>Vuelve a analizar o pulsa Actualizar datos para aplicar los cambios.</span>
-          <Button type="button" variant="outline" onClick={() => void saveExclusionsAndRefresh(ids)} disabled={analyzing} className="min-h-10 px-4">
-            <RotateCw className="h-4 w-4" aria-hidden="true" />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void saveExclusionsAndRefresh(ids)}
+            disabled={analyzing}
+            className="min-h-10 px-4"
+          >
+            <RotateCw className="size-4" aria-hidden="true" />
             Actualizar datos
           </Button>
         </div>
       ) : null}
-    </Card>
+    </section>
   );
 }

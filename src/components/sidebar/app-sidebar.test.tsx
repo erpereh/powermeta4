@@ -8,7 +8,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   pathname: "/home",
   push: vi.fn(),
-  isMobile: false,
   auth: {
     mode: "meta4" as "debug" | "meta4",
     username: "usuario",
@@ -23,15 +22,12 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mocks.push }),
 }));
 
-vi.mock("@/hooks/use-mobile", () => ({
-  useIsMobile: () => mocks.isMobile,
-}));
-
 vi.mock("@/app/actions/workspace", () => ({
   createConversationAction: vi.fn(),
   deleteConversationAction: vi.fn(),
   selectConversationAction: vi.fn(),
   updateConversationAction: vi.fn(),
+  recordToolVisitAction: vi.fn(),
 }));
 
 vi.mock("@/stores/use-workspace-store", () => ({
@@ -61,6 +57,7 @@ vi.mock("@/stores/use-workspace-store", () => ({
       setChatIcon: () => void;
       setChatColor: () => void;
       deleteChat: () => void;
+      recordToolVisit: () => void;
     }) => unknown,
   ) =>
     selector({
@@ -79,6 +76,7 @@ vi.mock("@/stores/use-workspace-store", () => ({
       setChatIcon: () => undefined,
       setChatColor: () => undefined,
       deleteChat: () => undefined,
+      recordToolVisit: () => undefined,
     }),
 }));
 
@@ -86,8 +84,8 @@ vi.mock("@/components/sidebar/user-menu", () => ({
   UserMenu: () => <div>User menu</div>,
 }));
 
-import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { AppCommandPaletteProvider } from "@/components/app-shell/app-command-palette";
+import { SidebarProvider, useSidebar, ToastProvider } from "@/components/system";
 import { AppSidebar } from "./app-sidebar";
 
 afterEach(() => {
@@ -97,7 +95,6 @@ afterEach(() => {
 beforeEach(() => {
   mocks.pathname = "/home";
   mocks.push.mockReset();
-  mocks.isMobile = false;
   mocks.auth = {
     mode: "meta4",
     username: "usuario",
@@ -106,15 +103,6 @@ beforeEach(() => {
     availableSocieties: ["CYC"],
   };
   HTMLElement.prototype.scrollIntoView = vi.fn();
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn().mockImplementation((query: string) => ({
-      matches: false,
-      media: query,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    })),
-  );
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -133,15 +121,29 @@ function OpenMobileSidebar() {
   return null;
 }
 
+function stubMatchMedia(mobile: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((query: string) => ({
+      matches: mobile && String(query).includes("767"),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  );
+}
+
 function renderSidebar({ defaultOpen = true, mobile = false } = {}) {
-  mocks.isMobile = mobile;
+  stubMatchMedia(mobile);
   return render(
-    <TooltipProvider>
-      <SidebarProvider defaultOpen={defaultOpen}>
-        {mobile ? <OpenMobileSidebar /> : null}
-        <AppSidebar />
-      </SidebarProvider>
-    </TooltipProvider>,
+    <ToastProvider>
+      <AppCommandPaletteProvider>
+        <SidebarProvider defaultOpen={defaultOpen}>
+          {mobile ? <OpenMobileSidebar /> : null}
+          <AppSidebar />
+        </SidebarProvider>
+      </AppCommandPaletteProvider>
+    </ToastProvider>,
   );
 }
 
@@ -162,27 +164,26 @@ describe("app sidebar tools group", () => {
 
     expect(container.querySelector('a[href="/tools"]')).toBeNull();
     const submenu = toolsSubmenu();
-    expect(submenu.getByRole("link", { name: "Reg. Retrib." }).getAttribute("href")).toBe(
-      "/tools/registro-retributivo",
-    );
-    expect(submenu.queryByRole("link", { name: "Usuarios" })).toBeNull();
-    expect(submenu.queryByRole("link", { name: "Empresas" })).toBeNull();
-    expect(submenu.queryByRole("link", { name: "Nóminas" })).toBeNull();
-    expect(submenu.queryByRole("link", { name: "Informes" })).toBeNull();
-    expect(submenu.queryByRole("link", { name: "Procesos" })).toBeNull();
+    expect(submenu.getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
+    expect(submenu.queryByRole("button", { name: "Usuarios" })).toBeNull();
+    expect(submenu.queryByRole("button", { name: "Empresas" })).toBeNull();
+    expect(submenu.queryByRole("button", { name: "Nóminas" })).toBeNull();
+    expect(submenu.queryByRole("button", { name: "Informes" })).toBeNull();
+    expect(submenu.queryByRole("button", { name: "Procesos" })).toBeNull();
 
     const trigger = toolsTrigger();
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(container.querySelectorAll('[data-sidebar="menu-action"]')).toHaveLength(0);
 
     await user.click(trigger);
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(screen.queryByRole("link", { name: "Reg. Retrib." })).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Reg. Retrib." })).toBeNull();
+    });
     expect(mocks.push).not.toHaveBeenCalled();
 
     await user.click(trigger);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(toolsSubmenu().getByRole("link", { name: "Reg. Retrib." })).toBeTruthy();
+    expect(toolsSubmenu().getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
   });
 
   it("expands a collapsed desktop sidebar and opens the tools submenu", async () => {
@@ -197,7 +198,7 @@ describe("app sidebar tools group", () => {
 
     expect(sidebar?.getAttribute("data-state")).toBe("expanded");
     expect(toolsTrigger().getAttribute("aria-expanded")).toBe("true");
-    expect(toolsSubmenu().getByRole("link", { name: "Reg. Retrib." })).toBeTruthy();
+    expect(toolsSubmenu().getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
     expect(mocks.push).not.toHaveBeenCalled();
   });
 
@@ -206,10 +207,10 @@ describe("app sidebar tools group", () => {
     renderSidebar();
 
     const trigger = toolsTrigger();
-    expect(trigger.getAttribute("data-active")).toBe("false");
+    expect(trigger.getAttribute("aria-current")).toBeNull();
     expect(
-      toolsSubmenu().getByRole("link", { name: "Reg. Retrib." }).getAttribute("data-active"),
-    ).toBe("true");
+      toolsSubmenu().getByRole("button", { name: "Reg. Retrib." }).getAttribute("aria-current"),
+    ).toBe("page");
   });
 
   it("keeps the mobile sidebar open when toggling Herramientas and closes it when navigating", async () => {
@@ -222,7 +223,7 @@ describe("app sidebar tools group", () => {
 
     const trigger = toolsTrigger();
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(toolsSubmenu().getByRole("link", { name: "Reg. Retrib." })).toBeTruthy();
+    expect(toolsSubmenu().getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
 
     await user.click(trigger);
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
@@ -230,7 +231,7 @@ describe("app sidebar tools group", () => {
     expect(mocks.push).not.toHaveBeenCalled();
 
     await user.click(trigger);
-    await user.click(toolsSubmenu().getByRole("link", { name: "Reg. Retrib." }));
+    await user.click(toolsSubmenu().getByRole("button", { name: "Reg. Retrib." }));
 
     await waitFor(() => {
       expect(screen.queryByRole("button", { name: "Herramientas" })).toBeNull();

@@ -1,0 +1,27 @@
+"use client";
+
+export {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxLabel,
+  ComboboxList,
+  ComboboxSeparator,
+  ComboboxTrigger,
+  ComboboxValue,
+  type ComboboxContentProps,
+  type ComboboxEmptyProps,
+  type ComboboxFilter,
+  type ComboboxGroupProps,
+  type ComboboxInputProps,
+  type ComboboxItemProps,
+  type ComboboxLabelProps,
+  type ComboboxListProps,
+  type ComboboxProps,
+  type ComboboxSeparatorProps,
+  type ComboboxTriggerProps,
+  type ComboboxValueProps,
+} from "@/components/motion/combobox";

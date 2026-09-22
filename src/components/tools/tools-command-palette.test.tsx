@@ -4,11 +4,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
-
-import { ToolsCommandPalette } from "./tools-command-palette";
+import { CommandPalette } from "@/components/system";
+import { createToolsCommandItems } from "./tools-command-palette";
 
 afterEach(() => {
   cleanup();
@@ -38,12 +35,18 @@ beforeEach(() => {
 describe("tools command palette", () => {
   it("searches Acciones ERP and excludes Registro Retributivo", async () => {
     const user = userEvent.setup();
+    const items = createToolsCommandItems({
+      onSelectTool: () => undefined,
+      onUnavailable: () => undefined,
+    });
+
     render(
-      <ToolsCommandPalette
+      <CommandPalette
+        items={items}
         open
         onOpenChange={() => undefined}
-        onSelectTool={() => undefined}
-        onUnavailable={() => undefined}
+        placeholder="Buscar acciones..."
+        emptyMessage="No hay acciones que coincidan."
       />,
     );
 

@@ -3,14 +3,14 @@
 export function rowTone(status?: string): string {
   switch (status) {
     case "OK":
-      return "bg-emerald-500/10 text-foreground hover:bg-emerald-500/15";
+      return "bg-chart-2/10 text-foreground hover:bg-chart-2/15";
     case "Revisar":
     case "Sin mapear":
-      return "bg-amber-500/10 text-foreground hover:bg-amber-500/15";
+      return "bg-muted text-foreground hover:bg-muted/80";
     case "Diferencia":
       return "bg-destructive/10 text-foreground hover:bg-destructive/15";
     case "Sin Registro":
-      return "bg-violet-500/10 text-foreground hover:bg-violet-500/15";
+      return "bg-chart-5/15 text-foreground hover:bg-chart-5/20";
     case "Sin PDF":
       return "bg-muted text-foreground hover:bg-muted/80";
     default:
@@ -20,28 +20,28 @@ export function rowTone(status?: string): string {
 
 export function diffClass(value: number): string {
   if (value > 0) return "text-destructive";
-  if (value < 0) return "text-emerald-700 dark:text-emerald-400";
+  if (value < 0) return "text-primary";
   return "text-muted-foreground";
 }
 
 export const STATUS_BADGE_TONE: Record<"danger" | "warning" | "success" | "info" | "neutral", string> = {
   danger: "border-transparent bg-destructive/15 text-destructive",
-  warning: "border-transparent bg-amber-500/15 text-amber-800 dark:text-amber-300",
-  success: "border-transparent bg-emerald-500/15 text-emerald-800 dark:text-emerald-300",
-  info: "border-transparent bg-sky-500/15 text-sky-800 dark:text-sky-300",
+  warning: "border-transparent bg-muted text-muted-foreground",
+  success: "border-transparent bg-chart-2/15 text-foreground",
+  info: "border-transparent bg-chart-4/15 text-foreground",
   neutral: "border-transparent bg-muted text-muted-foreground",
 };
 
 export function groupingHeaderTone(label: string, level: number): string {
   const normalized = label.toLocaleLowerCase("es-ES").normalize("NFD").replace(/\p{M}/gu, "");
   if (normalized.includes("total personas")) {
-    return "bg-emerald-500/15 text-foreground";
+    return "bg-chart-2/15 text-foreground";
   }
   if (normalized.includes("total retribuciones normalizadas") && normalized.includes("variables")) {
-    return "bg-amber-500/15 text-foreground";
+    return "bg-muted text-foreground";
   }
   if (normalized.includes("retribuciones normalizadas")) {
-    return "bg-sky-500/15 text-foreground";
+    return "bg-chart-4/15 text-foreground";
   }
   if (normalized.includes("periodo completo") || level === 0) {
     return "bg-muted text-foreground";
@@ -56,13 +56,13 @@ export function groupingHeaderTone(label: string, level: number): string {
 export function groupingHeaderSurface(label: string, level: number): string {
   const normalized = label.toLocaleLowerCase("es-ES").normalize("NFD").replace(/\p{M}/gu, "");
   if (normalized.includes("total personas")) {
-    return "bg-emerald-100 text-foreground dark:bg-emerald-950";
+    return "bg-muted text-foreground";
   }
   if (normalized.includes("total retribuciones normalizadas") && normalized.includes("variables")) {
-    return "bg-amber-100 text-foreground dark:bg-amber-950";
+    return "bg-secondary text-foreground";
   }
   if (normalized.includes("retribuciones normalizadas")) {
-    return "bg-sky-100 text-foreground dark:bg-sky-950";
+    return "bg-accent text-foreground";
   }
   if (normalized.includes("periodo completo") || level === 0) {
     return "bg-muted text-foreground";

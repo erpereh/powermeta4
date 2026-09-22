@@ -1,69 +1,24 @@
 "use client";
 
-import { FileArchive, FileSpreadsheet, FolderUp, Sparkles } from "lucide-react";
-import { useRef, useState, type DragEvent, type ReactNode } from "react";
+import { FileArchive, FolderUp } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
+import {
+  Button,
+  FileUpload,
+  Input,
+  Loader,
+  createFileUploadItem,
+  type FileUploadItem,
+} from "@/components/system";
 
-function fileSummary(files: readonly File[], empty: string): string {
-  if (!files.length) return empty;
-  if (files.length === 1) return files[0].name;
-  return `${files.length} recibos seleccionados`;
-}
-
-function DropCard({
-  title,
-  description,
-  icon,
-  children,
-  active,
-  onDrop,
-}: Readonly<{
-  title: string;
-  description: string;
-  icon: ReactNode;
-  children: ReactNode;
-  active: boolean;
-  onDrop: (event: DragEvent<HTMLDivElement>) => void;
-}>) {
-  const [dragging, setDragging] = useState(false);
-  const isActive = active || dragging;
-
-  return (
-    <div
-      data-surface="drop-zone"
-      onDragOver={(event) => {
-        event.preventDefault();
-        setDragging(true);
-      }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={(event) => {
-        setDragging(false);
-        onDrop(event);
-      }}
-      className={cn(
-        "min-w-0 rounded-xl border border-dashed p-4 transition-colors",
-        isActive ? "border-primary bg-primary/5" : "border-border bg-muted/30",
-      )}
-    >
-      <div className="flex items-start gap-4">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-background text-primary">
-          {icon}
-        </span>
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold">{title}</h3>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
-        </div>
-      </div>
-      <div className="mt-4">{children}</div>
-    </div>
-  );
+function toUploadItems(files: readonly File[], prefix: string): FileUploadItem[] {
+  return files.map((file, index) => ({
+    ...createFileUploadItem(file, index),
+    id: `${prefix}-${file.name}-${file.size}-${index}`,
+    status: "success" as const,
+    progress: 100,
+  }));
 }
 
 export function UploadPanel() {
@@ -78,116 +33,135 @@ export function UploadPanel() {
     analyze,
     status,
   } = useAppState();
-  const pdfInputRef = useRef<HTMLInputElement>(null);
-  const pdfFolderInputRef = useRef<HTMLInputElement>(null);
-  const excelInputRef = useRef<HTMLInputElement>(null);
   const disabled = analyzing;
   const canAnalyze = pdfFiles.length > 0 && Boolean(registroFile) && !analyzing;
-  const missingReason = !pdfFiles.length ? "Faltan recibos." : !registroFile ? "Falta el Excel Reg. Retrib." : "Listo para analizar.";
+  const missingReason = !pdfFiles.length
+    ? "Faltan recibos."
+    : !registroFile
+      ? "Falta el Excel Reg. Retrib."
+      : "Listo para analizar.";
+
+  const pdfItems = useMemo(() => toUploadItems(pdfFiles, "pdf"), [pdfFiles]);
+  const excelItems = useMemo(
+    () => (registroFile ? toUploadItems([registroFile], "excel") : []),
+    [registroFile],
+  );
+  const [pdfKey, setPdfKey] = useState(0);
+  const [excelKey, setExcelKey] = useState(0);
+  const pdfFolderInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <Card data-surface="upload-panel">
-      <CardContent className="pt-6">
-        <div className="grid gap-4 xl:grid-cols-[1.1fr_1fr_320px]">
-          <DropCard
+    <section
+      data-surface="upload-panel"
+      className="rounded-xl border border-border bg-card p-4 sm:p-6"
+    >
+      <div className="grid gap-4 xl:grid-cols-[1.1fr_1fr_320px]">
+        <div className="min-w-0 flex flex-col gap-2">
+          <FileUpload
+            key={`pdf-${pdfKey}-${pdfItems.length}`}
+            value={pdfItems}
+            multiple
+            accept="application/pdf,.pdf"
+            disabled={disabled}
             title="Recibos"
-            description="Arrastra los recibos o selecciona archivos/carpeta."
-            icon={<FolderUp aria-hidden="true" />}
-            active={pdfFiles.length > 0}
-            onDrop={(event) => {
-              event.preventDefault();
-              setPdfFiles(Array.from(event.dataTransfer.files).filter((file) => file.name.toLowerCase().endsWith(".pdf")));
+            description="Arrastra los recibos o selecciona archivos PDF."
+            browseLabel="Seleccionar recibos"
+            onFilesAdded={(_items, files) => {
+              const next = files.filter((file) => file.name.toLowerCase().endsWith(".pdf"));
+              setPdfFiles(next.length ? [...pdfFiles, ...next] : pdfFiles);
             }}
-          >
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" disabled={disabled} onClick={() => pdfInputRef.current?.click()}>
-                Seleccionar recibos
-              </Button>
-              <Button type="button" variant="secondary" disabled={disabled} onClick={() => pdfFolderInputRef.current?.click()}>
-                Seleccionar carpeta
-              </Button>
-              <input
-                ref={pdfInputRef}
-                type="file"
-                multiple
-                accept="application/pdf,.pdf"
-                className="sr-only"
-                disabled={disabled}
-                onChange={(event) => setPdfFiles(Array.from(event.target.files ?? []))}
-              />
-              <input
-                ref={pdfFolderInputRef}
-                type="file"
-                multiple
-                accept="application/pdf,.pdf"
-                className="sr-only"
-                disabled={disabled}
-                {...({ webkitdirectory: "true" } as Record<string, string>)}
-                onChange={(event) => setPdfFiles(Array.from(event.target.files ?? []))}
-              />
-            </div>
-            <p className="mt-4 truncate text-sm font-medium">{fileSummary(pdfFiles, "Ningún recibo seleccionado")}</p>
-          </DropCard>
-
-          <DropCard
-            title="Excel Reg. Retrib."
-            description="Sube el Registro Retributivo heredado o equivalente."
-            icon={<FileSpreadsheet aria-hidden="true" />}
-            active={Boolean(registroFile)}
-            onDrop={(event) => {
-              event.preventDefault();
-              const file = Array.from(event.dataTransfer.files).find((item) => /\.(xlsx|xlsm|xls)$/i.test(item.name));
-              setRegistroFile(file);
+            onRemove={(item) => {
+              setPdfFiles(pdfFiles.filter((file) => file.name !== item.name || file.size !== item.size));
+              setPdfKey((current) => current + 1);
             }}
+            className="min-w-0"
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={disabled}
+            className="self-start rounded-lg"
+            onClick={() => pdfFolderInputRef.current?.click()}
           >
-            <Button type="button" variant="outline" disabled={disabled} onClick={() => excelInputRef.current?.click()}>
-              Seleccionar Excel
-            </Button>
-            <input
-              ref={excelInputRef}
-              type="file"
-              accept=".xlsx,.xlsm,.xls"
-              className="sr-only"
-              disabled={disabled}
-              onChange={(event) => setRegistroFile(event.target.files?.[0])}
-            />
-            <p className="mt-4 truncate text-sm font-medium">{registroFile?.name ?? "Ningún Excel seleccionado"}</p>
-          </DropCard>
-
-          <div data-surface="quick-config" className="min-w-0 rounded-xl bg-muted/50 p-4">
-            <div className="flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-lg border bg-background text-primary">
-                <Sparkles aria-hidden="true" />
-              </span>
-              <div>
-                <h3 className="text-base font-semibold">Configuración rápida</h3>
-                <p className="text-sm text-muted-foreground">Se guarda para próximos análisis.</p>
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-col gap-2">
-              <Label htmlFor="tolerance">Tolerancia EUR</Label>
-              <Input
-                id="tolerance"
-                type="number"
-                min="0"
-                step="0.5"
-                value={settings.defaultTolerance}
-                disabled={disabled}
-                onChange={(event) => updateSettings({ defaultTolerance: Number(event.target.value) })}
-              />
-            </div>
-
-            <Button type="button" onClick={analyze} disabled={!canAnalyze} className="mt-4 w-full">
-              {analyzing ? <Spinner data-icon="inline-start" /> : <FileArchive data-icon="inline-start" />}
-              {analyzing ? "Analizando..." : "Analizar"}
-            </Button>
-            <Alert className="mt-3" aria-live="polite">
-              <AlertDescription>{analyzing ? "Analizando recibos..." : canAnalyze ? status : missingReason}</AlertDescription>
-            </Alert>
-          </div>
+            Seleccionar carpeta
+          </Button>
+          <input
+            ref={pdfFolderInputRef}
+            type="file"
+            multiple
+            accept="application/pdf,.pdf"
+            className="sr-only"
+            disabled={disabled}
+            {...({ webkitdirectory: "true" } as Record<string, string>)}
+            onChange={(event) => setPdfFiles(Array.from(event.target.files ?? []))}
+          />
         </div>
-      </CardContent>
-    </Card>
+
+        <FileUpload
+          key={`excel-${excelKey}-${excelItems.length}`}
+          value={excelItems}
+          multiple={false}
+          maxFiles={1}
+          accept=".xlsx,.xlsm,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          disabled={disabled}
+          title="Excel Reg. Retrib."
+          description="Sube el Registro Retributivo heredado o equivalente."
+          browseLabel="Seleccionar Excel"
+          onFilesAdded={(_items, files) => {
+            const file = files.find((item) => /\.(xlsx|xlsm|xls)$/i.test(item.name));
+            setRegistroFile(file);
+          }}
+          onRemove={() => {
+            setRegistroFile(undefined);
+            setExcelKey((current) => current + 1);
+          }}
+          className="min-w-0"
+        />
+
+        <div data-surface="quick-config" className="min-w-0 rounded-xl border border-border bg-muted/40 p-4">
+          <div className="flex items-center gap-2">
+            <span className="flex size-9 items-center justify-center rounded-lg border border-border bg-background text-primary">
+              <FolderUp className="size-4" aria-hidden="true" />
+            </span>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">Configuración rápida</h3>
+              <p className="text-sm text-muted-foreground">Se guarda para próximos análisis.</p>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Input
+              id="tolerance"
+              label="Tolerancia EUR"
+              type="number"
+              min={0}
+              step={0.5}
+              value={String(settings.defaultTolerance)}
+              disabled={disabled}
+              onChange={(value) => updateSettings({ defaultTolerance: Number(value) })}
+            />
+          </div>
+
+          <Button
+            type="button"
+            variant="primary"
+            onClick={analyze}
+            disabled={!canAnalyze}
+            className="mt-4 w-full rounded-lg"
+          >
+            {analyzing ? (
+              <Loader variant="spinner" size={16} label="Analizando" />
+            ) : (
+              <FileArchive className="size-4" aria-hidden="true" />
+            )}
+            {analyzing ? "Analizando..." : "Analizar"}
+          </Button>
+          <p className="mt-3 text-sm text-muted-foreground" aria-live="polite" role="status">
+            {analyzing ? "Analizando recibos..." : canAnalyze ? status : missingReason}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }

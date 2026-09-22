@@ -4,31 +4,31 @@ import { FileText, LogOut, Settings } from "lucide-react";
 
 import { logoutAction } from "@/app/actions/auth";
 import { useSettingsDialog } from "@/components/app-shell/app-shell";
-import { ThemeMenu } from "@/components/theme/theme-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
+  Badge,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+  MenuTrigger,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  ThemeModeControl,
+  Tooltip,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/components/system";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export function UserMenu() {
-  const { isMobile } = useSidebar();
+  const { isMobile, state } = useSidebar();
   const { openSettings } = useSettingsDialog();
-  const auth = useWorkspaceStore((state) => state.auth);
+  const auth = useWorkspaceStore((store) => store.auth);
   const username = auth?.username ?? "Usuario";
   const isDebugMode = auth?.mode === "debug";
+  const collapsed = !isMobile && state === "collapsed";
   const initials =
     username
       .split(/\s+/)
@@ -40,45 +40,53 @@ export function UserMenu() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              tooltip={`Abrir menú de ${username}`}
-              aria-label={`Abrir menú de ${username}`}
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="size-8 rounded-lg">
-                <AvatarFallback className="rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="min-w-0 text-left group-data-[collapsible=icon]:hidden">
-                <span className="block truncate text-sm font-medium">{username}</span>
-                {isDebugMode && (
-                  <span className="block truncate text-xs text-muted-foreground">
-                    Modo de desarrollo
+        <Menu>
+          <Tooltip
+            content={`Abrir menú de ${username}`}
+            side="right"
+            wrapperClassName="flex w-full min-w-0"
+          >
+            <MenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={`Abrir menú de ${username}`}
+                aria-haspopup="menu"
+                className="relative flex min-h-11 w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-xl px-3 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-muted"
+              >
+                <Avatar className="size-8 rounded-lg">
+                  <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className={cn("min-w-0 flex-1 text-left", collapsed && "sr-only")}>
+                  <span className="block truncate text-sm font-medium text-foreground">
+                    {username}
                   </span>
-                )}
-              </span>
-              {isDebugMode && (
-                <Badge variant="secondary" className="ml-auto group-data-[collapsible=icon]:hidden">
-                  Debug
-                </Badge>
-              )}
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" side={isMobile ? "bottom" : "top"} align="end">
-            <DropdownMenuLabel className="font-normal">
+                  {isDebugMode ? (
+                    <span className="block truncate text-xs text-muted-foreground">
+                      Modo de desarrollo
+                    </span>
+                  ) : null}
+                </span>
+                {isDebugMode && !collapsed ? (
+                  <Badge status="neutral" size="sm" showIcon={false} className="ml-auto shrink-0">
+                    Debug
+                  </Badge>
+                ) : null}
+              </button>
+            </MenuTrigger>
+          </Tooltip>
+          <MenuContent className="w-56" side={isMobile ? "bottom" : "top"} align="end">
+            <MenuLabel className="font-normal">
               <span className="block truncate text-sm font-medium">{username}</span>
-              {isDebugMode && (
+              {isDebugMode ? (
                 <span className="block truncate text-xs text-muted-foreground">
                   Modo de desarrollo
                 </span>
-              )}
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
+              ) : null}
+            </MenuLabel>
+            <MenuSeparator />
+            <MenuItem
               onSelect={(event) => {
                 event.preventDefault();
                 openSettings();
@@ -86,24 +94,28 @@ export function UserMenu() {
             >
               <Settings />
               <span>Ajustes</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            </MenuItem>
+            <MenuItem disabled>
               <FileText />
               <span>Docs</span>
               <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
-            </DropdownMenuItem>
-            <ThemeMenu />
-            <DropdownMenuSeparator />
+            </MenuItem>
+            <MenuSeparator />
+            <div className="px-2 py-2">
+              <p className="mb-2 px-1 text-xs text-muted-foreground">Apariencia</p>
+              <ThemeModeControl />
+            </div>
+            <MenuSeparator />
             <form action={logoutAction}>
-              <DropdownMenuItem asChild>
+              <MenuItem asChild>
                 <button type="submit" className="w-full text-left">
                   <LogOut />
                   <span>Cerrar sesión</span>
                 </button>
-              </DropdownMenuItem>
+              </MenuItem>
             </form>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </MenuContent>
+        </Menu>
       </SidebarMenuItem>
     </SidebarMenu>
   );

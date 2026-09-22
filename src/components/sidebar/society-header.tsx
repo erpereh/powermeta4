@@ -7,25 +7,33 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { switchMeta4WorkspaceAction } from "@/app/actions/meta4-workspace";
 import { PowermetaLogo } from "@/components/branding/powermeta-logo";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuTrigger,
+  SidebarMenu,
+  SidebarMenuItem,
+  Tooltip,
+  useSidebar,
+} from "@/components/system";
 import { META4_SOCIETY_LEGAL_NAMES, type Meta4Society } from "@/lib/meta4/societies";
+import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 
 const isMeta4Society = (value: string | null | undefined): value is Meta4Society =>
   value === "CYC" || value === "IBER" || value === "COLL";
 
+const headerButtonClass =
+  "relative flex min-h-11 w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-xl px-3 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
+
 export function SocietyHeader() {
   const router = useRouter();
-  const { isMobile } = useSidebar();
-  const auth = useWorkspaceStore((state) => state.auth);
-  const applySnapshot = useWorkspaceStore((state) => state.applySnapshot);
+  const { isMobile, state } = useSidebar();
+  const auth = useWorkspaceStore((store) => store.auth);
+  const applySnapshot = useWorkspaceStore((store) => store.applySnapshot);
   const [pending, setPending] = useState(false);
+  const collapsed = !isMobile && state === "collapsed";
 
   const isDebugMode = auth?.mode === "debug";
   const societyCode = auth?.societyCode ?? null;
@@ -63,9 +71,14 @@ export function SocietyHeader() {
   };
 
   const label = (
-    <span className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-      <span className="truncate text-sm font-semibold">{title}</span>
-      <span className="truncate text-xs text-sidebar-foreground/60">{subtitle}</span>
+    <span
+      className={cn(
+        "grid min-w-0 flex-1 text-left leading-tight",
+        collapsed && "sr-only",
+      )}
+    >
+      <span className="truncate text-sm font-semibold text-foreground">{title}</span>
+      <span className="truncate text-xs text-muted-foreground">{subtitle}</span>
     </span>
   );
 
@@ -73,16 +86,15 @@ export function SocietyHeader() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton
-            size="lg"
-            tooltip={tooltip}
-            aria-label={`powermeta4. ${title}. ${subtitle}`}
-            className="cursor-default hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent data-[active=true]:bg-transparent"
-            onClick={(event) => event.preventDefault()}
-          >
-            <PowermetaLogo compact markClassName="size-8" />
-            {label}
-          </SidebarMenuButton>
+          <Tooltip content={tooltip} side="right" wrapperClassName="flex w-full min-w-0">
+            <div
+              className={cn(headerButtonClass, "cursor-default hover:bg-transparent")}
+              aria-label={`powermeta4. ${title}. ${subtitle}`}
+            >
+              <PowermetaLogo compact markClassName="size-8" />
+              {label}
+            </div>
+          </Tooltip>
         </SidebarMenuItem>
       </SidebarMenu>
     );
@@ -91,30 +103,33 @@ export function SocietyHeader() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              tooltip={tooltip}
-              aria-label={`Sociedad activa ${societyCode}. Cambiar sociedad Meta4`}
-              aria-haspopup="menu"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              disabled={pending}
-            >
-              <PowermetaLogo compact markClassName="size-8" />
-              {label}
-              <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
+        <Menu>
+          <Tooltip content={tooltip} side="right" wrapperClassName="flex w-full min-w-0">
+            <MenuTrigger asChild>
+              <button
+                type="button"
+                disabled={pending}
+                aria-label={`Sociedad activa ${societyCode}. Cambiar sociedad Meta4`}
+                aria-haspopup="menu"
+                className={headerButtonClass}
+              >
+                <PowermetaLogo compact markClassName="size-8" />
+                {label}
+                <ChevronsUpDown
+                  className={cn("ml-auto size-4 shrink-0 text-muted-foreground", collapsed && "hidden")}
+                />
+              </button>
+            </MenuTrigger>
+          </Tooltip>
+          <MenuContent
             className="min-w-56 rounded-lg"
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            <DropdownMenuLabel>Sociedades</DropdownMenuLabel>
+            <MenuLabel>Sociedades</MenuLabel>
             {availableSocieties.map((society) => (
-              <DropdownMenuItem
+              <MenuItem
                 key={society}
                 className="gap-2 p-2"
                 disabled={pending}
@@ -129,10 +144,10 @@ export function SocietyHeader() {
                   </span>
                 </span>
                 {society === societyCode ? <Check className="ml-auto size-4" /> : null}
-              </DropdownMenuItem>
+              </MenuItem>
             ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </MenuContent>
+        </Menu>
       </SidebarMenuItem>
     </SidebarMenu>
   );

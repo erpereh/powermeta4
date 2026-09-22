@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AuthView } from "@/types/session";
@@ -27,6 +28,7 @@ vi.mock("@/stores/use-workspace-store", () => ({
 }));
 
 import { SettingsContent } from "./settings-content";
+import { SettingsDialog } from "./settings-dialog";
 
 afterEach(() => {
   cleanup();
@@ -34,6 +36,19 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  );
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -115,6 +130,57 @@ describe("settings content", () => {
       expect(screen.getByRole("heading", { name: "Organización" })).toBeTruthy();
       expect(screen.getByRole("heading", { name: "Sesión Meta4" })).toBeTruthy();
     });
+    expect(screen.getByText("Sociedad activa: CYC")).toBeTruthy();
   });
 
+  it("shows an empty state when the profile has no sections", async () => {
+    mocks.state.auth = {
+      mode: "meta4",
+      username: "usuario",
+      canUseMeta4: true,
+      societyCode: "CYC",
+      availableSocieties: ["CYC"],
+    };
+    mocks.getMeta4ProfileViewAction.mockResolvedValue({
+      available: true,
+      debugMode: false,
+      username: "usuario",
+      societyCode: "CYC",
+      societyLegalName: "CyC",
+      displayName: "Usuario",
+      lookedUpAt: "2026-08-14T00:00:00.000Z",
+      sections: [],
+    });
+
+    render(<SettingsContent variant="page" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("No hay datos de la persona.")).toBeTruthy();
+    });
+  });
+
+  it("keeps backup export and restore actions on the copies section", async () => {
+    const user = userEvent.setup();
+    render(<SettingsContent variant="dialog" />);
+
+    await user.click(screen.getByRole("button", { name: "Datos y copias" }));
+
+    expect(screen.getByRole("heading", { name: "Exportar workspace" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Restaurar workspace" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Crear y descargar ZIP/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Validar ZIP/i })).toBeTruthy();
+    expect(screen.getByLabelText("Archivo ZIP")).toBeTruthy();
+  });
+});
+
+describe("settings dialog", () => {
+  it("opens the large settings modal with shared content", async () => {
+    render(<SettingsDialog open onOpenChange={() => undefined} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("dialog", { name: "Ajustes" })).toBeTruthy();
+    });
+    expect(screen.getByText("Perfil Meta4 y copias locales de este equipo.")).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "Secciones de ajustes" })).toBeTruthy();
+  });
 });
