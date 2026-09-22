@@ -1,4 +1,5 @@
 import { escapeXml } from "@/lib/meta4/user-profile-soap";
+import { getMeta4ServiceUrl, META4_SERVICE } from "@/lib/meta4/config";
 
 import { Meta4HireError } from "./errors";
 
@@ -9,14 +10,22 @@ const GROUP_INTERFACE = "INIT_EMPLOYEES_FD";
 const FLAG_OFF = "0";
 
 export const getMeta4HireUrl = (override?: string): string => {
-  const value = (override ?? process.env.META4_HIRE_URL ?? "").trim();
-  if (!value) {
-    throw new Meta4HireError("META4_HIRE_CONFIG", "META4_HIRE_URL es obligatoria.");
+  if (override !== undefined) {
+    const value = override.trim();
+    if (!value) {
+      throw new Meta4HireError("META4_HIRE_CONFIG", "META4_BASE_URL es obligatoria.");
+    }
+    if (!value.startsWith("https://")) {
+      throw new Meta4HireError("META4_HIRE_CONFIG", "META4_BASE_URL debe usar HTTPS.");
+    }
+    return value;
   }
-  if (!value.startsWith("https://")) {
-    throw new Meta4HireError("META4_HIRE_CONFIG", "META4_HIRE_URL debe usar HTTPS.");
+  try {
+    return getMeta4ServiceUrl(META4_SERVICE.hire);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "META4_BASE_URL es obligatoria.";
+    throw new Meta4HireError("META4_HIRE_CONFIG", message);
   }
-  return value;
 };
 
 export const getMeta4HireDirectory = (override?: string): string => {

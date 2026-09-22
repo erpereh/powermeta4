@@ -27,11 +27,15 @@ const noMatchBody = `
     </soap:Body>
   </soap:Envelope>`;
 
-const lookup = (postSoap: (input: { xml: string }) => Promise<Response>, log?: (message: string, details: Record<string, string>) => void) =>
+const lookup = (
+  postSoap: (input: { xml: string }) => Promise<Response>,
+  log?: (message: string, details: Record<string, string>) => void,
+) =>
   lookupMeta4SocietyProfiles({
     username: "user",
     jSessionId: "jsession-abc",
     postSoap,
+    profileUrl: "https://example.test/services/CSP_CONSULTA_ORO_INTRAN_NEW",
     log,
   });
 
@@ -50,7 +54,9 @@ const posterFrom = (resolver: (society: string) => Response | "throw") => {
 describe("Meta4 society profile lookup", () => {
   it("A) keeps only CYC when IBER and COLL are no-match", async () => {
     const { seen, postSoap } = posterFrom((society) =>
-      society === "CYC" ? new Response(matchBody("CYC"), { status: 200 }) : new Response(noMatchBody, { status: 200 }),
+      society === "CYC"
+        ? new Response(matchBody("CYC"), { status: 200 })
+        : new Response(noMatchBody, { status: 200 }),
     );
 
     const result = await lookup(postSoap);
@@ -85,7 +91,9 @@ describe("Meta4 society profile lookup", () => {
 
   it("D) keeps only IBER when CYC and COLL are no-match", async () => {
     const { seen, postSoap } = posterFrom((society) =>
-      society === "IBER" ? new Response(matchBody("IBER"), { status: 200 }) : new Response(noMatchBody, { status: 200 }),
+      society === "IBER"
+        ? new Response(matchBody("IBER"), { status: 200 })
+        : new Response(noMatchBody, { status: 200 }),
     );
 
     const result = await lookup(postSoap);
@@ -142,6 +150,7 @@ describe("Meta4 society profile lookup", () => {
         username: "user",
         jSessionId: "jsession",
         postSoap,
+        profileUrl: "https://example.test/services/CSP_CONSULTA_ORO_INTRAN_NEW",
       }),
     ).rejects.toMatchObject({ code: "META4_PROFILE_LOOKUP_FAILED" });
     expect(postSoap).toHaveBeenCalledOnce();

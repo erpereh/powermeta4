@@ -62,6 +62,7 @@ describe("getMeta4EmployeeDetail service", () => {
     for (const error of known) {
       await expect(
         getMeta4EmployeeDetail("1013", {
+          detailUrl: "https://example.test/detail",
           executeSoap: async () => {
             throw error;
           },
@@ -71,6 +72,7 @@ describe("getMeta4EmployeeDetail service", () => {
 
     await expect(
       getMeta4EmployeeDetail("1013", {
+        detailUrl: "https://example.test/detail",
         executeSoap: async () => {
           throw new Error("network cable melted");
         },

@@ -1,14 +1,12 @@
 import "server-only";
 
 import { Meta4HttpError } from "./client";
+import { getMeta4ServiceUrl, META4_SERVICE } from "./config";
 import { Meta4SoapFaultError } from "./soap-xml";
 import { Meta4ProfileError } from "./profile-errors";
 import { META4_SOCIETIES, type Meta4Society } from "./societies";
 import { buildUserProfileEnvelope, classifyUserProfileResponse } from "./user-profile-soap";
 import type { SocietyLookupMatch, SocietyLookupMatches } from "./user-profile-types";
-
-export const DEFAULT_META4_USER_PROFILE_URL =
-  "https://meta4desasoap.creditocaucion.es/services/CSP_CONSULTA_ORO_INTRAN_NEW";
 
 export type Meta4SoapPoster = (input: {
   url: string;
@@ -27,14 +25,18 @@ export type LookupMeta4SocietyProfileOptions = {
 };
 
 const getProfileUrl = (profileUrl?: string): string => {
-  const value = profileUrl ?? process.env.META4_USER_PROFILE_URL ?? DEFAULT_META4_USER_PROFILE_URL;
-  if (!value.startsWith("https://")) {
-    throw new Meta4ProfileError(
-      "META4_PROFILE_LOOKUP_FAILED",
-      "META4_USER_PROFILE_URL debe usar HTTPS.",
-    );
+  if (profileUrl !== undefined) {
+    if (!profileUrl.startsWith("https://")) {
+      throw new Meta4ProfileError("META4_PROFILE_LOOKUP_FAILED", "META4_BASE_URL debe usar HTTPS.");
+    }
+    return profileUrl;
   }
-  return value;
+  try {
+    return getMeta4ServiceUrl(META4_SERVICE.profile);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "META4_BASE_URL es obligatoria.";
+    throw new Meta4ProfileError("META4_PROFILE_LOOKUP_FAILED", message);
+  }
 };
 
 const safeLog = (

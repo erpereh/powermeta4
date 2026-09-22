@@ -8,9 +8,9 @@ import {
   parseLoginResponse,
   parseRetrieveM4SessionResponse,
 } from "./soap-xml";
+import { getMeta4ServiceUrl, META4_SERVICE } from "./config";
 import type { Meta4SoapPoster } from "./user-profile-lookup";
 
-export const DEFAULT_META4_LOGIN_URL = "https://meta4desasoap.creditocaucion.es/services/Login";
 export const META4_TIMEOUT_MS = 15_000;
 
 export type Meta4LoginResult = {
@@ -41,9 +41,11 @@ export type Meta4ClientOptions = {
 };
 
 const getLoginUrl = (loginUrl?: string): string => {
-  const value = loginUrl ?? process.env.META4_LOGIN_URL ?? DEFAULT_META4_LOGIN_URL;
-  if (!value.startsWith("https://")) throw new Error("META4_LOGIN_URL debe usar HTTPS.");
-  return value;
+  if (loginUrl !== undefined) {
+    if (!loginUrl.startsWith("https://")) throw new Error("META4_BASE_URL debe usar HTTPS.");
+    return loginUrl;
+  }
+  return getMeta4ServiceUrl(META4_SERVICE.login);
 };
 
 export const postSoapXml = async (

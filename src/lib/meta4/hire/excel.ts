@@ -1,22 +1,66 @@
 import "server-only";
 
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { Meta4HireError } from "./errors";
-import {
-  FIRST_PERSON_ROW,
-  HIRE_DATA_SHEET,
-  MANUAL_COLUMNS,
-  toExcelSerialDate,
-} from "./mapping";
+import { FIRST_PERSON_ROW, HIRE_DATA_SHEET, MANUAL_COLUMNS, toExcelSerialDate } from "./mapping";
 import type { HirePerson } from "./types";
 
 const OLE_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
 const UTF8_BOM = Buffer.from([0xef, 0xbb, 0xbf]);
 const EXCEL_TIMEOUT_MS = 180_000;
+const CLASS_NOT_REGISTERED =
+  /80040154|REGDB_E_CLASSNOTREG|Class not registered|Clase no registrada/i;
+
+const systemRoot = process.env.SystemRoot ?? "C:\\Windows";
+const programFiles = process.env.ProgramFiles ?? "C:\\Program Files";
+const programFilesX86 = process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)";
+
+export const POWERSHELL_64 = `${systemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`;
+export const POWERSHELL_32 = `${systemRoot}\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe`;
+
+const EXCEL_CANDIDATES = [
+  `${programFiles}\\Microsoft Office\\root\\Office16\\EXCEL.EXE`,
+  `${programFiles}\\Microsoft Office\\Office16\\EXCEL.EXE`,
+  `${programFilesX86}\\Microsoft Office\\root\\Office16\\EXCEL.EXE`,
+  `${programFilesX86}\\Microsoft Office\\Office16\\EXCEL.EXE`,
+];
+
+export type InstalledExcel = { path: string; bitness: 32 | 64 };
+
+export const findInstalledExcel = (): InstalledExcel | null => {
+  for (const candidate of EXCEL_CANDIDATES) {
+    if (!existsSync(/* turbopackIgnore: true */ candidate)) continue;
+    return { path: candidate, bitness: candidate.includes("(x86)") ? 32 : 64 };
+  }
+  return null;
+};
+
+export const powershellForExcel = (): string => {
+  const excel = findInstalledExcel();
+  if (excel?.bitness === 32 && existsSync(/* turbopackIgnore: true */ POWERSHELL_32))
+    return POWERSHELL_32;
+  if (existsSync(/* turbopackIgnore: true */ POWERSHELL_64)) return POWERSHELL_64;
+  return "powershell.exe";
+};
+
+const alternatePowershell = (current: string): string | null => {
+  if (
+    current.toLowerCase() === POWERSHELL_64.toLowerCase() &&
+    existsSync(/* turbopackIgnore: true */ POWERSHELL_32)
+  )
+    return POWERSHELL_32;
+  if (
+    current.toLowerCase() === POWERSHELL_32.toLowerCase() &&
+    existsSync(/* turbopackIgnore: true */ POWERSHELL_64)
+  )
+    return POWERSHELL_64;
+  return null;
+};
 
 export const encodeUtf8Bom = (text: string): Buffer =>
   Buffer.concat([UTF8_BOM, Buffer.from(text, "utf8")]);
@@ -24,20 +68,50 @@ export const encodeUtf8Bom = (text: string): Buffer =>
 export const redactHireDiagnostic = (text: string): string =>
   text
     .replace(/[^\s@]+@[^\s@]+\.[^\s@]+/g, "[redacted-email]")
-    .replace(/\b\d{7,}[A-Za-z]?\b/g, "[redacted-id]");
+    .replace(/\b\d{7,}[A-Za-z]?\b/g, "[redacted-id]")
+    .replace(/JSESSIONID=[^\s;]+/gi, "JSESSIONID=[redacted]")
+    .replace(/password[=:]\s*\S+/gi, "password=[redacted]");
 
-const lastStage = (stdout: string): string => {
-  const matches = [...stdout.matchAll(/STAGE=([a-z-]+)/g)];
-  return matches.at(-1)?.[1] ?? "unknown";
+export type ExcelDiagnostic = {
+  exitCode: number | null;
+  stage: string;
+  stderr: string;
+  excelComCreated: boolean;
+  workbookOpened: boolean;
+  sheetFound: boolean;
+  saveFailed: boolean;
 };
 
-const logExcelFailure = (exitCode: number | null, stdout: string, stderr: string): void => {
-  console.error("meta4-hire excel failed", {
+const stageSeen = (stdout: string, stage: string): boolean => stdout.includes(`STAGE=${stage}`);
+
+export const buildExcelDiagnostic = (
+  exitCode: number | null,
+  stdout: string,
+  stderr: string,
+): ExcelDiagnostic => {
+  const edited = stageSeen(stdout, "edited");
+  const saved = stageSeen(stdout, "saved");
+  return {
     exitCode,
-    stage: lastStage(stdout),
-    stderr: redactHireDiagnostic(stderr).trim(),
-  });
+    stage: [...stdout.matchAll(/STAGE=([a-z-]+)/g)].at(-1)?.[1] ?? "unknown",
+    stderr: redactHireDiagnostic(stderr)
+      .replace(/<[\s\S]*soap[\s\S]*>/i, "[redacted-xml]")
+      .trim(),
+    excelComCreated: stageSeen(stdout, "excel-com-created"),
+    workbookOpened: stageSeen(stdout, "workbook-opened"),
+    sheetFound: stageSeen(stdout, "sheet-ready"),
+    saveFailed: edited && !saved,
+  };
 };
+
+const logExcelFailure = (diagnostic: ExcelDiagnostic): void => {
+  if (process.env.NODE_ENV === "production") return;
+  console.error("meta4-hire excel failed", diagnostic);
+};
+
+const editFailed = (
+  message = "No se ha podido editar la copia de Hire_1_PERSONA.xls.",
+): Meta4HireError => new Meta4HireError("META4_HIRE_EDIT_FAILED", message);
 
 const EXCEL_SCRIPT = String.raw`
 param(
@@ -48,29 +122,33 @@ $ErrorActionPreference = "Stop"
 $excel = $null
 $workbook = $null
 $createdPid = $null
+$created = @()
 $before = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
 try {
+  [Console]::Out.WriteLine("STAGE=start")
   $excel = New-Object -ComObject Excel.Application
-  $deadline = (Get-Date).AddSeconds(8)
+  [Console]::Out.WriteLine("STAGE=excel-com-created")
+  $deadline = (Get-Date).AddSeconds(15)
   do {
-    Start-Sleep -Milliseconds 200
     $created = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | Where-Object { $before -notcontains $_.Id })
-  } while ($created.Count -lt 1 -and (Get-Date) -lt $deadline)
-  if ($created.Count -lt 1) {
-    $excel = $null
-    throw "Excel COM did not start a new process."
+    if ($created.Count -ge 1) { break }
+    Start-Sleep -Milliseconds 200
+  } while ((Get-Date) -lt $deadline)
+  if ($created.Count -ge 1) {
+    $createdPid = $created[0].Id
+    [Console]::Out.WriteLine("EXCEL_PID=$createdPid")
   }
-  $createdPid = $created[0].Id
   [Console]::Out.WriteLine("STAGE=excel-started")
-  [Console]::Out.WriteLine("EXCEL_PID=$createdPid")
   $excel.Visible = $false
   $excel.DisplayAlerts = $false
   $excel.ScreenUpdating = $false
   $excel.EnableEvents = $false
   $excel.AskToUpdateLinks = $false
+  try { $excel.AutomationSecurity = 3 } catch {}
   try { $excel.CalculateBeforeSave = $false } catch {}
   try { $excel.Calculation = -4135 } catch {}
-  $payload = Get-Content -LiteralPath $InstructionsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  Unblock-File -LiteralPath $WorkbookPath -ErrorAction SilentlyContinue
+  $payload = [System.IO.File]::ReadAllText($InstructionsPath) | ConvertFrom-Json
   $workbook = $excel.Workbooks.Open($WorkbookPath, 0, $false)
   [Console]::Out.WriteLine("STAGE=workbook-opened")
   $sheet = $workbook.Worksheets.Item([string]$payload.sheetName)
@@ -107,7 +185,7 @@ try {
     try { $workbook.Close($false) } catch {}
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) } catch {}
   }
-  if ($null -ne $excel -and $null -ne $createdPid) {
+  if ($null -ne $excel) {
     try { $excel.Quit() } catch {}
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) } catch {}
   }
@@ -149,7 +227,7 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
 
 const readWhenUnlocked = async (filePath: string): Promise<Buffer> => {
   let lastError: unknown;
-  for (let attempt = 0; attempt < 10; attempt += 1) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
     try {
       return await readFile(filePath);
     } catch (error) {
@@ -162,14 +240,23 @@ const readWhenUnlocked = async (filePath: string): Promise<Buffer> => {
   throw lastError;
 };
 
-const runExcel = (
+const stripMarkOfTheWeb = async (filePath: string): Promise<void> => {
+  await rm(`${filePath}:Zone.Identifier`, { force: true }).catch(() => undefined);
+};
+
+type ExcelRun =
+  | { ok: true }
+  | { ok: false; exitCode: number | null; stdout: string; stderr: string };
+
+const spawnExcel = (
+  powershellPath: string,
   scriptPath: string,
   workbookPath: string,
   instructionsPath: string,
-): Promise<void> =>
-  new Promise((resolve, reject) => {
+): Promise<ExcelRun> =>
+  new Promise((resolve) => {
     const child = spawn(
-      "powershell.exe",
+      powershellPath,
       [
         "-NoProfile",
         "-NonInteractive",
@@ -187,20 +274,22 @@ const runExcel = (
     let stdout = "";
     let stderr = "";
     let excelPid: number | undefined;
+    let settled = false;
+    let timedOut = false;
+    const finish = (result: ExcelRun) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(result);
+    };
     const killExcel = () => {
       if (!excelPid) return;
       spawn("taskkill.exe", ["/PID", String(excelPid), "/F"], { windowsHide: true });
     };
     const timer = setTimeout(() => {
-      logExcelFailure(null, stdout, `${stderr}\nExcel edit timed out.`);
+      timedOut = true;
       killExcel();
       child.kill();
-      reject(
-        new Meta4HireError(
-          "META4_HIRE_FILE_FAILED",
-          "Excel no terminó de editar la copia de Hire_1_PERSONA.xls.",
-        ),
-      );
     }, EXCEL_TIMEOUT_MS);
     child.stdout.setEncoding("utf8");
     child.stderr.setEncoding("utf8");
@@ -213,24 +302,49 @@ const runExcel = (
       stderr += chunk;
     });
     child.on("error", (error) => {
-      clearTimeout(timer);
-      reject(error);
+      finish({ ok: false, exitCode: null, stdout, stderr: error.message });
     });
     child.on("close", (code) => {
-      clearTimeout(timer);
-      if (code === 0) {
-        resolve();
+      const nextStderr = timedOut ? `${stderr}\nExcel edit timed out.` : stderr;
+      if (code === 0 && !timedOut) {
+        finish({ ok: true });
         return;
       }
-      logExcelFailure(code, stdout, stderr);
-      reject(
-        new Meta4HireError(
-          "META4_HIRE_FILE_FAILED",
-          "No se ha podido editar la copia de Hire_1_PERSONA.xls.",
-        ),
-      );
+      finish({
+        ok: false,
+        exitCode: timedOut ? null : code,
+        stdout,
+        stderr: nextStderr,
+      });
     });
   });
+
+const rejectExcelRun = (run: Extract<ExcelRun, { ok: false }>): never => {
+  const diagnostic = buildExcelDiagnostic(run.exitCode, run.stdout, run.stderr);
+  logExcelFailure(diagnostic);
+  const message =
+    run.exitCode === null && /timed out/i.test(run.stderr)
+      ? "Excel no terminó de editar la copia de Hire_1_PERSONA.xls."
+      : "No se ha podido editar la copia de Hire_1_PERSONA.xls.";
+  throw editFailed(message);
+};
+
+const runExcel = async (
+  scriptPath: string,
+  workbookPath: string,
+  instructionsPath: string,
+): Promise<void> => {
+  const primary = powershellForExcel();
+  const first = await spawnExcel(primary, scriptPath, workbookPath, instructionsPath);
+  if (first.ok) return;
+  const alternate = alternatePowershell(primary);
+  if (alternate && CLASS_NOT_REGISTERED.test(first.stderr)) {
+    const second = await spawnExcel(alternate, scriptPath, workbookPath, instructionsPath);
+    if (second.ok) return;
+    rejectExcelRun(second);
+  }
+  rejectExcelRun(first);
+};
 
 export const writeHireEditFiles = async (
   directory: string,
@@ -254,10 +368,7 @@ export const writeHireEditFiles = async (
 
 export const assertOle2Buffer = (bytes: Buffer): void => {
   if (bytes.length < OLE_MAGIC.length || !bytes.subarray(0, OLE_MAGIC.length).equals(OLE_MAGIC)) {
-    throw new Meta4HireError(
-      "META4_HIRE_FILE_FAILED",
-      "El fichero Hire generado no es un XLS BIFF/OLE2 válido.",
-    );
+    throw editFailed("El fichero Hire generado no es un XLS BIFF/OLE2 válido.");
   }
 };
 
@@ -273,6 +384,7 @@ export const editHireWorkbook = async (
   const workbookPath = path.join(directory, "Hire.xls");
   try {
     await copyFile(templatePath, workbookPath);
+    await stripMarkOfTheWeb(workbookPath);
     const { scriptPath, instructionsPath } = await writeHireEditFiles(directory, people);
     await runExcel(scriptPath, workbookPath, instructionsPath);
     const bytes = await readWhenUnlocked(workbookPath);
@@ -280,10 +392,16 @@ export const editHireWorkbook = async (
     return bytes;
   } catch (error) {
     if (error instanceof Meta4HireError) throw error;
-    throw new Meta4HireError(
-      "META4_HIRE_FILE_FAILED",
-      "No se ha podido editar la copia de Hire_1_PERSONA.xls.",
+    logExcelFailure(
+      buildExcelDiagnostic(
+        null,
+        "",
+        error instanceof Error
+          ? error.message
+          : "No se ha podido preparar la copia de la plantilla.",
+      ),
     );
+    throw editFailed();
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

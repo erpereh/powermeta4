@@ -1,6 +1,5 @@
 import "server-only";
 
-import { stat } from "node:fs/promises";
 import path from "node:path";
 
 import type { ResolvedAuthSession } from "@/lib/auth/service";
@@ -26,7 +25,7 @@ import {
   getMeta4HireUrl,
 } from "./soap";
 import type { HireLaunchResult, HirePerson } from "./types";
-import { writeHireFileAtomically } from "./write-file";
+import { verifyWrittenHireFile, writeHireFileAtomically } from "./write-file";
 
 export const HIRE_SOAP_TIMEOUT_MS = 60_000;
 
@@ -52,10 +51,7 @@ const isKnownSystemError = (error: unknown): boolean =>
   error instanceof Meta4ProfileError ||
   isMeta4HireError(error);
 
-const safeLog = (
-  log: LaunchMeta4HireDeps["log"],
-  details: Record<string, string>,
-): void => {
+const safeLog = (log: LaunchMeta4HireDeps["log"], details: Record<string, string>): void => {
   log?.("meta4-hire", details);
 };
 
@@ -63,24 +59,6 @@ const resolveTemplatePath = (templatePath: string): string =>
   path.isAbsolute(templatePath)
     ? templatePath
     : path.resolve(/* turbopackIgnore: true */ process.cwd(), templatePath);
-
-const defaultVerifyHireFile = async (filePath: string): Promise<void> => {
-  try {
-    const info = await stat(filePath);
-    if (info.size <= 0) {
-      throw new Meta4HireError(
-        "META4_HIRE_FILE_FAILED",
-        "El fichero Hire.xls está vacío tras la escritura.",
-      );
-    }
-  } catch (error) {
-    if (isMeta4HireError(error)) throw error;
-    throw new Meta4HireError(
-      "META4_HIRE_FILE_FAILED",
-      "El fichero Hire.xls no existe o no se puede leer tras la escritura.",
-    );
-  }
-};
 
 /**
  * Copies Hire_1_PERSONA.xls, edits it with Excel, and launches SRTC_LAUNCH_IMPORT.
@@ -96,7 +74,7 @@ export const launchMeta4Hire = async (
   const executeSoap = deps.executeSoap ?? executeAuthenticatedSoap;
   const editWorkbook = deps.editHireWorkbook ?? editHireWorkbook;
   const writeHireFile = deps.writeHireFile ?? writeHireFileAtomically;
-  const verifyHireFile = deps.verifyHireFile ?? defaultVerifyHireFile;
+  const verifyHireFile = deps.verifyHireFile ?? verifyWrittenHireFile;
   const serialize = deps.serialize ?? hireExecutionQueue;
 
   const context = await getContext(authSession);

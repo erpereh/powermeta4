@@ -16,7 +16,9 @@ describe("Meta4 hire SOAP builder", () => {
     const xml = buildLaunchImportEnvelope(filePath);
 
     expect(xml).toContain("<sch:SRTC_LAUNCH_IMPORT>");
-    expect(xml).toContain("<sch:ARG_ID_GROUP_INTERFACE>INIT_EMPLOYEES_FD</sch:ARG_ID_GROUP_INTERFACE>");
+    expect(xml).toContain(
+      "<sch:ARG_ID_GROUP_INTERFACE>INIT_EMPLOYEES_FD</sch:ARG_ID_GROUP_INTERFACE>",
+    );
     expect(xml).toContain(`<sch:ARG_PATH_FILE>${escapeXml(filePath)}</sch:ARG_PATH_FILE>`);
     expect(xml).toContain("<sch:ARG_LIST_EMAIL>0</sch:ARG_LIST_EMAIL>");
     expect(xml).toContain("<sch:ARG_ATTACH_FILE>0</sch:ARG_ATTACH_FILE>");
@@ -35,9 +37,14 @@ describe("Meta4 hire SOAP builder", () => {
   it("requires HTTPS hire URL and a file path", () => {
     expect(() => getMeta4HireUrl("")).toThrow(Meta4HireError);
     expect(() => getMeta4HireUrl("http://insecure/services/SRTC_LAUNCH_IMPORT")).toThrow(/HTTPS/);
-    expect(
-      getMeta4HireUrl("https://meta4desasoap.creditocaucion.es/services/SRTC_LAUNCH_IMPORT"),
-    ).toBe("https://meta4desasoap.creditocaucion.es/services/SRTC_LAUNCH_IMPORT");
+    const previous = process.env.META4_BASE_URL;
+    process.env.META4_BASE_URL = "https://meta4.example.test/";
+    try {
+      expect(getMeta4HireUrl()).toBe("https://meta4.example.test/services/SRTC_LAUNCH_IMPORT");
+    } finally {
+      if (previous === undefined) delete process.env.META4_BASE_URL;
+      else process.env.META4_BASE_URL = previous;
+    }
     expect(() => getMeta4HireDirectory("")).toThrow(/META4_HIRE_FILE_PATH/);
     const directory = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel`;
     expect(getMeta4HireDirectory(directory)).toBe(directory);

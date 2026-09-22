@@ -1,5 +1,15 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4 - 2026-09-22 (URL única y Excel)
+
+- [x] `META4_BASE_URL` deriva Login, perfil, listado, detalle y alta.
+- [x] La edición Excel no depende de ver un PID nuevo en 8 s, y el fallo de
+      la carpeta compartida no se presenta como fallo de plantilla.
+- [x] Verificación: `npm run typecheck` correcto; `npm test` 95 archivos,
+      485 pruebas correctas y 2 omitidas; `npm run build` correcto;
+      `git diff --check` correcto. Edición real: XLS de 33369088 bytes,
+      sin Excel huérfano ni alta SOAP.
+
 ## Alta de personas Meta4 - 2026-09-22 (nombre de fichero)
 
 - [x] El fichero Hire usa el usuario del contexto Meta4 y un timestamp, dentro

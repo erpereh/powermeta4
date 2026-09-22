@@ -70,14 +70,14 @@ sin tocar conversaciones, mensajes, attachments ni el grafo de padres.
 
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Tras un login Meta4 real se consulta el perfil de usuario
-(`CSP_CONSULTA_ORO_INTRAN_NEW`, endpoint provisional configurable) para
+(`CSP_CONSULTA_ORO_INTRAN_NEW`, derivado de `META4_BASE_URL`) para
 detectar todas las sociedades disponibles (`CYC` → `IBER` → `COLL`) y
 persistir un perfil cifrado por sociedad. Un error de infraestructura
 durante esa detección aborta el login para no mostrar una lista incompleta.
-El listado de usuarios (`CSP_POWER4_USER_ALL`, `META4_USERS_LIST_URL`) usa la
+El listado de usuarios (`CSP_POWER4_USER_ALL`) usa la
 sociedad activa del contexto operativo del servidor (`ARG_SOCIEDAD` sobre
 un único `JSESSIONID`) y no persiste resultados en
-SQLite. El alta de personas (`SRTC_LAUNCH_IMPORT`, `META4_HIRE_URL`) copia
+SQLite. El alta de personas (`SRTC_LAUNCH_IMPORT`) copia
 `Hire_1_PERSONA.xls`, Excel sustituye solo los campos de la UI y guarda un
 fichero con nombre de usuario y fecha en el directorio `META4_HIRE_FILE_PATH`.
 No guarda datos personales en SQLite. Las pruebas SOAP son simuladas y no llaman a Meta4 real. Los

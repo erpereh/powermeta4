@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-22 - URL Meta4 única y edición Hire
+
+### Cambios
+
+- Los endpoints SOAP salen de `META4_BASE_URL`: Login, perfil, listado,
+  detalle y `SRTC_LAUNCH_IMPORT`.
+- La edición de `Hire_1_PERSONA.xls` ya no aborta si el PID de Excel tarda en
+  aparecer, quita la marca de descarga de la copia y deja el error técnico
+  de PowerShell en el log de desarrollo. Escribir en la carpeta compartida
+  tiene un error distinto del de edición.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm test` — 95 archivos correctos; 485 pruebas correctas y 2 omitidas.
+  Incluye `ConvertFrom-Json` real y la edición con Excel COM.
+- `npm run build` — correcto.
+- `git diff --check` — correcto.
+- Prueba local sin SOAP: XLS OLE2 de 33369088 bytes. Plantilla intacta.
+  Sin `EXCEL.EXE` huérfano. Sin alta real a Meta4.
+
 ## 2026-09-22 - Nombre dinámico del fichero Hire
 
 ### Cambios

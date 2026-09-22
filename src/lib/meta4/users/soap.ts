@@ -1,18 +1,18 @@
 import { escapeXml } from "@/lib/meta4/user-profile-soap";
+import { getMeta4ServiceUrl, META4_SERVICE } from "@/lib/meta4/config";
 import type { Meta4Society } from "@/lib/meta4/societies";
 
 const SOAP_NAMESPACE = "http://schemas.xmlsoap.org/soap/envelope/";
 const META4_NAMESPACE = "http://schemas.meta4.com/";
 
-export const DEFAULT_META4_USERS_LIST_URL =
-  "https://meta4desasoap.creditocaucion.es/services/CSP_POWER4_USER_ALL";
-
 export const getMeta4UsersListUrl = (override?: string): string => {
-  const value = override ?? process.env.META4_USERS_LIST_URL ?? DEFAULT_META4_USERS_LIST_URL;
-  if (!value.startsWith("https://")) {
-    throw new Error("META4_USERS_LIST_URL debe usar HTTPS.");
+  if (override !== undefined) {
+    if (!override.startsWith("https://")) {
+      throw new Error("META4_BASE_URL debe usar HTTPS.");
+    }
+    return override;
   }
-  return value;
+  return getMeta4ServiceUrl(META4_SERVICE.usersList);
 };
 
 /** Builds the CSP_POWER4_USER_ALL envelope. Society must come from operational context only. */

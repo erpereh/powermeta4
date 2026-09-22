@@ -4,7 +4,6 @@ import { escapeXml } from "@/lib/meta4/user-profile-soap";
 import { Meta4ConsultaOroError } from "@/lib/meta4/users/employee-detail-errors";
 import {
   buildConsultaOroEnvelope,
-  DEFAULT_META4_USERS_DETAIL_URL,
   getMeta4UsersDetailUrl,
 } from "@/lib/meta4/users/employee-detail-soap";
 
@@ -22,8 +21,17 @@ describe("Meta4 employee detail SOAP builder", () => {
     expect(xml).toContain(`<sch:ARG_EMP>${escapeXml('1013"&')}</sch:ARG_EMP>`);
   });
 
-  it("resolves the default HTTPS detail URL", () => {
-    expect(getMeta4UsersDetailUrl()).toBe(DEFAULT_META4_USERS_DETAIL_URL);
+  it("resolves the detail URL from META4_BASE_URL", () => {
+    const previous = process.env.META4_BASE_URL;
+    process.env.META4_BASE_URL = "https://meta4.example.test";
+    try {
+      expect(getMeta4UsersDetailUrl()).toBe(
+        "https://meta4.example.test/services/CSP_POWER4_CONSULTA_ORO",
+      );
+    } finally {
+      if (previous === undefined) delete process.env.META4_BASE_URL;
+      else process.env.META4_BASE_URL = previous;
+    }
     expect(getMeta4UsersDetailUrl("https://example.test/detail")).toBe(
       "https://example.test/detail",
     );

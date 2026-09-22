@@ -3,7 +3,8 @@ export type Meta4HireErrorCode =
   | "META4_HIRE_IMPORT_FAILED"
   | "META4_HIRE_FETCH_FAILED"
   | "META4_HIRE_CONFIG"
-  | "META4_HIRE_FILE_FAILED"
+  | "META4_HIRE_EDIT_FAILED"
+  | "META4_HIRE_WRITE_FAILED"
   | "META4_HIRE_VALIDATION";
 
 export class Meta4HireError extends Error {

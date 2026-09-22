@@ -150,7 +150,8 @@ El alta de personas es la excepción de escritura ERP aprobada: Excel COM edita
 una copia de `Hire_1_PERSONA.xls` y solo sustituye los campos de la UI
 (incluidas columnas duplicadas como `AY`/`IQ`). El fichero se escribe en un
 nombre `Hire_<usuario>_<fecha>.xls` dentro del directorio
-`META4_HIRE_FILE_PATH` y esa misma ruta se envía a `META4_HIRE_URL`. No
+`META4_HIRE_FILE_PATH` y esa misma ruta se envía a
+`SRTC_LAUNCH_IMPORT`, derivado de `META4_BASE_URL`. No
 persiste datos personales en SQLite. La entidad legal permanece la de la
 plantilla.
 El endpoint OpenAI-compatible global

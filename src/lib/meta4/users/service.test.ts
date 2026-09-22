@@ -144,6 +144,7 @@ describe("listMeta4Users service", () => {
             jSessionId: "js",
             companyId: "company-cyc",
           }),
+          usersListUrl: "https://example.test/users",
           executeSoap: async () => {
             throw error;
           },
@@ -160,6 +161,7 @@ describe("listMeta4Users service", () => {
           jSessionId: "js",
           companyId: "company-cyc",
         }),
+        usersListUrl: "https://example.test/users",
         executeSoap: async () => {
           throw new Error("network cable melted");
         },

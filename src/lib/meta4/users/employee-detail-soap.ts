@@ -1,22 +1,27 @@
 import { escapeXml } from "@/lib/meta4/user-profile-soap";
+import { getMeta4ServiceUrl, META4_SERVICE } from "@/lib/meta4/config";
 
 import { Meta4ConsultaOroError } from "./employee-detail-errors";
 
 const SOAP_NAMESPACE = "http://schemas.xmlsoap.org/soap/envelope/";
 const META4_NAMESPACE = "http://schemas.meta4.com/";
 
-export const DEFAULT_META4_USERS_DETAIL_URL =
-  "https://meta4desasoap.creditocaucion.es/services/CSP_POWER4_CONSULTA_ORO";
-
 export const getMeta4UsersDetailUrl = (override?: string): string => {
-  const value = override ?? process.env.META4_USERS_DETAIL_URL ?? DEFAULT_META4_USERS_DETAIL_URL;
-  if (!value.startsWith("https://")) {
-    throw new Meta4ConsultaOroError(
-      "META4_CONSULTA_ORO_FETCH_FAILED",
-      "META4_USERS_DETAIL_URL debe usar HTTPS.",
-    );
+  if (override !== undefined) {
+    if (!override.startsWith("https://")) {
+      throw new Meta4ConsultaOroError(
+        "META4_CONSULTA_ORO_FETCH_FAILED",
+        "META4_BASE_URL debe usar HTTPS.",
+      );
+    }
+    return override;
   }
-  return value;
+  try {
+    return getMeta4ServiceUrl(META4_SERVICE.usersDetail);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "META4_BASE_URL es obligatoria.";
+    throw new Meta4ConsultaOroError("META4_CONSULTA_ORO_FETCH_FAILED", message);
+  }
 };
 
 /** Builds the CSP_POWER4_CONSULTA_ORO envelope for a single employee id. */
