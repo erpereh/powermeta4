@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-22 - Plantilla Hire intacta y ruta de importación
+
+### Cambios
+
+- `META4_HIRE_FILE_PATH` es la única ruta: escritura, verificación y
+  `ARG_PATH_FILE` usan `\\WMETA4PRE2\powermeta4\import_users_excel\Hire.xls`.
+- El generador deja de re-serializar el libro con SheetJS. Copia
+  `Hire_1_PERSONA.xls` y Excel COM sustituye solo los campos manuales,
+  incluidas las columnas duplicadas, y copia la fila plantilla para N personas.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm test` — 92 archivos correctos; 473 pruebas correctas y 2 omitidas.
+  Incluye la comparación real de `Hire_1_PERSONA.xls` contra el fichero
+  editado por Excel (1 y 3 personas).
+- `npm run build` — correcto.
+- `git diff --check` — correcto.
+- Sin alta real a Meta4.
+
 ## 2026-09-22 - Alta Meta4: tarjetas colapsables y plantilla Hire_1_PERSONA
 
 ### Cambios

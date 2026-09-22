@@ -12,7 +12,7 @@ import {
 
 describe("Meta4 hire SOAP builder", () => {
   it("builds SRTC_LAUNCH_IMPORT with escaped UNC path and without SOAPAction", () => {
-    const filePath = String.raw`\\WMETA4PRE2\powermeta4\Hire.xls`;
+    const filePath = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\Hire.xls`;
     const xml = buildLaunchImportEnvelope(filePath);
 
     expect(xml).toContain("<sch:SRTC_LAUNCH_IMPORT>");
@@ -39,8 +39,8 @@ describe("Meta4 hire SOAP builder", () => {
       getMeta4HireUrl("https://meta4desasoap.creditocaucion.es/services/SRTC_LAUNCH_IMPORT"),
     ).toBe("https://meta4desasoap.creditocaucion.es/services/SRTC_LAUNCH_IMPORT");
     expect(() => getMeta4HireFilePath("")).toThrow(/META4_HIRE_FILE_PATH/);
-    expect(getMeta4HireFilePath(String.raw`\\WMETA4PRE2\powermeta4\Hire.xls`)).toBe(
-      String.raw`\\WMETA4PRE2\powermeta4\Hire.xls`,
+    expect(getMeta4HireFilePath(String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\Hire.xls`)).toBe(
+      String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\Hire.xls`,
     );
     expect(getMeta4HireTemplatePath("")).toBe("./fuentes/HIRE/Hire_1_PERSONA.xls");
   });

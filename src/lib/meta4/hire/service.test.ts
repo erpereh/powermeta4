@@ -14,6 +14,8 @@ import { createSerializedQueue } from "./mutex";
 import { launchMeta4Hire } from "./service";
 import type { HirePerson } from "./types";
 
+const IMPORT_FILE_PATH = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\Hire.xls`;
+
 type SoapExecute = <T>(operation: AuthenticatedSoapOperation<T>) => Promise<T>;
 
 const AUTH_SESSION = {
@@ -52,29 +54,23 @@ const successBody = `
   </soap:Envelope>`;
 
 describe("launchMeta4Hire service", () => {
-  it("uses executeAuthenticatedSoap and the UNC path without a legal-entity env var", async () => {
+  it("writes and calls SOAP with the same import UNC path", async () => {
     let callCount = 0;
     const executeSoap: SoapExecute = async (operation) => {
       callCount += 1;
       expect(operation.url).toBe("https://example.test/SRTC_LAUNCH_IMPORT");
       expect(operation.xml).toContain("ARG_ID_GROUP_INTERFACE>INIT_EMPLOYEES_FD<");
-      expect(operation.xml).toContain(String.raw`ARG_PATH_FILE>\\share\Hire.xls<`);
+      expect(operation.xml).toContain(`ARG_PATH_FILE>${IMPORT_FILE_PATH}<`);
       expect(operation.xml).not.toContain("SOAPAction");
       expect(operation.xml).not.toContain("jsession-should-not-leak");
       expect(operation.xml).not.toContain(person.firstName);
       return operation.parseResponse(new Response(successBody, { status: 200 }));
     };
 
+    const preserved = Buffer.from("excel-preserved-bytes");
+    const editHireWorkbook = vi.fn(async () => preserved);
     const writeHireFile = vi.fn(async (_destination: string, _bytes: Buffer) => undefined);
-    const verifyHireFile = vi.fn(async () => undefined);
-    const readTemplate = vi.fn(async () => {
-      const XLSX = await import("xlsx");
-      const workbook = XLSX.utils.book_new();
-      const sheet = XLSX.utils.aoa_to_sheet([]);
-      sheet["!ref"] = "A1:IU20";
-      XLSX.utils.book_append_sheet(workbook, sheet, "AltaNueva");
-      return XLSX.write(workbook, { type: "buffer", bookType: "xls" }) as Buffer;
-    });
+    const verifyHireFile = vi.fn(async (_destination: string) => undefined);
 
     const result = await launchMeta4Hire(AUTH_SESSION, [person], {
       getOperationalContext: async () => ({
@@ -85,24 +81,23 @@ describe("launchMeta4Hire service", () => {
         companyId: "company-cyc",
       }),
       executeSoap,
-      readTemplate,
+      editHireWorkbook,
       writeHireFile,
       verifyHireFile,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireFilePath: String.raw`\\share\Hire.xls`,
+      hireFilePath: IMPORT_FILE_PATH,
       templatePath: "./fuentes/HIRE/Hire_1_PERSONA.xls",
       serialize: createSerializedQueue(),
     });
 
     expect(result).toEqual({ personCount: 1, returnCode: "0.0" });
     expect(callCount).toBe(1);
+    expect(editHireWorkbook).toHaveBeenCalledTimes(1);
     expect(writeHireFile).toHaveBeenCalledTimes(1);
     expect(verifyHireFile).toHaveBeenCalledTimes(1);
-    const writeCall = writeHireFile.mock.calls.at(0);
-    expect(writeCall?.[0]).toBe(String.raw`\\share\Hire.xls`);
-    const written = writeCall?.[1];
-    expect(Buffer.isBuffer(written)).toBe(true);
-    expect(written && written.length).toBeGreaterThan(0);
+    expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(IMPORT_FILE_PATH);
+    expect(verifyHireFile.mock.calls.at(0)?.[0]).toBe(IMPORT_FILE_PATH);
+    expect(writeHireFile.mock.calls.at(0)?.[1]).toBe(preserved);
   });
 
   it("never accepts a client society and keeps logs free of personal data", async () => {
@@ -115,24 +110,18 @@ describe("launchMeta4Hire service", () => {
       companyId: "company-iber",
     }));
 
-    const XLSX = await import("xlsx");
-    const workbook = XLSX.utils.book_new();
-    const sheet = XLSX.utils.aoa_to_sheet([]);
-    sheet["!ref"] = "A1:IU20";
-    XLSX.utils.book_append_sheet(workbook, sheet, "AltaNueva");
-    const template = XLSX.write(workbook, { type: "buffer", bookType: "xls" }) as Buffer;
-
     await launchMeta4Hire(AUTH_SESSION, [person], {
       getOperationalContext,
       executeSoap: async (operation) => {
         expect(operation.xml).not.toContain("CYC");
+        expect(operation.xml).toContain(`ARG_PATH_FILE>${IMPORT_FILE_PATH}<`);
         return operation.parseResponse(new Response(successBody, { status: 200 }));
       },
-      readTemplate: async () => template,
+      editHireWorkbook: async () => Buffer.from("excel-preserved-bytes"),
       writeHireFile: async () => undefined,
       verifyHireFile: async () => undefined,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireFilePath: String.raw`\\share\Hire.xls`,
+      hireFilePath: IMPORT_FILE_PATH,
       serialize: createSerializedQueue(),
       log: (message, details) => {
         logs.push({ message, details });
@@ -152,7 +141,6 @@ describe("launchMeta4Hire service", () => {
   });
 
   it("rethrows known system errors and wraps unclassified failures", async () => {
-    const template = Buffer.from("unused");
     const common = {
       getOperationalContext: async () => ({
         mode: "meta4" as const,
@@ -161,11 +149,11 @@ describe("launchMeta4Hire service", () => {
         jSessionId: "jsession",
         companyId: "company-cyc",
       }),
-      readTemplate: async () => template,
+      editHireWorkbook: async () => Buffer.from("excel-preserved-bytes"),
       writeHireFile: async () => undefined,
       verifyHireFile: async () => undefined,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireFilePath: String.raw`\\share\Hire.xls`,
+      hireFilePath: IMPORT_FILE_PATH,
       serialize: createSerializedQueue(),
     };
 
@@ -181,7 +169,7 @@ describe("launchMeta4Hire service", () => {
       await expect(
         launchMeta4Hire(AUTH_SESSION, [person], {
           ...common,
-          readTemplate: async () => {
+          editHireWorkbook: async () => {
             throw error;
           },
         }),
@@ -191,7 +179,7 @@ describe("launchMeta4Hire service", () => {
     await expect(
       launchMeta4Hire(AUTH_SESSION, [person], {
         ...common,
-        readTemplate: async () => {
+        editHireWorkbook: async () => {
           throw new Error("disk melted");
         },
       }),

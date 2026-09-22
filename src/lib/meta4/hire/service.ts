@@ -1,6 +1,6 @@
 import "server-only";
 
-import { readFile, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import path from "node:path";
 
 import type { ResolvedAuthSession } from "@/lib/auth/service";
@@ -14,7 +14,7 @@ import { Meta4ProfileError } from "@/lib/meta4/profile-errors";
 import { executeAuthenticatedSoap } from "@/lib/meta4/server";
 import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
 
-import { generateHireWorkbook } from "./excel";
+import { editHireWorkbook } from "./excel";
 import { Meta4HireError, isMeta4HireError } from "./errors";
 import { hireExecutionQueue, type SerializedTask } from "./mutex";
 import { parseLaunchImportResponse } from "./parser";
@@ -32,7 +32,7 @@ export const HIRE_SOAP_TIMEOUT_MS = 60_000;
 export type LaunchMeta4HireDeps = {
   getOperationalContext?: typeof getMeta4OperationalContext;
   executeSoap?: typeof executeAuthenticatedSoap;
-  readTemplate?: (templatePath: string) => Promise<Buffer>;
+  editHireWorkbook?: (templatePath: string, people: readonly HirePerson[]) => Promise<Buffer>;
   writeHireFile?: typeof writeHireFileAtomically;
   verifyHireFile?: (filePath: string) => Promise<void>;
   hireUrl?: string;
@@ -62,17 +62,6 @@ const resolveTemplatePath = (templatePath: string): string =>
     ? templatePath
     : path.resolve(/* turbopackIgnore: true */ process.cwd(), templatePath);
 
-const defaultReadTemplate = async (templatePath: string): Promise<Buffer> => {
-  try {
-    return await readFile(resolveTemplatePath(templatePath));
-  } catch {
-    throw new Meta4HireError(
-      "META4_HIRE_CONFIG",
-      "No se ha podido leer la plantilla Hire configurada.",
-    );
-  }
-};
-
 const defaultVerifyHireFile = async (filePath: string): Promise<void> => {
   try {
     const info = await stat(filePath);
@@ -92,8 +81,9 @@ const defaultVerifyHireFile = async (filePath: string): Promise<void> => {
 };
 
 /**
- * Generates Hire.xls from Hire_1_PERSONA.xls and launches SRTC_LAUNCH_IMPORT.
+ * Copies Hire_1_PERSONA.xls, edits it with Excel, and launches SRTC_LAUNCH_IMPORT.
  * Operational context still gates DEBUG sessions before writing the file.
+ * filePath is the same string used to write, verify, and fill ARG_PATH_FILE.
  */
 export const launchMeta4Hire = async (
   authSession: ResolvedAuthSession,
@@ -102,7 +92,7 @@ export const launchMeta4Hire = async (
 ): Promise<HireLaunchResult> => {
   const getContext = deps.getOperationalContext ?? getMeta4OperationalContext;
   const executeSoap = deps.executeSoap ?? executeAuthenticatedSoap;
-  const readTemplate = deps.readTemplate ?? defaultReadTemplate;
+  const editWorkbook = deps.editHireWorkbook ?? editHireWorkbook;
   const writeHireFile = deps.writeHireFile ?? writeHireFileAtomically;
   const verifyHireFile = deps.verifyHireFile ?? defaultVerifyHireFile;
   const serialize = deps.serialize ?? hireExecutionQueue;
@@ -110,13 +100,12 @@ export const launchMeta4Hire = async (
   await getContext(authSession);
   const url = getMeta4HireUrl(deps.hireUrl);
   const filePath = getMeta4HireFilePath(deps.hireFilePath);
-  const templatePath = getMeta4HireTemplatePath(deps.templatePath);
+  const templatePath = resolveTemplatePath(getMeta4HireTemplatePath(deps.templatePath));
   const xml = buildLaunchImportEnvelope(filePath);
 
   return serialize(async () => {
     try {
-      const templateBytes = await readTemplate(templatePath);
-      const workbookBytes = generateHireWorkbook(templateBytes, people);
+      const workbookBytes = await editWorkbook(templatePath, people);
       await writeHireFile(filePath, workbookBytes);
       await verifyHireFile(filePath);
 

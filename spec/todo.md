@@ -2,6 +2,17 @@
 
 ## Alta de personas Meta4 - 2026-09-22
 
+- [x] `META4_HIRE_FILE_PATH` apunta a
+      `\\WMETA4PRE2\powermeta4\import_users_excel\Hire.xls` y esa misma ruta
+      se escribe, se verifica y se envía en `ARG_PATH_FILE`.
+- [x] El alta copia `Hire_1_PERSONA.xls` y Excel COM edita solo los campos
+      manuales, sin `XLSX.write`.
+- [x] Verificación: `npm run typecheck` correcto; `npm test` 92 archivos,
+      473 pruebas correctas y 2 omitidas; `npm run build` correcto;
+      `git diff --check` correcto. Sin alta real ni Excel huérfano.
+
+## Alta de personas Meta4 - 2026-09-22 (tarjetas)
+
 - [x] Formulario `/tools/users/new`: personas completadas colapsables en
       estado cliente, una expandida, validación al añadir/editar.
 - [x] Generador sobre `Hire_1_PERSONA.xls`: copia la fila plantilla 6 y

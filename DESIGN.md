@@ -126,9 +126,9 @@ nativo de fila ni anidar controles dentro de las celdas.
 
 El alta de personas vive en `/tools/users/new`: formulario de 1..N personas
 con tarjetas colapsables en cliente, `AlertDialog` de confirmación
-(«Se van a procesar X personas en Meta4») y Server Action. El servidor clona
-`Hire_1_PERSONA.xls` y solo sustituye los campos de la UI; la entidad legal
-queda la de la plantilla. Los datos personales no se persisten en SQLite.
+(«Se van a procesar X personas en Meta4») y Server Action. El servidor copia
+`Hire_1_PERSONA.xls` y Excel sustituye solo los campos de la UI; la entidad
+legal queda la de la plantilla. Los datos personales no se persisten en SQLite.
 
 ## Chat y recomendaciones
 
