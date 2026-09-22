@@ -3,15 +3,7 @@ import "server-only";
 import * as XLSX from "xlsx";
 
 import { Meta4HireError } from "./errors";
-import {
-  ALTA_PERSONA_EXAMPLE_COLUMNS,
-  FIRST_PERSON_ROW,
-  HIRE_DATA_SHEET,
-  HIRE_PERSON_SHEET,
-  MANUAL_COLUMNS,
-  SERVER_COLUMNS,
-  toExcelSerialDate,
-} from "./mapping";
+import { FIRST_PERSON_ROW, HIRE_DATA_SHEET, MANUAL_COLUMNS, toExcelSerialDate } from "./mapping";
 import type { HirePerson } from "./types";
 
 const OLE_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
@@ -45,20 +37,26 @@ const writeColumns = (
   }
 };
 
-const clearAltaPersonaExample = (workbook: XLSX.WorkBook): void => {
-  const sheet = workbook.Sheets[HIRE_PERSON_SHEET];
-  if (!sheet) return;
-  for (const column of ALTA_PERSONA_EXAMPLE_COLUMNS) {
-    delete sheet[`${column}${FIRST_PERSON_ROW}`];
+const cloneRow = (sheet: XLSX.WorkSheet, fromRow: number, toRow: number): void => {
+  if (fromRow === toRow) return;
+  const copies: Array<{ dest: string; cell: XLSX.CellObject }> = [];
+  for (const address of Object.keys(sheet)) {
+    if (address.startsWith("!")) continue;
+    const decoded = XLSX.utils.decode_cell(address);
+    if (decoded.r !== fromRow - 1) continue;
+    const cell = sheet[address];
+    if (!cell) continue;
+    copies.push({
+      dest: XLSX.utils.encode_cell({ c: decoded.c, r: toRow - 1 }),
+      cell: { ...cell },
+    });
+  }
+  for (const copy of copies) {
+    sheet[copy.dest] = copy.cell;
   }
 };
 
-const writePersonRow = (
-  sheet: XLSX.WorkSheet,
-  row: number,
-  person: HirePerson,
-  legalEntity: string,
-): void => {
+const overlayPersonRow = (sheet: XLSX.WorkSheet, row: number, person: HirePerson): void => {
   const hireSerial = toExcelSerialDate(person.hireDate);
   writeColumns(sheet, row, MANUAL_COLUMNS.firstName, person.firstName);
   writeColumns(sheet, row, MANUAL_COLUMNS.lastName1, person.lastName1);
@@ -67,7 +65,6 @@ const writePersonRow = (
   writeColumns(sheet, row, MANUAL_COLUMNS.documentNumber, person.documentNumber);
   writeColumns(sheet, row, MANUAL_COLUMNS.email, person.email);
   writeColumns(sheet, row, MANUAL_COLUMNS.hireDate, hireSerial);
-  writeColumns(sheet, row, SERVER_COLUMNS.legalEntity, legalEntity);
 };
 
 export const assertOle2Buffer = (bytes: Buffer): void => {
@@ -82,7 +79,6 @@ export const assertOle2Buffer = (bytes: Buffer): void => {
 export const generateHireWorkbook = (
   templateBytes: Buffer,
   people: readonly HirePerson[],
-  legalEntity: string,
 ): Buffer => {
   const workbook = XLSX.read(templateBytes, { type: "buffer", raw: true, cellFormula: true });
   const sheet = workbook.Sheets[HIRE_DATA_SHEET];
@@ -93,9 +89,11 @@ export const generateHireWorkbook = (
     );
   }
 
-  clearAltaPersonaExample(workbook);
+  for (let index = 1; index < people.length; index += 1) {
+    cloneRow(sheet, FIRST_PERSON_ROW, FIRST_PERSON_ROW + index);
+  }
   people.forEach((person, index) => {
-    writePersonRow(sheet, FIRST_PERSON_ROW + index, person, legalEntity);
+    overlayPersonRow(sheet, FIRST_PERSON_ROW + index, person);
   });
 
   const lastRow = FIRST_PERSON_ROW + people.length - 1;

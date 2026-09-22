@@ -124,11 +124,11 @@ bloque de correos aparte. Toda la fila es interactiva (foco por teclado,
 `aria-label` propio, Enter/Espacio abren el diálogo) sin sustituir su rol
 nativo de fila ni anidar controles dentro de las celdas.
 
-El alta de personas vive en `/tools/users/new`: formulario de 1..N personas,
-`AlertDialog` de confirmación («Se van a procesar X personas en Meta4») y
-Server Action. La sociedad y la entidad legal salen del contexto operativo y
-de `META4_HIRE_LEGAL_ENTITY_*`; el navegador no las elige. Los datos personales
-no se persisten en SQLite.
+El alta de personas vive en `/tools/users/new`: formulario de 1..N personas
+con tarjetas colapsables en cliente, `AlertDialog` de confirmación
+(«Se van a procesar X personas en Meta4») y Server Action. El servidor clona
+`Hire_1_PERSONA.xls` y solo sustituye los campos de la UI; la entidad legal
+queda la de la plantilla. Los datos personales no se persisten en SQLite.
 
 ## Chat y recomendaciones
 

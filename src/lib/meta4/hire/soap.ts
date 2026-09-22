@@ -30,22 +30,7 @@ export const getMeta4HireFilePath = (override?: string): string => {
 export const getMeta4HireTemplatePath = (override?: string): string => {
   const value = (override ?? process.env.META4_HIRE_TEMPLATE_PATH ?? "").trim();
   if (value) return value;
-  return "./fuentes/HIRE/Hire_VACIO.xls";
-};
-
-export const getMeta4HireLegalEntity = (
-  society: string,
-  env: Record<string, string | undefined> = process.env,
-): string => {
-  const key = `META4_HIRE_LEGAL_ENTITY_${society}`;
-  const value = env[key]?.trim() ?? "";
-  if (!value) {
-    throw new Meta4HireError(
-      "META4_HIRE_CONFIG",
-      `${key} es obligatoria para la sociedad activa.`,
-    );
-  }
-  return value;
+  return "./fuentes/HIRE/Hire_1_PERSONA.xls";
 };
 
 export const buildLaunchImportEnvelope = (filePath: string): string =>

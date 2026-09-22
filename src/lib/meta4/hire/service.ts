@@ -21,7 +21,6 @@ import { parseLaunchImportResponse } from "./parser";
 import {
   buildLaunchImportEnvelope,
   getMeta4HireFilePath,
-  getMeta4HireLegalEntity,
   getMeta4HireTemplatePath,
   getMeta4HireUrl,
 } from "./soap";
@@ -39,7 +38,6 @@ export type LaunchMeta4HireDeps = {
   hireUrl?: string;
   hireFilePath?: string;
   templatePath?: string;
-  legalEntityEnv?: Record<string, string | undefined>;
   serialize?: SerializedTask;
   log?: (message: string, details: Record<string, string>) => void;
 };
@@ -94,8 +92,8 @@ const defaultVerifyHireFile = async (filePath: string): Promise<void> => {
 };
 
 /**
- * Generates Hire.xls and launches SRTC_LAUNCH_IMPORT.
- * Society/legal entity come only from operational context + server env.
+ * Generates Hire.xls from Hire_1_PERSONA.xls and launches SRTC_LAUNCH_IMPORT.
+ * Operational context still gates DEBUG sessions before writing the file.
  */
 export const launchMeta4Hire = async (
   authSession: ResolvedAuthSession,
@@ -109,8 +107,7 @@ export const launchMeta4Hire = async (
   const verifyHireFile = deps.verifyHireFile ?? defaultVerifyHireFile;
   const serialize = deps.serialize ?? hireExecutionQueue;
 
-  const context = await getContext(authSession);
-  const legalEntity = getMeta4HireLegalEntity(context.society, deps.legalEntityEnv);
+  await getContext(authSession);
   const url = getMeta4HireUrl(deps.hireUrl);
   const filePath = getMeta4HireFilePath(deps.hireFilePath);
   const templatePath = getMeta4HireTemplatePath(deps.templatePath);
@@ -119,7 +116,7 @@ export const launchMeta4Hire = async (
   return serialize(async () => {
     try {
       const templateBytes = await readTemplate(templatePath);
-      const workbookBytes = generateHireWorkbook(templateBytes, people, legalEntity);
+      const workbookBytes = generateHireWorkbook(templateBytes, people);
       await writeHireFile(filePath, workbookBytes);
       await verifyHireFile(filePath);
 

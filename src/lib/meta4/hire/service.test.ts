@@ -52,7 +52,7 @@ const successBody = `
   </soap:Envelope>`;
 
 describe("launchMeta4Hire service", () => {
-  it("uses executeAuthenticatedSoap, society legal entity from env, and the UNC path", async () => {
+  it("uses executeAuthenticatedSoap and the UNC path without a legal-entity env var", async () => {
     let callCount = 0;
     const executeSoap: SoapExecute = async (operation) => {
       callCount += 1;
@@ -90,8 +90,7 @@ describe("launchMeta4Hire service", () => {
       verifyHireFile,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
       hireFilePath: String.raw`\\share\Hire.xls`,
-      templatePath: "./fuentes/HIRE/Hire_VACIO.xls",
-      legalEntityEnv: { META4_HIRE_LEGAL_ENTITY_CYC: "LEGAL_FROM_ENV" },
+      templatePath: "./fuentes/HIRE/Hire_1_PERSONA.xls",
       serialize: createSerializedQueue(),
     });
 
@@ -134,7 +133,6 @@ describe("launchMeta4Hire service", () => {
       verifyHireFile: async () => undefined,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
       hireFilePath: String.raw`\\share\Hire.xls`,
-      legalEntityEnv: { META4_HIRE_LEGAL_ENTITY_IBER: "LEGAL_IBER" },
       serialize: createSerializedQueue(),
       log: (message, details) => {
         logs.push({ message, details });
@@ -168,7 +166,6 @@ describe("launchMeta4Hire service", () => {
       verifyHireFile: async () => undefined,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
       hireFilePath: String.raw`\\share\Hire.xls`,
-      legalEntityEnv: { META4_HIRE_LEGAL_ENTITY_CYC: "LEGAL_CYC" },
       serialize: createSerializedQueue(),
     };
 

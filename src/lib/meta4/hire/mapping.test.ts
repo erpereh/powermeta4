@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { toExcelSerialDate, WRITTEN_COLUMNS, UNKNOWN_DO_NOT_WRITE_COLUMNS } from "./mapping";
+import { MANUAL_COLUMNS, TEMPLATE_LEGAL_ENTITY_COLUMNS, WRITTEN_COLUMNS, toExcelSerialDate } from "./mapping";
 
 describe("hire mapping", () => {
   it("converts ISO dates to Excel serials without using example values as defaults", () => {
@@ -8,13 +8,12 @@ describe("hire mapping", () => {
     expect(toExcelSerialDate("2026-09-15")).toBe(46280);
   });
 
-  it("does not write unknown personal or payroll columns", () => {
-    const written = new Set(WRITTEN_COLUMNS);
-    for (const column of UNKNOWN_DO_NOT_WRITE_COLUMNS) {
-      expect(written.has(column)).toBe(false);
-    }
-    expect(written.has("IQ")).toBe(false);
-    expect(written.has("AC")).toBe(false);
-    expect(written.has("GJ")).toBe(false);
+  it("writes duplicate email and identity columns and leaves legal entity to the template", () => {
+    expect(MANUAL_COLUMNS.email).toEqual(["AY", "IQ"]);
+    expect(WRITTEN_COLUMNS).toContain("IQ");
+    expect(WRITTEN_COLUMNS).toContain("AY");
+    expect(WRITTEN_COLUMNS).toContain("Y");
+    expect(WRITTEN_COLUMNS).not.toContain(TEMPLATE_LEGAL_ENTITY_COLUMNS[0]);
+    expect(WRITTEN_COLUMNS).not.toContain(TEMPLATE_LEGAL_ENTITY_COLUMNS[1]);
   });
 });

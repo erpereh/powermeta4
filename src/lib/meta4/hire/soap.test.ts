@@ -6,7 +6,7 @@ import { Meta4HireError } from "./errors";
 import {
   buildLaunchImportEnvelope,
   getMeta4HireFilePath,
-  getMeta4HireLegalEntity,
+  getMeta4HireTemplatePath,
   getMeta4HireUrl,
 } from "./soap";
 
@@ -42,12 +42,6 @@ describe("Meta4 hire SOAP builder", () => {
     expect(getMeta4HireFilePath(String.raw`\\WMETA4PRE2\powermeta4\Hire.xls`)).toBe(
       String.raw`\\WMETA4PRE2\powermeta4\Hire.xls`,
     );
-  });
-
-  it("resolves legal entity from society env and never defaults to example values", () => {
-    expect(
-      getMeta4HireLegalEntity("CYC", { META4_HIRE_LEGAL_ENTITY_CYC: "ACYC_ES" }),
-    ).toBe("ACYC_ES");
-    expect(() => getMeta4HireLegalEntity("IBER", {})).toThrow(/META4_HIRE_LEGAL_ENTITY_IBER/);
+    expect(getMeta4HireTemplatePath("")).toBe("./fuentes/HIRE/Hire_1_PERSONA.xls");
   });
 });

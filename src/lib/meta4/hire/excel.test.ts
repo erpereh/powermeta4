@@ -1,5 +1,8 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+
 import * as XLSX from "xlsx";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { generateHireWorkbook } from "./excel";
 import {
@@ -8,14 +11,16 @@ import {
   HIRE_PERSON_SHEET,
   HIRE_TEMPLATE_SHEET_NAMES,
   MANUAL_COLUMNS,
-  SERVER_COLUMNS,
-  TEMPLATE_VALUE_DEFAULT_COLUMNS,
-  UNKNOWN_DO_NOT_WRITE_COLUMNS,
+  TEMPLATE_LEGAL_ENTITY_COLUMNS,
+  WRITTEN_COLUMNS,
   toExcelSerialDate,
 } from "./mapping";
 import type { HirePerson } from "./types";
 
 const OLE_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+const templatePath = path.join(process.cwd(), "fuentes", "HIRE", "Hire_1_PERSONA.xls");
+const templatePresent = existsSync(templatePath);
+const writtenColumns = new Set(WRITTEN_COLUMNS);
 
 const person = (suffix: string, hireDate: string): HirePerson => ({
   firstName: `Nombre${suffix}`,
@@ -30,84 +35,116 @@ const person = (suffix: string, hireDate: string): HirePerson => ({
 const cellValue = (sheet: XLSX.WorkSheet, column: string, row: number): unknown =>
   sheet[`${column}${row}`]?.v;
 
-const buildTemplate = (): Buffer => {
-  const workbook = XLSX.utils.book_new();
-  for (const name of HIRE_TEMPLATE_SHEET_NAMES) {
-    const sheet = XLSX.utils.aoa_to_sheet([]);
-    sheet["!ref"] = "A1:IU20";
-    if (name === HIRE_DATA_SHEET) {
-      sheet.DT6 = { t: "n", v: 100 };
-      sheet.GK6 = { t: "s", v: "EUR" };
-      sheet.HF6 = { t: "s", v: "3 - Otras situaciones, o no desea" };
-      sheet.HG6 = { t: "n", v: 3 };
-      sheet.IF6 = { t: "s", v: "ES" };
-      sheet.IG6 = { t: "s", v: "ES" };
-      sheet.F6 = { t: "s", v: "01" };
-    }
-    if (name === HIRE_PERSON_SHEET) {
-      sheet.O6 = { t: "s", v: "EXAMPLE_LAST" };
-      sheet.R6 = { t: "s", v: "EXAMPLE_FIRST" };
-    }
-    XLSX.utils.book_append_sheet(workbook, sheet, name);
+const rowValues = (sheet: XLSX.WorkSheet, row: number): Map<string, unknown> => {
+  const values = new Map<string, unknown>();
+  for (const address of Object.keys(sheet)) {
+    if (address.startsWith("!")) continue;
+    const decoded = XLSX.utils.decode_cell(address);
+    if (decoded.r !== row - 1) continue;
+    values.set(XLSX.utils.encode_col(decoded.c), sheet[address]?.v);
   }
-  return XLSX.write(workbook, { type: "buffer", bookType: "xls" }) as Buffer;
+  return values;
 };
 
-describe("generateHireWorkbook", () => {
-  it("writes one person into row 6 and keeps OLE2 magic", () => {
-    const hireDate = "2026-10-02";
-    const bytes = generateHireWorkbook(buildTemplate(), [person("A", hireDate)], "LEGAL_CYC");
-    expect(bytes.subarray(0, 8).equals(OLE_MAGIC)).toBe(true);
+describe.skipIf(!templatePresent)("generateHireWorkbook from Hire_1_PERSONA", () => {
+  let templateBytes: Buffer;
+  let templateSheet: XLSX.WorkSheet;
 
-    const workbook = XLSX.read(bytes, { type: "buffer", raw: true });
-    expect(workbook.SheetNames).toEqual([...HIRE_TEMPLATE_SHEET_NAMES]);
-    const sheet = workbook.Sheets[HIRE_DATA_SHEET];
-    const row = FIRST_PERSON_ROW;
-
-    expect(cellValue(sheet, MANUAL_COLUMNS.firstName[0], row)).toBe("NombreA");
-    expect(cellValue(sheet, MANUAL_COLUMNS.lastName1[0], row)).toBe("ApellidoA");
-    expect(cellValue(sheet, MANUAL_COLUMNS.lastName1[1], row)).toBe("ApellidoA");
-    expect(cellValue(sheet, MANUAL_COLUMNS.lastName2[0], row)).toBe("SegundoA");
-    expect(cellValue(sheet, MANUAL_COLUMNS.documentType[0], row)).toBe("DNI");
-    expect(cellValue(sheet, MANUAL_COLUMNS.documentNumber[0], row)).toBe("DOCA");
-    expect(cellValue(sheet, MANUAL_COLUMNS.documentNumber[1], row)).toBe("DOCA");
-    expect(cellValue(sheet, MANUAL_COLUMNS.email[0], row)).toBe("usera@example.test");
-    expect(cellValue(sheet, MANUAL_COLUMNS.hireDate[0], row)).toBe(toExcelSerialDate(hireDate));
-    expect(cellValue(sheet, SERVER_COLUMNS.legalEntity[0], row)).toBe("LEGAL_CYC");
-    expect(cellValue(sheet, SERVER_COLUMNS.legalEntity[1], row)).toBe("LEGAL_CYC");
+  beforeAll(() => {
+    templateBytes = readFileSync(templatePath);
+    templateSheet = XLSX.read(templateBytes, { type: "buffer", raw: true, cellFormula: true })
+      .Sheets[HIRE_DATA_SHEET];
   });
 
-  it("writes several people on consecutive rows and leaves optional second surname empty", () => {
-    const bytes = generateHireWorkbook(
-      buildTemplate(),
-      [person("A", "2026-10-02"), person("B", "2026-10-03")],
-      "LEGAL_IBER",
-    );
-    const sheet = XLSX.read(bytes, { type: "buffer", raw: true }).Sheets[HIRE_DATA_SHEET];
+  it(
+    "overlays one person, keeps template cells and OLE2 magic, and replaces duplicate identity columns",
+    () => {
+      const hireDate = "2026-10-02";
+      const overlay = person("A", hireDate);
+      const bytes = generateHireWorkbook(templateBytes, [overlay]);
+      expect(bytes.subarray(0, 8).equals(OLE_MAGIC)).toBe(true);
 
-    expect(cellValue(sheet, "R", 6)).toBe("NombreA");
-    expect(cellValue(sheet, "R", 7)).toBe("NombreB");
-    expect(cellValue(sheet, "Q", 7)).toBeUndefined();
-    expect(cellValue(sheet, "CH", 7)).toBe("LEGAL_IBER");
-  });
+      const workbook = XLSX.read(bytes, { type: "buffer", raw: true });
+      expect(workbook.SheetNames).toEqual([...HIRE_TEMPLATE_SHEET_NAMES]);
+      const sheet = workbook.Sheets[HIRE_DATA_SHEET];
+      const row = FIRST_PERSON_ROW;
 
-  it("keeps template-safe defaults and does not write unknown personal columns", () => {
-    const bytes = generateHireWorkbook(buildTemplate(), [person("A", "2026-10-02")], "LEGAL_CYC");
-    const sheet = XLSX.read(bytes, { type: "buffer", raw: true }).Sheets[HIRE_DATA_SHEET];
+      expect(cellValue(sheet, MANUAL_COLUMNS.firstName[0], row)).toBe("NombreA");
+      expect(cellValue(sheet, MANUAL_COLUMNS.lastName1[0], row)).toBe("ApellidoA");
+      expect(cellValue(sheet, MANUAL_COLUMNS.lastName1[1], row)).toBe("ApellidoA");
+      expect(cellValue(sheet, MANUAL_COLUMNS.lastName2[0], row)).toBe("SegundoA");
+      expect(cellValue(sheet, MANUAL_COLUMNS.documentType[0], row)).toBe("DNI");
+      expect(cellValue(sheet, MANUAL_COLUMNS.documentNumber[0], row)).toBe("DOCA");
+      expect(cellValue(sheet, MANUAL_COLUMNS.documentNumber[1], row)).toBe("DOCA");
+      expect(cellValue(sheet, MANUAL_COLUMNS.email[0], row)).toBe("usera@example.test");
+      expect(cellValue(sheet, MANUAL_COLUMNS.email[1], row)).toBe("usera@example.test");
+      expect(cellValue(sheet, MANUAL_COLUMNS.hireDate[0], row)).toBe(toExcelSerialDate(hireDate));
 
-    expect(cellValue(sheet, TEMPLATE_VALUE_DEFAULT_COLUMNS[0], 6)).toBe(100);
-    expect(cellValue(sheet, TEMPLATE_VALUE_DEFAULT_COLUMNS[1], 6)).toBe("EUR");
-    expect(cellValue(sheet, "F", 6)).toBe("01");
+      expect(cellValue(sheet, TEMPLATE_LEGAL_ENTITY_COLUMNS[0], row)).toBe(
+        cellValue(templateSheet, TEMPLATE_LEGAL_ENTITY_COLUMNS[0], row),
+      );
+      expect(cellValue(sheet, TEMPLATE_LEGAL_ENTITY_COLUMNS[1], row)).toBe(
+        cellValue(templateSheet, TEMPLATE_LEGAL_ENTITY_COLUMNS[1], row),
+      );
 
-    for (const column of UNKNOWN_DO_NOT_WRITE_COLUMNS) {
-      expect(cellValue(sheet, column, 6)).toBeUndefined();
-    }
-  });
+      const generated = rowValues(sheet, row);
+      const original = rowValues(templateSheet, row);
+      for (const [column, value] of original) {
+        if (writtenColumns.has(column)) continue;
+        expect(generated.get(column)).toEqual(value);
+      }
 
-  it("clears AltaPersona example identity cells without copying them", () => {
-    const bytes = generateHireWorkbook(buildTemplate(), [person("A", "2026-10-02")], "LEGAL_CYC");
-    const sheet = XLSX.read(bytes, { type: "buffer", raw: true }).Sheets[HIRE_PERSON_SHEET];
-    expect(cellValue(sheet, "O", 6)).toBeUndefined();
-    expect(cellValue(sheet, "R", 6)).toBeUndefined();
-  });
+      const serialized = JSON.stringify([...generated.values()]);
+      expect(serialized).not.toContain("POWER6");
+      expect(serialized).not.toContain("12345678Z");
+      expect(serialized).not.toContain("p6@prueba.es");
+      expect(serialized).not.toContain(
+        "power6.test.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx@atradius.com",
+      );
+
+      const altaPersona = workbook.Sheets[HIRE_PERSON_SHEET];
+      expect(cellValue(altaPersona, "O", row)).toEqual(
+        XLSX.read(templateBytes, { type: "buffer", raw: true }).Sheets[HIRE_PERSON_SHEET]["O6"]?.v,
+      );
+    },
+    120_000,
+  );
+
+  it(
+    "copies the template row for additional people and only overlays manual fields",
+    () => {
+      const people = [
+        person("A", "2026-10-02"),
+        person("B", "2026-10-03"),
+        person("C", "2026-10-04"),
+      ];
+      const bytes = generateHireWorkbook(templateBytes, people);
+      const sheet = XLSX.read(bytes, { type: "buffer", raw: true }).Sheets[HIRE_DATA_SHEET];
+      const original = rowValues(templateSheet, FIRST_PERSON_ROW);
+      const rows = [6, 7, 8].map((row) => rowValues(sheet, row));
+
+      expect(cellValue(sheet, "R", 6)).toBe("NombreA");
+      expect(cellValue(sheet, "R", 7)).toBe("NombreB");
+      expect(cellValue(sheet, "R", 8)).toBe("NombreC");
+      expect(cellValue(sheet, "Q", 7)).toBeUndefined();
+      expect(cellValue(sheet, "AY", 7)).toBe("userb@example.test");
+      expect(cellValue(sheet, "IQ", 7)).toBe("userb@example.test");
+
+      for (const values of rows) {
+        expect(values.get("CH")).toBe(original.get("CH"));
+        expect(values.get("CI")).toBe(original.get("CI"));
+        for (const [column, value] of original) {
+          if (writtenColumns.has(column)) continue;
+          expect(values.get(column)).toEqual(value);
+        }
+      }
+
+      const manuals = ["R", "O", "P", "X", "Y", "AY", "IQ", "D", "E"] as const;
+      for (const column of manuals) {
+        expect(rows[0]?.get(column)).not.toEqual(rows[1]?.get(column));
+        expect(rows[1]?.get(column)).not.toEqual(rows[2]?.get(column));
+      }
+    },
+    120_000,
+  );
 });

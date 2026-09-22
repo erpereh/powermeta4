@@ -147,10 +147,11 @@ a `/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
 
 No añadir APIs ficticias, permisos reales, invitaciones ni persistencia remota.
 El alta de personas es la excepción de escritura ERP aprobada: genera Hire.xls
-en servidor desde `Hire_VACIO.xls` (`xlsx` aplana fórmulas y nombres), lo
-escribe en `META4_HIRE_FILE_PATH` y llama a `META4_HIRE_URL`; no persiste
-datos personales en SQLite. La entidad legal sale de
-`META4_HIRE_LEGAL_ENTITY_<SOCIETY>`.
+en servidor desde `Hire_1_PERSONA.xls` (`xlsx` aplana fórmulas y nombres),
+sustituye solo los campos de la UI (incluidas columnas duplicadas como
+`AY`/`IQ`) y conserva el resto de la plantilla, lo escribe en
+`META4_HIRE_FILE_PATH` y llama a `META4_HIRE_URL`; no persiste datos personales
+en SQLite. La entidad legal permanece la de la plantilla.
 El endpoint OpenAI-compatible global
 se configura mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL` en el entorno
 server-side; nunca se documentan credenciales ni se exponen claves al cliente.

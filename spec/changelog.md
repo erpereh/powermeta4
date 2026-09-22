@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-22 - Alta Meta4: tarjetas colapsables y plantilla Hire_1_PERSONA
+
+### Cambios
+
+- El formulario de `/tools/users/new` colapsa personas validadas en tarjetas
+  compactas (cliente) y deja una sola expandida.
+- El generador clona `Hire_1_PERSONA.xls`, copia la fila 6 para N personas y
+  sustituye solo los campos de la UI, incluidas columnas duplicadas (`AY` e
+  `IQ` para el correo). Conserva CH/CI y el resto de la plantilla.
+- Se elimina el requisito `META4_HIRE_LEGAL_ENTITY_*`.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npx oxlint` — sin errores del cambio.
+- `npm test` — 91 archivos correctos; 472 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto. `/tools/users/new` aparece en el manifiesto.
+- `git diff --check` — correcto.
+- Sin alta real a Meta4. SOAP mockeado en tests. Sin commit.
+
 ## 2026-09-21 - Alta de personas Meta4
 
 ### Cambios

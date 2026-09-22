@@ -1,5 +1,17 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4 - 2026-09-22
+
+- [x] Formulario `/tools/users/new`: personas completadas colapsables en
+      estado cliente, una expandida, validación al añadir/editar.
+- [x] Generador sobre `Hire_1_PERSONA.xls`: copia la fila plantilla 6 y
+      sustituye solo campos UI (incluidas columnas duplicadas `AY`/`IQ`).
+      Sin `META4_HIRE_LEGAL_ENTITY_*`; CH/CI se conservan de la plantilla.
+- [x] Verificación: `npm run typecheck` correcto; `npx oxlint` sin errores
+      del cambio; `npm test` 91 archivos, 472 pruebas correctas y 2 omitidas;
+      `npm run build` correcto (`/tools/users/new` en el manifiesto);
+      `git diff --check` correcto. Sin alta real a Meta4 ni commit.
+
 ## Alta de personas Meta4 - 2026-09-21
 
 - [x] Primera versión funcional de alta de personas en `/tools/users/new`
