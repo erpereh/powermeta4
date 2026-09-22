@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-22 - Nombre dinámico del fichero Hire
+
+### Cambios
+
+- `META4_HIRE_FILE_PATH` es el directorio de importación. Cada alta genera
+  `Hire_<usuario>_<YYYY-MM-DD_HH-mm-ss>.xls` y usa esa misma ruta para
+  escribir, verificar y `ARG_PATH_FILE`.
+- El fallo de Excel/PowerShell queda en el log del servidor con código de
+  salida, etapa y stderr, sin datos personales. El BOM de los temporales se
+  escribe como bytes UTF-8.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm test` — 94 archivos correctos; 477 pruebas correctas y 2 omitidas.
+  Incluye el BOM de los temporales y la edición real con Excel.
+- `npm run build` — correcto.
+- `git diff --check` — correcto.
+- Sin alta real a Meta4. Sin `EXCEL.EXE` huérfano.
+
 ## 2026-09-22 - Plantilla Hire intacta y ruta de importación
 
 ### Cambios

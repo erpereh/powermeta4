@@ -15,7 +15,29 @@ import {
 import type { HirePerson } from "./types";
 
 const OLE_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+const UTF8_BOM = Buffer.from([0xef, 0xbb, 0xbf]);
 const EXCEL_TIMEOUT_MS = 180_000;
+
+export const encodeUtf8Bom = (text: string): Buffer =>
+  Buffer.concat([UTF8_BOM, Buffer.from(text, "utf8")]);
+
+export const redactHireDiagnostic = (text: string): string =>
+  text
+    .replace(/[^\s@]+@[^\s@]+\.[^\s@]+/g, "[redacted-email]")
+    .replace(/\b\d{7,}[A-Za-z]?\b/g, "[redacted-id]");
+
+const lastStage = (stdout: string): string => {
+  const matches = [...stdout.matchAll(/STAGE=([a-z-]+)/g)];
+  return matches.at(-1)?.[1] ?? "unknown";
+};
+
+const logExcelFailure = (exitCode: number | null, stdout: string, stderr: string): void => {
+  console.error("meta4-hire excel failed", {
+    exitCode,
+    stage: lastStage(stdout),
+    stderr: redactHireDiagnostic(stderr).trim(),
+  });
+};
 
 const EXCEL_SCRIPT = String.raw`
 param(
@@ -29,13 +51,18 @@ $createdPid = $null
 $before = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
 try {
   $excel = New-Object -ComObject Excel.Application
-  Start-Sleep -Milliseconds 400
-  $created = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | Where-Object { $before -notcontains $_.Id })
+  $deadline = (Get-Date).AddSeconds(8)
+  do {
+    Start-Sleep -Milliseconds 200
+    $created = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | Where-Object { $before -notcontains $_.Id })
+  } while ($created.Count -lt 1 -and (Get-Date) -lt $deadline)
   if ($created.Count -lt 1) {
+    $excel = $null
     throw "Excel COM did not start a new process."
   }
   $createdPid = $created[0].Id
-  Write-Output "EXCEL_PID=$createdPid"
+  [Console]::Out.WriteLine("STAGE=excel-started")
+  [Console]::Out.WriteLine("EXCEL_PID=$createdPid")
   $excel.Visible = $false
   $excel.DisplayAlerts = $false
   $excel.ScreenUpdating = $false
@@ -45,7 +72,9 @@ try {
   try { $excel.Calculation = -4135 } catch {}
   $payload = Get-Content -LiteralPath $InstructionsPath -Raw -Encoding UTF8 | ConvertFrom-Json
   $workbook = $excel.Workbooks.Open($WorkbookPath, 0, $false)
+  [Console]::Out.WriteLine("STAGE=workbook-opened")
   $sheet = $workbook.Worksheets.Item([string]$payload.sheetName)
+  [Console]::Out.WriteLine("STAGE=sheet-ready")
   $templateRow = [int]$payload.templateRow
   foreach ($personRow in @($payload.rows)) {
     $rowNumber = [int]$personRow.row
@@ -64,10 +93,12 @@ try {
       }
     }
   }
+  [Console]::Out.WriteLine("STAGE=edited")
   $workbook.Save()
+  [Console]::Out.WriteLine("STAGE=saved")
   $workbook.Close($true)
   $workbook = $null
-  exit 0
+  [Console]::Out.WriteLine("STAGE=closed")
 } catch {
   [Console]::Error.WriteLine($_.Exception.Message)
   exit 1
@@ -76,7 +107,7 @@ try {
     try { $workbook.Close($false) } catch {}
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) } catch {}
   }
-  if ($null -ne $excel) {
+  if ($null -ne $excel -and $null -ne $createdPid) {
     try { $excel.Quit() } catch {}
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) } catch {}
   }
@@ -161,6 +192,7 @@ const runExcel = (
       spawn("taskkill.exe", ["/PID", String(excelPid), "/F"], { windowsHide: true });
     };
     const timer = setTimeout(() => {
+      logExcelFailure(null, stdout, `${stderr}\nExcel edit timed out.`);
       killExcel();
       child.kill();
       reject(
@@ -190,9 +222,7 @@ const runExcel = (
         resolve();
         return;
       }
-      if (process.env.VITEST && stderr.trim()) {
-        console.error(stderr.trim());
-      }
+      logExcelFailure(code, stdout, stderr);
       reject(
         new Meta4HireError(
           "META4_HIRE_FILE_FAILED",
@@ -201,6 +231,26 @@ const runExcel = (
       );
     });
   });
+
+export const writeHireEditFiles = async (
+  directory: string,
+  people: readonly HirePerson[],
+): Promise<{ scriptPath: string; instructionsPath: string }> => {
+  const scriptPath = path.join(directory, "edit-hire.ps1");
+  const instructionsPath = path.join(directory, "instructions.json");
+  const instructions = {
+    sheetName: HIRE_DATA_SHEET,
+    templateRow: FIRST_PERSON_ROW,
+    rows: people.map((person, index) => ({
+      row: FIRST_PERSON_ROW + index,
+      copyFromTemplate: index > 0,
+      cells: cellsForPerson(person),
+    })),
+  };
+  await writeFile(scriptPath, encodeUtf8Bom(EXCEL_SCRIPT));
+  await writeFile(instructionsPath, encodeUtf8Bom(JSON.stringify(instructions)));
+  return { scriptPath, instructionsPath };
+};
 
 export const assertOle2Buffer = (bytes: Buffer): void => {
   if (bytes.length < OLE_MAGIC.length || !bytes.subarray(0, OLE_MAGIC.length).equals(OLE_MAGIC)) {
@@ -221,21 +271,9 @@ export const editHireWorkbook = async (
 ): Promise<Buffer> => {
   const directory = await mkdtemp(path.join(tmpdir(), "hire-edit-"));
   const workbookPath = path.join(directory, "Hire.xls");
-  const scriptPath = path.join(directory, "edit-hire.ps1");
-  const instructionsPath = path.join(directory, "instructions.json");
   try {
     await copyFile(templatePath, workbookPath);
-    const instructions = {
-      sheetName: HIRE_DATA_SHEET,
-      templateRow: FIRST_PERSON_ROW,
-      rows: people.map((person, index) => ({
-        row: FIRST_PERSON_ROW + index,
-        copyFromTemplate: index > 0,
-        cells: cellsForPerson(person),
-      })),
-    };
-    await writeFile(scriptPath, `\uFEFF${EXCEL_SCRIPT}`, "utf8");
-    await writeFile(instructionsPath, `\uFEFF${JSON.stringify(instructions)}`, "utf8");
+    const { scriptPath, instructionsPath } = await writeHireEditFiles(directory, people);
     await runExcel(scriptPath, workbookPath, instructionsPath);
     const bytes = await readWhenUnlocked(workbookPath);
     assertOle2Buffer(bytes);

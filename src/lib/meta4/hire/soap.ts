@@ -19,8 +19,8 @@ export const getMeta4HireUrl = (override?: string): string => {
   return value;
 };
 
-export const getMeta4HireFilePath = (override?: string): string => {
-  const value = (override ?? process.env.META4_HIRE_FILE_PATH ?? "").trim();
+export const getMeta4HireDirectory = (override?: string): string => {
+  const value = (override ?? process.env.META4_HIRE_FILE_PATH ?? "").trim().replace(/[\\/]+$/, "");
   if (!value) {
     throw new Meta4HireError("META4_HIRE_CONFIG", "META4_HIRE_FILE_PATH es obligatoria.");
   }

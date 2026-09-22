@@ -16,11 +16,12 @@ import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
 
 import { editHireWorkbook } from "./excel";
 import { Meta4HireError, isMeta4HireError } from "./errors";
+import { buildHireFileName, buildHireFilePath } from "./filename";
 import { hireExecutionQueue, type SerializedTask } from "./mutex";
 import { parseLaunchImportResponse } from "./parser";
 import {
   buildLaunchImportEnvelope,
-  getMeta4HireFilePath,
+  getMeta4HireDirectory,
   getMeta4HireTemplatePath,
   getMeta4HireUrl,
 } from "./soap";
@@ -36,8 +37,9 @@ export type LaunchMeta4HireDeps = {
   writeHireFile?: typeof writeHireFileAtomically;
   verifyHireFile?: (filePath: string) => Promise<void>;
   hireUrl?: string;
-  hireFilePath?: string;
+  hireDirectory?: string;
   templatePath?: string;
+  now?: () => Date;
   serialize?: SerializedTask;
   log?: (message: string, details: Record<string, string>) => void;
 };
@@ -97,9 +99,11 @@ export const launchMeta4Hire = async (
   const verifyHireFile = deps.verifyHireFile ?? defaultVerifyHireFile;
   const serialize = deps.serialize ?? hireExecutionQueue;
 
-  await getContext(authSession);
+  const context = await getContext(authSession);
+  const directory = getMeta4HireDirectory(deps.hireDirectory);
+  const fileName = buildHireFileName(context.username, deps.now?.() ?? new Date());
+  const filePath = buildHireFilePath(directory, fileName);
   const url = getMeta4HireUrl(deps.hireUrl);
-  const filePath = getMeta4HireFilePath(deps.hireFilePath);
   const templatePath = resolveTemplatePath(getMeta4HireTemplatePath(deps.templatePath));
   const xml = buildLaunchImportEnvelope(filePath);
 
@@ -147,7 +151,12 @@ export const launchMeta4Hire = async (
               code: "OK",
               personCount: String(people.length),
             });
-            return { personCount: people.length, returnCode: parsed.returnCode };
+            return {
+              personCount: people.length,
+              returnCode: parsed.returnCode,
+              fileName,
+              filePath,
+            };
           } catch (error) {
             if (error instanceof Meta4SoapFaultError) {
               safeLog(deps.log, {

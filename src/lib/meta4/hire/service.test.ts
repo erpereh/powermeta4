@@ -9,12 +9,16 @@ import {
 import { Meta4HttpError } from "@/lib/meta4/client";
 import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
 
+import { buildHireFileName, buildHireFilePath } from "./filename";
 import { Meta4HireError } from "./errors";
 import { createSerializedQueue } from "./mutex";
 import { launchMeta4Hire } from "./service";
 import type { HirePerson } from "./types";
 
-const IMPORT_FILE_PATH = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\Hire.xls`;
+const IMPORT_DIRECTORY = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel`;
+const HIRE_NOW = new Date(2026, 8, 22, 11, 12, 34);
+const exampleFileName = buildHireFileName("JORGE.SALVADOR", HIRE_NOW);
+const exampleFilePath = buildHireFilePath(IMPORT_DIRECTORY, exampleFileName);
 
 type SoapExecute = <T>(operation: AuthenticatedSoapOperation<T>) => Promise<T>;
 
@@ -60,7 +64,8 @@ describe("launchMeta4Hire service", () => {
       callCount += 1;
       expect(operation.url).toBe("https://example.test/SRTC_LAUNCH_IMPORT");
       expect(operation.xml).toContain("ARG_ID_GROUP_INTERFACE>INIT_EMPLOYEES_FD<");
-      expect(operation.xml).toContain(`ARG_PATH_FILE>${IMPORT_FILE_PATH}<`);
+      expect(operation.xml).toContain(`ARG_PATH_FILE>${exampleFilePath}<`);
+      expect(operation.xml).not.toContain(`ARG_PATH_FILE>${IMPORT_DIRECTORY}<`);
       expect(operation.xml).not.toContain("SOAPAction");
       expect(operation.xml).not.toContain("jsession-should-not-leak");
       expect(operation.xml).not.toContain(person.firstName);
@@ -75,7 +80,7 @@ describe("launchMeta4Hire service", () => {
     const result = await launchMeta4Hire(AUTH_SESSION, [person], {
       getOperationalContext: async () => ({
         mode: "meta4",
-        username: "user",
+        username: "JORGE.SALVADOR",
         society: "CYC",
         jSessionId: "jsession-should-not-leak",
         companyId: "company-cyc",
@@ -85,18 +90,28 @@ describe("launchMeta4Hire service", () => {
       writeHireFile,
       verifyHireFile,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireFilePath: IMPORT_FILE_PATH,
+      hireDirectory: IMPORT_DIRECTORY,
+      now: () => HIRE_NOW,
       templatePath: "./fuentes/HIRE/Hire_1_PERSONA.xls",
       serialize: createSerializedQueue(),
     });
 
-    expect(result).toEqual({ personCount: 1, returnCode: "0.0" });
+    expect(result).toEqual({
+      personCount: 1,
+      returnCode: "0.0",
+      fileName: exampleFileName,
+      filePath: exampleFilePath,
+    });
     expect(callCount).toBe(1);
     expect(editHireWorkbook).toHaveBeenCalledTimes(1);
     expect(writeHireFile).toHaveBeenCalledTimes(1);
     expect(verifyHireFile).toHaveBeenCalledTimes(1);
-    expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(IMPORT_FILE_PATH);
-    expect(verifyHireFile.mock.calls.at(0)?.[0]).toBe(IMPORT_FILE_PATH);
+    expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(exampleFilePath);
+    expect(verifyHireFile.mock.calls.at(0)?.[0]).toBe(exampleFilePath);
+    expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(verifyHireFile.mock.calls.at(0)?.[0]);
+    expect(exampleFileName).toBe("Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls");
+    expect(exampleFilePath.endsWith(`\\${exampleFileName}`)).toBe(true);
+    expect(exampleFilePath).not.toBe(IMPORT_DIRECTORY);
     expect(writeHireFile.mock.calls.at(0)?.[1]).toBe(preserved);
   });
 
@@ -114,14 +129,15 @@ describe("launchMeta4Hire service", () => {
       getOperationalContext,
       executeSoap: async (operation) => {
         expect(operation.xml).not.toContain("CYC");
-        expect(operation.xml).toContain(`ARG_PATH_FILE>${IMPORT_FILE_PATH}<`);
+        expect(operation.xml).toContain(`ARG_PATH_FILE>${buildHireFilePath(IMPORT_DIRECTORY, buildHireFileName("user", HIRE_NOW))}<`);
         return operation.parseResponse(new Response(successBody, { status: 200 }));
       },
       editHireWorkbook: async () => Buffer.from("excel-preserved-bytes"),
       writeHireFile: async () => undefined,
       verifyHireFile: async () => undefined,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireFilePath: IMPORT_FILE_PATH,
+      hireDirectory: IMPORT_DIRECTORY,
+      now: () => HIRE_NOW,
       serialize: createSerializedQueue(),
       log: (message, details) => {
         logs.push({ message, details });
@@ -153,7 +169,8 @@ describe("launchMeta4Hire service", () => {
       writeHireFile: async () => undefined,
       verifyHireFile: async () => undefined,
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireFilePath: IMPORT_FILE_PATH,
+      hireDirectory: IMPORT_DIRECTORY,
+      now: () => HIRE_NOW,
       serialize: createSerializedQueue(),
     };
 

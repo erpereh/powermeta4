@@ -134,7 +134,7 @@ export function UsersHireForm() {
         setError(result.message);
         return;
       }
-      setSuccess(`Se han enviado ${result.data.personCount} personas a Meta4.`);
+      setSuccess(`Alta enviada correctamente · ${result.data.fileName}`);
       setPeople([emptyPerson()]);
       setExpandedIndex(0);
       setConfirmOpen(false);

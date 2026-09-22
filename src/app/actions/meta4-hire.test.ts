@@ -46,12 +46,21 @@ describe("launchMeta4HireAction", () => {
       expiresAt: new Date("2026-09-01T00:00:00.000Z"),
       lastValidatedAt: new Date("2026-08-01T00:00:00.000Z"),
     });
-    launchHire.mockResolvedValue({ personCount: 1, returnCode: "0.0" });
+    launchHire.mockResolvedValue({
+      personCount: 1,
+      returnCode: "0.0",
+      fileName: "Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls",
+      filePath: String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls`,
+    });
 
     const result = await launchMeta4HireAction([person]);
-    expect(result).toEqual({ ok: true, data: { personCount: 1 } });
+    expect(result).toEqual({
+      ok: true,
+      data: { personCount: 1, fileName: "Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls" },
+    });
     expect(launchHire).toHaveBeenCalledTimes(1);
     expect(JSON.stringify(result)).not.toContain(person.email);
+    expect(JSON.stringify(result)).not.toContain("WMETA4PRE2");
   });
 
   it("returns a validation error before calling Meta4", async () => {

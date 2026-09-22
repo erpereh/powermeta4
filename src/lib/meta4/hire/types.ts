@@ -21,4 +21,6 @@ export type HirePerson = {
 export type HireLaunchResult = {
   personCount: number;
   returnCode: string;
+  fileName: string;
+  filePath: string;
 };

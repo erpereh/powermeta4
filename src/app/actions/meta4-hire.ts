@@ -13,6 +13,7 @@ import type { ActionResult } from "@/lib/local-database/dtos";
 
 export type HireActionData = {
   personCount: number;
+  fileName: string;
 };
 
 const resolveHireErrorMessage = (error: unknown): { errorCode: string; message: string } => {
@@ -49,7 +50,7 @@ export async function launchMeta4HireAction(
     const parsed = parseHirePeople(people);
     const authSession = await requireAuthContext();
     const result = await launchMeta4Hire(authSession, parsed);
-    return { ok: true, data: { personCount: result.personCount } };
+    return { ok: true, data: { personCount: result.personCount, fileName: result.fileName } };
   } catch (error) {
     const resolved = resolveHireErrorMessage(error);
     return { ok: false, errorCode: resolved.errorCode, message: resolved.message };

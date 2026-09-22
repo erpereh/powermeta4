@@ -1,5 +1,17 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4 - 2026-09-22 (nombre de fichero)
+
+- [x] El fichero Hire usa el usuario del contexto Meta4 y un timestamp, dentro
+      del directorio `META4_HIRE_FILE_PATH`. Escritura, verificación y SOAP
+      comparten esa ruta.
+- [x] El error de Excel se registra en servidor (exit code, etapa, stderr) y
+      el BOM de los temporales es UTF-8 real.
+- [x] Verificación: `npm run typecheck` correcto; `npm test` 94 archivos,
+      477 pruebas correctas y 2 omitidas; `npm run build` correcto;
+      `git diff --check` correcto. La edición real con Excel sobre una copia
+      temporal pasó dentro de la suite. Sin alta real ni Excel huérfano.
+
 ## Alta de personas Meta4 - 2026-09-22
 
 - [x] `META4_HIRE_FILE_PATH` apunta a

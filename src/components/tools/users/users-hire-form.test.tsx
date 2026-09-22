@@ -115,7 +115,10 @@ describe("UsersHireForm", () => {
   });
 
   it("removes a collapsed person and submits every remaining person", async () => {
-    launchHire.mockResolvedValue({ ok: true, data: { personCount: 2 } });
+    launchHire.mockResolvedValue({
+      ok: true,
+      data: { personCount: 2, fileName: "Hire_user_2026-09-22_11-12-34.xls" },
+    });
     const user = userEvent.setup({ delay: null });
     render(<UsersHireForm />);
 
@@ -156,6 +159,9 @@ describe("UsersHireForm", () => {
     await user.click(screen.getByRole("button", { name: "Confirmar" }));
 
     expect(launchHire).toHaveBeenCalledTimes(1);
+    expect((await screen.findByRole("status")).textContent).toBe(
+      "Alta enviada correctamente · Hire_user_2026-09-22_11-12-34.xls",
+    );
     expect(launchHire.mock.calls.at(0)?.at(0)).toEqual([
       expect.objectContaining({
         firstName: "Nuria",

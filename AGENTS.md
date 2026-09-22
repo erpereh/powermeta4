@@ -146,11 +146,13 @@ rutas antiguas `/tools/users/search` y `/tools/users/[userId]` solo redirigen
 a `/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
 
 No añadir APIs ficticias, permisos reales, invitaciones ni persistencia remota.
-El alta de personas es la excepción de escritura ERP aprobada: genera Hire.xls
-en servidor desde `Hire_1_PERSONA.xls` (Excel COM edita solo los campos de la UI
-y conserva el resto del libro), sustituye columnas duplicadas como `AY`/`IQ`,
-lo escribe en `META4_HIRE_FILE_PATH` y llama a `META4_HIRE_URL`; no persiste
-datos personales en SQLite. La entidad legal permanece la de la plantilla.
+El alta de personas es la excepción de escritura ERP aprobada: Excel COM edita
+una copia de `Hire_1_PERSONA.xls` y solo sustituye los campos de la UI
+(incluidas columnas duplicadas como `AY`/`IQ`). El fichero se escribe en un
+nombre `Hire_<usuario>_<fecha>.xls` dentro del directorio
+`META4_HIRE_FILE_PATH` y esa misma ruta se envía a `META4_HIRE_URL`. No
+persiste datos personales en SQLite. La entidad legal permanece la de la
+plantilla.
 El endpoint OpenAI-compatible global
 se configura mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL` en el entorno
 server-side; nunca se documentan credenciales ni se exponen claves al cliente.
