@@ -13,7 +13,7 @@ describe("hire filenames", () => {
     expect(sanitizeHireUsername("JORGE.SALVADOR")).toBe("JORGE.SALVADOR");
     expect(formatHireTimestamp(when)).toBe("2026-09-22_11-12-34");
     expect(buildHireFileName("JORGE.SALVADOR", when)).toBe(
-      "Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls",
+      "AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls",
     );
   });
 
@@ -25,7 +25,7 @@ describe("hire filenames", () => {
 
   it("joins the import directory and does not treat the directory as the file", () => {
     const directory = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel`;
-    const fileName = "Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls";
+    const fileName = "AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls";
     const filePath = buildHireFilePath(directory, fileName);
     expect(filePath).toBe(`${directory}\\${fileName}`);
     expect(filePath).not.toBe(directory);

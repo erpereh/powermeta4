@@ -19,7 +19,7 @@ export const formatHireTimestamp = (date: Date): string =>
   `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}_${pad(date.getHours())}-${pad(date.getMinutes())}-${pad(date.getSeconds())}`;
 
 export const buildHireFileName = (username: string, date: Date): string =>
-  `Hire_${sanitizeHireUsername(username)}_${formatHireTimestamp(date)}.xls`;
+  `AltaPersonas_${sanitizeHireUsername(username)}_${formatHireTimestamp(date)}.xls`;
 
 export const buildHireFilePath = (directory: string, fileName: string): string =>
   path.win32.join(directory.replace(/[\\/]+$/, ""), fileName);

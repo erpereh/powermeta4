@@ -1,5 +1,13 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4 - 2026-09-22 (nombre sin "Hire")
+
+- [x] `buildHireFileName` genera `AltaPersonas_<usuario>_<fecha>.xls` en vez
+      de `Hire_<usuario>_<fecha>.xls`. La plantilla `Hire_1_PERSONA.xls` no
+      cambia de nombre.
+- [x] Verificación: `npm run typecheck` correcto; tests de `filename`,
+      `service`, `soap` y `meta4-hire` (acción) correctos.
+
 ## Alta de personas Meta4 - 2026-09-22 (enlace tardío Excel COM)
 
 - [x] `editHireWorkbook` usa `InvokeMember` (IDispatch) en vez de notación de

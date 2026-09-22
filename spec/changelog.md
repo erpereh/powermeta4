@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-22 - Nombre del fichero de alta sin "Hire"
+
+### Cambios
+
+- El fichero generado por el alta de personas pasa de
+  `Hire_<usuario>_<fecha>.xls` a `AltaPersonas_<usuario>_<fecha>.xls`,
+  describiendo la operación en vez de referirse a la plantilla interna.
+  `Hire_1_PERSONA.xls` (la plantilla en `fuentes/HIRE/`) no cambia de
+  nombre: solo cambia el nombre del fichero que se genera por cada alta.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm test src/lib/meta4/hire/filename.test.ts src/lib/meta4/hire/service.test.ts src/lib/meta4/hire/soap.test.ts src/app/actions/meta4-hire.test.ts` — correcto.
+
 ## 2026-09-22 - Enlace tardío en la edición Excel COM
 
 ### Cambios

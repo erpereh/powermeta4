@@ -12,7 +12,7 @@ import {
 
 describe("Meta4 hire SOAP builder", () => {
   it("builds SRTC_LAUNCH_IMPORT with escaped UNC path and without SOAPAction", () => {
-    const filePath = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls`;
+    const filePath = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls`;
     const xml = buildLaunchImportEnvelope(filePath);
 
     expect(xml).toContain("<sch:SRTC_LAUNCH_IMPORT>");

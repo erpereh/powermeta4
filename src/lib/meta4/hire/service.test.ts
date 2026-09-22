@@ -109,7 +109,7 @@ describe("launchMeta4Hire service", () => {
     expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(exampleFilePath);
     expect(verifyHireFile.mock.calls.at(0)?.[0]).toBe(exampleFilePath);
     expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(verifyHireFile.mock.calls.at(0)?.[0]);
-    expect(exampleFileName).toBe("Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls");
+    expect(exampleFileName).toBe("AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls");
     expect(exampleFilePath.endsWith(`\\${exampleFileName}`)).toBe(true);
     expect(exampleFilePath).not.toBe(IMPORT_DIRECTORY);
     expect(writeHireFile.mock.calls.at(0)?.[1]).toBe(preserved);

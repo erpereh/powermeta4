@@ -49,14 +49,14 @@ describe("launchMeta4HireAction", () => {
     launchHire.mockResolvedValue({
       personCount: 1,
       returnCode: "0.0",
-      fileName: "Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls",
-      filePath: String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls`,
+      fileName: "AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls",
+      filePath: String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls`,
     });
 
     const result = await launchMeta4HireAction([person]);
     expect(result).toEqual({
       ok: true,
-      data: { personCount: 1, fileName: "Hire_JORGE.SALVADOR_2026-09-22_11-12-34.xls" },
+      data: { personCount: 1, fileName: "AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls" },
     });
     expect(launchHire).toHaveBeenCalledTimes(1);
     expect(JSON.stringify(result)).not.toContain(person.email);
