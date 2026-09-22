@@ -113,12 +113,45 @@ const editFailed = (
   message = "No se ha podido editar la copia de Hire_1_PERSONA.xls.",
 ): Meta4HireError => new Meta4HireError("META4_HIRE_EDIT_FAILED", message);
 
+// Every Excel COM member access below goes through InvokeMember (pure
+// IDispatch late binding) instead of dot-notation. Dot-notation lets
+// PowerShell/.NET bind to a strongly-typed Primary Interop Assembly (PIA)
+// registered for Excel's CLSID; on this machine a stale Office 2013 PIA
+// (Microsoft.Office.Interop.Excel 15.0.0.0) is registered machine-wide in
+// the GAC and shadows the installed Office 365 Excel 16.0, so casting the
+// live COM object to "_Application" fails with QueryInterface
+// TYPE_E_ELEMENTNOTFOUND (0x8002802B) - reproduced identically with both
+// 32-bit and 64-bit powershell.exe, so it is not a bitness issue. Late
+// binding via InvokeMember never performs that interface cast, so it
+// sidesteps the mismatched PIA entirely without touching the GAC.
 const EXCEL_SCRIPT = String.raw`
 param(
   [Parameter(Mandatory = $true)][string]$WorkbookPath,
   [Parameter(Mandatory = $true)][string]$InstructionsPath
 )
 $ErrorActionPreference = "Stop"
+
+function Set-ComProp($com, [string]$name, $value) {
+  $com.GetType().InvokeMember($name, [System.Reflection.BindingFlags]::SetProperty, $null, $com, @($value)) | Out-Null
+}
+function Get-ComProp($com, [string]$name, [object[]]$comArgs = @()) {
+  # -NoEnumerate: Excel collections (Workbooks, Worksheets, Rows...) implement
+  # IEnumerable via COM. "return" alone lets PowerShell unroll them onto the
+  # pipeline, and an empty collection (e.g. Workbooks before anything is
+  # open) unrolls to nothing - the caller would see $null instead of the
+  # collection object itself.
+  $result = $com.GetType().InvokeMember($name, [System.Reflection.BindingFlags]::GetProperty, $null, $com, $comArgs)
+  Write-Output -NoEnumerate $result
+}
+function Invoke-ComMethod($com, [string]$name, [object[]]$comArgs = @()) {
+  # Excel exposes indexers like Worksheets.Item(name) / Rows.Item(n) as
+  # parameterized properties, not plain methods - InvokeMethod alone throws
+  # DISP_E_MEMBERNOTFOUND for them, so both flags are combined here.
+  $flags = [System.Reflection.BindingFlags]::InvokeMethod -bor [System.Reflection.BindingFlags]::GetProperty
+  $result = $com.GetType().InvokeMember($name, $flags, $null, $com, $comArgs)
+  Write-Output -NoEnumerate $result
+}
+
 $excel = $null
 $workbook = $null
 $createdPid = $null
@@ -139,42 +172,47 @@ try {
     [Console]::Out.WriteLine("EXCEL_PID=$createdPid")
   }
   [Console]::Out.WriteLine("STAGE=excel-started")
-  $excel.Visible = $false
-  $excel.DisplayAlerts = $false
-  $excel.ScreenUpdating = $false
-  $excel.EnableEvents = $false
-  $excel.AskToUpdateLinks = $false
-  try { $excel.AutomationSecurity = 3 } catch {}
-  try { $excel.CalculateBeforeSave = $false } catch {}
-  try { $excel.Calculation = -4135 } catch {}
+  Set-ComProp $excel "Visible" $false
+  Set-ComProp $excel "DisplayAlerts" $false
+  Set-ComProp $excel "ScreenUpdating" $false
+  Set-ComProp $excel "EnableEvents" $false
+  Set-ComProp $excel "AskToUpdateLinks" $false
+  try { Set-ComProp $excel "AutomationSecurity" 3 } catch {}
+  try { Set-ComProp $excel "CalculateBeforeSave" $false } catch {}
+  try { Set-ComProp $excel "Calculation" -4135 } catch {}
   Unblock-File -LiteralPath $WorkbookPath -ErrorAction SilentlyContinue
   $payload = [System.IO.File]::ReadAllText($InstructionsPath) | ConvertFrom-Json
-  $workbook = $excel.Workbooks.Open($WorkbookPath, 0, $false)
+  $workbooks = Get-ComProp $excel "Workbooks"
+  $workbook = Invoke-ComMethod $workbooks "Open" @($WorkbookPath, 0, $false)
   [Console]::Out.WriteLine("STAGE=workbook-opened")
-  $sheet = $workbook.Worksheets.Item([string]$payload.sheetName)
+  $worksheets = Get-ComProp $workbook "Worksheets"
+  $sheet = Invoke-ComMethod $worksheets "Item" @([string]$payload.sheetName)
   [Console]::Out.WriteLine("STAGE=sheet-ready")
   $templateRow = [int]$payload.templateRow
   foreach ($personRow in @($payload.rows)) {
     $rowNumber = [int]$personRow.row
     if ($personRow.copyFromTemplate) {
-      $sheet.Rows.Item($templateRow).Copy($sheet.Rows.Item($rowNumber)) | Out-Null
+      $rows = Get-ComProp $sheet "Rows"
+      $srcRow = Invoke-ComMethod $rows "Item" @($templateRow)
+      $dstRow = Invoke-ComMethod $rows "Item" @($rowNumber)
+      Invoke-ComMethod $srcRow "Copy" @($dstRow) | Out-Null
     }
     foreach ($cell in @($personRow.cells)) {
       $address = "{0}{1}" -f $cell.column, $rowNumber
-      $range = $sheet.Range($address)
+      $range = Get-ComProp $sheet "Range" @($address)
       if ($cell.kind -eq "clear") {
-        $range.ClearContents() | Out-Null
+        Invoke-ComMethod $range "ClearContents" @() | Out-Null
       } elseif ($cell.kind -eq "number") {
-        $range.Value2 = [double]$cell.value
+        Set-ComProp $range "Value2" ([double]$cell.value)
       } else {
-        $range.Value2 = [string]$cell.value
+        Set-ComProp $range "Value2" ([string]$cell.value)
       }
     }
   }
   [Console]::Out.WriteLine("STAGE=edited")
-  $workbook.Save()
+  Invoke-ComMethod $workbook "Save" @()
   [Console]::Out.WriteLine("STAGE=saved")
-  $workbook.Close($true)
+  Invoke-ComMethod $workbook "Close" @($true)
   $workbook = $null
   [Console]::Out.WriteLine("STAGE=closed")
 } catch {
@@ -182,11 +220,11 @@ try {
   exit 1
 } finally {
   if ($null -ne $workbook) {
-    try { $workbook.Close($false) } catch {}
+    try { Invoke-ComMethod $workbook "Close" @($false) } catch {}
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) } catch {}
   }
   if ($null -ne $excel) {
-    try { $excel.Quit() } catch {}
+    try { Invoke-ComMethod $excel "Quit" @() } catch {}
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) } catch {}
   }
   [GC]::Collect()

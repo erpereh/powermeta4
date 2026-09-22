@@ -1,5 +1,19 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4 - 2026-09-22 (enlace tardío Excel COM)
+
+- [x] `editHireWorkbook` usa `InvokeMember` (IDispatch) en vez de notación de
+      punto para evitar un Primary Interop Assembly de Excel obsoleto
+      registrado en el GAC de la máquina, que rompía `QueryInterface` sobre
+      `_Application` en 32 y 64 bits por igual.
+- [x] Corregido el desenrollado de colecciones vacías (`Write-Output
+      -NoEnumerate`) y la resolución de indexadores tipo `Item`
+      (`InvokeMethod | GetProperty`).
+- [x] Verificación: `npm run typecheck` correcto; `npm run lint` correcto;
+      `npm test` 94 archivos, 451 pruebas correctas y 36 omitidas; `npm run
+      build` correcto. Ejecución real del script contra
+      `Hire_1_PERSONA.xls` completa, sin Excel huérfano ni alta real.
+
 ## Alta de personas Meta4 - 2026-09-22 (URL única y Excel)
 
 - [x] `META4_BASE_URL` deriva Login, perfil, listado, detalle y alta.

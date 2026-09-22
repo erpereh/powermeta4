@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-09-22 - Enlace tardío en la edición Excel COM
+
+### Cambios
+
+- El script de PowerShell embebido en `editHireWorkbook` deja de acceder a
+  `$excel.Propiedad`/`$obj.Metodo()` por notación de punto y usa
+  `InvokeMember` (enlace tardío IDispatch) para toda la automatización de
+  Excel. Un Primary Interop Assembly de Excel obsoleto (Office 2013, v15.0)
+  registrado en el GAC de la máquina hacía que .NET intentara convertir el
+  objeto COM al tipo `_Application` con un GUID de interfaz que ya no
+  coincide con el Excel 365 instalado, fallando con `QueryInterface
+  TYPE_E_ELEMENTNOTFOUND (0x8002802B)` de forma idéntica en PowerShell de
+  32 y 64 bits.
+- Se corrigen dos efectos del cambio a enlace tardío: las colecciones de
+  Excel (`Workbooks`, `Worksheets`...) se desenrollan como `IEnumerable` al
+  salir de una función de PowerShell y una colección vacía se convertía en
+  `$null` (arreglado con `Write-Output -NoEnumerate`); y los indexadores de
+  Excel (`Item`) son propiedades parametrizadas, no métodos puros, por lo
+  que `InvokeMethod` solo daba `DISP_E_MEMBERNOTFOUND` (arreglado
+  combinando los flags `InvokeMethod | GetProperty`).
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm run lint` — correcto (solo avisos preexistentes ajenos al cambio).
+- `npm test` — 94 archivos correctos, 1 omitido; 451 pruebas correctas y 36
+  omitidas.
+- `npm run build` — correcto.
+- Prueba real fuera de la suite: script extraído de `excel.ts` ejecutado
+  contra `Hire_1_PERSONA.xls` de principio a fin (`workbook-opened` →
+  `sheet-ready` → `edited` → `saved` → `closed`), XLS resultante con
+  cabecera OLE2 válida. Sin `EXCEL.EXE` huérfano. Sin alta real a Meta4.
+
 ## 2026-09-22 - URL Meta4 única y edición Hire
 
 ### Cambios
