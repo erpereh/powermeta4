@@ -11,6 +11,7 @@ import {
   StatusBreakdown,
 } from "@/features/registro-retributivo/components/dashboard/OverviewSections";
 import { countPeopleByStatus } from "@/features/registro-retributivo/components/common/personStatus";
+import { pdfSourceLabel } from "@/features/registro-retributivo/components/common/analysisLabels";
 import { UploadPanel } from "@/features/registro-retributivo/components/upload/UploadPanel";
 import { Button, Callout, Drawer } from "@/components/system";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
@@ -20,9 +21,8 @@ const DATE_FORMAT = new Intl.DateTimeFormat("es-ES", { dateStyle: "long", timeSt
 
 function SourcesLine() {
   const { activeAnalysis, result } = useAppState();
-  const pdfCount = activeAnalysis?.pdfCount ?? result?.summary.pdfsAnalyzed ?? 0;
   const items = [
-    { icon: FileText, label: `${pdfCount} ${pdfCount === 1 ? "recibo" : "recibos"} PDF`, title: undefined },
+    { icon: FileText, label: pdfSourceLabel(activeAnalysis?.pdfCount, result?.summary.pdfsAnalyzed), title: undefined },
     {
       icon: FileSpreadsheet,
       label: displayText(activeAnalysis?.registroFileName) || "Excel Reg. Retrib.",

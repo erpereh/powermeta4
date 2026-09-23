@@ -6,6 +6,7 @@ import {
   createDebugAuthConfigurationError,
   DebugAuthConfigurationError,
   getDebugUsername,
+  getQuickLoginCredentials,
   isDebugAuthEnabled,
 } from "@/lib/auth/debug-config";
 
@@ -14,6 +15,20 @@ afterEach(() => {
 });
 
 describe("debug authentication configuration", () => {
+  it("exposes quick login credentials only in development and when both are set", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("POWERMETA4_QUICK_LOGIN_USERNAME", " TEST.USER ");
+    vi.stubEnv("POWERMETA4_QUICK_LOGIN_PASSWORD", "secret");
+    expect(getQuickLoginCredentials()).toEqual({ username: "TEST.USER", password: "secret" });
+
+    vi.stubEnv("POWERMETA4_QUICK_LOGIN_PASSWORD", "");
+    expect(getQuickLoginCredentials()).toBeUndefined();
+
+    vi.stubEnv("POWERMETA4_QUICK_LOGIN_PASSWORD", "secret");
+    vi.stubEnv("NODE_ENV", "production");
+    expect(getQuickLoginCredentials()).toBeUndefined();
+  });
+
   it("enables debug authentication only for the exact development and true combination", () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("POWERMETA4_DEBUG_AUTH", "true");

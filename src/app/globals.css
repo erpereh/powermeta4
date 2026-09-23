@@ -302,3 +302,22 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Oculta la barra de scroll sin quitar el desplazamiento (rueda, táctil, teclado). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Registro Retributivo: sin barras de scroll visibles; se sigue desplazando con rueda, táctil y teclado. */
+[data-registro-retributivo-root] :is(.overflow-auto, .overflow-x-auto, .overflow-y-auto) {
+  scrollbar-width: none;
+}
+
+[data-registro-retributivo-root] :is(.overflow-auto, .overflow-x-auto, .overflow-y-auto)::-webkit-scrollbar {
+  display: none;
+}

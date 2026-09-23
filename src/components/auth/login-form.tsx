@@ -1,23 +1,32 @@
 "use client";
 
 import { useActionState } from "react";
-import { Bug } from "lucide-react";
+import { Bug, Zap } from "lucide-react";
 import Link from "next/link";
 
-import { debugLoginAction, loginAction, type LoginState } from "@/app/actions/auth";
+import { debugLoginAction, loginAction, quickLoginAction, type LoginState } from "@/app/actions/auth";
 import { PowermetaLogo } from "@/components/branding/powermeta-logo";
 import { Input, StatefulButton } from "@/components/system";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const initialState: LoginState = {};
 
-export function LoginForm({ debugAuthEnabled }: { debugAuthEnabled: boolean }) {
+export function LoginForm({
+  debugAuthEnabled,
+  quickLoginUsername,
+}: {
+  debugAuthEnabled: boolean;
+  /** Usuario de pruebas de `.env.local` (solo desarrollo). */
+  quickLoginUsername?: string;
+}) {
   const [meta4State, meta4FormAction, meta4Pending] = useActionState(loginAction, initialState);
   const [debugState, debugFormAction, debugPending] = useActionState(
     debugLoginAction,
     initialState,
   );
-  const pending = meta4Pending || debugPending;
+  const [quickState, quickFormAction, quickPending] = useActionState(quickLoginAction, initialState);
+  const pending = meta4Pending || debugPending || quickPending;
+  const hasShortcuts = debugAuthEnabled || Boolean(quickLoginUsername);
 
   return (
     <main className="flex min-h-svh items-center justify-center bg-background px-4 py-6">
@@ -76,12 +85,34 @@ export function LoginForm({ debugAuthEnabled }: { debugAuthEnabled: boolean }) {
               Entrar
             </StatefulButton>
           </form>
+          {hasShortcuts && (
+            <div className="relative my-5 flex items-center justify-center" aria-hidden="true">
+              <span className="absolute inset-x-0 border-t border-border" />
+              <span className="relative bg-card px-3 text-sm text-muted-foreground">o</span>
+            </div>
+          )}
+          {quickLoginUsername && (
+            <form action={quickFormAction} className="mb-3 grid gap-3">
+              {quickState.error && (
+                <p role="alert" className="text-sm text-destructive">
+                  {quickState.error}
+                </p>
+              )}
+              <StatefulButton
+                type="submit"
+                variant="outline"
+                className="w-full"
+                state={pending ? "loading" : "idle"}
+                loadingText="Comprobando..."
+                disabled={pending}
+                icon={<Zap aria-hidden="true" />}
+              >
+                Entrar como {quickLoginUsername}
+              </StatefulButton>
+            </form>
+          )}
           {debugAuthEnabled && (
             <>
-              <div className="relative my-5 flex items-center justify-center" aria-hidden="true">
-                <span className="absolute inset-x-0 border-t border-border" />
-                <span className="relative bg-card px-3 text-sm text-muted-foreground">o</span>
-              </div>
               <form action={debugFormAction} className="grid gap-3">
                 {debugState.error && (
                   <p role="alert" className="text-sm text-destructive">

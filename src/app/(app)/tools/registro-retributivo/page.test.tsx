@@ -484,6 +484,14 @@ describe("Registro Retributivo page", () => {
           exampleEmployeeNumbers: ["10048"],
           action: "Pendiente revisión",
         },
+        {
+          pdfConcept: "Cotiz. Fogasa Empresa",
+          totalDetected: 60,
+          peopleCount: 3,
+          payrollCount: 12,
+          exampleEmployeeNumbers: ["10048"],
+          action: "Ignorado",
+        },
       ],
     });
     renderPage();
@@ -507,6 +515,10 @@ describe("Registro Retributivo page", () => {
     await user.click(screen.getByRole("button", { name: "Excluir" }));
     expect(within(screen.getByRole("list", { name: "Matrículas excluidas" })).getByText("10048")).toBeTruthy();
     expect(screen.getByText("El análisis abierto aún no refleja esta lista")).toBeTruthy();
+    expect(screen.queryByText(/no aparece en los recibos ni en el Registro/)).toBeNull();
+    await user.type(screen.getByLabelText("Añadir matrículas"), "99999");
+    await user.click(screen.getByRole("button", { name: "Excluir" }));
+    expect(screen.getByText(/no aparece en los recibos ni en el Registro/).textContent).toContain("99999");
 
     await user.click(screen.getByRole("button", { name: /^Conceptos/ }));
     expect(await screen.findByRole("heading", { name: "Conceptos del recibo" })).toBeTruthy();
@@ -515,5 +527,6 @@ describe("Registro Retributivo page", () => {
     const filters = screen.getByRole("group", { name: "Filtrar conceptos" });
     expect(within(filters).getByRole("button", { name: /Sin regla/, pressed: true })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Ignorar concepto Cotiz MEI Empresa" })).toBeTruthy();
-  });
+    // Lo que el análisis ya ignora por defecto no se presenta como pendiente.
+    expect(screen.queryByText("Cotiz. Fogasa Empresa")).toBeNull();  });
 });

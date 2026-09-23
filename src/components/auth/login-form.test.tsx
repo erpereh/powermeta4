@@ -7,11 +7,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   loginAction: vi.fn(),
   debugLoginAction: vi.fn(),
+  quickLoginAction: vi.fn(),
 }));
 
 vi.mock("@/app/actions/auth", () => ({
   loginAction: mocks.loginAction,
   debugLoginAction: mocks.debugLoginAction,
+  quickLoginAction: mocks.quickLoginAction,
 }));
 
 import { LoginForm } from "./login-form";
@@ -21,6 +23,8 @@ beforeEach(() => {
   mocks.debugLoginAction.mockReset();
   mocks.loginAction.mockResolvedValue({});
   mocks.debugLoginAction.mockResolvedValue({});
+  mocks.quickLoginAction.mockReset();
+  mocks.quickLoginAction.mockResolvedValue({});
 });
 
 afterEach(() => {
@@ -28,6 +32,17 @@ afterEach(() => {
 });
 
 describe("login form", () => {
+  it("offers the development quick login only when the server passes a username", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<LoginForm debugAuthEnabled={false} />);
+    expect(screen.queryByRole("button", { name: /Entrar como/ })).toBeNull();
+
+    rerender(<LoginForm debugAuthEnabled={false} quickLoginUsername="JORGE.SALVADOR" />);
+    await user.click(screen.getByRole("button", { name: "Entrar como JORGE.SALVADOR" }));
+    expect(mocks.quickLoginAction).toHaveBeenCalledTimes(1);
+    expect(mocks.loginAction).not.toHaveBeenCalled();
+  });
+
   it("shows a separate no-input debug form only when the server enables it", async () => {
     const user = userEvent.setup();
     const { rerender } = render(<LoginForm debugAuthEnabled={false} />);

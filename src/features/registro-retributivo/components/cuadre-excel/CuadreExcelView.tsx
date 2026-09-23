@@ -41,18 +41,33 @@ type CuadreRow = {
   readonly breakdownSource?: InternalExcelCheckRow;
 };
 
-const MODES: ReadonlyArray<{ id: CuadreMode; title: string; question: string; otherLabel: string }> = [
+type ModeInfo = {
+  readonly id: CuadreMode;
+  readonly title: string;
+  readonly question: string;
+  readonly otherLabel: string;
+  /** Si las diferencias son esperables (no implican un error en el Excel). */
+  readonly expected: boolean;
+  readonly failingHint: string;
+};
+
+const MODES: readonly ModeInfo[] = [
   {
     id: "breakdown",
     title: "Total frente a desglose",
     question: "¿El importe del periodo completo coincide con la suma de sus conceptos?",
     otherLabel: "Suma del desglose",
+    expected: false,
+    failingHint: "Su total del periodo no coincide con la suma del desglose. Corrígelo en el Excel del Registro Retributivo; no depende de los recibos.",
   },
   {
     id: "normalizedVariables",
     title: "Total frente a normalizado + variables",
-    question: "¿El importe del periodo completo coincide con el normalizado más las variables?",
+    question: "¿Cuánto se aleja lo cobrado en el periodo del normalizado más las variables?",
     otherLabel: "Normalizado + variables",
+    expected: true,
+    failingHint:
+      "No es necesariamente un error: el normalizado se calcula como si la persona hubiera trabajado todo el año a jornada completa, así que difiere en altas, bajas, jornadas parciales o excedencias. Revisa las diferencias de quien trabajó el año entero a jornada completa.",
   },
 ];
 
@@ -129,9 +144,14 @@ function ModeCards({
               <span className="text-sm font-semibold text-foreground">{item.title}</span>
               {result ? (
                 result.failing ? (
-                  <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-destructive">
-                    <span aria-hidden="true" className="size-2 rounded-full bg-destructive" />
-                    {result.failing} no cuadran
+                  <span
+                    className={cn(
+                      "inline-flex shrink-0 items-center gap-1.5 text-xs font-medium",
+                      item.expected ? "text-foreground" : "text-destructive",
+                    )}
+                  >
+                    <span aria-hidden="true" className={cn("size-2 rounded-full", item.expected ? "bg-amber-500" : "bg-destructive")} />
+                    {result.failing} {item.expected ? "difieren" : "no cuadran"}
                   </span>
                 ) : (
                   <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-foreground">
@@ -151,7 +171,7 @@ function ModeCards({
   );
 }
 
-function CuadreVerdict({ rows, tolerance, otherLabel }: Readonly<{ rows: readonly CuadreRow[]; tolerance: number; otherLabel: string }>) {
+function CuadreVerdict({ rows, tolerance, mode }: Readonly<{ rows: readonly CuadreRow[]; tolerance: number; mode: ModeInfo }>) {
   const failing = notOkCount(rows);
   const maxDifference = rows.reduce((max, row) => Math.max(max, Math.abs(row.total.difference), ...row.blocks.map((block) => Math.abs(block.difference))), 0);
   const allOk = failing === 0;
@@ -161,22 +181,26 @@ function CuadreVerdict({ rows, tolerance, otherLabel }: Readonly<{ rows: readonl
       aria-labelledby="cuadre-verdict-title"
       className={cn(
         "flex items-start gap-3 rounded-2xl border p-5",
-        allOk ? "border-emerald-500/30 bg-emerald-500/5" : "border-destructive/25 bg-destructive/5",
+        allOk ? "border-emerald-500/30 bg-emerald-500/5" : mode.expected ? "border-amber-500/30 bg-amber-500/5" : "border-destructive/25 bg-destructive/5",
       )}
     >
       {allOk ? (
         <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-emerald-500" aria-hidden="true" />
       ) : (
-        <AlertTriangle className="mt-0.5 size-6 shrink-0 text-destructive" aria-hidden="true" />
+        <AlertTriangle className={cn("mt-0.5 size-6 shrink-0", mode.expected ? "text-amber-500" : "text-destructive")} aria-hidden="true" />
       )}
       <div className="min-w-0">
         <h3 id="cuadre-verdict-title" className="text-lg font-semibold tracking-tight text-foreground text-balance">
-          {allOk ? `Las ${rows.length} personas cuadran en el Excel` : `${failing} de ${rows.length} personas no cuadran en el Excel`}
+          {allOk
+            ? `Las ${rows.length} personas cuadran en el Excel`
+            : mode.expected
+              ? `${failing} de ${rows.length} personas tienen un total distinto del ${mode.otherLabel.toLowerCase()}`
+              : `${failing} de ${rows.length} personas no cuadran en el Excel`}
         </h3>
         <p className="mt-1 text-sm text-muted-foreground text-pretty">
           {allOk
             ? `La mayor diferencia es de ${formatEuro(maxDifference)}, dentro de la tolerancia de ${formatEuro(tolerance)}.`
-            : `Su total del periodo no coincide con «${otherLabel.toLowerCase()}». Corrígelo en el Excel del Registro Retributivo; no depende de los recibos.`}
+            : mode.failingHint}
         </p>
       </div>
     </section>
@@ -404,7 +428,7 @@ export function CuadreExcelView() {
         />
       ) : (
         <>
-          <CuadreVerdict rows={modeRows} tolerance={tolerance} otherLabel={activeMode.otherLabel} />
+          <CuadreVerdict rows={modeRows} tolerance={tolerance} mode={activeMode} />
 
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <StatusChips rows={searchedRows} value={status} onChange={setStatus} />

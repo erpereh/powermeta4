@@ -29,3 +29,21 @@ export const createDebugAuthConfigurationError = (): DebugAuthConfigurationError
   new DebugAuthConfigurationError(
     process.env.NODE_ENV === "development" ? DEBUG_AUTH_DISABLED : DEBUG_AUTH_NOT_ALLOWED,
   );
+
+export type QuickLoginCredentials = {
+  readonly username: string;
+  readonly password: string;
+};
+
+/**
+ * Acceso rápido de desarrollo con un usuario Meta4 real de pruebas. Las
+ * credenciales viven solo en `.env.local` (ignorado por git) y se leen en
+ * servidor; la contraseña nunca llega al navegador.
+ */
+export const getQuickLoginCredentials = (): QuickLoginCredentials | undefined => {
+  if (process.env.NODE_ENV !== "development") return undefined;
+  const username = process.env.POWERMETA4_QUICK_LOGIN_USERNAME?.trim();
+  const password = process.env.POWERMETA4_QUICK_LOGIN_PASSWORD;
+  if (!username || !password) return undefined;
+  return { username, password };
+};

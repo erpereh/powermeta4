@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-09-23 - Acceso rápido de desarrollo con usuario Meta4 de pruebas
+
+- Botón «Entrar como …» en `/login`, solo con `NODE_ENV=development` y si
+  `POWERMETA4_QUICK_LOGIN_USERNAME` y `POWERMETA4_QUICK_LOGIN_PASSWORD` están en
+  `.env.local` (ignorado por git). `quickLoginAction` usa el mismo login SOAP
+  que el formulario; la contraseña solo se lee en servidor y la página recibe
+  únicamente el usuario. Variables documentadas vacías en `.env.example`.
+- Verificación: tests de `debug-config` y del formulario; en navegador el
+  botón inicia sesión y redirige a `/home`, y la contraseña no aparece en el
+  HTML ni en ninguna respuesta de red.
+
+## 2026-09-23 - Registro Retributivo: revisión con el análisis cargado
+
+### Revisión
+
+- Navegador (Chrome headless, 1440 px y 390 px): las seis pestañas, filtros de
+  estado, detalles de Personas, Cuadre y Agrupaciones, y secciones de Ajustes,
+  sin errores de consola, de página ni HTTP, sin textos `NaN`/`undefined` y
+  sin desbordamiento horizontal.
+- Datos (79 personas, 953 recibos en 21 PDF): diferencias por bloque y total
+  coherentes con `pdf − registro` en todas las personas, sumas del resumen
+  correctas y estados coherentes con tolerancia y umbral. Los 91 meses con dos
+  recibos son nómina ordinaria + variables (ficheros distintos), no duplicados.
+
+### Correcciones
+
+- Inicio e Historial distinguen ficheros PDF de recibos y usan los mismos
+  recuentos por estado (Historial decía 66 «con diferencias» y Inicio 65).
+- Cuadre «normalizado + variables»: ya no pide corregir el Excel; explica que
+  el normalizado es a año completo y jornada completa y usa tono de aviso.
+- Conceptos: los ignorados por defecto (cotizaciones, especie, descuentos) ya
+  no cuentan como «sin regla» (20 → 1, igual que Inicio); «Ignorar» ya no deja
+  el concepto duplicado como «sin regla»; texto del aviso corregido.
+- Exclusiones: avisa de matrículas que no están en el análisis abierto.
+- Sin barras de scroll visibles en el Registro Retributivo (regla en
+  `globals.css` bajo `[data-registro-retributivo-root]`); el desplazamiento
+  sigue funcionando. Se define la utilidad `no-scrollbar`, que se usaba sin
+  existir.
+
+### Verificación
+
+- Tests de página ampliados (conceptos ignorados, matrícula desconocida).
+
 ## 2026-09-23 - Registro Retributivo: rediseño comprensible por pestañas
 
 ### Cambios

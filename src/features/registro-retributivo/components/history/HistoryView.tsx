@@ -20,6 +20,7 @@ import type { StoredAnalysis } from "@/features/registro-retributivo/types";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
 import { cn } from "@/lib/utils";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
+import { historySummary } from "@/features/registro-retributivo/components/common/analysisLabels";
 
 const DAY_FORMAT = new Intl.DateTimeFormat("es-ES", { day: "2-digit" });
 const MONTH_FORMAT = new Intl.DateTimeFormat("es-ES", { month: "short" });
@@ -75,8 +76,7 @@ function HistoryRow({
             ) : null}
           </span>
           <span className="truncate text-xs text-muted-foreground tabular-nums">
-            {analysis.pdfCount} recibos · {summary?.uniquePeople ?? 0} personas · {summary?.peopleWithDifferences ?? 0} con diferencias
-            {summary?.conceptsPendingReview ? ` · ${summary.conceptsPendingReview} pendientes` : ""}
+            {historySummary(analysis)}
           </span>
         </span>
         <span className="hidden shrink-0 text-right sm:block">

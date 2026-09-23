@@ -40,7 +40,7 @@ import type {
 import { cn } from "@/features/registro-retributivo/utils/classNames";
 import { normalizeComparableText } from "@/features/registro-retributivo/utils/normalize";
 
-type UsageLabel = "Activo" | "Desactivado" | "Sin configurar";
+type UsageLabel = "Activo" | "Desactivado" | "Ignorado por defecto" | "Sin configurar";
 
 interface RuleForm {
   readonly pdfConcept: string;
@@ -302,12 +302,13 @@ function buildRows(
   const unmappedRows: ConceptMapRow[] = unmapped
     .filter((row) => {
       const normalized = normalizePdfConcept(row.pdfConcept);
-      return !rules.some((rule) => isRuleEnabledForComparison(rule) && ruleMatchesConcept(rule, normalized));
+      return !rules.some((rule) => ruleMatchesConcept(rule, normalized));
     })
     .map((row, index) => ({
       kind: "unmapped",
       id: `unmapped-${normalizePdfConcept(row.pdfConcept)}-${index}`,
-      statusLabel: "Sin configurar",
+      // El análisis ya descarta por defecto cotizaciones, especie y descuentos.
+      statusLabel: row.action === "Ignorado" ? "Ignorado por defecto" : "Sin configurar",
       concept: row.pdfConcept,
       code: row.suggestedRegistroCode,
       block: row.suggestedBlock ?? "C. Salarial",
@@ -332,7 +333,7 @@ type UsageFilter = "Todos" | "En uso" | "Desactivados" | "Sin regla";
 
 function matchesUsage(row: ConceptMapRow, filter: UsageFilter): boolean {
   if (filter === "En uso") return row.statusLabel === "Activo";
-  if (filter === "Desactivados") return row.statusLabel === "Desactivado";
+  if (filter === "Desactivados") return row.statusLabel === "Desactivado" || row.statusLabel === "Ignorado por defecto";
   if (filter === "Sin regla") return row.statusLabel === "Sin configurar";
   return true;
 }
@@ -548,7 +549,7 @@ export function ConceptMapEditor() {
               </Button>
             }
           >
-            Mientras no decidas qué hacer con ellos, las personas que los cobran aparecen como «Sin mapear».
+            Sus importes no cuentan en la comparación hasta que les asignes un código o decidas ignorarlos.
           </Callout>
         ) : null}
 
@@ -656,7 +657,9 @@ export function ConceptMapEditor() {
                     <td className="px-4 py-2.5">
                       <p className="font-medium text-foreground">{row.concept}</p>
                       {row.kind === "unmapped" ? (
-                        <p className="text-xs text-muted-foreground">Aparece en las nóminas</p>
+                        <p className="text-xs text-muted-foreground">
+                          {row.statusLabel === "Ignorado por defecto" ? "Ignorado por defecto: no es salario del Registro" : "Aparece en las nóminas"}
+                        </p>
                       ) : activeResult && !row.detected ? (
                         <p className="text-xs text-muted-foreground">No aparece en estas nóminas</p>
                       ) : null}
@@ -679,8 +682,11 @@ export function ConceptMapEditor() {
                         />
                       ) : (
                         <span className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap text-muted-foreground">
-                          <span aria-hidden="true" className="size-2 rounded-full bg-amber-500" />
-                          Sin regla
+                          <span
+                            aria-hidden="true"
+                            className={cn("size-2 rounded-full", row.statusLabel === "Ignorado por defecto" ? "bg-muted-foreground/60" : "bg-amber-500")}
+                          />
+                          {row.statusLabel === "Ignorado por defecto" ? "No" : "Sin regla"}
                         </span>
                       )}
                     </td>
@@ -704,15 +710,17 @@ export function ConceptMapEditor() {
                             <Button type="button" variant="outline" size="sm" onClick={() => openRule(ruleFromUnmapped(row.row))}>
                               Crear regla
                             </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              aria-label={`Ignorar concepto ${row.concept}`}
-                              onClick={() => persistRules([...rules, ruleFromUnmapped(row.row, "Ignorado")], "Concepto ignorado.")}
-                            >
-                              Ignorar
-                            </Button>
+                            {row.statusLabel === "Sin configurar" ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                aria-label={`Ignorar concepto ${row.concept}`}
+                                onClick={() => persistRules([...rules, ruleFromUnmapped(row.row, "Ignorado")], "Concepto ignorado.")}
+                              >
+                                Ignorar
+                              </Button>
+                            ) : null}
                           </>
                         )}
                       </div>

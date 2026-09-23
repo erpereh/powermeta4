@@ -256,6 +256,8 @@ derecha de la nav.
   regla, chips En uso / Desactivados / Sin regla, tabla compacta con `Switch`
   y edición (y borrado) en `Drawer`; JSON en un `Drawer` aparte. Los cambios se
   guardan al momento, sin botón «Guardar».
+- **Scroll**: sin barras visibles en toda la herramienta (regla en
+  `globals.css` bajo `[data-registro-retributivo-root]`).
 - **Explicación IA**: panel ligero; carga con `ThinkingShimmer`, resultado en
   `Accordion` y copia con `ActionSwapButton`.
 

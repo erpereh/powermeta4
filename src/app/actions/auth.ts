@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   createDebugAuthConfigurationError,
   DebugAuthConfigurationError,
+  getQuickLoginCredentials,
   isDebugAuthEnabled,
 } from "@/lib/auth/debug-config";
 import {
@@ -99,6 +100,26 @@ export async function loginAction(
     return { error: "El usuario y la contraseña son obligatorios." };
   }
 
+  const failure = await loginWithMeta4(username, password);
+  if (failure) return failure;
+  redirect("/home");
+}
+
+/** Acceso rápido de desarrollo: mismo login Meta4 con credenciales de `.env.local`. */
+export async function quickLoginAction(
+  _previousState: LoginState,
+  _formData: FormData,
+): Promise<LoginState> {
+  const credentials = getQuickLoginCredentials();
+  if (!credentials) return { error: "El acceso rápido no está configurado." };
+
+  const failure = await loginWithMeta4(credentials.username, credentials.password);
+  if (failure) return failure;
+  redirect("/home");
+}
+
+/** Devuelve el error a mostrar o `undefined` si la sesión quedó creada. */
+async function loginWithMeta4(username: string, password: string): Promise<LoginState | undefined> {
   try {
     const result = await getAuthService().login(username, password);
     try {
@@ -126,8 +147,7 @@ export async function loginAction(
     }
     return { error: genericLoginError };
   }
-
-  redirect("/home");
+  return undefined;
 }
 
 export async function debugLoginAction(

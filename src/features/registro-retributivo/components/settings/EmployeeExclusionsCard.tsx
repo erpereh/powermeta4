@@ -28,6 +28,15 @@ export function EmployeeExclusionsCard() {
   const applied = activeResult?.excludedEmployeeIdsApplied ?? [];
   const pending = Boolean(activeResult) && !sameIds(ids, applied);
   const canReanalyze = Boolean(registroFile && pdfFiles.length);
+  // Matrículas que no están en ningún fichero del análisis abierto (posible errata).
+  const unknownIds = useMemo(() => {
+    if (!activeResult) return [];
+    const appliedSet = new Set(activeResult.excludedEmployeeIdsApplied ?? []);
+    const known = new Set<string>();
+    activeResult.people.forEach((row) => known.add(normalizeEmployeeId(row.employeeNumber)));
+    activeResult.registroEmployees.forEach((row) => known.add(normalizeEmployeeId(row.employeeNumber)));
+    return sortedIds.filter((id) => !known.has(id) && !appliedSet.has(id));
+  }, [activeResult, sortedIds]);
 
   function persist(next: readonly string[]): void {
     updateSettings({ excludedEmployeeIds: next });
@@ -120,7 +129,15 @@ export function EmployeeExclusionsCard() {
                 </li>
               ))}
             </ul>
-          ) : (
+          ) : null}
+          {unknownIds.length ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {unknownIds.length === 1 ? "La matrícula" : "Las matrículas"}{" "}
+              <span className="font-mono text-foreground">{unknownIds.join(", ")}</span>{" "}
+              no {unknownIds.length === 1 ? "aparece" : "aparecen"} en los recibos ni en el Registro del análisis abierto. Comprueba que esté bien escrita.
+            </p>
+          ) : null}
+          {sortedIds.length ? null : (
             <EmptyState
               icon={<UserMinus className="size-5" aria-hidden="true" />}
               title="Todas las personas entran en el análisis"
