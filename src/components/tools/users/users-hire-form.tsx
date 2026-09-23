@@ -162,8 +162,8 @@ export function UsersHireForm() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-8">
       <p className="text-sm text-muted-foreground">
-        Los campos en ámbar son un borrador local pendiente de integración. Solo los siete campos
-        actuales se envían; el resto lo conserva la plantilla Hire.
+        Ámbar: mapping confirmado pendiente de integración. Rojo: mapping por confirmar. Solo los
+        siete campos actuales se envían; el resto es un borrador local.
       </p>
 
       <div className="flex flex-col gap-3">

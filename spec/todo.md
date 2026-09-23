@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4: mappings en labels - 2026-09-23
+
+- [x] Los 113 campos de `HIRE_FIELD_META` tienen clasificación explícita:
+      96 mappings confirmados, 11 sin confirmar y 6 controles de UI sin
+      mapping directo. Los siete campos integrados conservan color normal.
+- [x] `Tooltip` beUI centralizado en el label, visible con hover o foco;
+      ámbar para mappings confirmados pendientes, rojo para los no confirmados
+      y color normal para campos integrados y controles de UI. Los catálogos
+      deshabilitados conservan el nombre accesible asociado al rótulo.
+- [x] Auditoría de identificadores contra el inventario, `Hire_1_PERSONA.xls`
+      (`AltaNueva`, fila técnica) y `MANUAL_COLUMNS`; duplicados de correo
+      AY/IQ y monedas `ID_CURRENCY`/`ID_CURRENCY_2` verificados. Los 11 casos
+      ambiguos permanecen sin mapping atribuido.
+- [x] `npm run typecheck`, `npm test` (97 archivos, 513 pruebas correctas y 2
+      omitidas) y `npm run build` correctos. Formato correcto en los siete
+      archivos TypeScript/TSX tocados; `git diff --check` correcto. Revisión
+      local en claro y oscuro:
+      colores, foco y tooltip visibles; la vista temporal se retiró.
+- [x] `npm run lint` ejecutado: `oxlint` muestra 7 warnings anteriores;
+      `oxfmt --check` falla por formato preexistente de 343 archivos del repo.
+- [ ] Confirmar con una fuente fiable los 11 mappings ambiguos antes de
+      integrarlos o cambiar su estado visual.
+
 ## Alta de personas Meta4: UI completa - 2026-09-23
 
 - [x] Cinco secciones beUI (`Tabs` y `Accordion`) con los 112 rótulos/grupos

@@ -12,7 +12,7 @@ import {
   PendingLookupButton,
   HIRE_ACCORDION_CLASS_NAMES,
 } from "./fields";
-import { HIRE_PENDING_LABEL_CLASS } from "./field-metadata";
+import { hireFieldLabelClass } from "./field-metadata";
 
 function ReferenceModelLookup() {
   const { draft, onPendingChange } = useHireDraft();
@@ -24,21 +24,21 @@ function ReferenceModelLookup() {
           aria-label="ID Modelo/Semana de referencia, segmento 1"
           value={draft.pendingValues.referenceSegment1 ?? ""}
           onChange={(value) => onPendingChange("referenceSegment1", value)}
-          classNames={{ label: HIRE_PENDING_LABEL_CLASS }}
+          classNames={{ label: hireFieldLabelClass("referenceModelWeek") }}
         />
         <Input
           label="Segmento 2"
           aria-label="ID Modelo/Semana de referencia, segmento 2"
           value={draft.pendingValues.referenceSegment2 ?? ""}
           onChange={(value) => onPendingChange("referenceSegment2", value)}
-          classNames={{ label: HIRE_PENDING_LABEL_CLASS }}
+          classNames={{ label: hireFieldLabelClass("referenceModelWeek") }}
         />
         <Input
           label="Descripción"
           value=""
           disabled
           placeholder="Catálogo pendiente"
-          classNames={{ label: HIRE_PENDING_LABEL_CLASS }}
+          classNames={{ label: hireFieldLabelClass("referenceModelWeek") }}
         />
         <PendingLookupButton label="Búsqueda de modelo o semana pendiente" />
       </div>

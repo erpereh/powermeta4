@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -14,7 +14,7 @@ import {
   selectActiveBranchValues,
   toHirePersonInput,
 } from "./hire-form/draft";
-import { HIRE_FIELD_META } from "./hire-form/field-metadata";
+import { HIRE_FIELD_META, hireFieldLabelClass } from "./hire-form/field-metadata";
 import { UsersHireForm } from "./users-hire-form";
 
 const launchHire = vi.mocked(launchMeta4HireAction);
@@ -162,6 +162,11 @@ describe("UsersHireForm", () => {
           expect(node.getAttribute("data-peoplenet-requirement")).toBe(
             HIRE_FIELD_META[id as keyof typeof HIRE_FIELD_META].peopleNet,
           );
+          const label = node.querySelector<HTMLElement>("[tabindex='0'][aria-describedby]");
+          expect(label, id).not.toBeNull();
+          expect(label?.className, id).toContain(
+            hireFieldLabelClass(id as keyof typeof HIRE_FIELD_META),
+          );
         }
       });
     };
@@ -213,6 +218,65 @@ describe("UsersHireForm", () => {
 
     expect([...seen].sort()).toEqual(Object.keys(HIRE_FIELD_META).sort());
   }, 20_000);
+
+  it("shows mapped, unresolved, and UI-only tooltips from focusable labels", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { container } = render(<UsersHireForm />);
+    const labelFor = (field: keyof typeof HIRE_FIELD_META): HTMLElement => {
+      const label = container.querySelector<HTMLElement>(
+        `[data-hire-field="${field}"] [tabindex='0'][aria-describedby]`,
+      );
+      if (!label) throw new Error(`Missing focusable mapping label: ${field}`);
+      return label;
+    };
+
+    const nameLabel = labelFor("firstName");
+    expect(nameLabel.getAttribute("for")).toBe(screen.getByLabelText("Nombre").id);
+    nameLabel.focus();
+    expect((await screen.findByRole("tooltip")).textContent).toBe("STD_N_FIRST_NAME");
+
+    const redLabel = labelFor("birthCommunity");
+    const redCatalog = container.querySelector<HTMLElement>(
+      '[data-hire-field="birthCommunity"] [role="combobox"]',
+    );
+    expect(redCatalog?.getAttribute("aria-labelledby")).toBe(redLabel.id);
+    redLabel.focus();
+    await waitFor(() =>
+      expect(screen.getByRole("tooltip").textContent).toBe("Mapping pendiente de confirmar"),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Contactos" }));
+    const emailLabel = labelFor("email");
+    emailLabel.focus();
+    await waitFor(() =>
+      expect(screen.getByRole("tooltip").textContent).toBe("STD_EMAIL / STD_EMAIL_ATRADIUS"),
+    );
+
+    await user.click(screen.getByRole("tab", { name: "Organización" }));
+    const choiceLabel = labelFor("positionChoice");
+    choiceLabel.focus();
+    await waitFor(() =>
+      expect(screen.getByRole("tooltip").textContent).toBe("Control de UI · sin mapping directo"),
+    );
+  });
+
+  it("keeps checkbox labels clickable and exposes their mapping on hover", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { container } = render(<UsersHireForm />);
+    await user.click(screen.getByRole("tab", { name: "Seguridad Social" }));
+    await user.click(screen.getByRole("button", { name: "Bonificaciones contrato" }));
+    const field = container.querySelector<HTMLElement>('[data-hire-field="specificFic"]');
+    const label = field?.querySelector<HTMLLabelElement>("label[tabindex='0']");
+    const checkbox = field?.querySelector<HTMLElement>("[role='checkbox']");
+    expect(label).toBeTruthy();
+    expect(label?.getAttribute("for")).toBe(checkbox?.id);
+    expect(checkbox?.getAttribute("aria-checked")).toBe("false");
+    if (!label) throw new Error("Missing FIC label");
+    await user.hover(label);
+    expect((await screen.findByRole("tooltip")).textContent).toBe("Mapping pendiente de confirmar");
+    await user.click(label);
+    expect(checkbox?.getAttribute("aria-checked")).toBe("true");
+  });
 
   it("retains values when switching tabs and all five conditional branches", async () => {
     const user = userEvent.setup({ delay: null });

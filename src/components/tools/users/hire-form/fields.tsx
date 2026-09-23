@@ -16,13 +16,16 @@ import {
   RadioGroup,
   RadioGroupItem,
   Textarea,
+  Tooltip,
 } from "@/components/system";
 import { cn } from "@/lib/utils";
 
 import { useHireDraft, type PendingValueKey } from "./draft";
 import {
   HIRE_FIELD_META,
-  HIRE_PENDING_LABEL_CLASS,
+  hireFieldLabelClass,
+  hireFieldMappingTooltip,
+  hireFieldVisualStatus,
   type CurrentFieldId,
   type HireFieldId,
   type PendingFieldId,
@@ -48,33 +51,50 @@ const fieldAttributes = (field: HireFieldId) => ({
   "data-hire-field": field,
   "data-peoplenet-requirement": HIRE_FIELD_META[field].peopleNet,
   "data-integration": HIRE_FIELD_META[field].integration,
+  "data-mapping-status": HIRE_FIELD_META[field].mapping.status,
+  "data-hire-visual-status": hireFieldVisualStatus(field),
 });
+
+function MappingLabel({
+  field,
+  htmlFor,
+  id,
+}: {
+  field: HireFieldId;
+  htmlFor?: string;
+  id?: string;
+}) {
+  const className = cn(
+    "text-sm font-medium focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+    hireFieldLabelClass(field),
+  );
+  return (
+    <Tooltip content={hireFieldMappingTooltip(field)} wrapperClassName="max-w-full">
+      {htmlFor ? (
+        <label id={id} htmlFor={htmlFor} tabIndex={0} className={className}>
+          {displayLabel(field)}
+        </label>
+      ) : (
+        <span id={id} tabIndex={0} className={className}>
+          {displayLabel(field)}
+        </span>
+      )}
+    </Tooltip>
+  );
+}
 
 function FieldCaption({ field, htmlFor }: { field: HireFieldId; htmlFor: string }) {
   const meta = HIRE_FIELD_META[field];
   const integrationOnly = meta.requiredForCurrentHire && !isPeopleNetRequired(field);
   return (
     <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 px-1">
-      {meta.kind === "catalog" ? (
-        <span className={cn("text-sm font-medium", HIRE_PENDING_LABEL_CLASS)}>
-          {displayLabel(field)}
-        </span>
-      ) : (
-        <label
-          htmlFor={htmlFor}
-          className={cn(
-            "text-sm font-medium text-foreground",
-            meta.integration === "pending" && HIRE_PENDING_LABEL_CLASS,
-          )}
-        >
-          {displayLabel(field)}
-        </label>
-      )}
+      <MappingLabel
+        field={field}
+        htmlFor={meta.kind === "catalog" ? undefined : htmlFor}
+        id={`${htmlFor}-label`}
+      />
       {isPeopleNetRequired(field) ? (
-        <span
-          aria-hidden="true"
-          className={cn("text-sm", meta.integration === "pending" && HIRE_PENDING_LABEL_CLASS)}
-        >
+        <span aria-hidden="true" className={cn("text-sm", hireFieldLabelClass(field))}>
           *
         </span>
       ) : null}
@@ -120,17 +140,16 @@ export function FieldGroup({
   children: ReactNode;
   className?: string;
 }) {
-  const meta = HIRE_FIELD_META[field];
   return (
     <fieldset {...fieldAttributes(field)} className={cn("min-w-0 space-y-3", className)}>
-      <legend
-        className={cn(
-          "px-1 text-sm font-medium text-foreground",
-          meta.integration === "pending" && HIRE_PENDING_LABEL_CLASS,
-        )}
-      >
-        {displayLabel(field)}
-        {isPeopleNetRequired(field) ? <span aria-hidden="true"> *</span> : null}
+      <legend className="px-1 text-sm font-medium">
+        <MappingLabel field={field} />
+        {isPeopleNetRequired(field) ? (
+          <span aria-hidden="true" className={hireFieldLabelClass(field)}>
+            {" "}
+            *
+          </span>
+        ) : null}
         {isPeopleNetRequired(field) ? (
           <span className="sr-only"> (obligatorio en PeopleNet)</span>
         ) : null}
@@ -205,6 +224,7 @@ export function PendingCatalog({ field }: { field: PendingFieldId }) {
         <ComboboxTrigger className="h-11 rounded-full">
           <ComboboxInput
             aria-label={meta.label}
+            aria-labelledby={`${id}-label`}
             aria-disabled="true"
             aria-describedby={isPeopleNetRequired(field) ? `${id}-peoplenet` : undefined}
             placeholder="Catálogo pendiente"
@@ -222,14 +242,16 @@ export function PendingCatalog({ field }: { field: PendingFieldId }) {
 
 export function PendingCheckbox({ field }: { field: PendingFieldId }) {
   const { draft, onCheckChange } = useHireDraft();
+  const id = useId();
   return (
-    <div {...fieldAttributes(field)} className="min-w-0">
+    <div {...fieldAttributes(field)} className="flex min-w-0 items-center gap-3">
       <Checkbox
+        id={id}
+        aria-label={HIRE_FIELD_META[field].label}
         checked={draft.pendingChecks[field] ?? false}
         onCheckedChange={(checked) => onCheckChange(field, checked)}
-        label={displayLabel(field)}
-        className="[&>span]:text-hire-pending"
       />
+      <MappingLabel field={field} htmlFor={id} />
     </div>
   );
 }
@@ -253,7 +275,10 @@ export function PendingRadio({
             key={option.value}
             value={option.value}
             label={option.label}
-            className="[&>span]:text-hire-pending"
+            className={cn(
+              hireFieldVisualStatus(field) === "confirmed-pending" && "[&>span]:text-hire-pending",
+              hireFieldVisualStatus(field) === "unconfirmed" && "[&>span]:text-destructive",
+            )}
           />
         ))}
       </RadioGroup>
@@ -308,7 +333,7 @@ export function CompoundField({
             disabled={disabled}
             value={draft.pendingValues[part.field] ?? ""}
             onChange={(value) => onPendingChange(part.field, value)}
-            classNames={{ label: HIRE_PENDING_LABEL_CLASS }}
+            classNames={{ label: hireFieldLabelClass(field) }}
             autoComplete="off"
           />
         ))}

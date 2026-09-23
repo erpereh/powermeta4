@@ -12,7 +12,7 @@ import {
   PendingRadio,
   HIRE_ACCORDION_CLASS_NAMES,
 } from "./fields";
-import { HIRE_PENDING_LABEL_CLASS } from "./field-metadata";
+import { hireFieldLabelClass } from "./field-metadata";
 
 function PersonBankOrdinal() {
   return (
@@ -23,7 +23,7 @@ function PersonBankOrdinal() {
           value=""
           disabled
           placeholder="Pendiente"
-          classNames={{ label: HIRE_PENDING_LABEL_CLASS }}
+          classNames={{ label: hireFieldLabelClass("personBankOrdinal") }}
         />
         <PendingLookupButton label="Búsqueda de ordinal banco persona pendiente" />
       </div>

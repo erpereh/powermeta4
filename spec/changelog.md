@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-23 - Mappings visibles en el alta Meta4
+
+- `HIRE_FIELD_META` clasifica los 113 campos según mapping confirmado (96),
+  sin confirmar (11) o control de UI sin mapping directo (6). El texto del
+  tooltip y el color del rótulo se derivan de un único helper.
+- Los labels y grupos muestran `Tooltip` beUI con hover y foco de teclado;
+  los campos integrados y los controles de UI son normales, los pendientes
+  con mapping confirmado son ámbar y los no confirmados rojos. Se conserva la
+  asociación accesible de inputs, checkboxes y catálogos.
+- Identificadores cotejados con el `.md`, la fila técnica de `AltaNueva` y
+  `MANUAL_COLUMNS`. Correo conserva `STD_EMAIL / STD_EMAIL_ATRADIUS` (AY/IQ);
+  moneda de nómina usa `ID_CURRENCY` y moneda de la cuenta `ID_CURRENCY_2`.
+  Las cabeceras auxiliares contradictorias no se toman como mapping confirmado.
+- Sin cambios en draft, validación, payload de siete campos, Server Action,
+  Excel ni SOAP.
+- Verificación: `npm run typecheck`, `npm test` (97 archivos, 513 pruebas
+  correctas, 2 omitidas) y `npm run build` correctos. Revisión visual local en
+  claro y oscuro con tooltip y foco visibles; vista temporal retirada.
+  `npx oxfmt --check` correcto en los siete archivos TypeScript/TSX tocados.
+  `git diff --check` correcto.
+  `npm run lint` sigue fallando en el chequeo global de formato (343 archivos
+  anteriores); `oxlint` muestra 7 warnings anteriores.
+
 ## 2026-09-23 - Acceso rápido de desarrollo con usuario Meta4 de pruebas
 
 - Botón «Entrar como …» en `/login`, solo con `NODE_ENV=development` y si
