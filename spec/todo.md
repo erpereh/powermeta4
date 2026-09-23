@@ -1,5 +1,22 @@
 # powermeta4 - estado de tareas
 
+## beUI para Claude Code (proyecto) - 2026-09-23
+
+- [x] Skill `beui` a nivel de proyecto en `.claude/skills/beui/SKILL.md`,
+      copiada del upstream `starc007/ui-components/skills/beui`. Sin alcance
+      global.
+- [x] MCP `beui` a nivel de proyecto en `.mcp.json` (`type: http`,
+      `https://mcp.beui.dev/mcp`). Sin credenciales; requiere aprobación en
+      Claude Code al primer uso.
+- [x] Verificación: `npm run typecheck` correcto; `npm test` 95 archivos,
+      490 pruebas correctas y 2 omitidas; `npm run build` correcto;
+      `git diff --check` correcto en tracked. `npm run lint`: `oxlint`
+      0 errores y 7 warnings preexistentes; `oxfmt --check` falla por falta
+      de configuración en 306 archivos (preexistente, incluye el nuevo
+      `SKILL.md`).
+- [ ] Conectar el MCP desde Claude Code (`claude mcp get beui` / `/mcp`) y
+      aprobar `.mcp.json`. No ejecutado en esta sesión.
+
 ## Rediseño visual beUI - 2026-09-22
 
 - [x] Fachada `@/components/system` sobre beUI, tokens light/dark y

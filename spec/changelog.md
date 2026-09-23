@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-23 - beUI para Claude Code (proyecto)
+
+### Cambios
+
+- Skill `beui` disponible solo en este proyecto:
+  `.claude/skills/beui/SKILL.md`, con el contenido upstream de beUI
+  (registro `@beui` y MCP público).
+- MCP `beui` declarado solo en este proyecto en `.mcp.json` como servidor
+  remoto `https://mcp.beui.dev/mcp`, sin claves. Claude Code lo propone
+  para aprobación al abrir el proyecto.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm test` — 95 archivos correctos; 490 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto.
+- `git diff --check` — correcto en ficheros tracked (los dos ficheros
+  nuevos quedan untracked).
+- `npm run lint` — `oxlint` sin errores (7 warnings preexistentes de
+  Registro y del nombre Hire). `oxfmt --check` falla sin configuración en
+  306 archivos, incluidos no tocados y el nuevo `SKILL.md`. Preexistente.
+- Conexión MCP en Claude Code no comprobada en esta sesión.
+
 ## 2026-09-22 - Rediseño visual con beUI
 
 ### Cambios
