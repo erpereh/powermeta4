@@ -9,7 +9,28 @@
 - [ ] Instalar `expandable-tabs`, `overflow-actions` y `range-slider-inline`
       de `@beui` cuando beui.dev sea accesible (hoy bloqueado por red; se
       usan Tabs underline, Menu e Input como equivalentes).
-- [ ] Revisión visual de la fase 2 (1440/1024/768/390, claro y oscuro).
+- [x] Fase 2, paso 1: Inicio rehecho para que se entienda (veredicto en una
+      frase, estados explicados que abren Personas filtrado, importes con
+      explicación, pendientes con acción y gráficas visibles). Revisado en
+      navegador a 1440 px (claro y oscuro) y 390 px.
+- [x] Fase 2, paso 2: Personas rehecho (frase de contexto, filtros en una fila,
+      chips de estado como en Inicio, tabla de cinco columnas y detalle que
+      empieza por la conclusión). Revisado en navegador a 1440 px (claro y
+      oscuro) y 390 px.
+- [x] Fase 2, paso 3: Cuadre Reg. rehecho (explicación, modos como tarjetas
+      con resultado, veredicto, chips de estado, tabla de diferencias y detalle
+      en `Drawer`). Revisado en navegador a 1440 px (oscuro) y 390 px (claro).
+- [x] Fase 2, paso 4: Agrupaciones como brecha entre mujeres y hombres por
+      grupo (parser `genderGap.ts` con tests, veredicto del 25 %, tabla por
+      bloque, detalle en `Drawer` y hoja original desplegable). Revisado en
+      navegador a 1440 px (claro y oscuro) y 390 px.
+- [x] Fase 2, paso 5: Ajustes rehecho (escala de diferencias, exclusiones con
+      aviso de reanálisis real, conceptos con chips, tabla compacta y edición
+      en `Drawer`; sin `window.prompt`/`window.confirm`). Revisado en navegador
+      a 1440 px (claro y oscuro) y 390 px.
+- [ ] Fase 2, siguiente paso: Historial, con revisión del usuario.
+- [ ] `TabsList` de beUI no reenvía `aria-label`: los tablists de Ajustes y la
+      navegación no tienen nombre accesible propio.
 - [ ] Fase 3: Usuarios.
 - [ ] Fase 4: Chat (runtime intacto).
 - [ ] Fase 5: Login, Ajustes y limpieza de shadcn.

@@ -1,444 +1,448 @@
 "use client";
 
-import { FileCheck2, Search } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, FileCheck2, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { AiExplanationPanel } from "@/features/registro-retributivo/components/ai/AiExplanationPanel";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
-import { StatusBadge } from "@/features/registro-retributivo/components/common/StatusBadge";
+import { StatusPill } from "@/features/registro-retributivo/components/common/StatusPill";
 import { DetailField, MoneyTable } from "@/features/registro-retributivo/components/common/DetailParts";
-import { DataTableShell } from "@/features/registro-retributivo/components/common/DataTableShell";
-import {
-  Callout,
-  EmptyState,
-  Input,
-  Modal,
-  NumberTicker,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/system";
+import { countPeopleByStatus } from "@/features/registro-retributivo/components/common/personStatus";
+import { Callout, Drawer, EmptyState, Input, Table, type TableProps } from "@/components/system";
 import { buildInternalExcelExplainPayload } from "@/features/registro-retributivo/ai/explainPayload";
 import type { AnalysisStatus, InternalExcelCheckRow, InternalExcelNormalizedVariablesCheckRow } from "@/features/registro-retributivo/types";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
-import { diffClass, rowTone } from "@/features/registro-retributivo/ui/statusStyles";
-import { cn } from "@/features/registro-retributivo/utils/classNames";
+import { toleranceDiffClass } from "@/features/registro-retributivo/ui/statusStyles";
+import { cn } from "@/lib/utils";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
-import { selectBreakdownProjection, selectNormalizedProjection } from "@/features/registro-retributivo/selectors/sharedSelectors";
+import { normalizeComparableText } from "@/features/registro-retributivo/utils/normalize";
 
 type CuadreMode = "breakdown" | "normalizedVariables";
-type StatusFilter = "Todos" | Extract<AnalysisStatus, "OK" | "Revisar" | "Diferencia">;
 
-interface SummaryMetric {
+const LIST_FORMAT = new Intl.ListFormat("es-ES", { style: "long", type: "conjunction" });
+
+type CuadreBlock = {
   readonly label: string;
-  readonly value: string | number;
-  readonly alert?: boolean;
-}
+  readonly period: number;
+  readonly other: number;
+  readonly difference: number;
+};
 
-const MODES: ReadonlyArray<{ id: CuadreMode; label: string; description: string }> = [
+/** Fila común a los dos modos del cuadre. */
+type CuadreRow = {
+  readonly employeeNumber: string;
+  readonly person?: string;
+  readonly workplace?: string;
+  readonly position?: string;
+  readonly category?: string;
+  readonly status: AnalysisStatus;
+  readonly detail: string;
+  readonly blocks: readonly CuadreBlock[];
+  readonly total: CuadreBlock;
+  readonly breakdownSource?: InternalExcelCheckRow;
+};
+
+const MODES: ReadonlyArray<{ id: CuadreMode; title: string; question: string; otherLabel: string }> = [
   {
     id: "breakdown",
-    label: "No norm. / Desglose",
-    description: "Compara las retribuciones del periodo completo frente a la suma de conceptos desglosados.",
+    title: "Total frente a desglose",
+    question: "¿El importe del periodo completo coincide con la suma de sus conceptos?",
+    otherLabel: "Suma del desglose",
   },
   {
     id: "normalizedVariables",
-    label: "No norm. / Norm. + variables",
-    description: "Compara las retribuciones del periodo completo frente al total normalizado más variables del Excel Reg. Retrib.",
+    title: "Total frente a normalizado + variables",
+    question: "¿El importe del periodo completo coincide con el normalizado más las variables?",
+    otherLabel: "Normalizado + variables",
   },
 ];
 
-const BREAKDOWN_HEADERS = [
-  "Matrícula",
-  "Salario periodo completo",
-  "Salario desglose",
-  "Dif. Salario",
-  "C. Salarial periodo completo",
-  "C. Salarial desglose",
-  "Dif. C. Salarial",
-  "Extrasalarial periodo completo",
-  "Extrasalarial desglose",
-  "Dif. Extrasalarial",
-  "Estado",
-] as const;
-
-const NORMALIZED_BLOCKS = [
-  {
-    label: "Salario",
-    period: "salaryPeriod",
-    normalized: "salaryNormalizedPlusVariables",
-    difference: "salaryDifference",
-  },
-  {
-    label: "C. Salarial",
-    period: "salaryComplementPeriod",
-    normalized: "salaryComplementNormalizedPlusVariables",
-    difference: "salaryComplementDifference",
-  },
-  {
-    label: "Extrasalarial",
-    period: "extraSalaryPeriod",
-    normalized: "extraSalaryNormalizedPlusVariables",
-    difference: "extraSalaryDifference",
-  },
-  {
-    label: "Total",
-    period: "totalPeriod",
-    normalized: "totalNormalizedPlusVariables",
-    difference: "totalDifference",
-  },
-] as const;
-
-function matchesText(value: string | number | undefined, query: string): boolean {
-  return displayText(value).toLocaleLowerCase("es").includes(query);
+function fromBreakdown(row: InternalExcelCheckRow, person?: string): CuadreRow {
+  const blocks: CuadreBlock[] = [
+    { label: "Salario", period: row.salaryPeriod, other: row.salaryBreakdown, difference: row.salaryDifference },
+    { label: "C. Salarial", period: row.salaryComplementPeriod, other: row.salaryComplementBreakdown, difference: row.salaryComplementDifference },
+    { label: "Extrasalarial", period: row.extraSalaryPeriod, other: row.extraSalaryBreakdown, difference: row.extraSalaryDifference },
+  ];
+  return {
+    employeeNumber: row.employeeNumber,
+    person,
+    workplace: row.workplace,
+    position: row.position,
+    category: row.category,
+    status: row.status,
+    detail: row.detail,
+    blocks,
+    total: {
+      label: "Total",
+      period: blocks.reduce((sum, block) => sum + block.period, 0),
+      other: blocks.reduce((sum, block) => sum + block.other, 0),
+      difference: blocks.reduce((sum, block) => sum + block.difference, 0),
+    },
+    breakdownSource: row,
+  };
 }
 
-function DetailModal({ row, onClose }: Readonly<{ row: InternalExcelCheckRow; onClose: () => void }>) {
-  const projection = selectBreakdownProjection(row);
-  const aiPayload = buildInternalExcelExplainPayload(row);
+function fromNormalized(row: InternalExcelNormalizedVariablesCheckRow, person?: string): CuadreRow {
+  return {
+    employeeNumber: row.employeeNumber,
+    person: row.person ?? person,
+    workplace: row.workplace,
+    position: row.position,
+    category: row.category,
+    status: row.status,
+    detail: row.detail,
+    blocks: [
+      { label: "Salario", period: row.salaryPeriod, other: row.salaryNormalizedPlusVariables, difference: row.salaryDifference },
+      { label: "C. Salarial", period: row.salaryComplementPeriod, other: row.salaryComplementNormalizedPlusVariables, difference: row.salaryComplementDifference },
+      { label: "Extrasalarial", period: row.extraSalaryPeriod, other: row.extraSalaryNormalizedPlusVariables, difference: row.extraSalaryDifference },
+    ],
+    total: { label: "Total", period: row.totalPeriod, other: row.totalNormalizedPlusVariables, difference: row.totalDifference },
+  };
+}
 
+function notOkCount(rows: readonly { readonly status: AnalysisStatus }[]): number {
+  return rows.filter((row) => row.status !== "OK").length;
+}
+
+/** Selector de modo: cada tarjeta explica qué compara y cuál es su resultado. */
+function ModeCards({
+  mode,
+  onChange,
+  results,
+}: Readonly<{ mode: CuadreMode; onChange: (mode: CuadreMode) => void; results: Record<CuadreMode, { total: number; failing: number } | undefined> }>) {
   return (
-    <Modal
-      open
-      onOpenChange={(open) => { if (!open) onClose(); }}
-      title={`Cuadre Reg. · ${displayText(projection.personId)}`}
-      description="Periodo completo frente a desglose del Excel."
-      size="lg"
-      className="max-h-[min(94dvh,100dvh)] overflow-y-auto"
-    >
-      <div className="flex min-w-0 flex-col gap-5">
-        <dl className="grid min-w-0 grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
-          <DetailField label="Estado" value={<StatusBadge value={projection.status} />} />
-          <DetailField label="Centro" value={row.workplace} />
-          <DetailField label="Puesto" value={row.position} />
-          <DetailField label="Categoría" value={row.category} />
-        </dl>
-        <MoneyTable
-          caption="Periodo completo frente a desglose"
-          leftLabel="Periodo"
-          rightLabel="Desglose"
-          rows={[
-            { label: "Salario", left: projection.salaryPeriod, right: projection.salaryBreakdown, diff: projection.salaryDifference },
-            { label: "C. Salarial", left: projection.salaryComplementPeriod, right: projection.salaryComplementBreakdown, diff: projection.salaryComplementDifference },
-            { label: "Extrasalarial", left: projection.extraSalaryPeriod, right: projection.extraSalaryBreakdown, diff: projection.extraSalaryDifference },
-          ]}
-        />
-        <p className="text-sm leading-6 text-muted-foreground text-pretty">{displayText(row.detail) || "Sin detalle adicional."}</p>
-        <AiExplanationPanel type="internalExcelCheck" payload={aiPayload} />
-      </div>
-    </Modal>
-  );
-}
-
-const STATUS_FILTERS: readonly StatusFilter[] = ["Todos", "OK", "Revisar", "Diferencia"];
-
-function isStatusFilter(value: string): value is StatusFilter {
-  return STATUS_FILTERS.some((item) => item === value);
-}
-
-function CuadreControls({
-  query,
-  statusFilter,
-  onQueryChange,
-  onStatusFilterChange,
-}: Readonly<{
-  query: string;
-  statusFilter: StatusFilter;
-  onQueryChange: (value: string) => void;
-  onStatusFilterChange: (value: StatusFilter) => void;
-}>) {
-  return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <Input
-        id="cuadre-search"
-        type="search"
-        aria-label="Buscar en Cuadre Reg."
-        value={query}
-        onChange={onQueryChange}
-        placeholder="Matrícula, centro, puesto…"
-        leftIcon={<Search className="size-4" aria-hidden="true" />}
-        className="min-w-0 sm:w-80"
-      />
-      <Tabs variant="pill" value={statusFilter} onValueChange={(value) => { if (isStatusFilter(value)) onStatusFilterChange(value); }}>
-        <TabsList aria-label="Filtrar por estado" className="border border-border" wrapperClassName="max-w-full">
-          {STATUS_FILTERS.map((item) => (
-            <TabsTrigger key={item} value={item} className="px-3 py-1 text-xs">
-              {item}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+    <div role="group" aria-label="Qué comprobar" className="grid gap-3 md:grid-cols-2">
+      {MODES.map((item) => {
+        const active = item.id === mode;
+        const result = results[item.id];
+        return (
+          <button
+            key={item.id}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(item.id)}
+            className={cn(
+              "flex min-w-0 flex-col gap-1 rounded-2xl border p-4 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              active ? "border-primary/50 bg-selected" : "border-border bg-card hover:bg-muted/50",
+            )}
+          >
+            <span className="flex items-center justify-between gap-3">
+              <span className="text-sm font-semibold text-foreground">{item.title}</span>
+              {result ? (
+                result.failing ? (
+                  <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-destructive">
+                    <span aria-hidden="true" className="size-2 rounded-full bg-destructive" />
+                    {result.failing} no cuadran
+                  </span>
+                ) : (
+                  <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-foreground">
+                    <span aria-hidden="true" className="size-2 rounded-full bg-emerald-500" />
+                    Todo cuadra
+                  </span>
+                )
+              ) : (
+                <span className="shrink-0 text-xs text-muted-foreground">No disponible</span>
+              )}
+            </span>
+            <span className="text-sm text-muted-foreground text-pretty">{item.question}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-function MetricStrip({ metrics }: Readonly<{ metrics: readonly SummaryMetric[] }>) {
+function CuadreVerdict({ rows, tolerance, otherLabel }: Readonly<{ rows: readonly CuadreRow[]; tolerance: number; otherLabel: string }>) {
+  const failing = notOkCount(rows);
+  const maxDifference = rows.reduce((max, row) => Math.max(max, Math.abs(row.total.difference), ...row.blocks.map((block) => Math.abs(block.difference))), 0);
+  const allOk = failing === 0;
+
   return (
-    <dl
-      data-surface="metric-grid"
-      aria-label="Resumen de Cuadre Reg."
-      className="grid grid-cols-2 gap-x-6 gap-y-4 border-y border-border py-4 sm:grid-cols-3 xl:grid-cols-5"
+    <section
+      aria-labelledby="cuadre-verdict-title"
+      className={cn(
+        "flex items-start gap-3 rounded-2xl border p-5",
+        allOk ? "border-emerald-500/30 bg-emerald-500/5" : "border-destructive/25 bg-destructive/5",
+      )}
     >
-      {metrics.map((metric) => (
-        <div key={metric.label} className="min-w-0">
-          <dt className="text-xs text-muted-foreground">{metric.label}</dt>
-          <dd className={cn("mt-1 truncate text-xl font-semibold tracking-tight tabular-nums", metric.alert ? "text-destructive" : "text-foreground")}>
-            {typeof metric.value === "number" ? <NumberTicker value={metric.value} locale /> : metric.value}
-          </dd>
-        </div>
+      {allOk ? (
+        <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-emerald-500" aria-hidden="true" />
+      ) : (
+        <AlertTriangle className="mt-0.5 size-6 shrink-0 text-destructive" aria-hidden="true" />
+      )}
+      <div className="min-w-0">
+        <h3 id="cuadre-verdict-title" className="text-lg font-semibold tracking-tight text-foreground text-balance">
+          {allOk ? `Las ${rows.length} personas cuadran en el Excel` : `${failing} de ${rows.length} personas no cuadran en el Excel`}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground text-pretty">
+          {allOk
+            ? `La mayor diferencia es de ${formatEuro(maxDifference)}, dentro de la tolerancia de ${formatEuro(tolerance)}.`
+            : `Su total del periodo no coincide con «${otherLabel.toLowerCase()}». Corrígelo en el Excel del Registro Retributivo; no depende de los recibos.`}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function StatusChips({
+  rows,
+  value,
+  onChange,
+}: Readonly<{ rows: readonly CuadreRow[]; value: string; onChange: (status: string) => void }>) {
+  // Reutiliza nombres y colores de Personas para que el estado se lea igual en toda la herramienta.
+  const statuses = countPeopleByStatus(rows.map((row) => ({ status: row.status })));
+  const chipClass = (active: boolean) =>
+    cn(
+      "inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+      active ? "border-foreground/30 bg-selected text-foreground" : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
+    );
+
+  return (
+    <div role="group" aria-label="Filtrar por estado" className="flex flex-wrap gap-2">
+      <button type="button" aria-pressed={!value} className={chipClass(!value)} onClick={() => onChange("")}>
+        Todas
+        <span className="font-semibold tabular-nums text-foreground">{rows.length}</span>
+      </button>
+      {statuses.map((item) => (
+        <button
+          key={item.status}
+          type="button"
+          aria-pressed={value === item.status}
+          className={chipClass(value === item.status)}
+          onClick={() => onChange(value === item.status ? "" : item.status)}
+        >
+          <span aria-hidden="true" className={cn("size-2 rounded-full", item.dotClass)} />
+          {item.label}
+          <span className="font-semibold tabular-nums text-foreground">{item.count}</span>
+        </button>
       ))}
-    </dl>
+    </div>
   );
 }
 
-function buildMetrics(input: {
-  readonly totalCount: number;
-  readonly rows: readonly { readonly status: AnalysisStatus }[];
-  readonly maxDifference: number;
-  readonly visibleTotalDifference: number;
-}): SummaryMetric[] {
-  const ok = input.rows.filter((row) => row.status === "OK").length;
-  const withDifference = input.rows.filter((row) => row.status !== "OK").length;
-  return [
-    { label: "Empleados analizados", value: input.totalCount },
-    { label: "OK", value: ok },
-    { label: "Con diferencia", value: withDifference, alert: withDifference > 0 },
-    { label: "Mayor diferencia", value: formatEuro(input.maxDifference), alert: input.maxDifference > 0 },
-    { label: "Diferencia total visible", value: formatEuro(input.visibleTotalDifference) },
-  ];
-}
+function CuadreDrawer({
+  row,
+  tolerance,
+  otherLabel,
+  onClose,
+}: Readonly<{ row: CuadreRow; tolerance: number; otherLabel: string; onClose: () => void }>) {
+  const failing = [...row.blocks].filter((block) => Math.abs(block.difference) > tolerance);
+  const title = failing.length
+    ? `No cuadra en ${LIST_FORMAT.format(failing.map((block) => block.label.toLowerCase()))}: el total del periodo difiere de «${otherLabel.toLowerCase()}».`
+    : "Cuadra: el total del periodo coincide dentro de la tolerancia.";
 
-function BreakdownTable({ rows, onSelectRow }: Readonly<{ rows: readonly InternalExcelCheckRow[]; onSelectRow: (row: InternalExcelCheckRow) => void }>) {
-  // Excepción: Table de system no cubre activación + densidad custom.
   return (
-    <table className="w-full min-w-[1440px] border-separate border-spacing-0 text-left text-sm">
-      <thead className="sticky top-0 z-20 bg-muted text-muted-foreground shadow-sm">
-        <tr>
-          {BREAKDOWN_HEADERS.map((header, index) => (
-            <th
-              key={header}
-              className={cn(
-                "border-b border-border px-4 py-3 text-xs font-semibold uppercase",
-                index === 0 && "sticky left-0 z-30 min-w-[128px] bg-muted shadow-[10px_0_16px_-16px_var(--shadow)]",
-              )}
-            >
-              {header}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => {
-          const projection = selectBreakdownProjection(row);
-          return (
-          <tr
-            key={projection.personId}
-            tabIndex={0}
-            onClick={() => onSelectRow(row)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") onSelectRow(row);
-            }}
-            className={cn("cursor-pointer transition", rowTone(projection.status))}
-          >
-            <td className="sticky left-0 z-10 min-w-[128px] border-b border-border/70 bg-inherit px-4 py-3 font-mono shadow-[10px_0_16px_-16px_var(--shadow)]">
-              {displayText(projection.personId)}
-            </td>
-            <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(projection.salaryPeriod)}</td>
-            <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(projection.salaryBreakdown)}</td>
-            <td className={cn("border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums", diffClass(projection.salaryDifference))}>{formatEuro(projection.salaryDifference)}</td>
-            <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(projection.salaryComplementPeriod)}</td>
-            <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(projection.salaryComplementBreakdown)}</td>
-            <td className={cn("border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums", diffClass(projection.salaryComplementDifference))}>
-              {formatEuro(projection.salaryComplementDifference)}
-            </td>
-            <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(projection.extraSalaryPeriod)}</td>
-            <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(projection.extraSalaryBreakdown)}</td>
-            <td className={cn("border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums", diffClass(projection.extraSalaryDifference))}>{formatEuro(projection.extraSalaryDifference)}</td>
-            <td className="border-b border-border/70 px-4 py-3">
-<StatusBadge value={projection.status} />
-            </td>
-          </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <Drawer
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title={displayText(row.person) || `Matrícula ${row.employeeNumber}`}
+      description={`Matrícula ${displayText(row.employeeNumber)} · Cuadre del Registro`}
+      size="lg"
+    >
+      <div className="flex min-w-0 flex-col gap-6">
+        <section
+          aria-label="Conclusión"
+          className={cn("rounded-xl border p-4", failing.length ? "border-destructive/25 bg-destructive/5" : "border-emerald-500/30 bg-emerald-500/5")}
+        >
+          <p className="text-base font-semibold text-foreground text-pretty">{title}</p>
+          {displayText(row.detail) ? <p className="mt-2 text-sm text-muted-foreground text-pretty">{displayText(row.detail)}</p> : null}
+        </section>
+
+        <dl className="grid min-w-0 grid-cols-2 gap-x-4 gap-y-3">
+          <DetailField label="Estado" value={<StatusPill status={row.status} />} />
+          <DetailField label="Centro" value={row.workplace} />
+          <DetailField label="Puesto" value={row.position} />
+          <DetailField label="Categoría" value={row.category} />
+        </dl>
+
+        <section aria-labelledby="cuadre-amounts-title" className="flex flex-col gap-2">
+          <div>
+            <h3 id="cuadre-amounts-title" className="text-sm font-semibold text-foreground">Importes del Excel</h3>
+            <p className="text-xs text-muted-foreground">En rojo, lo que supera la tolerancia de {formatEuro(tolerance)}.</p>
+          </div>
+          <MoneyTable
+            caption={`Periodo completo frente a ${otherLabel.toLowerCase()}`}
+            leftLabel="Periodo completo"
+            rightLabel={otherLabel}
+            tolerance={tolerance}
+            rows={[...row.blocks, row.total].map((block) => ({ label: block.label, left: block.period, right: block.other, diff: block.difference }))}
+          />
+        </section>
+
+        {row.breakdownSource ? <AiExplanationPanel type="internalExcelCheck" payload={buildInternalExcelExplainPayload(row.breakdownSource)} /> : null}
+      </div>
+    </Drawer>
   );
 }
 
-function NormalizedVariablesTable({ rows }: Readonly<{ rows: readonly InternalExcelNormalizedVariablesCheckRow[] }>) {
-  // Excepción: cabeceras multinivel (rowSpan/colSpan) no caben en Table de system.
-  return (
-    <table className="w-full min-w-[1920px] border-separate border-spacing-0 text-left text-sm">
-      <thead className="sticky top-0 z-20 bg-muted text-muted-foreground shadow-sm">
-        <tr>
-          {["Matrícula", "Persona", "Centro", "Puesto", "Categoría"].map((header, index) => (
-            <th
-              key={header}
-              rowSpan={2}
-              className={cn(
-                "border-b border-border px-4 py-3 text-xs font-semibold uppercase",
-                index === 0 && "sticky left-0 z-30 min-w-[128px] bg-muted shadow-[10px_0_16px_-16px_var(--shadow)]",
-              )}
-            >
-              {header}
-            </th>
-          ))}
-          {NORMALIZED_BLOCKS.map((block) => (
-            <th key={block.label} colSpan={3} className="border-b border-border px-4 py-2 text-center text-xs font-semibold uppercase">
-              {block.label}
-            </th>
-          ))}
-          <th rowSpan={2} className="border-b border-border px-4 py-3 text-xs font-semibold uppercase">
-            Estado
-          </th>
-        </tr>
-        <tr>
-          {NORMALIZED_BLOCKS.flatMap((block) => [
-            <th key={`${block.label}-period`} className="border-b border-border px-4 py-2 text-right text-xs font-semibold uppercase">
-              No norm.
-            </th>,
-            <th key={`${block.label}-normalized`} className="border-b border-border px-4 py-2 text-right text-xs font-semibold uppercase">
-              Norm. + variables
-            </th>,
-            <th key={`${block.label}-difference`} className="border-b border-border px-4 py-2 text-right text-xs font-semibold uppercase">
-              Dif.
-            </th>,
-          ])}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => {
-          const projection = selectNormalizedProjection(row);
-          return (
-          <tr key={projection.personId} className={cn("transition", rowTone(projection.status))}>
-            <td className="sticky left-0 z-10 min-w-[128px] border-b border-border/70 bg-inherit px-4 py-3 font-mono shadow-[10px_0_16px_-16px_var(--shadow)]">
-              {displayText(projection.personId)}
-            </td>
-            <td className="border-b border-border/70 px-4 py-3">{displayText(row.person) || "Sin dato"}</td>
-            <td className="border-b border-border/70 px-4 py-3">{displayText(row.workplace) || "Sin dato"}</td>
-            <td className="border-b border-border/70 px-4 py-3">{displayText(row.position) || "Sin dato"}</td>
-            <td className="border-b border-border/70 px-4 py-3">{displayText(row.category) || "Sin dato"}</td>
-            {NORMALIZED_BLOCKS.map((block) => {
-              const period = projection[block.period];
-              const normalized = projection[block.normalized];
-              const difference = projection[block.difference];
-              return (
-                <Fragment key={`${projection.personId}-${block.label}`}>
-                  <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(period)}</td>
-                  <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(normalized)}</td>
-                  <td className={cn("border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums", diffClass(difference))}>{formatEuro(difference)}</td>
-                </Fragment>
-              );
-            })}
-            <td className="border-b border-border/70 px-4 py-3">
-<StatusBadge value={projection.status} />
-            </td>
-          </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
+function DiffCell({ value, tolerance }: Readonly<{ value: number; tolerance: number }>) {
+  return <span className={cn("font-mono", toleranceDiffClass(value, tolerance))}>{formatEuro(value)}</span>;
 }
 
 export function CuadreExcelView() {
   const { result } = useAppState();
-  const [activeMode, setActiveMode] = useState<CuadreMode>("breakdown");
+  const [mode, setMode] = useState<CuadreMode>("breakdown");
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("Todos");
-  const [selectedRow, setSelectedRow] = useState<InternalExcelCheckRow | undefined>();
-  const activeDescription = MODES.find((mode) => mode.id === activeMode)?.description ?? MODES[0].description;
+  const [status, setStatus] = useState("");
+  const [selected, setSelected] = useState<CuadreRow | undefined>();
+  const tolerance = result?.summary.tolerance ?? 1;
+  const activeMode = MODES.find((item) => item.id === mode) ?? MODES[0];
 
-  const normalizedRows = result?.internalExcelNormalizedVariablesChecks;
-  const normalizedLegacyMissing = activeMode === "normalizedVariables" && result && normalizedRows === undefined;
+  const namesById = useMemo(
+    () => new Map((result?.people ?? []).map((row) => [row.employeeNumber, displayText(row.person)])),
+    [result?.people],
+  );
+  const breakdownRows = useMemo(
+    () => (result?.internalExcelChecks ?? []).map((row) => fromBreakdown(row, namesById.get(row.employeeNumber))),
+    [namesById, result?.internalExcelChecks],
+  );
+  const normalizedSource = result?.internalExcelNormalizedVariablesChecks;
+  const normalizedRows = useMemo(
+    () => (normalizedSource ?? []).map((row) => fromNormalized(row, namesById.get(row.employeeNumber))),
+    [namesById, normalizedSource],
+  );
+  const modeRows = mode === "breakdown" ? breakdownRows : normalizedRows;
+  const searchedRows = useMemo(() => {
+    const needle = normalizeComparableText(query.trim());
+    if (!needle) return modeRows;
+    return modeRows.filter((row) =>
+      [row.employeeNumber, row.person, row.workplace, row.position, row.category].some((value) => normalizeComparableText(displayText(value)).includes(needle)),
+    );
+  }, [modeRows, query]);
+  const visibleRows = status ? searchedRows.filter((row) => row.status === status) : searchedRows;
 
-  const filteredBreakdownRows = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("es");
-    return (result?.internalExcelChecks ?? []).filter((row) => {
-      const matchesStatus = statusFilter === "Todos" || row.status === statusFilter;
-      const matchesQuery =
-        !normalizedQuery ||
-        [row.employeeNumber, row.workplace, row.position, row.category].some((value) => matchesText(value, normalizedQuery));
-      return matchesStatus && matchesQuery;
-    });
-  }, [query, result?.internalExcelChecks, statusFilter]);
-
-  const filteredNormalizedRows = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("es");
-    return (normalizedRows ?? []).filter((row) => {
-      const matchesStatus = statusFilter === "Todos" || row.status === statusFilter;
-      const matchesQuery =
-        !normalizedQuery ||
-        [row.employeeNumber, row.person, row.workplace, row.position, row.category].some((value) => matchesText(value, normalizedQuery));
-      return matchesStatus && matchesQuery;
-    });
-  }, [normalizedRows, query, statusFilter]);
-
-  const metrics = useMemo(() => {
-    if (activeMode === "normalizedVariables") {
-      return buildMetrics({
-        totalCount: normalizedRows?.length ?? 0,
-        rows: filteredNormalizedRows,
-        maxDifference: filteredNormalizedRows.reduce((max, row) => { const projected = selectNormalizedProjection(row); return Math.max(max, Math.abs(projected.salaryDifference), Math.abs(projected.salaryComplementDifference), Math.abs(projected.extraSalaryDifference), Math.abs(projected.totalDifference)); }, 0),
-        visibleTotalDifference: filteredNormalizedRows.reduce((sum, row) => sum + selectNormalizedProjection(row).totalDifference, 0),
-      });
-    }
-
-    return buildMetrics({
-      totalCount: result?.internalExcelChecks.length ?? 0,
-      rows: filteredBreakdownRows,
-      maxDifference: filteredBreakdownRows.reduce((max, row) => { const projected = selectBreakdownProjection(row); return Math.max(max, Math.abs(projected.salaryDifference), Math.abs(projected.salaryComplementDifference), Math.abs(projected.extraSalaryDifference)); }, 0),
-      visibleTotalDifference: filteredBreakdownRows.reduce((sum, row) => { const projected = selectBreakdownProjection(row); return sum + projected.salaryDifference + projected.salaryComplementDifference + projected.extraSalaryDifference; }, 0),
-    });
-  }, [activeMode, filteredBreakdownRows, filteredNormalizedRows, normalizedRows?.length, result?.internalExcelChecks.length]);
+  const columns = useMemo<TableProps<CuadreRow>["columns"]>(
+    () => [
+      {
+        key: "person",
+        header: "Persona",
+        sortable: true,
+        sortValue: (row) => displayText(row.person) || row.employeeNumber,
+        cell: (row) => (
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate font-medium text-foreground">{displayText(row.person) || `Matrícula ${row.employeeNumber}`}</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {[displayText(row.employeeNumber), displayText(row.workplace)].filter(Boolean).join(" · ")}
+            </span>
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        header: "Estado",
+        width: "170px",
+        sortable: true,
+        sortValue: (row) => row.status,
+        cell: (row) => <StatusPill status={row.status} />,
+      },
+      ...["Salario", "C. Salarial", "Extrasalarial"].map((label, index) => ({
+        key: `diff-${index}`,
+        header: `Dif. ${label.toLowerCase()}`,
+        width: "140px",
+        align: "right" as const,
+        sortable: true,
+        sortValue: (row: CuadreRow) => Math.abs(row.blocks[index]?.difference ?? 0),
+        cell: (row: CuadreRow) => <DiffCell value={row.blocks[index]?.difference ?? 0} tolerance={tolerance} />,
+      })),
+      {
+        key: "total",
+        header: "Dif. total",
+        width: "140px",
+        align: "right",
+        sortable: true,
+        sortValue: (row) => Math.abs(row.total.difference),
+        cell: (row) => <DiffCell value={row.total.difference} tolerance={tolerance} />,
+      },
+    ],
+    [tolerance],
+  );
 
   if (!result) {
     return (
       <EmptyState
         icon={<FileCheck2 />}
         title="No hay análisis activo"
-        description="Carga el Registro Retributivo y los recibos para generar el Cuadre Reg."
+        description="Sube el Registro Retributivo en Inicio para comprobar si el propio Excel cuadra."
       />
     );
   }
 
+  const legacyWithoutNormalized = mode === "normalizedVariables" && normalizedSource === undefined;
+
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <Tabs variant="segment" value={activeMode} onValueChange={(value) => setActiveMode(value as CuadreMode)}>
-          <TabsList aria-label="Vistas de Cuadre Reg." className="border border-border" wrapperClassName="max-w-full">
-            {MODES.map((mode) => (
-              <TabsTrigger key={mode.id} value={mode.id}>{mode.label}</TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <p className="text-sm text-muted-foreground">{activeDescription}</p>
-      </div>
+    <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5 pb-6">
+      <header>
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">Cuadre del Registro</h2>
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">
+          Comprueba que el Excel del Registro Retributivo es coherente consigo mismo: que el total de cada persona coincide con las cifras que lo
+          componen. No usa los recibos.
+        </p>
+      </header>
 
-      <div id="cuadre-view-panel" role="tabpanel" aria-label={MODES.find((mode) => mode.id === activeMode)?.label ?? "Cuadre"} className="flex flex-col gap-5">
-      <MetricStrip metrics={metrics} />
+      <ModeCards
+        mode={mode}
+        onChange={(next) => {
+          setMode(next);
+          setStatus("");
+        }}
+        results={{
+          breakdown: { total: breakdownRows.length, failing: notOkCount(breakdownRows) },
+          normalizedVariables: normalizedSource ? { total: normalizedRows.length, failing: notOkCount(normalizedRows) } : undefined,
+        }}
+      />
 
-      {activeMode === "breakdown" && result.internalExcelChecks.length > 0 && result.internalExcelChecks.every((row) => row.status === "OK") ? (
-        <Callout status="success" title="Sin diferencias en No norm. / Desglose" />
-      ) : null}
+      {legacyWithoutNormalized ? (
+        <Callout status="info" title="Este análisis no incluye esta comprobación">
+          Se añadió después de crear el análisis. Vuelve a analizar el Excel para generarla.
+        </Callout>
+      ) : !modeRows.length ? (
+        <EmptyState
+          icon={<FileCheck2 />}
+          title="No hay filas que comprobar"
+          description="El Excel del Registro Retributivo no tiene personas con importes para este cuadre."
+        />
+      ) : (
+        <>
+          <CuadreVerdict rows={modeRows} tolerance={tolerance} otherLabel={activeMode.otherLabel} />
 
-      <DataTableShell
-        toolbar={<CuadreControls query={query} statusFilter={statusFilter} onQueryChange={setQuery} onStatusFilterChange={setStatusFilter} />}
-      >
-        {normalizedLegacyMissing ? (
-          <p className="p-6 text-sm font-medium text-muted-foreground">
-            Este análisis no contiene el cuadre No norm. / Norm. + variables. Vuelve a analizar el Excel para generarlo.
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <StatusChips rows={searchedRows} value={status} onChange={setStatus} />
+            <Input
+              id="cuadre-search"
+              type="search"
+              aria-label="Buscar en Cuadre Reg."
+              value={query}
+              onChange={setQuery}
+              placeholder="Matrícula, nombre o centro"
+              leftIcon={<Search className="size-4" aria-hidden="true" />}
+              className="min-w-0 sm:w-72"
+            />
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Diferencia = periodo completo − {activeMode.otherLabel.toLowerCase()}. Pulsa una fila para ver los importes.
           </p>
-        ) : (
-          <>
-            {activeMode === "breakdown" ? <BreakdownTable rows={filteredBreakdownRows} onSelectRow={setSelectedRow} /> : <NormalizedVariablesTable rows={filteredNormalizedRows} />}
-            {activeMode === "breakdown" && !filteredBreakdownRows.length ? <p className="p-6 text-sm text-muted-foreground">No hay filas visibles en No norm. / Desglose.</p> : null}
-            {activeMode === "normalizedVariables" && !filteredNormalizedRows.length ? <p className="p-6 text-sm text-muted-foreground">No hay filas visibles en No norm. / Norm. + variables.</p> : null}
-          </>
-        )}
-      </DataTableShell>
-      </div>
 
-      {selectedRow ? <DetailModal row={selectedRow} onClose={() => setSelectedRow(undefined)} /> : null}
+          <div data-slot="table-viewport" className="min-w-0">
+            <Table
+              key={mode}
+              data={[...visibleRows]}
+              columns={columns}
+              getRowId={(row) => row.employeeNumber}
+              defaultSort={{ key: "total", direction: "desc" }}
+              height={520}
+              rowHeight={56}
+              className="min-w-0"
+              emptyState={<EmptyState title="Ninguna persona coincide con la búsqueda." />}
+              onRowActivate={setSelected}
+              getRowAriaLabel={(row) => `Ver cuadre de ${displayText(row.person) || row.employeeNumber}`}
+            />
+          </div>
+        </>
+      )}
+
+      {selected ? <CuadreDrawer row={selected} tolerance={tolerance} otherLabel={activeMode.otherLabel} onClose={() => setSelected(undefined)} /> : null}
     </div>
   );
 }

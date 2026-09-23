@@ -202,25 +202,60 @@ icono con tooltip y «Nuevo análisis») y la navegación de vistas con `Tabs un
 sr-only). El análisis activo y el estado de IA son un indicador compacto a la
 derecha de la nav.
 
-- **Inicio sin análisis**: un único bloque de tres pasos (Recibos, Excel,
-  Analizar) con `FileUpload` centrado y `StatefulButton`. No se pintan KPIs ni
-  gráficas a cero.
-- **Inicio con análisis**: franja de fuentes con «Cambiar archivos» en
-  `Drawer`, banda única de KPIs (`NumberTicker`), `Accordion` de cobertura y
-  revisión pendiente y una sola `Surface` de gráficas con `Tabs segment`.
-- **Personas**: búsqueda + `Combobox` de centro y puesto, estado como
-  `Tabs pill` con contadores, `Table` beUI y detalle en `Drawer` lateral con
-  conceptos en `Accordion`.
-- **Cuadre Reg.**: modo en `Tabs segment`, tira de métricas sin tarjetas,
-  estado en `Tabs pill`, detalle en `Modal` con tabla de importes.
-- **Agrupaciones**: hoja elegida con `Select`; la tabla multinivel sticky es
-  una excepción nativa documentada.
+- **Inicio sin análisis**: título «Nuevo análisis» con una frase de qué hace la
+  herramienta y tres pasos numerados (Recibos de nómina, Registro Retributivo,
+  Analizar), cada uno con una línea que explica qué fichero va ahí.
+- **Inicio con análisis**: se lee de arriba abajo y todo queda visible (sin
+  acordeones ni pestañas que escondan datos): cabecera con fecha y fuentes;
+  veredicto en una frase («X de Y personas tienen diferencias») con acceso
+  directo; «Estado de las personas» con una fila explicada por estado que abre
+  Personas ya filtrado; «Pendiente de revisar» con la acción de cada tarea;
+  «Importes» con la explicación de cada cifra; y dos gráficas con título en
+  forma de pregunta. Los colores de estado (rojo, ámbar, naranja, verde) son
+  una excepción semántica en el mapa estático `personStatus.ts`.
+- **Personas**: cabecera con una frase de qué compara la lista; búsqueda y
+  `Combobox` de centro y puesto en una fila; filtro de estado con chips
+  (`aria-pressed`) con los mismos nombres y colores que Inicio y solo los
+  estados con personas; una frase resume las filas visibles sin mezclar
+  importes no comparables. La tabla tiene cinco columnas (matrícula, persona con
+  centro y puesto, estado, diferencia y causa probable) ordenada por diferencia;
+  «Recibo sin Registro» y «Registro sin recibo» muestran su importe atenuado y
+  van al final. El detalle (`Drawer`) empieza por la conclusión en una frase,
+  causa probable y qué revisar; los periodos se resumen en una línea
+  desplegable; importes por bloque y conceptos (filtrados por defecto a los que
+  tienen diferencia) debajo. El rojo marca solo lo que supera la tolerancia
+  (`toleranceDiffClass`), sea del signo que sea.
+- **Cuadre Reg.**: título «Cuadre del Registro» y una frase que aclara que
+  comprueba la coherencia interna del Excel y no usa los recibos. Los dos modos
+  son tarjetas con nombre claro («Total frente a desglose», «Total frente a
+  normalizado + variables»), la pregunta que responden y su resultado. Debajo,
+  veredicto en una frase, chips de estado como en Personas, búsqueda y una
+  `Table` beUI de seis columnas con solo las diferencias por bloque (rojo solo
+  por encima de la tolerancia). El detalle es un `Drawer` que empieza por la
+  conclusión y muestra los importes completos.
+- **Agrupaciones**: se presenta como «Brecha entre mujeres y hombres por
+  grupo». `groupings/genderGap.ts` interpreta las columnas de cada hoja
+  (tipo de retribución · bloque · media/mediana · mujeres/varones/diferencia)
+  y la vista muestra: chips «Agrupar por», `Select` de retribución y chips
+  media/mediana; veredicto con los grupos que alcanzan el 25 % de brecha
+  (art. 28.3 ET) y los que no se pueden comparar por tener un solo sexo; y una
+  `Table` beUI con personas por sexo, brecha por bloque y estado. El detalle es
+  un `Drawer` con la conclusión y media y mediana por bloque. La hoja original
+  (cabeceras multinivel) sigue disponible en «Ver la hoja original del Excel»
+  y se muestra directamente si la hoja no tiene el formato esperado.
 - **Historial**: `HoverList` de filas (fecha como calendario, archivo,
   métricas en línea) con acciones en `Menu`; borrado con `Modal` +
   `StatefulButton`.
-- **Ajustes**: navegación lateral `HoverList` (horizontal en móvil), filas de
-  parámetros, exclusiones como chips, reglas con `Switch` y formulario en
-  `Drawer`; acciones secundarias del mapa en `Menu`.
+- **Ajustes**: navegación lateral `HoverList`; cada sección empieza con título
+  y una frase de para qué sirve (`SettingsSectionHeader`). «Diferencias»
+  muestra una escala de tres estados (Sin diferencia / A revisar / Con
+  diferencia) con los importes que resultan de la tolerancia y del umbral; el
+  umbral «revisar» no se expone porque no cambia la clasificación.
+  «Exclusiones» compara la lista con `excludedEmployeeIdsApplied` del análisis
+  abierto y avisa si falta reanalizar. «Conceptos»: aviso de conceptos sin
+  regla, chips En uso / Desactivados / Sin regla, tabla compacta con `Switch`
+  y edición (y borrado) en `Drawer`; JSON en un `Drawer` aparte. Los cambios se
+  guardan al momento, sin botón «Guardar».
 - **Explicación IA**: panel ligero; carga con `ThinkingShimmer`, resultado en
   `Accordion` y copia con `ActionSwapButton`.
 

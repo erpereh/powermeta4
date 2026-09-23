@@ -24,6 +24,14 @@ export function diffClass(value: number): string {
   return "text-muted-foreground";
 }
 
+/**
+ * Color de una diferencia según la tolerancia: rojo si la supera (sea del
+ * signo que sea), atenuado si está dentro de ella.
+ */
+export function toleranceDiffClass(value: number, tolerance: number): string {
+  return Math.abs(value) > tolerance ? "text-destructive" : "text-muted-foreground";
+}
+
 export const STATUS_BADGE_TONE: Record<"danger" | "warning" | "success" | "info" | "neutral", string> = {
   danger: "border-transparent bg-destructive/15 text-destructive",
   warning: "border-transparent bg-muted text-muted-foreground",

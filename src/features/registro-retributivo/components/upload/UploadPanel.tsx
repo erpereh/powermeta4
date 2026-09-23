@@ -26,10 +26,11 @@ function toUploadItems(files: readonly File[], prefix: string): FileUploadItem[]
 function Step({
   index,
   title,
+  hint,
   done,
   children,
   className,
-}: Readonly<{ index: number; title: string; done: boolean; children: ReactNode; className?: string }>) {
+}: Readonly<{ index: number; title: string; hint: string; done: boolean; children: ReactNode; className?: string }>) {
   return (
     <li className={cn("flex min-w-0 flex-col gap-3", className)}>
       <div className="flex items-center gap-2.5">
@@ -45,6 +46,7 @@ function Step({
         <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         <span className="sr-only">{done ? "(completado)" : "(pendiente)"}</span>
       </div>
+      <p className="-mt-1 pl-8.5 text-xs text-muted-foreground text-pretty">{hint}</p>
       {children}
     </li>
   );
@@ -99,7 +101,7 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
           !stacked && "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,18rem)] lg:gap-0 lg:divide-x lg:divide-border",
         )}
       >
-        <Step index={1} title="Recibos" done={pdfFiles.length > 0} className={cn(!stacked && "lg:pr-6")}>
+        <Step index={1} title="Recibos de nómina" hint="Los PDF de las personas a comparar. Puedes subir varios o una carpeta entera." done={pdfFiles.length > 0} className={cn(!stacked && "lg:pr-6")}>
           <FileUpload
             key={`pdf-${pdfKey}-${pdfItems.length}`}
             value={pdfItems}
@@ -145,7 +147,7 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
           />
         </Step>
 
-        <Step index={2} title="Excel Reg. Retrib." done={Boolean(registroFile)} className={cn(!stacked && "lg:px-6")}>
+        <Step index={2} title="Registro Retributivo" hint="El Excel con los importes que deberían figurar en los recibos." done={Boolean(registroFile)} className={cn(!stacked && "lg:px-6")}>
           <FileUpload
             key={`excel-${excelKey}-${excelItems.length}`}
             value={excelItems}
@@ -169,7 +171,7 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
           />
         </Step>
 
-        <Step index={3} title="Analizar" done={false} className={cn(!stacked && "lg:pl-6")}>
+        <Step index={3} title="Analizar" hint="Las diferencias por debajo de la tolerancia se dan por buenas." done={false} className={cn(!stacked && "lg:pl-6")}>
           <Input
             id={stacked ? "tolerance-drawer" : "tolerance"}
             label="Tolerancia EUR"

@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-09-23 - Registro Retributivo: rediseño comprensible por pestañas
+
+### Cambios
+
+- Inicio: frase de conclusión del análisis, desglose por estado con filas que
+  abren Personas ya filtrado, panel de importes, pendientes de revisión y dos
+  gráficas con títulos en forma de pregunta. Subida en tres pasos explicados;
+  «Analizar otros archivos» abre un `Drawer`.
+- Personas: estados con nombres claros («Con diferencia», «Recibo sin
+  Registro»…), chips de filtro con contador, tabla de cinco columnas y detalle
+  que empieza por una conclusión, periodos y conceptos con diferencia.
+- Cuadre Reg.: tarjetas «Qué comprobar» con resultado, conclusión, tabla
+  unificada por persona y detalle con los bloques que no cuadran.
+- Agrupaciones: lectura de las hojas como brecha mujeres/hombres
+  (`groupings/genderGap.ts`), umbral del 25 %, selector de retribución y
+  media/mediana, tabla por grupo y detalle; la hoja original sigue disponible.
+- Diferencias en rojo solo por encima de la tolerancia (`toleranceDiffClass`).
+- Ajustes: cabecera explicativa por sección; «Diferencias» con escala de tres
+  estados y dos campos (tolerancia y «Con diferencia» a partir de) con
+  borrador local para poder vaciarlos; exclusiones con aviso según
+  `excludedEmployeeIdsApplied`; conceptos con aviso de conceptos sin regla,
+  chips de uso, tabla compacta, edición y borrado en `Drawer`, e importación
+  JSON en `Drawer` (sin `window.prompt` ni `window.confirm`). Privacidad como
+  lista de garantías.
+
+### Verificación
+
+- `npm run typecheck`, `oxlint` (sin avisos nuevos), `npm run build` y
+  `git diff --check` correctos.
+- `npm test`: 466 correctas y 2 fallos en `backup` al correr en paralelo con el
+  build; `npx vitest run backup` por separado: 10/10 correctas.
+- Tras Ajustes: `npm test` 469 correctas (36 omitidas), `npm run typecheck`,
+  `npm run build` y `git diff --check` correctos; `npm run lint` falla solo
+  por `oxfmt --check` (preexistente en 487 de 505 archivos).
+- Revisión visual con Chrome headless a 1440 px (claro/oscuro) y 390 px.
+
 ## 2026-09-23 - Rediseño beUI: fase 2 (Registro Retributivo)
 
 ### Cambios

@@ -1,11 +1,12 @@
 "use client";
 
-import { Layers, Search, Table2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, Search, Table2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { DataTableShell } from "@/features/registro-retributivo/components/common/DataTableShell";
 import {
   Callout,
+  Drawer,
   EmptyState,
   Input,
   Select,
@@ -13,18 +14,33 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Table,
+  type TableProps,
 } from "@/components/system";
+import {
+  GAP_BLOCKS,
+  GAP_MEASURES,
+  GAP_THRESHOLD,
+  exceedsThreshold,
+  isComparableGroup,
+  maxGap,
+  parseGapRows,
+  type GapMeasure,
+  type GapRow,
+  type GapStat,
+} from "@/features/registro-retributivo/groupings/genderGap";
 import type { GroupedExcelCell, GroupedExcelHeaderCell, GroupedExcelSheet } from "@/features/registro-retributivo/types";
 import { groupingHeaderSurface } from "@/features/registro-retributivo/ui/statusStyles";
 import { cn } from "@/features/registro-retributivo/utils/classNames";
+import { formatEuro } from "@/features/registro-retributivo/utils/money";
 import { normalizeComparableText } from "@/features/registro-retributivo/utils/normalize";
 
 const GROUPED_SHEETS = [
-  { fullName: "Análisis por puesto", shortLabel: "Puesto", idLabel: "Puesto ID", nameLabel: "Puesto" },
-  { fullName: "Análisis por valoración puesto", shortLabel: "Valoración", idLabel: "Valoración ID", nameLabel: "Valoración" },
-  { fullName: "Análisis por categoría", shortLabel: "Categoría", idLabel: "Categoría ID", nameLabel: "Categoría" },
-  { fullName: "Análisis por familia de puesto", shortLabel: "Familia", idLabel: "Familia ID", nameLabel: "Familia" },
-  { fullName: "Agrupación Categoría Personal", shortLabel: "Cat. personal", idLabel: "Agrupación ID", nameLabel: "Agrupación" },
+  { fullName: "Análisis por puesto", shortLabel: "Puesto", idLabel: "Puesto ID", nameLabel: "Puesto", plural: "puestos" },
+  { fullName: "Análisis por valoración puesto", shortLabel: "Valoración", idLabel: "Valoración ID", nameLabel: "Valoración", plural: "valoraciones" },
+  { fullName: "Análisis por categoría", shortLabel: "Categoría", idLabel: "Categoría ID", nameLabel: "Categoría", plural: "categorías" },
+  { fullName: "Análisis por familia de puesto", shortLabel: "Familia", idLabel: "Familia ID", nameLabel: "Familia", plural: "familias" },
+  { fullName: "Agrupación Categoría Personal", shortLabel: "Categoría personal", idLabel: "Agrupación ID", nameLabel: "Agrupación", plural: "agrupaciones" },
 ] as const;
 
 type GroupedSheetName = (typeof GROUPED_SHEETS)[number]["fullName"];
@@ -78,10 +94,6 @@ function isMetricHeader(label: string): boolean {
     normalized.includes("varones") ||
     normalized.includes("diferencia")
   );
-}
-
-function isGroupedSheetName(value: string): value is GroupedSheetName {
-  return GROUPED_SHEETS.some((sheet) => sheet.fullName === value);
 }
 
 function sheetMetadata(sheetName: string) {
@@ -242,134 +254,481 @@ function headerStickyColumnClass(cell: GroupedExcelHeaderCell, stickyCount: numb
   return "z-20 min-w-[132px]";
 }
 
+/** Hoja original del Excel con sus cabeceras multinivel (vista avanzada). */
+function RawSheetTable({ sheet }: Readonly<{ sheet: GroupedExcelSheet }>) {
+  const [query, setQuery] = useState("");
+  const visibleRows = useMemo(() => sheet.rows.filter((row) => rowMatchesQuery(row, sheet, query)), [sheet, query]);
+  const activeGroupedHeaders = useMemo(() => groupedHeadersForSheet(sheet), [sheet]);
+  const stickyColumnCount = useMemo(() => stickyIdentifierColumnCount(sheet), [sheet]);
+
+  return (
+    <DataTableShell
+      toolbar={
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {sheet.sheetName} · {visibleRows.length} filas · {sheet.visibleColumnCount} columnas
+          </p>
+          <Input
+            id="agrupaciones-raw-search"
+            type="search"
+            aria-label="Buscar en la hoja original"
+            value={query}
+            onChange={setQuery}
+            placeholder="Buscar en la hoja"
+            leftIcon={<Search className="size-4" aria-hidden="true" />}
+            className="min-w-0 sm:w-72"
+          />
+        </div>
+      }
+    >
+      <div role="region" id={SHEET_PANEL_ID} aria-label={sheet.sheetName} className="min-w-0">
+        {/* Excepción: cabeceras agrupadas multinivel sticky; Table de system no aplica. */}
+        <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-left text-sm">
+          <thead className="text-muted-foreground shadow-sm">
+            {activeGroupedHeaders.map((headerRow, rowIndex) => (
+              <tr key={`header-row-${rowIndex}`} style={{ height: HEADER_ROW_HEIGHT }}>
+                {headerRow.map((headerCell) => (
+                  <th
+                    key={`${headerCell.level}-${headerCell.startColumn}-${headerCell.endColumn}-${headerCell.label}`}
+                    title={headerCell.path || headerCell.label}
+                    aria-label={displayHeaderLabel(headerCell)}
+                    colSpan={headerCell.colSpan}
+                    rowSpan={headerCell.rowSpan}
+                    className={cn(
+                      "sticky border-b border-r border-border px-3 py-2 text-center text-[11px] font-semibold uppercase leading-4",
+                      groupingHeaderSurface(headerCell.label, headerCell.level),
+                      headerStickyColumnClass(headerCell, stickyColumnCount),
+                    )}
+                    style={{ top: headerCell.level * HEADER_ROW_HEIGHT }}
+                  >
+                    {displayHeaderLabel(headerCell)}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {visibleRows.map((row, rowIndex) => (
+              <tr key={`${sheet.sheetName}-${rowIndex}`} className="odd:bg-muted/30 even:bg-card text-foreground">
+                {sheet.columns.map((column, columnIndex) => {
+                  const cell = row[column.key];
+                  return (
+                    <td
+                      key={`${rowIndex}-${column.key}`}
+                      className={cn(
+                        "border-b border-border/70 px-4 py-3 align-top",
+                        columnIndex < stickyColumnCount ? stickyColumnClass(columnIndex, stickyColumnCount, rowIndex) : "bg-inherit",
+                        isNumericCell(cell) ? "text-right font-mono tabular-nums" : "text-left",
+                        columnIndex >= stickyColumnCount && "min-w-[132px]",
+                      )}
+                    >
+                      {cellDisplay(cell)}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!visibleRows.length ? <p className="p-6 text-sm text-muted-foreground">No hay filas con la búsqueda actual.</p> : null}
+      </div>
+    </DataTableShell>
+  );
+}
+
+/* ------------------------------- Brecha por grupo ------------------------------- */
+
+const PERCENT = new Intl.NumberFormat("es-ES", { style: "percent", maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const STATS: ReadonlyArray<{ id: GapStat; label: string }> = [
+  { id: "media", label: "Media" },
+  { id: "mediana", label: "Mediana" },
+];
+
+function formatGap(gap: number | undefined): string {
+  return gap === undefined ? "—" : PERCENT.format(gap);
+}
+
+function gapClass(gap: number | undefined): string {
+  if (gap === undefined) return "text-muted-foreground";
+  return exceedsThreshold(gap) ? "font-semibold text-destructive" : "text-foreground";
+}
+
+/** Frase que explica una brecha concreta. */
+function gapSentence(gap: number): string {
+  const amount = PERCENT.format(Math.abs(gap));
+  if (Math.abs(gap) < 0.0005) return "Mujeres y hombres cobran lo mismo.";
+  return gap > 0 ? `Las mujeres cobran un ${amount} menos que los hombres.` : `Las mujeres cobran un ${amount} más que los hombres.`;
+}
+
+type GroupState = "over" | "under" | "none";
+
+function groupState(row: GapRow, measure: GapMeasure, stat: GapStat): GroupState {
+  const gap = maxGap(row, measure, stat);
+  if (gap === undefined) return "none";
+  return exceedsThreshold(gap) ? "over" : "under";
+}
+
+const GROUP_STATE_META: Record<GroupState, { label: string; dotClass: string }> = {
+  over: { label: `Supera el ${PERCENT.format(GAP_THRESHOLD).replace(",0", "")}`, dotClass: "bg-destructive" },
+  under: { label: "Por debajo", dotClass: "bg-emerald-500" },
+  none: { label: "Sin comparación", dotClass: "bg-muted-foreground/60" },
+};
+
+function GroupStatePill({ state }: Readonly<{ state: GroupState }>) {
+  const meta = GROUP_STATE_META[state];
+  return (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-foreground">
+      <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", meta.dotClass)} />
+      {meta.label}
+    </span>
+  );
+}
+
+function chipClass(active: boolean): string {
+  return cn(
+    "inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+    active ? "border-foreground/30 bg-selected text-foreground" : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
+  );
+}
+
+function GapVerdict({ rows, measure, stat, plural }: Readonly<{ rows: readonly GapRow[]; measure: GapMeasure; stat: GapStat; plural: string }>) {
+  const comparable = rows.filter(isComparableGroup);
+  const over = comparable.filter((row) => groupState(row, measure, stat) === "over").length;
+  const notComparable = rows.length - comparable.length;
+  const threshold = PERCENT.format(GAP_THRESHOLD).replace(",0", "");
+
+  return (
+    <section
+      aria-labelledby="gap-verdict-title"
+      className={cn("flex items-start gap-3 rounded-2xl border p-5", over ? "border-destructive/25 bg-destructive/5" : "border-emerald-500/30 bg-emerald-500/5")}
+    >
+      {over ? (
+        <AlertTriangle className="mt-0.5 size-6 shrink-0 text-destructive" aria-hidden="true" />
+      ) : (
+        <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-emerald-500" aria-hidden="true" />
+      )}
+      <div className="min-w-0">
+        <h3 id="gap-verdict-title" className="text-lg font-semibold tracking-tight text-foreground text-balance">
+          {over
+            ? `${over} de ${comparable.length} ${plural} con mujeres y hombres ${over === 1 ? "tiene" : "tienen"} una brecha del ${threshold} o más`
+            : `Ningún grupo con mujeres y hombres llega al ${threshold} de brecha`}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground text-pretty">
+          {over ? "Esas brechas deben justificarse en el Registro Retributivo (art. 28.3 del Estatuto de los Trabajadores). " : ""}
+          {notComparable
+            ? `${notComparable} ${notComparable === 1 ? "no se puede comparar porque solo tiene" : `${plural} no se pueden comparar porque solo tienen`} mujeres u hombres.`
+            : "Todos los grupos tienen mujeres y hombres para comparar."}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function PeopleCell({ row }: Readonly<{ row: GapRow }>) {
+  const total = row.women + row.men;
+  const womenShare = total ? (row.women / total) * 100 : 0;
+  return (
+    <span className="flex w-full flex-col gap-1">
+      <span className="text-sm tabular-nums text-foreground">
+        {row.women} M · {row.men} H
+      </span>
+      <span aria-hidden="true" className="flex h-1.5 w-full overflow-hidden rounded-full bg-primary/25">
+        <span className="h-full bg-primary" style={{ width: `${womenShare}%` }} />
+      </span>
+    </span>
+  );
+}
+
+function people(count: number, singular: string, plural: string): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function GapDrawer({
+  row,
+  measure,
+  stat,
+  onClose,
+}: Readonly<{ row: GapRow; measure: GapMeasure; stat: GapStat; onClose: () => void }>) {
+  const measureMeta = GAP_MEASURES.find((item) => item.id === measure) ?? GAP_MEASURES[0];
+  const statLabel = STATS.find((item) => item.id === stat)?.label.toLowerCase() ?? "media";
+  const media = maxGap(row, measure, stat);
+  const comparable = isComparableGroup(row);
+  const over = exceedsThreshold(media);
+
+  return (
+    <Drawer
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title={row.name || row.id}
+      description={`${row.id} · ${people(row.women, "mujer", "mujeres")} y ${people(row.men, "hombre", "hombres")}`}
+      size="lg"
+    >
+      <div className="flex min-w-0 flex-col gap-6">
+        <section
+          aria-label="Conclusión"
+          className={cn(
+            "rounded-xl border p-4",
+            !comparable ? "border-border bg-muted/40" : over ? "border-destructive/25 bg-destructive/5" : "border-emerald-500/30 bg-emerald-500/5",
+          )}
+        >
+          <p className="text-base font-semibold text-foreground text-pretty">
+            {!comparable
+              ? `No se puede calcular la brecha: el grupo solo tiene ${row.women ? "mujeres" : "hombres"}.`
+              : media === undefined
+                ? "El Excel no trae la brecha de este grupo."
+                : `${gapSentence(media)} Es la mayor brecha (${statLabel}) entre los bloques${over ? " y supera el 25 %: debe justificarse." : "."}`}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{measureMeta.label}: {measureMeta.description.toLowerCase()}</p>
+        </section>
+
+        {comparable
+          ? STATS.map((stat) => (
+              <section key={stat.id} aria-labelledby={`gap-${stat.id}-title`} className="flex flex-col gap-2">
+                <h3 id={`gap-${stat.id}-title`} className="text-sm font-semibold text-foreground">
+                  {stat.label} por bloque
+                </h3>
+                <div className="min-w-0 overflow-x-auto rounded-xl border border-border">
+                  <table className="w-full min-w-[26rem] text-sm">
+                    <caption className="sr-only">{`${stat.label} por bloque`}</caption>
+                    <thead className="bg-muted/50 text-xs text-muted-foreground">
+                      <tr>
+                        <th scope="col" className="px-3 py-2 text-left font-medium">Bloque</th>
+                        <th scope="col" className="px-3 py-2 text-right font-medium">Mujeres</th>
+                        <th scope="col" className="px-3 py-2 text-right font-medium">Hombres</th>
+                        <th scope="col" className="px-3 py-2 text-right font-medium">Brecha</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {GAP_BLOCKS.map((block, index) => {
+                        const values = row.values[measure][stat.id][index] ?? {};
+                        return (
+                          <tr key={block}>
+                            <th scope="row" className="px-3 py-2 text-left font-medium text-foreground">{block}</th>
+                            <td className="px-3 py-2 text-right font-mono tabular-nums">{values.women === undefined ? "—" : formatEuro(values.women)}</td>
+                            <td className="px-3 py-2 text-right font-mono tabular-nums">{values.men === undefined ? "—" : formatEuro(values.men)}</td>
+                            <td className={cn("px-3 py-2 text-right font-mono tabular-nums", gapClass(values.gap))}>{formatGap(values.gap)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ))
+          : null}
+      </div>
+    </Drawer>
+  );
+}
+
 export function AgrupacionesView() {
   const { result } = useAppState();
   const groupedExcelSheets = result?.groupedExcelSheets;
   const [activeSheetName, setActiveSheetName] = useState<GroupedSheetName>(GROUPED_SHEETS[0].fullName);
+  const [measure, setMeasure] = useState<GapMeasure>("total");
+  const [stat, setStat] = useState<GapStat>("media");
   const [query, setQuery] = useState("");
+  const [onlyOver, setOnlyOver] = useState(false);
+  const [selected, setSelected] = useState<GapRow | undefined>();
 
-  const activeSheet = useMemo(() => {
-    return groupedExcelSheets?.find((sheet) => sheet.sheetName === activeSheetName) ?? placeholderSheet(activeSheetName);
-  }, [activeSheetName, groupedExcelSheets]);
+  const activeSheet = useMemo(
+    () => groupedExcelSheets?.find((sheet) => sheet.sheetName === activeSheetName) ?? placeholderSheet(activeSheetName),
+    [activeSheetName, groupedExcelSheets],
+  );
+  const sheetMeta = sheetMetadata(activeSheetName) ?? GROUPED_SHEETS[0];
+  const gapRows = useMemo(() => parseGapRows(activeSheet), [activeSheet]);
+  const visibleRows = useMemo(() => {
+    const needle = normalizeComparableText(query.trim());
+    return (gapRows ?? []).filter((row) => {
+      if (onlyOver && groupState(row, measure, stat) !== "over") return false;
+      return !needle || normalizeComparableText(`${row.id} ${row.name}`).includes(needle);
+    });
+  }, [gapRows, measure, onlyOver, query, stat]);
+  const overCount = (gapRows ?? []).filter((row) => groupState(row, measure, stat) === "over").length;
 
-  const visibleRows = useMemo(() => activeSheet.rows.filter((row) => rowMatchesQuery(row, activeSheet, query)), [activeSheet, query]);
-  const activeGroupedHeaders = useMemo(() => groupedHeadersForSheet(activeSheet), [activeSheet]);
-  const stickyColumnCount = useMemo(() => stickyIdentifierColumnCount(activeSheet), [activeSheet]);
+  const columns = useMemo<TableProps<GapRow>["columns"]>(
+    () => [
+      {
+        key: "name",
+        header: sheetMeta.nameLabel,
+        sortable: true,
+        sortValue: (row) => row.name,
+        cell: (row) => (
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate font-medium text-foreground">{row.name || row.id}</span>
+            <span className="truncate font-mono text-xs text-muted-foreground">{row.id}</span>
+          </span>
+        ),
+      },
+      {
+        key: "people",
+        header: "Personas",
+        width: "130px",
+        sortable: true,
+        sortValue: (row) => row.women + row.men,
+        cell: (row) => <PeopleCell row={row} />,
+      },
+      ...GAP_BLOCKS.map((block, index) => ({
+        key: `gap-${index}`,
+        header: `Brecha ${block.toLowerCase()}`,
+        width: "150px",
+        align: "right" as const,
+        sortable: true,
+        sortValue: (row: GapRow) => (isComparableGroup(row) ? Math.abs(row.values[measure][stat][index]?.gap ?? 0) : -1),
+        cell: (row: GapRow) => {
+          const gap = isComparableGroup(row) ? row.values[measure][stat][index]?.gap : undefined;
+          return <span className={cn("font-mono", gapClass(gap))}>{formatGap(gap)}</span>;
+        },
+      })),
+      {
+        key: "state",
+        header: "Estado",
+        width: "170px",
+        sortable: true,
+        // Sin comparación al final; después, de mayor a menor brecha.
+        sortValue: (row) => {
+          const gap = maxGap(row, measure, stat);
+          return gap === undefined ? -1 : Math.abs(gap);
+        },
+        cell: (row) => <GroupStatePill state={groupState(row, measure, stat)} />,
+      },
+    ],
+    [measure, sheetMeta.nameLabel, stat],
+  );
 
   if (!groupedExcelSheets) {
-    return (
-      <EmptyState icon={<Table2 />} title="Agrupaciones" description={LEGACY_ANALYSIS_MESSAGE} />
-    );
+    return <EmptyState icon={<Table2 />} title="Agrupaciones" description={LEGACY_ANALYSIS_MESSAGE} />;
   }
 
-  return (
-    <div className="min-w-0 w-full">
+  const message = sheetMessage(activeSheet);
 
-      <DataTableShell
-        toolbar={
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 items-center gap-3">
-                <Select
-                  value={activeSheetName}
-                  onValueChange={(value) => {
-                    if (!isGroupedSheetName(value)) return;
-                    setActiveSheetName(value);
-                    setQuery("");
-                  }}
-                >
-                  <SelectTrigger className="w-full min-w-0 sm:w-72" aria-label="Hoja de agrupación">
-                    <Layers className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <SelectValue placeholder="Selecciona una hoja" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {GROUPED_SHEETS.map((sheet) => (
-                      <SelectItem key={sheet.fullName} value={sheet.fullName}>
-                        {sheet.fullName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p
-                  className="hidden shrink-0 text-xs text-muted-foreground tabular-nums md:block"
-                  aria-label={`${activeSheet.sheetName} · ${visibleRows.length} filas · ${activeSheet.visibleColumnCount} columnas`}
-                >
-                  {visibleRows.length} filas · {activeSheet.visibleColumnCount} columnas
-                </p>
-              </div>
-              <Input
-                id="agrupaciones-search"
-                type="search"
-                aria-label="Buscar en esta hoja"
-                value={query}
-                onChange={setQuery}
-                placeholder="Buscar en esta hoja"
-                leftIcon={<Search className="size-4" aria-hidden="true" />}
-                className="min-w-0 sm:w-72"
-              />
-            </div>
-            {activeSheet.truncated ? <Callout status="info" title="Hoja guardada parcialmente">{TRUNCATED_HISTORY_MESSAGE}</Callout> : null}
-          </div>
-        }
-      >
-        <div role="region" id={SHEET_PANEL_ID} aria-label={activeSheet.sheetName} className="min-w-0">
-          {/* Excepción: cabeceras agrupadas multinivel sticky; Table de system no aplica. */}
-          {sheetMessage(activeSheet) ? (
-            <p className="p-6 text-sm font-semibold text-muted-foreground">{sheetMessage(activeSheet)}</p>
-          ) : (
-            <>
-            <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-left text-sm">
-              <thead className="text-muted-foreground shadow-sm">
-                {activeGroupedHeaders.map((headerRow, rowIndex) => (
-                  <tr key={`header-row-${rowIndex}`} style={{ height: HEADER_ROW_HEIGHT }}>
-                    {headerRow.map((headerCell) => (
-                      <th
-                        key={`${headerCell.level}-${headerCell.startColumn}-${headerCell.endColumn}-${headerCell.label}`}
-                        title={headerCell.path || headerCell.label}
-                        aria-label={displayHeaderLabel(headerCell)}
-                        colSpan={headerCell.colSpan}
-                        rowSpan={headerCell.rowSpan}
-                        className={cn(
-                          "sticky border-b border-r border-border px-3 py-2 text-center text-[11px] font-semibold uppercase leading-4",
-                          groupingHeaderSurface(headerCell.label, headerCell.level),
-                          headerStickyColumnClass(headerCell, stickyColumnCount),
-                        )}
-                        style={{ top: headerCell.level * HEADER_ROW_HEIGHT }}
-                      >
-                        {displayHeaderLabel(headerCell)}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody>
-                {visibleRows.map((row, rowIndex) => (
-                  <tr key={`${activeSheet.sheetName}-${rowIndex}`} className="odd:bg-muted/30 even:bg-card text-foreground">
-                    {activeSheet.columns.map((column, columnIndex) => {
-                      const cell = row[column.key];
-                      return (
-                        <td
-                          key={`${rowIndex}-${column.key}`}
-                          className={cn(
-                            "border-b border-border/70 px-4 py-3 align-top",
-                            columnIndex < stickyColumnCount ? stickyColumnClass(columnIndex, stickyColumnCount, rowIndex) : "bg-inherit",
-                            isNumericCell(cell) ? "text-right font-mono tabular-nums" : "text-left",
-                            columnIndex >= stickyColumnCount && "min-w-[132px]",
-                          )}
-                        >
-                          {cellDisplay(cell)}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-              {!visibleRows.length ? <p className="p-6 text-sm text-muted-foreground">No hay filas con la búsqueda actual.</p> : null}
-            </>
-          )}
+  return (
+    <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5 pb-6">
+      <header>
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">Brecha entre mujeres y hombres por grupo</h2>
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">
+          Para cada grupo del Registro Retributivo, cuánto cobran las mujeres frente a los hombres. Una brecha positiva significa que las mujeres
+          cobran menos; a partir del 25 % debe justificarse.
+        </p>
+      </header>
+
+      <div className="flex min-w-0 flex-col gap-3">
+        <div role="group" aria-label="Agrupar por" className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-sm text-muted-foreground">Agrupar por</span>
+          {GROUPED_SHEETS.map((sheet) => (
+            <button
+              key={sheet.fullName}
+              type="button"
+              aria-pressed={sheet.fullName === activeSheetName}
+              className={chipClass(sheet.fullName === activeSheetName)}
+              onClick={() => {
+                setActiveSheetName(sheet.fullName);
+                setQuery("");
+                setOnlyOver(false);
+              }}
+            >
+              {sheet.shortLabel}
+            </button>
+          ))}
         </div>
-      </DataTableShell>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-sm text-muted-foreground">Retribución</span>
+          <Select value={measure} onValueChange={(value) => { const next = GAP_MEASURES.find((item) => item.id === value); if (next) setMeasure(next.id); }}>
+            <SelectTrigger className="w-full min-w-0 sm:w-64" aria-label="Retribución">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {GAP_MEASURES.map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div role="group" aria-label="Estadístico" className="flex gap-1.5">
+            {STATS.map((item) => (
+              <button key={item.id} type="button" aria-pressed={stat === item.id} className={chipClass(stat === item.id)} onClick={() => setStat(item.id)}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {activeSheet.truncated ? <Callout status="info" title="Hoja guardada parcialmente">{TRUNCATED_HISTORY_MESSAGE}</Callout> : null}
+      </div>
+
+      {message ? (
+        <EmptyState icon={<Table2 />} title={sheetMeta.fullName} description={message} />
+      ) : gapRows ? (
+        <>
+          <GapVerdict rows={gapRows} measure={measure} stat={stat} plural={sheetMeta.plural} />
+
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div role="group" aria-label="Filtrar grupos" className="flex flex-wrap gap-2">
+              <button type="button" aria-pressed={!onlyOver} className={chipClass(!onlyOver)} onClick={() => setOnlyOver(false)}>
+                Todos
+                <span className="font-semibold tabular-nums text-foreground">{gapRows.length}</span>
+              </button>
+              <button type="button" aria-pressed={onlyOver} className={chipClass(onlyOver)} onClick={() => setOnlyOver(true)}>
+                <span aria-hidden="true" className="size-2 rounded-full bg-destructive" />
+                Brecha del 25 % o más
+                <span className="font-semibold tabular-nums text-foreground">{overCount}</span>
+              </button>
+            </div>
+            <Input
+              id="agrupaciones-search"
+              type="search"
+              aria-label="Buscar grupo"
+              value={query}
+              onChange={setQuery}
+              placeholder={`Buscar ${sheetMeta.shortLabel.toLowerCase()}`}
+              leftIcon={<Search className="size-4" aria-hidden="true" />}
+              className="min-w-0 sm:w-72"
+            />
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Brecha = cuánto menos cobran las mujeres que los hombres ({STATS.find((item) => item.id === stat)?.label.toLowerCase()}). En rojo, del 25 % en
+            adelante. M = mujeres, H = hombres. Pulsa una fila para ver los importes.
+          </p>
+
+          <div data-slot="table-viewport" className="min-w-0">
+            <Table
+              key={`${activeSheetName}-${measure}-${stat}`}
+              data={[...visibleRows]}
+              columns={columns}
+              getRowId={(row) => `${row.id}-${row.name}`}
+              defaultSort={{ key: "state", direction: "desc" }}
+              height={520}
+              rowHeight={56}
+              className="min-w-0"
+              emptyState={<EmptyState title="Ningún grupo coincide con el filtro." />}
+              onRowActivate={setSelected}
+              getRowAriaLabel={(row) => `Ver brecha de ${row.name || row.id}`}
+            />
+          </div>
+
+          <details className="group min-w-0">
+            <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+              <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+              Ver la hoja original del Excel ({activeSheet.visibleColumnCount} columnas)
+            </summary>
+            <div className="mt-3">
+              <RawSheetTable sheet={activeSheet} />
+            </div>
+          </details>
+        </>
+      ) : (
+        <>
+          <Callout status="info" title="Esta hoja no tiene el formato de brecha esperado">
+            Se muestra tal cual viene en el Excel.
+          </Callout>
+          <RawSheetTable sheet={activeSheet} />
+        </>
+      )}
+
+      {selected ? <GapDrawer row={selected} measure={measure} stat={stat} onClose={() => setSelected(undefined)} /> : null}
     </div>
   );
 }

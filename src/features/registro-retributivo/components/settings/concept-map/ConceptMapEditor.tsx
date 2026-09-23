@@ -1,26 +1,15 @@
 "use client";
 
-import {
-  ChevronDown,
-  Copy,
-  Download,
-  FileJson,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  RefreshCcw,
-  RotateCcw,
-  Save,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Copy, Download, FileJson, MoreHorizontal, Pencil, Plus, RefreshCcw, RotateCcw, Search, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
+import { SettingsSectionHeader } from "@/features/registro-retributivo/components/settings/SettingsSectionHeader";
 import {
-  Badge,
   Button,
+  Callout,
   Drawer,
+  EmptyState,
   Input,
   Menu,
   MenuContent,
@@ -32,9 +21,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  StatefulButton,
+  Surface,
   Switch,
   Tooltip,
-  type AnimatedBadgeStatus,
 } from "@/components/system";
 import { Textarea } from "@/components/ui/textarea";
 import { isRuleEnabledForComparison, mergeConceptMap, normalizeConceptMappingRule, normalizePdfConcept } from "@/features/registro-retributivo/compare/conceptMapping";
@@ -51,9 +41,6 @@ import { cn } from "@/features/registro-retributivo/utils/classNames";
 import { normalizeComparableText } from "@/features/registro-retributivo/utils/normalize";
 
 type UsageLabel = "Activo" | "Desactivado" | "Sin configurar";
-type StatusFilter = "Todos" | "Sin configurar";
-type ActivationFilter = "Todos" | "Activos" | "Desactivados";
-type DetectedFilter = "Todos" | "Detectados" | "No detectados";
 
 interface RuleForm {
   readonly pdfConcept: string;
@@ -103,13 +90,9 @@ interface UnmappedRow extends RuleTableBaseRow {
 type ConceptMapRow = RuleRow | UnmappedRow;
 
 const STATUSES: readonly MappingStatus[] = ["Incluido", "Justificado", "Pendiente revisión", "Ignorado"];
-const ACTIVATION_FILTERS: readonly ActivationFilter[] = ["Todos", "Activos", "Desactivados"];
-const DETECTED_FILTERS: readonly DetectedFilter[] = ["Todos", "Detectados", "No detectados"];
 const BLOCKS: readonly RetributionBlock[] = ["Salario", "C. Salarial", "Extrasalarial"];
 const SOURCE_TYPES: readonly ConceptMappingSourceType[] = ["devengo", "informativo", "deduccion", "retencion", "coste_empresa", "unknown"];
 const DEDUPE_PRIORITIES: readonly ConceptDedupePriority[] = ["devengo", "informativo"];
-
-const MAP_NOTE = "Activo = se usa en el análisis. Desactivado = se ignora al actualizar datos.";
 
 const EMPTY_RULE_FORM: RuleForm = {
   pdfConcept: "",
@@ -345,46 +328,40 @@ function rowMatches(row: ConceptMapRow, query: string): boolean {
   return values.some((value) => normalizeComparableText(value).includes(normalizedQuery));
 }
 
-function usageBadgeStatus(status: UsageLabel): AnimatedBadgeStatus {
-  if (status === "Activo") return "success";
-  if (status === "Sin configurar") return "warning";
-  return "neutral";
+type UsageFilter = "Todos" | "En uso" | "Desactivados" | "Sin regla";
+
+function matchesUsage(row: ConceptMapRow, filter: UsageFilter): boolean {
+  if (filter === "En uso") return row.statusLabel === "Activo";
+  if (filter === "Desactivados") return row.statusLabel === "Desactivado";
+  if (filter === "Sin regla") return row.statusLabel === "Sin configurar";
+  return true;
 }
 
-function shortText(value: string | undefined, fallback: string): string {
-  const text = value?.trim() || fallback;
-  return text.length > 96 ? `${text.slice(0, 93)}...` : text;
+function usageCount(rows: readonly ConceptMapRow[], filter: UsageFilter): number {
+  return rows.filter((row) => matchesUsage(row, filter)).length;
 }
 
-function RowAction({
-  label,
-  danger,
-  onClick,
-  children,
-}: {
-  readonly label: string;
-  readonly danger?: boolean;
-  readonly onClick: () => void;
-  readonly children: ReactNode;
-}) {
+const USAGE_FILTERS: readonly { readonly value: UsageFilter; readonly dotClass: string }[] = [
+  { value: "Todos", dotClass: "" },
+  { value: "En uso", dotClass: "bg-emerald-500" },
+  { value: "Desactivados", dotClass: "bg-muted-foreground/60" },
+  { value: "Sin regla", dotClass: "bg-amber-500" },
+];
+
+function FieldLabel({ htmlFor, children, hint }: Readonly<{ htmlFor: string; children: ReactNode; hint?: string }>) {
   return (
-    <Tooltip content={label}>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={label}
-        onClick={onClick}
-        className={cn("size-8 text-muted-foreground", danger && "hover:text-destructive")}
-      >
+    <div className="mb-1.5">
+      <label className="block text-sm font-medium text-foreground" htmlFor={htmlFor}>
         {children}
-      </Button>
-    </Tooltip>
+      </label>
+      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+    </div>
   );
 }
 
 export function ConceptMapEditor() {
-  const { settings, updateSettings, saveConceptMapAndRefresh, result, activeAnalysis } = useAppState();
+  const { settings, updateSettings, saveConceptMapAndRefresh, result, activeAnalysis, pushToast, analyzing, registroFile, pdfFiles } =
+    useAppState();
   const activeResult = result ?? activeAnalysis?.result;
   const availableCodes = useMemo(() => availableCodesFromResult(activeResult), [activeResult]);
   const detectedConcepts = useMemo(() => detectedConceptsFromResult(activeResult), [activeResult]);
@@ -393,68 +370,43 @@ export function ConceptMapEditor() {
     [activeResult?.conceptMap, settings.conceptMap],
   );
   const unmapped = activeResult?.unmappedConcepts ?? [];
+  const canReanalyze = Boolean(registroFile && pdfFiles.length);
   const [rules, setRules] = useState<readonly ConceptMappingRule[]>(() => sourceRules);
   const [query, setQuery] = useState("");
   const [blockFilter, setBlockFilter] = useState<"Todos" | RetributionBlock>("Todos");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("Todos");
-  const [activationFilter, setActivationFilter] = useState<ActivationFilter>("Todos");
-  const [detectedFilter, setDetectedFilter] = useState<DetectedFilter>("Todos");
+  const [usageFilter, setUsageFilter] = useState<UsageFilter>("Todos");
   const [editingIndex, setEditingIndex] = useState<number | "new" | undefined>();
   const [form, setForm] = useState<RuleForm>(EMPTY_RULE_FORM);
-  const [message, setMessage] = useState<string | undefined>();
+  const [formError, setFormError] = useState<string | undefined>();
+  const [changed, setChanged] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState("");
-  const [expandedRow, setExpandedRow] = useState<string | undefined>();
+  const [jsonMessage, setJsonMessage] = useState<{ readonly ok: boolean; readonly text: string } | undefined>();
 
   useEffect(() => {
     setRules(sourceRules);
-    setJsonDraft(JSON.stringify(sourceRules, null, 2));
   }, [sourceRules]);
 
   const rows = useMemo(() => buildRows(rules, unmapped, detectedConcepts, availableCodes), [availableCodes, detectedConcepts, rules, unmapped]);
-  const counters = useMemo(() => {
-    const ruleRows = rows.filter((row): row is RuleRow => row.kind === "rule");
-    return {
-      totalRules: ruleRows.length,
-      activeRules: ruleRows.filter((row) => row.active).length,
-      inactiveRules: ruleRows.filter((row) => !row.active).length,
-      detectedRules: ruleRows.filter((row) => row.detected).length,
-      unmappedPending: rows.filter((row) => row.kind === "unmapped").length,
-    };
-  }, [rows]);
-  const filteredRows = useMemo(() => {
-    return rows.filter((row) => {
-      if (blockFilter !== "Todos" && row.block !== blockFilter) return false;
-      if (statusFilter === "Sin configurar" && row.statusLabel !== "Sin configurar") return false;
-      if (activationFilter === "Activos" && row.statusLabel !== "Activo") return false;
-      if (activationFilter === "Desactivados" && row.statusLabel !== "Desactivado") return false;
-      if (detectedFilter === "Detectados" && !row.detected) return false;
-      if (detectedFilter === "No detectados" && row.detected) return false;
-      return rowMatches(row, query);
-    });
-  }, [activationFilter, blockFilter, detectedFilter, query, rows, statusFilter]);
-  const codeWarning = form.registroCode.trim() && !codeExists(form.registroCode, availableCodes);
-
-  function resetFilters(): void {
-    setQuery("");
-    setBlockFilter("Todos");
-    setStatusFilter("Todos");
-    setActivationFilter("Todos");
-    setDetectedFilter("Todos");
-  }
+  const filteredRows = useMemo(
+    () => rows.filter((row) => (blockFilter === "Todos" || row.block === blockFilter) && matchesUsage(row, usageFilter) && rowMatches(row, query)),
+    [blockFilter, query, rows, usageFilter],
+  );
+  const unmappedCount = usageCount(rows, "Sin regla");
+  const codeWarning = Boolean(form.registroCode.trim()) && !codeExists(form.registroCode, availableCodes);
 
   function persistRules(next: readonly ConceptMappingRule[], toast?: string): void {
     const normalized = mergeConceptMap(next.map(coerceRule));
     setRules(normalized);
-    setJsonDraft(JSON.stringify(normalized, null, 2));
     updateSettings({ conceptMap: normalized });
-    if (toast) setMessage(toast);
+    setChanged(true);
+    if (toast) pushToast({ kind: "success", title: toast });
   }
 
   function openRule(rule?: ConceptMappingRule, index?: number): void {
     setEditingIndex(typeof index === "number" ? index : "new");
     setForm(rule ? ruleToForm(rule) : EMPTY_RULE_FORM);
-    setMessage(undefined);
+    setFormError(undefined);
   }
 
   function ruleFromUnmapped(row: UnmappedConceptRow, status: MappingStatus = row.action): ConceptMappingRule {
@@ -478,20 +430,9 @@ export function ConceptMapEditor() {
     });
   }
 
-  function openFromUnmapped(row: UnmappedConceptRow, status: MappingStatus = row.action): void {
-    openRule(ruleFromUnmapped(row, status));
-  }
-
-  function quickCreateFromUnmapped(row: UnmappedConceptRow, status: MappingStatus, toast: string): void {
-    persistRules([...rules, ruleFromUnmapped(row, status)], toast);
-  }
-
   function saveForm(): void {
     if (!form.pdfConcept.trim()) {
-      setMessage("Concepto Recibo obligatorio.");
-      return;
-    }
-    if (codeWarning && !window.confirm("El código Reg. Retrib. no existe en el Excel cargado. ¿Guardar igualmente?")) {
+      setFormError("Escribe el nombre del concepto tal como aparece en el recibo.");
       return;
     }
     const nextRule = formToRule(form);
@@ -500,8 +441,10 @@ export function ConceptMapEditor() {
     setEditingIndex(undefined);
   }
 
-  function deleteRule(index: number): void {
-    persistRules(rules.filter((_, itemIndex) => itemIndex !== index), "Regla eliminada.");
+  function deleteEditingRule(): void {
+    if (typeof editingIndex !== "number") return;
+    persistRules(rules.filter((_, itemIndex) => itemIndex !== editingIndex), "Regla eliminada.");
+    setEditingIndex(undefined);
   }
 
   function setRuleActive(index: number, active: boolean): void {
@@ -511,7 +454,6 @@ export function ConceptMapEditor() {
           ? normalizeConceptMappingRule({ ...rule, active, includedInComparison: active, includedInAdjustedComparison: true })
           : rule,
       ),
-      active ? "Regla activada." : "Regla desactivada.",
     );
   }
 
@@ -525,279 +467,252 @@ export function ConceptMapEditor() {
     URL.revokeObjectURL(url);
   }
 
-  function importMap(): void {
-    const pasted = window.prompt("Pega el JSON del mapa de conceptos");
-    if (!pasted) return;
-    setJsonDraft(pasted);
-    try {
-      persistRules(normalizeRules(JSON.parse(pasted)), "Mapa importado.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "No se pudo importar el mapa.");
-    }
+  function openJson(): void {
+    setJsonDraft(JSON.stringify(rules, null, 2));
+    setJsonMessage(undefined);
+    setJsonOpen(true);
   }
 
-  function validateJson(): void {
+  function parseJsonDraft(): ConceptMappingRule[] | undefined {
     try {
-      normalizeRules(JSON.parse(jsonDraft));
-      setMessage("JSON válido.");
+      return normalizeRules(JSON.parse(jsonDraft));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "JSON inválido.");
+      setJsonMessage({ ok: false, text: error instanceof Error ? error.message : "JSON no válido." });
+      return undefined;
     }
   }
 
   function applyJson(): void {
-    try {
-      persistRules(normalizeRules(JSON.parse(jsonDraft)), "JSON aplicado.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "JSON inválido.");
-    }
+    const parsed = parseJsonDraft();
+    if (!parsed) return;
+    persistRules(parsed, `Mapa aplicado: ${parsed.length} reglas.`);
+    setJsonOpen(false);
   }
 
   function resetDefault(): void {
     const defaults = normalizeRules(activeResult?.conceptMap ?? []);
     setRules(defaults);
-    setJsonDraft(JSON.stringify(defaults, null, 2));
     updateSettings({ conceptMap: [] });
-    resetFilters();
-    setJsonOpen(false);
-    setMessage("Mapa restaurado por defecto.");
+    setQuery("");
+    setBlockFilter("Todos");
+    setUsageFilter("Todos");
+    setChanged(true);
+    pushToast({ kind: "info", title: "Mapa restaurado por defecto." });
   }
 
-  const summaryCards = [
-    { label: "Conceptos totales", value: counters.totalRules, action: resetFilters, active: false },
-    {
-      label: "Activos",
-      value: counters.activeRules,
-      action: () => {
-        resetFilters();
-        setActivationFilter("Activos");
-      },
-      active: activationFilter === "Activos",
-    },
-    {
-      label: "Desactivados",
-      value: counters.inactiveRules,
-      action: () => {
-        resetFilters();
-        setActivationFilter("Desactivados");
-      },
-      active: activationFilter === "Desactivados",
-    },
-    {
-      label: "Detectados",
-      value: counters.detectedRules,
-      action: () => {
-        resetFilters();
-        setDetectedFilter("Detectados");
-      },
-      active: detectedFilter === "Detectados",
-    },
-    {
-      label: "Sin configurar",
-      value: counters.unmappedPending,
-      action: () => {
-        resetFilters();
-        setStatusFilter("Sin configurar");
-      },
-      active: statusFilter === "Sin configurar",
-    },
-  ];
-
   return (
-    <section data-surface="concept-map-layout" className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-      {/* Excepción: tabla con acciones por fila; Table de system pierde campos. */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-2xl">
-          <h2 className="text-sm font-semibold text-foreground">Conceptos del análisis</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">{MAP_NOTE}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => persistRules(rules, "Mapa de conceptos guardado.")}>
-            <Save className="size-3.5" aria-hidden="true" />
-            Guardar
-          </Button>
-          <Button type="button" variant="primary" size="sm" onClick={() => openRule()}>
-            <Plus className="size-3.5" aria-hidden="true" />
-            Crear regla
-          </Button>
-          <Menu>
-            <MenuTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" aria-label="Más opciones del mapa">
-                <MoreHorizontal className="size-4" aria-hidden="true" />
+    <div data-surface="concept-map-layout">
+      <SettingsSectionHeader
+        title="Conceptos del recibo"
+        description="Cada concepto de la nómina se asigna a un código del Registro Retributivo y a un bloque (salario, complemento salarial o extrasalarial). Los conceptos que no están en uso no cuentan en la comparación."
+        actions={
+          <>
+            <Button type="button" variant="primary" size="sm" onClick={() => openRule()}>
+              <Plus className="size-3.5" aria-hidden="true" />
+              Nueva regla
+            </Button>
+            <Menu>
+              <MenuTrigger asChild>
+                <Button type="button" variant="outline" size="icon" aria-label="Más opciones del mapa">
+                  <MoreHorizontal className="size-4" aria-hidden="true" />
+                </Button>
+              </MenuTrigger>
+              <MenuContent align="end" className="w-60">
+                <MenuItem onSelect={exportMap}>
+                  <Download />
+                  <span>Descargar mapa (JSON)</span>
+                </MenuItem>
+                <MenuItem onSelect={openJson}>
+                  <FileJson />
+                  <span>Importar o editar JSON</span>
+                </MenuItem>
+                <MenuSeparator />
+                <MenuItem className="text-destructive focus:text-destructive" onSelect={resetDefault}>
+                  <RotateCcw />
+                  <span>Restaurar por defecto</span>
+                </MenuItem>
+              </MenuContent>
+            </Menu>
+          </>
+        }
+      />
+
+      <div className="flex flex-col gap-3">
+        {unmappedCount && usageFilter !== "Sin regla" ? (
+          <Callout
+            status="info"
+            title={`${unmappedCount} ${unmappedCount === 1 ? "concepto de las nóminas no tiene" : "conceptos de las nóminas no tienen"} regla`}
+            action={
+              <Button type="button" variant="outline" size="sm" onClick={() => setUsageFilter("Sin regla")}>
+                Revisarlos
               </Button>
-            </MenuTrigger>
-            <MenuContent align="end" className="w-56">
-              <MenuItem onSelect={() => void saveConceptMapAndRefresh(rules)}>
-                <RefreshCcw />
-                <span>Guardar y actualizar datos</span>
-              </MenuItem>
-              <MenuItem onSelect={exportMap}>
-                <Download />
-                <span>Exportar mapa</span>
-              </MenuItem>
-              <MenuItem onSelect={importMap}>
-                <FileJson />
-                <span>Importar mapa</span>
-              </MenuItem>
-              <MenuSeparator />
-              <MenuItem className="text-destructive focus:text-destructive" onSelect={resetDefault}>
-                <RotateCcw />
-                <span>Restaurar por defecto</span>
-              </MenuItem>
-            </MenuContent>
-          </Menu>
-        </div>
-      </div>
-
-      <div data-surface="concept-map-metrics" role="group" aria-label="Filtros rápidos" className="mt-4 flex flex-wrap gap-2">
-        {summaryCards.map((item) => (
-          <button
-            key={item.label}
-            type="button"
-            aria-pressed={item.active}
-            aria-label={`${item.label} ${item.value}`}
-            onClick={item.action}
-            className={cn(
-              "inline-flex min-h-9 items-center gap-2 rounded-full border px-3.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-              item.active ? "border-primary/40 bg-selected text-foreground" : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
+            }
           >
-            {item.label}
-            <span className="font-semibold tabular-nums text-foreground">{item.value}</span>
-          </button>
-        ))}
+            Mientras no decidas qué hacer con ellos, las personas que los cobran aparecen como «Sin mapear».
+          </Callout>
+        ) : null}
+
+        {changed && activeResult ? (
+          <Callout
+            status="info"
+            title="El análisis abierto aún no refleja estos cambios"
+            action={
+              canReanalyze ? (
+                <StatefulButton
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  state={analyzing ? "loading" : "idle"}
+                  loadingText="Analizando…"
+                  icon={<RefreshCcw className="size-3.5" aria-hidden="true" />}
+                  onClick={() => void saveConceptMapAndRefresh(rules).then(() => setChanged(false))}
+                >
+                  Volver a analizar
+                </StatefulButton>
+              ) : undefined
+            }
+          >
+            {canReanalyze
+              ? "El mapa ya está guardado; vuelve a analizar para aplicarlo."
+              : "El mapa ya está guardado y se aplicará en el próximo análisis."}
+          </Callout>
+        ) : null}
       </div>
 
-      <section className="mt-5" aria-label="Reglas y conceptos">
-        <p className="sr-only">Regla del mapa = configuración guardada. Concepto sin regla = concepto detectado en este análisis que requiere decisión.</p>
-
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1.4fr)_repeat(3,minmax(0,200px))]">
-          <Input
-            id="concept-map-search"
-            type="search"
-            aria-label="Buscar"
-            value={query}
-            onChange={(value) => setQuery(value)}
-            placeholder="Concepto, código, bloque o motivo"
-            leftIcon={<Search className="size-4" aria-hidden="true" />}
-          />
-          <div>
-            <Select value={activationFilter} onValueChange={(value) => { if (value) setActivationFilter(value as ActivationFilter); }}>
-              <SelectTrigger className="w-full" aria-label="Uso">
-                <span className="text-muted-foreground">Uso:</span>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-
-                  {ACTIVATION_FILTERS.map((item) => (
-                    <SelectItem key={item} value={item}>{item}</SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+      <Surface flush className="mt-4 overflow-hidden rounded-2xl">
+        <div className="flex flex-col gap-3 border-b border-border p-3 sm:p-4">
+          <div role="group" aria-label="Filtrar conceptos" className="flex flex-wrap gap-1.5">
+            {USAGE_FILTERS.map((item) => {
+              const active = usageFilter === item.value;
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setUsageFilter(item.value)}
+                  className={cn(
+                    "inline-flex h-8 items-center gap-2 rounded-full border px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                    active ? "border-primary/40 bg-selected text-foreground" : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  {item.dotClass ? <span aria-hidden="true" className={cn("size-2 rounded-full", item.dotClass)} /> : null}
+                  {item.value}
+                  <span className="tabular-nums text-foreground">{usageCount(rows, item.value)}</span>
+                </button>
+              );
+            })}
           </div>
-          <div>
-            <Select value={detectedFilter} onValueChange={(value) => { if (value) setDetectedFilter(value as DetectedFilter); }}>
-              <SelectTrigger className="w-full" aria-label="Detectado">
-                <span className="text-muted-foreground">Detectado:</span>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              id="concept-map-search"
+              type="search"
+              aria-label="Buscar concepto"
+              value={query}
+              onChange={setQuery}
+              placeholder="Buscar por concepto o código"
+              leftIcon={<Search className="size-4" aria-hidden="true" />}
+              className="min-w-0 flex-1"
+            />
+            <Select
+              value={blockFilter}
+              onValueChange={(value) => {
+                if (value === "Todos" || isBlock(value)) setBlockFilter(value);
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-52" aria-label="Bloque">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-
-                  {DETECTED_FILTERS.map((item) => (
-                    <SelectItem key={item} value={item}>{item}</SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Select value={blockFilter} onValueChange={(value) => { if (value) setBlockFilter(value as typeof blockFilter); }}>
-              <SelectTrigger className="w-full" aria-label="Bloque">
-                <span className="text-muted-foreground">Bloque:</span>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  {BLOCKS.map((item) => (
-                    <SelectItem key={item} value={item}>{item}</SelectItem>
-                  ))}
+                <SelectItem value="Todos">Todos los bloques</SelectItem>
+                {BLOCKS.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <div data-testid="concept-map-unified-scroll" className="mt-3 max-h-[560px] overflow-x-auto overflow-y-auto rounded-xl border border-border">
-          {/* Excepción: acciones anidadas por fila; Table de system no encaja. */}
-          <table className="min-w-[860px] w-full border-collapse text-left text-sm">
-            <thead className="sticky top-0 z-10 bg-muted text-xs font-medium text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3">Concepto Recibo</th>
-                <th className="px-4 py-3">Código Reg. Retrib.</th>
-                <th className="px-4 py-3">Bloque</th>
-                <th className="px-4 py-3">Detectado</th>
-                <th className="px-4 py-3">Uso</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+        <div data-testid="concept-map-unified-scroll" className="max-h-[560px] overflow-auto">
+          {/* Excepción: cada fila tiene un interruptor y acciones propias; el Table de system activa la fila entera. */}
+          <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+            <thead className="sticky top-0 z-10 bg-card text-xs font-medium whitespace-nowrap text-muted-foreground">
+              <tr className="border-b border-border">
+                <th scope="col" className="px-4 py-2.5">Concepto del recibo</th>
+                <th scope="col" className="px-4 py-2.5">Código en el Registro</th>
+                <th scope="col" className="px-4 py-2.5">Bloque</th>
+                <th scope="col" className="px-4 py-2.5">En uso</th>
+                <th scope="col" className="px-4 py-2.5">
+                  <span className="sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredRows.map((row) => {
-                const expanded = expandedRow === row.id;
                 const codeValid = row.code ? codeExists(row.code, availableCodes) : true;
                 return (
-                  <tr
-                    key={row.id}
-                    className="cursor-pointer border-t border-border/70 align-top transition hover:bg-muted/50"
-                    onClick={() => setExpandedRow((current) => (current === row.id ? undefined : row.id))}
-                  >
-                    <td className="max-w-[300px] px-4 py-3">
-                      <p className="font-semibold text-foreground">{row.concept}</p>
-                      {expanded ? (
-                        <div className="mt-2 border-l-2 border-border bg-muted/30 px-3 py-2 text-xs leading-5 text-muted-foreground">
-                          <p>Motivo: {row.reason ?? "Sin motivo"}</p>
-                        </div>
-                      ) : row.reason ? (
-                        <p className="mt-1 text-xs text-muted-foreground" title={row.reason}>{shortText(row.reason, "Sin motivo")}</p>
+                  <tr key={row.id} className="border-t border-border/60 align-middle first:border-t-0">
+                    <td className="px-4 py-2.5">
+                      <p className="font-medium text-foreground">{row.concept}</p>
+                      {row.kind === "unmapped" ? (
+                        <p className="text-xs text-muted-foreground">Aparece en las nóminas</p>
+                      ) : activeResult && !row.detected ? (
+                        <p className="text-xs text-muted-foreground">No aparece en estas nóminas</p>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-foreground">
-                      {row.code ?? "Sin código"}
-                      {!codeValid ? <p className="mt-1 text-[11px] font-semibold text-destructive">Código no existe en Reg. Retrib. cargado</p> : null}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">{row.block}</td>
-                    <td className="px-4 py-3 font-semibold text-muted-foreground">{row.detected ? "Sí" : "No"}</td>
-                    <td className="px-4 py-3">
-                      {row.kind === "rule" ? (
-                        <div className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
-                          <Switch
-                            checked={Boolean(row.active)}
-                            onCheckedChange={(active) => setRuleActive(row.index, active)}
-                            ariaLabel={`${row.active ? "Desactivar" : "Activar"} regla ${row.concept}`}
-                          />
-                          <span className="text-xs text-muted-foreground">{row.statusLabel}</span>
-                        </div>
+                    <td className="px-4 py-2.5">
+                      {row.code ? (
+                        <span className="font-mono text-xs text-foreground">{row.code}</span>
                       ) : (
-                        <Badge status={usageBadgeStatus(row.statusLabel)} size="sm">{row.statusLabel}</Badge>
+                        <span className="text-xs text-muted-foreground">Sin código</span>
+                      )}
+                      {!codeValid ? <p className="text-xs text-destructive">No existe en el Registro cargado</p> : null}
+                    </td>
+                    <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{row.block}</td>
+                    <td className="px-4 py-2.5">
+                      {row.kind === "rule" ? (
+                        <Switch
+                          checked={Boolean(row.active)}
+                          onCheckedChange={(active) => setRuleActive(row.index, active)}
+                          ariaLabel={`${row.active ? "Desactivar" : "Activar"} regla ${row.concept}`}
+                        />
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap text-muted-foreground">
+                          <span aria-hidden="true" className="size-2 rounded-full bg-amber-500" />
+                          Sin regla
+                        </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-0.5" onClick={(event) => event.stopPropagation()}>
+                    <td className="px-4 py-2.5">
+                      <div className="flex justify-end gap-1 whitespace-nowrap">
                         {row.kind === "rule" ? (
-                          <>
-                            <RowAction label={`Editar regla ${row.concept}`} onClick={() => openRule(row.rule, row.index)}>
+                          <Tooltip content="Editar">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Editar regla ${row.concept}`}
+                              onClick={() => openRule(row.rule, row.index)}
+                              className="size-8 text-muted-foreground"
+                            >
                               <Pencil className="size-4" aria-hidden="true" />
-                            </RowAction>
-                            <RowAction label={`Eliminar regla ${row.concept}`} danger onClick={() => deleteRule(row.index)}>
-                              <Trash2 className="size-4" aria-hidden="true" />
-                            </RowAction>
-                          </>
+                            </Button>
+                          </Tooltip>
                         ) : (
                           <>
-                            <RowAction label={`Crear regla ${row.concept}`} onClick={() => openFromUnmapped(row.row)}>
-                              <Plus className="size-4" aria-hidden="true" />
-                            </RowAction>
-                            <RowAction label={`Descartar concepto ${row.concept}`} danger onClick={() => quickCreateFromUnmapped(row.row, "Ignorado", "Concepto ignorado.")}>
-                              <Trash2 className="size-4" aria-hidden="true" />
-                            </RowAction>
+                            <Button type="button" variant="outline" size="sm" onClick={() => openRule(ruleFromUnmapped(row.row))}>
+                              Crear regla
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              aria-label={`Ignorar concepto ${row.concept}`}
+                              onClick={() => persistRules([...rules, ruleFromUnmapped(row.row, "Ignorado")], "Concepto ignorado.")}
+                            >
+                              Ignorar
+                            </Button>
                           </>
                         )}
                       </div>
@@ -807,115 +722,155 @@ export function ConceptMapEditor() {
               })}
             </tbody>
           </table>
-          {!filteredRows.length ? <p className="p-6 text-sm font-semibold text-muted-foreground">No hay reglas o conceptos con estos filtros.</p> : null}
+          {!filteredRows.length ? (
+            <EmptyState title="Ningún concepto con estos filtros" description="Prueba con otro filtro o búsqueda." className="py-10" />
+          ) : null}
         </div>
-      </section>
+      </Surface>
+      <p className="mt-3 text-xs text-muted-foreground">Los cambios se guardan al momento.</p>
 
-      <p className="mt-3 min-h-5 text-sm text-muted-foreground" aria-live="polite">{message}</p>
-
-      <section className="mt-4 border-t border-border pt-4" aria-label="Modo avanzado JSON">
-        <button
-          type="button"
-          className="flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-expanded={jsonOpen}
-          onClick={() => setJsonOpen((current) => !current)}
-        >
-          <span>
-            <span className="block text-sm font-medium text-foreground">Modo avanzado JSON</span>
-            <span className="block text-xs text-muted-foreground">Importar, copiar o depurar reglas manualmente.</span>
-          </span>
-          <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", jsonOpen && "rotate-180")} aria-hidden="true" />
-        </button>
-        {jsonOpen ? (
-          <div className="mt-4 border-t border-border pt-4">
-            <Textarea
-              aria-label="Editor JSON del mapa"
-              value={jsonDraft}
-              onChange={(event) => setJsonDraft(event.target.value)}
-              className="min-h-[320px] font-mono text-xs leading-5 shadow-inner"
-              spellCheck={false}
-            />
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={validateJson}>Validar JSON</Button>
-              <Button type="button" variant="primary" size="sm" onClick={applyJson}>Aplicar JSON</Button>
-              <Button type="button" variant="ghost" size="sm" onClick={() => void navigator.clipboard?.writeText(jsonDraft)}>
-                <Copy className="h-4 w-4" aria-hidden="true" />
-                Copiar JSON
-              </Button>
-            </div>
-          </div>
-        ) : null}
-      </section>
-
-      {editingIndex !== undefined ? (
-        <Drawer
-          open
-          onOpenChange={(open) => {
-            if (!open) setEditingIndex(undefined);
+      <Drawer
+        open={jsonOpen}
+        onOpenChange={setJsonOpen}
+        size="lg"
+        title="Importar o editar JSON"
+        description="Pega un mapa exportado para importarlo o edita las reglas a mano. Al aplicar se sustituye el mapa actual."
+        footer={
+          <>
+            <Button type="button" variant="ghost" size="sm" onClick={() => void navigator.clipboard?.writeText(jsonDraft)}>
+              <Copy className="size-3.5" aria-hidden="true" />
+              Copiar
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const parsed = parseJsonDraft();
+                if (parsed) setJsonMessage({ ok: true, text: `JSON válido: ${parsed.length} reglas.` });
+              }}
+            >
+              Comprobar
+            </Button>
+            <Button type="button" variant="primary" size="sm" onClick={applyJson}>
+              Aplicar
+            </Button>
+          </>
+        }
+      >
+        <Textarea
+          aria-label="Mapa de conceptos en JSON"
+          value={jsonDraft}
+          onChange={(event) => {
+            setJsonDraft(event.target.value);
+            setJsonMessage(undefined);
           }}
-          title={editingIndex === "new" ? "Crear regla" : "Editar regla"}
-          description="Define cómo se clasifica un concepto detectado en Recibo."
-          footer={(
-            <>
-              <Button type="button" variant="outline" size="sm" onClick={() => setEditingIndex(undefined)}>Cancelar</Button>
-              <Button type="button" variant="primary" size="sm" onClick={saveForm}>Guardar regla</Button>
-            </>
-          )}
-        >
-              {message && editingIndex !== undefined ? <p className="mb-4 text-sm font-medium text-destructive" role="alert">{message}</p> : null}
-              <div className="grid gap-4">
-                <div>
-                  <label className="text-sm font-medium text-foreground" htmlFor="concept-map-pdf-concept">Concepto Recibo</label>
-                  <Input id="concept-map-pdf-concept" value={form.pdfConcept} onChange={(value) => setForm({ ...form, pdfConcept: value })} className="mt-2" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground" htmlFor="concept-map-registro-code">Código Reg. Retrib.</label>
-                  <Input id="concept-map-registro-code" list="concept-map-codes" value={form.registroCode} onChange={(value) => setForm({ ...form, registroCode: value })} className="mt-2 font-mono" />
-                  <datalist id="concept-map-codes">
-                    {availableCodes.map((code) => <option key={code} value={code} />)}
-                  </datalist>
-                  {codeWarning ? <span className="mt-2 block text-sm font-semibold text-destructive">Este código no existe en el Reg. Retrib. cargado.</span> : null}
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground" htmlFor="concept-map-block">Bloque</label>
-                  <Select value={form.block} onValueChange={(value) => setForm({ ...form, block: value as RetributionBlock })}>
-                    <SelectTrigger className="mt-2 w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BLOCKS.map((item) => (
-                        <SelectItem key={item} value={item}>{item}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Activo</p>
-                    <p className="mt-1 text-sm leading-5 text-muted-foreground">Los conceptos desactivados se ignoran al actualizar datos.</p>
-                  </div>
-                  <Switch
-                    checked={form.active}
-                    onCheckedChange={(active) =>
-                      setForm({
-                        ...form,
-                        active,
-                        includedInComparison: active,
-                        includedInAdjustedComparison: true,
-                        status: active ? "Incluido" : "Ignorado",
-                      })
-                    }
-                    ariaLabel="Activo"
-                  />
-                </div>
-              </div>
+          className="min-h-[420px] font-mono text-xs leading-5"
+          spellCheck={false}
+        />
+        {jsonMessage ? (
+          <p role={jsonMessage.ok ? "status" : "alert"} className={cn("mt-3 text-sm", jsonMessage.ok ? "text-muted-foreground" : "text-destructive")}>
+            {jsonMessage.text}
+          </p>
+        ) : null}
+      </Drawer>
 
-              <div className="mt-5">
-                <label className="text-sm font-medium text-foreground" htmlFor="concept-map-reason">Motivo</label>
-                <Textarea id="concept-map-reason" value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} className="mt-2 min-h-28" />
-              </div>
-        </Drawer>
-      ) : null}
-    </section>
+      <Drawer
+        open={editingIndex !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setEditingIndex(undefined);
+        }}
+        title={editingIndex === "new" ? "Nueva regla" : "Editar regla"}
+        description="Indica a qué código del Registro Retributivo y a qué bloque corresponde un concepto del recibo."
+        footer={
+          <>
+            {typeof editingIndex === "number" ? (
+              <Button type="button" variant="ghost" size="sm" className="mr-auto text-destructive hover:text-destructive" onClick={deleteEditingRule}>
+                <Trash2 className="size-3.5" aria-hidden="true" />
+                Eliminar
+              </Button>
+            ) : null}
+            <Button type="button" variant="outline" size="sm" onClick={() => setEditingIndex(undefined)}>
+              Cancelar
+            </Button>
+            <Button type="button" variant="primary" size="sm" onClick={saveForm}>
+              Guardar regla
+            </Button>
+          </>
+        }
+      >
+        {formError ? (
+          <p className="mb-4 text-sm font-medium text-destructive" role="alert">
+            {formError}
+          </p>
+        ) : null}
+        <div className="grid gap-5">
+          <div>
+            <FieldLabel htmlFor="concept-map-pdf-concept">Concepto en el recibo</FieldLabel>
+            <Input id="concept-map-pdf-concept" value={form.pdfConcept} onChange={(value) => setForm({ ...form, pdfConcept: value })} />
+          </div>
+          <div>
+            <FieldLabel htmlFor="concept-map-registro-code" hint="Columna del Excel del Registro con la que se compara.">
+              Código en el Registro Retributivo
+            </FieldLabel>
+            <Input
+              id="concept-map-registro-code"
+              list="concept-map-codes"
+              value={form.registroCode}
+              onChange={(value) => setForm({ ...form, registroCode: value })}
+              className="font-mono"
+            />
+            <datalist id="concept-map-codes">
+              {availableCodes.map((code) => (
+                <option key={code} value={code} />
+              ))}
+            </datalist>
+            {codeWarning ? <p className="mt-1.5 text-sm text-destructive">Este código no existe en el Registro cargado. Puedes guardarlo igualmente.</p> : null}
+          </div>
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-foreground">Bloque</p>
+            <Select
+              value={form.block}
+              onValueChange={(value) => {
+                if (isBlock(value)) setForm({ ...form, block: value });
+              }}
+            >
+              <SelectTrigger aria-label="Bloque de la regla" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {BLOCKS.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-start justify-between gap-4 rounded-xl border border-border px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">En uso</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">Si lo desactivas, el concepto no cuenta en la comparación.</p>
+            </div>
+            <Switch
+              checked={form.active}
+              onCheckedChange={(active) =>
+                setForm({ ...form, active, includedInComparison: active, includedInAdjustedComparison: true, status: active ? "Incluido" : "Ignorado" })
+              }
+              ariaLabel="En uso"
+            />
+          </div>
+          <div>
+            <FieldLabel htmlFor="concept-map-reason">Nota (opcional)</FieldLabel>
+            <Textarea
+              id="concept-map-reason"
+              value={form.reason}
+              onChange={(event) => setForm({ ...form, reason: event.target.value })}
+              className="min-h-24"
+            />
+          </div>
+        </div>
+      </Drawer>
+    </div>
   );
 }

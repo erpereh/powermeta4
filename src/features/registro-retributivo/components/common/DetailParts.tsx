@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
-import { diffClass } from "@/features/registro-retributivo/ui/statusStyles";
+import { diffClass, toleranceDiffClass } from "@/features/registro-retributivo/ui/statusStyles";
 import { cn } from "@/lib/utils";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
 
@@ -26,13 +26,17 @@ export type MoneyRow = {
   readonly diff: number;
 };
 
-/** Tabla compacta de importes: bloque · fuente A · fuente B · diferencia. */
+/**
+ * Tabla compacta de importes: bloque · fuente A · fuente B · diferencia.
+ * Con `tolerance`, solo se resaltan las diferencias que la superan.
+ */
 export function MoneyTable({
   caption,
   leftLabel,
   rightLabel,
   rows,
-}: Readonly<{ caption: string; leftLabel: string; rightLabel: string; rows: readonly MoneyRow[] }>) {
+  tolerance,
+}: Readonly<{ caption: string; leftLabel: string; rightLabel: string; rows: readonly MoneyRow[]; tolerance?: number }>) {
   return (
     <div data-surface="economic-breakdown" className="min-w-0 overflow-x-auto rounded-xl border border-border">
       <table className="w-full min-w-[26rem] text-sm">
@@ -53,7 +57,7 @@ export function MoneyTable({
                 <th scope="row" className="px-3 py-2 text-left font-medium text-foreground">{row.label}</th>
                 <td className="px-3 py-2 text-right font-mono tabular-nums">{formatEuro(row.left)}</td>
                 <td className="px-3 py-2 text-right font-mono tabular-nums">{formatEuro(row.right)}</td>
-                <td className={cn("px-3 py-2 text-right font-mono tabular-nums", diffClass(row.diff))}>{formatEuro(row.diff)}</td>
+                <td className={cn("px-3 py-2 text-right font-mono tabular-nums", tolerance === undefined ? diffClass(row.diff) : toleranceDiffClass(row.diff, tolerance))}>{formatEuro(row.diff)}</td>
               </tr>
             );
           })}
