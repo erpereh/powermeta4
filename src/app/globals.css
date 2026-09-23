@@ -67,6 +67,7 @@
   --color-disabled-foreground: var(--disabled-foreground);
   --color-code: var(--code);
   --color-code-foreground: var(--code-foreground);
+  --color-hire-pending: var(--hire-pending);
   --shadow-color: var(--shadow);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -115,6 +116,7 @@
   --sidebar-accent: oklch(0.94 0 0);
   --sidebar-accent-foreground: oklch(0.15 0 0);
   --sidebar-border: oklch(0.15 0 0 / 0.08);
+  --hire-pending: oklch(0.49 0.12 72);
 
   /* Escalas por modo que consumen los tokens derivados del acento. */
   --selected-l: 0.94;
@@ -156,6 +158,7 @@
   --sidebar-accent: oklch(0.26 0 0);
   --sidebar-accent-foreground: oklch(0.96 0 0);
   --sidebar-border: oklch(1 0 0 / 0.08);
+  --hire-pending: oklch(0.79 0.13 77);
 
   --selected-l: 0.32;
   --selected-fg-l: 0.95;

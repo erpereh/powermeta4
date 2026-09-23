@@ -78,6 +78,39 @@
   `npm run build` y `git diff --check` correctos; `npm run lint` falla solo
   por `oxfmt --check` (preexistente en 487 de 505 archivos).
 - Revisión visual con Chrome headless a 1440 px (claro/oscuro) y 390 px.
+## 2026-09-23 - UI completa del alta de personas Meta4
+
+### Cambios
+
+- `/tools/users/new` muestra los 112 rótulos/grupos de PeopleNet en cinco
+  secciones beUI y subsecciones. Los catálogos nuevos usan `Combobox`
+  deshabilitados y `Catálogo pendiente`, sin opciones inventadas.
+- Draft único por persona con selectores explícitos de Puesto/Posición,
+  número de S.S., jornada, minusvalía e IBAN/Otro formato. Los valores se
+  conservan al cambiar de rama, pestaña o persona; una vista separada expone
+  solo los valores de la rama activa para una integración futura.
+- Metadata visual centralizada: 37 rótulos obligatorios PeopleNet, etiquetas
+  ámbar de campos pendientes y distinción «Requerido para enviar» para correo
+  y fecha de alta. El asterisco no atribuye a PeopleNet estos dos requisitos;
+  los rótulos no marcados tampoco se presentan como «opcionales».
+- Se reproducen los controles pendientes de las capturas: Sucursal bancaria
+  como Input; Modelo/Semana como dos segmentos, descripción y búsqueda
+  deshabilitada; Exclusión social como lookup vacío; ID Atradius como Input.
+- La Server Action recibe una proyección explícita de solo los siete campos
+  actuales. `HirePersonInput`, Excel, SQLite, SOAP y sus mappings no cambian.
+
+### Verificación
+
+- `npm run typecheck` y `npm run build` correctos.
+- `npm test`: 95 archivos correctos, 495 pruebas correctas y 2 omitidas;
+  incluye inventario completo, estados de ramas, varias personas y payload
+  exacto de siete campos.
+- Previsualización local en navegador: foco visible, Tab y Enter, pantallas
+  claras y oscuras, 390 px sin desbordamiento horizontal. Página de prueba
+  temporal retirada.
+- `npm run lint`: `oxlint` sin errores y con 7 warnings preexistentes;
+  `oxfmt --check` falla por formato preexistente del repositorio.
+- `npx oxfmt --check` correcto en TypeScript modificado.
 
 ## 2026-09-23 - Rediseño beUI: fase 2 (Registro Retributivo)
 

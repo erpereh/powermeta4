@@ -1,34 +1,27 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { launchMeta4HireAction } from "@/app/actions/meta4-hire";
-import { Button, Input, Modal } from "@/components/system";
+import { Button, Modal, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/system";
 import type { HirePersonInput } from "@/lib/meta4/hire/types";
 import { parseHirePeople, parseHirePerson } from "@/lib/meta4/hire/validate";
 
-const emptyPerson = (): HirePersonInput => ({
-  firstName: "",
-  lastName1: "",
-  lastName2: "",
-  documentType: "",
-  documentNumber: "",
-  email: "",
-  hireDate: "",
-});
-
-type FieldKey = keyof HirePersonInput;
-
-const FIELDS: ReadonlyArray<{ key: FieldKey; label: string; type: string; required: boolean }> = [
-  { key: "firstName", label: "Nombre", type: "text", required: true },
-  { key: "lastName1", label: "Primer apellido", type: "text", required: true },
-  { key: "lastName2", label: "Segundo apellido", type: "text", required: false },
-  { key: "documentType", label: "Tipo de documento", type: "text", required: true },
-  { key: "documentNumber", label: "Número de documento", type: "text", required: true },
-  { key: "email", label: "Correo", type: "email", required: true },
-  { key: "hireDate", label: "Fecha de alta", type: "date", required: true },
-];
+import {
+  createHirePersonDraft,
+  HireDraftProvider,
+  toHirePersonInput,
+  type HireBranches,
+  type HirePersonDraft,
+  type PendingValueKey,
+} from "./hire-form/draft";
+import type { CurrentFieldId, PendingFieldId } from "./hire-form/field-metadata";
+import { OrganizationSection } from "./hire-form/organization-section";
+import { PaymentSection } from "./hire-form/payment-section";
+import { PayrollSection } from "./hire-form/payroll-section";
+import { PersonalSection } from "./hire-form/personal-section";
+import { SocialSecuritySection } from "./hire-form/social-security-section";
 
 const errorMessage = (caught: unknown): string =>
   caught instanceof Error ? caught.message : "Revisa los datos indicados.";
@@ -39,34 +32,64 @@ const personFullName = (person: HirePersonInput): string =>
     .filter(Boolean)
     .join(" ");
 
+const TABS = [
+  { id: "personal", label: "Datos personales" },
+  { id: "organization", label: "Organización" },
+  { id: "social-security", label: "Seguridad Social" },
+  { id: "payroll", label: "Nómina" },
+  { id: "payment", label: "Datos de pago" },
+] as const;
+
 export function UsersHireForm() {
-  const [people, setPeople] = useState<HirePersonInput[]>([emptyPerson()]);
-  const [expandedIndex, setExpandedIndex] = useState(0);
+  const [people, setPeople] = useState<HirePersonDraft[]>([createHirePersonDraft(1)]);
+  const [expandedId, setExpandedId] = useState(1);
+  const [activeTab, setActiveTab] = useState<string>("personal");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const personCount = people.length;
+  const nextId = useRef(2);
 
   const confirmation = useMemo(
-    () => `Se van a procesar ${personCount} personas en Meta4`,
-    [personCount],
+    () => `Se van a procesar ${people.length} personas en Meta4`,
+    [people.length],
   );
 
-  const updatePerson = (index: number, key: FieldKey, value: string) => {
-    setPeople((current) =>
-      current.map((person, personIndex) =>
-        personIndex === index ? { ...person, [key]: value } : person,
-      ),
-    );
+  const updateDraft = (id: number, update: (draft: HirePersonDraft) => HirePersonDraft) => {
+    setPeople((current) => current.map((draft) => (draft.id === id ? update(draft) : draft)));
+  };
+
+  const updateCurrent = (id: number, field: CurrentFieldId, value: string) => {
+    updateDraft(id, (draft) => ({ ...draft, current: { ...draft.current, [field]: value } }));
+  };
+
+  const updatePending = (id: number, field: PendingValueKey, value: string) => {
+    updateDraft(id, (draft) => ({
+      ...draft,
+      pendingValues: { ...draft.pendingValues, [field]: value },
+    }));
+  };
+
+  const updateCheck = (id: number, field: PendingFieldId, checked: boolean) => {
+    updateDraft(id, (draft) => ({
+      ...draft,
+      pendingChecks: { ...draft.pendingChecks, [field]: checked },
+    }));
+  };
+
+  const updateBranch = <K extends keyof HireBranches>(
+    id: number,
+    field: K,
+    value: HireBranches[K],
+  ) => {
+    updateDraft(id, (draft) => ({ ...draft, branches: { ...draft.branches, [field]: value } }));
   };
 
   const validateExpanded = (): boolean => {
-    const current = people[expandedIndex];
+    const current = people.find((person) => person.id === expandedId);
     if (!current) return false;
     try {
-      parseHirePerson(current);
+      parseHirePerson(toHirePersonInput(current));
       setError(null);
       return true;
     } catch (caught) {
@@ -78,32 +101,37 @@ export function UsersHireForm() {
   const addPerson = () => {
     setSuccess(null);
     if (!validateExpanded()) return;
-    setPeople((existing) => [...existing, emptyPerson()]);
-    setExpandedIndex(people.length);
+    const id = nextId.current++;
+    setPeople((existing) => [...existing, createHirePersonDraft(id)]);
+    setExpandedId(id);
+    setActiveTab("personal");
   };
 
-  const editPerson = (index: number) => {
-    if (index === expandedIndex) return;
+  const editPerson = (id: number) => {
+    if (id === expandedId) return;
     if (!validateExpanded()) return;
-    setExpandedIndex(index);
+    setExpandedId(id);
+    setActiveTab("personal");
   };
 
-  const removePerson = (index: number) => {
+  const removePerson = (id: number) => {
     if (people.length === 1) return;
-    setPeople((current) => current.filter((_, personIndex) => personIndex !== index));
-    setExpandedIndex((currentExpanded) => {
-      if (index < currentExpanded) return currentExpanded - 1;
-      const remaining = people.length - 1;
-      if (index === currentExpanded) return Math.min(index, remaining - 1);
-      return currentExpanded;
-    });
+    const removedIndex = people.findIndex((person) => person.id === id);
+    const remaining = people.filter((person) => person.id !== id);
+    setPeople(remaining);
+    if (id === expandedId) {
+      setExpandedId(remaining[Math.min(removedIndex, remaining.length - 1)].id);
+      setActiveTab("personal");
+    }
   };
+
+  const currentPayload = (): HirePersonInput[] => people.map(toHirePersonInput);
 
   const requestConfirm = () => {
     setError(null);
     setSuccess(null);
     try {
-      parseHirePeople(people);
+      parseHirePeople(currentPayload());
       setConfirmOpen(true);
     } catch (caught) {
       setError(errorMessage(caught));
@@ -114,15 +142,18 @@ export function UsersHireForm() {
     setPending(true);
     setError(null);
     try {
-      const result = await launchMeta4HireAction(people);
+      const result = await launchMeta4HireAction(currentPayload());
       if (!result.ok) {
         setError(result.message);
         return;
       }
       setSuccess(`Alta enviada correctamente · ${result.data.fileName}`);
-      setPeople([emptyPerson()]);
-      setExpandedIndex(0);
+      setPeople([createHirePersonDraft(nextId.current++)]);
+      setExpandedId(nextId.current - 1);
+      setActiveTab("personal");
       setConfirmOpen(false);
+    } catch (caught) {
+      setError(errorMessage(caught));
     } finally {
       setPending(false);
     }
@@ -131,51 +162,71 @@ export function UsersHireForm() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-8">
       <p className="text-sm text-muted-foreground">
-        Añade una o varias personas. Solo se sustituyen los datos personales mínimos; el resto lo
-        conserva la plantilla Hire.
+        Los campos en ámbar son un borrador local pendiente de integración. Solo los siete campos
+        actuales se envían; el resto lo conserva la plantilla Hire.
       </p>
 
       <div className="flex flex-col gap-3">
-        {people.map((person, index) => {
-          const isExpanded = index === expandedIndex;
-          const name = personFullName(person);
-          const summary = [person.documentNumber.trim(), person.email.trim()]
+        {people.map((draft, index) => {
+          const isExpanded = draft.id === expandedId;
+          const name = personFullName(draft.current);
+          const summary = [draft.current.documentNumber.trim(), draft.current.email.trim()]
             .filter(Boolean)
             .join(" · ");
 
           if (isExpanded) {
             return (
               <fieldset
-                key={index}
-                className="grid gap-4 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm"
+                key={draft.id}
+                className="min-w-0 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm"
               >
                 <legend className="px-1 text-sm font-medium text-foreground">
                   Persona {index + 1}
                 </legend>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {FIELDS.map((field) => {
-                    const id = `person-${index}-${field.key}`;
-                    return (
-                      <Input
-                        key={field.key}
-                        id={id}
-                        name={id}
-                        label={field.required ? field.label : `${field.label} (opcional)`}
-                        type={field.type}
-                        required={field.required}
-                        value={person[field.key]}
-                        onChange={(value) => updatePerson(index, field.key, value)}
-                        autoComplete="off"
-                      />
-                    );
-                  })}
-                </div>
-                <div>
+                <HireDraftProvider
+                  key={draft.id}
+                  draft={draft}
+                  onCurrentChange={(field, value) => updateCurrent(draft.id, field, value)}
+                  onPendingChange={(field, value) => updatePending(draft.id, field, value)}
+                  onCheckChange={(field, checked) => updateCheck(draft.id, field, checked)}
+                  onBranchChange={(field, value) => updateBranch(draft.id, field, value)}
+                >
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    variant="underline"
+                    className="min-w-0"
+                  >
+                    <TabsList wrapperClassName="w-full max-w-full" className="min-w-max">
+                      {TABS.map((tab) => (
+                        <TabsTrigger key={tab.id} value={tab.id}>
+                          {tab.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    <TabsContent value="personal">
+                      {activeTab === "personal" ? <PersonalSection /> : null}
+                    </TabsContent>
+                    <TabsContent value="organization">
+                      {activeTab === "organization" ? <OrganizationSection /> : null}
+                    </TabsContent>
+                    <TabsContent value="social-security">
+                      {activeTab === "social-security" ? <SocialSecuritySection /> : null}
+                    </TabsContent>
+                    <TabsContent value="payroll">
+                      {activeTab === "payroll" ? <PayrollSection /> : null}
+                    </TabsContent>
+                    <TabsContent value="payment">
+                      {activeTab === "payment" ? <PaymentSection /> : null}
+                    </TabsContent>
+                  </Tabs>
+                </HireDraftProvider>
+                <div className="mt-5">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => removePerson(index)}
+                    onClick={() => removePerson(draft.id)}
                     disabled={people.length === 1}
                     aria-label={`Eliminar persona ${index + 1}`}
                     className="text-destructive bg-destructive/10 hover:bg-destructive/15"
@@ -190,7 +241,7 @@ export function UsersHireForm() {
 
           return (
             <div
-              key={index}
+              key={draft.id}
               className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground shadow-sm sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
@@ -203,7 +254,7 @@ export function UsersHireForm() {
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() => editPerson(index)}
+                  onClick={() => editPerson(draft.id)}
                   aria-label={`Editar persona ${index + 1}`}
                 >
                   <Pencil className="size-4" aria-hidden="true" />
@@ -212,8 +263,7 @@ export function UsersHireForm() {
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() => removePerson(index)}
-                  disabled={people.length === 1}
+                  onClick={() => removePerson(draft.id)}
                   aria-label={`Eliminar persona ${index + 1}`}
                   className="text-destructive bg-destructive/10 hover:bg-destructive/15"
                 >
