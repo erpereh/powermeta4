@@ -1,5 +1,26 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4: UI completa - 2026-09-23
+
+- [x] Cinco secciones beUI (`Tabs` y `Accordion`) con los 112 rótulos/grupos
+      del inventario PeopleNet y la fecha de alta actual. Catálogos nuevos
+      deshabilitados, sin opciones; excepciones compuestas según las capturas.
+- [x] Un draft por persona conserva campos, checks y selectores de las cinco
+      ramas. Metadata central de obligatoriedad PeopleNet, requisito actual y
+      estado pendiente; los campos pendientes usan un token ámbar claro/oscuro.
+- [x] Envío mediante proyección explícita de los siete campos actuales. Ni los
+      nuevos valores ni sus ramas se envían a la Server Action, Excel o SOAP.
+- [x] Auditoría de 112 rótulos y 37 marcas visuales; pruebas de conservación
+      de ramas, varias personas y payload exacto. Navegador local: foco y
+      teclado, temas claro/oscuro y móvil a 390 px sin overflow horizontal.
+- [x] `npm run typecheck` y `npm run build` correctos; `npm test`: 95 archivos,
+      495 pruebas correctas y 2 omitidas. `npx oxfmt --check` correcto para
+      los archivos TypeScript modificados. `npm run lint` sigue fallando por
+      formato preexistente en archivos fuera de esta tarea; `oxlint` solo
+      muestra 7 warnings anteriores.
+- [ ] Integrar catálogos SQLite y confirmar mappings pendientes antes de
+      sustituir más valores de la plantilla.
+
 ## Rediseño beUI por fases - 2026-09-23
 
 - [x] Fase 1: base de fachada, shell e Inicio.
