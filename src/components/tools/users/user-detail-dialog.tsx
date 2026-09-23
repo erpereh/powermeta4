@@ -1,20 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle } from "lucide-react";
 
 import { getMeta4EmployeeDetailViewAction } from "@/app/actions/meta4-employee-detail";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Badge, Modal, Skeleton } from "@/components/system";
 import type { Meta4EmployeeDetailView } from "@/types/meta4-employee-detail";
 
 const genericErrorMessage = "No se han podido cargar los datos del empleado desde Meta4.";
@@ -56,21 +45,25 @@ export function UserDetailDialog({ employeeId, open, onOpenChange }: UserDetailD
   const title = !isLoading && view?.displayName ? view.displayName : "Detalle del empleado";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="flex h-[80vh] w-[min(94vw,64rem)] max-w-4xl flex-col gap-4 overflow-hidden p-4 sm:max-w-4xl"
-        showCloseButton
-      >
-        <DialogHeader className="shrink-0">
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description="Datos del empleado consultados en Meta4."
+      size="lg"
+      className="max-h-[min(80vh,52rem)]"
+    >
+      <div className="flex max-h-[min(60vh,40rem)] flex-col gap-4">
+        {!isLoading && view?.available ? (
           <div className="flex flex-wrap items-center gap-2">
-            <DialogTitle>{title}</DialogTitle>
-            {!isLoading && view?.available && <Badge variant="secondary">{view.employeeId}</Badge>}
+            <Badge status="neutral" size="sm">
+              {view.employeeId}
+            </Badge>
           </div>
-          <DialogDescription>Datos del empleado consultados en Meta4.</DialogDescription>
-        </DialogHeader>
+        ) : null}
 
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="space-y-6 pr-3">
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          <div className="space-y-6">
             {isLoading ? (
               <div className="space-y-3" aria-busy="true">
                 <Skeleton className="h-7 w-40" />
@@ -78,21 +71,25 @@ export function UserDetailDialog({ employeeId, open, onOpenChange }: UserDetailD
                 <Skeleton className="h-20 w-full" />
               </div>
             ) : !view?.available ? (
-              <Alert variant="destructive">
-                <AlertCircle />
-                <AlertTitle>No se pudo cargar el detalle</AlertTitle>
-                <AlertDescription>{view?.message ?? genericErrorMessage}</AlertDescription>
-              </Alert>
+              <div
+                role="alert"
+                className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive"
+              >
+                <p className="text-sm font-medium">No se pudo cargar el detalle</p>
+                <p className="mt-1 text-sm">{view?.message ?? genericErrorMessage}</p>
+              </div>
             ) : (
               <>
                 {view.sections.map((section) => (
                   <section key={section.id} className="space-y-3">
-                    <h2 className="text-lg font-semibold">{section.title}</h2>
+                    <h3 className="text-base font-semibold text-foreground">{section.title}</h3>
                     <dl className="grid gap-4 sm:grid-cols-2">
                       {section.fields.map((field) => (
                         <div key={`${section.id}-${field.key}`} className="space-y-1">
                           <dt className="text-sm text-muted-foreground">{field.label}</dt>
-                          <dd className="text-sm font-medium break-words">{field.value}</dd>
+                          <dd className="text-sm font-medium break-words text-foreground">
+                            {field.value}
+                          </dd>
                         </div>
                       ))}
                     </dl>
@@ -100,7 +97,7 @@ export function UserDetailDialog({ employeeId, open, onOpenChange }: UserDetailD
                 ))}
 
                 <section className="space-y-3">
-                  <h2 className="text-lg font-semibold">Correos</h2>
+                  <h3 className="text-base font-semibold text-foreground">Correos</h3>
                   {view.emails.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No hay correos registrados.</p>
                   ) : (
@@ -108,9 +105,11 @@ export function UserDetailDialog({ employeeId, open, onOpenChange }: UserDetailD
                       {view.emails.map((email, index) => (
                         <li
                           key={`${email.email}-${index}`}
-                          className="space-y-0.5 rounded-lg border border-border p-3"
+                          className="space-y-0.5 rounded-xl border border-border bg-elevated/40 p-3"
                         >
-                          <p className="text-sm font-medium break-words">{email.email}</p>
+                          <p className="text-sm font-medium break-words text-foreground">
+                            {email.email}
+                          </p>
                           <p className="text-sm text-muted-foreground">{email.dateRange}</p>
                         </li>
                       ))}
@@ -120,8 +119,8 @@ export function UserDetailDialog({ employeeId, open, onOpenChange }: UserDetailD
               </>
             )}
           </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </Modal>
   );
 }

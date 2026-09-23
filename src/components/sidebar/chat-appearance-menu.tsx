@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from "@/components/ui/dropdown-menu";
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSub,
+  MenuSubContent,
+  MenuSubTrigger,
+} from "@/components/system";
 import {
   CHAT_COLOR_OPTIONS,
   CHAT_COLORS,
@@ -30,13 +30,13 @@ type ChatAppearanceMenuProps = {
 export function ChatAppearanceMenu({ chat, onIconChange, onColorChange }: ChatAppearanceMenuProps) {
   return (
     <>
-      <DropdownMenuSub>
-        <DropdownMenuSubTrigger aria-label={`Cambiar icono de ${chat.title}`}>
+      <MenuSub>
+        <MenuSubTrigger aria-label={`Cambiar icono de ${chat.title}`}>
           <Shapes />
           <span>Cambiar icono</span>
-        </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent className="w-48">
-          <DropdownMenuRadioGroup
+        </MenuSubTrigger>
+        <MenuSubContent className="w-48">
+          <MenuRadioGroup
             value={chat.icon ?? DEFAULT_CHAT_ICON}
             onValueChange={(value) => {
               if (isChatIconName(value)) onIconChange(value);
@@ -45,27 +45,27 @@ export function ChatAppearanceMenu({ chat, onIconChange, onColorChange }: ChatAp
             {CHAT_ICON_OPTIONS.map((iconName) => {
               const Icon = CHAT_ICONS[iconName];
               return (
-                <DropdownMenuRadioItem
+                <MenuRadioItem
                   key={iconName}
                   value={iconName}
                   aria-label={`Usar icono ${CHAT_ICON_LABELS[iconName]} en ${chat.title}`}
                 >
                   <Icon aria-hidden="true" />
                   <span>{CHAT_ICON_LABELS[iconName]}</span>
-                </DropdownMenuRadioItem>
+                </MenuRadioItem>
               );
             })}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuSubContent>
-      </DropdownMenuSub>
+          </MenuRadioGroup>
+        </MenuSubContent>
+      </MenuSub>
 
-      <DropdownMenuSub>
-        <DropdownMenuSubTrigger aria-label={`Cambiar color de ${chat.title}`}>
+      <MenuSub>
+        <MenuSubTrigger aria-label={`Cambiar color de ${chat.title}`}>
           <Palette />
           <span>Cambiar color</span>
-        </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent className="w-44">
-          <DropdownMenuRadioGroup
+        </MenuSubTrigger>
+        <MenuSubContent className="w-44">
+          <MenuRadioGroup
             value={chat.iconColor ?? DEFAULT_CHAT_COLOR}
             onValueChange={(value) => {
               if (isChatColorName(value)) onColorChange(value);
@@ -74,7 +74,7 @@ export function ChatAppearanceMenu({ chat, onIconChange, onColorChange }: ChatAp
             {CHAT_COLOR_OPTIONS.map((colorName) => {
               const color = CHAT_COLORS[colorName];
               return (
-                <DropdownMenuRadioItem
+                <MenuRadioItem
                   key={colorName}
                   value={colorName}
                   aria-label={`Usar color ${color.label} en ${chat.title}`}
@@ -84,12 +84,12 @@ export function ChatAppearanceMenu({ chat, onIconChange, onColorChange }: ChatAp
                     className={`size-2.5 rounded-full bg-current ${color.className}`}
                   />
                   <span>{color.label}</span>
-                </DropdownMenuRadioItem>
+                </MenuRadioItem>
               );
             })}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuSubContent>
-      </DropdownMenuSub>
+          </MenuRadioGroup>
+        </MenuSubContent>
+      </MenuSub>
     </>
   );
 }

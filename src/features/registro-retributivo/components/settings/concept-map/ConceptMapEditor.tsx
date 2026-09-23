@@ -18,13 +18,17 @@ import {
 import type { MouseEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
-import { Card } from "@/features/registro-retributivo/components/common/Card";
-import { ModalShell } from "@/features/registro-retributivo/components/common/ModalShell";
-import { Toggle } from "@/features/registro-retributivo/components/common/Toggle";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Button,
+  Input,
+  Modal,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
+} from "@/components/system";
 import { Textarea } from "@/components/ui/textarea";
 import { isRuleEnabledForComparison, mergeConceptMap, normalizeConceptMappingRule, normalizePdfConcept } from "@/features/registro-retributivo/compare/conceptMapping";
 import type {
@@ -365,7 +369,7 @@ function IconButton({
   const toneClass = {
     neutral: "border-border bg-card text-foreground hover:bg-muted",
     danger: cn("border-transparent", STATUS_BADGE_TONE.danger, "hover:bg-destructive/20"),
-    active: cn("border-transparent", STATUS_BADGE_TONE.success, "hover:bg-emerald-500/20"),
+    active: cn("border-transparent", STATUS_BADGE_TONE.success, "hover:bg-chart-2/25"),
     inactive: cn("border-transparent", STATUS_BADGE_TONE.neutral, "hover:bg-muted/80"),
   }[tone];
 
@@ -609,7 +613,8 @@ export function ConceptMapEditor() {
   ];
 
   return (
-    <Card data-surface="concept-map-layout" className="p-4 sm:p-6">
+    <section data-surface="concept-map-layout" className="rounded-xl border border-border bg-card p-4 sm:p-6">
+      {/* Excepción: tabla con acciones anidadas / formularios; Table de system pierde campos. */}
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="max-w-3xl">
           <h2 className="text-xl font-semibold text-foreground">Conceptos del análisis</h2>
@@ -680,18 +685,18 @@ export function ConceptMapEditor() {
 
         <div className="-mx-4 mt-4 grid gap-3 border-y border-border bg-muted/30 px-4 py-4 sm:-mx-6 sm:px-6 xl:grid-cols-[minmax(280px,1.4fr)_180px_220px_220px]">
           <div className="relative">
-            <Label htmlFor="concept-map-search">Buscar</Label>
+            <label className="text-sm font-medium text-foreground" htmlFor="concept-map-search">Buscar</label>
             <Search className="pointer-events-none absolute bottom-3 left-3 h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <Input
               id="concept-map-search"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(value) => setQuery(value)}
               placeholder="Buscar por concepto, código, bloque o motivo"
               className="mt-2 h-12 rounded-full pl-10"
             />
           </div>
           <div>
-            <Label htmlFor="concept-map-activation-filter">Uso</Label>
+            <label className="text-sm font-medium text-foreground" htmlFor="concept-map-activation-filter">Uso</label>
             <select
               id="concept-map-activation-filter"
               className="sr-only"
@@ -704,20 +709,19 @@ export function ConceptMapEditor() {
               ))}
             </select>
             <Select value={activationFilter} onValueChange={(value) => { if (value) setActivationFilter(value as ActivationFilter); }}>
-              <SelectTrigger className="mt-2 h-12 w-full rounded-full" aria-hidden="true" tabIndex={-1}>
+              <SelectTrigger className="mt-2 h-12 w-full rounded-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
+
                   {ACTIVATION_FILTERS.map((item) => (
                     <SelectItem key={item} value={item}>{item}</SelectItem>
                   ))}
-                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="concept-map-detected-filter">Detectado</Label>
+            <label className="text-sm font-medium text-foreground" htmlFor="concept-map-detected-filter">Detectado</label>
             <select
               id="concept-map-detected-filter"
               className="sr-only"
@@ -730,20 +734,19 @@ export function ConceptMapEditor() {
               ))}
             </select>
             <Select value={detectedFilter} onValueChange={(value) => { if (value) setDetectedFilter(value as DetectedFilter); }}>
-              <SelectTrigger className="mt-2 h-12 w-full rounded-full" aria-hidden="true" tabIndex={-1}>
+              <SelectTrigger className="mt-2 h-12 w-full rounded-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
+
                   {DETECTED_FILTERS.map((item) => (
                     <SelectItem key={item} value={item}>{item}</SelectItem>
                   ))}
-                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="concept-map-block-filter">Bloque</Label>
+            <label className="text-sm font-medium text-foreground" htmlFor="concept-map-block-filter">Bloque</label>
             <select
               id="concept-map-block-filter"
               className="sr-only"
@@ -757,22 +760,22 @@ export function ConceptMapEditor() {
               ))}
             </select>
             <Select value={blockFilter} onValueChange={(value) => { if (value) setBlockFilter(value as typeof blockFilter); }}>
-              <SelectTrigger className="mt-2 h-12 w-full rounded-full" aria-hidden="true" tabIndex={-1}>
+              <SelectTrigger className="mt-2 h-12 w-full rounded-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
+
                   <SelectItem value="Todos">Todos</SelectItem>
                   {BLOCKS.map((item) => (
                     <SelectItem key={item} value={item}>{item}</SelectItem>
                   ))}
-                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         <div data-testid="concept-map-unified-scroll" className="-mx-4 max-h-[560px] overflow-x-auto overflow-y-auto border-b border-border bg-card sm:-mx-6">
+          {/* Excepción: acciones anidadas por fila; Table de system no encaja. */}
           <table className="min-w-[860px] w-full border-collapse text-left text-sm">
             <thead className="sticky top-0 z-10 bg-muted text-xs font-semibold uppercase text-muted-foreground">
               <tr>
@@ -899,69 +902,75 @@ export function ConceptMapEditor() {
       </section>
 
       {editingIndex !== undefined ? (
-        <ModalShell
+        <Modal
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditingIndex(undefined);
+          }}
           title={editingIndex === "new" ? "Crear regla" : "Editar regla"}
-          eyebrow="Conceptos del análisis"
-          maxWidth="3xl"
-          onClose={() => setEditingIndex(undefined)}
+          description="Conceptos del análisis"
+          size="lg"
           footer={(
             <div className="flex flex-wrap justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setEditingIndex(undefined)}>Cancelar</Button>
-              <Button type="button" onClick={saveForm}>Guardar regla</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => setEditingIndex(undefined)}>Cancelar</Button>
+              <Button type="button" variant="primary" size="sm" onClick={saveForm}>Guardar regla</Button>
             </div>
           )}
         >
               <p className="text-sm text-muted-foreground">Define cómo se clasifica un concepto detectado en Recibo.</p>
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="concept-map-pdf-concept">Concepto Recibo</Label>
-                  <Input id="concept-map-pdf-concept" value={form.pdfConcept} onChange={(event) => setForm({ ...form, pdfConcept: event.target.value })} className="mt-2 h-12 rounded-full" />
+                  <label className="text-sm font-medium text-foreground" htmlFor="concept-map-pdf-concept">Concepto Recibo</label>
+                  <Input id="concept-map-pdf-concept" value={form.pdfConcept} onChange={(value) => setForm({ ...form, pdfConcept: value })} className="mt-2" />
                 </div>
                 <div>
-                  <Label htmlFor="concept-map-registro-code">Código Reg. Retrib.</Label>
-                  <Input id="concept-map-registro-code" list="concept-map-codes" value={form.registroCode} onChange={(event) => setForm({ ...form, registroCode: event.target.value })} className="mt-2 h-12 rounded-full font-mono" />
+                  <label className="text-sm font-medium text-foreground" htmlFor="concept-map-registro-code">Código Reg. Retrib.</label>
+                  <Input id="concept-map-registro-code" list="concept-map-codes" value={form.registroCode} onChange={(value) => setForm({ ...form, registroCode: value })} className="mt-2 font-mono" />
                   <datalist id="concept-map-codes">
                     {availableCodes.map((code) => <option key={code} value={code} />)}
                   </datalist>
-                  {codeWarning ? <span className="mt-2 block text-sm font-semibold text-amber-800 dark:text-amber-300">Este código no existe en el Reg. Retrib. cargado.</span> : null}
+                  {codeWarning ? <span className="mt-2 block text-sm font-semibold text-destructive">Este código no existe en el Reg. Retrib. cargado.</span> : null}
                 </div>
                 <div>
-                  <Label htmlFor="concept-map-block">Bloque</Label>
+                  <label className="text-sm font-medium text-foreground" htmlFor="concept-map-block">Bloque</label>
                   <Select value={form.block} onValueChange={(value) => setForm({ ...form, block: value as RetributionBlock })}>
-                    <SelectTrigger id="concept-map-block" className="mt-2 h-12 w-full rounded-full">
+                    <SelectTrigger className="mt-2 w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectGroup>
-                        {BLOCKS.map((item) => (
-                          <SelectItem key={item} value={item}>{item}</SelectItem>
-                        ))}
-                      </SelectGroup>
+                      {BLOCKS.map((item) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <Toggle
-                  checked={form.active}
-                  onChange={(active) =>
-                    setForm({
-                      ...form,
-                      active,
-                      includedInComparison: active,
-                      includedInAdjustedComparison: true,
-                      status: active ? "Incluido" : "Ignorado",
-                    })
-                  }
-                  label="Activo"
-                  description="Los conceptos desactivados se ignoran al actualizar datos."
-                />
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Activo</p>
+                    <p className="mt-1 text-sm leading-5 text-muted-foreground">Los conceptos desactivados se ignoran al actualizar datos.</p>
+                  </div>
+                  <Switch
+                    checked={form.active}
+                    onCheckedChange={(active) =>
+                      setForm({
+                        ...form,
+                        active,
+                        includedInComparison: active,
+                        includedInAdjustedComparison: true,
+                        status: active ? "Incluido" : "Ignorado",
+                      })
+                    }
+                    ariaLabel="Activo"
+                  />
+                </div>
               </div>
 
               <div className="mt-5">
-                <Label htmlFor="concept-map-reason">Motivo</Label>
+                <label className="text-sm font-medium text-foreground" htmlFor="concept-map-reason">Motivo</label>
                 <Textarea id="concept-map-reason" value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} className="mt-2 min-h-28" />
               </div>
-        </ModalShell>
+        </Modal>
       ) : null}
-    </Card>
+    </section>
   );
 }

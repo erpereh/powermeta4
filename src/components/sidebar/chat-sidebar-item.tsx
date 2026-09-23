@@ -1,41 +1,30 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { MoreHorizontal, Star, StarOff, Trash2 } from "lucide-react";
 
+import { ChatAppearanceMenu } from "@/components/sidebar/chat-appearance-menu";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  SidebarMenuAction,
+  Button,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuSeparator,
+  MenuTrigger,
+  Modal,
   SidebarMenuButton,
   SidebarMenuItem,
+  Tooltip,
   useSidebar,
-} from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+} from "@/components/system";
 import {
   CHAT_COLORS,
   CHAT_ICONS,
   DEFAULT_CHAT_COLOR,
   DEFAULT_CHAT_ICON,
 } from "@/lib/chat-customization";
+import { cn } from "@/lib/utils";
 import type { Chat, ChatColorName, ChatIconName } from "@/types/chat";
-import { ChatAppearanceMenu } from "@/components/sidebar/chat-appearance-menu";
-import { MoreHorizontal, Star, StarOff, Trash2 } from "lucide-react";
 
 type ChatSidebarItemProps = {
   chat: Chat;
@@ -63,62 +52,71 @@ export function ChatSidebarItem({
 
   return (
     <>
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild isActive={active} tooltip={chat.title}>
-          <Link href={`/chat/${chat.id}`} onClick={onSelect}>
-            {chat.favorite && (
-              <ChatIcon aria-hidden="true" className={cn("size-4 shrink-0", iconColor)} />
-            )}
-            <span className="min-w-0 truncate" title={chat.title}>
-              {chat.title}
-            </span>
-          </Link>
-        </SidebarMenuButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuAction
-              showOnHover
+      <SidebarMenuItem className="group/chat-row">
+        <Tooltip content={chat.title} side="right" wrapperClassName="flex w-full min-w-0 pr-8">
+          <SidebarMenuButton
+            isActive={active}
+            onSelect={onSelect}
+            icon={
+              chat.favorite ? (
+                <ChatIcon aria-hidden="true" className={cn("size-4 shrink-0", iconColor)} />
+              ) : undefined
+            }
+          >
+            {chat.title}
+          </SidebarMenuButton>
+        </Tooltip>
+        <Menu>
+          <MenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               aria-label={`Acciones para ${chat.title}`}
-              className="aria-expanded:bg-sidebar-accent"
+              className="absolute top-1 right-1 z-10 size-7 text-muted-foreground opacity-100 md:opacity-0 md:group-hover/chat-row:opacity-100 md:focus-visible:opacity-100 aria-expanded:opacity-100"
             >
-              <MoreHorizontal />
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </MenuTrigger>
+          <MenuContent
             side={isMobile ? "bottom" : "right"}
             align={isMobile ? "end" : "start"}
             className="w-52"
           >
-            <DropdownMenuItem onSelect={onToggleFavorite}>
+            <MenuItem onSelect={onToggleFavorite}>
               {chat.favorite ? <StarOff /> : <Star />}
               <span>{chat.favorite ? "Quitar de favoritos" : "Añadir a favoritos"}</span>
-            </DropdownMenuItem>
-            {chat.favorite && (
+            </MenuItem>
+            {chat.favorite ? (
               <ChatAppearanceMenu chat={chat} onIconChange={onSetIcon} onColorChange={onSetColor} />
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
+            ) : null}
+            <MenuSeparator />
+            <MenuItem
               className="text-destructive focus:text-destructive"
               onSelect={() => setDeleteOpen(true)}
             >
               <Trash2 />
               <span>Eliminar</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </MenuItem>
+          </MenuContent>
+        </Menu>
       </SidebarMenuItem>
 
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar esta conversación?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se eliminará «{chat.title}». Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
+      <Modal
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        size="sm"
+        title="¿Eliminar esta conversación?"
+        description={`Se eliminará «${chat.title}». Esta acción no se puede deshacer.`}
+        footer={
+          <>
+            <Button type="button" variant="outline" size="sm" onClick={() => setDeleteOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
                 onDelete();
@@ -126,10 +124,10 @@ export function ChatSidebarItem({
               }}
             >
               Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </>
+        }
+      />
     </>
   );
 }

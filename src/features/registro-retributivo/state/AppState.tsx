@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { ExportWorkbookMetadata } from "@/features/registro-retributivo/export/exportExcel";
 import type { AnalysisConfig, AnalysisResult, AppView, ConceptMappingRule, StoredAnalysis } from "@/features/registro-retributivo/types";
-import type { ToastItem, ToastKind } from "@/features/registro-retributivo/components/common/ToastViewport";
+import type { ToastItem, ToastKind } from "@/features/registro-retributivo/components/common/toast-types";
 import {
   configFromSettings,
   deleteAnalysis,

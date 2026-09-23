@@ -4,19 +4,7 @@ import { useMemo, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { launchMeta4HireAction } from "@/app/actions/meta4-hire";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button, Input, Modal } from "@/components/system";
 import type { HirePersonInput } from "@/lib/meta4/hire/types";
 import { parseHirePeople, parseHirePerson } from "@/lib/meta4/hire/validate";
 
@@ -74,32 +62,29 @@ export function UsersHireForm() {
     );
   };
 
-  const addPerson = () => {
-    setSuccess(null);
+  const validateExpanded = (): boolean => {
     const current = people[expandedIndex];
-    if (!current) return;
+    if (!current) return false;
     try {
       parseHirePerson(current);
+      setError(null);
+      return true;
     } catch (caught) {
       setError(errorMessage(caught));
-      return;
+      return false;
     }
-    setError(null);
+  };
+
+  const addPerson = () => {
+    setSuccess(null);
+    if (!validateExpanded()) return;
     setPeople((existing) => [...existing, emptyPerson()]);
     setExpandedIndex(people.length);
   };
 
   const editPerson = (index: number) => {
     if (index === expandedIndex) return;
-    const current = people[expandedIndex];
-    if (!current) return;
-    try {
-      parseHirePerson(current);
-    } catch (caught) {
-      setError(errorMessage(caught));
-      return;
-    }
-    setError(null);
+    if (!validateExpanded()) return;
     setExpandedIndex(index);
   };
 
@@ -144,91 +129,105 @@ export function UsersHireForm() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-8">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-8">
       <p className="text-sm text-muted-foreground">
         Añade una o varias personas. Solo se sustituyen los datos personales mínimos; el resto lo
         conserva la plantilla Hire.
       </p>
 
-      {people.map((person, index) =>
-        index === expandedIndex ? (
-          <fieldset key={index} className="grid gap-4 rounded-lg border border-border p-4">
-            <legend className="px-1 text-sm font-medium">Persona {index + 1}</legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {FIELDS.map((field) => {
-                const id = `person-${index}-${field.key}`;
-                return (
-                  <div key={field.key} className="grid gap-2">
-                    <Label htmlFor={id}>
-                      {field.label}
-                      {field.required ? "" : " (opcional)"}
-                    </Label>
-                    <Input
-                      id={id}
-                      name={id}
-                      type={field.type}
-                      required={field.required}
-                      value={person[field.key]}
-                      onChange={(event) => updatePerson(index, field.key, event.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => removePerson(index)}
-                disabled={people.length === 1}
-                aria-label={`Eliminar persona ${index + 1}`}
+      <div className="flex flex-col gap-3">
+        {people.map((person, index) => {
+          const isExpanded = index === expandedIndex;
+          const name = personFullName(person);
+          const summary = [person.documentNumber.trim(), person.email.trim()]
+            .filter(Boolean)
+            .join(" · ");
+
+          if (isExpanded) {
+            return (
+              <fieldset
+                key={index}
+                className="grid gap-4 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm"
               >
-                <Trash2 />
-                Eliminar persona
-              </Button>
+                <legend className="px-1 text-sm font-medium text-foreground">
+                  Persona {index + 1}
+                </legend>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {FIELDS.map((field) => {
+                    const id = `person-${index}-${field.key}`;
+                    return (
+                      <Input
+                        key={field.key}
+                        id={id}
+                        name={id}
+                        label={field.required ? field.label : `${field.label} (opcional)`}
+                        type={field.type}
+                        required={field.required}
+                        value={person[field.key]}
+                        onChange={(value) => updatePerson(index, field.key, value)}
+                        autoComplete="off"
+                      />
+                    );
+                  })}
+                </div>
+                <div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removePerson(index)}
+                    disabled={people.length === 1}
+                    aria-label={`Eliminar persona ${index + 1}`}
+                    className="text-destructive bg-destructive/10 hover:bg-destructive/15"
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                    Eliminar persona
+                  </Button>
+                </div>
+              </fieldset>
+            );
+          }
+
+          return (
+            <div
+              key={index}
+              className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground shadow-sm sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">Persona {index + 1}</p>
+                <p className="truncate text-sm text-foreground">{name}</p>
+                <p className="truncate text-sm text-muted-foreground">{summary}</p>
+              </div>
+              <div className="flex shrink-0 gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => editPerson(index)}
+                  aria-label={`Editar persona ${index + 1}`}
+                >
+                  <Pencil className="size-4" aria-hidden="true" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => removePerson(index)}
+                  disabled={people.length === 1}
+                  aria-label={`Eliminar persona ${index + 1}`}
+                  className="text-destructive bg-destructive/10 hover:bg-destructive/15"
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                </Button>
+              </div>
             </div>
-          </fieldset>
-        ) : (
-          <div
-            key={index}
-            className="flex flex-col gap-3 rounded-lg border border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-medium">Persona {index + 1}</p>
-              <p className="truncate text-sm">{personFullName(person)}</p>
-              <p className="truncate text-sm text-muted-foreground">
-                {person.documentNumber.trim()} · {person.email.trim()}
-              </p>
-            </div>
-            <div className="flex shrink-0 gap-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => editPerson(index)}
-                aria-label={`Editar persona ${index + 1}`}
-              >
-                <Pencil />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => removePerson(index)}
-                disabled={people.length === 1}
-                aria-label={`Eliminar persona ${index + 1}`}
-              >
-                <Trash2 />
-              </Button>
-            </div>
-          </div>
-        ),
-      )}
+          );
+        })}
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" onClick={addPerson}>
-          <Plus />
+          <Plus className="size-4" aria-hidden="true" />
           Añadir persona
         </Button>
         <Button type="button" onClick={requestConfirm} disabled={pending} aria-busy={pending}>
@@ -242,31 +241,41 @@ export function UsersHireForm() {
         </p>
       ) : null}
       {success ? (
-        <p role="status" className="text-sm">
+        <p role="status" className="text-sm text-foreground">
           {success}
         </p>
       ) : null}
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar alta</AlertDialogTitle>
-            <AlertDialogDescription>{confirmation}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
+      <Modal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirmar alta"
+        description={confirmation}
+        size="sm"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
               disabled={pending}
-              onClick={(event) => {
-                event.preventDefault();
+              onClick={() => setConfirmOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={pending}
+              onClick={() => {
                 void submitHire();
               }}
             >
               {pending ? "Enviando..." : "Confirmar"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }

@@ -7,20 +7,21 @@ conversación: sobria, clara, precisa y tranquila. El chat mantiene prioridad,
 mientras Inicio y los workspaces locales organizan acciones preparadas para
 una futura conexión ERP.
 
-La fuente visual es el preset `b1temovYm`, junto con las primitivas existentes
-de shadcn/ui (estilo `radix-nova`) y assistant-ui. La identidad visual se
-centraliza en `PowermetaLogo`, única API de branding. El isotipo oficial vive
-en `public/brand/powermeta4-mark.svg` y se sirve como `/brand/powermeta4-mark.svg`.
-`PowermetaLogo compact` muestra solo el isotipo; el modo normal añade el
-wordmark textual `powermeta4`. SocietyHeader, login, cabeceras y settings
-consumen ese componente; no importan el SVG.
+La capa visual de producto es **beUI** a través de la fachada única
+`src/components/system`. Los módulos de producto importan solo desde
+`@/components/system` (o `@/components/system/...`); no importan
+`@/components/motion/*` ni `@/components/agents/*` salvo esa fachada.
+shadcn/ui (estilo `radix-nova`) y Radix quedan como infraestructura solo donde
+beUI no tiene equivalente: `textarea`, `breadcrumb`, `avatar`, `alert`,
+`progress`, `separator`, `card` (superficie sobria; beUI solo ofrece tilt) y
+el menú de acciones (ver Menú).
+assistant-ui se conserva para el Thread.
 
-Los componentes de interfaz parten de shadcn/ui Nova: no se sustituyen por
-implementaciones paralelas salvo composiciones de producto (command palette,
-module dock, `ToolCard`) que combinan primitivas oficiales (`Command`, `Tabs`,
-`ScrollArea`, `Empty`, `Badge`) o, en el caso de `ToolCard`, una composición
-propia compacta con `Link`/`button` y tokens semánticos (`border`, `card`,
-`accent`) sin envolver el primitivo `Card`.
+La identidad visual se centraliza en `PowermetaLogo`, única API de branding. El
+isotipo oficial vive en `public/brand/powermeta4-mark.svg` y se sirve como
+`/brand/powermeta4-mark.svg`. `PowermetaLogo compact` muestra solo el isotipo;
+el modo normal añade el wordmark textual `powermeta4`. SocietyHeader, login,
+cabeceras y settings consumen ese componente; no importan el SVG.
 
 ## Tipografía, tokens y temas
 
@@ -28,20 +29,64 @@ Inter es la única familia visible. `--font-inter` alimenta `font-sans`,
 `font-heading` y `font-mono`, de modo que títulos, formularios, menús,
 mensajes y código compartan ritmo tipográfico.
 
-Usar superficies y colores semánticos (`background`, `card`, `muted`,
-`sidebar`, `foreground`, `border`, `ring`, `primary` y `destructive`). Los
-colores de empresas y favoritos son excepciones deliberadas y se resuelven
-desde mapas estáticos tipados; nunca se guardan clases dinámicas en el store.
+Usar superficies y colores semánticos shadcn existentes (`background`, `card`,
+`muted`, `sidebar`, `foreground`, `border`, `ring`, `primary`, `destructive`)
+más los tokens de producto `elevated`, `overlay`, `selected`, `disabled`,
+`code` y `shadow` (registrados en `@theme inline`). Light y dark se diseñan
+por separado en oklch (sin hex): light con papel frío y cards elevadas; dark
+con grafito (no negro puro) y cards un paso más claras. El acento de marca
+sigue en cian (hue ~215–224). Los colores de empresas y favoritos son
+excepciones deliberadas y se resuelven desde mapas estáticos tipados; nunca se
+guardan clases dinámicas en el store.
 
 Claro, oscuro y sistema representan el mismo producto con distintos valores
 de tokens. El tema usa `next-themes`, `attribute="class"`, sistema habilitado
-y transiciones desactivadas durante el cambio. Ninguna pantalla depende de una
-clase `dark` fija ni de fondos hardcodeados.
+y `disableTransitionOnChange`. Ninguna pantalla depende de una clase `dark`
+fija ni de fondos hardcodeados. `ThemeToggle` (variante circle) alterna
+light/dark; `ThemeModeControl` fija `light | dark | system`.
+
+`prefers-reduced-motion: reduce` anula animaciones y transiciones no esenciales
+de forma global además del respeto que ya traen los componentes beUI.
+
+## Contratos de componentes (fachada)
+
+- **Un Button** (`Button` / `StatefulButton`). Prohibidos MagneticButton,
+  MetallicButton y efectos magnetic / metallic / tilt / bloom / shader /
+  marquee / goo.
+- **Un Modal** (`Modal`): tamaños `sm | md | lg`; `lg` usa
+  `max-w-[min(64rem,calc(100vw-2rem))]`; overlay semántico sin blur fuerte.
+  API controlada: `open`, `onOpenChange`, `title`, `description`, `children`,
+  `footer`, `size`. Sin hold-to-confirm.
+- **Un Toast**: un solo `AnimatedToastStack` vía `ToastProvider` +
+  `useToast().toast({ title, description, status })`. Status:
+  `neutral | info | loading | success | error`. `warning` se mapea a `error`.
+- **Tabs** variante pill por defecto.
+- **Table** beUI (fachada `Table`).
+- **Loader** variante spinner por defecto.
+- **Badge** = `AnimatedBadge`.
+- **Empty** = `EmptyState` (composición propia mínima).
+- **Skeleton** = un solo `Skeleton` de producto.
+- **Menú único**: DropdownMenu de Radix en `src/components/ui/dropdown-menu`
+  (reexportado por `@/components/system/menu`), restilado con tokens;
+  popover-morph es `role="dialog"` y no cubre menú de acciones accesible
+  (teclado, typeahead, `aria-haspopup=menu`). No usar popover gooey.
+- **Sidebar** beUI animada vía fachada; un solo `SidebarTrigger` principal;
+  prohibido `SidebarRail` / `AnimatedSidebarRail`.
+
+### Excepciones documentadas
+
+- `PromptInput` de beUI no sustituye `ComposerPrimitive` de assistant-ui.
+- `message-scroller` no sustituye el `Viewport` del Thread.
+- Las gráficas de Registro Retributivo siguen en Recharts.
+- `code-block` de beUI está instalado (usa `shiki`; no depende del paquete
+  `ai` en runtime) para superficies de código futuras; no sustituye el
+  markdown del chat.
+- `textarea` permanece en shadcn.
 
 ## Shell y sidebar
 
-La sidebar usa la base oficial existente con composición inspirada en
-`sidebar-07`:
+La sidebar de producto (migración posterior) usará la fachada beUI
+`animated-sidebar` con las mismas reglas de producto actuales:
 
 - la cabecera única integra el isotipo, la sociedad activa y el alcance;
 - en sesión Meta4 con varias sociedades muestra un selector de solo lectura
@@ -54,7 +99,7 @@ La sidebar usa la base oficial existente con composición inspirada en
 - colapsada muestra únicamente controles funcionales, tooltips y avatar;
 - en desktop colapsada, pulsar el icono de Herramientas expande la sidebar
   (`useSidebar().setOpen(true)`), abre el grupo y muestra el submenu; no usa
-  Popover ni DropdownMenu;
+  Popover ni DropdownMenu para ese caso;
 - móvil conserva el Sheet/offcanvas nativo, nunca un rail permanente.
 
 El menú de usuario abre Ajustes como un diálogo grande con los datos de la
@@ -98,7 +143,7 @@ vive en `/tools/registro-retributivo`. `searchTools` busca solo Acciones ERP por
 descripción, keywords y nombre de módulo.
 
 Las visitas solo se registran para acciones implementadas; la ausencia de visitas
-tiene un empty state compacto con `Empty`.
+tiene un empty state compacto.
 
 Los cinco workspaces ERP usan una plantilla común: breadcrumb (`Acciones` →
 `/home`), alcance activo,
@@ -117,7 +162,7 @@ en servidor, usando el workspace activo validado. El navegador no elige ni
 sustituye la sociedad de la operación. Una autenticación Meta4 puede exponer
 1–3 sociedades; cada una es un workspace read-only.
 
-En el listado de usuarios, pulsar una fila abre un `Dialog` grande con el
+En el listado de usuarios, pulsar una fila abre un diálogo grande con el
 detalle del empleado (`CSP_POWER4_CONSULTA_ORO`), con la misma convención
 visual que el diálogo de Ajustes: secciones con `dl` de dos columnas y un
 bloque de correos aparte. Toda la fila es interactiva (foco por teclado,
@@ -125,18 +170,22 @@ bloque de correos aparte. Toda la fila es interactiva (foco por teclado,
 nativo de fila ni anidar controles dentro de las celdas.
 
 El alta de personas vive en `/tools/users/new`: formulario de 1..N personas
-con tarjetas colapsables en cliente, `AlertDialog` de confirmación
+con tarjetas colapsables en cliente, confirmación
 («Se van a procesar X personas en Meta4») y Server Action. El servidor copia
 `Hire_1_PERSONA.xls` y Excel sustituye solo los campos de la UI. El fichero
 generado lleva el usuario Meta4 y la fecha, dentro del directorio configurado.
 Los datos personales no se persisten en SQLite.
 
+Los workspaces futuros muestran estados honestos de disponibilidad; no se
+simulan conexiones, resultados ni operaciones de ERP.
+
 ## Chat y recomendaciones
 
-El Thread conserva una sola instancia de `ComposerPrimitive.Root`, un único
-`Viewport` y un `ViewportFooter` integrado. El estado vacío centra el welcome
-y el composer; al iniciar una conversación el footer se vuelve sticky dentro
-del viewport, nunca `fixed` respecto de la ventana.
+El Thread conserva `ExternalStoreRuntime` y una sola instancia de
+`ComposerPrimitive.Root`, un único `Viewport` y un `ViewportFooter` integrado.
+El estado vacío centra el welcome y el composer; al iniciar una conversación
+el footer se vuelve sticky dentro del viewport, nunca `fixed` respecto de la
+ventana.
 
 Las recomendaciones contextuales tienen dos niveles: categorías y acciones.
 No hay selección inicial. Las acciones usan `ThreadPrimitive.Suggestion` con
@@ -144,10 +193,12 @@ No hay selección inicial. Las acciones usan `ThreadPrimitive.Suggestion` con
 duplicar el estado del composer.
 
 El chat es global para todos los workspaces locales y se configura
-server-side con `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`. El composer muestra
-el indicador no interactivo `IA · <AI_MODEL>`; si falta cualquier variable
-muestra `IA no configurada` y desactiva Enviar. No hay picker, CRUD de
+server-side con `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`. El composer no
+muestra el modelo ni el proveedor. Si falta cualquier variable muestra
+`IA no configurada` y desactiva Enviar. No hay picker, CRUD de
 proveedores ni preferencias de proveedor en la interfaz.
+
+Los favoritos se derivan de `Chat.favorite`; no se crean arrays paralelos.
 
 El historial pintado en el Thread es el transcript SQLite real. Cada ejecución
 reconstruye la rama exacta desde el `parentMessageId` del mensaje asistente en

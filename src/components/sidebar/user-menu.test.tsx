@@ -19,17 +19,28 @@ vi.mock("@/stores/use-workspace-store", () => ({
   useWorkspaceStore: (selector: (state: { auth: typeof mocks.auth }) => unknown) =>
     selector({ auth: mocks.auth }),
 }));
-vi.mock("@/components/theme/theme-menu", () => ({ ThemeMenu: () => <div>Theme menu</div> }));
+vi.mock("next-themes", () => ({
+  useTheme: () => ({
+    theme: "system",
+    setTheme: vi.fn(),
+    resolvedTheme: "light",
+  }),
+}));
 vi.mock("@/components/app-shell/app-shell", () => ({
   useSettingsDialog: () => ({ openSettings: mocks.openSettings }),
 }));
 
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { SidebarProvider } from "@/components/system";
 import { UserMenu } from "./user-menu";
 
 beforeEach(() => {
-  mocks.auth = { mode: "debug", username: "DEBUG", canUseMeta4: false, societyCode: null, availableSocieties: [] };
+  mocks.auth = {
+    mode: "debug",
+    username: "DEBUG",
+    canUseMeta4: false,
+    societyCode: null,
+    availableSocieties: [],
+  };
   mocks.openSettings.mockReset();
   vi.stubGlobal(
     "matchMedia",
@@ -44,11 +55,9 @@ beforeEach(() => {
 describe("sidebar user menu", () => {
   it("shows development status and a Debug badge only for debug auth", () => {
     const { rerender } = render(
-      <TooltipProvider>
-        <SidebarProvider>
-          <UserMenu />
-        </SidebarProvider>
-      </TooltipProvider>,
+      <SidebarProvider>
+        <UserMenu />
+      </SidebarProvider>,
     );
 
     expect(screen.getByText("Modo de desarrollo")).toBeTruthy();
@@ -62,11 +71,9 @@ describe("sidebar user menu", () => {
       availableSocieties: ["CYC"],
     };
     rerender(
-      <TooltipProvider>
-        <SidebarProvider>
-          <UserMenu />
-        </SidebarProvider>
-      </TooltipProvider>,
+      <SidebarProvider>
+        <UserMenu />
+      </SidebarProvider>,
     );
 
     expect(screen.queryByText("Modo de desarrollo")).toBeNull();

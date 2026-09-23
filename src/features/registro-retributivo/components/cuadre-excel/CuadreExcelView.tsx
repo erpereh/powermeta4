@@ -7,26 +7,19 @@ import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { StatusBadge } from "@/features/registro-retributivo/components/common/StatusBadge";
 import { CompactMetric } from "@/features/registro-retributivo/components/common/CompactMetric";
 import { DataTableShell } from "@/features/registro-retributivo/components/common/DataTableShell";
-import { ModalShell } from "@/features/registro-retributivo/components/common/ModalShell";
-import { SectionTabs } from "@/features/registro-retributivo/components/common/SectionTabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
+  EmptyState,
+  Input,
+  Modal,
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/system";
 import { buildInternalExcelExplainPayload } from "@/features/registro-retributivo/ai/explainPayload";
 import type { AnalysisStatus, InternalExcelCheckRow, InternalExcelNormalizedVariablesCheckRow } from "@/features/registro-retributivo/types";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
@@ -129,10 +122,12 @@ function DetailModal({ row, onClose }: Readonly<{ row: InternalExcelCheckRow; on
   const aiPayload = buildInternalExcelExplainPayload(row);
 
   return (
-    <ModalShell
+    <Modal
+      open
+      onOpenChange={(open) => { if (!open) onClose(); }}
       title="Detalle Cuadre Reg."
-      onClose={onClose}
-      maxWidth="4xl"
+      description="Detalle determinista"
+      size="lg"
     >
         <div className="grid min-w-0 gap-4 md:grid-cols-4">
           <ModalField label="Matrícula" value={projection.personId} />
@@ -155,7 +150,7 @@ function DetailModal({ row, onClose }: Readonly<{ row: InternalExcelCheckRow; on
 
         <AiExplanationPanel type="internalExcelCheck" payload={aiPayload} />
 
-    </ModalShell>
+    </Modal>
   );
 }
 
@@ -173,20 +168,20 @@ function CuadreControls({
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
       <div className="min-w-0 flex-1 flex flex-col gap-2">
-        <Label htmlFor="cuadre-search" className="sr-only">Buscar</Label>
         <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Search className="pointer-events-none absolute top-[2.35rem] left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
             id="cuadre-search"
+            label="Buscar"
             value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
+            onChange={onQueryChange}
             placeholder="Buscar en Cuadre Reg."
-            className="pl-9"
+            classNames={{ input: "pl-9" }}
           />
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="cuadre-status">Estado</Label>
+        <p className="mb-1.5 text-sm font-medium text-foreground">Estado</p>
         <select
           id="cuadre-status"
           className="sr-only"
@@ -200,16 +195,14 @@ function CuadreControls({
           <option value="Diferencia">Diferencia</option>
         </select>
         <Select value={statusFilter} onValueChange={(value) => { if (value) onStatusFilterChange(value as StatusFilter); }}>
-          <SelectTrigger className="w-full min-w-[140px]" aria-hidden="true" tabIndex={-1}>
+          <SelectTrigger className="w-full min-w-[140px]">
             <SelectValue placeholder="Todos" />
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>
               <SelectItem value="Todos">Todos</SelectItem>
               <SelectItem value="OK">OK</SelectItem>
               <SelectItem value="Revisar">Revisar</SelectItem>
               <SelectItem value="Diferencia">Diferencia</SelectItem>
-            </SelectGroup>
           </SelectContent>
         </Select>
       </div>
@@ -235,6 +228,7 @@ function buildMetrics(input: {
 }
 
 function BreakdownTable({ rows, onSelectRow }: Readonly<{ rows: readonly InternalExcelCheckRow[]; onSelectRow: (row: InternalExcelCheckRow) => void }>) {
+  // Excepción: Table de system no cubre activación + densidad custom.
   return (
     <table className="w-full min-w-[1440px] border-separate border-spacing-0 text-left text-sm">
       <thead className="sticky top-0 z-20 bg-muted text-muted-foreground shadow-sm">
@@ -244,7 +238,7 @@ function BreakdownTable({ rows, onSelectRow }: Readonly<{ rows: readonly Interna
               key={header}
               className={cn(
                 "border-b border-border px-4 py-3 text-xs font-semibold uppercase",
-                index === 0 && "sticky left-0 z-30 min-w-[128px] bg-muted shadow-[10px_0_16px_-16px_rgba(15,23,42,0.55)]",
+                index === 0 && "sticky left-0 z-30 min-w-[128px] bg-muted shadow-[10px_0_16px_-16px_var(--shadow)]",
               )}
             >
               {header}
@@ -265,7 +259,7 @@ function BreakdownTable({ rows, onSelectRow }: Readonly<{ rows: readonly Interna
             }}
             className={cn("cursor-pointer transition", rowTone(projection.status))}
           >
-            <td className="sticky left-0 z-10 min-w-[128px] border-b border-border/70 bg-inherit px-4 py-3 font-mono shadow-[10px_0_16px_-16px_rgba(15,23,42,0.55)]">
+            <td className="sticky left-0 z-10 min-w-[128px] border-b border-border/70 bg-inherit px-4 py-3 font-mono shadow-[10px_0_16px_-16px_var(--shadow)]">
               {displayText(projection.personId)}
             </td>
             <td className="border-b border-border/70 px-4 py-3 text-right font-mono tabular-nums">{formatEuro(projection.salaryPeriod)}</td>
@@ -291,6 +285,7 @@ function BreakdownTable({ rows, onSelectRow }: Readonly<{ rows: readonly Interna
 }
 
 function NormalizedVariablesTable({ rows }: Readonly<{ rows: readonly InternalExcelNormalizedVariablesCheckRow[] }>) {
+  // Excepción: cabeceras multinivel (rowSpan/colSpan) no caben en Table de system.
   return (
     <table className="w-full min-w-[1920px] border-separate border-spacing-0 text-left text-sm">
       <thead className="sticky top-0 z-20 bg-muted text-muted-foreground shadow-sm">
@@ -301,7 +296,7 @@ function NormalizedVariablesTable({ rows }: Readonly<{ rows: readonly InternalEx
               rowSpan={2}
               className={cn(
                 "border-b border-border px-4 py-3 text-xs font-semibold uppercase",
-                index === 0 && "sticky left-0 z-30 min-w-[128px] bg-muted shadow-[10px_0_16px_-16px_rgba(15,23,42,0.55)]",
+                index === 0 && "sticky left-0 z-30 min-w-[128px] bg-muted shadow-[10px_0_16px_-16px_var(--shadow)]",
               )}
             >
               {header}
@@ -335,7 +330,7 @@ function NormalizedVariablesTable({ rows }: Readonly<{ rows: readonly InternalEx
           const projection = selectNormalizedProjection(row);
           return (
           <tr key={projection.personId} className={cn("transition", rowTone(projection.status))}>
-            <td className="sticky left-0 z-10 min-w-[128px] border-b border-border/70 bg-inherit px-4 py-3 font-mono shadow-[10px_0_16px_-16px_rgba(15,23,42,0.55)]">
+            <td className="sticky left-0 z-10 min-w-[128px] border-b border-border/70 bg-inherit px-4 py-3 font-mono shadow-[10px_0_16px_-16px_var(--shadow)]">
               {displayText(projection.personId)}
             </td>
             <td className="border-b border-border/70 px-4 py-3">{displayText(row.person) || "Sin dato"}</td>
@@ -418,26 +413,25 @@ export function CuadreExcelView() {
 
   if (!result) {
     return (
-      <Empty className="border">
-        <EmptyHeader>
-          <EmptyMedia variant="icon"><FileCheck2 /></EmptyMedia>
-          <EmptyTitle>No hay análisis activo</EmptyTitle>
-          <EmptyDescription>Carga el Registro Retributivo y los recibos para generar el Cuadre Reg.</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <EmptyState
+        icon={<FileCheck2 />}
+        title="No hay análisis activo"
+        description="Carga el Registro Retributivo y los recibos para generar el Cuadre Reg."
+      />
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <SectionTabs
-        label="Vistas de Cuadre Reg."
-        value={activeMode}
-        onValueChange={setActiveMode}
-        items={MODES.map((mode) => ({ value: mode.id, label: mode.label, tabId: `cuadre-${mode.id}-tab`, panelId: "cuadre-view-panel" }))}
-      />
+      <Tabs value={activeMode} onValueChange={(value) => setActiveMode(value as CuadreMode)} className="w-full">
+        <TabsList aria-label="Vistas de Cuadre Reg." className="no-scrollbar max-w-full overflow-x-auto">
+          {MODES.map((mode) => (
+            <TabsTrigger key={mode.id} value={mode.id}>{mode.label}</TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
-      <div id="cuadre-view-panel" role="tabpanel" aria-labelledby={`cuadre-${activeMode}-tab`} className="space-y-6">
+      <div id="cuadre-view-panel" role="tabpanel" aria-label={MODES.find((mode) => mode.id === activeMode)?.label ?? "Cuadre"} className="space-y-6">
       <p className="text-sm leading-6 text-muted-foreground">{activeDescription}</p>
 
       <section data-surface="metric-grid" aria-label="Resumen de Cuadre Reg." className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -448,9 +442,9 @@ export function CuadreExcelView() {
       </section>
 
       {activeMode === "breakdown" && result.internalExcelChecks.length > 0 && result.internalExcelChecks.every((row) => row.status === "OK") ? (
-        <Alert>
-          <AlertDescription>El Cuadre Reg. no presenta diferencias en No norm. / Desglose.</AlertDescription>
-        </Alert>
+        <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          El Cuadre Reg. no presenta diferencias en No norm. / Desglose.
+        </p>
       ) : null}
 
       <DataTableShell

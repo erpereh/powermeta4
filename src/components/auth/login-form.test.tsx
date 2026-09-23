@@ -1,8 +1,8 @@
 /** @vitest-environment jsdom */
 
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   loginAction: vi.fn(),
@@ -23,6 +23,10 @@ beforeEach(() => {
   mocks.debugLoginAction.mockResolvedValue({});
 });
 
+afterEach(() => {
+  cleanup();
+});
+
 describe("login form", () => {
   it("shows a separate no-input debug form only when the server enables it", async () => {
     const user = userEvent.setup();
@@ -34,10 +38,45 @@ describe("login form", () => {
 
     rerender(<LoginForm debugAuthEnabled />);
     const debugButton = screen.getByRole("button", { name: "Entrar en modo debug" });
-    expect(screen.getByText("o")).toBeTruthy();
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          content === "o" &&
+          element !== null &&
+          element.classList.contains("bg-card") &&
+          element.classList.contains("text-muted-foreground")
+        );
+      }),
+    ).toBeTruthy();
 
     await user.click(debugButton);
     expect(mocks.debugLoginAction).toHaveBeenCalledOnce();
     expect(mocks.loginAction).not.toHaveBeenCalled();
+  });
+
+  it("calls loginAction and not debugLoginAction when submitting Entrar", async () => {
+    const user = userEvent.setup();
+    render(<LoginForm debugAuthEnabled={false} />);
+    await user.type(screen.getByLabelText("Usuario Meta4"), "usuario");
+    await user.type(screen.getByLabelText("Contraseña"), "secreto");
+
+    await user.click(screen.getByRole("button", { name: /^Entrar$/ }));
+
+    expect(mocks.loginAction).toHaveBeenCalledOnce();
+    expect(mocks.debugLoginAction).not.toHaveBeenCalled();
+  });
+
+  it("shows a role=alert when loginAction returns an error", async () => {
+    const user = userEvent.setup();
+    mocks.loginAction.mockResolvedValue({ error: "Credenciales no válidas" });
+    render(<LoginForm debugAuthEnabled={false} />);
+    await user.type(screen.getByLabelText("Usuario Meta4"), "usuario");
+    await user.type(screen.getByLabelText("Contraseña"), "secreto");
+
+    await user.click(screen.getByRole("button", { name: /^Entrar$/ }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toBe("Credenciales no válidas");
+    expect(mocks.debugLoginAction).not.toHaveBeenCalled();
   });
 });

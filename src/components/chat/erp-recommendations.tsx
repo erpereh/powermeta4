@@ -3,7 +3,7 @@
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { useState, type RefObject } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/system";
 import { TOOL_ICONS, TOOL_MODULES, type ToolModuleId } from "@/lib/tools/registry";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +43,7 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
             <Button
               key={module.id}
               type="button"
-              variant="ghost"
+              variant={isActive ? "secondary" : "ghost"}
               size="sm"
               aria-label={module.name}
               aria-pressed={isActive}
@@ -51,15 +51,11 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
                 setActiveCategoryId((current) => (current === module.id ? null : module.id))
               }
               className={cn(
-                "min-h-9 gap-2 rounded-full border px-3 text-xs transition-colors",
-                isActive
-                  ? "border-border bg-muted font-medium text-foreground"
-                  : "border-transparent text-muted-foreground hover:border-border/70 hover:bg-card hover:text-foreground",
+                "min-h-8 gap-1.5 px-3 text-xs",
+                !isActive && "text-muted-foreground",
               )}
             >
-              <Icon
-                className={cn("size-4", isActive ? "text-foreground" : "text-muted-foreground")}
-              />
+              <Icon className={cn("size-3.5", isActive ? "text-foreground" : "text-muted-foreground")} />
               {module.name}
             </Button>
           );
@@ -79,7 +75,7 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
               send={false}
               type="button"
               onClick={focusComposer}
-              className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-border bg-transparent px-3 text-xs font-normal whitespace-nowrap text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+              className="inline-flex min-h-8 shrink-0 items-center justify-center rounded-full border border-border bg-transparent px-3 text-xs font-medium whitespace-nowrap text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
             >
               {action.name}
             </ThreadPrimitive.Suggestion>

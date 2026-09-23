@@ -1,21 +1,21 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/system";
 
 export function UsersListSkeleton() {
   return (
     <div
-      className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-8"
+      className="mx-auto w-full max-w-6xl space-y-5 px-4 py-6 sm:px-8"
       aria-busy="true"
       aria-label="Cargando listado de usuarios"
     >
-      <div className="flex flex-wrap items-center gap-3">
-        <Skeleton className="h-8 w-36" />
-        <Skeleton className="h-6 w-14 rounded-full" />
+      <div className="flex flex-wrap items-center gap-2.5">
+        <Skeleton className="h-7 w-32" />
+        <Skeleton className="h-6 w-12 rounded-full" />
       </div>
       <Skeleton className="h-4 w-72 max-w-full" />
-      <Skeleton className="h-9 w-full max-w-md" />
-      <div className="space-y-2 rounded-lg border border-border p-2">
+      <Skeleton className="h-11 w-full max-w-md rounded-full" />
+      <div className="space-y-2 overflow-hidden rounded-2xl border border-border p-2">
         <Skeleton className="h-10 w-full" />
-        {Array.from({ length: 9 }, (_, index) => (
+        {Array.from({ length: 8 }, (_, index) => (
           <Skeleton key={index} className="h-10 w-full" />
         ))}
       </div>

@@ -2,8 +2,9 @@
   isolation: isolate;
 }
 
-[data-slot="modal-shell"] {
-  max-width: min(64rem, calc(100vw - 2rem));
+[data-registro-retributivo-root] [data-slot="table-viewport"] {
+  min-width: 0;
+  max-width: 100%;
 }
 
 [data-registro-retributivo-root] [data-slot="table-viewport"] thead {
@@ -18,4 +19,10 @@
 [data-registro-retributivo-root] .tabular-nums,
 [data-registro-retributivo-root] td[align="right"] {
   font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 389.98px) {
+  [data-registro-retributivo-root] {
+    overflow-x: hidden;
+  }
 }

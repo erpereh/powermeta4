@@ -48,8 +48,7 @@ vi.mock("@/stores/use-workspace-store", () => ({
     }),
 }));
 
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { SidebarProvider } from "@/components/system";
 import { ToolsLaunchpad } from "./tools-launchpad";
 
 afterEach(() => {
@@ -78,11 +77,9 @@ beforeEach(() => {
 
 function renderLaunchpad() {
   return render(
-    <TooltipProvider>
-      <SidebarProvider>
-        <ToolsLaunchpad />
-      </SidebarProvider>
-    </TooltipProvider>,
+    <SidebarProvider>
+      <ToolsLaunchpad />
+    </SidebarProvider>,
   );
 }
 

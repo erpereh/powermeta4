@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Rediseño visual beUI - 2026-09-22
+
+- [x] Fachada `@/components/system` sobre beUI, tokens light/dark y
+      `next-themes`. Sin previews y sin sustituir `src/lib/utils.ts`.
+- [x] Login, shell, Inicio, chat, ajustes, usuarios y Registro Retributivo
+      en el mismo lenguaje. Arquitectura assistant-ui intacta. El composer
+      no muestra el modelo.
+- [x] Chrome shadcn y de Registro sin consumidores eliminado. Dependencias
+      `cmdk` y `@tanstack/react-table` quitadas. Añadidas
+      `@tanstack/react-virtual` y `shiki`.
+- [x] Verificación: `npm run typecheck` correcto; `npm test` 95 archivos,
+      490 pruebas correctas y 2 omitidas; `npm run build` correcto;
+      `git diff --check` correcto.
+- [x] `npm run lint`: `oxlint` sin errores nuevos (warnings previos de
+      Registro y del nombre Hire). `oxfmt --check` falla por falta de
+      configuración en 306 archivos. Preexistente.
+- [ ] Revisión visual en navegador (1440, 1024, 768, 390, light y dark).
+      No ejecutada: la sesión no tiene la máquina local.
+
 ## Alta de personas Meta4 - 2026-09-22 (nombre sin "Hire")
 
 - [x] `buildHireFileName` genera `AltaPersonas_<usuario>_<fecha>.xls` en vez

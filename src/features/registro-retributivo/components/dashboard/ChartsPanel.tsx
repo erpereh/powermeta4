@@ -3,15 +3,7 @@
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Badge, EmptyState } from "@/components/system";
 import type { AnalysisResult } from "@/features/registro-retributivo/types";
 import { cn } from "@/lib/utils";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
@@ -38,32 +30,31 @@ function ProfessionalChartCard({
   className,
 }: Readonly<{ title: string; subtitle: string; badge: string; children: React.ReactNode; className?: string }>) {
   return (
-    <Card data-testid="professional-chart-card" className={cn("overflow-hidden p-0", className)}>
-      <CardHeader className="border-b">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle>{title}</CardTitle>
-            <CardDescription className="max-w-xl">{subtitle}</CardDescription>
-          </div>
-          <Badge variant="outline" className="shrink-0">{badge}</Badge>
+    <section
+      data-testid="professional-chart-card"
+      className={cn("overflow-hidden rounded-xl border border-border bg-card", className)}
+    >
+      <div className="flex items-start justify-between gap-4 border-b border-border px-4 py-4">
+        <div>
+          <h3 className="text-base font-semibold text-foreground">{title}</h3>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">{subtitle}</p>
         </div>
-      </CardHeader>
-      <CardContent className="pt-6">{children}</CardContent>
-    </Card>
+        <Badge status="neutral" size="sm" className="shrink-0">
+          {badge}
+        </Badge>
+      </div>
+      <div className="p-4 pt-6">{children}</div>
+    </section>
   );
 }
 
 function EmptyChart() {
   return (
-    <Empty className="border">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <BarChart3 />
-        </EmptyMedia>
-        <EmptyTitle>Sin datos para graficar</EmptyTitle>
-        <EmptyDescription>Sube recibos y el Excel Reg. Retrib. para ver diferencias retributivas.</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
+    <EmptyState
+      icon={<BarChart3 />}
+      title="Sin datos para graficar"
+      description="Sube recibos y el Excel Reg. Retrib. para ver diferencias retributivas."
+    />
   );
 }
 
@@ -83,11 +74,14 @@ function countByStatus(result: AnalysisResult): Array<{ name: string; value: num
 function EuroTooltip({ active, payload, label }: Readonly<{ active?: boolean; payload?: readonly { value?: number; name?: string }[]; label?: string }>) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border bg-popover px-4 py-3 text-sm shadow-md">
-      <p className="font-semibold">{label}</p>
+    <div className="rounded-lg border border-border bg-popover px-4 py-3 text-sm shadow-md">
+      <p className="font-semibold text-foreground">{label}</p>
       {payload.map((entry) => (
         <p key={entry.name} className="mt-1 text-muted-foreground">
-          {entry.name}: <span className="font-semibold tabular-nums">{typeof entry.value === "number" ? formatEuro(entry.value) : entry.value}</span>
+          {entry.name}:{" "}
+          <span className="font-semibold tabular-nums text-foreground">
+            {typeof entry.value === "number" ? formatEuro(entry.value) : entry.value}
+          </span>
         </p>
       ))}
     </div>
@@ -102,7 +96,7 @@ function StatusStackedBar({ rows }: Readonly<{ rows: Array<{ name: string; value
       <div>
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-3xl font-semibold tabular-nums">{total}</p>
+            <p className="text-3xl font-semibold tabular-nums text-foreground">{total}</p>
             <p className="mt-1 text-sm text-muted-foreground">{total} personas analizadas</p>
           </div>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Distribución</span>
@@ -129,13 +123,16 @@ function StatusStackedBar({ rows }: Readonly<{ rows: Array<{ name: string; value
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         {rows.map((row) => (
-          <div key={row.name} className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-3 py-2">
-            <span className="flex items-center gap-2 text-sm font-medium">
+          <div key={row.name} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/40 px-3 py-2">
+            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
               <span className="size-2.5 rounded-full" style={{ backgroundColor: row.color }} />
               {row.name}
             </span>
-            <span className="text-sm font-semibold tabular-nums">
-              {row.value} <span className="text-xs font-medium text-muted-foreground">· {total ? Math.round((row.value / total) * 100) : 0}%</span>
+            <span className="text-sm font-semibold tabular-nums text-foreground">
+              {row.value}{" "}
+              <span className="text-xs font-medium text-muted-foreground">
+                · {total ? Math.round((row.value / total) * 100) : 0}%
+              </span>
             </span>
           </div>
         ))}
@@ -153,10 +150,10 @@ function SeparatedAmounts({ rows }: Readonly<{ rows: Array<{ name: string; value
         No se suman: cada importe representa un ámbito diferente de revisión.
       </p>
       {rows.map((row) => (
-        <div key={row.name} className="rounded-lg border bg-card p-4">
+        <div key={row.name} className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm font-semibold">{row.name}</span>
-            <span className="font-mono text-sm font-semibold tabular-nums">{formatEuro(row.value)}</span>
+            <span className="text-sm font-semibold text-foreground">{row.name}</span>
+            <span className="font-mono text-sm font-semibold tabular-nums text-foreground">{formatEuro(row.value)}</span>
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
             <motion.div
@@ -185,8 +182,8 @@ export function ChartsPanel({ result }: Readonly<{ result?: AnalysisResult }>) {
   ];
   const separatedAmounts = [
     { name: "Diferencia total matched", value: result.summary.matchedTotalDifference ?? result.summary.totalGlobalDifference, tone: "bg-primary" },
-    { name: "Pendiente decisión", value: result.summary.pendingDecisionPdfTotal ?? result.summary.pendingReviewAmount ?? 0, tone: "bg-orange-500" },
-    { name: "Recibo sin Reg. Retrib.", value: result.summary.totalPdfWithoutRegistro ?? 0, tone: "bg-violet-600" },
+    { name: "Pendiente decisión", value: result.summary.pendingDecisionPdfTotal ?? result.summary.pendingReviewAmount ?? 0, tone: "bg-[var(--chart-4)]" },
+    { name: "Recibo sin Reg. Retrib.", value: result.summary.totalPdfWithoutRegistro ?? 0, tone: "bg-[var(--chart-3)]" },
   ];
   const topPeople = [...(result.people ?? [])]
     .sort((a, b) => Math.abs(b.totalDifference) - Math.abs(a.totalDifference))
@@ -243,13 +240,11 @@ export function ChartsPanel({ result }: Readonly<{ result?: AnalysisResult }>) {
             </ResponsiveContainer>
           </div>
         ) : (
-          <Empty className="border">
-            <EmptyHeader>
-              <EmptyMedia variant="icon"><BarChart3 /></EmptyMedia>
-              <EmptyTitle>Sin diferencias</EmptyTitle>
-              <EmptyDescription>No hay diferencias para ordenar con el análisis activo.</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <EmptyState
+            icon={<BarChart3 />}
+            title="Sin diferencias"
+            description="No hay diferencias para ordenar con el análisis activo."
+          />
         )}
       </ProfessionalChartCard>
 

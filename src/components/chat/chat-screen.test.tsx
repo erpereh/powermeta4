@@ -55,8 +55,7 @@ vi.mock("@/components/assistant-ui/thread", () => ({
   ),
 }));
 
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { SidebarProvider } from "@/components/system";
 import { ChatScreen } from "./chat-screen";
 
 const CHAT: Chat = {
@@ -96,11 +95,9 @@ afterEach(() => {
 
 const renderChat = (chatStatus: GlobalChatStatus) =>
   render(
-    <TooltipProvider>
-      <SidebarProvider>
-        <ChatScreen requestedChatId="chat-1" chatStatus={chatStatus} />
-      </SidebarProvider>
-    </TooltipProvider>,
+    <SidebarProvider>
+      <ChatScreen requestedChatId="chat-1" chatStatus={chatStatus} />
+    </SidebarProvider>,
   );
 
 describe("ChatScreen global chat status", () => {

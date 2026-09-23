@@ -2,7 +2,7 @@
 
 import { Clock3 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/system";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 
 function formatDate(value?: string): string {
@@ -21,7 +21,7 @@ export function ActiveAnalysisCard() {
   return (
     <section
       aria-label="Análisis activo"
-      className="mt-auto rounded-xl border bg-card p-3 text-card-foreground"
+      className="mt-auto rounded-xl border border-border bg-card p-3 text-card-foreground"
     >
       <div className="flex items-start gap-2">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -36,7 +36,11 @@ export function ActiveAnalysisCard() {
           </p>
         </div>
       </div>
-      <Badge variant={aiConfigured ? "default" : "secondary"} className="mt-2 max-w-full whitespace-normal">
+      <Badge
+        status={aiConfigured ? "success" : "neutral"}
+        size="sm"
+        className="mt-2 max-w-full whitespace-normal"
+      >
         {aiBadge}
       </Badge>
     </section>

@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+/**
+ * Contenedor de toolbar + viewport de scroll para tablas semánticas especiales
+ * (cabeceras multinivel, celdas expandibles) donde Table de system no encaja.
+ * Misma densidad/tokens que el resto de superficies de producto.
+ */
 export function DataTableShell({
   toolbar,
   summary,
@@ -18,14 +22,20 @@ export function DataTableShell({
   viewportClassName?: string;
 }>) {
   return (
-    <Card data-surface="table-shell" className={cn("flex w-full min-w-0 max-w-full flex-col gap-0 overflow-hidden py-0", className)}>
+    <div
+      data-surface="table-shell"
+      className={cn(
+        "flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-xl border border-border bg-card",
+        className,
+      )}
+    >
       {toolbar ? (
-        <div data-slot="table-toolbar" className="min-w-0 shrink-0 border-b px-4 py-4 sm:px-5">
+        <div data-slot="table-toolbar" className="min-w-0 shrink-0 border-b border-border px-4 py-4 sm:px-5">
           {toolbar}
         </div>
       ) : null}
       {summary ? (
-        <div data-slot="table-summary" className="min-w-0 shrink-0 border-b bg-muted/40 px-4 py-3 sm:px-5">
+        <div data-slot="table-summary" className="min-w-0 shrink-0 border-b border-border bg-muted/40 px-4 py-3 sm:px-5">
           {summary}
         </div>
       ) : null}
@@ -36,6 +46,6 @@ export function DataTableShell({
         {children}
         {empty}
       </div>
-    </Card>
+    </div>
   );
 }

@@ -1,27 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, Download, FileArchive, ShieldCheck } from "lucide-react";
 
 import { getMeta4ProfileViewAction } from "@/app/actions/meta4-profile";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+  Badge,
+  Button,
+  EmptyState,
+  Input,
+  Loader,
+  Modal,
+  Skeleton,
+  StatefulButton,
+} from "@/components/system";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 import type { Meta4ProfileView } from "@/types/meta4-profile";
@@ -89,6 +83,24 @@ const formatBytes = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+function BusyStatus({
+  label,
+  message,
+}: {
+  label: string;
+  message: string;
+}) {
+  return (
+    <div className="flex items-start gap-3" role="status" aria-live="polite">
+      <Loader variant="spinner" size={18} label={label} className="mt-0.5 shrink-0" />
+      <div className="min-w-0 flex-1 space-y-2">
+        <Progress value={undefined} aria-label={label} className="bg-muted" />
+        <p className="text-sm text-muted-foreground">{message}</p>
+      </div>
+    </div>
+  );
+}
+
 export type SettingsContentProps = {
   variant?: "page" | "dialog";
   className?: string;
@@ -97,6 +109,7 @@ export type SettingsContentProps = {
 export function SettingsContent({ variant = "page", className }: SettingsContentProps) {
   const auth = useWorkspaceStore((state) => state.auth);
   const isDebugMode = auth?.mode === "debug";
+  const backupFileRef = useRef<HTMLInputElement>(null);
   const [activeSection, setActiveSection] = useState<SettingsSectionId>("person");
   const [profile, setProfile] = useState<Meta4ProfileView | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -163,7 +176,8 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
   };
 
   const handleValidate = async () => {
-    if (!selectedFile) {
+    const file = selectedFile ?? backupFileRef.current?.files?.[0] ?? null;
+    if (!file) {
       setError("Selecciona un archivo ZIP.");
       return;
     }
@@ -173,7 +187,7 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
     setValidation(null);
     try {
       const formData = new FormData();
-      formData.set("file", selectedFile);
+      formData.set("file", file);
       const response = await fetch("/api/backups/import/validate", {
         method: "POST",
         body: formData,
@@ -227,7 +241,13 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col gap-4", className)}>
       {(error || notice) && (
-        <Alert variant={error ? "destructive" : "default"}>
+        <Alert
+          variant={error ? "destructive" : "default"}
+          className={cn(
+            "border-border",
+            error ? "border-destructive/30 bg-destructive/5" : "bg-muted/40",
+          )}
+        >
           {error ? <AlertCircle /> : <CheckCircle2 />}
           <AlertTitle>
             {error ? "No se pudo completar la operación" : "Operación completada"}
@@ -240,20 +260,21 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
         className={cn(
           "grid min-h-0 flex-1 gap-4",
           variant === "dialog"
-            ? "md:grid-cols-[12rem_minmax(0,1fr)]"
-            : "md:grid-cols-[14rem_minmax(0,1fr)]",
+            ? "md:grid-cols-[11rem_minmax(0,1fr)]"
+            : "md:grid-cols-[13rem_minmax(0,1fr)]",
         )}
       >
         <nav
           aria-label="Secciones de ajustes"
-          className="flex flex-row gap-2 overflow-x-auto md:flex-col"
+          className="flex min-w-0 flex-row gap-1.5 overflow-x-auto md:flex-col md:overflow-visible"
         >
           {NAV_ITEMS.map((item) => (
             <Button
               key={item.id}
               type="button"
+              size="sm"
               variant={activeSection === item.id ? "secondary" : "ghost"}
-              className="justify-start"
+              className="shrink-0 justify-start rounded-lg"
               onClick={() => setActiveSection(item.id)}
             >
               {item.label}
@@ -261,75 +282,82 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
           ))}
         </nav>
 
-        <ScrollArea
+        <div
           className={cn(
-            "min-h-0",
-            variant === "dialog" ? "max-h-[calc(85vh-8rem)]" : "max-h-[70vh]",
+            "min-h-0 min-w-0",
+            variant === "page" && "max-h-[70vh] overflow-y-auto overscroll-contain pr-1",
           )}
         >
-          <div className="space-y-6 pr-3">
+          <div className="space-y-6">
             {activeSection === "backups" ? (
               <div className="space-y-6">
                 <section className="space-y-3">
-                  <h2 className="text-lg font-semibold">Exportar workspace</h2>
+                  <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+                    Exportar workspace
+                  </h2>
                   <p className="text-sm text-muted-foreground">
                     Incluye conversaciones, empresas, configuración funcional, actividad y uploads;
                     excluye secretos, sesiones y el perfil Meta4 cifrado.
                   </p>
-                  {busy === "export" && (
-                    <div className="space-y-2" role="status" aria-live="polite">
-                      <Progress value={undefined} aria-label="Creando copia" />
-                      <p className="text-sm text-muted-foreground">
-                        Creando una copia consistente...
-                      </p>
-                    </div>
-                  )}
-                  <Button
+                  {busy === "export" ? (
+                    <BusyStatus
+                      label="Creando copia"
+                      message="Creando una copia consistente..."
+                    />
+                  ) : null}
+                  <StatefulButton
                     type="button"
+                    variant="primary"
+                    state={busy === "export" ? "loading" : "idle"}
+                    loadingText="Creando copia..."
+                    icon={<Download className="size-4" aria-hidden="true" />}
                     onClick={() => void handleExport()}
                     disabled={busy !== null}
                   >
-                    <Download />
                     Crear y descargar ZIP
-                  </Button>
+                  </StatefulButton>
                 </section>
-                <Separator />
+
+                <div className="border-t border-border" role="separator" />
+
                 <section className="space-y-3">
-                  <h2 className="text-lg font-semibold">Restaurar workspace</h2>
+                  <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+                    Restaurar workspace
+                  </h2>
                   <p className="text-sm text-muted-foreground">
                     Primero se valida el ZIP y después se confirma el reemplazo local.
                   </p>
-                  <div className="space-y-2">
-                    <label htmlFor="backup-file" className="text-sm font-medium">
-                      Archivo ZIP
-                    </label>
-                    <Input
-                      id="backup-file"
-                      type="file"
-                      accept=".zip,application/zip"
-                      onChange={(event) => {
-                        setSelectedFile(event.target.files?.[0] ?? null);
-                        setValidation(null);
-                        setError("");
-                      }}
-                      disabled={busy !== null}
+                  <Input
+                    ref={backupFileRef}
+                    id="backup-file"
+                    name="file"
+                    type="file"
+                    accept=".zip,application/zip"
+                    label="Archivo ZIP"
+                    onChange={() => {
+                      setSelectedFile(backupFileRef.current?.files?.[0] ?? null);
+                      setValidation(null);
+                      setError("");
+                    }}
+                    disabled={busy !== null}
+                    classNames={{
+                      field: "h-auto min-h-11 rounded-xl",
+                      input: "py-2.5 file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-foreground",
+                    }}
+                  />
+                  {busy === "validate" ? (
+                    <BusyStatus
+                      label="Validando copia"
+                      message="Validando manifest, límites e integridad SQLite..."
                     />
-                  </div>
-                  {busy === "validate" && (
-                    <div className="space-y-2" role="status" aria-live="polite">
-                      <Progress value={undefined} aria-label="Validando copia" />
-                      <p className="text-sm text-muted-foreground">
-                        Validando manifest, límites e integridad SQLite...
-                      </p>
-                    </div>
-                  )}
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => void handleValidate()}
                     disabled={!selectedFile || busy !== null}
                   >
-                    <FileArchive />
+                    <FileArchive className="size-4" aria-hidden="true" />
                     Validar ZIP
                   </Button>
                 </section>
@@ -341,7 +369,7 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                 <Skeleton className="h-20 w-full" />
               </div>
             ) : isDebugMode || profile?.debugMode ? (
-              <Alert>
+              <Alert className="border-border bg-muted/40">
                 <AlertCircle />
                 <AlertTitle>Modo de desarrollo</AlertTitle>
                 <AlertDescription>
@@ -349,7 +377,10 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                 </AlertDescription>
               </Alert>
             ) : !profile?.available ? (
-              <Alert variant="destructive">
+              <Alert
+                variant="destructive"
+                className="border-destructive/30 bg-destructive/5"
+              >
                 <AlertCircle />
                 <AlertTitle>Perfil no disponible</AlertTitle>
                 <AlertDescription>
@@ -359,10 +390,14 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
             ) : (
               <section className="space-y-6">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-semibold">Datos de la persona</h2>
-                  {profile.societyCode && (
-                    <Badge variant="secondary">Sociedad activa: {profile.societyCode}</Badge>
-                  )}
+                  <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+                    Datos de la persona
+                  </h2>
+                  {profile.societyCode ? (
+                    <Badge status="neutral" size="sm" showIcon={false}>
+                      Sociedad activa: {profile.societyCode}
+                    </Badge>
+                  ) : null}
                 </div>
                 {profile.sections.length > 0 ? (
                   profile.sections.map((section) => (
@@ -373,19 +408,21 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                     >
                       <h3
                         id={`settings-${section.id}-heading`}
-                        className="font-heading text-base font-medium"
+                        className="font-heading text-base font-medium text-foreground"
                       >
                         {section.title}
                       </h3>
                       <dl className="grid gap-4 sm:grid-cols-2">
                         {section.fields.map((field) => (
-                          <div key={`${section.id}-${field.key}`} className="space-y-1">
+                          <div key={`${section.id}-${field.key}`} className="min-w-0 space-y-1">
                             <dt className="text-sm text-muted-foreground">{field.label}</dt>
-                            <dd className="text-sm font-medium break-words">{field.value}</dd>
+                            <dd className="text-sm font-medium break-words text-foreground">
+                              {field.value}
+                            </dd>
                           </div>
                         ))}
                       </dl>
-                      {section.id === "session" && (
+                      {section.id === "session" ? (
                         <div className="flex items-start gap-3 text-sm text-muted-foreground">
                           <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
                           <p>
@@ -393,73 +430,83 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                             se guardan en el navegador.
                           </p>
                         </div>
-                      )}
+                      ) : null}
                     </section>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">No hay datos de la persona.</p>
+                  <EmptyState title="No hay datos de la persona." />
                 )}
               </section>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
-      <AlertDialog
+      <Modal
         open={Boolean(validation)}
         onOpenChange={(open) => {
           if (!open && busy !== "restore") void cancelValidation();
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar restauración</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se reemplazará la base local y se cerrará la sesión actual. Esta acción no se puede
-              deshacer desde la aplicación.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {validation && (
-            <div className="space-y-2 rounded-xl border bg-muted/30 p-4 text-sm">
-              <p>
-                <strong>Versión de la aplicación:</strong> {validation.manifest.appVersion}{" "}
-                (informativa)
-              </p>
-              <p>
-                <strong>Esquema:</strong> {validation.manifest.databaseSchemaVersion}
-              </p>
-              <p>
-                <strong>Tamaño:</strong> {formatBytes(validation.compressedBytes)} comprimido /{" "}
-                {formatBytes(validation.uncompressedBytes)} descomprimido
-              </p>
-              <p>
-                <strong>Entradas:</strong> {validation.entryCount}
-              </p>
-              <p className="break-all text-xs text-muted-foreground">
-                <strong>Checksum:</strong> {validation.checksum}
-              </p>
-            </div>
-          )}
-          {busy === "restore" && (
-            <div className="space-y-2" role="status" aria-live="polite">
-              <Progress value={undefined} aria-label="Restaurando copia" />
-              <p className="text-sm text-muted-foreground">Revalidando y restaurando...</p>
-            </div>
-          )}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy === "restore"}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(event) => {
-                event.preventDefault();
-                void handleRestore();
-              }}
+        title="Confirmar restauración"
+        description="Se reemplazará la base local y se cerrará la sesión actual. Esta acción no se puede deshacer desde la aplicación."
+        size="sm"
+        dismissible={busy !== "restore"}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
               disabled={busy === "restore"}
+              onClick={() => {
+                if (busy !== "restore") void cancelValidation();
+              }}
+            >
+              Cancelar
+            </Button>
+            <StatefulButton
+              type="button"
+              variant="secondary"
+              state={busy === "restore" ? "loading" : "idle"}
+              loadingText="Restaurando..."
+              className="bg-destructive/10 text-destructive hover:bg-destructive/15"
+              disabled={busy === "restore"}
+              onClick={() => void handleRestore()}
             >
               Restaurar copia
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </StatefulButton>
+          </>
+        }
+      >
+        {validation ? (
+          <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">
+            <p>
+              <strong>Versión de la aplicación:</strong> {validation.manifest.appVersion}{" "}
+              (informativa)
+            </p>
+            <p>
+              <strong>Esquema:</strong> {validation.manifest.databaseSchemaVersion}
+            </p>
+            <p>
+              <strong>Tamaño:</strong> {formatBytes(validation.compressedBytes)} comprimido /{" "}
+              {formatBytes(validation.uncompressedBytes)} descomprimido
+            </p>
+            <p>
+              <strong>Entradas:</strong> {validation.entryCount}
+            </p>
+            <p className="break-all text-xs text-muted-foreground">
+              <strong>Checksum:</strong> {validation.checksum}
+            </p>
+          </div>
+        ) : null}
+        {busy === "restore" ? (
+          <div className="mt-4">
+            <BusyStatus
+              label="Restaurando copia"
+              message="Revalidando y restaurando..."
+            />
+          </div>
+        ) : null}
+      </Modal>
     </div>
   );
 }

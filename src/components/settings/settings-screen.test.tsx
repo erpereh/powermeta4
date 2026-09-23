@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/app-shell/app-shell", () => ({
   useWorkspaceHydrated: () => true,
@@ -23,11 +23,41 @@ vi.mock("@/app/actions/meta4-profile", () => ({
 vi.mock("@/stores/use-workspace-store", () => ({
   useWorkspaceStore: (selector: (state: { auth: unknown }) => unknown) =>
     selector({
-      auth: { mode: "debug", username: "DEBUG", canUseMeta4: false, societyCode: null, availableSocieties: [] },
+      auth: {
+        mode: "debug",
+        username: "DEBUG",
+        canUseMeta4: false,
+        societyCode: null,
+        availableSocieties: [],
+      },
     }),
 }));
 
 import { SettingsScreen } from "./settings-screen";
+
+beforeEach(() => {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  );
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+});
 
 describe("settings session view", () => {
   it("shows the debug mode Meta4 limitation through shared settings content", async () => {

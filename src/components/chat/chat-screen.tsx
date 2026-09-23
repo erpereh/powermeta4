@@ -13,8 +13,7 @@ import {
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { SidebarTrigger, Tooltip, useSidebar } from "@/components/system";
 import type { GlobalChatStatus } from "@/lib/chat/global-chat-client";
 import type { CompanyId } from "@/types/workspace";
 
@@ -81,19 +80,16 @@ export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
 
   return (
     <main className="flex h-svh min-h-0 flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border/70 px-3 sm:px-5">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <SidebarTrigger
-              aria-label={sidebarTriggerLabel}
-              aria-expanded={sidebarOpen}
-              title={sidebarTriggerLabel}
-            />
-          </TooltipTrigger>
-          <TooltipContent side="bottom">{sidebarTriggerLabel}</TooltipContent>
+      <header className="flex h-12 shrink-0 items-center gap-2.5 border-b border-border px-3 sm:h-14 sm:gap-3 sm:px-5">
+        <Tooltip content={sidebarTriggerLabel} side="bottom">
+          <SidebarTrigger
+            aria-label={sidebarTriggerLabel}
+            aria-expanded={sidebarOpen}
+            title={sidebarTriggerLabel}
+          />
         </Tooltip>
         <Separator orientation="vertical" className="h-5" />
-        <h1 className="min-w-0 truncate text-sm font-medium">{activeChat.title}</h1>
+        <h1 className="min-w-0 truncate text-sm font-medium text-foreground">{activeChat.title}</h1>
       </header>
 
       <div className="min-h-0 flex-1">

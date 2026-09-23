@@ -3,13 +3,7 @@
 import { Clock3 } from "lucide-react";
 import Link from "next/link";
 
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { EmptyState } from "@/components/system";
 import { TOOL_ICONS, getTool, getToolModule } from "@/lib/tools/registry";
 import type { ToolVisit } from "@/types/workspace";
 
@@ -29,22 +23,19 @@ export function ToolsRecentActivity({ recentTools }: ToolsRecentActivityProps) {
     <section className="space-y-3" aria-labelledby="recent-tools-heading">
       <div className="flex items-center gap-2">
         <Clock3 className="size-4 text-muted-foreground" aria-hidden="true" />
-        <h2 id="recent-tools-heading" className="text-sm font-medium">
+        <h2 id="recent-tools-heading" className="text-sm font-medium text-foreground">
           Actividad reciente
         </h2>
       </div>
       {visits.length === 0 ? (
-        <Empty className="border py-6">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Clock3 aria-hidden="true" />
-            </EmptyMedia>
-            <EmptyTitle>Sin actividad reciente</EmptyTitle>
-            <EmptyDescription>Las acciones que uses aparecerán aquí.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
+        <EmptyState
+          title="Sin actividad reciente"
+          description="Las acciones que uses aparecerán aquí."
+          icon={<Clock3 aria-hidden="true" />}
+          className="py-6"
+        />
       ) : (
-        <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
           {visits.map(({ visit, tool }) => {
             const Icon = TOOL_ICONS[tool.icon];
             const moduleName = getToolModule(tool.moduleId)?.name ?? tool.moduleId;
@@ -52,10 +43,12 @@ export function ToolsRecentActivity({ recentTools }: ToolsRecentActivityProps) {
               <li key={`${tool.id}-${visit.visitedAt}`}>
                 <Link
                   href={tool.route}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-accent/50 hover:text-primary"
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-elevated/70 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                 >
-                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  <span className="min-w-0 flex-1 truncate">{tool.name}</span>
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-elevated text-muted-foreground">
+                    <Icon className="size-3.5" aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-foreground">{tool.name}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">{moduleName}</span>
                 </Link>
               </li>

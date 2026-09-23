@@ -31,8 +31,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: mocks.refresh }),
 }));
 
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { SidebarProvider } from "@/components/system";
 import { POWERMETA_MARK_SRC } from "@/components/branding/powermeta-logo";
 import { SocietyHeader } from "./society-header";
 
@@ -63,6 +62,7 @@ beforeEach(() => {
     "matchMedia",
     vi.fn().mockImplementation(() => ({
       matches: false,
+      media: "",
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
     })),
@@ -71,11 +71,9 @@ beforeEach(() => {
 
 function renderHeader() {
   return render(
-    <TooltipProvider>
-      <SidebarProvider>
-        <SocietyHeader />
-      </SidebarProvider>
-    </TooltipProvider>,
+    <SidebarProvider>
+      <SocietyHeader />
+    </SidebarProvider>,
   );
 }
 

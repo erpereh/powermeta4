@@ -1,38 +1,52 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-  type SortingState,
-} from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { UserDetailDialog } from "@/components/tools/users/user-detail-dialog";
 import {
+  Badge,
+  Button,
+  EmptyState,
+  Input,
   Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  type TableProps,
+} from "@/components/system";
 import { compareEmployeeIds } from "@/lib/meta4/users/employee-id";
 import type { Meta4UserListItem } from "@/lib/meta4/users/types";
 import type { Meta4Society } from "@/lib/meta4/societies";
-import { UserDetailDialog } from "@/components/tools/users/user-detail-dialog";
 
 const PAGE_SIZE = 25;
+const ROW_HEIGHT = 48;
+const TABLE_HEIGHT = Math.min(PAGE_SIZE, 10) * ROW_HEIGHT + ROW_HEIGHT;
+
+type SortState = NonNullable<TableProps<Meta4UserListItem>["sort"]>;
 
 const normalizeSearch = (value: string): string =>
   value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+const employeeIdSortKey = (id: string): string => {
+  if (/^\d+$/.test(id)) {
+    const key = id.replace(/^0+/, "") || "0";
+    return `${String(key.length).padStart(4, "0")}:${key}:${id}`;
+  }
+  return `~:${id}`;
+};
+
+const compareRows = (
+  a: Meta4UserListItem,
+  b: Meta4UserListItem,
+  sort: SortState,
+): number => {
+  let cmp = 0;
+  if (sort.key === "id") {
+    cmp = compareEmployeeIds(a.id, b.id);
+  } else if (sort.key === "claveSelf") {
+    cmp = a.claveSelf.localeCompare(b.claveSelf, "es", { sensitivity: "base" });
+  } else if (sort.key === "fullName") {
+    cmp = a.fullName.localeCompare(b.fullName, "es", { sensitivity: "base" });
+  }
+  return sort.direction === "asc" ? cmp : -cmp;
+};
 
 export type UsersListTableProps = {
   society: Meta4Society;
@@ -40,180 +54,127 @@ export type UsersListTableProps = {
 };
 
 export function UsersListTable({ society, users }: UsersListTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([{ id: "id", desc: false }]);
+  const [sort, setSort] = useState<SortState | null>({ key: "id", direction: "asc" });
   const [globalFilter, setGlobalFilter] = useState("");
+  const [pageIndex, setPageIndex] = useState(0);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
-  const columns = useMemo<ColumnDef<Meta4UserListItem>[]>(
+  const columns = useMemo<TableProps<Meta4UserListItem>["columns"]>(
     () => [
       {
-        accessorKey: "id",
-        header: ({ column }) => (
-          <Button
-            type="button"
-            variant="ghost"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            aria-label="Ordenar por ID"
-          >
-            ID
-            <SortIcon sorted={column.getIsSorted()} />
-          </Button>
-        ),
-        sortingFn: (rowA, rowB) => compareEmployeeIds(rowA.original.id, rowB.original.id),
-        cell: ({ row }) => (
-          <span className="font-mono text-sm tabular-nums">{row.original.id}</span>
+        key: "id",
+        header: "ID",
+        sortable: true,
+        width: "96px",
+        sortValue: (row) => employeeIdSortKey(row.id),
+        cell: (row) => (
+          <span className="font-mono text-sm tabular-nums text-foreground">{row.id}</span>
         ),
       },
       {
-        accessorKey: "claveSelf",
-        header: ({ column }) => (
-          <Button
-            type="button"
-            variant="ghost"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            aria-label="Ordenar por usuario Meta4"
-          >
-            Usuario Meta4
-            <SortIcon sorted={column.getIsSorted()} />
-          </Button>
+        key: "claveSelf",
+        header: "Usuario Meta4",
+        sortable: true,
+        width: "148px",
+        sortValue: (row) => row.claveSelf,
+        cell: (row) => (
+          <span className="font-mono text-sm text-foreground">{row.claveSelf}</span>
         ),
-        sortingFn: (rowA, rowB) =>
-          rowA.original.claveSelf.localeCompare(rowB.original.claveSelf, "es", {
-            sensitivity: "base",
-          }),
-        cell: ({ row }) => <span className="font-mono text-sm">{row.original.claveSelf}</span>,
       },
       {
-        accessorKey: "fullName",
-        header: ({ column }) => (
-          <Button
-            type="button"
-            variant="ghost"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            aria-label="Ordenar por nombre y apellidos"
-          >
-            Nombre y apellidos
-            <SortIcon sorted={column.getIsSorted()} />
-          </Button>
+        key: "fullName",
+        header: "Nombre y apellidos",
+        sortable: true,
+        width: "240px",
+        sortValue: (row) => row.fullName,
+        cell: (row) => (
+          <span className="text-sm text-foreground">{row.fullName}</span>
         ),
-        sortingFn: (rowA, rowB) =>
-          rowA.original.fullName.localeCompare(rowB.original.fullName, "es", {
-            sensitivity: "base",
-          }),
       },
     ],
     [],
   );
 
-  const table = useReactTable({
-    data: users,
-    columns,
-    state: { sorting, globalFilter },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, _columnId, filterValue) => {
-      const query = normalizeSearch(String(filterValue ?? ""));
-      if (!query) return true;
-      const id = normalizeSearch(row.original.id);
-      const claveSelf = normalizeSearch(row.original.claveSelf);
-      const name = normalizeSearch(row.original.fullName);
+  const filteredUsers = useMemo(() => {
+    const query = normalizeSearch(globalFilter.trim());
+    if (!query) return users;
+    return users.filter((user) => {
+      const id = normalizeSearch(user.id);
+      const claveSelf = normalizeSearch(user.claveSelf);
+      const name = normalizeSearch(user.fullName);
       return id.includes(query) || claveSelf.includes(query) || name.includes(query);
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: { pageSize: PAGE_SIZE },
-    },
-  });
+    });
+  }, [users, globalFilter]);
 
-  const filteredCount = table.getFilteredRowModel().rows.length;
-  const pageIndex = table.getState().pagination.pageIndex;
-  const pageSize = table.getState().pagination.pageSize;
-  const from = filteredCount === 0 ? 0 : pageIndex * pageSize + 1;
-  const to = Math.min((pageIndex + 1) * pageSize, filteredCount);
+  const sortedUsers = useMemo(() => {
+    if (!sort) return filteredUsers;
+    return [...filteredUsers].sort((a, b) => compareRows(a, b, sort));
+  }, [filteredUsers, sort]);
+
+  const filteredCount = sortedUsers.length;
+  const pageCount = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
+  const safePageIndex = Math.min(pageIndex, pageCount - 1);
+  const pageStart = safePageIndex * PAGE_SIZE;
+  const pageUsers = sortedUsers.slice(pageStart, pageStart + PAGE_SIZE);
+  const from = filteredCount === 0 ? 0 : pageStart + 1;
+  const to = Math.min(pageStart + PAGE_SIZE, filteredCount);
   const hasSearch = globalFilter.trim().length > 0;
+  const tableHeight = Math.min(
+    TABLE_HEIGHT,
+    Math.max(ROW_HEIGHT * 3, pageUsers.length * ROW_HEIGHT + ROW_HEIGHT),
+  );
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-8">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Usuarios</h1>
-        <Badge variant="secondary">{society}</Badge>
-      </div>
-      <p className="text-sm text-muted-foreground">Todos los usuarios disponibles en {society}.</p>
+    <div className="mx-auto w-full max-w-6xl space-y-5 px-4 py-6 sm:px-8">
+      <header className="space-y-1.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Usuarios</h1>
+          <Badge status="neutral" size="sm">
+            {society}
+          </Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Todos los usuarios disponibles en {society}.
+        </p>
+      </header>
 
       {users.length === 0 ? (
-        <p className="text-sm text-muted-foreground" role="status">
-          No hay usuarios disponibles en {society}.
-        </p>
+        <EmptyState title={`No hay usuarios disponibles en ${society}.`} />
       ) : (
         <div className="space-y-4">
           <Input
             type="search"
             value={globalFilter}
-            onChange={(event) => {
-              setGlobalFilter(event.target.value);
-              table.setPageIndex(0);
+            onChange={(value) => {
+              setGlobalFilter(value);
+              setPageIndex(0);
             }}
             placeholder="Buscar por ID, usuario o nombre..."
             aria-label="Buscar por ID, usuario o nombre"
             className="max-w-md"
           />
 
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      {hasSearch
-                        ? "No hay usuarios que coincidan con la búsqueda."
-                        : `No hay usuarios disponibles en ${society}.`}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      tabIndex={0}
-                      aria-label={`Ver detalle de ${row.original.fullName}`}
-                      onClick={() => setSelectedEmployeeId(row.original.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedEmployeeId(row.original.id);
-                        }
-                      }}
-                      className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <Table
+            data={pageUsers}
+            columns={columns}
+            getRowId={(row) => row.id}
+            sort={sort}
+            onSortChange={(next) => {
+              setSort(next);
+              setPageIndex(0);
+            }}
+            defaultSort={{ key: "id", direction: "asc" }}
+            rowHeight={ROW_HEIGHT}
+            height={tableHeight}
+            emptyState={
+              hasSearch
+                ? "No hay usuarios que coincidan con la búsqueda."
+                : `No hay usuarios disponibles en ${society}.`
+            }
+            onRowActivate={(row) => setSelectedEmployeeId(row.id)}
+            getRowAriaLabel={(row) => `Ver detalle de ${row.fullName}`}
+            className="min-w-0"
+          />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground" aria-live="polite">
@@ -226,8 +187,8 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
+                onClick={() => setPageIndex((current) => Math.max(0, current - 1))}
+                disabled={safePageIndex <= 0}
               >
                 Anterior
               </Button>
@@ -235,8 +196,10 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
+                onClick={() =>
+                  setPageIndex((current) => Math.min(pageCount - 1, current + 1))
+                }
+                disabled={safePageIndex >= pageCount - 1 || filteredCount === 0}
               >
                 Siguiente
               </Button>
@@ -254,10 +217,4 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
       />
     </div>
   );
-}
-
-function SortIcon({ sorted }: { sorted: false | "asc" | "desc" }) {
-  if (sorted === "asc") return <ArrowUp className="ml-1 size-3.5" aria-hidden="true" />;
-  if (sorted === "desc") return <ArrowDown className="ml-1 size-3.5" aria-hidden="true" />;
-  return <ArrowUpDown className="ml-1 size-3.5 opacity-50" aria-hidden="true" />;
 }

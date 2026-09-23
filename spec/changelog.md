@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-22 - Rediseño visual con beUI
+
+### Cambios
+
+- La capa visual de producto pasa a beUI mediante la fachada
+  `src/components/system`. Light y dark se diseñan con tokens oklch en
+  `globals.css`. `next-themes` se conserva.
+- Shell, login, Inicio, chat, ajustes, usuarios y Registro Retributivo usan
+  esa fachada. El chat mantiene `ExternalStoreRuntime`, un Viewport, un
+  footer y un composer; no muestra el modelo.
+- Se eliminan primitivas shadcn que ya no importa ninguna pantalla y el
+  chrome paralelo de Registro (modal, toast, tabs, card, badge, toggle).
+  Quedan como infraestructura `dropdown-menu`, `textarea`, `alert`,
+  `progress`, `breadcrumb`, `avatar`, `card` y `separator`.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm test` — 95 archivos correctos; 490 pruebas correctas y 2 omitidas.
+- `npm run build` — correcto.
+- `git diff --check` — correcto (avisos CRLF de Git en Windows, sin errores
+  de espacio).
+- `npm run lint` — `oxlint` termina con los warnings previos de Registro y
+  del nombre de fichero Hire. `oxfmt --check` falla porque no hay
+  configuración y marca 306 archivos, incluidos no tocados. Preexistente.
+- Navegador no comprobado: esta sesión no tiene la máquina local donde corre
+  la app.
+
 ## 2026-09-22 - Nombre del fichero de alta sin "Hire"
 
 ### Cambios

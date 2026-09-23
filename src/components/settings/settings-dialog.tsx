@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Modal } from "@/components/system";
 import { SettingsContent } from "@/components/settings/settings-content";
 
 export type SettingsDialogProps = {
@@ -16,19 +10,17 @@ export type SettingsDialogProps = {
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="flex h-[85vh] w-[min(96vw,72rem)] max-w-5xl flex-col gap-4 overflow-hidden p-4 sm:max-w-5xl"
-        showCloseButton
-      >
-        <DialogHeader className="shrink-0">
-          <DialogTitle>Ajustes</DialogTitle>
-          <DialogDescription>
-            Perfil Meta4 y copias locales de este equipo.
-          </DialogDescription>
-        </DialogHeader>
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Ajustes"
+      description="Perfil Meta4 y copias locales de este equipo."
+      size="lg"
+      className="max-h-[min(85vh,calc(100dvh-2rem))]"
+    >
+      <div className="min-h-0 max-h-[calc(min(85vh,100dvh-2rem)-9rem)] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch]">
         <SettingsContent variant="dialog" className="min-h-0" />
-      </DialogContent>
-    </Dialog>
+      </div>
+    </Modal>
   );
 }
