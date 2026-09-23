@@ -3,9 +3,9 @@
 
 import {
   motion,
-  useReducedMotion,
   type Transition,
 } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { ChevronDown } from "lucide-react";
 import {
   useCallback,

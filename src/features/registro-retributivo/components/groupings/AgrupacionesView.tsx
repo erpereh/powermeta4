@@ -1,10 +1,19 @@
 "use client";
 
-import { Search, Table2 } from "lucide-react";
+import { Layers, Search, Table2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { DataTableShell } from "@/features/registro-retributivo/components/common/DataTableShell";
-import { EmptyState, Input, Tabs, TabsList, TabsTrigger } from "@/components/system";
+import {
+  Callout,
+  EmptyState,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/system";
 import type { GroupedExcelCell, GroupedExcelHeaderCell, GroupedExcelSheet } from "@/features/registro-retributivo/types";
 import { groupingHeaderSurface } from "@/features/registro-retributivo/ui/statusStyles";
 import { cn } from "@/features/registro-retributivo/utils/classNames";
@@ -69,6 +78,10 @@ function isMetricHeader(label: string): boolean {
     normalized.includes("varones") ||
     normalized.includes("diferencia")
   );
+}
+
+function isGroupedSheetName(value: string): value is GroupedSheetName {
+  return GROUPED_SHEETS.some((sheet) => sheet.fullName === value);
 }
 
 function sheetMetadata(sheetName: string) {
@@ -254,52 +267,52 @@ export function AgrupacionesView() {
 
       <DataTableShell
         toolbar={
-          <div className="flex flex-col gap-4">
-            <Tabs
-              value={activeSheetName}
-              onValueChange={(value) => {
-                setActiveSheetName(value as GroupedSheetName);
-                setQuery("");
-              }}
-              className="w-full"
-            >
-              <TabsList aria-label="Vistas de Agrupaciones" className="no-scrollbar max-w-full overflow-x-auto">
-                {GROUPED_SHEETS.map((sheet) => (
-                  <TabsTrigger key={sheet.fullName} value={sheet.fullName}>
-                    {sheet.shortLabel}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)] lg:items-end">
-              <div>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <Select
+                  value={activeSheetName}
+                  onValueChange={(value) => {
+                    if (!isGroupedSheetName(value)) return;
+                    setActiveSheetName(value);
+                    setQuery("");
+                  }}
+                >
+                  <SelectTrigger className="w-full min-w-0 sm:w-72" aria-label="Hoja de agrupación">
+                    <Layers className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <SelectValue placeholder="Selecciona una hoja" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GROUPED_SHEETS.map((sheet) => (
+                      <SelectItem key={sheet.fullName} value={sheet.fullName}>
+                        {sheet.fullName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <p
-                  className="text-sm font-semibold"
+                  className="hidden shrink-0 text-xs text-muted-foreground tabular-nums md:block"
                   aria-label={`${activeSheet.sheetName} · ${visibleRows.length} filas · ${activeSheet.visibleColumnCount} columnas`}
                 >
-                  {activeSheet.sheetName} · <span className="tabular-nums">{visibleRows.length} filas</span> · <span className="tabular-nums">{activeSheet.visibleColumnCount} columnas</span>
+                  {visibleRows.length} filas · {activeSheet.visibleColumnCount} columnas
                 </p>
-                {activeSheet.truncated ? <p className="mt-2 text-sm font-semibold leading-6 text-muted-foreground">{TRUNCATED_HISTORY_MESSAGE}</p> : null}
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute top-[2.35rem] left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                  <Input
-                    id="agrupaciones-search"
-                    label="Buscar en esta hoja"
-                    type="search"
-                    value={query}
-                    onChange={setQuery}
-                    placeholder="Buscar en esta hoja"
-                    classNames={{ input: "pl-9" }}
-                  />
-                </div>
-              </div>
+              <Input
+                id="agrupaciones-search"
+                type="search"
+                aria-label="Buscar en esta hoja"
+                value={query}
+                onChange={setQuery}
+                placeholder="Buscar en esta hoja"
+                leftIcon={<Search className="size-4" aria-hidden="true" />}
+                className="min-w-0 sm:w-72"
+              />
             </div>
+            {activeSheet.truncated ? <Callout status="info" title="Hoja guardada parcialmente">{TRUNCATED_HISTORY_MESSAGE}</Callout> : null}
           </div>
         }
       >
-        <div role="tabpanel" id={SHEET_PANEL_ID} aria-label={activeSheet.sheetName} className="min-w-0">
+        <div role="region" id={SHEET_PANEL_ID} aria-label={activeSheet.sheetName} className="min-w-0">
           {/* Excepción: cabeceras agrupadas multinivel sticky; Table de system no aplica. */}
           {sheetMessage(activeSheet) ? (
             <p className="p-6 text-sm font-semibold text-muted-foreground">{sheetMessage(activeSheet)}</p>

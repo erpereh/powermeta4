@@ -2,8 +2,9 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3 } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
-import { Badge, EmptyState } from "@/components/system";
+import { motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { EmptyState, Surface, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/system";
 import type { AnalysisResult } from "@/features/registro-retributivo/types";
 import { cn } from "@/lib/utils";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
@@ -21,32 +22,6 @@ const STATUS_LABELS: Record<string, string> = {
   "Sin Registro": "Recibo sin Reg. Retrib.",
   "Sin PDF": "Reg. Retrib. sin Recibo",
 };
-
-function ProfessionalChartCard({
-  title,
-  subtitle,
-  badge,
-  children,
-  className,
-}: Readonly<{ title: string; subtitle: string; badge: string; children: React.ReactNode; className?: string }>) {
-  return (
-    <section
-      data-testid="professional-chart-card"
-      className={cn("overflow-hidden rounded-xl border border-border bg-card", className)}
-    >
-      <div className="flex items-start justify-between gap-4 border-b border-border px-4 py-4">
-        <div>
-          <h3 className="text-base font-semibold text-foreground">{title}</h3>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">{subtitle}</p>
-        </div>
-        <Badge status="neutral" size="sm" className="shrink-0">
-          {badge}
-        </Badge>
-      </div>
-      <div className="p-4 pt-6">{children}</div>
-    </section>
-  );
-}
 
 function EmptyChart() {
   return (
@@ -92,51 +67,34 @@ function StatusStackedBar({ rows }: Readonly<{ rows: Array<{ name: string; value
   const total = rows.reduce((sum, row) => sum + row.value, 0);
 
   return (
-    <div className="flex min-h-56 flex-col justify-center gap-5">
-      <div>
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <p className="text-3xl font-semibold tabular-nums text-foreground">{total}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{total} personas analizadas</p>
-          </div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Distribución</span>
-        </div>
-        <div
-          role="img"
-          aria-label={`Distribución de estados: ${total} personas analizadas. ${rows.map((row) => `${row.name}: ${row.value}`).join(". ")}`}
-          className="mt-4 flex h-12 w-full overflow-hidden rounded-xl bg-muted"
-        >
-          {rows.map((row) => {
-            const percentage = total ? (row.value / total) * 100 : 0;
-            return (
-              <div
-                key={row.name}
-                title={`${row.name}: ${row.value} (${percentage.toFixed(1)}%)`}
-                className="flex min-w-0 items-center justify-center border-r border-background/80 text-xs font-semibold text-primary-foreground last:border-r-0"
-                style={{ width: `${percentage}%`, backgroundColor: row.color }}
-              >
-                {percentage >= 15 ? `${Math.round(percentage)}%` : null}
-              </div>
-            );
-          })}
-        </div>
+    <div className="flex flex-col gap-3">
+      <div
+        role="img"
+        aria-label={`Distribución de estados: ${total} personas analizadas. ${rows.map((row) => `${row.name}: ${row.value}`).join(". ")}`}
+        className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full"
+      >
+        {rows.map((row) => {
+          const percentage = total ? (row.value / total) * 100 : 0;
+          return (
+            <div
+              key={row.name}
+              title={`${row.name}: ${row.value} (${percentage.toFixed(1)}%)`}
+              className="h-full min-w-1 first:rounded-l-full last:rounded-r-full"
+              style={{ width: `${percentage}%`, backgroundColor: row.color }}
+            />
+          );
+        })}
       </div>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <ul className="flex flex-wrap gap-x-5 gap-y-1.5">
         {rows.map((row) => (
-          <div key={row.name} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/40 px-3 py-2">
-            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: row.color }} />
-              {row.name}
-            </span>
-            <span className="text-sm font-semibold tabular-nums text-foreground">
-              {row.value}{" "}
-              <span className="text-xs font-medium text-muted-foreground">
-                · {total ? Math.round((row.value / total) * 100) : 0}%
-              </span>
-            </span>
-          </div>
+          <li key={row.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span aria-hidden="true" className="size-2 rounded-full" style={{ backgroundColor: row.color }} />
+            {row.name}
+            <span className="font-semibold text-foreground tabular-nums">{row.value}</span>
+            <span className="tabular-nums">· {total ? Math.round((row.value / total) * 100) : 0}%</span>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
@@ -146,16 +104,16 @@ function SeparatedAmounts({ rows }: Readonly<{ rows: Array<{ name: string; value
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium leading-6 text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         No se suman: cada importe representa un ámbito diferente de revisión.
       </p>
       {rows.map((row) => (
-        <div key={row.name} className="rounded-lg border border-border bg-card p-4">
+        <div key={row.name}>
           <div className="flex items-center justify-between gap-4">
             <span className="text-sm font-semibold text-foreground">{row.name}</span>
             <span className="font-mono text-sm font-semibold tabular-nums text-foreground">{formatEuro(row.value)}</span>
           </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: Math.max(Math.abs(row.value) / max, 0.03) }}
@@ -194,63 +152,73 @@ export function ChartsPanel({ result }: Readonly<{ result?: AnalysisResult }>) {
     }));
 
   return (
-    <section className="grid gap-4 xl:grid-cols-2">
-      <ProfessionalChartCard title="Estado de personas" subtitle="Vista compacta del estado operativo de las filas de personas." badge="Estado">
-        {statusRows.length ? <StatusStackedBar rows={statusRows} /> : <EmptyChart />}
-      </ProfessionalChartCard>
-
-      <ProfessionalChartCard title="Diferencias matched por bloque" subtitle="Solo personas encontradas en Reg. Retrib. y Recibo; positivos y negativos se mantienen visibles." badge="EUR">
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={byBlock} margin={{ top: 10, right: 10, bottom: 4, left: -4 }}>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="3 6" vertical={false} />
-              <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
-              <YAxis width={64} tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
-              <Tooltip content={<EuroTooltip />} cursor={{ fill: "color-mix(in oklch, var(--primary) 6%, transparent)" }} />
-              <Bar dataKey="value" name="Diferencia" radius={[8, 8, 8, 8]} isAnimationActive={animate} animationDuration={650}>
-                {byBlock.map((row) => (
-                  <Cell key={row.name} fill={row.value < 0 ? "var(--destructive)" : "var(--primary)"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </ProfessionalChartCard>
-
-      <ProfessionalChartCard title="Top diferencias" subtitle="Ranking de diferencias absolutas para priorizar revisión manual." badge="Top 10">
-        {topPeople.length ? (
-          <div className="h-80">
+    <Surface
+      data-testid="charts-panel"
+      title="Estado y diferencias"
+      description={`${statusRows.reduce((sum, row) => sum + row.value, 0)} personas analizadas`}
+      className="rounded-2xl"
+    >
+      {statusRows.length ? <StatusStackedBar rows={statusRows} /> : null}
+      <Tabs variant="segment" defaultValue="blocks" className="mt-5">
+        <TabsList aria-label="Gráficas del análisis" className="bg-muted">
+          <TabsTrigger value="blocks">Por bloque</TabsTrigger>
+          <TabsTrigger value="top">Top 10</TabsTrigger>
+          <TabsTrigger value="amounts">Importes separados</TabsTrigger>
+        </TabsList>
+        <TabsContent value="blocks">
+          <p className="text-xs text-muted-foreground">
+            Solo personas encontradas en Reg. Retrib. y Recibo; positivos y negativos se mantienen visibles.
+          </p>
+          <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topPeople} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }} barCategoryGap="18%">
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 6" horizontal={false} />
-                <XAxis type="number" tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  width={168}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={0}
-                  tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
-                  tickFormatter={(value: string) => (value.length > 28 ? `${value.slice(0, 27)}…` : value)}
-                />
+              <BarChart data={byBlock} margin={{ top: 10, right: 10, bottom: 4, left: -4 }}>
+                <CartesianGrid stroke="var(--border)" strokeDasharray="3 6" vertical={false} />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+                <YAxis width={64} tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
                 <Tooltip content={<EuroTooltip />} cursor={{ fill: "color-mix(in oklch, var(--primary) 6%, transparent)" }} />
-                <Bar dataKey="value" name="Diferencia absoluta" fill="var(--chart-2)" radius={[0, 8, 8, 0]} isAnimationActive={animate} animationDuration={650} />
+                <Bar dataKey="value" name="Diferencia" radius={[8, 8, 8, 8]} maxBarSize={72} isAnimationActive={animate} animationDuration={650}>
+                  {byBlock.map((row) => (
+                    <Cell key={row.name} fill={row.value < 0 ? "var(--destructive)" : "var(--primary)"} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-        ) : (
-          <EmptyState
-            icon={<BarChart3 />}
-            title="Sin diferencias"
-            description="No hay diferencias para ordenar con el análisis activo."
-          />
-        )}
-      </ProfessionalChartCard>
-
-      <ProfessionalChartCard title="Importes separados" subtitle="Comparación visual entre matched, pendiente y Recibo sin Reg. Retrib. sin mezclar ámbitos." badge="No se suman">
-        <SeparatedAmounts rows={separatedAmounts} />
-      </ProfessionalChartCard>
-    </section>
+        </TabsContent>
+        <TabsContent value="top">
+          {topPeople.length ? (
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topPeople} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }} barCategoryGap="18%">
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="3 6" horizontal={false} />
+                  <XAxis type="number" tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={168}
+                    tickLine={false}
+                    axisLine={false}
+                    interval={0}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    tickFormatter={(value: string) => (value.length > 28 ? `${value.slice(0, 27)}…` : value)}
+                  />
+                  <Tooltip content={<EuroTooltip />} cursor={{ fill: "color-mix(in oklch, var(--primary) 6%, transparent)" }} />
+                  <Bar dataKey="value" name="Diferencia absoluta" fill="var(--chart-2)" radius={[0, 8, 8, 0]} isAnimationActive={animate} animationDuration={650} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <EmptyState
+              icon={<BarChart3 />}
+              title="Sin diferencias"
+              description="No hay diferencias para ordenar con el análisis activo."
+            />
+          )}
+        </TabsContent>
+        <TabsContent value="amounts">
+          <SeparatedAmounts rows={separatedAmounts} />
+        </TabsContent>
+      </Tabs>
+    </Surface>
   );
 }

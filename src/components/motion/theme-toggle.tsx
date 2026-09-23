@@ -3,7 +3,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useEffect, useState, type ComponentPropsWithoutRef } from "react";
 import { ActionSwapIcon } from "@/components/motion/action-swap";
 import { EASE_OUT_CSS } from "@/lib/ease";
@@ -127,7 +127,7 @@ export function useThemeToggle({
   start = "bottom-up",
 }: { variant?: ThemeVariant; start?: RectStart } = {}) {
   const { setTheme, resolvedTheme } = useTheme();
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   useEffect(() => {

@@ -1,5 +1,38 @@
 # powermeta4 - estado de tareas
 
+## Rediseño beUI por fases - 2026-09-23
+
+- [x] Fase 1: base de fachada, shell e Inicio.
+- [ ] Revisión visual de la fase 1 por el usuario.
+- [x] Fase 2: Registro Retributivo (shell a dos barras, Inicio por pasos,
+      Personas con Drawer, Cuadre, Agrupaciones, Historial, Ajustes e IA).
+- [ ] Instalar `expandable-tabs`, `overflow-actions` y `range-slider-inline`
+      de `@beui` cuando beui.dev sea accesible (hoy bloqueado por red; se
+      usan Tabs underline, Menu e Input como equivalentes).
+- [ ] Revisión visual de la fase 2 (1440/1024/768/390, claro y oscuro).
+- [ ] Fase 3: Usuarios.
+- [ ] Fase 4: Chat (runtime intacto).
+- [ ] Fase 5: Login, Ajustes y limpieza de shadcn.
+
+## Paleta beUI y acento configurable - 2026-09-23
+
+- [x] Tokens light/dark con la paleta beUI (oklch).
+- [x] Presets de acento en `globals.css` y mapa tipado `ACCENT_PRESETS`.
+- [x] Ajustes > Apariencia con tema y color de acento persistente.
+- [x] Verificación: typecheck, test (457 correctas), build, `oxlint` y
+      `git diff --check` correctos. `oxfmt --check` falla (preexistente).
+- [ ] Revisión visual de cada preset en light y dark en navegador.
+
+## Registro Retributivo: navegación superior e hidratación - 2026-09-23
+
+- [x] Navegación interna en barra horizontal superior; `<aside>` eliminado.
+- [x] Análisis activo compacto en línea en la barra (desde `lg`).
+- [x] Hook `useReducedMotion` seguro para hidratación en `src/hooks` y
+      adoptado en los 42 componentes motion/agents/Registro.
+- [x] Verificación: typecheck, test (456 correctas), build, `oxlint` y
+      `git diff --check` correctos. `oxfmt --check` falla (preexistente).
+- [ ] Comprobar en navegador que el overlay de Next no muestra issues.
+
 ## beUI para Claude Code (proyecto) - 2026-09-23
 
 - [x] Skill `beui` a nivel de proyecto en `.claude/skills/beui/SKILL.md`,

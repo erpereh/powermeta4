@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   useEffect,
   useRef,
@@ -30,7 +30,7 @@ export function TextScramble({
   className,
   style,
 }: TextScrambleProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const [display, setDisplay] = useState(text);
   const mounted = useRef(false);
 

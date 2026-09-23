@@ -1,33 +1,40 @@
 "use client";
 
 import {
+  ChevronDown,
   Copy,
   Download,
   FileJson,
   MoreHorizontal,
   Pencil,
   Plus,
-  Power,
-  PowerOff,
   RefreshCcw,
   RotateCcw,
   Save,
   Search,
   Trash2,
 } from "lucide-react";
-import type { MouseEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import {
+  Badge,
   Button,
+  Drawer,
   Input,
-  Modal,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuSeparator,
+  MenuTrigger,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
   Switch,
+  Tooltip,
+  type AnimatedBadgeStatus,
 } from "@/components/system";
 import { Textarea } from "@/components/ui/textarea";
 import { isRuleEnabledForComparison, mergeConceptMap, normalizeConceptMappingRule, normalizePdfConcept } from "@/features/registro-retributivo/compare/conceptMapping";
@@ -40,7 +47,6 @@ import type {
   RetributionBlock,
   UnmappedConceptRow,
 } from "@/features/registro-retributivo/types";
-import { STATUS_BADGE_TONE } from "@/features/registro-retributivo/ui/statusStyles";
 import { cn } from "@/features/registro-retributivo/utils/classNames";
 import { normalizeComparableText } from "@/features/registro-retributivo/utils/normalize";
 
@@ -104,7 +110,6 @@ const SOURCE_TYPES: readonly ConceptMappingSourceType[] = ["devengo", "informati
 const DEDUPE_PRIORITIES: readonly ConceptDedupePriority[] = ["devengo", "informativo"];
 
 const MAP_NOTE = "Activo = se usa en el análisis. Desactivado = se ignora al actualizar datos.";
-const TOP_ACTION_CLASS = "min-h-11 whitespace-nowrap rounded-full px-4";
 
 const EMPTY_RULE_FORM: RuleForm = {
   pdfConcept: "",
@@ -340,10 +345,10 @@ function rowMatches(row: ConceptMapRow, query: string): boolean {
   return values.some((value) => normalizeComparableText(value).includes(normalizedQuery));
 }
 
-function statusBadgeClass(status: UsageLabel): string {
-  if (status === "Activo") return STATUS_BADGE_TONE.success;
-  if (status === "Sin configurar") return STATUS_BADGE_TONE.warning;
-  return STATUS_BADGE_TONE.neutral;
+function usageBadgeStatus(status: UsageLabel): AnimatedBadgeStatus {
+  if (status === "Activo") return "success";
+  if (status === "Sin configurar") return "warning";
+  return "neutral";
 }
 
 function shortText(value: string | undefined, fallback: string): string {
@@ -351,42 +356,30 @@ function shortText(value: string | undefined, fallback: string): string {
   return text.length > 96 ? `${text.slice(0, 93)}...` : text;
 }
 
-function IconButton({
+function RowAction({
   label,
-  title,
-  tone = "neutral",
-  disabled,
+  danger,
   onClick,
   children,
 }: {
   readonly label: string;
-  readonly title?: string;
-  readonly tone?: "neutral" | "danger" | "active" | "inactive";
-  readonly disabled?: boolean;
-  readonly onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  readonly danger?: boolean;
+  readonly onClick: () => void;
   readonly children: ReactNode;
 }) {
-  const toneClass = {
-    neutral: "border-border bg-card text-foreground hover:bg-muted",
-    danger: cn("border-transparent", STATUS_BADGE_TONE.danger, "hover:bg-destructive/20"),
-    active: cn("border-transparent", STATUS_BADGE_TONE.success, "hover:bg-chart-2/25"),
-    inactive: cn("border-transparent", STATUS_BADGE_TONE.neutral, "hover:bg-muted/80"),
-  }[tone];
-
   return (
-    <button
-      type="button"
-      aria-label={label}
-      title={title ?? label}
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(
-        "inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50",
-        toneClass,
-      )}
-    >
-      {children}
-    </button>
+    <Tooltip content={label}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={label}
+        onClick={onClick}
+        className={cn("size-8 text-muted-foreground", danger && "hover:text-destructive")}
+      >
+        {children}
+      </Button>
+    </Tooltip>
   );
 }
 
@@ -409,7 +402,6 @@ export function ConceptMapEditor() {
   const [editingIndex, setEditingIndex] = useState<number | "new" | undefined>();
   const [form, setForm] = useState<RuleForm>(EMPTY_RULE_FORM);
   const [message, setMessage] = useState<string | undefined>();
-  const [moreOpen, setMoreOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState("");
   const [expandedRow, setExpandedRow] = useState<string | undefined>();
@@ -567,7 +559,6 @@ export function ConceptMapEditor() {
     setJsonDraft(JSON.stringify(defaults, null, 2));
     updateSettings({ conceptMap: [] });
     resetFilters();
-    setMoreOpen(false);
     setJsonOpen(false);
     setMessage("Mapa restaurado por defecto.");
   }
@@ -613,103 +604,87 @@ export function ConceptMapEditor() {
   ];
 
   return (
-    <section data-surface="concept-map-layout" className="rounded-xl border border-border bg-card p-4 sm:p-6">
-      {/* Excepción: tabla con acciones anidadas / formularios; Table de system pierde campos. */}
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-        <div className="max-w-3xl">
-          <h2 className="text-xl font-semibold text-foreground">Conceptos del análisis</h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">Activa o desactiva conceptos para decidir qué entra en la comparativa.</p>
-          <p className="mt-1 text-xs font-medium leading-5 text-muted-foreground">{MAP_NOTE}</p>
+    <section data-surface="concept-map-layout" className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      {/* Excepción: tabla con acciones por fila; Table de system pierde campos. */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-2xl">
+          <h2 className="text-sm font-semibold text-foreground">Conceptos del análisis</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">{MAP_NOTE}</p>
         </div>
-        <div className="relative flex flex-wrap items-center gap-2 xl:justify-end">
-          <Button type="button" className={TOP_ACTION_CLASS} onClick={() => openRule()}>
-            <Plus className="h-4 w-4" aria-hidden="true" />
+        <div className="flex shrink-0 items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => persistRules(rules, "Mapa de conceptos guardado.")}>
+            <Save className="size-3.5" aria-hidden="true" />
+            Guardar
+          </Button>
+          <Button type="button" variant="primary" size="sm" onClick={() => openRule()}>
+            <Plus className="size-3.5" aria-hidden="true" />
             Crear regla
           </Button>
-          <Button type="button" className={TOP_ACTION_CLASS} onClick={() => persistRules(rules, "Mapa de conceptos guardado.")}>
-            <Save className="h-4 w-4" aria-hidden="true" />
-            Guardar mapa
-          </Button>
-          <Button type="button" variant="outline" className={TOP_ACTION_CLASS} onClick={() => void saveConceptMapAndRefresh(rules)}>
-            <RefreshCcw className="h-4 w-4" aria-hidden="true" />
-            Actualizar datos
-          </Button>
-          <Button type="button" variant="outline" className={TOP_ACTION_CLASS} onClick={resetDefault}>
-            <RotateCcw className="h-4 w-4" aria-hidden="true" />
-            Restaurar defecto
-          </Button>
-          <Button type="button" variant="outline" className={TOP_ACTION_CLASS} aria-expanded={moreOpen} onClick={() => setMoreOpen((current) => !current)}>
-            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-            Más opciones
-          </Button>
-          {moreOpen ? (
-            <div className="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl border border-border bg-popover p-3 shadow-lg">
-              <div className="grid gap-2">
-                <Button type="button" variant="outline" className="justify-start" onClick={exportMap}>
-                  <Download className="h-4 w-4" aria-hidden="true" />
-                  Exportar mapa
-                </Button>
-                <Button type="button" variant="outline" className="justify-start" onClick={importMap}>
-                  <FileJson className="h-4 w-4" aria-hidden="true" />
-                  Importar mapa
-                </Button>
-              </div>
-            </div>
-          ) : null}
+          <Menu>
+            <MenuTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" aria-label="Más opciones del mapa">
+                <MoreHorizontal className="size-4" aria-hidden="true" />
+              </Button>
+            </MenuTrigger>
+            <MenuContent align="end" className="w-56">
+              <MenuItem onSelect={() => void saveConceptMapAndRefresh(rules)}>
+                <RefreshCcw />
+                <span>Guardar y actualizar datos</span>
+              </MenuItem>
+              <MenuItem onSelect={exportMap}>
+                <Download />
+                <span>Exportar mapa</span>
+              </MenuItem>
+              <MenuItem onSelect={importMap}>
+                <FileJson />
+                <span>Importar mapa</span>
+              </MenuItem>
+              <MenuSeparator />
+              <MenuItem className="text-destructive focus:text-destructive" onSelect={resetDefault}>
+                <RotateCcw />
+                <span>Restaurar por defecto</span>
+              </MenuItem>
+            </MenuContent>
+          </Menu>
         </div>
       </div>
 
-      <div data-surface="concept-map-metrics" className="mt-5 grid overflow-hidden rounded-2xl border border-border bg-muted/50 xl:grid-cols-5 xl:divide-x xl:divide-y-0 xl:divide-border/80">
+      <div data-surface="concept-map-metrics" role="group" aria-label="Filtros rápidos" className="mt-4 flex flex-wrap gap-2">
         {summaryCards.map((item) => (
           <button
             key={item.label}
             type="button"
+            aria-pressed={item.active}
             aria-label={`${item.label} ${item.value}`}
             onClick={item.action}
             className={cn(
-              "border-t border-border/70 px-4 py-3 text-left transition-colors first:border-t-0 hover:bg-muted/80 xl:border-t-0",
-              item.active ? "bg-primary/10 text-primary" : "bg-transparent",
+              "inline-flex min-h-9 items-center gap-2 rounded-full border px-3.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              item.active ? "border-primary/40 bg-selected text-foreground" : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <span className="block text-xs font-semibold uppercase text-muted-foreground">{item.label}</span>
-            <span className="mt-1 block text-2xl font-semibold text-foreground">{item.value}</span>
+            {item.label}
+            <span className="font-semibold tabular-nums text-foreground">{item.value}</span>
           </button>
         ))}
       </div>
 
-      <section className="mt-6 border-t border-border pt-5" aria-label="Reglas y conceptos">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-lg font-semibold text-foreground">Reglas y conceptos</h3>
-          <p className="text-sm leading-6 text-muted-foreground">Regla del mapa = configuración guardada. Concepto sin regla = concepto detectado en este análisis que requiere decisión.</p>
-        </div>
+      <section className="mt-5" aria-label="Reglas y conceptos">
+        <p className="sr-only">Regla del mapa = configuración guardada. Concepto sin regla = concepto detectado en este análisis que requiere decisión.</p>
 
-        <div className="-mx-4 mt-4 grid gap-3 border-y border-border bg-muted/30 px-4 py-4 sm:-mx-6 sm:px-6 xl:grid-cols-[minmax(280px,1.4fr)_180px_220px_220px]">
-          <div className="relative">
-            <label className="text-sm font-medium text-foreground" htmlFor="concept-map-search">Buscar</label>
-            <Search className="pointer-events-none absolute bottom-3 left-3 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="concept-map-search"
-              value={query}
-              onChange={(value) => setQuery(value)}
-              placeholder="Buscar por concepto, código, bloque o motivo"
-              className="mt-2 h-12 rounded-full pl-10"
-            />
-          </div>
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1.4fr)_repeat(3,minmax(0,200px))]">
+          <Input
+            id="concept-map-search"
+            type="search"
+            aria-label="Buscar"
+            value={query}
+            onChange={(value) => setQuery(value)}
+            placeholder="Concepto, código, bloque o motivo"
+            leftIcon={<Search className="size-4" aria-hidden="true" />}
+          />
           <div>
-            <label className="text-sm font-medium text-foreground" htmlFor="concept-map-activation-filter">Uso</label>
-            <select
-              id="concept-map-activation-filter"
-              className="sr-only"
-              tabIndex={-1}
-              value={activationFilter}
-              onChange={(event) => setActivationFilter(event.target.value as ActivationFilter)}
-            >
-              {ACTIVATION_FILTERS.map((item) => (
-                <option key={item} value={item}>{item}</option>
-              ))}
-            </select>
             <Select value={activationFilter} onValueChange={(value) => { if (value) setActivationFilter(value as ActivationFilter); }}>
-              <SelectTrigger className="mt-2 h-12 w-full rounded-full">
+              <SelectTrigger className="w-full" aria-label="Uso">
+                <span className="text-muted-foreground">Uso:</span>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -721,20 +696,9 @@ export function ConceptMapEditor() {
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground" htmlFor="concept-map-detected-filter">Detectado</label>
-            <select
-              id="concept-map-detected-filter"
-              className="sr-only"
-              tabIndex={-1}
-              value={detectedFilter}
-              onChange={(event) => setDetectedFilter(event.target.value as DetectedFilter)}
-            >
-              {DETECTED_FILTERS.map((item) => (
-                <option key={item} value={item}>{item}</option>
-              ))}
-            </select>
             <Select value={detectedFilter} onValueChange={(value) => { if (value) setDetectedFilter(value as DetectedFilter); }}>
-              <SelectTrigger className="mt-2 h-12 w-full rounded-full">
+              <SelectTrigger className="w-full" aria-label="Detectado">
+                <span className="text-muted-foreground">Detectado:</span>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -746,21 +710,9 @@ export function ConceptMapEditor() {
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground" htmlFor="concept-map-block-filter">Bloque</label>
-            <select
-              id="concept-map-block-filter"
-              className="sr-only"
-              tabIndex={-1}
-              value={blockFilter}
-              onChange={(event) => setBlockFilter(event.target.value as typeof blockFilter)}
-            >
-              <option value="Todos">Todos</option>
-              {BLOCKS.map((item) => (
-                <option key={item} value={item}>{item}</option>
-              ))}
-            </select>
             <Select value={blockFilter} onValueChange={(value) => { if (value) setBlockFilter(value as typeof blockFilter); }}>
-              <SelectTrigger className="mt-2 h-12 w-full rounded-full">
+              <SelectTrigger className="w-full" aria-label="Bloque">
+                <span className="text-muted-foreground">Bloque:</span>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -774,10 +726,10 @@ export function ConceptMapEditor() {
           </div>
         </div>
 
-        <div data-testid="concept-map-unified-scroll" className="-mx-4 max-h-[560px] overflow-x-auto overflow-y-auto border-b border-border bg-card sm:-mx-6">
+        <div data-testid="concept-map-unified-scroll" className="mt-3 max-h-[560px] overflow-x-auto overflow-y-auto rounded-xl border border-border">
           {/* Excepción: acciones anidadas por fila; Table de system no encaja. */}
           <table className="min-w-[860px] w-full border-collapse text-left text-sm">
-            <thead className="sticky top-0 z-10 bg-muted text-xs font-semibold uppercase text-muted-foreground">
+            <thead className="sticky top-0 z-10 bg-muted text-xs font-medium text-muted-foreground">
               <tr>
                 <th className="px-4 py-3">Concepto Recibo</th>
                 <th className="px-4 py-3">Código Reg. Retrib.</th>
@@ -814,44 +766,38 @@ export function ConceptMapEditor() {
                     <td className="px-4 py-3 text-muted-foreground">{row.block}</td>
                     <td className="px-4 py-3 font-semibold text-muted-foreground">{row.detected ? "Sí" : "No"}</td>
                     <td className="px-4 py-3">
-                      <span className={cn("inline-flex rounded-full px-2.5 py-1 text-xs font-semibold", statusBadgeClass(row.statusLabel))}>{row.statusLabel}</span>
+                      {row.kind === "rule" ? (
+                        <div className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
+                          <Switch
+                            checked={Boolean(row.active)}
+                            onCheckedChange={(active) => setRuleActive(row.index, active)}
+                            ariaLabel={`${row.active ? "Desactivar" : "Activar"} regla ${row.concept}`}
+                          />
+                          <span className="text-xs text-muted-foreground">{row.statusLabel}</span>
+                        </div>
+                      ) : (
+                        <Badge status={usageBadgeStatus(row.statusLabel)} size="sm">{row.statusLabel}</Badge>
+                      )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-0.5" onClick={(event) => event.stopPropagation()}>
                         {row.kind === "rule" ? (
                           <>
-                            <IconButton label={`Editar regla ${row.concept}`} title="Editar regla" onClick={(event) => { event.stopPropagation(); openRule(row.rule, row.index); }}>
-                              <Pencil className="h-4 w-4" aria-hidden="true" />
-                            </IconButton>
-                            <IconButton
-                              label={`${row.active ? "Desactivar regla" : "Activar regla"} ${row.concept}`}
-                              title={row.active ? "Desactivar regla" : "Activar regla"}
-                              tone={row.active ? "active" : "inactive"}
-                              onClick={(event) => { event.stopPropagation(); setRuleActive(row.index, !row.active); }}
-                            >
-                              {row.active ? <Power className="h-4 w-4" aria-hidden="true" /> : <PowerOff className="h-4 w-4" aria-hidden="true" />}
-                            </IconButton>
-                            <IconButton label={`Eliminar regla ${row.concept}`} title="Eliminar regla" tone="danger" onClick={(event) => { event.stopPropagation(); deleteRule(row.index); }}>
-                              <Trash2 className="h-4 w-4" aria-hidden="true" />
-                            </IconButton>
+                            <RowAction label={`Editar regla ${row.concept}`} onClick={() => openRule(row.rule, row.index)}>
+                              <Pencil className="size-4" aria-hidden="true" />
+                            </RowAction>
+                            <RowAction label={`Eliminar regla ${row.concept}`} danger onClick={() => deleteRule(row.index)}>
+                              <Trash2 className="size-4" aria-hidden="true" />
+                            </RowAction>
                           </>
                         ) : (
                           <>
-                            <IconButton label={`Crear regla ${row.concept}`} title="Crear regla" onClick={(event) => { event.stopPropagation(); openFromUnmapped(row.row); }}>
-                              <Plus className="h-4 w-4" aria-hidden="true" />
-                            </IconButton>
-                            <IconButton
-                              label={`Crea una regla para poder activarla o desactivarla ${row.concept}`}
-                              title="Crea una regla para poder activarla o desactivarla"
-                              tone="inactive"
-                              disabled
-                              onClick={(event) => { event.stopPropagation(); }}
-                            >
-                              <PowerOff className="h-4 w-4" aria-hidden="true" />
-                            </IconButton>
-                            <IconButton label={`Descartar concepto ${row.concept}`} title="Descartar concepto" tone="danger" onClick={(event) => { event.stopPropagation(); quickCreateFromUnmapped(row.row, "Ignorado", "Concepto ignorado."); }}>
-                              <Trash2 className="h-4 w-4" aria-hidden="true" />
-                            </IconButton>
+                            <RowAction label={`Crear regla ${row.concept}`} onClick={() => openFromUnmapped(row.row)}>
+                              <Plus className="size-4" aria-hidden="true" />
+                            </RowAction>
+                            <RowAction label={`Descartar concepto ${row.concept}`} danger onClick={() => quickCreateFromUnmapped(row.row, "Ignorado", "Concepto ignorado.")}>
+                              <Trash2 className="size-4" aria-hidden="true" />
+                            </RowAction>
                           </>
                         )}
                       </div>
@@ -865,20 +811,20 @@ export function ConceptMapEditor() {
         </div>
       </section>
 
-      {message ? <p className="mt-4 rounded-2xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary" aria-live="polite">{message}</p> : null}
+      <p className="mt-3 min-h-5 text-sm text-muted-foreground" aria-live="polite">{message}</p>
 
-      <section className="mt-6 border-t border-border pt-5" aria-label="Modo avanzado JSON">
+      <section className="mt-4 border-t border-border pt-4" aria-label="Modo avanzado JSON">
         <button
           type="button"
-          className="flex w-full items-center justify-between gap-4 text-left"
+          className="flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-expanded={jsonOpen}
           onClick={() => setJsonOpen((current) => !current)}
         >
           <span>
-            <span className="block text-lg font-semibold text-foreground">Modo avanzado JSON</span>
-            <span className="mt-1 block text-sm leading-6 text-muted-foreground">Usa JSON solo para importar, copiar o depurar reglas manualmente.</span>
+            <span className="block text-sm font-medium text-foreground">Modo avanzado JSON</span>
+            <span className="block text-xs text-muted-foreground">Importar, copiar o depurar reglas manualmente.</span>
           </span>
-          <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold text-muted-foreground">{jsonOpen ? "Cerrar" : "Abrir"}</span>
+          <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", jsonOpen && "rotate-180")} aria-hidden="true" />
         </button>
         {jsonOpen ? (
           <div className="mt-4 border-t border-border pt-4">
@@ -890,9 +836,9 @@ export function ConceptMapEditor() {
               spellCheck={false}
             />
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button type="button" variant="outline" className="min-h-11 rounded-full px-4" onClick={validateJson}>Validar JSON</Button>
-              <Button type="button" className="min-h-11 rounded-full px-4" onClick={applyJson}>Aplicar JSON</Button>
-              <Button type="button" variant="outline" className="min-h-11 rounded-full px-4" onClick={() => void navigator.clipboard?.writeText(jsonDraft)}>
+              <Button type="button" variant="outline" size="sm" onClick={validateJson}>Validar JSON</Button>
+              <Button type="button" variant="primary" size="sm" onClick={applyJson}>Aplicar JSON</Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => void navigator.clipboard?.writeText(jsonDraft)}>
                 <Copy className="h-4 w-4" aria-hidden="true" />
                 Copiar JSON
               </Button>
@@ -902,23 +848,22 @@ export function ConceptMapEditor() {
       </section>
 
       {editingIndex !== undefined ? (
-        <Modal
+        <Drawer
           open
           onOpenChange={(open) => {
             if (!open) setEditingIndex(undefined);
           }}
           title={editingIndex === "new" ? "Crear regla" : "Editar regla"}
-          description="Conceptos del análisis"
-          size="lg"
+          description="Define cómo se clasifica un concepto detectado en Recibo."
           footer={(
-            <div className="flex flex-wrap justify-end gap-2">
+            <>
               <Button type="button" variant="outline" size="sm" onClick={() => setEditingIndex(undefined)}>Cancelar</Button>
               <Button type="button" variant="primary" size="sm" onClick={saveForm}>Guardar regla</Button>
-            </div>
+            </>
           )}
         >
-              <p className="text-sm text-muted-foreground">Define cómo se clasifica un concepto detectado en Recibo.</p>
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {message && editingIndex !== undefined ? <p className="mb-4 text-sm font-medium text-destructive" role="alert">{message}</p> : null}
+              <div className="grid gap-4">
                 <div>
                   <label className="text-sm font-medium text-foreground" htmlFor="concept-map-pdf-concept">Concepto Recibo</label>
                   <Input id="concept-map-pdf-concept" value={form.pdfConcept} onChange={(value) => setForm({ ...form, pdfConcept: value })} className="mt-2" />
@@ -969,7 +914,7 @@ export function ConceptMapEditor() {
                 <label className="text-sm font-medium text-foreground" htmlFor="concept-map-reason">Motivo</label>
                 <Textarea id="concept-map-reason" value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} className="mt-2 min-h-28" />
               </div>
-        </Modal>
+        </Drawer>
       ) : null}
     </section>
   );

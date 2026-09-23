@@ -177,6 +177,8 @@ export { ThinkingShimmer } from "./thinking";
 export type { ThinkingShimmerProps } from "./thinking";
 
 export { ThemeToggle, ThemeModeControl } from "./theme-toggle";
+export { AccentControl } from "./accent-control";
+export type { AccentControlProps } from "./accent-control";
 export type {
   ThemeMode,
   ThemeModeControlProps,
@@ -188,3 +190,23 @@ export type { ProductToastStatus, ToastOptions } from "./toast";
 
 export { Tooltip } from "./tooltip";
 export type { TooltipProps } from "./tooltip";
+export { Surface } from "./surface";
+export type { SurfaceProps } from "./surface";
+export { Callout } from "./callout";
+export type { CalloutProps, CalloutStatus } from "./callout";
+export { Avatar } from "./avatar";
+export type { AvatarProps } from "./avatar";
+export { Textarea } from "./textarea";
+export type { TextareaProps } from "./textarea";
+export { PageHeader } from "./page-header";
+export type { PageHeaderProps } from "./page-header";
+export { Drawer } from "./drawer";
+export type { DrawerProps } from "./drawer";
+export { RadioGroup, RadioGroupItem } from "./radio";
+export type { RadioGroupItemProps, RadioGroupProps } from "./radio";
+export { HoverList } from "./hover-list";
+export type { HoverListProps } from "./hover-list";
+export { NumberTicker } from "./number-ticker";
+export type { NumberTickerProps } from "./number-ticker";
+export { ActionSwapButton } from "./action-swap";
+export type { ActionSwapButtonProps, ActionSwapItem } from "./action-swap";

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/system/toast";
+import { ACCENT_INIT_SCRIPT, DEFAULT_ACCENT } from "@/lib/theme/accent";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,7 +22,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={inter.variable} suppressHydrationWarning>
+    <html
+      lang="es"
+      className={inter.variable}
+      data-accent={DEFAULT_ACCENT}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: ACCENT_INIT_SCRIPT }} />
+      </head>
       <body className="antialiased">
         <ThemeProvider
           attribute="class"

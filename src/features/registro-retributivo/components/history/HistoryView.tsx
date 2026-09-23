@@ -1,23 +1,31 @@
 "use client";
 
-import { CalendarDays, Download, FileText, History, RotateCcw, Trash2 } from "lucide-react";
+import { Download, FileSpreadsheet, History, MoreHorizontal, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
-import { StatusBadge } from "@/features/registro-retributivo/components/common/StatusBadge";
-import { Badge, Button, EmptyState, Modal } from "@/components/system";
+import {
+  Badge,
+  Button,
+  EmptyState,
+  HoverList,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuSeparator,
+  MenuTrigger,
+  Modal,
+  StatefulButton,
+} from "@/components/system";
 import type { StoredAnalysis } from "@/features/registro-retributivo/types";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
 import { cn } from "@/lib/utils";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("es-ES", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+const DAY_FORMAT = new Intl.DateTimeFormat("es-ES", { day: "2-digit" });
+const MONTH_FORMAT = new Intl.DateTimeFormat("es-ES", { month: "short" });
+const FULL_FORMAT = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short" });
 
-function HistoryCard({
+function HistoryRow({
   analysis,
   active,
   exporting,
@@ -33,80 +41,74 @@ function HistoryCard({
   onExport: () => void;
 }>) {
   const summary = analysis.result?.summary;
+  const date = new Date(analysis.createdAt);
+  const difference = summary?.matchedTotalDifference ?? summary?.totalGlobalDifference ?? 0;
+  const fileName = displayText(analysis.registroFileName) || "Excel Reg. Retrib.";
 
   return (
-    <article
-      data-surface="history-row"
-      role="button"
-      tabIndex={0}
-      className={cn(
-        "cursor-pointer rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/30 sm:p-6",
-        active && "border-primary/40 bg-primary/5 ring-1 ring-primary/20",
-      )}
-      onClick={onOpen}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onOpen();
-        }
-      }}
-    >
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <CalendarDays className="size-4" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">{formatDate(analysis.createdAt)}</p>
-              <p className="max-w-[420px] truncate text-sm text-muted-foreground">{displayText(analysis.registroFileName)}</p>
-            </div>
-            {active ? <StatusBadge value="Análisis activo" tone="success" /> : null}
-            <StatusBadge value="IA bajo demanda" tone="info" />
-          </div>
-
-          <dl
-            data-surface="history-metrics"
-            className="mt-4 grid overflow-hidden rounded-xl border border-border bg-muted/50 xl:grid-cols-6 xl:divide-x xl:divide-y-0 xl:divide-border/80"
-          >
-            {[
-              ["Recibos", analysis.pdfCount],
-              ["Personas", summary?.uniquePeople ?? 0],
-              ["Con diferencias", summary?.peopleWithDifferences ?? 0],
-              ["Pendientes", summary?.conceptsPendingReview ?? 0],
-              ["Ignorados", summary?.conceptsIgnored ?? 0],
-              ["Diferencia", formatEuro(summary?.matchedTotalDifference ?? summary?.totalGlobalDifference ?? 0)],
-            ].map(([label, value]) => (
-              <div key={label as string} data-variant="row" className="border-t border-border/70 px-3 py-3 first:border-t-0 xl:border-t-0">
-                <dt className="text-[11px] font-semibold uppercase text-muted-foreground">{label as string}</dt>
-                <dd className="mt-1 truncate text-sm font-semibold text-foreground tabular-nums">{String(value)}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-
-        <div className="flex flex-wrap gap-2 xl:justify-end" onClick={(event) => event.stopPropagation()}>
-          <Button type="button" variant="primary" size="sm" onClick={onOpen}>
-            <RotateCcw className="size-3.5" aria-hidden="true" />
-            Abrir análisis
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={onExport} disabled={exporting}>
-            <Download className="size-3.5" aria-hidden="true" />
-            Exportar Excel
-          </Button>
+    <li data-surface="history-row" className="group/history flex min-w-0 items-center gap-1 rounded-lg">
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Abrir análisis del ${FULL_FORMAT.format(date)}`}
+        aria-current={active ? "true" : undefined}
+        className="relative z-10 flex min-w-0 flex-1 items-center gap-4 rounded-lg px-3 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span
+          aria-hidden="true"
+          className={cn(
+            "flex size-11 shrink-0 flex-col items-center justify-center rounded-lg border leading-none",
+            active ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-background text-foreground",
+          )}
+        >
+          <span className="text-base font-semibold tabular-nums">{DAY_FORMAT.format(date)}</span>
+          <span className="mt-0.5 text-[10px] uppercase text-muted-foreground">{MONTH_FORMAT.format(date)}</span>
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="flex min-w-0 items-center gap-2">
+            <FileSpreadsheet className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span className="truncate text-sm font-medium text-foreground">{fileName}</span>
+            {active ? (
+              <Badge status="success" size="sm" className="shrink-0">
+                Activo
+              </Badge>
+            ) : null}
+          </span>
+          <span className="truncate text-xs text-muted-foreground tabular-nums">
+            {analysis.pdfCount} recibos · {summary?.uniquePeople ?? 0} personas · {summary?.peopleWithDifferences ?? 0} con diferencias
+            {summary?.conceptsPendingReview ? ` · ${summary.conceptsPendingReview} pendientes` : ""}
+          </span>
+        </span>
+        <span className="hidden shrink-0 text-right sm:block">
+          <span className="block text-[11px] text-muted-foreground">Diferencia</span>
+          <span className="block font-mono text-sm font-semibold tabular-nums text-foreground">{formatEuro(difference)}</span>
+        </span>
+      </button>
+      <Menu>
+        <MenuTrigger asChild>
           <Button
             type="button"
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={onDelete}
+            variant="ghost"
+            size="icon"
+            aria-label={`Acciones del análisis del ${FULL_FORMAT.format(date)}`}
+            className="relative z-10 shrink-0 text-muted-foreground"
           >
-            <Trash2 className="size-3.5" aria-hidden="true" />
-            Eliminar
+            <MoreHorizontal className="size-4" aria-hidden="true" />
           </Button>
-        </div>
-      </div>
-    </article>
+        </MenuTrigger>
+        <MenuContent align="end" className="w-48">
+          <MenuItem disabled={exporting} onSelect={onExport}>
+            <Download />
+            <span>Exportar Excel</span>
+          </MenuItem>
+          <MenuSeparator />
+          <MenuItem className="text-destructive focus:text-destructive" onSelect={onDelete}>
+            <Trash2 />
+            <span>Eliminar</span>
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    </li>
   );
 }
 
@@ -116,6 +118,11 @@ export function HistoryView() {
   const [deleting, setDeleting] = useState(false);
   const [deletionError, setDeletionError] = useState<string>();
   const rootRef = useRef<HTMLDivElement>(null);
+
+  function requestDeletion(target: string | "all") {
+    setDeletionError(undefined);
+    setDeleteTarget(target);
+  }
 
   async function confirmDeletion() {
     if (!deleteTarget || deleting) return;
@@ -138,55 +145,46 @@ export function HistoryView() {
       ref={rootRef}
       tabIndex={-1}
       aria-label="Historial de análisis"
-      className="flex flex-col gap-6 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className="mx-auto flex w-full max-w-4xl flex-col gap-4 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
-      {history.length ? (
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => {
-              setDeletionError(undefined);
-              setDeleteTarget("all");
-            }}
-          >
-            <Trash2 className="size-3.5" aria-hidden="true" />
-            Limpiar historial
-          </Button>
-        </div>
-      ) : null}
-
       {!history.length ? (
         <EmptyState
           icon={<History />}
           title="No hay análisis guardados todavía"
-          description="Los análisis completados aparecerán aquí para abrirlos, exportarlos o eliminarlos sin conservar recibos ni archivos originales."
-          action={
-            <Badge status="neutral" size="sm">
-              <FileText className="size-3.5" aria-hidden="true" />
-              Analiza recibos para crear el primer análisis
-            </Badge>
-          }
+          description="Los análisis completados aparecerán aquí para abrirlos, exportarlos o eliminarlos. No se conservan recibos ni archivos originales."
         />
       ) : (
-        <section className="flex flex-col gap-4">
-          {history.map((analysis) => (
-            <HistoryCard
-              key={analysis.id}
-              analysis={analysis}
-              active={activeAnalysis?.id === analysis.id}
-              exporting={exporting}
-              onOpen={() => void openStoredAnalysis(analysis.id)}
-              onExport={() => void exportStoredAnalysis(analysis)}
-              onDelete={() => {
-                setDeletionError(undefined);
-                setDeleteTarget(analysis.id);
-              }}
-            />
-          ))}
-        </section>
+        <>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground tabular-nums">{history.length}</span>{" "}
+              {history.length === 1 ? "análisis guardado" : "análisis guardados"} en la base local
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => requestDeletion("all")}
+            >
+              <Trash2 className="size-3.5" aria-hidden="true" />
+              Limpiar historial
+            </Button>
+          </div>
+          <HoverList aria-label="Análisis guardados" className="flex flex-col rounded-2xl border border-border bg-card p-1.5">
+            {history.map((analysis) => (
+              <HistoryRow
+                key={analysis.id}
+                analysis={analysis}
+                active={activeAnalysis?.id === analysis.id}
+                exporting={exporting}
+                onOpen={() => void openStoredAnalysis(analysis.id)}
+                onExport={() => void exportStoredAnalysis(analysis)}
+                onDelete={() => requestDeletion(analysis.id)}
+              />
+            ))}
+          </HoverList>
+        </>
       )}
 
       <Modal
@@ -202,16 +200,18 @@ export function HistoryView() {
             <Button type="button" variant="outline" size="sm" disabled={deleting} onClick={() => setDeleteTarget(undefined)}>
               Cancelar
             </Button>
-            <Button
+            <StatefulButton
               type="button"
               variant="outline"
               size="sm"
+              state={deleting ? "loading" : deletionError ? "error" : "idle"}
+              loadingText="Eliminando…"
+              errorText="Reintentar"
               className="text-destructive hover:text-destructive"
-              disabled={deleting}
               onClick={() => void confirmDeletion()}
             >
               Eliminar
-            </Button>
+            </StatefulButton>
           </>
         }
       >
@@ -219,7 +219,6 @@ export function HistoryView() {
           Esta acción elimina el análisis guardado de la base SQLite local. No se pueden recuperar los resultados una vez borrados.
         </p>
         {deletionError ? <p role="alert" className="mt-3 text-sm font-semibold text-destructive">{deletionError}</p> : null}
-        {deleting ? <p role="status" className="mt-3 text-sm font-semibold text-foreground">Eliminando contenido local…</p> : null}
       </Modal>
     </div>
   );

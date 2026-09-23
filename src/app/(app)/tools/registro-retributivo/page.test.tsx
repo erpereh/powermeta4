@@ -162,10 +162,10 @@ describe("Registro Retributivo page", () => {
     const nav = screen.getAllByRole("navigation", { name: "Navegación de Registro Retributivo" })[0];
     const labels = ["Inicio", "Personas", "Cuadre Reg.", "Agrupaciones", "Historial", "Ajustes"];
     for (const label of labels) {
-      expect(within(nav).getByRole("button", { name: label })).toBeTruthy();
+      expect(within(nav).getByRole("tab", { name: label })).toBeTruthy();
     }
 
-    await user.click(within(nav).getByRole("button", { name: "Personas" }));
+    await user.click(within(nav).getByRole("tab", { name: "Personas" }));
     expect((await screen.findAllByRole("heading", { name: "Personas" })).length).toBeGreaterThan(0);
 
     expect(STANDALONE_TOOLS.find((tool) => tool.id === "registro-retributivo")?.implemented).toBe(
@@ -289,7 +289,7 @@ describe("Registro Retributivo page", () => {
     renderPage();
 
     const nav = screen.getAllByRole("navigation", { name: "Navegación de Registro Retributivo" })[0];
-    await user.click(within(nav).getByRole("button", { name: "Personas" }));
+    await user.click(within(nav).getByRole("tab", { name: "Personas" }));
 
     const row = await screen.findByRole("row", { name: /Abrir detalle de Isabel Chavero Torrado/i });
     const tableViewport = document.querySelector('[data-slot="table-viewport"]');

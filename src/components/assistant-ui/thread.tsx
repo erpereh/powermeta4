@@ -225,19 +225,19 @@ type AssistantStatusMeta = {
   badgeStatus: "warning" | "danger" | "neutral";
 };
 
+// Referencias estables: el selector de useAuiState debe devolver el mismo
+// valor mientras el estado no cambie (useSyncExternalStore).
+const CANCELLED_STATUS_META: AssistantStatusMeta = { label: "Cancelada", badgeStatus: "warning" };
+const ERROR_STATUS_META: AssistantStatusMeta = { label: "Error", badgeStatus: "danger" };
+const INCOMPLETE_STATUS_META: AssistantStatusMeta = { label: "Incompleta", badgeStatus: "neutral" };
+
 const getAssistantStatusMeta = (
   status: { type: string; reason?: string } | undefined,
 ): AssistantStatusMeta | null => {
   if (!status || status.type === "running" || status.type === "complete") return null;
-  if (status.type === "incomplete" && status.reason === "cancelled") {
-    return { label: "Cancelada", badgeStatus: "warning" };
-  }
-  if (status.type === "incomplete" && status.reason === "error") {
-    return { label: "Error", badgeStatus: "danger" };
-  }
-  if (status.type === "incomplete") {
-    return { label: "Incompleta", badgeStatus: "neutral" };
-  }
+  if (status.type === "incomplete" && status.reason === "cancelled") return CANCELLED_STATUS_META;
+  if (status.type === "incomplete" && status.reason === "error") return ERROR_STATUS_META;
+  if (status.type === "incomplete") return INCOMPLETE_STATUS_META;
   return null;
 };
 

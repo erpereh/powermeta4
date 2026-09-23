@@ -5,8 +5,8 @@ import {
   AnimatePresence,
   animate,
   motion,
-  useReducedMotion,
 } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   forwardRef,
   useEffect,

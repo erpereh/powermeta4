@@ -1,9 +1,8 @@
 "use client";
 
-import { Clock3 } from "lucide-react";
 import Link from "next/link";
 
-import { EmptyState } from "@/components/system";
+import { HoverList } from "@/components/system";
 import { TOOL_ICONS, getTool, getToolModule } from "@/lib/tools/registry";
 import type { ToolVisit } from "@/types/workspace";
 
@@ -20,22 +19,19 @@ export function ToolsRecentActivity({ recentTools }: ToolsRecentActivityProps) {
     .slice(0, 5);
 
   return (
-    <section className="space-y-3" aria-labelledby="recent-tools-heading">
-      <div className="flex items-center gap-2">
-        <Clock3 className="size-4 text-muted-foreground" aria-hidden="true" />
-        <h2 id="recent-tools-heading" className="text-sm font-medium text-foreground">
-          Actividad reciente
-        </h2>
-      </div>
+    <section className="space-y-2" aria-labelledby="recent-tools-heading">
+      <h2
+        id="recent-tools-heading"
+        className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+      >
+        Actividad reciente
+      </h2>
       {visits.length === 0 ? (
-        <EmptyState
-          title="Sin actividad reciente"
-          description="Las acciones que uses aparecerán aquí."
-          icon={<Clock3 aria-hidden="true" />}
-          className="py-6"
-        />
+        <p className="px-3 text-sm text-muted-foreground">
+          Las acciones que uses aparecerán aquí.
+        </p>
       ) : (
-        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+        <HoverList aria-labelledby="recent-tools-heading">
           {visits.map(({ visit, tool }) => {
             const Icon = TOOL_ICONS[tool.icon];
             const moduleName = getToolModule(tool.moduleId)?.name ?? tool.moduleId;
@@ -43,18 +39,16 @@ export function ToolsRecentActivity({ recentTools }: ToolsRecentActivityProps) {
               <li key={`${tool.id}-${visit.visitedAt}`}>
                 <Link
                   href={tool.route}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-elevated/70 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                 >
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-elevated text-muted-foreground">
-                    <Icon className="size-3.5" aria-hidden="true" />
-                  </span>
+                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <span className="min-w-0 flex-1 truncate text-foreground">{tool.name}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">{moduleName}</span>
                 </Link>
               </li>
             );
           })}
-        </ul>
+        </HoverList>
       )}
     </section>
   );

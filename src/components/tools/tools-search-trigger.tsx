@@ -3,33 +3,32 @@
 import { Search } from "lucide-react";
 
 import { useOptionalAppCommandPalette } from "@/components/app-shell/app-command-palette";
-import { Button } from "@/components/system";
 
 type ToolsSearchTriggerProps = {
   onOpen?: () => void;
 };
 
+/** Campo de búsqueda que abre el command-palette de beUI con las acciones ERP. */
 export function ToolsSearchTrigger({ onOpen }: ToolsSearchTriggerProps) {
   const palette = useOptionalAppCommandPalette();
 
   return (
-    <Button
+    <button
       type="button"
-      variant="outline"
       onClick={() => {
         onOpen?.();
         palette?.openCommandPalette("actions");
       }}
-      className="h-10 w-full justify-between gap-2 rounded-xl border-border bg-card px-3 text-muted-foreground hover:bg-elevated/60"
       aria-label="Buscar usuarios, nóminas, informes, procesos"
+      className="flex h-11 w-full items-center gap-2 rounded-full border border-border bg-card px-4 text-left text-muted-foreground outline-none transition-colors hover:border-foreground/20 focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <span className="flex min-w-0 items-center gap-2 truncate">
-        <Search className="size-4 shrink-0" aria-hidden="true" />
-        <span className="truncate text-sm">Buscar usuarios, nóminas, informes, procesos...</span>
+      <Search className="size-4 shrink-0" aria-hidden="true" />
+      <span className="min-w-0 flex-1 truncate text-sm">
+        Buscar usuarios, nóminas, informes, procesos...
       </span>
-      <kbd className="hidden shrink-0 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline">
-        Ctrl+K
+      <kbd className="hidden shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline">
+        Ctrl K
       </kbd>
-    </Button>
+    </button>
   );
 }

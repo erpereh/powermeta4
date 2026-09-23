@@ -1,7 +1,8 @@
 "use client";
 // beui.dev/components/motion/switch
 
-import { animate, motion, MotionConfig, useReducedMotion } from "motion/react";
+import { animate, motion, MotionConfig } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 

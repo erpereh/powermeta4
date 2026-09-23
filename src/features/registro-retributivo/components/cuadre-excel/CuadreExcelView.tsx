@@ -1,21 +1,18 @@
 "use client";
 
-import { CheckCircle2, FileCheck2, Search, Sigma, Table2 } from "lucide-react";
+import { FileCheck2, Search } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { AiExplanationPanel } from "@/features/registro-retributivo/components/ai/AiExplanationPanel";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { StatusBadge } from "@/features/registro-retributivo/components/common/StatusBadge";
-import { CompactMetric } from "@/features/registro-retributivo/components/common/CompactMetric";
+import { DetailField, MoneyTable } from "@/features/registro-retributivo/components/common/DetailParts";
 import { DataTableShell } from "@/features/registro-retributivo/components/common/DataTableShell";
 import {
+  Callout,
   EmptyState,
   Input,
   Modal,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  NumberTicker,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -34,7 +31,7 @@ type StatusFilter = "Todos" | Extract<AnalysisStatus, "OK" | "Revisar" | "Difere
 interface SummaryMetric {
   readonly label: string;
   readonly value: string | number;
-  readonly tone: "blue" | "green" | "orange" | "red";
+  readonly alert?: boolean;
 }
 
 const MODES: ReadonlyArray<{ id: CuadreMode; label: string; description: string }> = [
@@ -95,28 +92,6 @@ function matchesText(value: string | number | undefined, query: string): boolean
   return displayText(value).toLocaleLowerCase("es").includes(query);
 }
 
-function ModalField({ label, value }: Readonly<{ label: string; value?: string | number }>) {
-  return (
-    <div className="min-w-0">
-      <p className="text-xs font-semibold uppercase text-muted-foreground">{label}</p>
-      <p className="mt-1 min-w-0 break-words text-sm font-semibold text-foreground">{displayText(value) || "Sin dato"}</p>
-    </div>
-  );
-}
-
-function MoneyTriplet({ label, period, breakdown, diff }: Readonly<{ label: string; period: number; breakdown: number; diff: number }>) {
-  return (
-    <div className="rounded-2xl border border-border bg-muted/50 p-4">
-      <p className="text-sm font-semibold text-foreground">{label}</p>
-      <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-        <ModalField label="Periodo" value={formatEuro(period)} />
-        <ModalField label="Desglose" value={formatEuro(breakdown)} />
-        <ModalField label="Dif." value={formatEuro(diff)} />
-      </div>
-    </div>
-  );
-}
-
 function DetailModal({ row, onClose }: Readonly<{ row: InternalExcelCheckRow; onClose: () => void }>) {
   const projection = selectBreakdownProjection(row);
   const aiPayload = buildInternalExcelExplainPayload(row);
@@ -125,33 +100,39 @@ function DetailModal({ row, onClose }: Readonly<{ row: InternalExcelCheckRow; on
     <Modal
       open
       onOpenChange={(open) => { if (!open) onClose(); }}
-      title="Detalle Cuadre Reg."
-      description="Detalle determinista"
+      title={`Cuadre Reg. · ${displayText(projection.personId)}`}
+      description="Periodo completo frente a desglose del Excel."
       size="lg"
+      className="max-h-[min(94dvh,100dvh)] overflow-y-auto"
     >
-        <div className="grid min-w-0 gap-4 md:grid-cols-4">
-          <ModalField label="Matrícula" value={projection.personId} />
-          <ModalField label="Estado" value={projection.status} />
-          <ModalField label="Centro" value={row.workplace} />
-          <ModalField label="Puesto" value={row.position} />
-          <ModalField label="Categoría" value={row.category} />
-        </div>
-
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
-          <MoneyTriplet label="Salario" period={projection.salaryPeriod} breakdown={projection.salaryBreakdown} diff={projection.salaryDifference} />
-          <MoneyTriplet label="C. Salarial" period={projection.salaryComplementPeriod} breakdown={projection.salaryComplementBreakdown} diff={projection.salaryComplementDifference} />
-          <MoneyTriplet label="Extrasalarial" period={projection.extraSalaryPeriod} breakdown={projection.extraSalaryBreakdown} diff={projection.extraSalaryDifference} />
-        </div>
-
-        <div className="mt-6 rounded-2xl bg-muted/50 p-4">
-          <p className="text-sm font-semibold text-foreground">Detalle</p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground text-pretty">{displayText(row.detail) || "Sin detalle adicional."}</p>
-        </div>
-
+      <div className="flex min-w-0 flex-col gap-5">
+        <dl className="grid min-w-0 grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
+          <DetailField label="Estado" value={<StatusBadge value={projection.status} />} />
+          <DetailField label="Centro" value={row.workplace} />
+          <DetailField label="Puesto" value={row.position} />
+          <DetailField label="Categoría" value={row.category} />
+        </dl>
+        <MoneyTable
+          caption="Periodo completo frente a desglose"
+          leftLabel="Periodo"
+          rightLabel="Desglose"
+          rows={[
+            { label: "Salario", left: projection.salaryPeriod, right: projection.salaryBreakdown, diff: projection.salaryDifference },
+            { label: "C. Salarial", left: projection.salaryComplementPeriod, right: projection.salaryComplementBreakdown, diff: projection.salaryComplementDifference },
+            { label: "Extrasalarial", left: projection.extraSalaryPeriod, right: projection.extraSalaryBreakdown, diff: projection.extraSalaryDifference },
+          ]}
+        />
+        <p className="text-sm leading-6 text-muted-foreground text-pretty">{displayText(row.detail) || "Sin detalle adicional."}</p>
         <AiExplanationPanel type="internalExcelCheck" payload={aiPayload} />
-
+      </div>
     </Modal>
   );
+}
+
+const STATUS_FILTERS: readonly StatusFilter[] = ["Todos", "OK", "Revisar", "Diferencia"];
+
+function isStatusFilter(value: string): value is StatusFilter {
+  return STATUS_FILTERS.some((item) => item === value);
 }
 
 function CuadreControls({
@@ -166,47 +147,46 @@ function CuadreControls({
   onStatusFilterChange: (value: StatusFilter) => void;
 }>) {
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div className="min-w-0 flex-1 flex flex-col gap-2">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-[2.35rem] left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-          <Input
-            id="cuadre-search"
-            label="Buscar"
-            value={query}
-            onChange={onQueryChange}
-            placeholder="Buscar en Cuadre Reg."
-            classNames={{ input: "pl-9" }}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col gap-2">
-        <p className="mb-1.5 text-sm font-medium text-foreground">Estado</p>
-        <select
-          id="cuadre-status"
-          className="sr-only"
-          tabIndex={-1}
-          value={statusFilter}
-          onChange={(event) => onStatusFilterChange(event.target.value as StatusFilter)}
-        >
-          <option value="Todos">Todos</option>
-          <option value="OK">OK</option>
-          <option value="Revisar">Revisar</option>
-          <option value="Diferencia">Diferencia</option>
-        </select>
-        <Select value={statusFilter} onValueChange={(value) => { if (value) onStatusFilterChange(value as StatusFilter); }}>
-          <SelectTrigger className="w-full min-w-[140px]">
-            <SelectValue placeholder="Todos" />
-          </SelectTrigger>
-          <SelectContent>
-              <SelectItem value="Todos">Todos</SelectItem>
-              <SelectItem value="OK">OK</SelectItem>
-              <SelectItem value="Revisar">Revisar</SelectItem>
-              <SelectItem value="Diferencia">Diferencia</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <Input
+        id="cuadre-search"
+        type="search"
+        aria-label="Buscar en Cuadre Reg."
+        value={query}
+        onChange={onQueryChange}
+        placeholder="Matrícula, centro, puesto…"
+        leftIcon={<Search className="size-4" aria-hidden="true" />}
+        className="min-w-0 sm:w-80"
+      />
+      <Tabs variant="pill" value={statusFilter} onValueChange={(value) => { if (isStatusFilter(value)) onStatusFilterChange(value); }}>
+        <TabsList aria-label="Filtrar por estado" className="border border-border" wrapperClassName="max-w-full">
+          {STATUS_FILTERS.map((item) => (
+            <TabsTrigger key={item} value={item} className="px-3 py-1 text-xs">
+              {item}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
     </div>
+  );
+}
+
+function MetricStrip({ metrics }: Readonly<{ metrics: readonly SummaryMetric[] }>) {
+  return (
+    <dl
+      data-surface="metric-grid"
+      aria-label="Resumen de Cuadre Reg."
+      className="grid grid-cols-2 gap-x-6 gap-y-4 border-y border-border py-4 sm:grid-cols-3 xl:grid-cols-5"
+    >
+      {metrics.map((metric) => (
+        <div key={metric.label} className="min-w-0">
+          <dt className="text-xs text-muted-foreground">{metric.label}</dt>
+          <dd className={cn("mt-1 truncate text-xl font-semibold tracking-tight tabular-nums", metric.alert ? "text-destructive" : "text-foreground")}>
+            {typeof metric.value === "number" ? <NumberTicker value={metric.value} locale /> : metric.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -219,11 +199,11 @@ function buildMetrics(input: {
   const ok = input.rows.filter((row) => row.status === "OK").length;
   const withDifference = input.rows.filter((row) => row.status !== "OK").length;
   return [
-    { label: "Empleados analizados", value: input.totalCount, tone: "blue" },
-    { label: "OK", value: ok, tone: "green" },
-    { label: "Con diferencia", value: withDifference, tone: withDifference ? "red" : "green" },
-    { label: "Mayor diferencia", value: formatEuro(input.maxDifference), tone: input.maxDifference ? "red" : "green" },
-    { label: "Diferencia total visible", value: formatEuro(input.visibleTotalDifference), tone: input.visibleTotalDifference ? "orange" : "green" },
+    { label: "Empleados analizados", value: input.totalCount },
+    { label: "OK", value: ok },
+    { label: "Con diferencia", value: withDifference, alert: withDifference > 0 },
+    { label: "Mayor diferencia", value: formatEuro(input.maxDifference), alert: input.maxDifference > 0 },
+    { label: "Diferencia total visible", value: formatEuro(input.visibleTotalDifference) },
   ];
 }
 
@@ -422,29 +402,23 @@ export function CuadreExcelView() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <Tabs value={activeMode} onValueChange={(value) => setActiveMode(value as CuadreMode)} className="w-full">
-        <TabsList aria-label="Vistas de Cuadre Reg." className="no-scrollbar max-w-full overflow-x-auto">
-          {MODES.map((mode) => (
-            <TabsTrigger key={mode.id} value={mode.id}>{mode.label}</TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <Tabs variant="segment" value={activeMode} onValueChange={(value) => setActiveMode(value as CuadreMode)}>
+          <TabsList aria-label="Vistas de Cuadre Reg." className="border border-border" wrapperClassName="max-w-full">
+            {MODES.map((mode) => (
+              <TabsTrigger key={mode.id} value={mode.id}>{mode.label}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        <p className="text-sm text-muted-foreground">{activeDescription}</p>
+      </div>
 
-      <div id="cuadre-view-panel" role="tabpanel" aria-label={MODES.find((mode) => mode.id === activeMode)?.label ?? "Cuadre"} className="space-y-6">
-      <p className="text-sm leading-6 text-muted-foreground">{activeDescription}</p>
-
-      <section data-surface="metric-grid" aria-label="Resumen de Cuadre Reg." className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {metrics.map((metric) => {
-          const Icon = metric.tone === "green" ? CheckCircle2 : metric.tone === "blue" ? Table2 : Sigma;
-          return <CompactMetric key={metric.label} variant="card" label={metric.label} value={metric.value} icon={Icon} tone={metric.tone} />;
-        })}
-      </section>
+      <div id="cuadre-view-panel" role="tabpanel" aria-label={MODES.find((mode) => mode.id === activeMode)?.label ?? "Cuadre"} className="flex flex-col gap-5">
+      <MetricStrip metrics={metrics} />
 
       {activeMode === "breakdown" && result.internalExcelChecks.length > 0 && result.internalExcelChecks.every((row) => row.status === "OK") ? (
-        <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-          El Cuadre Reg. no presenta diferencias en No norm. / Desglose.
-        </p>
+        <Callout status="success" title="Sin diferencias en No norm. / Desglose" />
       ) : null}
 
       <DataTableShell

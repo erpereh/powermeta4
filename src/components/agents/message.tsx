@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   type ComponentPropsWithRef,
   createContext,
@@ -77,7 +78,7 @@ export function Message({
   style,
   ...props
 }: MessageProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
 
   return (
     <MessageSideContext.Provider value={from === "user" ? "end" : "start"}>
@@ -240,7 +241,7 @@ export function MessageTyping({
   className,
   ...props
 }: MessageTypingProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
 
   return (
     <span

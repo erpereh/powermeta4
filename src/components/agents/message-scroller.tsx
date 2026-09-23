@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   type ComponentPropsWithRef,
   type Ref,
@@ -123,7 +123,7 @@ export function MessageScroller({
   children,
   ...props
 }: MessageScrollerProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const viewportRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const followingRef = useRef(followOutput);

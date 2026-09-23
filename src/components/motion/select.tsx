@@ -5,9 +5,9 @@ import { Check, ChevronDown } from "lucide-react";
 import {
   motion,
   type Transition,
-  useReducedMotion,
   type Variants,
 } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   createContext,
   type ReactNode,
@@ -98,7 +98,7 @@ export function Select({
   className,
   children,
 }: SelectProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const baseId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [internalOpen, setInternalOpen] = useState(defaultOpen);

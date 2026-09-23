@@ -2,7 +2,8 @@
 // beui.dev/components/motion/tabs
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cancelFrame, frame, motion, MotionConfig, useReducedMotion, type Transition } from "motion/react";
+import { cancelFrame, frame, motion, MotionConfig, type Transition } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   createContext,
   useCallback,

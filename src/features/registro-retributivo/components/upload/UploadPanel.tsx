@@ -1,16 +1,18 @@
 "use client";
 
-import { FileArchive, FolderUp } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { FolderOpen, Play } from "lucide-react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import {
   Button,
   FileUpload,
   Input,
-  Loader,
+  StatefulButton,
   createFileUploadItem,
+  type ButtonState,
   type FileUploadItem,
 } from "@/components/system";
+import { cn } from "@/lib/utils";
 
 function toUploadItems(files: readonly File[], prefix: string): FileUploadItem[] {
   return files.map((file, index) => ({
@@ -21,12 +23,45 @@ function toUploadItems(files: readonly File[], prefix: string): FileUploadItem[]
   }));
 }
 
-export function UploadPanel() {
+function Step({
+  index,
+  title,
+  done,
+  children,
+  className,
+}: Readonly<{ index: number; title: string; done: boolean; children: ReactNode; className?: string }>) {
+  return (
+    <li className={cn("flex min-w-0 flex-col gap-3", className)}>
+      <div className="flex items-center gap-2.5">
+        <span
+          aria-hidden="true"
+          className={cn(
+            "grid size-6 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums transition-colors",
+            done ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+          )}
+        >
+          {index}
+        </span>
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        <span className="sr-only">{done ? "(completado)" : "(pendiente)"}</span>
+      </div>
+      {children}
+    </li>
+  );
+}
+
+type UploadPanelProps = {
+  /** `setup`: tres pasos en horizontal. `stacked`: en columna (Drawer). */
+  readonly layout?: "setup" | "stacked";
+};
+
+export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
   const {
     pdfFiles,
     registroFile,
     settings,
     analyzing,
+    error,
     setPdfFiles,
     setRegistroFile,
     updateSettings,
@@ -49,22 +84,31 @@ export function UploadPanel() {
   const [pdfKey, setPdfKey] = useState(0);
   const [excelKey, setExcelKey] = useState(0);
   const pdfFolderInputRef = useRef<HTMLInputElement>(null);
+  const buttonState: ButtonState = analyzing ? "loading" : error ? "error" : "idle";
+  const stacked = layout === "stacked";
 
   return (
     <section
       data-surface="upload-panel"
-      className="rounded-xl border border-border bg-card p-4 sm:p-6"
+      aria-label="Preparar análisis"
+      className={cn(!stacked && "rounded-2xl border border-border bg-card p-4 sm:p-6")}
     >
-      <div className="grid gap-4 xl:grid-cols-[1.1fr_1fr_320px]">
-        <div className="min-w-0 flex flex-col gap-2">
+      <ol
+        className={cn(
+          "grid gap-6",
+          !stacked && "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,18rem)] lg:gap-0 lg:divide-x lg:divide-border",
+        )}
+      >
+        <Step index={1} title="Recibos" done={pdfFiles.length > 0} className={cn(!stacked && "lg:pr-6")}>
           <FileUpload
             key={`pdf-${pdfKey}-${pdfItems.length}`}
             value={pdfItems}
             multiple
+            variant="centered"
             accept="application/pdf,.pdf"
             disabled={disabled}
-            title="Recibos"
-            description="Arrastra los recibos o selecciona archivos PDF."
+            title="Arrastra los recibos PDF"
+            description="O selecciónalos desde tu equipo."
             browseLabel="Seleccionar recibos"
             onFilesAdded={(_items, files) => {
               const next = files.filter((file) => file.name.toLowerCase().endsWith(".pdf"));
@@ -78,12 +122,13 @@ export function UploadPanel() {
           />
           <Button
             type="button"
-            variant="secondary"
+            variant="ghost"
             size="sm"
             disabled={disabled}
-            className="self-start rounded-lg"
+            className="self-start"
             onClick={() => pdfFolderInputRef.current?.click()}
           >
+            <FolderOpen className="size-3.5" aria-hidden="true" />
             Seleccionar carpeta
           </Button>
           <input
@@ -92,76 +137,68 @@ export function UploadPanel() {
             multiple
             accept="application/pdf,.pdf"
             className="sr-only"
+            tabIndex={-1}
+            aria-hidden="true"
             disabled={disabled}
             {...({ webkitdirectory: "true" } as Record<string, string>)}
             onChange={(event) => setPdfFiles(Array.from(event.target.files ?? []))}
           />
-        </div>
+        </Step>
 
-        <FileUpload
-          key={`excel-${excelKey}-${excelItems.length}`}
-          value={excelItems}
-          multiple={false}
-          maxFiles={1}
-          accept=".xlsx,.xlsm,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          disabled={disabled}
-          title="Excel Reg. Retrib."
-          description="Sube el Registro Retributivo heredado o equivalente."
-          browseLabel="Seleccionar Excel"
-          onFilesAdded={(_items, files) => {
-            const file = files.find((item) => /\.(xlsx|xlsm|xls)$/i.test(item.name));
-            setRegistroFile(file);
-          }}
-          onRemove={() => {
-            setRegistroFile(undefined);
-            setExcelKey((current) => current + 1);
-          }}
-          className="min-w-0"
-        />
+        <Step index={2} title="Excel Reg. Retrib." done={Boolean(registroFile)} className={cn(!stacked && "lg:px-6")}>
+          <FileUpload
+            key={`excel-${excelKey}-${excelItems.length}`}
+            value={excelItems}
+            multiple={false}
+            maxFiles={1}
+            variant="centered"
+            accept=".xlsx,.xlsm,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            disabled={disabled}
+            title="Arrastra el Registro Retributivo"
+            description="Excel heredado o equivalente (.xlsx, .xlsm, .xls)."
+            browseLabel="Seleccionar Excel"
+            onFilesAdded={(_items, files) => {
+              const file = files.find((item) => /\.(xlsx|xlsm|xls)$/i.test(item.name));
+              setRegistroFile(file);
+            }}
+            onRemove={() => {
+              setRegistroFile(undefined);
+              setExcelKey((current) => current + 1);
+            }}
+            className="min-w-0"
+          />
+        </Step>
 
-        <div data-surface="quick-config" className="min-w-0 rounded-xl border border-border bg-muted/40 p-4">
-          <div className="flex items-center gap-2">
-            <span className="flex size-9 items-center justify-center rounded-lg border border-border bg-background text-primary">
-              <FolderUp className="size-4" aria-hidden="true" />
-            </span>
-            <div>
-              <h3 className="text-base font-semibold text-foreground">Configuración rápida</h3>
-              <p className="text-sm text-muted-foreground">Se guarda para próximos análisis.</p>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <Input
-              id="tolerance"
-              label="Tolerancia EUR"
-              type="number"
-              min={0}
-              step={0.5}
-              value={String(settings.defaultTolerance)}
-              disabled={disabled}
-              onChange={(value) => updateSettings({ defaultTolerance: Number(value) })}
-            />
-          </div>
-
-          <Button
+        <Step index={3} title="Analizar" done={false} className={cn(!stacked && "lg:pl-6")}>
+          <Input
+            id={stacked ? "tolerance-drawer" : "tolerance"}
+            label="Tolerancia EUR"
+            type="number"
+            min={0}
+            step={0.5}
+            value={String(settings.defaultTolerance)}
+            disabled={disabled}
+            onChange={(value) => updateSettings({ defaultTolerance: Number(value) })}
+          />
+          <p className="text-xs text-muted-foreground">Se guarda para próximos análisis.</p>
+          <StatefulButton
             type="button"
             variant="primary"
-            onClick={analyze}
-            disabled={!canAnalyze}
-            className="mt-4 w-full rounded-lg"
+            state={buttonState}
+            loadingText="Analizando…"
+            errorText="Reintentar"
+            icon={<Play className="size-4" aria-hidden="true" />}
+            onClick={() => void analyze()}
+            disabled={!canAnalyze && !analyzing}
+            className="w-full"
           >
-            {analyzing ? (
-              <Loader variant="spinner" size={16} label="Analizando" />
-            ) : (
-              <FileArchive className="size-4" aria-hidden="true" />
-            )}
-            {analyzing ? "Analizando..." : "Analizar"}
-          </Button>
-          <p className="mt-3 text-sm text-muted-foreground" aria-live="polite" role="status">
+            Analizar
+          </StatefulButton>
+          <p className="text-sm text-muted-foreground" aria-live="polite" role="status">
             {analyzing ? "Analizando recibos..." : canAnalyze ? status : missingReason}
           </p>
-        </div>
-      </div>
+        </Step>
+      </ol>
     </section>
   );
 }

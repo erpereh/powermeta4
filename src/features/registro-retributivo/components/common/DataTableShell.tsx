@@ -25,12 +25,12 @@ export function DataTableShell({
     <div
       data-surface="table-shell"
       className={cn(
-        "flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-xl border border-border bg-card",
+        "flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-border bg-card",
         className,
       )}
     >
       {toolbar ? (
-        <div data-slot="table-toolbar" className="min-w-0 shrink-0 border-b border-border px-4 py-4 sm:px-5">
+        <div data-slot="table-toolbar" className="min-w-0 shrink-0 border-b border-border px-4 py-3">
           {toolbar}
         </div>
       ) : null}

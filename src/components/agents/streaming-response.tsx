@@ -8,7 +8,8 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   type ReactNode,
   useCallback,
@@ -67,7 +68,7 @@ function ResponseAction({
   onClick: () => void;
   children: ReactNode;
 }) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
 
   return (
     <motion.button
@@ -108,7 +109,7 @@ export function StreamingResponse({
   contentClassName,
   actionsClassName,
 }: StreamingResponseProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const baseId = useId();
   const [copied, setCopied] = useState(false);
   const [internalFeedback, setInternalFeedback] =

@@ -2,7 +2,7 @@
 // beui.dev/components/motion/table
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Checkbox } from "@/components/motion/checkbox";
 import { cn } from "@/lib/utils";

@@ -1,7 +1,8 @@
 "use client";
 // beui.dev/components/motion/popover
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   cloneElement,
   createContext,
@@ -232,7 +233,7 @@ export function MorphPopoverContent({
   className,
 }: MorphPopoverContentProps) {
   const ctx = useMorphContext("MorphPopoverContent");
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const [portalReady, setPortalReady] = useState(false);
   const layout = usePopoverPortalPosition(
     ctx.triggerRef,

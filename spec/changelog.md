@@ -1,5 +1,120 @@
 # Changelog
 
+## 2026-09-23 - Rediseño beUI: fase 2 (Registro Retributivo)
+
+### Cambios
+
+- Shell a dos barras: `PageHeader` con exportar (icono + tooltip) y «Nuevo
+  análisis»; navegación de vistas con `Tabs underline` y estado compacto del
+  análisis activo e IA.
+- Inicio: sin análisis, bloque único de tres pasos con `FileUpload` centrado y
+  `StatefulButton`; con análisis, franja de fuentes con `Drawer`, banda única
+  de KPIs con `NumberTicker`, `Accordion` de cobertura/revisión y una sola
+  superficie de gráficas con `Tabs segment`.
+- Personas: `Combobox` de centro y puesto, estado en `Tabs pill` con
+  contadores (sustituye select y botones «Ver solo…»), detalle en `Drawer`
+  con conceptos en `Accordion`.
+- Cuadre Reg.: `Tabs segment`, tira de métricas, filtro en `Tabs pill`,
+  detalle en `Modal` con tabla de importes; eliminado el `<select>` oculto.
+- Agrupaciones: selector de hoja con `Select`; truncado con `Callout`.
+- Historial: `HoverList` con filas tipo calendario y acciones en `Menu`.
+- Ajustes: navegación lateral `HoverList`, filas de parámetros, exclusiones
+  con chips y `Modal` (sin `window.confirm`), reglas con `Switch`, acciones del
+  mapa en `Menu` y formulario de regla en `Drawer`.
+- Explicación IA: `ThinkingShimmer`, `Accordion` y `ActionSwapButton`.
+- Fachada: `NumberTicker` y `ActionSwapButton`. Nuevo
+  `common/DetailParts.tsx`; eliminado `CompactMetric`.
+- `@beui/expandable-tabs`, `overflow-actions` y `range-slider-inline` no se
+  instalaron: beui.dev y el MCP `beui` no eran accesibles desde la red.
+
+### Verificación
+
+- `npm run typecheck`, `npm run build` y `git diff --check` correctos.
+- `npm test`: 456 correctas y 1 fallo corregido después (texto sr-only);
+  tras la corrección, las pruebas de Registro Retributivo pasan (47).
+- `oxlint` sin avisos nuevos; `oxfmt --check` falla (preexistente).
+- Revisión visual en navegador: pendiente.
+
+## 2026-09-23 - Rediseño beUI: fase 1 (base, shell e Inicio)
+
+### Cambios
+
+- Originales beUI copiados del upstream: `motion/radio.tsx` y `motion/drawer.tsx`
+  (solo con el hook de reduced motion seguro para hidratación).
+- Fachada: `Surface` (sustituye Card), `Callout` (sustituye Alert), `Avatar`,
+  `Textarea`, `PageHeader`, `Drawer` (con foco gestionado), `RadioGroup` y
+  `HoverList` (shared-layout-bg).
+- Token `destructive-foreground` en light y dark.
+- Inicio: cabecera única, buscador en píldora, tabs y lista de acciones en una
+  sola superficie con pill de hover; actividad reciente como lista ligera.
+- Módulos: sin Breadcrumb (enlace «Acciones»), filas compartidas con `ToolCard`
+  y aviso con `Callout`. `ToolsPageHeader` delega en `PageHeader`.
+- Menú de usuario con el `Avatar` de la fachada.
+- Descartado el context-menu en los chats: el botón de la sidebar no admite
+  handlers y un envoltorio tendría ARIA inválido; el menú «…» cubre las acciones.
+
+### Verificación
+
+- `npm run typecheck`, `npm test` (457 correctas), `npm run build`,
+  `git diff --check` y `oxlint` (solo warnings preexistentes) correctos.
+- Dev server sin errores. Revisión visual: pendiente del usuario.
+
+## 2026-09-23 - Paleta beUI y color de acento configurable
+
+### Cambios
+
+- `globals.css` adopta la paleta de beUI (fuente de beui.dev) en oklch:
+  neutros acromáticos en light y dark (#151515 / cards #1c1c1c).
+- Acento configurable con presets `blue` (beUI, por defecto), `cyan`,
+  `violet`, `green`, `amber` y `neutral`, cada uno con valores light y dark.
+  `primary`, `ring`, `selected`, `sidebar-primary` y `chart-1..5` se derivan
+  del preset activo (`<html data-accent>`).
+- Ajustes > Apariencia: `ThemeModeControl` (claro/oscuro/sistema) y nuevo
+  `AccentControl` (radios nativos) en la fachada `@/components/system`.
+- Persistencia en localStorage `powermeta4-accent` vía `useAccent`
+  (`useSyncExternalStore`) y script inline en el layout raíz para aplicar el
+  acento antes del primer pintado. Mapa tipado en `src/lib/theme/accent.ts`.
+- `DESIGN.md` actualizado.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm test` — 94 archivos correctos y 1 omitido; 457 pruebas correctas y
+  36 omitidas (nueva prueba de cambio y persistencia del acento).
+- `npm run build` — correcto.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` sin errores (warnings preexistentes en
+  `exportExcel.ts`); `oxfmt --check` falla sin configuración (preexistente).
+- Dev server: `get_errors` sin errores de sesión. Revisión visual de los
+  presets en navegador: pendiente.
+
+## 2026-09-23 - Registro Retributivo: navegación superior e hidratación
+
+### Cambios
+
+- La navegación interna de Registro Retributivo pasa del `<aside>` lateral a
+  una barra horizontal bajo la cabecera, en todos los breakpoints (scroll-x
+  sin overflow de página). El contenido ocupa todo el ancho.
+- `ActiveAnalysisCard` se compacta en línea a la derecha de esa barra
+  (visible desde `lg`). `RetributivoInnerNav` pierde la variante vertical.
+- Corregido el hydration mismatch de la sidebar global (`tabindex="0"` y
+  estilos de motion distintos entre SSR y cliente) con movimiento reducido
+  activo en el sistema. Nuevo hook `src/hooks/use-reduced-motion.ts`
+  (`useSyncExternalStore`, snapshot de servidor `false`) que sustituye a
+  `useReducedMotion` de `motion/react` en los 42 componentes que lo usaban.
+
+### Verificación
+
+- `npm run typecheck` — correcto.
+- `npm test` — 94 archivos correctos y 1 omitido; 456 pruebas correctas y
+  36 omitidas.
+- `npm run build` — correcto.
+- `git diff --check` — correcto.
+- `npm run lint` — `oxlint` sin errores (2 warnings preexistentes en
+  `exportExcel.ts`). `oxfmt --check` falla sin configuración también sobre
+  el árbol sin cambios. Preexistente.
+- Recarga en navegador para confirmar que el issue desaparece: pendiente.
+
 ## 2026-09-23 - beUI para Claude Code (proyecto)
 
 ### Cambios

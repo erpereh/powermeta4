@@ -1,7 +1,8 @@
 "use client";
 // beui.dev/components/agents/loading-states
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { Loader } from "@/components/motion/loader";
 import { TextScramble } from "@/components/motion/text-scramble";
@@ -160,7 +161,7 @@ export function ReasoningText({
   indicator,
   className,
 }: ReasoningTextProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const [index, setIndex] = useState(0);
   const statusId = useId();
   const safePhrases = phrases.length > 0 ? phrases : DEFAULT_PHRASES;

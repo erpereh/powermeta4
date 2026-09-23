@@ -1,7 +1,8 @@
 "use client";
 // beui.dev/components/motion/number
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { EASE_OUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 
@@ -61,7 +62,7 @@ export function DigitSwap({
   glyphClassName,
   suffixClassName,
 }: DigitSwapProps) {
-  const reduceMotion = useReducedMotion() ?? false;
+  const reduceMotion = useReducedMotion();
   const text = String(value);
   const suffixStart = Math.max(0, text.length - Math.max(0, suffixLength));
   const motionContext: GlyphMotionContext = { direction, reduceMotion };

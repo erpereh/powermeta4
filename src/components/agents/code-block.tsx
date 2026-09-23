@@ -2,7 +2,8 @@
 // beui.dev/components/agents/code-block
 
 import { Check, Copy, FileCode2, LoaderCircle } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   type ReactNode,
   useCallback,
@@ -49,7 +50,7 @@ export function CodeBlock({
   onCopy,
   className,
 }: CodeBlockProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const viewportRef = useRef<HTMLDivElement>(null);
   const copyTimer = useRef<number | undefined>(undefined);
   const [copied, setCopied] = useState(false);

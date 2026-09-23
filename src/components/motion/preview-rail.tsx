@@ -1,7 +1,8 @@
 "use client";
 // beui.dev/components/motion/preview-rail
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   type MouseEvent,
   type PointerEvent,

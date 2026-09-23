@@ -5,8 +5,8 @@ import { ChevronDown } from "lucide-react";
 import {
   type HTMLMotionProps,
   motion,
-  useReducedMotion,
 } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   cloneElement,
   type ComponentPropsWithRef,
@@ -117,7 +117,7 @@ export function MessageBubble({
   layout,
   ...props
 }: MessageBubbleProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const messageSide = useContext(MessageSideContext);
   const resolvedAlign = align ?? messageSide ?? "start";
 
@@ -187,7 +187,7 @@ export function MessageBubbleContent({
   ref,
   ...props
 }: MessageBubbleContentProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const { align = "start", animateIn, variant } =
     useContext(MessageBubbleContext);
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -312,7 +312,7 @@ export function MessageBubbleCollapsible({
   children,
   ...props
 }: MessageBubbleCollapsibleProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const contentId = useId();
   const notifyLayout = useContext(MessageBubbleLayoutContext);
   const [internalOpen, setInternalOpen] = useState(defaultOpen);

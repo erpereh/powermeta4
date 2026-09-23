@@ -2,7 +2,8 @@
 // beui.dev/components/motion/center-morph-modal
 
 import { X } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   cloneElement,
   createContext,
@@ -196,7 +197,7 @@ export function CenterMorphModalContent({
   backdropClassName,
 }: CenterMorphModalContentProps) {
   const context = useCenterMorphModalContext("CenterMorphModalContent");
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 

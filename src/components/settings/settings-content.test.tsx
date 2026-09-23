@@ -85,7 +85,7 @@ describe("settings content", () => {
       within(navigation)
         .getAllByRole("button")
         .map((button) => button.textContent),
-    ).toEqual(["Datos de la persona", "Datos y copias"]);
+    ).toEqual(["Datos de la persona", "Apariencia", "Datos y copias"]);
   });
 
   it("renders all profile sections together instead of separate navigation items", async () => {
@@ -170,6 +170,23 @@ describe("settings content", () => {
     expect(screen.getByRole("button", { name: /Crear y descargar ZIP/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Validar ZIP/i })).toBeTruthy();
     expect(screen.getByLabelText("Archivo ZIP")).toBeTruthy();
+  });
+
+  it("changes and persists the accent color from the appearance section", async () => {
+    const user = userEvent.setup();
+    render(<SettingsContent variant="dialog" />);
+
+    await user.click(screen.getByRole("button", { name: "Apariencia" }));
+
+    expect(screen.getByRole("group", { name: "Tema de la interfaz" })).toBeTruthy();
+    const accents = screen.getByRole("group", { name: "Color de acento" });
+    expect(within(accents).getByRole("radio", { name: "Azul" })).toHaveProperty("checked", true);
+
+    await user.click(within(accents).getByRole("radio", { name: "Violeta" }));
+
+    expect(within(accents).getByRole("radio", { name: "Violeta" })).toHaveProperty("checked", true);
+    expect(document.documentElement.getAttribute("data-accent")).toBe("violet");
+    expect(localStorage.getItem("powermeta4-accent")).toBe("violet");
   });
 });
 

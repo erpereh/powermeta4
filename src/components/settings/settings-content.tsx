@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle2, Download, FileArchive, ShieldCheck } from "l
 
 import { getMeta4ProfileViewAction } from "@/app/actions/meta4-profile";
 import {
+  AccentControl,
   Badge,
   Button,
   EmptyState,
@@ -13,6 +14,7 @@ import {
   Modal,
   Skeleton,
   StatefulButton,
+  ThemeModeControl,
 } from "@/components/system";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
@@ -34,10 +36,11 @@ type ValidationResult = {
   importId: string;
 };
 
-type SettingsSectionId = "person" | "backups";
+type SettingsSectionId = "person" | "appearance" | "backups";
 
 const NAV_ITEMS: Array<{ id: SettingsSectionId; label: string }> = [
   { id: "person", label: "Datos de la persona" },
+  { id: "appearance", label: "Apariencia" },
   { id: "backups", label: "Datos y copias" },
 ];
 
@@ -289,7 +292,38 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
           )}
         >
           <div className="space-y-6">
-            {activeSection === "backups" ? (
+            {activeSection === "appearance" ? (
+              <div className="space-y-6">
+                <section className="space-y-3" aria-labelledby="settings-theme-heading">
+                  <h2
+                    id="settings-theme-heading"
+                    className="text-base font-semibold tracking-tight text-foreground sm:text-lg"
+                  >
+                    Tema
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Claro, oscuro o el mismo que el sistema.
+                  </p>
+                  <ThemeModeControl />
+                </section>
+
+                <div className="border-t border-border" role="separator" />
+
+                <section className="space-y-3" aria-labelledby="settings-accent-heading">
+                  <h2
+                    id="settings-accent-heading"
+                    className="text-base font-semibold tracking-tight text-foreground sm:text-lg"
+                  >
+                    Color de acento
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Se aplica a botones, selección, foco y gráficas en claro y oscuro. Se guarda
+                    en este navegador.
+                  </p>
+                  <AccentControl />
+                </section>
+              </div>
+            ) : activeSection === "backups" ? (
               <div className="space-y-6">
                 <section className="space-y-3">
                   <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">

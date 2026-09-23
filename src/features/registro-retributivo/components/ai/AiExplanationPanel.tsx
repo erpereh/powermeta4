@@ -1,9 +1,9 @@
 "use client";
 
-import { BrainCircuit, Copy, RefreshCw } from "lucide-react";
+import { BrainCircuit, Check, Copy, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
-import { Badge, Button, Loader } from "@/components/system";
+import { Accordion, ActionSwapButton, Badge, Button, Callout, ThinkingShimmer } from "@/components/system";
 import {
   clearAiExplanationCache,
   createAiExplanationCacheKey,
@@ -29,16 +29,13 @@ interface ExplainResponse {
   readonly error?: string;
 }
 
-function SectionList({ title, items }: Readonly<{ title: string; items: readonly string[] }>) {
+function BulletList({ items }: Readonly<{ items: readonly string[] }>) {
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
-      <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-      <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-6 text-muted-foreground">
-        {items.map((item) => (
-          <li key={item}>- {item}</li>
-        ))}
-      </ul>
-    </section>
+    <ul className="flex list-disc flex-col gap-1 pl-4 text-sm leading-6 text-muted-foreground marker:text-muted-foreground/60">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
   );
 }
 
@@ -48,6 +45,7 @@ export function AiExplanationPanel({ type, payload }: AiExplanationPanelProps) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [cacheHit, setCacheHit] = useState(false);
+  const [copied, setCopied] = useState(false);
   const analysisId = activeAnalysis?.id;
   const disabledReason = !aiStatus?.configured || !aiStatus.enabled ? AI_NOT_CONFIGURED_MESSAGE : undefined;
   const cacheKey = useMemo(() => createAiExplanationCacheKey(type, payload, analysisId), [analysisId, payload, type]);
@@ -115,75 +113,83 @@ export function AiExplanationPanel({ type, payload }: AiExplanationPanelProps) {
       `Acciones recomendadas: ${explanation.recommendedActions.join("; ")}`,
       `Confianza: ${explanation.confidence}`,
     ].join("\n");
-    void navigator.clipboard?.writeText(text);
+    void navigator.clipboard?.writeText(text).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    });
   }, [explanation]);
 
   return (
-    <section className="mt-6 rounded-xl border border-border bg-card p-4 sm:p-6" role="region" aria-label="Explicación IA">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <BrainCircuit aria-hidden="true" />
-          </span>
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Explicación IA</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Bajo demanda, sobre datos estructurados ya calculados. No recalcula ni modifica resultados. No se envían nombres, NIF, IBAN, bancos ni documentos completos.
+    <section className="rounded-xl border border-border bg-elevated/40 p-4" role="region" aria-label="Explicación IA">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <BrainCircuit className="size-4 shrink-0 text-primary" aria-hidden="true" />
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-foreground">Explicación IA</h3>
+            <p className="text-xs text-muted-foreground">
+              {cacheHit ? "Guardada para este análisis." : "Bajo demanda, sin nombres, NIF, IBAN ni documentos."}
             </p>
-            {disabledReason ? <p className="mt-2 text-sm font-semibold text-destructive">{disabledReason}</p> : null}
-            {cacheHit ? <Badge status="neutral" size="sm" className="mt-2">Explicación IA guardada para este análisis.</Badge> : null}
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
+          {explanation ? (
+            <ActionSwapButton
+              variant="ghost"
+              size="sm"
+              animation="roll"
+              value={copied ? "copied" : "copy"}
+              cycle={false}
+              items={[
+                { id: "copy", label: "Copiar", icon: <Copy className="size-3.5" aria-hidden="true" /> },
+                { id: "copied", label: "Copiado", icon: <Check className="size-3.5" aria-hidden="true" /> },
+              ]}
+              onClick={copyExplanation}
+            />
+          ) : null}
           <Button
             type="button"
-            variant={explanation ? "outline" : "primary"}
+            variant={explanation ? "ghost" : "outline"}
             size="sm"
             disabled={Boolean(disabledReason) || loading}
             title={disabledReason}
             onClick={() => void requestExplanation(Boolean(explanation))}
           >
-            {loading ? <Loader variant="spinner" size={14} label="Analizando" /> : explanation ? <RefreshCw className="size-3.5" aria-hidden="true" /> : <BrainCircuit className="size-3.5" aria-hidden="true" />}
-            {loading ? "Analizando..." : explanation ? "Regenerar IA" : "Analizar con IA"}
+            {explanation ? <RefreshCw className="size-3.5" aria-hidden="true" /> : <BrainCircuit className="size-3.5" aria-hidden="true" />}
+            {explanation ? "Regenerar" : "Analizar con IA"}
           </Button>
-          {explanation ? (
-            <Button type="button" variant="outline" size="sm" onClick={copyExplanation}>
-              <Copy className="size-3.5" aria-hidden="true" />
-              Copiar explicación
-            </Button>
-          ) : null}
         </div>
       </div>
-      <div className="mt-4 flex flex-col gap-4">
-        {errorMessage ? (
-          <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {errorMessage}
-          </p>
-        ) : null}
 
-        {!explanation && !loading ? (
-          <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-            La explicación determinista anterior se mantiene disponible. Lanza la IA solo cuando necesites una lectura adicional.
-          </p>
-        ) : null}
+      {disabledReason ? <p className="mt-3 text-xs text-muted-foreground">{disabledReason}</p> : null}
 
-        {explanation ? (
-          <div className="grid gap-3 lg:grid-cols-2">
-            <section className="rounded-xl border border-border bg-card p-4 lg:col-span-2">
-              <h4 className="text-sm font-semibold text-foreground">Resumen</h4>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{explanation.summary}</p>
-            </section>
-            <SectionList title="Causas probables" items={explanation.probableCauses} />
-            <SectionList title="Qué revisar en Reg. Retrib." items={explanation.registroReview} />
-            <SectionList title="Qué revisar en Recibo" items={explanation.pdfReview} />
-            <SectionList title="Acciones recomendadas" items={explanation.recommendedActions} />
-            <section className="rounded-xl border border-border bg-card p-4 lg:col-span-2">
-              <h4 className="text-sm font-semibold text-foreground">Nivel de confianza</h4>
-              <Badge status="neutral" size="sm" className="mt-2">{explanation.confidence}</Badge>
-            </section>
-          </div>
-        ) : null}
-      </div>
+      {loading ? (
+        <p role="status" className="mt-4 text-sm">
+          <ThinkingShimmer>Leyendo el cálculo determinista…</ThinkingShimmer>
+        </p>
+      ) : null}
+
+      {errorMessage ? (
+        <Callout status="error" title={errorMessage} className="mt-4" />
+      ) : null}
+
+      {explanation && !loading ? (
+        <div className="mt-4 flex flex-col gap-3">
+          <p className="text-sm leading-6 text-foreground">{explanation.summary}</p>
+          <Accordion
+            className="overflow-hidden rounded-xl border border-border"
+            classNames={{ trigger: "min-h-11 px-3", title: "text-sm", description: "text-sm", content: "[&>div]:px-3 [&>div]:pb-3" }}
+            items={[
+              { id: "causes", title: "Causas probables", description: <BulletList items={explanation.probableCauses} /> },
+              { id: "registro", title: "Qué revisar en Reg. Retrib.", description: <BulletList items={explanation.registroReview} /> },
+              { id: "pdf", title: "Qué revisar en Recibo", description: <BulletList items={explanation.pdfReview} /> },
+              { id: "actions", title: "Acciones recomendadas", description: <BulletList items={explanation.recommendedActions} /> },
+            ]}
+          />
+          <p className="text-xs text-muted-foreground">
+            Confianza: <Badge status="neutral" size="sm">{explanation.confidence}</Badge>
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }

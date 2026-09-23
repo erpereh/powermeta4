@@ -1,7 +1,8 @@
 "use client";
 
 import { BookOpenText, ChevronDown, ExternalLink, Globe2 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   type ReactNode,
   useCallback,
@@ -188,7 +189,7 @@ export function CitationList({
   idPrefix,
   className,
 }: CitationListProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const baseId = useId();
   const resolvedPrefix =
     idPrefix ?? `citation-list-${baseId.replace(/:/g, "")}`;
@@ -234,7 +235,7 @@ export function Citations({
   idPrefix,
   className,
 }: CitationsProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const baseId = useId();
   const contentId = `${baseId}-content`;
   const resolvedPrefix =

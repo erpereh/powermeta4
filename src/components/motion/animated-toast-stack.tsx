@@ -13,9 +13,9 @@ import {
 import {
   AnimatePresence,
   motion,
-  useReducedMotion,
   type Transition,
 } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   memo,
   useCallback,

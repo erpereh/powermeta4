@@ -13,10 +13,10 @@ import {
 import {
   AnimatePresence,
   motion,
-  useReducedMotion,
   type HTMLMotionProps,
   type Variants,
 } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import type { ReactNode } from "react";
 import { EASE_OUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";

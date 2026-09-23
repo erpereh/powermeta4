@@ -1,7 +1,8 @@
 "use client";
 // beui.dev/components/agents/loading-states
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useEffect, useState } from "react";
 import { EASE_IN_OUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
@@ -44,7 +45,7 @@ export function AgentProgress({
   running = true,
   className,
 }: AgentProgressProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const [internalSeconds, setInternalSeconds] = useState(initialSeconds);
 
   useEffect(() => {

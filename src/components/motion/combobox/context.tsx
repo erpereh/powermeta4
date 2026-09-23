@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   createContext,
   type MutableRefObject,
@@ -131,7 +131,7 @@ export function Combobox({
   disabled = false,
   className,
 }: ComboboxProps) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const baseId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);

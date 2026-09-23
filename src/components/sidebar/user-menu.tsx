@@ -5,6 +5,7 @@ import { FileText, LogOut, Settings } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { useSettingsDialog } from "@/components/app-shell/app-shell";
 import {
+  Avatar,
   Badge,
   Menu,
   MenuContent,
@@ -18,7 +19,6 @@ import {
   Tooltip,
   useSidebar,
 } from "@/components/system";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 
@@ -29,13 +29,6 @@ export function UserMenu() {
   const username = auth?.username ?? "Usuario";
   const isDebugMode = auth?.mode === "debug";
   const collapsed = !isMobile && state === "collapsed";
-  const initials =
-    username
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toLocaleUpperCase() ?? "")
-      .join("") || "U";
 
   return (
     <SidebarMenu>
@@ -53,11 +46,7 @@ export function UserMenu() {
                 aria-haspopup="menu"
                 className="relative flex min-h-11 w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-xl px-3 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-muted"
               >
-                <Avatar className="size-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar name={username} />
                 <span className={cn("min-w-0 flex-1 text-left", collapsed && "sr-only")}>
                   <span className="block truncate text-sm font-medium text-foreground">
                     {username}

@@ -32,10 +32,18 @@ mensajes y código compartan ritmo tipográfico.
 Usar superficies y colores semánticos shadcn existentes (`background`, `card`,
 `muted`, `sidebar`, `foreground`, `border`, `ring`, `primary`, `destructive`)
 más los tokens de producto `elevated`, `overlay`, `selected`, `disabled`,
-`code` y `shadow` (registrados en `@theme inline`). Light y dark se diseñan
-por separado en oklch (sin hex): light con papel frío y cards elevadas; dark
-con grafito (no negro puro) y cards un paso más claras. El acento de marca
-sigue en cian (hue ~215–224). Los colores de empresas y favoritos son
+`code` y `shadow` (registrados en `@theme inline`). Light y dark siguen la
+paleta de beUI (beui.dev) expresada en oklch (sin hex): neutros acromáticos,
+light casi blanco con cards un paso más oscuras y dark #151515 / cards
+#1c1c1c. El acento es configurable en Ajustes > Apariencia (`AccentControl`
+de la fachada): azul beUI por defecto, cian, violeta, verde, ámbar y grafito.
+Cada preset vive en `globals.css` como `[data-accent]` con valores propios
+para light y dark; `primary`, `ring`, `selected`, `sidebar-primary` y
+`chart-1..5` se derivan de él. El id se guarda en localStorage
+(`powermeta4-accent`, preferencia visual como el tema) y un script inline en
+el layout raíz lo aplica en `<html data-accent>` antes del primer pintado. Los
+ids válidos salen del mapa tipado `ACCENT_PRESETS` (`src/lib/theme/accent.ts`).
+Los colores de empresas y favoritos son
 excepciones deliberadas y se resuelven desde mapas estáticos tipados; nunca se
 guardan clases dinámicas en el store.
 
@@ -72,6 +80,13 @@ de forma global además del respeto que ya traen los componentes beUI.
   (teclado, typeahead, `aria-haspopup=menu`). No usar popover gooey.
 - **Sidebar** beUI animada vía fachada; un solo `SidebarTrigger` principal;
   prohibido `SidebarRail` / `AnimatedSidebarRail`.
+- **Números**: `NumberTicker` (dígitos que ruedan) para conteos enteros;
+  `AnimatedNumber` con `format` para importes.
+- **Copiar**: `ActionSwapButton` (Copiar → Copiado) para confirmar acciones
+  instantáneas sin toast.
+- **Variantes de Tabs por contexto**: `underline` para navegación de una
+  herramienta y filtros secundarios dentro de un panel; `segment` para cambiar
+  de modo o de gráfica; `pill` para filtros de estado con contador.
 
 ### Excepciones documentadas
 
@@ -178,6 +193,36 @@ Los datos personales no se persisten en SQLite.
 
 Los workspaces futuros muestran estados honestos de disponibilidad; no se
 simulan conexiones, resultados ni operaciones de ERP.
+
+## Registro Retributivo
+
+Dos barras como máximo: `PageHeader` (título, «Exportar Excel» como botón de
+icono con tooltip y «Nuevo análisis») y la navegación de vistas con `Tabs underline`
+(en móvil solo la pestaña activa muestra su etiqueta; el resto la conserva en
+sr-only). El análisis activo y el estado de IA son un indicador compacto a la
+derecha de la nav.
+
+- **Inicio sin análisis**: un único bloque de tres pasos (Recibos, Excel,
+  Analizar) con `FileUpload` centrado y `StatefulButton`. No se pintan KPIs ni
+  gráficas a cero.
+- **Inicio con análisis**: franja de fuentes con «Cambiar archivos» en
+  `Drawer`, banda única de KPIs (`NumberTicker`), `Accordion` de cobertura y
+  revisión pendiente y una sola `Surface` de gráficas con `Tabs segment`.
+- **Personas**: búsqueda + `Combobox` de centro y puesto, estado como
+  `Tabs pill` con contadores, `Table` beUI y detalle en `Drawer` lateral con
+  conceptos en `Accordion`.
+- **Cuadre Reg.**: modo en `Tabs segment`, tira de métricas sin tarjetas,
+  estado en `Tabs pill`, detalle en `Modal` con tabla de importes.
+- **Agrupaciones**: hoja elegida con `Select`; la tabla multinivel sticky es
+  una excepción nativa documentada.
+- **Historial**: `HoverList` de filas (fecha como calendario, archivo,
+  métricas en línea) con acciones en `Menu`; borrado con `Modal` +
+  `StatefulButton`.
+- **Ajustes**: navegación lateral `HoverList` (horizontal en móvil), filas de
+  parámetros, exclusiones como chips, reglas con `Switch` y formulario en
+  `Drawer`; acciones secundarias del mapa en `Menu`.
+- **Explicación IA**: panel ligero; carga con `ThinkingShimmer`, resultado en
+  `Accordion` y copia con `ActionSwapButton`.
 
 ## Chat y recomendaciones
 

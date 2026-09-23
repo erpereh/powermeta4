@@ -20,8 +20,8 @@ import {
   AnimatePresence,
   LayoutGroup,
   motion,
-  useReducedMotion,
 } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   useCallback,
   useEffect,
@@ -728,7 +728,7 @@ export function AttachmentUpload({
   const lifecycleTimersRef = useRef(
     new Set<ReturnType<typeof setTimeout>>(),
   );
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const [dragging, setDragging] = useState(false);
   const [previewItem, setPreviewItem] =
     useState<AttachmentUploadItem | null>(null);

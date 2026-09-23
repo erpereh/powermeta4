@@ -17,7 +17,8 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useCallback, useId, useRef, useState } from "react";
 import { EASE_OUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
@@ -265,7 +266,7 @@ function FileUploadRow({
   onRetry: (item: FileUploadItem) => void;
   classNames?: FileUploadClassNames;
 }) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const status = item.status ?? "queued";
   const progress = clampProgress(item.progress, status);
   const progressRatio = progress / 100;
@@ -407,7 +408,7 @@ export function FileUpload({
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useReducedMotion();
   const [items, setItems] = useControllableUpload({
     value,
     defaultValue,

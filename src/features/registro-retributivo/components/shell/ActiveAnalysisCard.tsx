@@ -1,9 +1,8 @@
 "use client";
 
-import { Clock3 } from "lucide-react";
-
 import { Badge } from "@/components/system";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
+import { cn } from "@/lib/utils";
 
 function formatDate(value?: string): string {
   if (!value) return "Sin análisis activo";
@@ -13,35 +12,32 @@ function formatDate(value?: string): string {
   }).format(new Date(value));
 }
 
-export function ActiveAnalysisCard() {
+type ActiveAnalysisCardProps = {
+  readonly className?: string;
+};
+
+/** Estado compacto: análisis activo e IA, alineado a la derecha de la nav. */
+export function ActiveAnalysisCard({ className }: ActiveAnalysisCardProps) {
   const { activeAnalysis, aiStatus } = useAppState();
   const aiConfigured = Boolean(aiStatus?.configured && aiStatus.enabled);
-  const aiBadge = aiConfigured ? "IA disponible" : "IA no configurada";
 
   return (
     <section
       aria-label="Análisis activo"
-      className="mt-auto rounded-xl border border-border bg-card p-3 text-card-foreground"
+      className={cn("shrink-0 items-center gap-2 text-xs", className)}
     >
-      <div className="flex items-start gap-2">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Clock3 className="size-4" aria-hidden="true" />
+      <p className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
+        <span
+          aria-hidden="true"
+          className={cn("size-1.5 rounded-full", activeAnalysis ? "bg-primary" : "bg-muted-foreground/50")}
+        />
+        <span className="sr-only">Análisis activo</span>
+        <span className="font-medium text-foreground tabular-nums">
+          {formatDate(activeAnalysis?.createdAt)}
         </span>
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Análisis activo
-          </p>
-          <p className="mt-0.5 text-xs font-semibold leading-snug text-pretty">
-            {formatDate(activeAnalysis?.createdAt)}
-          </p>
-        </div>
-      </div>
-      <Badge
-        status={aiConfigured ? "success" : "neutral"}
-        size="sm"
-        className="mt-2 max-w-full whitespace-normal"
-      >
-        {aiBadge}
+      </p>
+      <Badge status={aiConfigured ? "success" : "neutral"} size="sm">
+        {aiConfigured ? "IA disponible" : "IA no configurada"}
       </Badge>
     </section>
   );

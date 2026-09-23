@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertCircle, BadgeEuro, FileCheck2, FileText, Sigma, Users, UserX, type LucideIcon } from "lucide-react";
-import { AnimatedNumber, Badge } from "@/components/system";
+import { ClipboardCheck, ScanSearch } from "lucide-react";
+import { Accordion, AnimatedNumber, Badge, NumberTicker, type AnimatedBadgeStatus } from "@/components/system";
 import type { AnalysisSummary, InternalExcelCheckRow } from "@/features/registro-retributivo/types";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
 
@@ -10,183 +10,157 @@ interface SummaryCardsProps {
   readonly internalExcelChecks?: readonly InternalExcelCheckRow[];
 }
 
-function internalStatus(rows: readonly InternalExcelCheckRow[]): "success" | "warning" | "danger" {
+type DetailItem = {
+  readonly label: string;
+  readonly detail: string;
+  readonly value: string | number;
+  readonly status?: AnimatedBadgeStatus;
+};
+
+function internalStatus(rows: readonly InternalExcelCheckRow[]): AnimatedBadgeStatus {
   if (rows.some((row) => row.status === "Diferencia")) return "danger";
   if (rows.some((row) => row.status === "Revisar")) return "warning";
   return "success";
 }
 
-function PrimaryKpi({
+function Kpi({
   label,
-  value,
   detail,
-  icon: Icon,
-  numeric,
-}: Readonly<{
-  label: string;
-  value: string | number;
-  detail: string;
-  icon: LucideIcon;
-  numeric?: number;
-}>) {
+  children,
+}: Readonly<{ label: string; detail: string; children: React.ReactNode }>) {
   return (
-    <div className="@container/card rounded-xl border border-border bg-card p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground @[250px]/card:text-3xl">
-        {numeric !== undefined ? (
-          <AnimatedNumber value={numeric} startOnView duration={0.9} />
-        ) : (
-          value
-        )}
-      </p>
-      <div className="mt-3 flex items-center gap-2 text-sm font-medium text-foreground">
-        <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        {detail}
-      </div>
+    <div data-testid="primary-kpi" className="min-w-0 px-4 py-4 sm:px-5">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground tabular-nums sm:text-3xl">{children}</p>
+      <p className="mt-1 truncate text-xs text-muted-foreground">{detail}</p>
     </div>
   );
 }
 
-function DetailRow({
-  label,
-  value,
-  detail,
-  icon: Icon,
-  badgeStatus = "neutral",
-}: Readonly<{
-  label: string;
-  value: string | number;
-  detail: string;
-  icon: LucideIcon;
-  badgeStatus?: "neutral" | "info" | "success" | "warning" | "danger";
-}>) {
+function DetailList({ items }: Readonly<{ items: readonly DetailItem[] }>) {
   return (
-    <div data-variant="row" className="flex items-start justify-between gap-4 border-b border-border py-3 last:border-b-0">
-      <div className="flex min-w-0 items-start gap-3">
-        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-          <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
-        </span>
-        <div className="min-w-0">
-          <p className="font-medium text-foreground">{label}</p>
-          <p className="text-sm text-muted-foreground">{detail}</p>
+    <dl className="divide-y divide-border">
+      {items.map((item) => (
+        <div key={item.label} data-variant="row" className="flex items-start justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+          <div className="min-w-0">
+            <dt className="text-sm font-medium text-foreground">{item.label}</dt>
+            <dd className="text-xs text-muted-foreground">{item.detail}</dd>
+          </div>
+          <dd className="shrink-0">
+            <Badge status={item.status ?? "neutral"} size="sm" className="tabular-nums">
+              {item.value}
+            </Badge>
+          </dd>
         </div>
-      </div>
-      <Badge status={badgeStatus} size="sm" className="shrink-0 tabular-nums">
-        {value}
-      </Badge>
-    </div>
+      ))}
+    </dl>
   );
 }
 
+/** Banda única de KPIs + acordeón de cobertura y revisión pendiente. */
 export function SummaryCards({ summary, internalExcelChecks = [] }: SummaryCardsProps) {
   const internalOk = internalExcelChecks.filter((row) => row.status === "OK").length;
-  const badgeStatus = internalStatus(internalExcelChecks);
+  const pendingCount = (summary?.conceptsPendingReview ?? 0) + (summary?.conceptsRealUnmapped ?? 0);
+
+  const coverage: DetailItem[] = [
+    {
+      label: "Cuadre Reg.",
+      detail: "Periodo completo vs desglose. No compara contra recibos.",
+      value: `${internalOk} / ${internalExcelChecks.length} OK`,
+      status: internalStatus(internalExcelChecks),
+    },
+    {
+      label: "Recibos procesados",
+      detail: summary?.pdfsFailed ? `${summary.pdfsFailed} con error` : "Páginas de recibos procesadas",
+      value: summary?.pdfsAnalyzed ?? 0,
+    },
+    {
+      label: "Reg. Retrib. sin Recibo",
+      detail: "Personas del Excel sin recibo asociado",
+      value: summary?.peopleInRegistroWithoutPdf ?? 0,
+    },
+  ];
+
+  const pending: DetailItem[] = [
+    {
+      label: "Conceptos pendientes de revisión",
+      detail: "Requieren decisión; no se incluyen en el cálculo principal.",
+      value: summary?.conceptsPendingReview ?? 0,
+      status: summary?.conceptsPendingReview ? "warning" : "neutral",
+    },
+    {
+      label: "Importe pendiente de decisión",
+      detail: "Importe Recibo no incluido en el cálculo principal.",
+      value: formatEuro(summary?.pendingDecisionPdfTotal ?? 0),
+      status: summary?.pendingDecisionPdfTotal ? "warning" : "neutral",
+    },
+    {
+      label: "Conceptos sin mapear reales",
+      detail: "Sin código Reg. Retrib. claro.",
+      value: summary?.conceptsRealUnmapped ?? 0,
+      status: summary?.conceptsRealUnmapped ? "danger" : "neutral",
+    },
+    {
+      label: "Conceptos desactivados",
+      detail: "Reglas configuradas fuera del análisis.",
+      value: summary?.conceptsIgnored ?? 0,
+    },
+  ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
       <section
         data-testid="primary-kpis"
         aria-label="Indicadores principales"
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid grid-cols-2 divide-border overflow-hidden rounded-2xl border border-border bg-card max-sm:[&>*:nth-child(-n+2)]:border-b sm:divide-x xl:grid-cols-4"
       >
-        <div data-testid="primary-kpi">
-          <PrimaryKpi
-            label="Personas analizadas"
-            value={summary?.uniquePeople ?? 0}
-            numeric={summary?.uniquePeople ?? 0}
-            detail={`${summary?.matchedPeople ?? 0} con Reg. Retrib. y Recibo`}
-            icon={Users}
+        <Kpi label="Personas analizadas" detail={`${summary?.matchedPeople ?? 0} con Reg. Retrib. y Recibo`}>
+          <NumberTicker value={summary?.uniquePeople ?? 0} locale />
+        </Kpi>
+        <Kpi label="Con diferencia" detail="Matched fuera de tolerancia">
+          <NumberTicker value={summary?.peopleWithDifferences ?? 0} locale />
+        </Kpi>
+        <Kpi label="Diferencia matched" detail="Personas con Reg. Retrib. y Recibo">
+          <AnimatedNumber
+            value={summary?.matchedTotalDifference ?? summary?.totalGlobalDifference ?? 0}
+            format={formatEuro}
+            startOnView
+            duration={0.9}
           />
-        </div>
-        <div data-testid="primary-kpi">
-          <PrimaryKpi
-            label="Personas con diferencia"
-            value={summary?.peopleWithDifferences ?? 0}
-            numeric={summary?.peopleWithDifferences ?? 0}
-            detail="Matched fuera de tolerancia"
-            icon={Users}
-          />
-        </div>
-        <div data-testid="primary-kpi">
-          <PrimaryKpi
-            label="Diferencia total matched"
-            value={formatEuro(summary?.matchedTotalDifference ?? summary?.totalGlobalDifference ?? 0)}
-            detail="Solo personas con Reg. Retrib. y Recibo"
-            icon={BadgeEuro}
-          />
-        </div>
-        <div data-testid="primary-kpi">
-          <PrimaryKpi
-            label="Recibo sin Reg. Retrib."
-            value={summary?.peopleInPdfWithoutRegistro ?? 0}
-            numeric={summary?.peopleInPdfWithoutRegistro ?? 0}
-            detail={formatEuro(summary?.totalPdfWithoutRegistro ?? 0)}
-            icon={Sigma}
-          />
-        </div>
+        </Kpi>
+        <Kpi label="Recibo sin Reg. Retrib." detail={formatEuro(summary?.totalPdfWithoutRegistro ?? 0)}>
+          <NumberTicker value={summary?.peopleInPdfWithoutRegistro ?? 0} locale />
+        </Kpi>
       </section>
 
-      <section className="grid items-start gap-4 xl:grid-cols-2">
-        <section role="region" aria-label="Estado del análisis" className="rounded-xl border border-border bg-card p-4">
-          <h3 className="text-base font-semibold text-foreground">Estado del análisis</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Cobertura y consistencia de los datos procesados.</p>
-          <div className="mt-2">
-            <DetailRow
-              label="Cuadre Reg."
-              value={`${internalOk} / ${internalExcelChecks.length} OK`}
-              detail="Periodo completo vs desglose. No compara contra recibos."
-              icon={FileCheck2}
-              badgeStatus={badgeStatus}
-            />
-            <DetailRow
-              label="Recibos procesados"
-              value={summary?.pdfsAnalyzed ?? 0}
-              detail={summary?.pdfsFailed ? `${summary.pdfsFailed} con error` : "Páginas de recibos procesadas"}
-              icon={FileText}
-            />
-            <DetailRow
-              label="Reg. Retrib. sin Recibo"
-              value={summary?.peopleInRegistroWithoutPdf ?? 0}
-              detail="Personas del Excel sin recibo asociado"
-              icon={UserX}
-            />
-          </div>
-        </section>
-
-        <section role="region" aria-label="Revisión pendiente" className="rounded-xl border border-border bg-card p-4">
-          <h3 className="text-base font-semibold text-foreground">Revisión pendiente</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Decisiones y configuración que requieren atención.</p>
-          <div className="mt-2">
-            <DetailRow
-              label="Conceptos pendientes de revisión"
-              value={summary?.conceptsPendingReview ?? 0}
-              detail="Requieren decisión; no se incluyen en el cálculo principal."
-              icon={AlertCircle}
-              badgeStatus="warning"
-            />
-            <DetailRow
-              label="Importe pendiente de decisión"
-              value={formatEuro(summary?.pendingDecisionPdfTotal ?? 0)}
-              detail="Importe Recibo pendiente de decisión, no incluido en el cálculo principal"
-              icon={BadgeEuro}
-              badgeStatus="warning"
-            />
-            <DetailRow
-              label="Conceptos desactivados"
-              value={summary?.conceptsIgnored ?? 0}
-              detail="Reglas configuradas fuera del análisis"
-              icon={UserX}
-            />
-            <DetailRow
-              label="Conceptos sin mapear reales"
-              value={summary?.conceptsRealUnmapped ?? 0}
-              detail="Problema real de mapeo: sin código Reg. Retrib. claro"
-              icon={AlertCircle}
-              badgeStatus="danger"
-            />
-          </div>
-        </section>
-      </section>
+      <Accordion
+        defaultValue={pendingCount ? "pending" : null}
+        className="overflow-hidden rounded-2xl border border-border"
+        classNames={{ trigger: "min-h-12 px-4", title: "text-sm", description: "text-sm", content: "[&>div]:px-4 [&>div]:pb-4" }}
+        items={[
+          {
+            id: "coverage",
+            icon: <ScanSearch className="size-4" aria-hidden="true" />,
+            title: "Cobertura del análisis",
+            description: <DetailList items={coverage} />,
+          },
+          {
+            id: "pending",
+            icon: <ClipboardCheck className="size-4" aria-hidden="true" />,
+            title: (
+              <span className="flex items-center gap-2">
+                Revisión pendiente
+                {pendingCount ? (
+                  <Badge status="warning" size="sm" className="tabular-nums">
+                    {pendingCount}
+                  </Badge>
+                ) : null}
+              </span>
+            ),
+            description: <DetailList items={pending} />,
+          },
+        ]}
+      />
     </div>
   );
 }

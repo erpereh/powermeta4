@@ -5,9 +5,9 @@ import { Check, Loader2, X } from "lucide-react";
 import {
   AnimatePresence,
   motion,
-  useReducedMotion,
   type Variants,
 } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   forwardRef,
   type ReactNode,
