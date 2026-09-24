@@ -3,11 +3,15 @@
 import { useState } from "react";
 import { Accordion } from "@/components/system";
 
+import { HireCatalogsNotice } from "./catalogs";
 import {
+  CatalogField,
   CompoundField,
   CurrentInput,
-  PendingCatalog,
+  GeoField,
+  PendingCatalogLookup,
   PendingInput,
+  PlaceField,
   HireSubsection,
   HIRE_ACCORDION_CLASS_NAMES,
 } from "./fields";
@@ -26,21 +30,22 @@ export function PersonalSection() {
           description:
             openSection === "identity" ? (
               <HireSubsection title="Identificación y nacimiento">
+                <HireCatalogsNotice />
                 <div className="grid gap-4 md:grid-cols-2">
                   <CurrentInput field="firstName" />
                   <CurrentInput field="lastName1" />
                   <CurrentInput field="lastName2" />
-                  <CurrentInput field="documentType" />
+                  <CatalogField field="documentType" />
                   <CurrentInput field="documentNumber" />
                   <PendingInput field="legalRepresentativeNif" />
-                  <PendingCatalog field="issuingCountry" />
+                  <CatalogField field="issuingCountry" />
                   <PendingInput field="birthDate" />
-                  <PendingCatalog field="nationality" />
-                  <PendingCatalog field="birthCountry" />
-                  <PendingCatalog field="birthCommunity" />
-                  <PendingCatalog field="birthProvince" />
-                  <PendingCatalog field="gender" />
-                  <PendingCatalog field="maritalStatus" />
+                  <CatalogField field="nationality" />
+                  <GeoField group="birth" depth={3} />
+                  <GeoField group="birth" depth={2} />
+                  <GeoField group="birth" depth={1} />
+                  <CatalogField field="gender" />
+                  <CatalogField field="maritalStatus" />
                   <CurrentInput field="hireDate" />
                 </div>
               </HireSubsection>
@@ -51,11 +56,14 @@ export function PersonalSection() {
           title: "Información Atradius",
           description:
             openSection === "atradius" ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                <PendingInput field="atradiusId" />
-                <PendingCatalog field="atradiusJobCode" />
-                <PendingCatalog field="atradiusCategory" />
-                <PendingCatalog field="department" />
+              <div className="space-y-4">
+                <HireCatalogsNotice />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <PendingInput field="atradiusId" />
+                  <CatalogField field="atradiusJobCode" />
+                  <CatalogField field="atradiusCategory" />
+                  <PendingCatalogLookup field="department" source="department" />
+                </div>
               </div>
             ) : null,
         },
@@ -96,8 +104,11 @@ export function PersonalSection() {
           description:
             openSection === "address" ? (
               <div className="grid gap-4 md:grid-cols-2">
-                <PendingCatalog field="locationType" />
-                <PendingCatalog field="roadType" />
+                <div className="md:col-span-2">
+                  <HireCatalogsNotice />
+                </div>
+                <CatalogField field="locationType" />
+                <CatalogField field="roadType" />
                 <CompoundField
                   field="address"
                   parts={[
@@ -112,10 +123,10 @@ export function PersonalSection() {
                 <PendingInput field="floor" />
                 <PendingInput field="door" />
                 <PendingInput field="postalCode" />
-                <PendingCatalog field="country" />
-                <PendingCatalog field="community" />
-                <PendingCatalog field="province" />
-                <PendingCatalog field="city" />
+                <PlaceField />
+                <GeoField group="address" depth={3} />
+                <GeoField group="address" depth={2} />
+                <GeoField group="address" depth={1} />
               </div>
             ) : null,
         },

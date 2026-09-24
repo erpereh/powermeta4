@@ -23,7 +23,7 @@ describe("Meta4 hire field mappings", () => {
   it("classifies every field and reserves red only for unresolved Excel mappings", () => {
     const entries = Object.entries(HIRE_FIELD_META);
     expect(entries).toHaveLength(113);
-    expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(7);
+    expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(54);
     expect(entries.filter(([, field]) => field.mapping.status === "confirmed")).toHaveLength(96);
     expect(entries.filter(([, field]) => field.mapping.status === "unconfirmed")).toHaveLength(11);
     expect(entries.filter(([, field]) => field.mapping.status === "ui-only")).toHaveLength(6);
@@ -104,6 +104,53 @@ describe("Meta4 hire field mappings", () => {
       "documentNumber",
       "email",
       "hireDate",
+      "issuingCountry",
+      "nationality",
+      "birthProvince",
+      "birthCountry",
+      "gender",
+      "maritalStatus",
+      "atradiusJobCode",
+      "atradiusCategory",
+      "locationType",
+      "roadType",
+      "city",
+      "province",
+      "community",
+      "country",
+      "legalEntity",
+      "job",
+      "position",
+      "workUnit",
+      "workLocation",
+      "category",
+      "startReason",
+      "structure",
+      "functionalWorkCenter",
+      "tc1Header",
+      "tariffGroup",
+      "ssOccupation",
+      "ssAgreement",
+      "legalContract",
+      "internalContract",
+      "laborRelation",
+      "reductionReason",
+      "substitutionCause",
+      "unemploymentCondition",
+      "specialLaborRelation",
+      "socialExclusion",
+      "variableCompensationMode",
+      "payrollAgreement",
+      "adjustmentType",
+      "salaryType",
+      "payrollCurrency",
+      "union",
+      "irpfType",
+      "perceptionKey",
+      "paymentCurrency",
+      "paymentType",
+      "companyBank",
+      "accountCurrency",
     ];
     for (const field of current) {
       const mapping = HIRE_FIELD_META[field].mapping;

@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { Accordion, Input } from "@/components/system";
 
+import { HireCatalogsNotice } from "./catalogs";
 import { useHireDraft } from "./draft";
 import {
+  CatalogField,
   FieldGroup,
-  PendingCatalog,
   PendingInput,
   PendingLookupButton,
   PendingRadio,
@@ -47,10 +48,13 @@ export function PaymentSection() {
           title: "Datos de pago",
           description:
             openSection === "payment-general" ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                <PendingCatalog field="paymentCurrency" />
-                <PendingCatalog field="paymentType" />
-                <PendingCatalog field="companyBank" />
+              <div className="space-y-4">
+                <HireCatalogsNotice />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <CatalogField field="paymentCurrency" />
+                  <CatalogField field="paymentType" />
+                  <CatalogField field="companyBank" />
+                </div>
               </div>
             ) : null,
         },
@@ -93,7 +97,7 @@ export function PaymentSection() {
                     </p>
                   ) : null}
                 </FieldGroup>
-                <PendingCatalog field="accountCurrency" />
+                <CatalogField field="accountCurrency" />
               </div>
             ) : null,
         },

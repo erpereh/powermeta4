@@ -1,5 +1,110 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas Meta4: catálogos de pago desde PeopleNet - 2026-09-24
+
+- [x] Conexión SQL Server de solo lectura (`mssql`) con `PEOPLENET_DB_*` en
+      servidor; pool único y reutilizado en desarrollo.
+- [x] `ID Moneda`, `ID Tipo pago` e `ID Banco empresa` de Datos de pago cargan
+      `M4RCH_CURRENCY` (vigentes), `M4SCO_PAYMENT_TYPE` (organización `0000`,
+      sin filtro) y `M4SCO_COMPANY_BANK` filtrado por `ID_ORGANIZATION` = la
+      sociedad del contexto operativo. Probado contra `M4PRENOMINA` con CYC,
+      IBER y COLL.
+- [x] Combobox con columnas ID y nombre (banco con IBAN como detalle),
+      búsqueda por ID/nombre sin acentos; el campo muestra el nombre y el
+      borrador guarda el ID.
+- [x] Los tres campos pasan a integrados y obligatorios para enviar. El
+      servidor recarga los catálogos de la sociedad y rechaza IDs ajenos antes
+      de tocar Excel. Excel escribe el ID como texto literal en HT/HU, HV/HW y
+      HX/HY (`SRSP_PA_HIRE_WIZ_DATOS_PAGO`): sin el prefijo `'`, Excel
+      convertía «0002» en 2.
+- [x] `npm run typecheck`, `npm run build`, `oxlint` (7 warnings anteriores) y
+      `oxfmt --check` de los archivos tocados correctos. `npm test` completo:
+      97 archivos correctos, 485 pruebas correctas y 36 omitidas
+      (`source-parity`). Una segunda pasada dio 2 timeouts por carga; tras dar
+      15 s a los dos tests del formulario, esos archivos pasan por separado.
+      Test real de Excel COM correcto.
+- [x] `ID Moneda` de Datos bancarios de la persona (`ID_CURRENCY_2`) usa el
+      mismo catálogo de monedas; opcional, con botón «Quitar»; se escribe en
+      IJ/IK y, si queda vacía, se borra el valor de ejemplo de la plantilla.
+      Corregido: el combobox vacío pasaba a no controlado y conservaba la
+      última selección. Tests de alta (incluido Excel COM real) correctos.
+- [x] Nómina: `ID Convenio` (`M4SSP_CONVENIOS` por `ID_ORGANIZATION`),
+      `ID Tipo de ajuste`, `ID Tipo salario`, `ID Moneda` (mismo catálogo de
+      monedas), `ID Sindicato`, `ID Tipo del IRPF` e `ID Clave percepción`
+      cargan PeopleNet y se escriben en GF/GG (número), GH/GI, GL/GM, GV/GW,
+      GR/GS, HB/HC y HD/HE. Obligatorios los cinco marcados en PeopleNet;
+      moneda y sindicato opcionales. GG y GS eran fórmulas sobre la celda
+      visible (GS con BUSCARV sobre una hoja de validación vacía): se
+      sustituyen por el ID.
+- [x] Registro único `HIRE_CATALOG_FIELDS` (campo → catálogo, etiqueta,
+      obligatoriedad) usado por validación, servidor, Excel y UI.
+- [x] Probado contra `M4PRENOMINA`: 10 catálogos para CYC, IBER y COLL.
+- [ ] `ID Modelo/Semana de referencia`: el combobox carga
+      `M4SCO_REF_W_MOD` pero el valor queda en el borrador. En la plantilla
+      HO está enlazada a `SSP_ID_CENT_COSTO1` y solo HP lleva
+      `SCO_OR_REF_MOD`; falta confirmar dónde va `SCO_ID_REF_MOD`.
+- [x] `Tipo modalidad Variable` (`M4CSP_MOD_VAR` por sociedad), obligatorio,
+      escrito como número en IU (`CSP_TP_MOD_VAR`); IT («MONEDA») no se toca.
+- [x] Seguridad Social: Cabecera TC1 (por sociedad), Grupo de tarifa,
+      Ocupación, Convenio S.S., Contrato legal + interno, Relación laboral,
+      Motivo de reducción, Causa sustitución, Condición desempleado, Relación
+      laboral especial y Exclusión social desde PeopleNet, en DZ–FN.
+      Obligatorios TC1, grupo de tarifa y contrato; el resto opcionales.
+- [x] Contrato legal e interno se eligen como un par de
+      `M4SSP_CONTRATO_LEG`/`M4SSP_CONTRATO_INT` (90 pares): un combobox en el
+      legal y el interno como fila de solo lectura; el servidor valida el par.
+- [x] Probado contra `M4PRENOMINA`: 22 catálogos para CYC, IBER y COLL.
+- [x] Jornada parcial: los cinco campos solo se muestran con «Jornada
+      parcial». Tipo de horas (Semanales 1 / Mensuales 2 / Anuales 3) y Tipo
+      de jornada parcial (Regular R / Irregular I) son listas fijas tomadas de
+      `SRSP_VALIDATION`. Siguen en el borrador local (sin enviar a Excel).
+- [x] Datos personales desde PeopleNet: tipo de documento (ahora combobox),
+      país emisor, nacionalidad, provincia y país de nacimiento, sexo, estado
+      civil, Atradius Job Code y Categoría (por sociedad), tipo de
+      localización, tipo de vía, población, provincia, comunidad y país. Se
+      escriben en V/W, AA–AT, AM, T y BB–CF.
+- [x] Geografía: IDs internos con ruta completa (`país/comunidad/provincia/
+      población`) porque se repiten entre países; Excel recibe el último
+      segmento. Elegir población rellena provincia, comunidad y país; cambiar
+      un nivel superior limpia los inferiores que no le pertenecen; el
+      servidor rechaza combinaciones incoherentes.
+- [x] Población (36.667 filas) se busca en servidor: `GET /api/hire/places`
+      con sesión, mínimo 2 caracteres, 50 resultados, sin distinguir
+      mayúsculas ni acentos (la base es `CS_AS`).
+- [x] IDs con espacios o apóstrofos («Sin asignar», «0028 BC», «L'V»): el
+      patrón de validación solo rechaza caracteres de control; antes
+      bloqueaba, entre otros, cabeceras TC1 válidas de IBER.
+- [x] `ID Estado civil` pasa a obligatorio (negrita en PeopleNet): 38
+      requisitos PeopleNet.
+- [x] Organización desde PeopleNet (por sociedad salvo Motivo inicio): ID
+      Empresa (CH/CI), ID Puesto (CK/CL, solo se envía en la rama Puesto),
+      Unidad organizativa (CS/CT), Lugar de trabajo (CU/CV), Categoría
+      (CW/CX), Motivo inicio (DB/DC), Estructura (AZ) y Centro funcional
+      (BA). Puesto, unidad y lugar: filas vigentes (fin 4000-01-01, inicio
+      hasta hoy) y sin `ROOT`, como las consultas de PeopleNet.
+- [x] La empresa deja de ser la de la plantilla (`ACYC_ES` solo existe en
+      CYC); AGENTS.md actualizado.
+- [ ] Proyecto (`M4SSP_CENTR_COSTO`): se elige pero no se envía; CZ
+      (`SSP_ID_CENT_COSTO`) lleva en la plantilla el formato
+      «000000|000000», sin confirmar.
+- [x] ID Posición (`M4SCO_POSITION` + históricos vigentes, por sociedad):
+      combobox en la rama Posición, enviado solo en esa rama a CM/CN. Hoy la
+      consulta no devuelve filas en CYC, IBER ni COLL. `PendingCatalog`
+      desaparece: ya no queda ningún catálogo sin consulta.
+- [ ] `ID Department` y `ID Comunidad nacimiento`: se eligen desde PeopleNet
+      pero no se envían; la plantilla no tiene columna para ellos. Decisión
+      del usuario (2026-09-24): se resolverá sobre la marcha.
+- [ ] Revisión visual en navegador con sesión Meta4 (no ejecutada: sin
+      navegador en la sesión).
+- [x] Copias PAYROLL GX/GY (`TIPO PAGO_`) y GZ/HA (`BANCO EMPRESA_`): el
+      usuario pide solo cargar las consultas; se mantienen con el valor de la
+      plantilla.
+- [x] Jornada parcial: no se integra en Excel por decisión del usuario. Para
+      cuando se retome, la plantilla tiene EQ (`SSP_VALOR_COEF_T_P`), ES/ET
+      (`SSP_TIPO_HORAS`), EU (`SSP_NUM_HORAS`), EV/EW (`SSP_JP_REG_IRREG`) y
+      EX (`SSP_NUM_DIAS_JP`).
+- [ ] Siguientes catálogos del alta con sus consultas.
+
 ## Alta de personas Meta4: mappings en labels - 2026-09-23
 
 - [x] Los 113 campos de `HIRE_FIELD_META` tienen clasificación explícita:

@@ -6,6 +6,13 @@ import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import {
+  HIRE_CATALOG_FIELD_IDS,
+  HIRE_CATALOG_FIELDS,
+  HIRE_CONTRACT_FIELDS,
+  lastGeoSegment,
+  type HireCatalogFieldId,
+} from "./catalogs";
 import { Meta4HireError } from "./errors";
 import { FIRST_PERSON_ROW, HIRE_DATA_SHEET, MANUAL_COLUMNS, toExcelSerialDate } from "./mapping";
 import type { HirePerson } from "./types";
@@ -202,6 +209,9 @@ try {
       $range = Get-ComProp $sheet "Range" @($address)
       if ($cell.kind -eq "clear") {
         Invoke-ComMethod $range "ClearContents" @() | Out-Null
+      } elseif ($cell.kind -eq "literal") {
+        # Leading apostrophe: Excel keeps "0001" as text instead of the number 1.
+        Set-ComProp $range "Value2" ("'" + [string]$cell.value)
       } elseif ($cell.kind -eq "number") {
         Set-ComProp $range "Value2" ([double]$cell.value)
       } else {
@@ -240,6 +250,7 @@ try {
 
 type CellEdit =
   | { column: string; kind: "text"; value: string }
+  | { column: string; kind: "literal"; value: string }
   | { column: string; kind: "number"; value: number }
   | { column: string; kind: "clear" };
 
@@ -248,18 +259,40 @@ const textCells = (columns: readonly string[], value: string): CellEdit[] =>
     value === "" ? { column, kind: "clear" } : { column, kind: "text", value },
   );
 
+/** Catalog IDs such as "0001" must reach the import as text, never as numbers. */
+const literalCells = (columns: readonly string[], value: string): CellEdit[] =>
+  columns.map((column) =>
+    value === "" ? { column, kind: "clear" } : { column, kind: "literal", value },
+  );
+
+/** The template stores these IDs as numbers (GG = GF+0, IU = 1). */
+const NUMERIC_CATALOG_FIELDS: ReadonlySet<HireCatalogFieldId> = new Set([
+  "adjustmentType",
+  "variableCompensationMode",
+]);
+
 const cellsForPerson = (person: HirePerson): CellEdit[] => {
   const hireSerial = toExcelSerialDate(person.hireDate);
   return [
     ...textCells(MANUAL_COLUMNS.firstName, person.firstName),
     ...textCells(MANUAL_COLUMNS.lastName1, person.lastName1),
     ...textCells(MANUAL_COLUMNS.lastName2, person.lastName2),
-    ...textCells(MANUAL_COLUMNS.documentType, person.documentType),
     ...textCells(MANUAL_COLUMNS.documentNumber, person.documentNumber),
     ...textCells(MANUAL_COLUMNS.email, person.email),
     ...MANUAL_COLUMNS.hireDate.map(
       (column): CellEdit => ({ column, kind: "number", value: hireSerial }),
     ),
+    ...HIRE_CATALOG_FIELD_IDS.flatMap((field) =>
+      NUMERIC_CATALOG_FIELDS.has(field) && /^\d+$/.test(person[field])
+        ? MANUAL_COLUMNS[field].map(
+            (column): CellEdit => ({ column, kind: "number", value: Number(person[field]) }),
+          )
+        : literalCells(
+            MANUAL_COLUMNS[field],
+            HIRE_CATALOG_FIELDS[field].geo ? lastGeoSegment(person[field]) : person[field],
+          ),
+    ),
+    ...HIRE_CONTRACT_FIELDS.flatMap((field) => literalCells(MANUAL_COLUMNS[field], person[field])),
   ];
 };
 

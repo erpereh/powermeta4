@@ -3,17 +3,32 @@
 import { useState } from "react";
 import { Accordion } from "@/components/system";
 
+import { HireCatalogsNotice } from "./catalogs";
 import { useHireDraft } from "./draft";
 import {
+  CatalogField,
   CompoundField,
+  ContractField,
   HireSubsection,
-  PendingCatalog,
   PendingCheckbox,
+  PendingChoice,
   PendingInput,
   PendingRadio,
   PendingTextarea,
   HIRE_ACCORDION_CLASS_NAMES,
 } from "./fields";
+
+// Fixed PeopleNet values (SRSP_VALIDATION CF:CG and AE:AF in the template).
+const HOUR_TYPES = [
+  { id: "1", name: "Semanales" },
+  { id: "2", name: "Mensuales" },
+  { id: "3", name: "Anuales" },
+] as const;
+
+const PARTIAL_SCHEDULE_TYPES = [
+  { id: "R", name: "Regular" },
+  { id: "I", name: "Irregular" },
+] as const;
 
 export function SocialSecuritySection() {
   const [openSection, setOpenSection] = useState<string | null>("ss-general");
@@ -32,6 +47,7 @@ export function SocialSecuritySection() {
           description:
             openSection === "ss-general" ? (
               <div className="space-y-4">
+                <HireCatalogsNotice />
                 <PendingRadio
                   field="ssNumberChoice"
                   value={ssNumberChoice}
@@ -56,10 +72,10 @@ export function SocialSecuritySection() {
                   />
                 ) : null}
                 <div className="grid gap-4 md:grid-cols-2">
-                  <PendingCatalog field="tc1Header" />
-                  <PendingCatalog field="tariffGroup" />
-                  <PendingCatalog field="ssOccupation" />
-                  <PendingCatalog field="ssAgreement" />
+                  <CatalogField field="tc1Header" />
+                  <CatalogField field="tariffGroup" />
+                  <CatalogField field="ssOccupation" />
+                  <CatalogField field="ssAgreement" />
                 </div>
               </div>
             ) : null,
@@ -70,12 +86,12 @@ export function SocialSecuritySection() {
           description:
             openSection === "contract" ? (
               <div className="space-y-6">
+                <HireCatalogsNotice />
                 <HireSubsection title="Contrato">
                   <div className="grid gap-4 md:grid-cols-2">
-                    <PendingCatalog field="legalContract" />
-                    <PendingCatalog field="internalContract" />
+                    <ContractField />
                     <PendingInput field="contractEnd" />
-                    <PendingCatalog field="laborRelation" />
+                    <CatalogField field="laborRelation" />
                   </div>
                 </HireSubsection>
                 <HireSubsection title="Jornada">
@@ -91,16 +107,15 @@ export function SocialSecuritySection() {
                       { value: "partial", label: "Jornada parcial" },
                     ]}
                   />
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <PendingInput
-                      field="partialSchedulePercent"
-                      disabled={scheduleChoice !== "partial"}
-                    />
-                    <PendingCatalog field="hourType" />
-                    <PendingInput field="numberOfHours" disabled={scheduleChoice !== "partial"} />
-                    <PendingCatalog field="partialScheduleType" />
-                    <PendingInput field="weeklyWorkDays" disabled={scheduleChoice !== "partial"} />
-                  </div>
+                  {scheduleChoice === "partial" ? (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <PendingInput field="partialSchedulePercent" />
+                      <PendingChoice field="hourType" options={HOUR_TYPES} />
+                      <PendingInput field="numberOfHours" />
+                      <PendingChoice field="partialScheduleType" options={PARTIAL_SCHEDULE_TYPES} />
+                      <PendingInput field="weeklyWorkDays" />
+                    </div>
+                  ) : null}
                 </HireSubsection>
               </div>
             ) : null,
@@ -110,9 +125,12 @@ export function SocialSecuritySection() {
           title: "Guarda Legal y reducción especial de jornada",
           description:
             openSection === "legal-reduction" ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                <PendingInput field="legalReductionPercent" />
-                <PendingCatalog field="reductionReason" />
+              <div className="space-y-4">
+                <HireCatalogsNotice />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <PendingInput field="legalReductionPercent" />
+                  <CatalogField field="reductionReason" />
+                </div>
               </div>
             ) : null,
         },
@@ -122,8 +140,9 @@ export function SocialSecuritySection() {
           description:
             openSection === "bonifications" ? (
               <div className="space-y-6">
+                <HireCatalogsNotice />
                 <div className="grid gap-4 md:grid-cols-2">
-                  <PendingCatalog field="substitutionCause" />
+                  <CatalogField field="substitutionCause" />
                   <CompoundField
                     field="replacedPersonSsNumber"
                     parts={[
@@ -132,9 +151,9 @@ export function SocialSecuritySection() {
                       { field: "replacedSsSuffix", label: "Segmento 3" },
                     ]}
                   />
-                  <PendingCatalog field="unemploymentCondition" />
-                  <PendingCatalog field="specialLaborRelation" />
-                  <PendingCatalog field="socialExclusion" />
+                  <CatalogField field="unemploymentCondition" />
+                  <CatalogField field="specialLaborRelation" />
+                  <CatalogField field="socialExclusion" />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <PendingRadio

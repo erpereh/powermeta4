@@ -1,5 +1,57 @@
 # Changelog
 
+## 2026-09-24 - Catálogos de pago del alta desde PeopleNet
+
+- Nueva dependencia `mssql` (driver JavaScript `tedious`, sin compilación
+  nativa) y `@types/mssql`; `mssql` en `serverExternalPackages`. Conexión
+  server-only en `src/lib/peoplenet/client.ts` con `PEOPLENET_DB_*`
+  (documentadas vacías en `.env.example`).
+- `/tools/users/new` carga en servidor los catálogos de moneda, tipo de pago y
+  banco empresa; el banco se filtra por la sociedad del contexto operativo
+  (`ID_ORGANIZATION` parametrizado). Si PeopleNet falla, los tres combobox
+  quedan deshabilitados con un aviso.
+- Combobox `PaymentCatalog`: lista ID + nombre (e IBAN del banco), el campo
+  cerrado muestra el nombre y el draft guarda el ID.
+- `HirePersonInput` añade `paymentCurrency`, `paymentType` y `companyBank`,
+  obligatorios y validados como ID. `launchMeta4Hire` comprueba los IDs contra
+  los catálogos de la sociedad antes de editar Excel. Excel los escribe como
+  texto literal en HT/HU, HV/HW y HX/HY.
+- `ID Moneda` de Datos bancarios de la persona (`accountCurrency`,
+  `ID_CURRENCY_2`) reutiliza el catálogo de monedas. Es opcional («Quitar»
+  limpia la selección) y se escribe en IJ/IK; vacía borra el valor de la
+  plantilla. El servidor la valida si viene informada.
+- Nómina: convenio (por sociedad), tipo de ajuste, tipo de salario, moneda,
+  sindicato, tipo de IRPF y clave de percepción desde PeopleNet, integrados
+  en Excel (GF–GW, HB–HE). Modelo/semana de referencia se puede elegir desde
+  `M4SCO_REF_W_MOD` pero no se envía: su enlace en la plantilla no está
+  confirmado.
+- Seguridad Social y modalidad variable desde PeopleNet (TC1 y modalidad por
+  sociedad), escritos en DZ–FN e IU. Contrato legal + interno como un único
+  par validado en servidor; el interno se muestra en solo lectura.
+- Datos personales desde PeopleNet (incluido tipo de documento, antes texto
+  libre). Geografía con IDs de ruta completa, relleno en cascada y validación
+  de coherencia en servidor. Población se busca con `GET /api/hire/places`.
+- Jornada parcial: campos visibles solo con «Jornada parcial»; tipo de horas
+  y regular/irregular como listas fijas.
+- Validación de IDs: admite espacios y apóstrofos presentes en PeopleNet.
+- `tsconfig.tsbuildinfo` obsoleto ocultaba errores de tipos en tests; se
+  regeneró (archivo ignorado por git).
+- Organización desde PeopleNet: empresa, puesto (solo rama Puesto), unidad
+  organizativa, lugar de trabajo, categoría, motivo de inicio, estructura y
+  centro funcional, escritos en CH–DC, AZ y BA. La empresa ya no se hereda de
+  la plantilla. Proyecto (centro de coste) se elige pero no se envía.
+- ID Posición desde `M4SCO_POSITION` (vacío hoy), enviado a CM/CN solo en la
+  rama Posición; se elimina el componente `PendingCatalog` sin usos.
+- La caché incremental de `tsc` (`tsconfig.tsbuildinfo`) no detectaba
+  cambios de tipos; las verificaciones se ejecutan tras borrarla.
+- `HIRE_CATALOG_FIELDS` centraliza campo → catálogo, etiqueta y
+  obligatoriedad; `catalogs.ts`/`catalog-queries.ts` sustituyen a los módulos
+  `payment-catalogs*`. El combobox común es `CatalogField`.
+- Verificación: typecheck, build, tests de alta (incluido Excel COM real) y
+  suite completa (485 correctas, 36 omitidas); `oxlint` sin avisos nuevos;
+  formato correcto en los archivos tocados. Consulta real comprobada para CYC,
+  IBER y COLL. Sin revisión visual en navegador.
+
 ## 2026-09-23 - Mappings visibles en el alta Meta4
 
 - `HIRE_FIELD_META` clasifica los 113 campos según mapping confirmado (96),

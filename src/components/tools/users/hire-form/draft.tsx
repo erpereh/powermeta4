@@ -22,8 +22,8 @@ export type PendingValueKey =
   | "replacedSsPrefix"
   | "replacedSsBody"
   | "replacedSsSuffix"
-  | "referenceSegment1"
-  | "referenceSegment2";
+  // Name of the chosen Población: it is searched, not preloaded.
+  | "cityName";
 
 export type HireBranches = {
   positionChoice: "" | "job" | "position";
@@ -52,6 +52,53 @@ export const createHirePersonDraft = (id: number): HirePersonDraft => ({
     documentNumber: "",
     email: "",
     hireDate: "",
+    issuingCountry: "",
+    nationality: "",
+    birthProvince: "",
+    birthCountry: "",
+    gender: "",
+    maritalStatus: "",
+    atradiusJobCode: "",
+    atradiusCategory: "",
+    locationType: "",
+    roadType: "",
+    city: "",
+    province: "",
+    community: "",
+    country: "",
+    legalEntity: "",
+    job: "",
+    position: "",
+    workUnit: "",
+    workLocation: "",
+    category: "",
+    startReason: "",
+    structure: "",
+    functionalWorkCenter: "",
+    tc1Header: "",
+    tariffGroup: "",
+    ssOccupation: "",
+    ssAgreement: "",
+    legalContract: "",
+    internalContract: "",
+    laborRelation: "",
+    reductionReason: "",
+    substitutionCause: "",
+    unemploymentCondition: "",
+    specialLaborRelation: "",
+    socialExclusion: "",
+    payrollAgreement: "",
+    adjustmentType: "",
+    salaryType: "",
+    payrollCurrency: "",
+    union: "",
+    irpfType: "",
+    perceptionKey: "",
+    variableCompensationMode: "",
+    paymentCurrency: "",
+    paymentType: "",
+    companyBank: "",
+    accountCurrency: "",
   },
   pendingValues: {},
   pendingChecks: {},
@@ -65,8 +112,8 @@ export const createHirePersonDraft = (id: number): HirePersonDraft => ({
   },
 });
 
-/** Only the seven fields currently mapped to Excel and SOAP cross this boundary. */
-export const toHirePersonInput = ({ current }: HirePersonDraft): HirePersonInput => ({
+/** Only the fields currently mapped to Excel and SOAP cross this boundary. */
+export const toHirePersonInput = ({ current, branches }: HirePersonDraft): HirePersonInput => ({
   firstName: current.firstName,
   lastName1: current.lastName1,
   lastName2: current.lastName2,
@@ -74,17 +121,69 @@ export const toHirePersonInput = ({ current }: HirePersonDraft): HirePersonInput
   documentNumber: current.documentNumber,
   email: current.email,
   hireDate: current.hireDate,
+  issuingCountry: current.issuingCountry,
+  nationality: current.nationality,
+  birthProvince: current.birthProvince,
+  birthCountry: current.birthCountry,
+  gender: current.gender,
+  maritalStatus: current.maritalStatus,
+  atradiusJobCode: current.atradiusJobCode,
+  atradiusCategory: current.atradiusCategory,
+  locationType: current.locationType,
+  roadType: current.roadType,
+  city: current.city,
+  province: current.province,
+  community: current.community,
+  country: current.country,
+  legalEntity: current.legalEntity,
+  // The job only applies to the Puesto branch; a retained value is not sent.
+  job: branches.positionChoice === "job" ? current.job : "",
+  position: branches.positionChoice === "position" ? current.position : "",
+  workUnit: current.workUnit,
+  workLocation: current.workLocation,
+  category: current.category,
+  startReason: current.startReason,
+  structure: current.structure,
+  functionalWorkCenter: current.functionalWorkCenter,
+  tc1Header: current.tc1Header,
+  tariffGroup: current.tariffGroup,
+  ssOccupation: current.ssOccupation,
+  ssAgreement: current.ssAgreement,
+  legalContract: current.legalContract,
+  internalContract: current.internalContract,
+  laborRelation: current.laborRelation,
+  reductionReason: current.reductionReason,
+  substitutionCause: current.substitutionCause,
+  unemploymentCondition: current.unemploymentCondition,
+  specialLaborRelation: current.specialLaborRelation,
+  socialExclusion: current.socialExclusion,
+  payrollAgreement: current.payrollAgreement,
+  adjustmentType: current.adjustmentType,
+  salaryType: current.salaryType,
+  payrollCurrency: current.payrollCurrency,
+  union: current.union,
+  irpfType: current.irpfType,
+  perceptionKey: current.perceptionKey,
+  variableCompensationMode: current.variableCompensationMode,
+  paymentCurrency: current.paymentCurrency,
+  paymentType: current.paymentType,
+  companyBank: current.companyBank,
+  accountCurrency: current.accountCurrency,
 });
 
 /** Future mappings can read this view without accidentally using retained hidden values. */
-export const selectActiveBranchValues = ({ branches, pendingValues }: HirePersonDraft) => ({
+export const selectActiveBranchValues = ({
+  branches,
+  current,
+  pendingValues,
+}: HirePersonDraft) => ({
   position:
     branches.positionChoice === "job"
-      ? { choice: "job", job: pendingValues.job }
+      ? { choice: "job", job: current.job }
       : branches.positionChoice === "position"
         ? {
             choice: "position",
-            position: pendingValues.position,
+            position: current.position,
             occupationType: branches.occupationType,
             occupationHours: pendingValues.occupationHours,
             occupationEjc: pendingValues.occupationEjc,

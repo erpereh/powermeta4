@@ -15,6 +15,60 @@ import { createSerializedQueue } from "./mutex";
 import { launchMeta4Hire } from "./service";
 import type { HirePerson } from "./types";
 
+const loadCatalogs = vi.hoisted(() => vi.fn());
+vi.mock("./catalog-queries", () => ({
+  loadHireCatalogsForLaunch: loadCatalogs,
+}));
+loadCatalogs.mockResolvedValue({
+  currency: [{ id: "EUR", name: "Euro" }],
+  paymentType: [{ id: "4", name: "Transferencia Bancaria" }],
+  companyBank: [{ id: "0001", name: "0001 - Crédito y Caución S.A." }],
+  agreement: [{ id: "0001", name: "Convenio de Empresa" }],
+  adjustmentType: [{ id: "0", name: "Ninguno" }],
+  salaryType: [{ id: "1", name: "Mensual" }],
+  union: [{ id: "UGT", name: "Unión General de Trabajadores" }],
+  irpfType: [{ id: "NAC", name: "Nacional" }],
+  perceptionKey: [{ id: "A", name: "Empleados por cuenta ajena" }],
+  referenceModelWeek: [],
+  documentType: [{ id: "1", name: "NIF" }],
+  country: [{ id: "724", name: "España" }],
+  nationality: [{ id: "724", name: "Española" }],
+  community: [{ id: "724/28", name: "Madrid" }],
+  province: [{ id: "724/28/28", name: "Madrid" }],
+  place: [{ id: "724/28/28/28079", name: "MADRID" }],
+  gender: [],
+  maritalStatus: [{ id: "01", name: "Soltero/a" }],
+  atradiusJob: [{ id: "0000", name: "Sin datos" }],
+  atradiusCategory: [{ id: "00", name: "Sin datos" }],
+  department: [],
+  locationType: [{ id: "1", name: "Domicilio" }],
+  roadType: [{ id: "CL", name: "Calle" }],
+  legalEntity: [{ id: "ACYC_ES", name: "ACYC España" }],
+  job: [{ id: "RDCI", name: "Responsable" }],
+  position: [],
+  workUnit: [{ id: "00", name: "Pendiente de definir" }],
+  workLocation: [{ id: "724", name: "España" }],
+  category: [{ id: "I1", name: "Categoría I1" }],
+  costCenter: [],
+  startReason: [{ id: "001", name: "Nueva Alta" }],
+  structure: [{ id: "0", name: "Empleado" }],
+  functionalWorkCenter: [{ id: "O_CEN1", name: "Oficinas Centrales" }],
+  variableCompensationMode: [{ id: "1", name: "Modelo CYC" }],
+  tc1Header: [{ id: "0000", name: "Grupos sin Cotizaciones" }],
+  tariffGroup: [{ id: "1", name: "Ingenieros y licenciados" }],
+  ssOccupation: [],
+  ssAgreement: [],
+  contract: [
+    { id: "100/100A", name: "Ordinario Indefinido", detail: "Contrato Mujer Reincorporada Indef" },
+  ],
+  laborRelation: [],
+  reductionReason: [],
+  substitutionCause: [],
+  unemploymentCondition: [],
+  specialLaborRelation: [],
+  socialExclusion: [],
+});
+
 const IMPORT_DIRECTORY = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel`;
 const HIRE_NOW = new Date(2026, 8, 22, 11, 12, 34);
 const exampleFileName = buildHireFileName("JORGE.SALVADOR", HIRE_NOW);
@@ -40,10 +94,57 @@ const person: HirePerson = {
   firstName: "Ana",
   lastName1: "López",
   lastName2: "",
-  documentType: "DNI",
+  documentType: "1",
   documentNumber: "00000000T",
   email: "ana@example.test",
   hireDate: "2026-10-01",
+  issuingCountry: "",
+  nationality: "",
+  birthProvince: "",
+  birthCountry: "",
+  gender: "",
+  maritalStatus: "01",
+  atradiusJobCode: "0000",
+  atradiusCategory: "00",
+  locationType: "1",
+  roadType: "CL",
+  city: "724/28/28/28079",
+  province: "724/28/28",
+  community: "724/28",
+  country: "724",
+  legalEntity: "ACYC_ES",
+  job: "",
+  position: "",
+  workUnit: "00",
+  workLocation: "724",
+  category: "I1",
+  startReason: "001",
+  structure: "0",
+  functionalWorkCenter: "O_CEN1",
+  tc1Header: "0000",
+  tariffGroup: "1",
+  ssOccupation: "",
+  ssAgreement: "",
+  legalContract: "100",
+  internalContract: "100A",
+  laborRelation: "",
+  reductionReason: "",
+  substitutionCause: "",
+  unemploymentCondition: "",
+  specialLaborRelation: "",
+  socialExclusion: "",
+  payrollAgreement: "0001",
+  adjustmentType: "0",
+  salaryType: "1",
+  payrollCurrency: "",
+  union: "",
+  irpfType: "NAC",
+  perceptionKey: "A",
+  variableCompensationMode: "1",
+  paymentCurrency: "EUR",
+  paymentType: "4",
+  companyBank: "0001",
+  accountCurrency: "",
 };
 
 const successBody = `
@@ -129,7 +230,9 @@ describe("launchMeta4Hire service", () => {
       getOperationalContext,
       executeSoap: async (operation) => {
         expect(operation.xml).not.toContain("CYC");
-        expect(operation.xml).toContain(`ARG_PATH_FILE>${buildHireFilePath(IMPORT_DIRECTORY, buildHireFileName("user", HIRE_NOW))}<`);
+        expect(operation.xml).toContain(
+          `ARG_PATH_FILE>${buildHireFilePath(IMPORT_DIRECTORY, buildHireFileName("user", HIRE_NOW))}<`,
+        );
         return operation.parseResponse(new Response(successBody, { status: 200 }));
       },
       editHireWorkbook: async () => Buffer.from("excel-preserved-bytes"),
@@ -145,6 +248,7 @@ describe("launchMeta4Hire service", () => {
     });
 
     expect(getOperationalContext).toHaveBeenCalledTimes(1);
+    expect(loadCatalogs).toHaveBeenLastCalledWith("IBER", ["724/28/28/28079"]);
     expect(logs[0]?.details).toMatchObject({
       operation: "SRTC_LAUNCH_IMPORT",
       code: "OK",
@@ -201,5 +305,100 @@ describe("launchMeta4Hire service", () => {
         },
       }),
     ).rejects.toMatchObject({ code: "META4_HIRE_FETCH_FAILED" });
+  });
+
+  it("rejects payment IDs outside the society catalogs before touching Excel", async () => {
+    const editHireWorkbook = vi.fn(async () => Buffer.from("excel-preserved-bytes"));
+    await expect(
+      launchMeta4Hire(AUTH_SESSION, [person, { ...person, companyBank: "0009" }], {
+        getOperationalContext: async () => ({
+          mode: "meta4" as const,
+          username: "user",
+          society: "CYC" as const,
+          jSessionId: "jsession",
+          companyId: "company-cyc",
+        }),
+        editHireWorkbook,
+        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+        hireDirectory: IMPORT_DIRECTORY,
+        serialize: createSerializedQueue(),
+      }),
+    ).rejects.toMatchObject({
+      code: "META4_HIRE_VALIDATION",
+      message: expect.stringMatching(/Persona 2: «0009» .*ID Banco empresa.*CYC/),
+    });
+    expect(editHireWorkbook).not.toHaveBeenCalled();
+
+    await expect(
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, accountCurrency: "XXX" }], {
+        getOperationalContext: async () => ({
+          mode: "meta4" as const,
+          username: "user",
+          society: "CYC" as const,
+          jSessionId: "jsession",
+          companyId: "company-cyc",
+        }),
+        editHireWorkbook,
+        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+        hireDirectory: IMPORT_DIRECTORY,
+        serialize: createSerializedQueue(),
+      }),
+    ).rejects.toMatchObject({ message: expect.stringMatching(/Moneda de la cuenta/) });
+
+    await expect(
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, legalEntity: "IBER" }], {
+        getOperationalContext: async () => ({
+          mode: "meta4" as const,
+          username: "user",
+          society: "CYC" as const,
+          jSessionId: "jsession",
+          companyId: "company-cyc",
+        }),
+        editHireWorkbook,
+        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+        hireDirectory: IMPORT_DIRECTORY,
+        serialize: createSerializedQueue(),
+      }),
+    ).rejects.toMatchObject({ message: expect.stringMatching(/«IBER» .*ID Empresa.*CYC/) });
+
+    await expect(
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, payrollAgreement: "0004" }], {
+        getOperationalContext: async () => ({
+          mode: "meta4" as const,
+          username: "user",
+          society: "CYC" as const,
+          jSessionId: "jsession",
+          companyId: "company-cyc",
+        }),
+        editHireWorkbook,
+        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+        hireDirectory: IMPORT_DIRECTORY,
+        serialize: createSerializedQueue(),
+      }),
+    ).rejects.toMatchObject({ message: expect.stringMatching(/«0004» .*ID Convenio.*CYC/) });
+
+    await expect(
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, province: "724/08/08" }], {
+        getOperationalContext: async () => ({
+          mode: "meta4" as const,
+          username: "user",
+          society: "CYC" as const,
+          jSessionId: "jsession",
+          companyId: "company-cyc",
+        }),
+        loadCatalogs: async () => ({
+          ...(await loadCatalogs()),
+          province: [{ id: "724/08/08", name: "Barcelona" }],
+          community: [{ id: "724/28", name: "Madrid" }],
+        }),
+        editHireWorkbook,
+        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+        hireDirectory: IMPORT_DIRECTORY,
+        serialize: createSerializedQueue(),
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/ID Población no pertenece a ID Provincia/),
+    });
+    expect(editHireWorkbook).not.toHaveBeenCalled();
   });
 });

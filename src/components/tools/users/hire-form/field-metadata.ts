@@ -1,3 +1,5 @@
+import type { HireCatalogFieldId } from "@/lib/meta4/hire/catalogs";
+
 export type PeopleNetRequirement =
   | "required"
   | "unmarked"
@@ -79,32 +81,70 @@ export const HIRE_FIELD_META = {
     mapped("SSP_PRIMER_APELLIDO", "STD_N_FAMILY_NAME_1"),
   ),
   lastName2: connected("2º apellido", "text", "unmarked", false, mapped("STD_N_MAIDEN_NAME")),
-  documentType: connected("ID Tipo documento", "text", "required", true, mapped("SSP_ID_TP_DOC")),
+  documentType: connected(
+    "ID Tipo documento",
+    "catalog",
+    "required",
+    true,
+    mapped("SSP_ID_TP_DOC"),
+  ),
   documentNumber: connected("Núm. de documento", "text", "required", true, mapped("STD_SSN")),
   legalRepresentativeNif: pending("NIF Representante legal", "text", mapped("SSP_SSN_REP_LEGAL")),
-  issuingCountry: pending("ID País emisor documento", "catalog", mapped("SSP_ID_PAIS_EMISOR")),
+  issuingCountry: connected(
+    "ID País emisor documento",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SSP_ID_PAIS_EMISOR"),
+  ),
   birthDate: pending("Fecha nacimiento", "date", mapped("STD_DT_BIRTH")),
-  nationality: pending("ID Nacionalidad", "catalog", mapped("STD_ID_COUNTRY_NAC")),
-  birthProvince: pending("ID Provincia nacimiento", "catalog", mapped("SCO_BIRTH_ID_SUB_GEO_DIV")),
+  nationality: connected(
+    "ID Nacionalidad",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("STD_ID_COUNTRY_NAC"),
+  ),
+  birthProvince: connected(
+    "ID Provincia nacimiento",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SCO_BIRTH_ID_SUB_GEO_DIV"),
+  ),
   birthCommunity: pending("ID Comunidad nacimiento", "catalog", unconfirmed),
-  birthCountry: pending("ID País nacimiento", "catalog", mapped("SCO_BIRTH_ID_COUNTRY")),
-  gender: pending("ID Sexo", "catalog", mapped("STD_ID_GENDER")),
-  maritalStatus: pending("ID Estado civil", "catalog", mapped("STD_ID_MARITAL_STAT")),
+  birthCountry: connected(
+    "ID País nacimiento",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SCO_BIRTH_ID_COUNTRY"),
+  ),
+  gender: connected("ID Sexo", "catalog", "unmarked", false, mapped("STD_ID_GENDER")),
+  maritalStatus: connected(
+    "ID Estado civil",
+    "catalog",
+    "required",
+    true,
+    mapped("STD_ID_MARITAL_STAT"),
+  ),
   hireDate: connected("Fecha de alta", "date", "not-shown", true, mapped("SRCO_DT_HIRE")),
 
   // Datos personales · Información Atradius (4)
   atradiusId: pending("ID Atradius", "text", mapped("CSP_ID_ATRADIUS")),
-  atradiusJobCode: pending(
+  atradiusJobCode: connected(
     "ID Atradius Job Code",
     "catalog",
-    mapped("CSP_ID_ATRADIUS_JOB"),
     "required",
+    true,
+    mapped("CSP_ID_ATRADIUS_JOB"),
   ),
-  atradiusCategory: pending(
+  atradiusCategory: connected(
     "ID Categoría Atradius",
     "catalog",
-    mapped("CSP_ID_CATEG_ATRADIUS"),
     "required",
+    true,
+    mapped("CSP_ID_CATEG_ATRADIUS"),
   ),
   department: pending("ID Department", "catalog", unconfirmed, "required"),
 
@@ -121,13 +161,14 @@ export const HIRE_FIELD_META = {
   fax: pending("Fax", "compound", unconfirmed),
 
   // Datos personales · Dirección (13)
-  locationType: pending(
+  locationType: connected(
     "ID Tipo localización",
     "catalog",
-    mapped("STD_ID_LOCATION_TYPE"),
     "required",
+    true,
+    mapped("STD_ID_LOCATION_TYPE"),
   ),
-  roadType: pending("ID Tipo de vía", "catalog", mapped("SSP_ID_SIGLA_DOMIC"), "required"),
+  roadType: connected("ID Tipo de vía", "catalog", "required", true, mapped("SSP_ID_SIGLA_DOMIC")),
   address: pending(
     "Dirección",
     "compound",
@@ -140,38 +181,58 @@ export const HIRE_FIELD_META = {
   floor: pending("Piso", "text", mapped("SSP_PISO")),
   door: pending("Puerta", "text", mapped("SSP_PUERTA")),
   postalCode: pending("Código postal", "text", mapped("STD_ZIP_CODE"), "required"),
-  city: pending("ID Población", "catalog", mapped("STD_ID_GEO_PLACE"), "required"),
-  province: pending("ID Provincia", "catalog", mapped("STD_ID_SUB_GEO_DIV"), "required"),
-  community: pending("ID Comunidad", "catalog", mapped("STD_ID_GEO_DIV"), "required"),
-  country: pending("ID País", "catalog", mapped("STD_ID_COUNTRY"), "required"),
+  city: connected("ID Población", "catalog", "required", true, mapped("STD_ID_GEO_PLACE")),
+  province: connected("ID Provincia", "catalog", "required", true, mapped("STD_ID_SUB_GEO_DIV")),
+  community: connected("ID Comunidad", "catalog", "required", true, mapped("STD_ID_GEO_DIV")),
+  country: connected("ID País", "catalog", "required", true, mapped("STD_ID_COUNTRY")),
 
   // Organización (17)
-  legalEntity: pending("ID Empresa", "catalog", mapped("SCO_ID_LEG_ENT"), "required"),
+  legalEntity: connected("ID Empresa", "catalog", "required", true, mapped("SCO_ID_LEG_ENT")),
   positionChoice: pending("Puesto / Posición", "radio", uiOnly, "conditional"),
-  job: pending("ID Puesto", "catalog", mapped("STD_ID_JOB_CODE"), "conditional-required"),
-  position: pending("ID Posición", "catalog", mapped("SCO_ID_POSITION"), "conditional-required"),
-  workUnit: pending("ID Unidad organizativa", "catalog", mapped("SCO_ID_WORK_UNIT"), "required"),
-  workLocation: pending("ID Lugar trabajo", "catalog", mapped("SCO_ID_WORK_LOCATION"), "required"),
+  job: connected("ID Puesto", "catalog", "conditional-required", false, mapped("STD_ID_JOB_CODE")),
+  position: connected(
+    "ID Posición",
+    "catalog",
+    "conditional-required",
+    false,
+    mapped("SCO_ID_POSITION"),
+  ),
+  workUnit: connected(
+    "ID Unidad organizativa",
+    "catalog",
+    "required",
+    true,
+    mapped("SCO_ID_WORK_UNIT"),
+  ),
+  workLocation: connected(
+    "ID Lugar trabajo",
+    "catalog",
+    "required",
+    true,
+    mapped("SCO_ID_WORK_LOCATION"),
+  ),
   occupationType: pending("Tipo de ocupación", "radio", uiOnly),
   occupationHours: pending("Núm. Horas", "number", mapped("SCO_NUM_HOURS")),
   occupationEjc: pending("Núm. EJC", "number", mapped("SCO_NUM_EJC")),
   occupationHeadcount: pending("Núm. Efectivos", "number", mapped("SCO_NUM_HEADCOUNT")),
-  category: pending("Categoría", "catalog", mapped("SSP_ID_CATEGORIA"), "required"),
+  category: connected("Categoría", "catalog", "required", true, mapped("SSP_ID_CATEGORIA")),
   project: pending("Proyecto", "catalog", unconfirmed, "required"),
-  startReason: pending(
+  startReason: connected(
     "ID Motivo inicio",
     "catalog",
-    mapped("STD_ID_HRP_START_REASON"),
     "required",
+    true,
+    mapped("STD_ID_HRP_START_REASON"),
   ),
   keyEmployee: pending("Empleado clave", "checkbox", mapped("STD_KEY_EMPLOYEE")),
   strategicEmployee: pending("Empleado estratégico", "checkbox", mapped("STD_STRATEGIC_EMP")),
-  structure: pending("Id Estructura", "catalog", mapped("P_CYC_ID_ESTRUCTURA"), "required"),
-  functionalWorkCenter: pending(
+  structure: connected("Id Estructura", "catalog", "required", true, mapped("P_CYC_ID_ESTRUCTURA")),
+  functionalWorkCenter: connected(
     "Centro de Trabajo Funcional",
     "catalog",
-    mapped("P_CYC_ID_WORK_FUNCTIONAL"),
     "required",
+    true,
+    mapped("P_CYC_ID_WORK_FUNCTIONAL"),
   ),
 
   // Seguridad Social · Datos generales (6)
@@ -182,21 +243,46 @@ export const HIRE_FIELD_META = {
     mapped("SSP_PROV_NUM_SS", "SSP_NUM_SS", "SSP_DIG_NUM_SS"),
     "conditional",
   ),
-  tc1Header: pending("ID Cabecera TC1", "catalog", mapped("SSP_ID_CABEC_TC1"), "required"),
-  tariffGroup: pending("ID Grupo de tarifa", "catalog", mapped("SSP_ID_GRUP_TARIFA"), "required"),
-  ssOccupation: pending("ID Ocupación", "catalog", mapped("SSP_ID_OCUPACION")),
-  ssAgreement: pending("ID Convenio S.S.", "catalog", mapped("SSP_ID_CONV_SS")),
+  tc1Header: connected("ID Cabecera TC1", "catalog", "required", true, mapped("SSP_ID_CABEC_TC1")),
+  tariffGroup: connected(
+    "ID Grupo de tarifa",
+    "catalog",
+    "required",
+    true,
+    mapped("SSP_ID_GRUP_TARIFA"),
+  ),
+  ssOccupation: connected("ID Ocupación", "catalog", "unmarked", false, mapped("SSP_ID_OCUPACION")),
+  ssAgreement: connected(
+    "ID Convenio S.S.",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SSP_ID_CONV_SS"),
+  ),
 
   // Seguridad Social · Contrato y jornada (10)
-  legalContract: pending("ID Contrato legal", "catalog", mapped("SSP_ID_CONT_LEGAL"), "required"),
-  internalContract: pending(
+  legalContract: connected(
+    "ID Contrato legal",
+    "catalog",
+    "required",
+    true,
+    mapped("SSP_ID_CONT_LEGAL"),
+  ),
+  internalContract: connected(
     "ID Contrato interno",
     "catalog",
-    mapped("SSP_ID_CONT_INTERN"),
     "required",
+    true,
+    mapped("SSP_ID_CONT_INTERN"),
   ),
   contractEnd: pending("Fin", "datetime-local", mapped("SSP_FEC_FIN_CONTRA")),
-  laborRelation: pending("ID Relación laboral", "catalog", mapped("SSP_ID_REL_LAB")),
+  laborRelation: connected(
+    "ID Relación laboral",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SSP_ID_REL_LAB"),
+  ),
   scheduleChoice: pending("Jornada completa / Jornada parcial", "radio", uiOnly),
   partialSchedulePercent: pending(
     "% Jornada parcial",
@@ -221,26 +307,48 @@ export const HIRE_FIELD_META = {
 
   // Seguridad Social · Guarda legal (2)
   legalReductionPercent: pending("% Reducción", "number", mapped("SSP_PORC_GLEGAL")),
-  reductionReason: pending("ID Motivo de reducción", "catalog", mapped("SSP_ID_MOTIV_REDUC")),
+  reductionReason: connected(
+    "ID Motivo de reducción",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SSP_ID_MOTIV_REDUC"),
+  ),
 
   // Seguridad Social · Bonificaciones (15)
-  substitutionCause: pending("ID Causa sustitución", "catalog", mapped("SSP_ID_CAUSA_SUST")),
+  substitutionCause: connected(
+    "ID Causa sustitución",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SSP_ID_CAUSA_SUST"),
+  ),
   replacedPersonSsNumber: pending(
     "Nº S.S. del sustituido",
     "compound",
     mapped("SRSP_PROV_NUSS", "SRSP_NUSS", "SRSP_DIG_NUSS"),
   ),
-  unemploymentCondition: pending(
+  unemploymentCondition: connected(
     "ID Condición desempleado",
     "catalog",
+    "unmarked",
+    false,
     mapped("SSP_ID_COND_DESEMP"),
   ),
-  specialLaborRelation: pending(
+  specialLaborRelation: connected(
     "ID Relación laboral especial",
     "catalog",
+    "unmarked",
+    false,
     mapped("SSP_ID_REL_LAB_ESP"),
   ),
-  socialExclusion: pending("Exclusión social", "catalog", mapped("SSP_TRAB_EXCL_SOC")),
+  socialExclusion: connected(
+    "Exclusión social",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SSP_TRAB_EXCL_SOC"),
+  ),
   disabilityChoice: pending("Sin minusvalía / Con minusvalía", "radio", uiOnly),
   disabilityPercent: pending("% minusvalía", "number", mapped("SSP_PORC_MINUSVAL"), "conditional"),
   specificFic: pending("FIC Específico", "checkbox", unconfirmed),
@@ -266,34 +374,60 @@ export const HIRE_FIELD_META = {
   additionalClause: pending("Cláusula adicional", "textarea", mapped("SSP_CLAUSULA_ADIC")),
 
   // Nómina (13)
-  payrollAgreement: pending("ID Convenio", "catalog", mapped("SSP_ID_CONVENIO"), "required"),
-  adjustmentType: pending("ID Tipo de ajuste", "catalog", mapped("SCO_ID_TYPE_ADJUST"), "required"),
+  payrollAgreement: connected(
+    "ID Convenio",
+    "catalog",
+    "required",
+    true,
+    mapped("SSP_ID_CONVENIO"),
+  ),
+  adjustmentType: connected(
+    "ID Tipo de ajuste",
+    "catalog",
+    "required",
+    true,
+    mapped("SCO_ID_TYPE_ADJUST"),
+  ),
   annualGross: pending("Bruto anual", "number", mapped("SSP_BRUTO_ANUAL")),
-  salaryType: pending("ID Tipo salario", "catalog", mapped("SSP_ID_TP_SALARIO"), "required"),
+  salaryType: connected(
+    "ID Tipo salario",
+    "catalog",
+    "required",
+    true,
+    mapped("SSP_ID_TP_SALARIO"),
+  ),
   seniorityDate: pending("Fecha de Antigüedad", "date", mapped("SSP_FEC_ANTIGUEDAD")),
   extrasDate: pending("Fecha Extras", "date", unconfirmed),
-  payrollCurrency: pending("ID Moneda", "catalog", mapped("ID_CURRENCY")),
-  union: pending("ID Sindicato", "catalog", mapped("SSP_ID_SINDICATO")),
-  variableCompensationMode: pending(
+  payrollCurrency: connected("ID Moneda", "catalog", "unmarked", false, mapped("ID_CURRENCY")),
+  union: connected("ID Sindicato", "catalog", "unmarked", false, mapped("SSP_ID_SINDICATO")),
+  variableCompensationMode: connected(
     "Tipo modalidad Variable",
     "catalog",
-    mapped("CSP_TP_MOD_VAR"),
     "required",
+    true,
+    mapped("CSP_TP_MOD_VAR"),
   ),
-  irpfType: pending("ID Tipo del IRPF", "catalog", mapped("SSP_ID_TP_IRPF"), "required"),
-  perceptionKey: pending(
+  irpfType: connected("ID Tipo del IRPF", "catalog", "required", true, mapped("SSP_ID_TP_IRPF")),
+  perceptionKey: connected(
     "ID Clave percepción",
     "catalog",
-    mapped("SSP_ID_CLAVE_PERCEP"),
     "required",
+    true,
+    mapped("SSP_ID_CLAVE_PERCEP"),
   ),
   referenceModelWeek: pending("ID Modelo/Semana de referencia", "compound", unconfirmed),
   timeManagementPay: pending("Pago con gestión del tiempo", "checkbox", mapped("SSP_PAGO_TA")),
 
   // Datos de pago (11)
-  paymentCurrency: pending("ID Moneda", "catalog", mapped("ID_CURRENCY")),
-  paymentType: pending("ID Tipo pago", "catalog", mapped("SCO_ID_PAYM_TYPE")),
-  companyBank: pending("ID Banco empresa", "catalog", mapped("SCO_ID_COMP_BANK")),
+  paymentCurrency: connected("ID Moneda", "catalog", "unmarked", true, mapped("ID_CURRENCY")),
+  paymentType: connected("ID Tipo pago", "catalog", "unmarked", true, mapped("SCO_ID_PAYM_TYPE")),
+  companyBank: connected(
+    "ID Banco empresa",
+    "catalog",
+    "unmarked",
+    true,
+    mapped("SCO_ID_COMP_BANK"),
+  ),
   personBankOrdinal: pending("Ordinal banco persona", "compound", unconfirmed),
   bankFormatChoice: pending("Formato: IBAN / Otro formato", "radio", uiOnly),
   bankAccount: pending("Cuenta bancaria", "compound", uiOnly, "required"),
@@ -301,7 +435,7 @@ export const HIRE_FIELD_META = {
   bankBranch: pending("Sucursal bancaria", "text", unconfirmed, "conditional"),
   accountNumber: pending("Nº de cuenta", "text", mapped("SCO_ACCOUNT_NUMBER"), "conditional"),
   bic: pending("BIC", "text", unconfirmed, "conditional"),
-  accountCurrency: pending("ID Moneda", "catalog", mapped("ID_CURRENCY_2")),
+  accountCurrency: connected("ID Moneda", "catalog", "unmarked", false, mapped("ID_CURRENCY_2")),
 } as const satisfies Record<string, HireFieldMeta>;
 
 export type HireFieldId = keyof typeof HIRE_FIELD_META;
@@ -312,7 +446,10 @@ export type CurrentFieldId =
   | "documentType"
   | "documentNumber"
   | "email"
-  | "hireDate";
+  | "hireDate"
+  | HireCatalogFieldId
+  | "legalContract"
+  | "internalContract";
 export type PendingFieldId = Exclude<HireFieldId, CurrentFieldId>;
 
 export const hireFieldMappingTooltip = (field: HireFieldId): string => {

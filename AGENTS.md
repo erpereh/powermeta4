@@ -152,8 +152,16 @@ una copia de `Hire_1_PERSONA.xls` y solo sustituye los campos de la UI
 nombre `AltaPersonas_<usuario>_<fecha>.xls` dentro del directorio
 `META4_HIRE_FILE_PATH` y esa misma ruta se envía a
 `SRTC_LAUNCH_IMPORT`, derivado de `META4_BASE_URL`. No
-persiste datos personales en SQLite. La entidad legal permanece la de la
-plantilla.
+persiste datos personales en SQLite. La entidad legal (CH/CI) se elige del
+catálogo `STD_LEG_ENT` de la sociedad activa: la de la plantilla (`ACYC_ES`)
+solo existe en CYC. Contra PeopleNet solo se ejecutan `SELECT`; nunca
+`UPDATE`, `DELETE` ni `INSERT`.
+Los catálogos del alta se leen de la base PeopleNet (SQL Server) solo en
+servidor, con `PEOPLENET_DB_*` y únicamente consultas `SELECT` parametrizadas;
+los que dependen de sociedad filtran `ID_ORGANIZATION` por la sociedad del
+contexto operativo, nunca por un valor del navegador. `GET /api/hire/places`
+(Node.js, requiere sesión) busca poblaciones en PeopleNet porque
+`STD_GEO_PLACE` es demasiado grande para enviarse entera al formulario.
 El endpoint OpenAI-compatible global
 se configura mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL` en el entorno
 server-side; nunca se documentan credenciales ni se exponen claves al cliente.

@@ -10,7 +10,6 @@ import {
   FIRST_PERSON_ROW,
   HIRE_DATA_SHEET,
   HIRE_TEMPLATE_SHEET_NAMES,
-  TEMPLATE_LEGAL_ENTITY_COLUMNS,
   WRITTEN_COLUMNS,
   toExcelSerialDate,
 } from "./mapping";
@@ -25,10 +24,57 @@ const person = (suffix: string, hireDate: string): HirePerson => ({
   firstName: `Nombre${suffix}`,
   lastName1: `Apellido${suffix}`,
   lastName2: suffix === "B" ? "" : `Segundo${suffix}`,
-  documentType: "DNI",
+  documentType: "2",
   documentNumber: `DOC${suffix}`,
   email: `user${suffix.toLowerCase()}@example.test`,
   hireDate,
+  issuingCountry: "050",
+  nationality: suffix === "B" ? "" : "724",
+  birthProvince: "724/08/08",
+  birthCountry: "724",
+  gender: "2",
+  maritalStatus: "02",
+  atradiusJobCode: "AD00T3",
+  atradiusCategory: "B1",
+  locationType: "2",
+  roadType: "AV",
+  city: "724/08/08/08019",
+  province: "724/08/08",
+  community: "724/09",
+  country: "724",
+  legalEntity: "ACYC_PT",
+  job: suffix === "B" ? "" : "GR_ACAN",
+  position: suffix === "B" ? "POS01" : "",
+  workUnit: "1_GRCFO",
+  workLocation: "076",
+  category: "012",
+  startReason: "002",
+  structure: "2",
+  functionalWorkCenter: "O_CEN",
+  tc1Header: "0003",
+  tariffGroup: "2",
+  ssOccupation: "a",
+  ssAgreement: suffix === "B" ? "" : "0801485",
+  legalContract: "100",
+  internalContract: "100A",
+  laborRelation: "0100",
+  reductionReason: "001",
+  substitutionCause: "1",
+  unemploymentCondition: "1",
+  specialLaborRelation: "100",
+  socialExclusion: "2",
+  payrollAgreement: "0003",
+  adjustmentType: "1",
+  salaryType: "1",
+  payrollCurrency: suffix === "B" ? "" : "USD",
+  union: suffix === "B" ? "" : "UGT",
+  irpfType: "NAV",
+  perceptionKey: "B",
+  variableCompensationMode: "3",
+  paymentCurrency: "USD",
+  paymentType: "2",
+  companyBank: suffix === "B" ? "0003" : "0002",
+  accountCurrency: suffix === "B" ? "" : "EUR",
 });
 
 type CellSnapshot = { value: unknown; formula?: string };
@@ -106,20 +152,112 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(generated.get("O")?.value).toBe("ApellidoA");
     expect(generated.get("P")?.value).toBe("ApellidoA");
     expect(generated.get("Q")?.value).toBe("SegundoA");
-    expect(generated.get("V")?.value).toBe("DNI");
-    expect(generated.get("W")?.value).toBe("DNI");
+    expect(generated.get("V")?.value).toBe("2");
+    expect(generated.get("W")?.value).toBe("2");
     expect(generated.get("X")?.value).toBe("DOCA");
     expect(generated.get("Y")?.value).toBe("DOCA");
     expect(generated.get("AY")?.value).toBe("usera@example.test");
     expect(generated.get("IQ")?.value).toBe("usera@example.test");
     expect(generated.get("D")?.value).toBe(toExcelSerialDate(hireDate));
     expect(generated.get("E")?.value).toBe(toExcelSerialDate(hireDate));
-    expect(generated.get(TEMPLATE_LEGAL_ENTITY_COLUMNS[0])?.value).toBe(
-      original.get(TEMPLATE_LEGAL_ENTITY_COLUMNS[0])?.value,
-    );
-    expect(generated.get(TEMPLATE_LEGAL_ENTITY_COLUMNS[1])?.value).toBe(
-      original.get(TEMPLATE_LEGAL_ENTITY_COLUMNS[1])?.value,
-    );
+    expect(generated.get("HT")?.value).toBe("USD");
+    expect(generated.get("HU")?.value).toBe("USD");
+    expect(generated.get("HV")?.value).toBe("2");
+    expect(generated.get("HW")?.value).toBe("2");
+    expect(generated.get("HX")?.value).toBe("0002");
+    expect(generated.get("HY")?.value).toBe("0002");
+    expect(generated.get("IJ")?.value).toBe("EUR");
+    expect(generated.get("IK")?.value).toBe("EUR");
+    expect(generated.get("GF")?.value).toBe(1);
+    expect(generated.get("GG")?.value).toBe(1);
+    expect(generated.get("GH")?.value).toBe("0003");
+    expect(generated.get("GI")?.value).toBe("0003");
+    expect(generated.get("GL")?.value).toBe("1");
+    expect(generated.get("GM")?.value).toBe("1");
+    expect(generated.get("GR")?.value).toBe("UGT");
+    expect(generated.get("GS")?.value).toBe("UGT");
+    expect(generated.get("GS")?.formula).toBeUndefined();
+    expect(generated.get("GV")?.value).toBe("USD");
+    expect(generated.get("GW")?.value).toBe("USD");
+    expect(generated.get("HB")?.value).toBe("NAV");
+    expect(generated.get("HC")?.value).toBe("NAV");
+    expect(generated.get("HD")?.value).toBe("B");
+    expect(generated.get("HE")?.value).toBe("B");
+    expect(generated.get("IU")?.value).toBe(3);
+    for (const [column, value] of [
+      ["AA", "050"],
+      ["AB", "050"],
+      ["AE", "724"],
+      ["AF", "724"],
+      ["AG", "08"],
+      ["AH", "08"],
+      ["AO", "724"],
+      ["AP", "724"],
+      ["AQ", "2"],
+      ["AR", "2"],
+      ["AS", "02"],
+      ["AT", "02"],
+      ["AM", "AD00T3"],
+      ["T", "B1"],
+      ["BB", "2"],
+      ["BC", "2"],
+      ["BD", "AV"],
+      ["BE", "AV"],
+      ["BQ", "08019"],
+      ["BR", "08019"],
+      ["BW", "08"],
+      ["BX", "08"],
+      ["CB", "09"],
+      ["CC", "09"],
+      ["CE", "724"],
+      ["CF", "724"],
+      ["DZ", "0003"],
+      ["EA", "0003"],
+      ["EB", "2"],
+      ["EC", "2"],
+      ["ED", "a"],
+      ["EE", "a"],
+      ["EF", "0801485"],
+      ["EG", "0801485"],
+      ["EI", "100"],
+      ["EJ", "100"],
+      ["EK", "100A"],
+      ["EL", "100A"],
+      ["EO", "0100"],
+      ["EP", "0100"],
+      ["EZ", "001"],
+      ["FA", "001"],
+      ["FD", "1"],
+      ["FE", "1"],
+      ["FI", "1"],
+      ["FJ", "1"],
+      ["FK", "100"],
+      ["FL", "100"],
+      ["FM", "2"],
+      ["FN", "2"],
+    ] as const) {
+      expect(generated.get(column)?.value, column).toBe(value);
+    }
+    for (const [column, value] of [
+      ["CH", "ACYC_PT"],
+      ["CI", "ACYC_PT"],
+      ["CK", "GR_ACAN"],
+      ["CL", "GR_ACAN"],
+      ["CS", "1_GRCFO"],
+      ["CT", "1_GRCFO"],
+      ["CU", "076"],
+      ["CV", "076"],
+      ["CW", "012"],
+      ["CX", "012"],
+      ["DB", "002"],
+      ["DC", "002"],
+      ["AZ", "2"],
+      ["BA", "O_CEN"],
+    ] as const) {
+      expect(generated.get(column)?.value, column).toBe(value);
+    }
+    // Proyecto / centro de coste is not written yet.
+    expect(generated.get("CZ")?.value).toBe(original.get("CZ")?.value);
 
     for (const [column, cell] of original) {
       if (writtenColumns.has(column)) continue;
@@ -162,8 +300,23 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(rows[1]?.get("Q")?.value).toBeUndefined();
     expect(rows[1]?.get("AY")?.value).toBe("userb@example.test");
     expect(rows[1]?.get("IQ")?.value).toBe("userb@example.test");
-    expect(rows[0]?.get("CH")?.value).toBe(original.get("CH")?.value);
-    expect(rows[2]?.get("CI")?.value).toBe(original.get("CI")?.value);
+    expect(rows[1]?.get("HY")?.value).toBe("0003");
+    expect(rows[2]?.get("HY")?.value).toBe("0002");
+    expect(rows[1]?.get("IK")?.value).toBeUndefined();
+    expect(rows[2]?.get("IK")?.value).toBe("EUR");
+    expect(rows[1]?.get("GS")?.value).toBeUndefined();
+    expect(rows[1]?.get("GW")?.value).toBeUndefined();
+    expect(rows[2]?.get("GS")?.value).toBe("UGT");
+    expect(rows[1]?.get("EG")?.value).toBeUndefined();
+    expect(rows[1]?.get("AF")?.value).toBeUndefined();
+    expect(rows[2]?.get("AF")?.value).toBe("724");
+    expect(rows[2]?.get("EG")?.value).toBe("0801485");
+    expect(rows[0]?.get("CH")?.value).toBe("ACYC_PT");
+    expect(rows[1]?.get("CL")?.value).toBeUndefined();
+    expect(rows[2]?.get("CL")?.value).toBe("GR_ACAN");
+    expect(rows[1]?.get("CN")?.value).toBe("POS01");
+    expect(rows[1]?.get("CN")?.formula).toBeUndefined();
+    expect(rows[2]?.get("CN")?.value).toBeUndefined();
 
     rows.forEach((values, index) => {
       const row = FIRST_PERSON_ROW + index;

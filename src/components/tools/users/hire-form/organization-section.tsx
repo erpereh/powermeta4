@@ -1,7 +1,9 @@
 "use client";
 
+import { HireCatalogsNotice } from "./catalogs";
 import {
-  PendingCatalog,
+  CatalogField,
+  PendingCatalogLookup,
   PendingCheckbox,
   PendingInput,
   PendingRadio,
@@ -15,8 +17,9 @@ export function OrganizationSection() {
 
   return (
     <HireSubsection title="Organización">
+      <HireCatalogsNotice />
       <div className="grid gap-4 md:grid-cols-2">
-        <PendingCatalog field="legalEntity" />
+        <CatalogField field="legalEntity" />
         <div className="md:col-span-2">
           <PendingRadio
             field="positionChoice"
@@ -30,10 +33,10 @@ export function OrganizationSection() {
             ]}
           />
         </div>
-        {positionChoice === "job" ? <PendingCatalog field="job" /> : null}
+        {positionChoice === "job" ? <CatalogField field="job" /> : null}
         {positionChoice === "position" ? (
           <>
-            <PendingCatalog field="position" />
+            <CatalogField field="position" />
             <div className="md:col-span-2 rounded-2xl border border-border p-4">
               <PendingRadio
                 field="occupationType"
@@ -57,17 +60,17 @@ export function OrganizationSection() {
             </div>
           </>
         ) : null}
-        <PendingCatalog field="workUnit" />
-        <PendingCatalog field="workLocation" />
-        <PendingCatalog field="category" />
-        <PendingCatalog field="project" />
-        <PendingCatalog field="startReason" />
+        <CatalogField field="workUnit" />
+        <CatalogField field="workLocation" />
+        <CatalogField field="category" />
+        <PendingCatalogLookup field="project" source="costCenter" />
+        <CatalogField field="startReason" />
         <div className="flex flex-wrap gap-x-6 gap-y-3 md:col-span-2">
           <PendingCheckbox field="keyEmployee" />
           <PendingCheckbox field="strategicEmployee" />
         </div>
-        <PendingCatalog field="structure" />
-        <PendingCatalog field="functionalWorkCenter" />
+        <CatalogField field="structure" />
+        <CatalogField field="functionalWorkCenter" />
       </div>
     </HireSubsection>
   );

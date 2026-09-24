@@ -80,7 +80,16 @@ un único `JSESSIONID`) y no persiste resultados en
 SQLite. El alta de personas (`SRTC_LAUNCH_IMPORT`) copia
 `Hire_1_PERSONA.xls`, Excel sustituye solo los campos de la UI y guarda un
 fichero con nombre de usuario y fecha en el directorio `META4_HIRE_FILE_PATH`.
-No guarda datos personales en SQLite. Las pruebas SOAP son simuladas y no llaman a Meta4 real. Los
+No guarda datos personales en SQLite. Los catálogos de Seguridad Social, Nómina y
+Datos de pago (documento, países, geografía, estado civil, Atradius, organización,
+moneda,
+cabecera TC1, modalidad variable,
+convenio y banco empresa de la sociedad activa, tipos de pago, ajuste, salario,
+IRPF, sindicato y clave de percepción) se leen en servidor de la
+base PeopleNet (SQL Server, `PEOPLENET_DB_*`, solo `SELECT`); la moneda de la
+cuenta bancaria reutiliza el catálogo de monedas. Las poblaciones se buscan con
+`GET /api/hire/places` (requiere sesión). El formulario
+muestra ID y nombre y envía el ID. Las pruebas SOAP son simuladas y no llaman a Meta4 real. Los
 endpoints CSP y la necesidad de SOAPAction quedan pendientes de confirmación
 WSDL en la VM corporativa.
 

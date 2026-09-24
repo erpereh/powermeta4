@@ -6,6 +6,7 @@ import { UsersHireForm } from "@/components/tools/users/users-hire-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { requireAuthContext } from "@/lib/auth/session";
 import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
+import { loadHireCatalogState } from "@/lib/meta4/hire/catalog-queries";
 
 export default function NewUserPage() {
   return (
@@ -33,5 +34,6 @@ async function HirePageContent() {
     );
   }
 
-  return <UsersHireForm />;
+  const catalogs = await loadHireCatalogState(authSession);
+  return <UsersHireForm catalogs={catalogs} />;
 }

@@ -8,10 +8,57 @@ const validPerson = {
   firstName: "Ana",
   lastName1: "López",
   lastName2: "",
-  documentType: "DNI",
+  documentType: "1",
   documentNumber: "00000000T",
   email: "ana@example.test",
   hireDate: "2026-10-01",
+  issuingCountry: "",
+  nationality: "",
+  birthProvince: "",
+  birthCountry: "",
+  gender: "",
+  maritalStatus: "01",
+  atradiusJobCode: "0000",
+  atradiusCategory: "00",
+  locationType: "1",
+  roadType: "CL",
+  city: "724/28/28/28079",
+  province: "724/28/28",
+  community: "724/28",
+  country: "724",
+  legalEntity: "ACYC_ES",
+  job: "",
+  position: "",
+  workUnit: "00",
+  workLocation: "724",
+  category: "I1",
+  startReason: "001",
+  structure: "0",
+  functionalWorkCenter: "O_CEN1",
+  tc1Header: "0000",
+  tariffGroup: "1",
+  ssOccupation: "",
+  ssAgreement: "",
+  legalContract: "100",
+  internalContract: "100A",
+  laborRelation: "",
+  reductionReason: "",
+  substitutionCause: "",
+  unemploymentCondition: "",
+  specialLaborRelation: "",
+  socialExclusion: "",
+  payrollAgreement: "0001",
+  adjustmentType: "0",
+  salaryType: "1",
+  payrollCurrency: "",
+  union: "",
+  irpfType: "NAC",
+  perceptionKey: "A",
+  variableCompensationMode: "1",
+  paymentCurrency: "EUR",
+  paymentType: "4",
+  companyBank: "0001",
+  accountCurrency: "",
 };
 
 describe("parseHirePeople", () => {
@@ -24,6 +71,17 @@ describe("parseHirePeople", () => {
       },
     ]);
     expect(people).toEqual([{ ...validPerson, firstName: "Ana", lastName2: "" }]);
+  });
+
+  it("accepts PeopleNet IDs with spaces or apostrophes and rejects control characters", () => {
+    const [person] = parseHirePeople([
+      { ...validPerson, atradiusCategory: "B3 Manager", birthProvince: "804/804/L'V" },
+    ]);
+    expect(person?.atradiusCategory).toBe("B3 Manager");
+    expect(person?.birthProvince).toBe("804/804/L'V");
+    expect(() => parseHirePeople([{ ...validPerson, tc1Header: "00\n28" }])).toThrow(
+      /ID Cabecera TC1 no es un ID válido/,
+    );
   });
 
   it("rejects an empty list", () => {

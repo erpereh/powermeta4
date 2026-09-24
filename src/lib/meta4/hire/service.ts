@@ -12,12 +12,15 @@ import { getMeta4OperationalContext } from "@/lib/meta4/operational-context";
 import { Meta4ProfileError } from "@/lib/meta4/profile-errors";
 import { executeAuthenticatedSoap } from "@/lib/meta4/server";
 import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
+import type { Meta4Society } from "@/lib/meta4/societies";
 
 import { editHireWorkbook } from "./excel";
 import { Meta4HireError, isMeta4HireError } from "./errors";
 import { buildHireFileName, buildHireFilePath } from "./filename";
 import { hireExecutionQueue, type SerializedTask } from "./mutex";
 import { parseLaunchImportResponse } from "./parser";
+import { loadHireCatalogsForLaunch } from "./catalog-queries";
+import { assertHireCatalogSelections, type HireCatalogs } from "./catalogs";
 import {
   buildLaunchImportEnvelope,
   getMeta4HireDirectory,
@@ -32,6 +35,7 @@ export const HIRE_SOAP_TIMEOUT_MS = 60_000;
 export type LaunchMeta4HireDeps = {
   getOperationalContext?: typeof getMeta4OperationalContext;
   executeSoap?: typeof executeAuthenticatedSoap;
+  loadCatalogs?: (society: Meta4Society, placeIds: readonly string[]) => Promise<HireCatalogs>;
   editHireWorkbook?: (templatePath: string, people: readonly HirePerson[]) => Promise<Buffer>;
   writeHireFile?: typeof writeHireFileAtomically;
   verifyHireFile?: (filePath: string) => Promise<void>;
@@ -62,6 +66,7 @@ const resolveTemplatePath = (templatePath: string): string =>
 
 /**
  * Copies Hire_1_PERSONA.xls, edits it with Excel, and launches SRTC_LAUNCH_IMPORT.
+ * Catalog IDs are checked against the PeopleNet catalogs of the context society.
  * Operational context still gates DEBUG sessions before writing the file.
  * filePath is the same string used to write, verify, and fill ARG_PATH_FILE.
  */
@@ -76,8 +81,14 @@ export const launchMeta4Hire = async (
   const writeHireFile = deps.writeHireFile ?? writeHireFileAtomically;
   const verifyHireFile = deps.verifyHireFile ?? verifyWrittenHireFile;
   const serialize = deps.serialize ?? hireExecutionQueue;
+  const loadCatalogs = deps.loadCatalogs ?? loadHireCatalogsForLaunch;
 
   const context = await getContext(authSession);
+  const catalogs = await loadCatalogs(
+    context.society,
+    people.map((person) => person.city),
+  );
+  assertHireCatalogSelections(people, catalogs, context.society);
   const directory = getMeta4HireDirectory(deps.hireDirectory);
   const fileName = buildHireFileName(context.username, deps.now?.() ?? new Date());
   const filePath = buildHireFilePath(directory, fileName);

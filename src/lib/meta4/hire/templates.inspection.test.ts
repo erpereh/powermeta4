@@ -9,7 +9,6 @@ import {
   HIRE_DATA_SHEET,
   HIRE_TEMPLATE_SHEET_NAMES,
   MANUAL_COLUMNS,
-  TEMPLATE_LEGAL_ENTITY_COLUMNS,
 } from "./mapping";
 
 const templatesDir = path.join(process.cwd(), "fuentes", "HIRE");
@@ -40,35 +39,31 @@ const hasText = (sheet: XLSX.WorkSheet, column: string, row: number): boolean =>
 };
 
 describe.skipIf(!templatesPresent)("Hire template inspection", () => {
-  it(
-    "treats Hire_1_PERSONA as the filled template with one person on row 6",
-    () => {
-      const p1 = XLSX.read(readFileSync(files.P1), { type: "buffer", raw: true });
-      const p3 = XLSX.read(readFileSync(files.P3), { type: "buffer", raw: true });
-      const vacio = XLSX.read(readFileSync(files.VACIO), { type: "buffer", raw: true });
+  it("treats Hire_1_PERSONA as the filled template with one person on row 6", () => {
+    const p1 = XLSX.read(readFileSync(files.P1), { type: "buffer", raw: true });
+    const p3 = XLSX.read(readFileSync(files.P3), { type: "buffer", raw: true });
+    const vacio = XLSX.read(readFileSync(files.VACIO), { type: "buffer", raw: true });
 
-      for (const workbook of [vacio, p1, p3]) {
-        expect(workbook.SheetNames).toEqual([...HIRE_TEMPLATE_SHEET_NAMES]);
-      }
+    for (const workbook of [vacio, p1, p3]) {
+      expect(workbook.SheetNames).toEqual([...HIRE_TEMPLATE_SHEET_NAMES]);
+    }
 
-      const p1Sheet = p1.Sheets[HIRE_DATA_SHEET];
-      const p3Sheet = p3.Sheets[HIRE_DATA_SHEET];
+    const p1Sheet = p1.Sheets[HIRE_DATA_SHEET];
+    const p3Sheet = p3.Sheets[HIRE_DATA_SHEET];
 
-      expect(hasText(p1Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW)).toBe(true);
-      expect(hasText(p1Sheet, MANUAL_COLUMNS.email[0], FIRST_PERSON_ROW)).toBe(true);
-      expect(hasText(p1Sheet, MANUAL_COLUMNS.email[1], FIRST_PERSON_ROW)).toBe(true);
-      expect(hasText(p1Sheet, TEMPLATE_LEGAL_ENTITY_COLUMNS[0], FIRST_PERSON_ROW)).toBe(true);
-      expect(hasText(p1Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW + 1)).toBe(false);
+    expect(hasText(p1Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW)).toBe(true);
+    expect(hasText(p1Sheet, MANUAL_COLUMNS.email[0], FIRST_PERSON_ROW)).toBe(true);
+    expect(hasText(p1Sheet, MANUAL_COLUMNS.email[1], FIRST_PERSON_ROW)).toBe(true);
+    expect(hasText(p1Sheet, MANUAL_COLUMNS.legalEntity[0], FIRST_PERSON_ROW)).toBe(true);
+    expect(hasText(p1Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW + 1)).toBe(false);
 
-      expect(hasText(p3Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW)).toBe(true);
-      expect(hasText(p3Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW + 1)).toBe(true);
-      expect(hasText(p3Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW + 2)).toBe(true);
-      expect(hasText(p3Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW + 3)).toBe(false);
+    expect(hasText(p3Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW)).toBe(true);
+    expect(hasText(p3Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW + 1)).toBe(true);
+    expect(hasText(p3Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW + 2)).toBe(true);
+    expect(hasText(p3Sheet, MANUAL_COLUMNS.firstName[0], FIRST_PERSON_ROW + 3)).toBe(false);
 
-      const p1Cols = nonemptyColumns(p1Sheet, FIRST_PERSON_ROW);
-      expect(p1Cols.has(MANUAL_COLUMNS.firstName[0])).toBe(true);
-      expect(p1Cols.has(MANUAL_COLUMNS.email[1])).toBe(true);
-    },
-    120_000,
-  );
+    const p1Cols = nonemptyColumns(p1Sheet, FIRST_PERSON_ROW);
+    expect(p1Cols.has(MANUAL_COLUMNS.firstName[0])).toBe(true);
+    expect(p1Cols.has(MANUAL_COLUMNS.email[1])).toBe(true);
+  }, 120_000);
 });
