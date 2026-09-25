@@ -22,8 +22,9 @@
       el efecto de los defaults bancarios IB/IC/IE/IF/IG/IH/II al alternar
       IBAN y Otro formato. Los datos de negocio del Excel sin UI están
       inventariados en el informe.
-- [ ] Verificación final de esta integración: lint, typecheck, suite completa,
-      build, `git diff --check`, `git status --short` y revisión del diff.
+- [x] Verificación final automatizada en Windows: typecheck, suite completa,
+      build, oxlint, formato dirigido de los TypeScript tocados,
+      `git diff --check`, worktree limpio y revisión final del diff.
 
 ## Listado de usuarios desde PeopleNet - 2026-09-25
 
