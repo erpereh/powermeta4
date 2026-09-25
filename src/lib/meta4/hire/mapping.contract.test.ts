@@ -1,41 +1,18 @@
-/**
- * Mapping from Hire_1_PERSONA.xls AltaNueva headers and duplicate
- * display / real_* / STD_EMAIL_ATRADIUS columns.
- * Overlay only these cells; leave the rest of the filled template intact.
- */
+import path from "node:path";
 
-export const HIRE_DATA_SHEET = "AltaNueva";
-export const HIRE_PERSON_SHEET = "AltaPersona";
-export const FIRST_PERSON_ROW = 6;
-export const MAX_PERSON_COUNT = 300;
+import * as XLSX from "xlsx";
+import { describe, expect, it } from "vitest";
 
-export const HIRE_TEMPLATE_SHEET_NAMES = [
-  "AltaNueva",
-  "AltaPersona",
-  "ExternoAltaNueva",
-  "ExternoAltaPersona",
-  "JubiladoAltaNueva",
-  "JubiladoAltaPersona",
-  "ProfesionalAltaNueva",
-  "ProfesionalAltaPersona",
-  "DatosPersona",
-  "DatosEmpleado",
-  "DataTemplate",
-  "BaseTemplate",
-  "SRCO_VALIDATION",
-  "SRSP_VALIDATION",
-  "SRCO_PARAM_EXCEL",
-] as const;
+import { HIRE_FIELD_META } from "@/components/tools/users/hire-form/field-metadata";
 
-/** Display + mapped real_* / duplicate columns written from UI input. */
-export const MANUAL_COLUMNS = {
+import { HIRE_DATA_SHEET, MANUAL_COLUMNS, WRITTEN_COLUMNS } from "./mapping";
+
+/** Independent, explicit contract for every UI input written to AltaNueva. */
+const EXPECTED_COLUMNS = {
   firstName: ["R"],
   lastName1: ["O", "P"],
   lastName2: ["Q"],
   documentType: ["V", "W"],
-  // SRCO_PA_HIRE_WIZ_PERS_DATA display + real_* columns. Geographic values go
-  // as their last path segment. Atradius job code and category only have the
-  // bound real_* cell (AM and T; their row-4 captions describe other fields).
   issuingCountry: ["AA", "AB"],
   nationality: ["AE", "AF"],
   birthProvince: ["AG", "AH"],
@@ -50,9 +27,6 @@ export const MANUAL_COLUMNS = {
   province: ["BW", "BX"],
   community: ["CB", "CC"],
   country: ["CE", "CF"],
-  // SRCO_PA_HIRE_WIZ_ORG. The template's legal entity (ACYC_ES) only exists in
-  // CYC, so the chosen one replaces it. Estructura and centro funcional have a
-  // single bound cell.
   legalEntity: ["CH", "CI"],
   job: ["CK", "CL"],
   position: ["CM", "CN"],
@@ -114,9 +88,6 @@ export const MANUAL_COLUMNS = {
   annualGross: ["GJ"],
   seniorityDate: ["GN", "GO"],
   timeManagementPay: ["HR", "HS"],
-  // SRSP_PA_HIRE_WIZ_SS display + real_* columns; the real_* cells of the
-  // optional catalogs are VLOOKUPs over an empty validation sheet, so both
-  // cells receive the ID.
   tc1Header: ["DZ", "EA"],
   tariffGroup: ["EB", "EC"],
   ssOccupation: ["ED", "EE"],
@@ -129,9 +100,6 @@ export const MANUAL_COLUMNS = {
   unemploymentCondition: ["FI", "FJ"],
   specialLaborRelation: ["FK", "FL"],
   socialExclusion: ["FM", "FN"],
-  // SRCO_PA_HIRE_WIZ_PAYROLL display + real_* columns. Some real_* cells are
-  // formulas over the display cell (GG = GF+0, GS = VLOOKUP on an empty
-  // validation sheet), so both cells receive the ID.
   adjustmentType: ["GF", "GG"],
   payrollAgreement: ["GH", "GI"],
   salaryType: ["GL", "GM"],
@@ -139,10 +107,7 @@ export const MANUAL_COLUMNS = {
   payrollCurrency: ["GV", "GW"],
   irpfType: ["HB", "HC"],
   perceptionKey: ["HD", "HE"],
-  // PAYROLL.CSP_TP_MOD_VAR; IT ("MONEDA") is not its display cell.
   variableCompensationMode: ["IU"],
-  // SRSP_PA_HIRE_WIZ_DATOS_PAGO display + real_* columns. The PAYROLL copies
-  // (GX–HA, "TIPO PAGO_", "BANCO EMPRESA_") stay as in the template.
   paymentCurrency: ["HT", "HU"],
   paymentType: ["HV", "HW"],
   companyBank: ["HX", "HY"],
@@ -152,25 +117,52 @@ export const MANUAL_COLUMNS = {
   accountNumber: ["ID"],
 } as const;
 
-export const WRITTEN_COLUMNS: readonly string[] = Object.values(MANUAL_COLUMNS).flat();
+const COMPOUND_PARTS = {
+  phone: ["phonePrefix", "phoneNumber"],
+  mobile: ["mobilePrefix", "mobileNumber"],
+  address: ["addressLine1", "addressLine2"],
+  ssNumber: ["ssNumberPrefix", "ssNumberBody", "ssNumberSuffix"],
+  replacedPersonSsNumber: ["replacedSsPrefix", "replacedSsBody", "replacedSsSuffix"],
+} as const;
 
-export const toExcelSerialDate = (isoDate: string): number => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
-  if (!match) {
-    throw new Error("Fecha de alta no válida.");
-  }
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const utc = Date.UTC(year, month - 1, day);
-  const epoch = Date.UTC(1899, 11, 30);
-  return Math.round((utc - epoch) / 86_400_000);
-};
+const templatePath = path.join(process.cwd(), "fuentes", "HIRE", "Hire_1_PERSONA.xls");
+const technicalId = (header: unknown): string | null =>
+  typeof header === "string" ? (header.split(".").at(-1)?.replace(/##$/, "") ?? null) : null;
 
-export const toExcelSerialDateTime = (localDateTime: string): number => {
-  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(localDateTime);
-  if (!match) throw new Error("Fecha y hora no válidas.");
-  return toExcelSerialDate(match[1]) + (Number(match[2]) * 60 + Number(match[3])) / 1440;
-};
+describe("AltaNueva exact mapping contract", () => {
+  it("writes exactly the reviewed columns for all 99 integrated fields", () => {
+    expect(MANUAL_COLUMNS).toEqual(EXPECTED_COLUMNS);
+    const expectedKeys = new Set<string>();
+    for (const [field, meta] of Object.entries(HIRE_FIELD_META)) {
+      if (meta.integration !== "connected") continue;
+      const parts = COMPOUND_PARTS[field as keyof typeof COMPOUND_PARTS];
+      for (const key of parts ?? [field]) expectedKeys.add(key);
+    }
+    expect(new Set(Object.keys(EXPECTED_COLUMNS))).toEqual(expectedKeys);
+    expect(new Set(WRITTEN_COLUMNS)).toEqual(new Set(Object.values(EXPECTED_COLUMNS).flat()));
+    expect(new Set(WRITTEN_COLUMNS).size).toBe(WRITTEN_COLUMNS.length);
+    for (const excluded of ["ER", "GP", "HO", "HP", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
+      expect(WRITTEN_COLUMNS, excluded).not.toContain(excluded);
+    }
+  });
 
-export const personRowIndex = (personOffset: number): number => FIRST_PERSON_ROW + personOffset;
+  it("matches each technical identifier against row 5 of Hire_1_PERSONA.xls", () => {
+    const sheet = XLSX.readFile(templatePath, { sheetRows: 5 }).Sheets[HIRE_DATA_SHEET];
+    expect(sheet).toBeDefined();
+    for (const [field, meta] of Object.entries(HIRE_FIELD_META)) {
+      if (meta.integration !== "connected" || meta.mapping.status !== "confirmed") continue;
+      const parts = COMPOUND_PARTS[field as keyof typeof COMPOUND_PARTS];
+      const columns = (parts ?? [field]).flatMap(
+        (key) => EXPECTED_COLUMNS[key as keyof typeof EXPECTED_COLUMNS],
+      );
+      const bound = columns.map((column) => technicalId(sheet[`${column}5`]?.v)).filter(Boolean);
+      expect(new Set(bound), field).toEqual(new Set(meta.mapping.identifiers));
+      for (const column of columns) {
+        if (technicalId(sheet[`${column}5`]?.v)) continue;
+        const next = XLSX.utils.encode_col(XLSX.utils.decode_col(column) + 1);
+        expect(columns, `${field}: visible ${column}`).toContain(next);
+        expect(technicalId(sheet[`${next}5`]?.v), `${field}: ${next}`).toBeTruthy();
+      }
+    }
+  }, 30_000);
+});

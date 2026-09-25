@@ -13,6 +13,7 @@ import { buildHireFileName, buildHireFilePath } from "./filename";
 import { Meta4HireError } from "./errors";
 import { createSerializedQueue } from "./mutex";
 import { launchMeta4Hire } from "./service";
+import { hireExtraFixture } from "./test-fixtures";
 import type { HirePerson } from "./types";
 
 const loadCatalogs = vi.hoisted(() => vi.fn());
@@ -49,7 +50,7 @@ loadCatalogs.mockResolvedValue({
   workUnit: [{ id: "00", name: "Pendiente de definir" }],
   workLocation: [{ id: "724", name: "España" }],
   category: [{ id: "I1", name: "Categoría I1" }],
-  costCenter: [],
+  costCenter: [{ id: "000000", name: "Sin Centro de Costo" }],
   startReason: [{ id: "001", name: "Nueva Alta" }],
   structure: [{ id: "0", name: "Empleado" }],
   functionalWorkCenter: [{ id: "O_CEN1", name: "Oficinas Centrales" }],
@@ -91,6 +92,7 @@ const AUTH_SESSION = {
 } satisfies ResolvedAuthSession;
 
 const person: HirePerson = {
+  ...hireExtraFixture,
   firstName: "Ana",
   lastName1: "López",
   lastName2: "",
@@ -113,11 +115,12 @@ const person: HirePerson = {
   community: "724/28",
   country: "724",
   legalEntity: "ACYC_ES",
-  job: "",
+  job: "RDCI",
   position: "",
   workUnit: "00",
   workLocation: "724",
   category: "I1",
+  project: "000000",
   startReason: "001",
   structure: "0",
   functionalWorkCenter: "O_CEN1",

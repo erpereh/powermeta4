@@ -72,6 +72,7 @@ export const createHirePersonDraft = (id: number): HirePersonDraft => ({
     workUnit: "",
     workLocation: "",
     category: "",
+    project: "",
     startReason: "",
     structure: "",
     functionalWorkCenter: "",
@@ -112,8 +113,13 @@ export const createHirePersonDraft = (id: number): HirePersonDraft => ({
   },
 });
 
-/** Only the fields currently mapped to Excel and SOAP cross this boundary. */
-export const toHirePersonInput = ({ current, branches }: HirePersonDraft): HirePersonInput => ({
+/** Project only confirmed mappings; retained values from inactive branches stay local. */
+export const toHirePersonInput = ({
+  current,
+  branches,
+  pendingValues,
+  pendingChecks,
+}: HirePersonDraft): HirePersonInput => ({
   firstName: current.firstName,
   lastName1: current.lastName1,
   lastName2: current.lastName2,
@@ -142,6 +148,7 @@ export const toHirePersonInput = ({ current, branches }: HirePersonDraft): HireP
   workUnit: current.workUnit,
   workLocation: current.workLocation,
   category: current.category,
+  project: current.project,
   startReason: current.startReason,
   structure: current.structure,
   functionalWorkCenter: current.functionalWorkCenter,
@@ -169,9 +176,78 @@ export const toHirePersonInput = ({ current, branches }: HirePersonDraft): HireP
   paymentType: current.paymentType,
   companyBank: current.companyBank,
   accountCurrency: current.accountCurrency,
+  positionChoice: branches.positionChoice,
+  occupationType: branches.positionChoice === "position" ? branches.occupationType : "",
+  legalRepresentativeNif: pendingValues.legalRepresentativeNif ?? "",
+  birthDate: pendingValues.birthDate ?? "",
+  atradiusId: pendingValues.atradiusId ?? "",
+  phonePrefix: pendingValues.phonePrefix ?? "",
+  phoneNumber: pendingValues.phoneNumber ?? "",
+  mobilePrefix: pendingValues.mobilePrefix ?? "",
+  mobileNumber: pendingValues.mobileNumber ?? "",
+  addressLine1: pendingValues.addressLine1 ?? "",
+  addressLine2: pendingValues.addressLine2 ?? "",
+  streetNumber: pendingValues.streetNumber ?? "",
+  buildingBlock: pendingValues.buildingBlock ?? "",
+  staircase: pendingValues.staircase ?? "",
+  floor: pendingValues.floor ?? "",
+  door: pendingValues.door ?? "",
+  postalCode: pendingValues.postalCode ?? "",
+  occupationHours:
+    branches.positionChoice === "position" && branches.occupationType === "hours"
+      ? (pendingValues.occupationHours ?? "")
+      : "",
+  occupationEjc:
+    branches.positionChoice === "position" && branches.occupationType === "ejc"
+      ? (pendingValues.occupationEjc ?? "")
+      : "",
+  occupationHeadcount:
+    branches.positionChoice === "position" && branches.occupationType === "headcount"
+      ? (pendingValues.occupationHeadcount ?? "")
+      : "",
+  keyEmployee: pendingChecks.keyEmployee ?? false,
+  strategicEmployee: pendingChecks.strategicEmployee ?? false,
+  ssNumberChoice: branches.ssNumberChoice,
+  ssNumberPrefix: branches.ssNumberChoice === "assigned" ? (pendingValues.ssNumberPrefix ?? "") : "",
+  ssNumberBody: branches.ssNumberChoice === "assigned" ? (pendingValues.ssNumberBody ?? "") : "",
+  ssNumberSuffix: branches.ssNumberChoice === "assigned" ? (pendingValues.ssNumberSuffix ?? "") : "",
+  contractEnd: pendingValues.contractEnd ?? "",
+  scheduleChoice: branches.scheduleChoice,
+  partialSchedulePercent:
+    branches.scheduleChoice === "partial" ? (pendingValues.partialSchedulePercent ?? "") : "",
+  hourType: branches.scheduleChoice === "partial" ? (pendingValues.hourType ?? "") : "",
+  numberOfHours: branches.scheduleChoice === "partial" ? (pendingValues.numberOfHours ?? "") : "",
+  partialScheduleType:
+    branches.scheduleChoice === "partial" ? (pendingValues.partialScheduleType ?? "") : "",
+  weeklyWorkDays: branches.scheduleChoice === "partial" ? (pendingValues.weeklyWorkDays ?? "") : "",
+  legalReductionPercent: pendingValues.legalReductionPercent ?? "",
+  replacedSsPrefix: pendingValues.replacedSsPrefix ?? "",
+  replacedSsBody: pendingValues.replacedSsBody ?? "",
+  replacedSsSuffix: pendingValues.replacedSsSuffix ?? "",
+  disabilityChoice: branches.disabilityChoice,
+  disabilityPercent:
+    branches.disabilityChoice === "with" ? (pendingValues.disabilityPercent ?? "") : "",
+  contractSeniorityStart: pendingValues.contractSeniorityStart ?? "",
+  womanMaternity24: pendingChecks.womanMaternity24 ?? false,
+  underrepresentedWoman: pendingChecks.underrepresentedWoman ?? false,
+  activeInsertionIncome: pendingChecks.activeInsertionIncome ?? false,
+  reliefContract: pendingChecks.reliefContract ?? false,
+  readmittedDisabled: pendingChecks.readmittedDisabled ?? false,
+  firstSelfEmployedWorker: pendingChecks.firstSelfEmployedWorker ?? false,
+  probationDays: pendingValues.probationDays ?? "",
+  probationEnd: pendingValues.probationEnd ?? "",
+  additionalClause: pendingValues.additionalClause ?? "",
+  annualGross: pendingValues.annualGross ?? "",
+  seniorityDate: pendingValues.seniorityDate ?? "",
+  timeManagementPay: pendingChecks.timeManagementPay ?? false,
+  bankFormatChoice: branches.bankFormatChoice,
+  iban: branches.bankFormatChoice === "iban" ? (pendingValues.iban ?? "") : "",
+  bankBranch: branches.bankFormatChoice === "other" ? (pendingValues.bankBranch ?? "") : "",
+  accountNumber:
+    branches.bankFormatChoice === "other" ? (pendingValues.accountNumber ?? "") : "",
 });
 
-/** Future mappings can read this view without accidentally using retained hidden values. */
+/** Active draft view for branch-specific UI. */
 export const selectActiveBranchValues = ({
   branches,
   current,
@@ -216,13 +292,12 @@ export const selectActiveBranchValues = ({
       : { choice: branches.disabilityChoice },
   bank:
     branches.bankFormatChoice === "iban"
-      ? { choice: "iban", iban: pendingValues.iban, bic: pendingValues.bic }
+      ? { choice: "iban", iban: pendingValues.iban }
       : branches.bankFormatChoice === "other"
         ? {
             choice: "other",
             branch: pendingValues.bankBranch,
             accountNumber: pendingValues.accountNumber,
-            bic: pendingValues.bic,
           }
         : { choice: "" },
 });

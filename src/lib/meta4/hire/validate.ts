@@ -1,7 +1,7 @@
 import { HIRE_CATALOG_FIELDS, type HireCatalogFieldId } from "./catalogs";
 import { Meta4HireError } from "./errors";
 import { MAX_PERSON_COUNT } from "./mapping";
-import type { HirePerson, HirePersonInput } from "./types";
+import type { HireExtraFields, HirePerson, HirePersonInput } from "./types";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -23,13 +23,14 @@ const requiredText = (value: unknown, label: string): string => {
 
 const optionalText = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 
-const parseHireDate = (value: unknown): string => {
-  const trimmed = requiredText(value, "fecha de alta");
+const parseDate = (value: unknown, label: string, required = false): string => {
+  const trimmed = required ? requiredText(value, label) : optionalText(value);
+  if (!trimmed) return "";
   const match = ISO_DATE_PATTERN.exec(trimmed);
   if (!match) {
     throw new Meta4HireError(
       "META4_HIRE_VALIDATION",
-      "La fecha de alta debe usar el formato AAAA-MM-DD.",
+      `La ${label} debe usar el formato AAAA-MM-DD.`,
     );
   }
   const year = Number(match[1]);
@@ -43,9 +44,136 @@ const parseHireDate = (value: unknown): string => {
     parsed.getUTCMonth() !== month - 1 ||
     parsed.getUTCDate() !== day
   ) {
-    throw new Meta4HireError("META4_HIRE_VALIDATION", "La fecha de alta no es una fecha válida.");
+    throw new Meta4HireError("META4_HIRE_VALIDATION", `La ${label} no es una fecha válida.`);
   }
   return trimmed;
+};
+
+const parseDateTime = (value: unknown, label: string): string => {
+  const trimmed = optionalText(value);
+  if (!trimmed) return "";
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(trimmed);
+  if (!match) throw new Meta4HireError("META4_HIRE_VALIDATION", `${label}: fecha y hora no válidas.`);
+  parseDate(match[1], label, true);
+  if (Number(match[2]) > 23 || Number(match[3]) > 59)
+    throw new Meta4HireError("META4_HIRE_VALIDATION", `${label}: hora no válida.`);
+  return trimmed;
+};
+
+const parseNumber = (value: unknown, label: string, max?: number, required = false): string => {
+  const trimmed = required ? requiredText(value, label) : optionalText(value);
+  if (!trimmed) return "";
+  const number = Number(trimmed);
+  if (!Number.isFinite(number) || number < 0 || (max !== undefined && number > max))
+    throw new Meta4HireError("META4_HIRE_VALIDATION", `${label}: número no válido.`);
+  return trimmed;
+};
+
+const parseCheck = (value: unknown, label: string): boolean => {
+  if (value === undefined) return false;
+  if (typeof value !== "boolean")
+    throw new Meta4HireError("META4_HIRE_VALIDATION", `${label}: valor no válido.`);
+  return value;
+};
+
+const parseIban = (value: unknown): string => {
+  const iban = requiredText(value, "IBAN").replace(/\s+/g, "").toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban))
+    throw new Meta4HireError("META4_HIRE_VALIDATION", "El IBAN no tiene un formato válido.");
+  let remainder = 0;
+  for (const character of `${iban.slice(4)}${iban.slice(0, 4)}`) {
+    const digits = /[A-Z]/.test(character) ? String(character.charCodeAt(0) - 55) : character;
+    for (const digit of digits) remainder = (remainder * 10 + Number(digit)) % 97;
+  }
+  if (remainder !== 1)
+    throw new Meta4HireError("META4_HIRE_VALIDATION", "El IBAN no supera la comprobación de control.");
+  return iban;
+};
+
+const parseChoice = <T extends string>(
+  value: unknown,
+  label: string,
+  choices: readonly T[],
+  required = false,
+): T | "" => {
+  if (value === "" || value === undefined) {
+    if (!required) return "";
+    throw new Meta4HireError("META4_HIRE_VALIDATION", `El campo ${label} es obligatorio.`);
+  }
+  if (typeof value === "string" && choices.some((choice) => choice === value)) return value as T;
+  throw new Meta4HireError("META4_HIRE_VALIDATION", `${label}: selección no válida.`);
+};
+
+const parseExtraFields = (record: HirePersonInput): HireExtraFields => {
+  const positionChoice = parseChoice(record.positionChoice, "Puesto / Posición", ["job", "position"], true);
+  const occupationType = positionChoice === "position"
+    ? parseChoice(record.occupationType, "Tipo de ocupación", ["hours", "ejc", "headcount"])
+    : "";
+  const ssNumberChoice = parseChoice(record.ssNumberChoice, "Núm. S.S.", ["assigned", "unassigned"]);
+  const scheduleChoice = parseChoice(record.scheduleChoice, "Jornada", ["full", "partial"]);
+  const disabilityChoice = parseChoice(record.disabilityChoice, "Minusvalía", ["without", "with"]);
+  const bankFormatChoice = parseChoice(record.bankFormatChoice, "Formato bancario", ["iban", "other"], true);
+  const assigned = ssNumberChoice === "assigned";
+  const partial = scheduleChoice === "partial";
+  const other = bankFormatChoice === "other";
+  return {
+    positionChoice,
+    occupationType,
+    legalRepresentativeNif: optionalText(record.legalRepresentativeNif),
+    birthDate: parseDate(record.birthDate, "fecha de nacimiento"),
+    atradiusId: optionalText(record.atradiusId),
+    phonePrefix: optionalText(record.phonePrefix),
+    phoneNumber: optionalText(record.phoneNumber),
+    mobilePrefix: optionalText(record.mobilePrefix),
+    mobileNumber: optionalText(record.mobileNumber),
+    addressLine1: requiredText(record.addressLine1, "dirección línea 1"),
+    addressLine2: optionalText(record.addressLine2),
+    streetNumber: requiredText(record.streetNumber, "número de vía"),
+    buildingBlock: optionalText(record.buildingBlock),
+    staircase: optionalText(record.staircase),
+    floor: optionalText(record.floor),
+    door: optionalText(record.door),
+    postalCode: requiredText(record.postalCode, "código postal"),
+    occupationHours: occupationType === "hours" ? parseNumber(record.occupationHours, "Núm. Horas", undefined, true) : "",
+    occupationEjc: occupationType === "ejc" ? parseNumber(record.occupationEjc, "Núm. EJC", undefined, true) : "",
+    occupationHeadcount: occupationType === "headcount" ? parseNumber(record.occupationHeadcount, "Núm. Efectivos", undefined, true) : "",
+    keyEmployee: parseCheck(record.keyEmployee, "Empleado clave"),
+    strategicEmployee: parseCheck(record.strategicEmployee, "Empleado estratégico"),
+    ssNumberChoice,
+    ssNumberPrefix: assigned ? requiredText(record.ssNumberPrefix, "provincia del Núm. S.S.") : "",
+    ssNumberBody: assigned ? requiredText(record.ssNumberBody, "número de S.S.") : "",
+    ssNumberSuffix: assigned ? requiredText(record.ssNumberSuffix, "dígito del Núm. S.S.") : "",
+    contractEnd: parseDateTime(record.contractEnd, "Fin de contrato"),
+    scheduleChoice,
+    partialSchedulePercent: partial ? parseNumber(record.partialSchedulePercent, "% Jornada parcial", 100, true) : "",
+    hourType: partial ? parseChoice(record.hourType, "Tipo de horas", ["1", "2", "3"], true) : "",
+    numberOfHours: partial ? parseNumber(record.numberOfHours, "Número de horas", undefined, true) : "",
+    partialScheduleType: partial ? parseChoice(record.partialScheduleType, "Tipo de jornada parcial", ["R", "I"], true) : "",
+    weeklyWorkDays: partial ? parseNumber(record.weeklyWorkDays, "Días de trabajo semanales", 7, true) : "",
+    legalReductionPercent: parseNumber(record.legalReductionPercent, "% Reducción", 100),
+    replacedSsPrefix: optionalText(record.replacedSsPrefix),
+    replacedSsBody: optionalText(record.replacedSsBody),
+    replacedSsSuffix: optionalText(record.replacedSsSuffix),
+    disabilityChoice,
+    disabilityPercent: disabilityChoice === "with" ? parseNumber(record.disabilityPercent, "% minusvalía", 100, true) : "",
+    contractSeniorityStart: parseDate(record.contractSeniorityStart, "fecha de inicio antigüedad contrato"),
+    womanMaternity24: parseCheck(record.womanMaternity24, "Mujer mater. 24 meses"),
+    underrepresentedWoman: parseCheck(record.underrepresentedWoman, "Mujer subrepresentada"),
+    activeInsertionIncome: parseCheck(record.activeInsertionIncome, "Renta activa de inserción"),
+    reliefContract: parseCheck(record.reliefContract, "Contrato relevo"),
+    readmittedDisabled: parseCheck(record.readmittedDisabled, "Incapacitado readmitido"),
+    firstSelfEmployedWorker: parseCheck(record.firstSelfEmployedWorker, "Primer trabajador autónomo"),
+    probationDays: parseNumber(record.probationDays, "Días de prueba"),
+    probationEnd: parseDate(record.probationEnd, "fecha fin periodo prueba"),
+    additionalClause: optionalText(record.additionalClause),
+    annualGross: parseNumber(record.annualGross, "Bruto anual"),
+    seniorityDate: parseDate(record.seniorityDate, "fecha de antigüedad"),
+    timeManagementPay: parseCheck(record.timeManagementPay, "Pago con gestión del tiempo"),
+    bankFormatChoice,
+    iban: bankFormatChoice === "iban" ? parseIban(record.iban) : "",
+    bankBranch: other ? requiredText(record.bankBranch, "sucursal bancaria") : "",
+    accountNumber: other ? requiredText(record.accountNumber, "número de cuenta") : "",
+  };
 };
 
 const parseEmail = (value: unknown): string => {
@@ -76,13 +204,17 @@ export const parseHirePerson = (value: unknown): HirePerson => {
     throw new Meta4HireError("META4_HIRE_VALIDATION", "Cada persona debe ser un objeto.");
   }
   const record = value as HirePersonInput;
+  const extra = parseExtraFields(record);
+  const job = extra.positionChoice === "job" ? parseCatalogId(record.job, "ID Puesto") : "";
+  const position = extra.positionChoice === "position" ? parseCatalogId(record.position, "ID Posición") : "";
   return {
     firstName: requiredText(record.firstName, "nombre"),
     lastName1: requiredText(record.lastName1, "primer apellido"),
     lastName2: optionalText(record.lastName2),
     documentNumber: requiredText(record.documentNumber, "número de documento"),
     email: parseEmail(record.email),
-    hireDate: parseHireDate(record.hireDate),
+    hireDate: parseDate(record.hireDate, "fecha de alta", true),
+    ...extra,
     documentType: parseCatalogField(record.documentType, "documentType"),
     issuingCountry: parseCatalogField(record.issuingCountry, "issuingCountry"),
     nationality: parseCatalogField(record.nationality, "nationality"),
@@ -99,11 +231,12 @@ export const parseHirePerson = (value: unknown): HirePerson => {
     community: parseCatalogField(record.community, "community"),
     country: parseCatalogField(record.country, "country"),
     legalEntity: parseCatalogField(record.legalEntity, "legalEntity"),
-    job: parseCatalogField(record.job, "job"),
-    position: parseCatalogField(record.position, "position"),
+    job,
+    position,
     workUnit: parseCatalogField(record.workUnit, "workUnit"),
     workLocation: parseCatalogField(record.workLocation, "workLocation"),
     category: parseCatalogField(record.category, "category"),
+    project: parseCatalogField(record.project, "project"),
     startReason: parseCatalogField(record.startReason, "startReason"),
     structure: parseCatalogField(record.structure, "structure"),
     functionalWorkCenter: parseCatalogField(record.functionalWorkCenter, "functionalWorkCenter"),

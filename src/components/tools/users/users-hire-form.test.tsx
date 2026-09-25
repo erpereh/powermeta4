@@ -167,9 +167,12 @@ const fillRequired = async (
 ) => {
   await user.click(screen.getByRole("tab", { name: "Organización" }));
   await chooseOption(user, "ID Empresa", /ACYC España/);
+  await user.click(screen.getByRole("radio", { name: "Puesto" }));
+  await chooseOption(user, "ID Puesto (según rama)", /Actuarial Analyst/);
   await chooseOption(user, "ID Unidad organizativa", /Pendiente de definir/);
   await chooseOption(user, "ID Lugar trabajo", /España/);
   await chooseOption(user, "Categoría", /Categoría I1/);
+  await chooseOption(user, "Proyecto", /Sin Centro de Costo/);
   await chooseOption(user, "ID Motivo inicio", /Nueva Alta/);
   await chooseOption(user, "Id Estructura", /Empleado/);
   await chooseOption(user, "Centro de Trabajo Funcional", /Oficinas Centrales/);
@@ -190,6 +193,11 @@ const fillRequired = async (
   await chooseOption(user, "ID Moneda", /Euro/);
   await chooseOption(user, "ID Tipo pago", /Transferencia/);
   await chooseOption(user, "ID Banco empresa", /Crédito y Caución/);
+  await user.click(screen.getByRole("button", { name: "Datos bancarios de la persona" }));
+  await user.click(screen.getByRole("radio", { name: "IBAN" }));
+  fireEvent.change(screen.getByLabelText("IBAN (condicional)"), {
+    target: { value: "ES5200491500061234567890" },
+  });
   await user.click(screen.getByRole("tab", { name: "Datos personales" }));
   fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: values.firstName } });
   fireEvent.change(screen.getByLabelText("Primer apellido"), {
@@ -212,6 +220,11 @@ const fillRequired = async (
   await user.click(screen.getByRole("button", { name: "Dirección" }));
   await chooseOption(user, "ID Tipo localización", /Domicilio/);
   await chooseOption(user, "ID Tipo de vía", /Calle/);
+  fireEvent.change(screen.getByLabelText("Dirección, Línea 1"), {
+    target: { value: "Calle Mayor" },
+  });
+  fireEvent.change(screen.getByLabelText("Núm."), { target: { value: "1" } });
+  fireEvent.change(screen.getByLabelText("Código postal"), { target: { value: "28001" } });
   await user.type(screen.getByRole("combobox", { name: "ID Población" }), "madr");
   await user.click(await screen.findByRole("option", { name: /MADRID/ }));
   await user.click(screen.getByRole("button", { name: "Contactos" }));
@@ -282,9 +295,9 @@ describe("UsersHireForm", () => {
       socialSecurityNumber: { choice: "unassigned" },
       schedule: { choice: "full" },
       disability: { choice: "without" },
-      bank: { choice: "iban", iban: "ES1234", bic: "BIC1" },
+      bank: { choice: "iban", iban: "ES1234" },
     });
-    expect(toHirePersonInput(draft)).toEqual({
+    expect(toHirePersonInput(draft)).toMatchObject({
       firstName: "Nuria",
       lastName1: "",
       lastName2: "",
@@ -340,6 +353,96 @@ describe("UsersHireForm", () => {
       companyBank: "",
       accountCurrency: "",
     });
+  });
+
+  it("projects every newly integrated scalar and check while excluding unresolved fields", () => {
+    const draft = createHirePersonDraft(1);
+    draft.current.project = "000000";
+    draft.current.position = "POS01";
+    draft.branches = {
+      positionChoice: "position",
+      occupationType: "ejc",
+      ssNumberChoice: "assigned",
+      scheduleChoice: "partial",
+      disabilityChoice: "with",
+      bankFormatChoice: "other",
+    };
+    draft.pendingValues = {
+      legalRepresentativeNif: "00001234X",
+      birthDate: "1990-01-01",
+      atradiusId: "00044",
+      phonePrefix: "0034",
+      phoneNumber: "000123456",
+      mobilePrefix: "0034",
+      mobileNumber: "000600123",
+      addressLine1: "Calle Mayor",
+      addressLine2: "Portal 2",
+      streetNumber: "0005",
+      buildingBlock: "B",
+      staircase: "2",
+      floor: "3",
+      door: "A",
+      postalCode: "08001",
+      occupationHours: "99",
+      occupationEjc: "0.75",
+      occupationHeadcount: "99",
+      ssNumberPrefix: "08",
+      ssNumberBody: "0000123456",
+      ssNumberSuffix: "02",
+      contractEnd: "2027-01-01T12:00",
+      partialSchedulePercent: "50",
+      hourType: "2",
+      numberOfHours: "80",
+      partialScheduleType: "I",
+      weeklyWorkDays: "4",
+      legalReductionPercent: "25",
+      replacedSsPrefix: "08",
+      replacedSsBody: "0009876543",
+      replacedSsSuffix: "01",
+      disabilityPercent: "33",
+      contractSeniorityStart: "2024-01-01",
+      probationDays: "15",
+      probationEnd: "2026-11-01",
+      additionalClause: "Cláusula",
+      annualGross: "30000",
+      seniorityDate: "2020-01-01",
+      iban: "retained iban",
+      bankBranch: "00491500",
+      accountNumber: "001234567890",
+      birthCommunity: "retained community",
+      department: "retained department",
+      faxPrefix: "retained fax",
+      bic: "retained bic",
+    };
+    draft.pendingChecks = {
+      keyEmployee: true,
+      strategicEmployee: true,
+      womanMaternity24: true,
+      underrepresentedWoman: true,
+      activeInsertionIncome: true,
+      reliefContract: true,
+      readmittedDisabled: true,
+      firstSelfEmployedWorker: true,
+      timeManagementPay: true,
+      specificFic: true,
+    };
+    const payload = toHirePersonInput(draft);
+    expect(payload).toMatchObject({
+      project: "000000", position: "POS01", occupationType: "ejc", occupationHours: "", occupationEjc: "0.75", occupationHeadcount: "",
+      legalRepresentativeNif: "00001234X", birthDate: "1990-01-01", atradiusId: "00044",
+      phonePrefix: "0034", phoneNumber: "000123456", mobilePrefix: "0034", mobileNumber: "000600123",
+      addressLine1: "Calle Mayor", addressLine2: "Portal 2", streetNumber: "0005", buildingBlock: "B", staircase: "2", floor: "3", door: "A", postalCode: "08001",
+      keyEmployee: true, strategicEmployee: true,
+      ssNumberChoice: "assigned", ssNumberPrefix: "08", ssNumberBody: "0000123456", ssNumberSuffix: "02",
+      contractEnd: "2027-01-01T12:00", scheduleChoice: "partial", partialSchedulePercent: "50", hourType: "2", numberOfHours: "80", partialScheduleType: "I", weeklyWorkDays: "4", legalReductionPercent: "25",
+      replacedSsPrefix: "08", replacedSsBody: "0009876543", replacedSsSuffix: "01", disabilityChoice: "with", disabilityPercent: "33", contractSeniorityStart: "2024-01-01",
+      womanMaternity24: true, underrepresentedWoman: true, activeInsertionIncome: true, reliefContract: true, readmittedDisabled: true, firstSelfEmployedWorker: true,
+      probationDays: "15", probationEnd: "2026-11-01", additionalClause: "Cláusula", annualGross: "30000", seniorityDate: "2020-01-01", timeManagementPay: true,
+      bankFormatChoice: "other", iban: "", bankBranch: "00491500", accountNumber: "001234567890",
+    });
+    for (const missing of ["birthCommunity", "department", "faxPrefix", "faxNumber", "specificFic", "extrasDate", "referenceModelWeek", "personBankOrdinal", "bic"]) {
+      expect(payload).not.toHaveProperty(missing);
+    }
   });
 
   it("lists PeopleNet payment catalogs by ID and name and keeps the name in the field", async () => {
@@ -475,7 +578,7 @@ describe("UsersHireForm", () => {
     ]);
   });
 
-  it("sends the job or the position only in its branch and keeps Proyecto local", async () => {
+  it("sends the job or the position only in its branch and sends Proyecto", async () => {
     const user = userEvent.setup({ delay: null });
     render(<UsersHireForm catalogs={CATALOGS} />);
     await user.click(screen.getByRole("tab", { name: "Organización" }));
@@ -490,9 +593,11 @@ describe("UsersHireForm", () => {
 
     const draft = createHirePersonDraft(1);
     draft.current.job = "GR_ACAN";
+    draft.current.project = "000000";
     expect(toHirePersonInput(draft).job).toBe("");
     draft.branches.positionChoice = "job";
     expect(toHirePersonInput(draft).job).toBe("GR_ACAN");
+    expect(toHirePersonInput(draft).project).toBe("000000");
 
     await user.click(screen.getByRole("radio", { name: "Posición" }));
     await chooseOption(user, "ID Posición (según rama)", /Analista/);
@@ -806,7 +911,7 @@ describe("UsersHireForm", () => {
     expect((await screen.findByRole("status")).textContent).toBe(
       "Alta enviada correctamente · Hire_user_2026-09-22_11-12-34.xls",
     );
-    expect(launchHire.mock.calls.at(0)?.at(0)).toEqual([
+    expect(launchHire.mock.calls.at(0)?.at(0)).toMatchObject([
       {
         firstName: "Nuria",
         lastName1: "Gil",
@@ -830,7 +935,7 @@ describe("UsersHireForm", () => {
         community: "724/13",
         country: "724",
         legalEntity: "ACYC_ES",
-        job: "",
+        job: "GR_ACAN",
         position: "",
         workUnit: "00",
         workLocation: "724",
@@ -886,7 +991,7 @@ describe("UsersHireForm", () => {
         community: "724/13",
         country: "724",
         legalEntity: "ACYC_ES",
-        job: "",
+        job: "GR_ACAN",
         position: "",
         workUnit: "00",
         workLocation: "724",

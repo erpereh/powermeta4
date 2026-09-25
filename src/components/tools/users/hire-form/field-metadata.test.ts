@@ -23,9 +23,9 @@ describe("Meta4 hire field mappings", () => {
   it("classifies every field and reserves red only for unresolved Excel mappings", () => {
     const entries = Object.entries(HIRE_FIELD_META);
     expect(entries).toHaveLength(113);
-    expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(54);
-    expect(entries.filter(([, field]) => field.mapping.status === "confirmed")).toHaveLength(96);
-    expect(entries.filter(([, field]) => field.mapping.status === "unconfirmed")).toHaveLength(11);
+    expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(99);
+    expect(entries.filter(([, field]) => field.mapping.status === "confirmed")).toHaveLength(99);
+    expect(entries.filter(([, field]) => field.mapping.status === "unconfirmed")).toHaveLength(8);
     expect(entries.filter(([, field]) => field.mapping.status === "ui-only")).toHaveLength(6);
     expect(
       entries.filter(([, field]) => field.mapping.status === "unconfirmed").map(([id]) => id),
@@ -33,13 +33,10 @@ describe("Meta4 hire field mappings", () => {
       "birthCommunity",
       "department",
       "fax",
-      "project",
       "specificFic",
       "extrasDate",
       "referenceModelWeek",
       "personBankOrdinal",
-      "iban",
-      "bankBranch",
       "bic",
     ]);
     expect(
@@ -68,10 +65,10 @@ describe("Meta4 hire field mappings", () => {
 
     expect(hireFieldVisualStatus("firstName")).toBe("normal");
     expect(hireFieldVisualStatus("positionChoice")).toBe("normal");
-    expect(hireFieldVisualStatus("ssNumberChoice")).toBe("confirmed-pending");
+    expect(hireFieldVisualStatus("ssNumberChoice")).toBe("normal");
     expect(hireFieldVisualStatus("birthCommunity")).toBe("unconfirmed");
     expect(hireFieldLabelClass("firstName")).toBe("text-foreground");
-    expect(hireFieldLabelClass("legalRepresentativeNif")).toBe("text-hire-pending");
+    expect(hireFieldLabelClass("legalRepresentativeNif")).toBe("text-foreground");
     expect(hireFieldLabelClass("fax")).toBe("text-destructive");
     expect(hireFieldMappingTooltip("email")).toBe("STD_EMAIL / STD_EMAIL_ATRADIUS");
     expect(hireFieldMappingTooltip("payrollCurrency")).toBe("ID_CURRENCY");
@@ -124,6 +121,7 @@ describe("Meta4 hire field mappings", () => {
       "workUnit",
       "workLocation",
       "category",
+      "project",
       "startReason",
       "structure",
       "functionalWorkCenter",

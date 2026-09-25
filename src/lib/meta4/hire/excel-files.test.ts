@@ -6,9 +6,12 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { buildExcelDiagnostic, POWERSHELL_64, writeHireEditFiles } from "./excel";
+import { WRITTEN_COLUMNS, toExcelSerialDate, toExcelSerialDateTime } from "./mapping";
+import { hireExtraFixture } from "./test-fixtures";
 import type { HirePerson } from "./types";
 
 const person: HirePerson = {
+  ...hireExtraFixture,
   firstName: "Ana",
   lastName1: "Lopez",
   lastName2: "",
@@ -31,11 +34,12 @@ const person: HirePerson = {
   community: "724/28",
   country: "724",
   legalEntity: "ACYC_ES",
-  job: "",
   position: "",
   workUnit: "00",
   workLocation: "724",
   category: "I1",
+  project: "000000",
+  job: "RDCI",
   startReason: "001",
   structure: "0",
   functionalWorkCenter: "O_CEN1",
@@ -104,6 +108,90 @@ describe("Hire Excel temp files", () => {
     expect(payload.sheetName).toBe("AltaNueva");
     expect(payload.rows[0]?.row).toBe(6);
     expect(payload.rows[0]?.cells.length).toBeGreaterThan(0);
+  });
+
+  it("writes all mapped columns with correct types, branches and no ambiguous bank fields", async () => {
+    directory = await mkdtemp(path.join(tmpdir(), "hire-cells-"));
+    const people: HirePerson[] = [
+      {
+        ...person,
+        phonePrefix: "0034",
+        phoneNumber: "000123456",
+        birthDate: "1995-06-02",
+        keyEmployee: true,
+        womanMaternity24: true,
+        annualGross: "37500.25",
+        contractEnd: "2027-10-01T08:30",
+      },
+      {
+        ...person,
+        firstName: "Luis",
+        positionChoice: "position",
+        job: "",
+        position: "POS01",
+        occupationType: "ejc",
+        occupationEjc: "0.75",
+        ssNumberChoice: "assigned",
+        ssNumberPrefix: "08",
+        ssNumberBody: "0000123456",
+        ssNumberSuffix: "02",
+        scheduleChoice: "partial",
+        partialSchedulePercent: "50",
+        hourType: "2",
+        numberOfHours: "80",
+        partialScheduleType: "I",
+        weeklyWorkDays: "4",
+        disabilityChoice: "with",
+        disabilityPercent: "33",
+        bankFormatChoice: "other",
+        iban: "",
+        bankBranch: "00491500",
+        accountNumber: "001234567890",
+      },
+    ];
+    const files = await writeHireEditFiles(directory, people);
+    const payload = JSON.parse((await readFile(files.instructionsPath)).subarray(3).toString("utf8")) as {
+      rows: Array<{ row: number; copyFromTemplate: boolean; cells: Array<{ column: string; kind: string; value?: string | number }> }>;
+    };
+    expect(payload.rows.map((row) => [row.row, row.copyFromTemplate])).toEqual([[6, false], [7, true]]);
+    const [first, second] = payload.rows.map((row) => new Map(row.cells.map((cell) => [cell.column, cell])));
+    for (const cells of [first, second]) {
+      expect(new Set(cells.keys())).toEqual(new Set(WRITTEN_COLUMNS));
+      expect(cells.size).toBe(WRITTEN_COLUMNS.length);
+      for (const column of ["ER", "GP", "HO", "HP", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
+        expect(cells.has(column), column).toBe(false);
+      }
+    }
+    expect(first.get("AU")).toEqual({ column: "AU", kind: "literal", value: "0034" });
+    expect(first.get("AV")).toEqual({ column: "AV", kind: "literal", value: "000123456" });
+    expect(first.get("IO")).toEqual(first.get("AV") && { ...first.get("AV"), column: "IO" });
+    expect(first.get("AC")?.value).toBe(toExcelSerialDate("1995-06-02"));
+    expect(first.get("AD")?.value).toBe(toExcelSerialDate("1995-06-02"));
+    expect(first.get("EM")?.value).toBe(toExcelSerialDateTime("2027-10-01T08:30"));
+    expect(first.get("EN")?.value).toBe(toExcelSerialDateTime("2027-10-01T08:30"));
+    expect(first.get("DG")).toEqual({ column: "DG", kind: "number", value: 1 });
+    expect(first.get("FS")).toEqual({ column: "FS", kind: "text", value: "S" });
+    expect(first.get("GJ")).toEqual({ column: "GJ", kind: "number", value: 37500.25 });
+    expect(first.get("GQ")?.value).toBe("ES5200491500061234567890");
+    expect(first.get("HZ")?.kind).toBe("clear");
+    expect(first.get("IA")?.kind).toBe("clear");
+    expect(first.get("ID")?.kind).toBe("clear");
+    expect(second.get("CL")?.kind).toBe("clear");
+    expect(second.get("CN")?.value).toBe("POS01");
+    expect(second.get("CP")?.kind).toBe("clear");
+    expect(second.get("CQ")).toEqual({ column: "CQ", kind: "number", value: 0.75 });
+    expect(second.get("CR")?.kind).toBe("clear");
+    expect(second.get("DW")?.value).toBe("08");
+    expect(second.get("DX")?.value).toBe("0000123456");
+    expect(second.get("EQ")?.value).toBe(50);
+    expect(second.get("ES")?.value).toBe("Mensuales");
+    expect(second.get("ET")?.value).toBe(2);
+    expect(second.get("EW")?.value).toBe("I");
+    expect(second.get("FO")?.value).toBe(33);
+    expect(second.get("GQ")?.kind).toBe("clear");
+    expect(second.get("HZ")?.value).toBe("00491500");
+    expect(second.get("IA")?.value).toBe("00491500");
+    expect(second.get("ID")?.value).toBe("001234567890");
   });
 
   it("records COM, workbook, sheet and save without personal data", () => {

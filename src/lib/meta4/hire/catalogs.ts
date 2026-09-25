@@ -104,6 +104,7 @@ export const HIRE_CATALOG_FIELD_IDS = [
   "workUnit",
   "workLocation",
   "category",
+  "project",
   "startReason",
   "structure",
   "functionalWorkCenter",
@@ -174,6 +175,7 @@ export const HIRE_CATALOG_FIELDS: Record<HireCatalogFieldId, HireCatalogFieldSpe
   workUnit: { source: "workUnit", label: "ID Unidad organizativa", required: true },
   workLocation: { source: "workLocation", label: "ID Lugar trabajo", required: true },
   category: { source: "category", label: "Categoría", required: true },
+  project: { source: "costCenter", label: "Proyecto", required: true },
   startReason: { source: "startReason", label: "ID Motivo inicio", required: true },
   structure: { source: "structure", label: "Id Estructura", required: true },
   functionalWorkCenter: {

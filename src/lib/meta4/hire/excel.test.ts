@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import { describe, expect, it } from "vitest";
 
 import { editHireWorkbook, findInstalledExcel } from "./excel";
+import { hireExtraFixture } from "./test-fixtures";
 import {
   FIRST_PERSON_ROW,
   HIRE_DATA_SHEET,
@@ -21,6 +22,61 @@ const canEdit = existsSync(templatePath) && findInstalledExcel() !== null;
 const writtenColumns = new Set(WRITTEN_COLUMNS);
 
 const person = (suffix: string, hireDate: string): HirePerson => ({
+  ...hireExtraFixture,
+  positionChoice: suffix === "B" ? "position" : "job",
+  occupationType: suffix === "B" ? "hours" : "",
+  occupationHours: suffix === "B" ? "35.5" : "",
+  legalRepresentativeNif: "00001234X",
+  birthDate: "1990-01-03",
+  atradiusId: "000044",
+  phonePrefix: "0034",
+  phoneNumber: "001234567",
+  mobilePrefix: "0034",
+  mobileNumber: "00600111222",
+  addressLine1: "Calle Mayor",
+  addressLine2: suffix === "B" ? "Bloque anexo" : "",
+  streetNumber: "0005",
+  buildingBlock: "B",
+  staircase: "2",
+  floor: "3",
+  door: "A",
+  postalCode: "08001",
+  keyEmployee: true,
+  strategicEmployee: false,
+  ssNumberChoice: suffix === "B" ? "assigned" : "unassigned",
+  ssNumberPrefix: suffix === "B" ? "08" : "",
+  ssNumberBody: suffix === "B" ? "0012345678" : "",
+  ssNumberSuffix: suffix === "B" ? "09" : "",
+  contractEnd: "2027-05-01T14:30",
+  scheduleChoice: suffix === "B" ? "partial" : "full",
+  partialSchedulePercent: suffix === "B" ? "50" : "",
+  hourType: suffix === "B" ? "1" : "",
+  numberOfHours: suffix === "B" ? "20" : "",
+  partialScheduleType: suffix === "B" ? "R" : "",
+  weeklyWorkDays: suffix === "B" ? "5" : "",
+  legalReductionPercent: "25",
+  replacedSsPrefix: "08",
+  replacedSsBody: "0000123456",
+  replacedSsSuffix: "03",
+  disabilityChoice: suffix === "B" ? "with" : "without",
+  disabilityPercent: suffix === "B" ? "33" : "",
+  contractSeniorityStart: "2024-02-29",
+  womanMaternity24: true,
+  underrepresentedWoman: false,
+  activeInsertionIncome: true,
+  reliefContract: false,
+  readmittedDisabled: true,
+  firstSelfEmployedWorker: false,
+  probationDays: "15",
+  probationEnd: "2026-11-01",
+  additionalClause: "Cláusula revisada",
+  annualGross: "32000.25",
+  seniorityDate: "2020-03-01",
+  timeManagementPay: true,
+  bankFormatChoice: suffix === "B" ? "other" : "iban",
+  iban: suffix === "B" ? "" : "ES5200491500061234567890",
+  bankBranch: suffix === "B" ? "00491500" : "",
+  accountNumber: suffix === "B" ? "001234567890" : "",
   firstName: `Nombre${suffix}`,
   lastName1: `Apellido${suffix}`,
   lastName2: suffix === "B" ? "" : `Segundo${suffix}`,
@@ -48,6 +104,7 @@ const person = (suffix: string, hireDate: string): HirePerson => ({
   workUnit: "1_GRCFO",
   workLocation: "076",
   category: "012",
+  project: "000000",
   startReason: "002",
   structure: "2",
   functionalWorkCenter: "O_CEN",
@@ -256,8 +313,31 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     ] as const) {
       expect(generated.get(column)?.value, column).toBe(value);
     }
-    // Proyecto / centro de coste is not written yet.
-    expect(generated.get("CZ")?.value).toBe(original.get("CZ")?.value);
+    expect(generated.get("CZ")?.value).toBe("000000");
+    expect(generated.get("CY")?.value).toBe(original.get("CY")?.value);
+    expect(generated.get("AU")?.value).toBe("0034");
+    expect(generated.get("AV")?.value).toBe("001234567");
+    expect(generated.get("IO")?.value).toBe("001234567");
+    expect(generated.get("AC")?.value).toBe(toExcelSerialDate("1990-01-03"));
+    expect(generated.get("AD")?.value).toBe(toExcelSerialDate("1990-01-03"));
+    expect(generated.get("BH")?.value).toBe("Calle Mayor");
+    expect(generated.get("CG")?.value).toBe("08001");
+    expect(generated.get("DF")?.value).toBe("Si");
+    expect(generated.get("DG")?.value).toBe(1);
+    expect(generated.get("DH")?.value).toBe("No");
+    expect(generated.get("DI")?.value).toBe(0);
+    expect(generated.get("DU")?.value).toBe("Sin Núm. S.S.");
+    expect(generated.get("DV")?.value).toBe(0);
+    expect(generated.get("FO")?.value).toBeUndefined();
+    expect(generated.get("GJ")?.value).toBe(32000.25);
+    expect(generated.get("GQ")?.value).toBe("ES5200491500061234567890");
+    expect(generated.get("HZ")?.value).toBeUndefined();
+    expect(generated.get("IA")?.value).toBeUndefined();
+    expect(generated.get("ID")?.value).toBeUndefined();
+    for (const column of ["GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
+      expect(generated.get(column)?.value, column).toEqual(original.get(column)?.value);
+      expect(generated.get(column)?.formula, column).toEqual(original.get(column)?.formula);
+    }
 
     for (const [column, cell] of original) {
       if (writtenColumns.has(column)) continue;
@@ -317,6 +397,21 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(rows[1]?.get("CN")?.value).toBe("POS01");
     expect(rows[1]?.get("CN")?.formula).toBeUndefined();
     expect(rows[2]?.get("CN")?.value).toBeUndefined();
+    expect(rows[1]?.get("CP")?.value).toBe(35.5);
+    expect(rows[1]?.get("CQ")?.value).toBeUndefined();
+    expect(rows[1]?.get("CR")?.value).toBeUndefined();
+    expect(rows[1]?.get("DW")?.value).toBe("08");
+    expect(rows[1]?.get("DX")?.value).toBe("0012345678");
+    expect(rows[1]?.get("EQ")?.value).toBe(50);
+    expect(rows[1]?.get("ES")?.value).toBe("Semanales");
+    expect(rows[1]?.get("ET")?.value).toBe(1);
+    expect(rows[1]?.get("EV")?.value).toBe("Regular");
+    expect(rows[1]?.get("EW")?.value).toBe("R");
+    expect(rows[1]?.get("FO")?.value).toBe(33);
+    expect(rows[1]?.get("GQ")?.value).toBeUndefined();
+    expect(rows[1]?.get("HZ")?.value).toBe("00491500");
+    expect(rows[1]?.get("IA")?.value).toBe("00491500");
+    expect(rows[1]?.get("ID")?.value).toBe("001234567890");
 
     rows.forEach((values, index) => {
       const row = FIRST_PERSON_ROW + index;

@@ -1,5 +1,30 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: integración Excel completa con mapping confirmado - 2026-09-25
+
+- [x] Auditados los 113 fields contra la fila técnica 5 de `AltaNueva` en
+      `Hire_1_PERSONA.xls`, incluidos los 54 previamente conectados y los
+      subcampos compuestos. El contrato exacto queda en
+      `docs/alta-excel-mapping-status.md` y en las pruebas de columnas.
+- [x] Integrados los 42 mappings pendientes confirmados y Proyecto (`CZ`),
+      IBAN (`GQ`) y Sucursal bancaria (`HZ/IA`). Resultado: 99 integrados,
+      8 sin confirmar y 6 controles solo UI. Proyecto envía el ID del
+      catálogo PeopleNet sin transformación; `CY` se conserva.
+- [x] UI, payload, validación de servidor y Excel respetan Puesto/Posición,
+      ocupación elegida, S.S. asignado, jornada parcial, minusvalía e
+      IBAN/Otro formato. BIC queda fuera del payload; `GY/HA` y las celdas
+      bancarias sin input confirmado se preservan en la plantilla.
+- [x] Tests de contrato para las 99 filas integradas, instrucciones Excel de
+      varias personas y ramas, y lectura real de XLS editado con Excel COM.
+- [ ] Confirmar manualmente ocho mappings de la UI: comunidad de nacimiento,
+      Department, fax, FIC específico, fecha de extras, modelo/semana de
+      referencia, ordinal de banco persona y BIC. Confirmar con el importador
+      el efecto de los defaults bancarios IB/IC/IE/IF/IG/IH/II al alternar
+      IBAN y Otro formato. Los datos de negocio del Excel sin UI están
+      inventariados en el informe.
+- [ ] Verificación final de esta integración: lint, typecheck, suite completa,
+      build, `git diff --check`, `git status --short` y revisión del diff.
+
 ## Listado de usuarios desde PeopleNet - 2026-09-25
 
 - [x] `CSP_POWER4_USER_ALL` sustituido por `SELECT` de `M4ORO_EMPLEADOS`
@@ -106,7 +131,7 @@
 - [x] Jornada parcial: los cinco campos solo se muestran con «Jornada
       parcial». Tipo de horas (Semanales 1 / Mensuales 2 / Anuales 3) y Tipo
       de jornada parcial (Regular R / Irregular I) son listas fijas tomadas de
-      `SRSP_VALIDATION`. Siguen en el borrador local (sin enviar a Excel).
+      `SRSP_VALIDATION`. Integrados en Excel el 2026-09-25.
 - [x] Datos personales desde PeopleNet: tipo de documento (ahora combobox),
       país emisor, nacionalidad, provincia y país de nacimiento, sexo, estado
       civil, Atradius Job Code y Categoría (por sociedad), tipo de
@@ -133,9 +158,9 @@
       hasta hoy) y sin `ROOT`, como las consultas de PeopleNet.
 - [x] La empresa deja de ser la de la plantilla (`ACYC_ES` solo existe en
       CYC); AGENTS.md actualizado.
-- [ ] Proyecto (`M4SSP_CENTR_COSTO`): se elige pero no se envía; CZ
-      (`SSP_ID_CENT_COSTO`) lleva en la plantilla el formato
-      «000000|000000», sin confirmar.
+- [x] Proyecto (`M4SSP_CENTR_COSTO`): integrado el 2026-09-25 en CZ
+      (`SSP_ID_CENT_COSTO`) con el ID literal del catálogo PeopleNet.
+      CY conserva el contenido de la plantilla.
 - [x] ID Posición (`M4SCO_POSITION` + históricos vigentes, por sociedad):
       combobox en la rama Posición, enviado solo en esa rama a CM/CN. Hoy la
       consulta no devuelve filas en CYC, IBER ni COLL. `PendingCatalog`
@@ -148,10 +173,8 @@
 - [x] Copias PAYROLL GX/GY (`TIPO PAGO_`) y GZ/HA (`BANCO EMPRESA_`): el
       usuario pide solo cargar las consultas; se mantienen con el valor de la
       plantilla.
-- [x] Jornada parcial: no se integra en Excel por decisión del usuario. Para
-      cuando se retome, la plantilla tiene EQ (`SSP_VALOR_COEF_T_P`), ES/ET
-      (`SSP_TIPO_HORAS`), EU (`SSP_NUM_HORAS`), EV/EW (`SSP_JP_REG_IRREG`) y
-      EX (`SSP_NUM_DIAS_JP`).
+- [x] Jornada parcial: el aplazamiento anterior quedó sustituido por la
+      petición del 2026-09-25. Integrada en EQ, ES/ET, EU, EV/EW y EX.
 - [ ] Siguientes catálogos del alta con sus consultas.
 
 ## Alta de personas Meta4: mappings en labels - 2026-09-23
@@ -174,8 +197,8 @@
       colores, foco y tooltip visibles; la vista temporal se retiró.
 - [x] `npm run lint` ejecutado: `oxlint` muestra 7 warnings anteriores;
       `oxfmt --check` falla por formato preexistente de 343 archivos del repo.
-- [ ] Confirmar con una fuente fiable los 11 mappings ambiguos antes de
-      integrarlos o cambiar su estado visual.
+- [ ] Confirmar con una fuente fiable los 8 mappings ambiguos restantes;
+      Proyecto, IBAN y Sucursal bancaria se resolvieron con la fila 5.
 
 ## Alta de personas Meta4: UI completa - 2026-09-23
 
@@ -195,8 +218,9 @@
       los archivos TypeScript modificados. `npm run lint` sigue fallando por
       formato preexistente en archivos fuera de esta tarea; `oxlint` solo
       muestra 7 warnings anteriores.
-- [ ] Integrar catálogos SQLite y confirmar mappings pendientes antes de
-      sustituir más valores de la plantilla.
+- [ ] Confirmar los ocho mappings ambiguos y definir los campos Excel sin
+      UI antes de sustituir más valores de la plantilla. Los catálogos del
+      alta proceden de PeopleNet, no de SQLite.
 
 ## Rediseño beUI por fases - 2026-09-23
 

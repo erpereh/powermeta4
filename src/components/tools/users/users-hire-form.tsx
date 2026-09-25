@@ -165,8 +165,8 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
     <HireCatalogsProvider value={catalogs}>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-8">
         <p className="text-sm text-muted-foreground">
-          Ámbar: mapping confirmado pendiente de integración. Rojo: mapping por confirmar. Solo se
-          envían los campos integrados (color normal); el resto es un borrador local.
+          Los rótulos rojos indican un mapping Excel por confirmar. Esos valores permanecen en el
+          borrador local; los campos integrados se envían al confirmar el alta.
         </p>
 
         <div className="flex flex-col gap-3">
