@@ -92,6 +92,15 @@ export type PeopleNetEmployeeEmailRow = {
   DT_LAST_UPDATE: PeopleNetSqlValue;
 };
 
+export type PeopleNetEmployeeListRow = {
+  ID_EMPLEADO: string | number | null;
+  CLAVE_SELF: string | null;
+  NOMBRE: string | null;
+  APELLIDO_1: string | null;
+  APELLIDO_2: string | null;
+  DT_LAST_UPDATE: Date | string | null;
+};
+
 const EMPLOYEE_QUERY = `SELECT ${EMPLOYEE_FIELD_COLUMNS.map(([column]) => column).join(", ")}
 FROM M4ORO_EMPLEADOS
 WHERE ID_EMPLEADO = @employeeId AND ID_ORGANIZATION = @organization`;
@@ -99,6 +108,10 @@ WHERE ID_EMPLEADO = @employeeId AND ID_ORGANIZATION = @organization`;
 const EMAIL_QUERY = `SELECT STD_OR_MAIL, STD_DT_START, STD_DT_END, STD_EMAIL, STD_ID_LOCAT_TYPE, DT_LAST_UPDATE
 FROM STD_EMAIL
 WHERE STD_ID_PERSON = @employeeId`;
+
+const EMPLOYEE_LIST_QUERY = `SELECT ID_EMPLEADO, CLAVE_SELF, NOMBRE, APELLIDO_1, APELLIDO_2, DT_LAST_UPDATE
+FROM M4ORO_EMPLEADOS
+WHERE ID_ORGANIZATION = @organization`;
 
 export class PeopleNetEmployeeAmbiguousError extends Error {
   constructor() {
@@ -131,5 +144,17 @@ export const getEmployeeEmailsByPersonId = async (
     .request()
     .input("employeeId", sql.VarChar(64), employeeId)
     .query<PeopleNetEmployeeEmailRow>(EMAIL_QUERY);
+  return result.recordset;
+};
+
+/** Lists employee rows in the society resolved by the server. */
+export const listEmployeesByOrganization = async (
+  organization: Meta4Society,
+): Promise<PeopleNetEmployeeListRow[]> => {
+  const pool = await getPeopleNetPool();
+  const result = await pool
+    .request()
+    .input("organization", sql.VarChar(4), organization)
+    .query<PeopleNetEmployeeListRow>(EMPLOYEE_LIST_QUERY);
   return result.recordset;
 };

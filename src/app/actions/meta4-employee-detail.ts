@@ -6,7 +6,7 @@ import { SessionExpiredError } from "@/lib/meta4/authenticated-soap-client";
 import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
 import { Meta4HttpError } from "@/lib/meta4/client";
 import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
-import { buildFullName } from "@/lib/meta4/users/parser";
+import { buildFullName } from "@/lib/meta4/users/mapper";
 import { isMeta4UsersError } from "@/lib/meta4/users/errors";
 import { listMeta4Users } from "@/lib/meta4/users/service";
 import {

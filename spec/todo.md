@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Listado de usuarios desde PeopleNet - 2026-09-25
+
+- [x] `CSP_POWER4_USER_ALL` sustituido por `SELECT` de `M4ORO_EMPLEADOS`
+      con `ID_ORGANIZATION = @organization`, sociedad activa resuelta en
+      servidor y parámetro `mssql` sobre el pool PeopleNet existente.
+- [x] `listMeta4Users` conserva `{ society, users }` y cada `id`, `fullName`
+      y `claveSelf`. El mapeo mantiene matrículas como texto, nombres
+      normalizados, descarte de filas incompletas y primera fila válida por ID.
+- [x] Retirados solo el envelope, endpoint, parser, códigos de error y tests
+      SOAP exclusivos del listado. La UI, el detalle, Login, perfil y HIRE
+      siguen con sus contratos y servicios actuales. `STD_PERSON` no se tocó.
+- [x] `npm run typecheck`, `npm test` (98 archivos, 509 pruebas correctas y 2
+      omitidas) y `npm run build` correctos. El pool SQL se simuló en tests.
+- [x] `npm run lint` ejecutado: `oxlint` sin errores nuevos y con 7 avisos
+      anteriores; `oxfmt --check` falla por formato preexistente en 358
+      archivos del repositorio. Los nueve archivos TypeScript de repositorio,
+      mapeo, servicio y configuración pasan el chequeo dirigido de formato.
+- [x] `git diff --check` y revisión del diff correctos; los cambios
+      accidentales de un intento de formato global se restauraron antes del
+      commit.
+- [ ] Consulta real del listado en PeopleNet pendiente; no se ejecutó en esta
+      sesión.
+
 ## Detalle de empleados desde PeopleNet - 2026-09-25
 
 - [x] `CSP_POWER4_CONSULTA_ORO` sustituido por dos consultas PeopleNet de

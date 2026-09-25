@@ -165,16 +165,17 @@ Los cinco workspaces ERP usan una plantilla común: breadcrumb (`Acciones` →
 icono, título, descripción, cuatro tarjetas de acciones y estado inferior.
 Las acciones futuras muestran `Disponible próximamente` y no navegan, guardan
 datos ni inventan resultados. Usuarios ya no representa personas locales: el
-listado y el alta de personas llaman a Meta4; las rutas antiguas de búsqueda y
-detalle redirigen al catálogo común.
+listado consulta PeopleNet y el alta de personas llama a Meta4; las rutas
+antiguas de búsqueda y detalle redirigen al catálogo común.
 
 No se duplican secciones entre Inicio y un workspace, ni se mantienen arrays de
 usuarios o catálogos paralelos fuera del registro central.
 
-Las herramientas SOAP Meta4 obtienen `Meta4Society` (`CYC` | `IBER` | `COLL`)
-y el `companyId` interno exclusivamente desde `getMeta4OperationalContext()`
-en servidor, usando el workspace activo validado. El navegador no elige ni
-sustituye la sociedad de la operación. Una autenticación Meta4 puede exponer
+Las operaciones Meta4 y las consultas PeopleNet obtienen `Meta4Society`
+(`CYC` | `IBER` | `COLL`) y el `companyId` interno exclusivamente desde
+`getMeta4OperationalContext()` en servidor, usando el workspace activo
+validado. El navegador no elige ni sustituye la sociedad de la operación.
+Una autenticación Meta4 puede exponer
 1–3 sociedades; cada una es un workspace read-only.
 
 En el listado de usuarios, pulsar una fila abre un diálogo grande con el

@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-25 - Listado de usuarios desde PeopleNet
+
+- `CSP_POWER4_USER_ALL` deja de llamar a SOAP. El repositorio server-only
+  consulta `M4ORO_EMPLEADOS` con `ID_ORGANIZATION = @organization` y el pool
+  `mssql` existente; la sociedad procede del contexto operativo del servidor.
+- `listMeta4Users` mantiene `{ society, users }` y los campos `id`, `fullName`
+  y `claveSelf`, con la misma normalización de nombres, descarte de filas
+  incompletas y deduplicación por ID. La UI y la acción de detalle conservan
+  sus contratos.
+- Se retiran los archivos SOAP exclusivos del listado y su entrada de
+  configuración. Login, perfil, HIRE, otros SOAP y `STD_PERSON` no cambian.
+- Verificación: `npm run typecheck`, `npm test` (98 archivos, 509 pruebas
+  correctas y 2 omitidas) y `npm run build` correctos. La conexión PeopleNet
+  se simuló en tests; no se ejecutó una consulta real.
+- `npm run lint`: `oxlint` sin errores nuevos (7 avisos anteriores), pero
+  `oxfmt --check` falla por formato preexistente en 358 archivos. Los nueve
+  TypeScript del repositorio, mapeo, servicio y configuración pasan el chequeo
+  dirigido. `git diff --check` correcto. Se restauraron los cambios ajenos
+  producidos por un intento accidental de formato global.
+
 ## 2026-09-25 - Detalle de empleados desde PeopleNet
 
 - El detalle deja de llamar a `CSP_POWER4_CONSULTA_ORO`. Un repositorio

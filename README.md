@@ -74,14 +74,13 @@ server-only. Tras un login Meta4 real se consulta el perfil de usuario
 detectar todas las sociedades disponibles (`CYC` → `IBER` → `COLL`) y
 persistir un perfil cifrado por sociedad. Un error de infraestructura
 durante esa detección aborta el login para no mostrar una lista incompleta.
-El listado de usuarios (`CSP_POWER4_USER_ALL`) usa la
-sociedad activa del contexto operativo del servidor (`ARG_SOCIEDAD` sobre
-un único `JSESSIONID`) y no persiste resultados en SQLite. El detalle
-consulta `M4ORO_EMPLEADOS` por matrícula y sociedad activa, y `STD_EMAIL`
-por persona, mediante la conexión PeopleNet de solo lectura. El alta de
-personas (`SRTC_LAUNCH_IMPORT`) copia
-`Hire_1_PERSONA.xls`, Excel sustituye solo los campos de la UI y guarda un
-fichero con nombre de usuario y fecha en el directorio `META4_HIRE_FILE_PATH`.
+El listado de usuarios consulta `M4ORO_EMPLEADOS` en PeopleNet con la
+sociedad activa resuelta en el servidor y no persiste resultados en SQLite.
+El detalle consulta `M4ORO_EMPLEADOS` por matrícula y sociedad activa, y
+`STD_EMAIL` por persona, mediante la misma conexión de solo lectura. El alta de
+personas (`SRTC_LAUNCH_IMPORT`) copia `Hire_1_PERSONA.xls`; Excel sustituye
+solo los campos de la UI y guarda un fichero con nombre de usuario y fecha en
+el directorio `META4_HIRE_FILE_PATH`.
 No guarda datos personales en SQLite. Los catálogos de Seguridad Social, Nómina y
 Datos de pago (documento, países, geografía, estado civil, Atradius, organización,
 moneda,
@@ -91,9 +90,9 @@ IRPF, sindicato y clave de percepción) se leen en servidor de la
 base PeopleNet (SQL Server, `PEOPLENET_DB_*`, solo `SELECT`); la moneda de la
 cuenta bancaria reutiliza el catálogo de monedas. Las poblaciones se buscan con
 `GET /api/hire/places` (requiere sesión). El formulario
-muestra ID y nombre y envía el ID. Las pruebas SOAP son simuladas y no llaman a Meta4 real. Los
-endpoints CSP y la necesidad de SOAPAction quedan pendientes de confirmación
-WSDL en la VM corporativa.
+muestra ID y nombre y envía el ID. Las pruebas SOAP son simuladas y no llaman
+a Meta4 real. Los endpoints CSP restantes y la necesidad de SOAPAction quedan
+pendientes de confirmación WSDL en la VM corporativa.
 
 Para desarrollar sin una VM, credenciales o conectividad Meta4 puede activarse
 el acceso local de depuración únicamente en `npm run dev`:

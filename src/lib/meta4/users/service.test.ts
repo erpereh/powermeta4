@@ -1,18 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { ResolvedAuthSession } from "@/lib/auth/service";
-import {
-  Meta4SessionRequiredError,
-  SessionExpiredError,
-  type AuthenticatedSoapOperation,
-} from "@/lib/meta4/authenticated-soap-client";
-import { Meta4HttpError } from "@/lib/meta4/client";
-import { Meta4ProfileError } from "@/lib/meta4/profile-errors";
-import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
-import { Meta4UsersError } from "@/lib/meta4/users/errors";
-import { listMeta4Users } from "@/lib/meta4/users/service";
+import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
+import type { Meta4Society } from "@/lib/meta4/societies";
+import type { PeopleNetEmployeeListRow } from "@/lib/peoplenet/employees";
 
-type SoapExecute = <T>(operation: AuthenticatedSoapOperation<T>) => Promise<T>;
+import { listMeta4Users } from "./service";
 
 const AUTH_SESSION = {
   sessionId: "internal-meta4-session",
@@ -28,170 +21,91 @@ const AUTH_SESSION = {
   lastValidatedAt: new Date("2026-08-01T00:00:00.000Z"),
 } satisfies ResolvedAuthSession;
 
-const successBody = (society: string) => `
-  <soap:Envelope>
-    <soap:Body>
-      <CSP_POWER4_USER_ALLResponse>
-        <CSP_POWER4_USER_ALLReturn>
-          <return>1.0</return>
-          <Csp_Carga_Users>
-            <p_Sociedad>${society}</p_Sociedad>
-            <Csp_Carga_UsersRecordSet>
-              <nombre>Paula</nombre>
-              <apellido_1>García</apellido_1>
-              <apellido_2>López</apellido_2>
-              <clave_Self>paula</clave_Self>
-              <id_Empleado>0001</id_Empleado>
-            </Csp_Carga_UsersRecordSet>
-          </Csp_Carga_Users>
-        </CSP_POWER4_USER_ALLReturn>
-      </CSP_POWER4_USER_ALLResponse>
-    </soap:Body>
-  </soap:Envelope>`;
+const operationalContext = (society: Meta4Society) => ({
+  mode: "meta4" as const,
+  username: "user",
+  society,
+  jSessionId: "secret-jsession",
+  companyId: `company-${society}`,
+});
+
+const employee = (values: Partial<PeopleNetEmployeeListRow> = {}): PeopleNetEmployeeListRow => ({
+  ID_EMPLEADO: "0001",
+  CLAVE_SELF: "paula",
+  NOMBRE: "Paula",
+  APELLIDO_1: "García",
+  APELLIDO_2: "López",
+  DT_LAST_UPDATE: null,
+  ...values,
+});
 
 describe("listMeta4Users service", () => {
-  it("builds envelopes from operational society for CYC, IBER and COLL", async () => {
+  it("queries the server-resolved society and preserves the result contract", async () => {
     for (const society of ["CYC", "IBER", "COLL"] as const) {
-      let callCount = 0;
-      const executeSoap: SoapExecute = async (operation) => {
-        callCount += 1;
-        expect(operation.xml).toContain(`ARG_SOCIEDAD>${society}<`);
-        expect(operation.xml).not.toContain("SOAPAction");
-        expect(operation.xml).not.toContain("jsession-should-not-leak");
-        return operation.parseResponse(new Response(successBody(society), { status: 200 }));
-      };
+      const getOperationalContext = vi.fn(async () => operationalContext(society));
+      const listEmployees = vi.fn(async (_organization: Meta4Society) => [employee()]);
 
-      const result = await listMeta4Users(AUTH_SESSION, {
-        getOperationalContext: async () => ({
-          mode: "meta4",
-          username: "user",
-          society,
-          jSessionId: "jsession-should-not-leak",
-          companyId: `company-${society}`,
-        }),
-        executeSoap,
-        usersListUrl: "https://example.test/CSP_POWER4_USER_ALL",
+      await expect(
+        listMeta4Users(AUTH_SESSION, { getOperationalContext, listEmployees }),
+      ).resolves.toEqual({
+        society,
+        users: [{ id: "0001", fullName: "Paula García López", claveSelf: "paula" }],
       });
-
-      expect(result.society).toBe(society);
-      expect(result.users).toEqual([
-        { id: "0001", fullName: "Paula García López", claveSelf: "paula" },
-      ]);
-      expect(callCount).toBe(1);
+      expect(getOperationalContext).toHaveBeenCalledWith(AUTH_SESSION);
+      expect(listEmployees).toHaveBeenCalledExactlyOnceWith(society);
     }
   });
 
-  it("uses executeAuthenticatedSoap path and never accepts a client society", async () => {
-    const getOperationalContext = vi.fn(async () => ({
-      mode: "meta4" as const,
-      username: "user",
-      society: "IBER" as const,
-      jSessionId: "server-jsession",
-      companyId: "company-iber",
-    }));
-    let callCount = 0;
-    const executeSoap: SoapExecute = async (operation) => {
-      callCount += 1;
-      expect(operation.xml).toContain("ARG_SOCIEDAD>IBER<");
-      expect(operation.xml).not.toContain("CYC");
-      return operation.parseResponse(new Response(successBody("IBER"), { status: 200 }));
-    };
-
-    await listMeta4Users(AUTH_SESSION, {
-      getOperationalContext,
-      executeSoap,
-      usersListUrl: "https://example.test/users",
-    });
-
-    expect(getOperationalContext).toHaveBeenCalledWith(AUTH_SESSION);
-    expect(callCount).toBe(1);
+  it("returns an empty list when PeopleNet has no rows", async () => {
+    await expect(
+      listMeta4Users(AUTH_SESSION, {
+        getOperationalContext: async () => operationalContext("CYC"),
+        listEmployees: async () => [],
+      }),
+    ).resolves.toEqual({ society: "CYC", users: [] });
   });
 
-  it("does not fetch when operational context requires a Meta4 session (debug)", async () => {
-    let callCount = 0;
-    const executeSoap: SoapExecute = async () => {
-      callCount += 1;
-      throw new Error("should not fetch");
-    };
+  it("does not query PeopleNet if the operational context requires Meta4 login", async () => {
+    const listEmployees = vi.fn(async () => [employee()]);
     await expect(
       listMeta4Users(AUTH_SESSION, {
         getOperationalContext: async () => {
           throw new Meta4SessionRequiredError();
         },
-        executeSoap,
+        listEmployees,
       }),
     ).rejects.toBeInstanceOf(Meta4SessionRequiredError);
-    expect(callCount).toBe(0);
+    expect(listEmployees).not.toHaveBeenCalled();
   });
 
-  it("rethrows known system errors and only wraps unclassified failures", async () => {
-    const known = [
-      new Meta4SessionRequiredError(),
-      new SessionExpiredError(),
-      new Meta4SoapFaultError("boom", "soap:Server"),
-      new Meta4HttpError(500),
-      new Meta4ProfileError("META4_PROFILE_REQUIRED", "perfil"),
-      new Meta4UsersError("META4_USERS_SOCIETY_MISMATCH", "mismatch"),
-    ];
-
-    for (const error of known) {
-      await expect(
-        listMeta4Users(AUTH_SESSION, {
-          getOperationalContext: async () => ({
-            mode: "meta4",
-            username: "user",
-            society: "CYC",
-            jSessionId: "js",
-            companyId: "company-cyc",
-          }),
-          usersListUrl: "https://example.test/users",
-          executeSoap: async () => {
-            throw error;
-          },
-        }),
-      ).rejects.toBe(error);
-    }
-
-    await expect(
-      listMeta4Users(AUTH_SESSION, {
-        getOperationalContext: async () => ({
-          mode: "meta4",
-          username: "user",
-          society: "CYC",
-          jSessionId: "js",
-          companyId: "company-cyc",
-        }),
-        usersListUrl: "https://example.test/users",
-        executeSoap: async () => {
-          throw new Error("network cable melted");
-        },
-      }),
-    ).rejects.toMatchObject({ code: "META4_USERS_FETCH_FAILED" });
-  });
-
-  it("logs only sanitized operation metadata", async () => {
+  it("wraps SQL failures without exposing employee data or connection details", async () => {
     const logs: Array<Record<string, string>> = [];
-    await listMeta4Users(AUTH_SESSION, {
-      getOperationalContext: async () => ({
-        mode: "meta4",
-        username: "user",
-        society: "CYC",
-        jSessionId: "secret-jsession",
-        companyId: "company-cyc",
-      }),
-      executeSoap: async (operation) =>
-        operation.parseResponse(new Response(successBody("CYC"), { status: 200 })),
-      usersListUrl: "https://example.test/users",
+    const failure = listMeta4Users(AUTH_SESSION, {
+      getOperationalContext: async () => operationalContext("IBER"),
+      listEmployees: async () => {
+        throw new Error("SQL host secret; employee 0001");
+      },
       log: (_message, details) => logs.push(details),
     });
 
-    expect(logs[0]).toEqual({
-      operation: "CSP_POWER4_USER_ALL",
-      society: "CYC",
-      status: "200",
-      code: "OK",
+    await expect(failure).rejects.toMatchObject({
+      name: "Meta4UsersError",
+      code: "META4_USERS_FETCH_FAILED",
+      message: "No se han podido cargar los usuarios desde Meta4.",
     });
-    expect(JSON.stringify(logs)).not.toContain("secret-jsession");
+    expect(logs).toEqual([{ society: "IBER", code: "META4_USERS_FETCH_FAILED" }]);
+    expect(JSON.stringify(logs)).not.toContain("secret");
+    expect(JSON.stringify(logs)).not.toContain("0001");
+  });
+
+  it("logs only aggregate metadata after a successful query", async () => {
+    const logs: Array<Record<string, string>> = [];
+    await listMeta4Users(AUTH_SESSION, {
+      getOperationalContext: async () => operationalContext("CYC"),
+      listEmployees: async () => [employee()],
+      log: (_message, details) => logs.push(details),
+    });
+    expect(logs).toEqual([{ society: "CYC", code: "OK", count: "1" }]);
     expect(JSON.stringify(logs)).not.toContain("Paula");
     expect(JSON.stringify(logs)).not.toContain("0001");
   });

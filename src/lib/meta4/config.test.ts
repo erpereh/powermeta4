@@ -35,9 +35,6 @@ describe("Meta4 base URL", () => {
       expect(getMeta4ServiceUrl(META4_SERVICE.profile)).toBe(
         `${HOST}/services/CSP_CONSULTA_ORO_INTRAN_NEW`,
       );
-      expect(getMeta4ServiceUrl(META4_SERVICE.usersList)).toBe(
-        `${HOST}/services/CSP_POWER4_USER_ALL`,
-      );
       expect(getMeta4ServiceUrl(META4_SERVICE.hire)).toBe(`${HOST}/services/SRTC_LAUNCH_IMPORT`);
     });
   });

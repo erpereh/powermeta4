@@ -3,7 +3,6 @@ import "server-only";
 export const META4_SERVICE = {
   login: "Login",
   profile: "CSP_CONSULTA_ORO_INTRAN_NEW",
-  usersList: "CSP_POWER4_USER_ALL",
   hire: "SRTC_LAUNCH_IMPORT",
 } as const;
 

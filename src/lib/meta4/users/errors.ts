@@ -1,7 +1,4 @@
-export type Meta4UsersErrorCode =
-  | "META4_USERS_INVALID_RESPONSE"
-  | "META4_USERS_FETCH_FAILED"
-  | "META4_USERS_SOCIETY_MISMATCH";
+export type Meta4UsersErrorCode = "META4_USERS_FETCH_FAILED";
 
 export class Meta4UsersError extends Error {
   readonly code: Meta4UsersErrorCode;

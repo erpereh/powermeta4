@@ -6,8 +6,10 @@ import {
   EMPLOYEE_FIELD_COLUMNS,
   getEmployeeById,
   getEmployeeEmailsByPersonId,
+  listEmployeesByOrganization,
   PeopleNetEmployeeAmbiguousError,
   type PeopleNetEmployeeEmailRow,
+  type PeopleNetEmployeeListRow,
   type PeopleNetEmployeeRow,
 } from "./employees";
 
@@ -33,6 +35,33 @@ beforeEach(() => {
 });
 
 describe("PeopleNet employee repository", () => {
+  it("lists only the server-selected organization with a bound SQL parameter", async () => {
+    const rows: PeopleNetEmployeeListRow[] = [
+      {
+        ID_EMPLEADO: "0001",
+        CLAVE_SELF: "paula",
+        NOMBRE: "Paula",
+        APELLIDO_1: "García",
+        APELLIDO_2: "López",
+        DT_LAST_UPDATE: new Date("2026-09-01T00:00:00.000Z"),
+      },
+    ];
+    request.query.mockResolvedValueOnce({ recordset: rows });
+
+    expect(await listEmployeesByOrganization("IBER")).toEqual(rows);
+    expect(getPeopleNetPool).toHaveBeenCalledTimes(1);
+    expect(request.input).toHaveBeenCalledExactlyOnceWith(
+      "organization",
+      expect.anything(),
+      "IBER",
+    );
+    expect(request.query).toHaveBeenCalledExactlyOnceWith(
+      "SELECT ID_EMPLEADO, CLAVE_SELF, NOMBRE, APELLIDO_1, APELLIDO_2, DT_LAST_UPDATE\n" +
+        "FROM M4ORO_EMPLEADOS\n" +
+        "WHERE ID_ORGANIZATION = @organization",
+    );
+  });
+
   it("queries all employee fields using bound employee and server society parameters", async () => {
     const row = employeeRow({ ID_EMPLEADO: "001013", ID_ORGANIZATION: "CYC" });
     request.query.mockResolvedValueOnce({ recordset: [row] });
