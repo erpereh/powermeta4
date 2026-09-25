@@ -192,6 +192,18 @@ con tarjetas colapsables en cliente, confirmación
 generado lleva el usuario Meta4 y la fecha, dentro del directorio configurado.
 Los datos personales no se persisten en SQLite.
 
+«Consultar una nómina» vive en `/tools/payroll/receipt` y adapta la ventana
+Meta4 «Ejecución del recibo de nómina»: matrícula, periodo de liquidación,
+`Tipo de pagas` (Paga actual, Pagas retroactivas, Paga normal + retroactivas)
+y `Moneda de proceso` (Moneda de cálculo u Otra con ID de moneda) en dos
+`fieldset` con `RadioGroup`. El recibo (`PayrollReceiptView`) sigue la
+estructura del PDF de Meta4 con superficies propias: datos de empresa y
+trabajador en `dl`, tabla de conceptos (Unidades, Precio, % Jorn., Concepto,
+Devengos, Retención) con los conceptos informativos atenuados y su desglose
+sangrado, bases y acumulados, totales con el líquido destacado y datos del
+banco. Mientras la lectura en PeopleNet no esté conectada, consultar solo
+avisa de que la conexión está pendiente y no muestra datos.
+
 Los workspaces futuros muestran estados honestos de disponibilidad; no se
 simulan conexiones, resultados ni operaciones de ERP.
 
@@ -290,6 +302,23 @@ curso y envía al endpoint únicamente texto no vacío de mensajes `user` y
 no recibe system prompts, tools, function calling ni datos de Meta4. Se
 conservan streaming, cancelación, estados persistidos, edición, regeneración,
 ramas y `headMessageId`.
+
+## Recibo de nómina
+
+«Consultar una nómina» maqueta el recibo como el documento de Meta4: un único
+«papel» (`bg-card`, borde y radio pequeño) con casillas de etiqueta en
+versalitas sobre el valor. Los filetes se dibujan con rejillas `gap-px` sobre
+`bg-border`, sin colores fijos. Orden: cabecera (empresa, trabajador, centro),
+cuerpo Unidades · Precio · % Jorn. · Conceptos · Devengos · Retención con
+columnas separadas por filetes verticales, y pie de bases, acumulados,
+totales, líquido destacado con `selected` y datos bancarios. Los conceptos
+informativos se muestran como en Meta4 (`*** … ***`, desglose sangrado y en
+`muted-foreground`). En móvil las casillas pasan a dos columnas y solo el
+cuerpo tiene scroll horizontal propio.
+
+Un rango de pagas nunca apila recibos: se ve uno cada vez, el más reciente al
+entrar, con Tabs `underline` (una por paga, con desbordamiento) y botones
+anterior/siguiente con nombre accesible, más un resumen del rango.
 
 ## Responsive y accesibilidad
 

@@ -1,5 +1,77 @@
 # Changelog
 
+## 2026-09-25 - Recibo con aspecto de nómina y rango de pagas
+
+- `PayrollReceiptView` rediseñado como el documento de Meta4: casillas con
+  filetes (cabecera Empresa/Trabajador/Centro), cuerpo con columnas separadas
+  y pie de bases, acumulados, totales, líquido y banco; informativos con
+  `*** … ***`. Solo tokens del tema.
+- El formulario pide «Desde la paga» y «Hasta la paga» (máximo 24 pagas; los
+  extremos se reordenan solos) y muestra cuántas pagas entran en el rango.
+- `getCurrentPayrollReceiptRange` trae el recibo de cada paga del rango (3 en
+  paralelo) y devuelve aparte las pagas sin recibo con su motivo.
+  `PayrollReceiptError` lleva código (`NOT_FOUND`, `UNSUPPORTED`,
+  `RANGE_TOO_LARGE`).
+- `PayrollReceiptRange`: una nómina a la vista (la más reciente), pestañas
+  por paga, anterior/siguiente y resumen de devengado y líquido del rango.
+- Probado con el servicio real: 1013 de enero a abril 2026 → 5 recibos que
+  cuadran y 3 pagas sin recibo, en 1,2 s.
+- Verificación: `typecheck`, `npm test` (495 correctas, 36 omitidas, sin
+  fallos), `build`, `oxlint` sin avisos nuevos, archivos de nómina con
+  `oxfmt --check` y `git diff --check` correctos. La pantalla no se ha
+  revisado en navegador con sesión Meta4 real.
+
+## 2026-09-25 - Recibo de nómina desde la plantilla de Meta4
+
+- Las líneas del recibo ya no están escritas a mano: se generan desde la
+  plantilla RECIBO de la sociedad (`M4SCO_ROWS`, `M4SCO_ROW_COL_DEF`,
+  `M4RCH_PICOMPONENTS`), traduciendo cada item a su columna física con
+  `M4RCH_ITEMS`/`M4RDC_FIELDS` e `INFORMATION_SCHEMA`. Orden, textos, `%`,
+  informativos (`***`) y desglose sangrado vienen de Meta4.
+- Las `SELECT` de paga y rol piden solo las columnas de la plantilla que
+  existen en `INFORMATION_SCHEMA`; ningún identificador llega del navegador.
+- Siete items `CYC_*_INFO` que el report calcula al imprimir tienen
+  equivalencia fija, comprobada contra el PDF de abril 2026.
+- Cobertura con el servicio real (abril 2026): CYC 580/587, IBER 74/112 y
+  COLL 12/21 recibos cuadran al céntimo; el resto muestra la diferencia.
+- Tests nuevos de resolución y evaluación de la plantilla.
+- Verificación: `typecheck` y `build` correctos; `npm test` con 3 fallos de
+  backups/alta que pasan aislados; `oxlint` sin avisos nuevos; `git diff
+  --check` correcto.
+
+## 2026-09-25 - Consultar una nómina: paga actual desde PeopleNet
+
+- «Consultar una nómina» carga el recibo de la paga actual desde PeopleNet
+  (solo `SELECT` parametrizadas; la sociedad sale del contexto operativo,
+  nunca del navegador) mediante `getPayrollReceiptAction`.
+- El periodo de liquidación es un selector con búsqueda de las pagas de
+  `M4SCO_HT_PAYS` (p. ej. marzo 2026 tiene cuatro), por defecto la última.
+- Nuevas fuentes: centro de trabajo (`STD_WORK_LOCATION`), GT
+  (`M4SSP_H_GRUPO_TAR`) y acumulados (`CSP_REC_*`); la orden de pago se filtra
+  por imputación igual a la fecha de pago para excluir retroactivos.
+- Si los totales de Meta4 no cuadran con las líneas mapeadas, el recibo muestra
+  «Recibo incompleto» con la diferencia en vez de ocultarla.
+- Retroactivas y normal + retroactivas responden que aún no están disponibles.
+- Tests: mapper del recibo, formulario (action simulada) y vista; fixtures con
+  datos personales ficticios.
+- Verificación: `typecheck` y `build` correctos; `npm test` con 2 fallos en
+  `backup.test.ts` que pasan aislados; `oxlint` sin avisos nuevos;
+  `oxfmt --check` falla en 469 archivos previos; `git diff --check` correcto.
+
+## 2026-09-25 - Consultar una nómina (vista)
+
+- Nueva pantalla `/tools/payroll/receipt` («Consultar una nómina») con los
+  parámetros de la ventana Meta4 del recibo: matrícula, periodo de
+  liquidación, tipo de pagas y moneda de proceso. Validación en cliente.
+- `PayrollReceiptView` pinta el recibo con la estructura del PDF de Meta4 y los
+  estilos del producto, a partir del tipo `PayrollReceipt`
+  (`src/types/payroll-receipt.ts`).
+- Sin acceso a datos: consultar muestra «Consulta del recibo pendiente de
+  conexión» y no inventa importes. `/tools/payroll` tiene página propia.
+- Verificación: `npm run typecheck`, `npm run build` y `npm test` (segunda
+  pasada: 479 pruebas correctas y 36 omitidas; la primera tuvo 1 fallo aislado
+  fuera de nómina) correctos; `oxlint` sin avisos nuevos.
+
 ## 2026-09-25 - Listado de usuarios desde PeopleNet
 
 - `CSP_POWER4_USER_ALL` deja de llamar a SOAP. El repositorio server-only

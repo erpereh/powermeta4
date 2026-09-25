@@ -1,5 +1,106 @@
 # powermeta4 - estado de tareas
 
+## Consultar una nómina: vista del recibo - 2026-09-25
+
+- [x] Ruta `/tools/payroll/receipt` y acción `payroll.consult` implementada en
+      el registro; `/tools/payroll` pasa a página propia del módulo.
+- [x] Parámetros como la ventana Meta4 «Ejecución del recibo de nómina»:
+      matrícula, periodo, tipo de pagas (actual, retroactivas, normal +
+      retroactivas) y moneda de proceso (de cálculo u otra con ID).
+- [x] Modelo tipado `PayrollReceipt` y `PayrollReceiptView` con la estructura
+      del PDF (cabecera, conceptos, informativos, bases, acumulados, totales y
+      banco) y tests de vista y formulario.
+- [x] `npm run typecheck` y `npm run build` correctos. `npm test`: la primera
+      pasada dio 1 fallo aislado fuera de nómina (no identificado en la salida
+      recortada); la segunda, 99 archivos y 479 pruebas correctas y 36
+      omitidas. `oxlint` sin avisos nuevos (7 anteriores); los archivos nuevos
+      pasan `oxfmt`, el resto del repositorio mantiene su formato previo.
+      `git diff --check` correcto.
+- [x] Paga actual conectada a PeopleNet (solo `SELECT` parametrizadas, sociedad
+      del contexto operativo): `getPayrollReceiptAction` +
+      `src/lib/peoplenet/payroll-receipt.ts`. El periodo es una paga de
+      `M4SCO_HT_PAYS` (hay meses con varias pagas), no un mes.
+- [x] Recibo de la matrícula 1013, abril 2026 (CYC), idéntico al PDF de Meta4
+      línea a línea, con totales, bases, acumulados y banco, ejecutando el
+      servicio real contra PeopleNet.
+- [x] Las líneas salen de la plantilla RECIBO de Meta4 de la sociedad
+      (`M4SCO_ROWS` + `M4SCO_ROW_COL_DEF` + `M4RCH_PICOMPONENTS`, items →
+      columnas con `M4RCH_ITEMS`/`M4RDC_FIELDS`), en
+      `payroll-receipt-template.ts`, con caché de 15 min por sociedad. Solo 7
+      items `CYC_*_INFO` que calcula el report llevan equivalencia fija.
+- [x] Cobertura medida con el servicio real (abril 2026, recibos que cuadran
+      al céntimo con los totales de Meta4): CYC 580/587, IBER 74/112,
+      COLL 12/21 (antes, con la lista fija, CYC 68/587).
+- [x] Recibo con aspecto de nómina (casillas y filetes como el PDF de Meta4)
+      y consulta por rango de pagas («Desde»/«Hasta», máximo 24) con una
+      nómina a la vista, pestañas por paga y anterior/siguiente. Tests de
+      vista, formulario y rango; servicio de rango probado contra PeopleNet.
+
+### Pendiente para la próxima sesión (por prioridad)
+
+- [ ] **Pagas retroactivas y paga normal + retroactivas.** Pendientes de las
+      `SELECT` que hace Meta4 para esos modos (las aportará el usuario). Hoy
+      `getPayrollReceiptAction` responde «todavía no está disponible».
+      Pista: en retroactivas `SCO_DT_ALLOC` (mes recalculado) ≠
+      `SCO_DT_PAYMENT` (mes de pago). Caso de prueba: 1013 cobra en la paga
+      2026-04-25 tres retroactivos de −5,58 € (imputación 2026-01-25,
+      2026-02-25 y 2026-03-25) en `M4SCO_PAYMEN_ORDER`; la paga actual filtra
+      `SCO_DT_ALLOCATION = fecha de pago` para excluirlos.
+- [ ] **Recibos que no cuadran** (muestran «Recibo incompleto» con la
+      diferencia; abril 2026: CYC 7/587, IBER 38/112, COLL 9/21). Pedir PDF de
+      referencia al usuario:
+      - CYC con baja maternidad/IT (p. ej. 1236, 1158, 1223, 1247, 1264,
+        1378, 1536): Meta4 pinta «Prestación Teórica Maternidad» y similares
+        en devengos sin sumarlas a `SSP_TOTAL_DEVENGOS`. Decidir si van como
+        informativas o con otro tratamiento.
+      - IBER Portugal (p. ej. 10377): la línea «Desconto Seguro de Saúde»
+        (`CSP_PT_DESC_SEG_SAUDE`) supera en 13-22 € al retenido de Meta4.
+      - COLL (p. ej. 0001, 0012, 0018): diferencias parecidas.
+      - Items del report sin columna en BD ni equivalencia:
+        `CYC_SEG_VIDA_GLOBAL_MES_INFO`, `CYC_LOTE_NAVIDAD_INFO`,
+        `CYC_PRESTAMO_ESPECIE_INFO`. Añadir a `PRINT_ITEM_COLUMNS` en
+        `payroll-receipt-template.ts` solo tras comprobarlos contra un PDF.
+- [ ] **Validación línea a línea con más PDF.** Solo la 1013 (abril 2026) está
+      comparada línea a línea; en el resto solo se ha comprobado que los
+      totales cuadran. Revisar 2-3 recibos más (con horas extra, dietas, bajas
+      o varios roles/tramos) contra Meta4.
+- [ ] **Probar la pantalla en el navegador** con sesión Meta4 real
+      (`npm run dev` → `/tools/payroll/receipt`): nuevo diseño tipo nómina en
+      claro/oscuro, selectores Desde/Hasta, navegación del rango, errores y
+      responsive (1440, 1024, 768 y 390 px). Hasta ahora solo se ha probado el
+      servicio contra PeopleNet y los tests de componentes.
+- [ ] **Casos poco frecuentes:**
+      - Varios periodos de alta en la misma paga (en abril 2026 solo 1315):
+        hoy lanza «todavía no está disponible».
+      - Moneda «Otra»: filtra `A.ID_CURRENCY = @currency`, pero PeopleNet solo
+        tiene EUR y no se ha podido probar.
+      - «Datos del banco beneficiario»: siempre vacío; confirmar de dónde sale
+        (quizá la cuenta `SCO_ID_BANKUSE = 'COMIDAS'` de `M4SCO_PERSON_BANK`).
+- [ ] **Tests de `src/app/actions/payroll-receipt.ts`** (validación de
+      parámetros, tipo de pagas no disponible, errores de sesión/PeopleNet).
+
+Referencias técnicas para retomar:
+- Plantilla: `M4SCO_ROWS` / `M4SCO_ROW_COL_DEF` (`SCO_ID_REPORT = 'RECIBO'`,
+  cuerpo 1; columnas 1 unidades, 2 precio, 3 concepto, 4 devengos,
+  5 retención; `%` = `SCO_BEF_AFT 'A'` + `SCO_CONSTANT '%'`), item + componente
+  → `M4RCH_PICOMPONENTS`, item → columna → `M4RCH_ITEMS.ID_READ_FIELD` +
+  `M4RDC_FIELDS.REAL_NAME`. Informativa = texto con `***`; desglose =
+  sangría de 2+ espacios (un tabulador no cuenta).
+- Cabecera: centro `STD_WORK_LOCATION`, GT `M4SSP_H_GRUPO_TAR`, acumulados
+  `CSP_REC_BASE_IRPF` / `CSP_REC_RET_IRPF` / `CSP_REC_CUOTA_SS`.
+- Pagas: `M4SCO_HT_PAYS` (`SCO_DT_ACCRUED` = fecha de pago).
+- [x] Verificación tras la plantilla: `npm run typecheck` y `npm run build`
+      correctos; `npm test` 489 correctas, 36 omitidas y 3 fallos en
+      `backup.test.ts`, `hire/excel.test.ts` y `hire/hire-path.test.ts` que
+      pasan (9/9) al ejecutarlos aislados; `oxlint` sin avisos nuevos; archivos
+      de nómina pasan `oxfmt --check`; `git diff --check` correcto.
+- [x] Verificación de la primera entrega: `npm run typecheck` y `npm run build`
+      correctos; `npm test` 486 correctas, 36 omitidas y 2 fallos en
+      `src/lib/backups/backup.test.ts` que pasan (6/6) al ejecutarlo aislado;
+      `oxlint` sin avisos nuevos (7 anteriores); `oxfmt --check` falla en 469
+      archivos del repositorio sin configuración propia (estado previo);
+      `git diff --check` correcto.
+
 ## Alta de personas: integración Excel completa con mapping confirmado - 2026-09-25
 
 - [x] Auditados los 113 fields contra la fila técnica 5 de `AltaNueva` en
