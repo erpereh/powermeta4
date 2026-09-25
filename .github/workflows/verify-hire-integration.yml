@@ -1,0 +1,71 @@
+name: Verify hire integration
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Oxlint
+        run: npx oxlint
+
+      - name: Check formatting of touched TypeScript files
+        run: >
+          npx oxfmt --check
+          src/components/tools/users/hire-form/draft.tsx
+          src/components/tools/users/hire-form/field-metadata.test.ts
+          src/components/tools/users/hire-form/field-metadata.ts
+          src/components/tools/users/hire-form/organization-section.tsx
+          src/components/tools/users/users-hire-form.test.tsx
+          src/components/tools/users/users-hire-form.tsx
+          src/lib/meta4/hire/catalogs.ts
+          src/lib/meta4/hire/excel-files.test.ts
+          src/lib/meta4/hire/excel.test.ts
+          src/lib/meta4/hire/excel.ts
+          src/lib/meta4/hire/mapping.contract.test.ts
+          src/lib/meta4/hire/mapping.ts
+          src/lib/meta4/hire/service.test.ts
+          src/lib/meta4/hire/test-fixtures.ts
+          src/lib/meta4/hire/types.ts
+          src/lib/meta4/hire/validate.test.ts
+          src/lib/meta4/hire/validate.ts
+
+      - name: Check original integration diff
+        run: git diff --check 3cba21015b2c04cbdc0a566154df35103ec38af1..70ae56156589c15a3153aa3a1afbe1d4a547fcf8
+
+      - name: Check clean worktree
+        run: |
+          if (git status --porcelain) {
+            git status --short
+            exit 1
+          }
