@@ -76,8 +76,10 @@ persistir un perfil cifrado por sociedad. Un error de infraestructura
 durante esa detección aborta el login para no mostrar una lista incompleta.
 El listado de usuarios (`CSP_POWER4_USER_ALL`) usa la
 sociedad activa del contexto operativo del servidor (`ARG_SOCIEDAD` sobre
-un único `JSESSIONID`) y no persiste resultados en
-SQLite. El alta de personas (`SRTC_LAUNCH_IMPORT`) copia
+un único `JSESSIONID`) y no persiste resultados en SQLite. El detalle
+consulta `M4ORO_EMPLEADOS` por matrícula y sociedad activa, y `STD_EMAIL`
+por persona, mediante la conexión PeopleNet de solo lectura. El alta de
+personas (`SRTC_LAUNCH_IMPORT`) copia
 `Hire_1_PERSONA.xls`, Excel sustituye solo los campos de la UI y guarda un
 fichero con nombre de usuario y fecha en el directorio `META4_HIRE_FILE_PATH`.
 No guarda datos personales en SQLite. Los catálogos de Seguridad Social, Nómina y

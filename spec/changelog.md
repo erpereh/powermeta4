@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-09-25 - Detalle de empleados desde PeopleNet
+
+- El detalle deja de llamar a `CSP_POWER4_CONSULTA_ORO`. Un repositorio
+  server-only consulta `M4ORO_EMPLEADOS` por `@employeeId` y
+  `@organization` (sociedad activa del servidor), y `STD_EMAIL` por
+  `@employeeId`, reutilizando el pool `mssql` existente.
+- El servicio combina las filas y conserva el contrato de la Server Action:
+  claves escalares del detalle anterior, fechas ISO, correos no vacíos y
+  todas las direcciones ordenadas en la acción por `STD_OR_MAIL`. Cero
+  fichas produce «no encontrado»; varias fichas de la misma sociedad
+  producen un error de datos ambiguos. Los fallos SQL no exponen detalles
+  técnicos al navegador.
+- Se eliminan únicamente el endpoint, envelope, parser, servicio, errores y
+  pruebas SOAP propios de Consulta Oro. El listado `CSP_POWER4_USER_ALL`,
+  Login, perfil y alta SOAP permanecen como estaban. La UI y su tipo de
+  respuesta no cambian.
+- Verificación: `npm run typecheck` correcto; `npm test` con 99 archivos,
+  521 pruebas correctas y 2 omitidas; `npm run build` correcto. `npm run
+  lint` muestra 7 avisos anteriores de `oxlint` y falla en `oxfmt --check`
+  por formato preexistente en 364 archivos. Los TypeScript nuevos pasan el
+  chequeo dirigido de formato.
+- No se ejecutó una consulta real a PeopleNet: las cuatro variables de
+  conexión obligatorias no estaban presentes en el entorno de esta consola.
+
 ## 2026-09-24 - Catálogos de pago del alta desde PeopleNet
 
 - Nueva dependencia `mssql` (driver JavaScript `tedious`, sin compilación

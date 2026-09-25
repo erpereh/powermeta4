@@ -1,5 +1,31 @@
 # powermeta4 - estado de tareas
 
+## Detalle de empleados desde PeopleNet - 2026-09-25
+
+- [x] `CSP_POWER4_CONSULTA_ORO` sustituido por dos consultas PeopleNet de
+      solo lectura: `M4ORO_EMPLEADOS` por matrícula y sociedad activa, y
+      `STD_EMAIL` por persona. Ambas usan el pool server-only existente y
+      parámetros `mssql`; el listado `CSP_POWER4_USER_ALL` sigue en SOAP.
+- [x] Repositorio tipado de empleados y correos, con error ante varias fichas
+      para la misma matrícula y sociedad. El servicio conserva el contrato del
+      detalle: campos escalares con las claves anteriores, fechas ISO, correos
+      no vacíos y la fecha centinela `4000-01-01`.
+- [x] La Server Action conserva la comprobación de pertenencia al listado de
+      la sociedad activa y el resultado de la UI. Se retiraron solo el
+      envelope, endpoint, parser, servicio, errores y tests exclusivos de
+      Consulta Oro; Login, perfil, listado y alta SOAP siguen intactos.
+- [x] `npm run typecheck`, `npm test` (99 archivos, 521 pruebas correctas y 2
+      omitidas) y `npm run build` correctos. Las pruebas nuevas cubren SQL
+      parametrizado, aislamiento de sociedad, ausencia/duplicidad de ficha,
+      correos múltiples, fechas y errores saneados.
+- [x] `npm run lint` ejecutado: `oxlint` sin errores nuevos y con 7 avisos
+      anteriores; `oxfmt --check` falla en 364 archivos del repositorio por
+      formato preexistente. Los archivos TypeScript nuevos pasan el chequeo
+      dirigido de formato.
+- [ ] Consulta real PeopleNet no comprobada en esta consola: faltan
+      `PEOPLENET_DB_HOST`, `PEOPLENET_DB_NAME`, `PEOPLENET_DB_USER` y
+      `PEOPLENET_DB_PASSWORD` en el entorno cargado.
+
 ## Alta de personas Meta4: catálogos de pago desde PeopleNet - 2026-09-24
 
 - [x] Conexión SQL Server de solo lectura (`mssql`) con `PEOPLENET_DB_*` en

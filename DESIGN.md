@@ -178,7 +178,7 @@ sustituye la sociedad de la operación. Una autenticación Meta4 puede exponer
 1–3 sociedades; cada una es un workspace read-only.
 
 En el listado de usuarios, pulsar una fila abre un diálogo grande con el
-detalle del empleado (`CSP_POWER4_CONSULTA_ORO`), con la misma convención
+detalle del empleado (PeopleNet SQL Server), con la misma convención
 visual que el diálogo de Ajustes: secciones con `dl` de dos columnas y un
 bloque de correos aparte. Toda la fila es interactiva (foco por teclado,
 `aria-label` propio, Enter/Espacio abren el diálogo) sin sustituir su rol

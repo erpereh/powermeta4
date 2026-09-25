@@ -4,7 +4,6 @@ export const META4_SERVICE = {
   login: "Login",
   profile: "CSP_CONSULTA_ORO_INTRAN_NEW",
   usersList: "CSP_POWER4_USER_ALL",
-  usersDetail: "CSP_POWER4_CONSULTA_ORO",
   hire: "SRTC_LAUNCH_IMPORT",
 } as const;
 

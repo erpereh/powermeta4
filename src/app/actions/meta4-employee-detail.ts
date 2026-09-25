@@ -6,14 +6,19 @@ import { SessionExpiredError } from "@/lib/meta4/authenticated-soap-client";
 import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
 import { Meta4HttpError } from "@/lib/meta4/client";
 import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
-import { isMeta4ConsultaOroError, Meta4ConsultaOroError } from "@/lib/meta4/users/employee-detail-errors";
-import { getMeta4EmployeeDetail } from "@/lib/meta4/users/employee-detail-service";
 import { buildFullName } from "@/lib/meta4/users/parser";
 import { isMeta4UsersError } from "@/lib/meta4/users/errors";
 import { listMeta4Users } from "@/lib/meta4/users/service";
-import type { Meta4EmployeeDetailResult } from "@/lib/meta4/users/employee-detail-types";
+import {
+  getPeopleNetEmployeeDetail,
+  PeopleNetEmployeeDetailError,
+  type EmployeeDetailResult,
+} from "@/lib/peoplenet/employee-detail";
 import type { Meta4ProfileFieldView, Meta4ProfileSectionView } from "@/types/meta4-profile";
-import type { Meta4EmployeeDetailView, Meta4EmployeeEmailView } from "@/types/meta4-employee-detail";
+import type {
+  Meta4EmployeeDetailView,
+  Meta4EmployeeEmailView,
+} from "@/types/meta4-employee-detail";
 
 /** Sentinel end date Meta4 uses to mean "no end date / still active". */
 const OPEN_ENDED_DATE = "4000-01-01T00:00:00.000Z";
@@ -91,7 +96,7 @@ const formatEmailDateRange = (startDate: string, endDate: string): string => {
   return `${start} – ${end}`;
 };
 
-const buildEmployeeEmails = (result: Meta4EmployeeDetailResult): Meta4EmployeeEmailView[] =>
+const buildEmployeeEmails = (result: EmployeeDetailResult): Meta4EmployeeEmailView[] =>
   [...result.emails]
     .sort((a, b) => Number(a.order) - Number(b.order))
     .map((email) => ({
@@ -111,7 +116,7 @@ const unavailableView = (employeeId: string, message: string): Meta4EmployeeDeta
 const genericFetchFailedMessage = "No se ha podido cargar el detalle del empleado desde Meta4.";
 
 const resolveErrorMessage = (error: unknown): string => {
-  if (isMeta4ConsultaOroError(error)) return error.message;
+  if (error instanceof PeopleNetEmployeeDetailError) return error.message;
   if (isMeta4UsersError(error)) return error.message;
   if (isMeta4ProfileError(error)) return error.message;
   if (error instanceof SessionExpiredError) return error.message;
@@ -127,16 +132,16 @@ export async function getMeta4EmployeeDetailViewAction(
   const authSession = await requireAuthContext();
 
   try {
-    const { users } = await listMeta4Users(authSession);
+    const { society, users } = await listMeta4Users(authSession);
     const belongsToActiveSociety = users.some((user) => user.id === employeeId);
     if (!belongsToActiveSociety) {
-      throw new Meta4ConsultaOroError(
-        "META4_CONSULTA_ORO_FORBIDDEN",
+      throw new PeopleNetEmployeeDetailError(
+        "FORBIDDEN",
         "Este empleado no pertenece a la sociedad activa.",
       );
     }
 
-    const result = await getMeta4EmployeeDetail(employeeId);
+    const result = await getPeopleNetEmployeeDetail(employeeId, society);
     const displayName = buildFullName(
       pickField(result.fields, "nombre"),
       pickField(result.fields, "apellido_1"),
