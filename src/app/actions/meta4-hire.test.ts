@@ -10,6 +10,7 @@ vi.mock("@/lib/meta4/hire/service", () => ({
 
 import { requireAuthContext } from "@/lib/auth/session";
 import { launchMeta4Hire } from "@/lib/meta4/hire/service";
+import { hireExtraFixture } from "@/lib/meta4/hire/test-fixtures";
 
 import { launchMeta4HireAction } from "./meta4-hire";
 
@@ -17,6 +18,7 @@ const requireAuth = vi.mocked(requireAuthContext);
 const launchHire = vi.mocked(launchMeta4Hire);
 
 const person = {
+  ...hireExtraFixture,
   firstName: "Ana",
   lastName1: "López",
   lastName2: "",
@@ -39,11 +41,12 @@ const person = {
   community: "724/28",
   country: "724",
   legalEntity: "ACYC_ES",
-  job: "",
+  job: "RDCI",
   position: "",
   workUnit: "00",
   workLocation: "724",
   category: "I1",
+  project: "000000",
   startReason: "001",
   structure: "0",
   functionalWorkCenter: "O_CEN1",
