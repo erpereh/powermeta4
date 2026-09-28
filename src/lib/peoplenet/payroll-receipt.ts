@@ -21,13 +21,14 @@ import {
 import {
   PAYROLL_RANGE_MAX_PAYS,
   type PayrollMissingReceipt,
+  type PayrollPaymentType,
   type PayrollPayOption,
   type PayrollProcessCurrency,
   type PayrollReceipt,
   type PayrollReceiptEntry,
 } from "@/types/payroll-receipt";
 
-export type PayrollReceiptErrorCode = "NOT_FOUND" | "UNSUPPORTED" | "RANGE_TOO_LARGE";
+export type PayrollReceiptErrorCode = "NOT_FOUND" | "RANGE_TOO_LARGE";
 
 export class PayrollReceiptError extends Error {
   constructor(
@@ -130,25 +131,38 @@ JOIN M4SCO_AC_HR_${level} A
 const currencyFilter = (currency: PayrollProcessCurrency): string =>
   currency.mode === "other" ? "A.ID_CURRENCY = @currency" : "A.SCO_IND_MAIN_CURR = 1";
 
-/** Paga actual: la imputación coincide con la fecha de pago. */
+/**
+ * Qué meses imputados de la paga entran, como las SELECT del recibo de Meta4:
+ * la paga actual imputa en la fecha de pago y los retroactivos en otra.
+ */
+const allocationFilter = (paymentType: PayrollPaymentType): string => {
+  if (paymentType === "current") return "AND B.SCO_DT_ALLOC = @paymentDate";
+  if (paymentType === "retroactive") return "AND B.SCO_DT_ALLOC <> @paymentDate";
+  return "";
+};
+
 const periodQuery = (
   template: ReceiptTemplate,
   currency: PayrollProcessCurrency,
+  paymentType: PayrollPaymentType,
 ) => `SELECT ${selectList(template, "period", PERIOD_EXTRA_COLUMNS)}
 ${accrualJoin("PERIOD")}
 WHERE A.ID_ORGANIZATION = @organization AND B.ID_ORGANIZATION = @organization
-  AND B.SCO_ID_HR = @employeeId
-  AND B.SCO_DT_PAYMENT = @paymentDate AND B.SCO_DT_ALLOC = @paymentDate
-  AND ${currencyFilter(currency)}`;
+  AND B.SCO_ID_HR = @employeeId AND B.SCO_DT_PAYMENT = @paymentDate
+  ${allocationFilter(paymentType)}
+  AND ${currencyFilter(currency)}
+ORDER BY A.SCO_OR_HR_PERIOD, B.SCO_DT_ALLOC, B.SCO_DT_START_SLICE`;
 
 const roleQuery = (
   template: ReceiptTemplate,
   currency: PayrollProcessCurrency,
+  paymentType: PayrollPaymentType,
 ) => `SELECT ${selectList(template, "role", ROLE_EXTRA_COLUMNS)}
 ${accrualJoin("ROLE")}
 WHERE A.ID_ORGANIZATION = @organization AND B.ID_ORGANIZATION = @organization
   AND B.SCO_ID_HR = @employeeId AND A.SCO_OR_HR_PERIOD = @hrPeriod
-  AND B.SCO_DT_PAYMENT = @paymentDate AND B.SCO_DT_ALLOC = @paymentDate
+  AND B.SCO_DT_PAYMENT = @paymentDate
+  ${allocationFilter(paymentType)}
   AND ${currencyFilter(currency)}
 ORDER BY B.SCO_OR_HR_ROLE, B.SCO_DT_START_SLICE`;
 
@@ -193,8 +207,17 @@ WHERE ID_ORGANIZATION = @organization AND STD_ID_WORK_LOCAT = @workLocation
   AND STD_DT_START <= @paymentDate
 ORDER BY STD_DT_START DESC`;
 
-/** Orden de pago de la paga actual y la cuenta bancaria a la que se transfiere. */
-const PAYMENTS_QUERY = `SELECT O.SCO_PAYORDPRIM, BANK.SCO_GB_IBAN
+/**
+ * Órdenes de pago de la paga y la cuenta a la que se transfieren:
+ * `SCO_EMP_CHECK` 1 es la cuenta principal y 0 la cuenta adicional, que el recibo
+ * muestra como «Datos del banco beneficiario». La orden ya
+ * fija el dato de pago (`SCO_OR_PAYMENTDATA`): no se filtra por su vigencia, que
+ * en una nueva alta puede empezar después de la fecha de pago. Con paga normal +
+ * retroactivas entran las órdenes de todas las imputaciones de la paga.
+ */
+const paymentsQuery = (
+  paymentType: PayrollPaymentType,
+) => `SELECT O.SCO_PAYORDPRIM, BANK.SCO_GB_IBAN, D.SCO_EMP_CHECK
 FROM M4SCO_PAYMENT_DATA D
 JOIN M4SCO_PAYMEN_ORDER O
   ON O.ID_ORGANIZATION = @organization AND D.SCO_ID_HR = O.SCO_ID_HR
@@ -203,9 +226,9 @@ JOIN M4SCO_PAYMEN_ORDER O
 LEFT JOIN M4SCO_PERSON_BANK BANK
   ON BANK.SCO_ID_PERSON = D.SCO_ID_PERSON AND BANK.SCO_OR_ACCOUNT = D.SCO_OR_ACCOUNT
 WHERE D.ID_ORGANIZATION = @organization AND D.SCO_ID_HR = @employeeId
-  AND D.SCO_OR_HR_PERIOD = @hrPeriod AND D.SCO_ORIGIN_TYPE = '01' AND D.SCO_EMP_CHECK = '1'
-  AND D.SCO_DT_START <= @paymentDate AND D.SCO_DT_END >= @paymentDate
-  AND O.SCO_DT_PAYMENT = @paymentDate AND O.SCO_DT_ALLOCATION = @paymentDate
+  AND D.SCO_OR_HR_PERIOD = @hrPeriod AND D.SCO_ORIGIN_TYPE = '01'
+  AND O.SCO_DT_PAYMENT = @paymentDate
+  ${paymentType === "current" ? "AND O.SCO_DT_ALLOCATION = @paymentDate" : ""}
 ORDER BY D.SCO_OR_PAYMENTDATA`;
 
 const PAYS_QUERY = `SELECT TOP 240 SCO_DT_ACCRUED, ISNULL(SCO_NM_PAYESP, SCO_NM_PAYENG) AS PAY_NAME,
@@ -230,6 +253,7 @@ type QueryInputs = {
   organization: Meta4Society;
   employeeId: string;
   paymentDate: string;
+  paymentType: PayrollPaymentType;
   currency: PayrollProcessCurrency;
 };
 
@@ -272,40 +296,33 @@ export const listPayrollPays = async (
   return mapPayrollPays(result.recordset);
 };
 
-/** Recibo de la paga actual de un empleado de la sociedad resuelta en servidor. */
-export const getCurrentPayrollReceipt = async (inputs: QueryInputs): Promise<PayrollReceipt> => {
-  const [run, template] = await Promise.all([
-    createRunner(inputs),
-    loadReceiptTemplate(inputs.organization),
-  ]);
+type Runner = Awaited<ReturnType<typeof createRunner>>;
 
-  const periods = await run(periodQuery(template, inputs.currency));
-  const [period, ...otherPeriods] = periods;
-  if (!period) {
-    throw new PayrollReceiptError(
-      "NOT_FOUND",
-      "No hay recibo de esta paga para el empleado en la sociedad activa.",
-    );
-  }
-  if (otherPeriods.length > 0) {
-    throw new PayrollReceiptError(
-      "UNSUPPORTED",
-      "El empleado tiene varios periodos de alta en esta paga; esa consulta todavía no está disponible.",
-    );
-  }
-
+/**
+ * Recibo de un periodo de alta (`SCO_OR_HR_PERIOD`) de la paga, con una fila por
+ * mes imputado. Los retroactivos no llevan banco, como el recibo de Meta4.
+ */
+const buildPeriodReceipt = async (
+  run: Runner,
+  template: ReceiptTemplate,
+  inputs: QueryInputs,
+  periods: readonly PeopleNetRow[],
+): Promise<PayrollReceipt> => {
+  const [period = {}] = periods;
   const hrPeriod = Number(toText(period.SCO_OR_HR_PERIOD)) || 1;
   const byPeriod = { hrPeriod };
   const [roles, hrPeriods, people, legalEntities, accounts, groups, categories, payments] =
     await Promise.all([
-      run(roleQuery(template, inputs.currency), byPeriod),
+      run(roleQuery(template, inputs.currency, inputs.paymentType), byPeriod),
       run(HR_PERIOD_QUERY, byPeriod),
       run(PERSON_QUERY),
       run(LEGAL_ENTITY_QUERY, { legalEntity: toText(period.STD_ID_LEG_ENT) }),
       run(CONTRIBUTION_ACCOUNT_QUERY, { contributionHeader: toText(period.SSP_ID_CABEC_TC1) }),
       run(CONTRIBUTION_GROUP_QUERY, byPeriod),
       run(CATEGORY_QUERY, byPeriod),
-      run(PAYMENTS_QUERY, byPeriod),
+      inputs.paymentType === "retroactive"
+        ? Promise.resolve([])
+        : run(paymentsQuery(inputs.paymentType), byPeriod),
     ]);
 
   const category = categories[0] ?? null;
@@ -319,7 +336,8 @@ export const getCurrentPayrollReceipt = async (inputs: QueryInputs): Promise<Pay
 
   return mapPayrollReceipt({
     template,
-    period,
+    paymentType: inputs.paymentType,
+    periods,
     roles,
     hrPeriod: hrPeriods[0] ?? null,
     person: people[0] ?? null,
@@ -333,6 +351,36 @@ export const getCurrentPayrollReceipt = async (inputs: QueryInputs): Promise<Pay
   });
 };
 
+const NOT_FOUND_MESSAGES: Record<PayrollPaymentType, string> = {
+  current: "No hay recibo de esta paga para el empleado en la sociedad activa.",
+  retroactive: "No hay pagas retroactivas en esta paga para el empleado.",
+  "current-and-retroactive": "No hay recibo de esta paga para el empleado en la sociedad activa.",
+};
+
+/**
+ * Recibos de una paga de un empleado de la sociedad resuelta en servidor: uno
+ * por periodo de alta, como Meta4 cuando hay baja y nueva alta en la paga.
+ */
+export const getPayrollReceipts = async (inputs: QueryInputs): Promise<PayrollReceipt[]> => {
+  const [run, template] = await Promise.all([
+    createRunner(inputs),
+    loadReceiptTemplate(inputs.organization),
+  ]);
+
+  const rows = await run(periodQuery(template, inputs.currency, inputs.paymentType));
+  if (rows.length === 0) {
+    throw new PayrollReceiptError("NOT_FOUND", NOT_FOUND_MESSAGES[inputs.paymentType]);
+  }
+  const byHrPeriod = new Map<string, PeopleNetRow[]>();
+  for (const row of rows) {
+    const key = toText(row.SCO_OR_HR_PERIOD);
+    byHrPeriod.set(key, [...(byHrPeriod.get(key) ?? []), row]);
+  }
+  return Promise.all(
+    [...byHrPeriod.values()].map((periods) => buildPeriodReceipt(run, template, inputs, periods)),
+  );
+};
+
 type RangeInputs = Omit<QueryInputs, "paymentDate"> & {
   fromPaymentDate: string;
   toPaymentDate: string;
@@ -342,10 +390,10 @@ type RangeInputs = Omit<QueryInputs, "paymentDate"> & {
 const RANGE_CONCURRENCY = 3;
 
 /**
- * Recibos de la paga actual de cada paga del calendario entre dos fechas de
+ * Recibos del tipo de pagas pedido para cada paga del calendario entre dos fechas de
  * pago. Las pagas sin recibo para el empleado se devuelven aparte.
  */
-export const getCurrentPayrollReceiptRange = async (
+export const getPayrollReceiptRange = async (
   inputs: RangeInputs,
 ): Promise<{ receipts: PayrollReceiptEntry[]; missing: PayrollMissingReceipt[] }> => {
   const pool = await getPeopleNetPool();
@@ -365,7 +413,7 @@ export const getCurrentPayrollReceiptRange = async (
 
   // Cada worker escribe en la posición de su paga para conservar el orden cronológico.
   const outcomes: (
-    | { kind: "receipt"; entry: PayrollReceiptEntry }
+    | { kind: "receipts"; entries: PayrollReceiptEntry[] }
     | { kind: "missing"; entry: PayrollMissingReceipt }
     | undefined
   )[] = Array.from({ length: pays.length }, () => undefined);
@@ -376,10 +424,21 @@ export const getCurrentPayrollReceiptRange = async (
       const pay = pays[index];
       if (!pay) continue;
       try {
-        const receipt = await getCurrentPayrollReceipt({ ...inputs, paymentDate: pay.paymentDate });
+        const receipts = await getPayrollReceipts({
+          ...inputs,
+          paymentDate: pay.paymentDate,
+        });
+        const several = receipts.length > 1;
         outcomes[index] = {
-          kind: "receipt",
-          entry: { paymentDate: pay.paymentDate, payName: pay.name, receipt },
+          kind: "receipts",
+          entries: receipts.map((receipt, position) => ({
+            id: several ? `${pay.paymentDate}-${position + 1}` : pay.paymentDate,
+            paymentDate: pay.paymentDate,
+            payName: several
+              ? `${pay.name} · alta ${position + 1} de ${receipts.length}`
+              : pay.name,
+            receipt,
+          })),
         };
       } catch (error) {
         if (!(error instanceof PayrollReceiptError)) throw error;
@@ -393,7 +452,7 @@ export const getCurrentPayrollReceiptRange = async (
   await Promise.all(Array.from({ length: Math.min(RANGE_CONCURRENCY, pays.length) }, worker));
 
   return {
-    receipts: outcomes.flatMap((outcome) => (outcome?.kind === "receipt" ? [outcome.entry] : [])),
+    receipts: outcomes.flatMap((outcome) => (outcome?.kind === "receipts" ? outcome.entries : [])),
     missing: outcomes.flatMap((outcome) => (outcome?.kind === "missing" ? [outcome.entry] : [])),
   };
 };

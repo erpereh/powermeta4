@@ -55,6 +55,8 @@ export type PayrollReceiptLine = {
 };
 
 export type PayrollReceipt = {
+  /** Qué filas de la paga suma: la actual, los retroactivos o ambos. */
+  paymentType: PayrollPaymentType;
   currencyId: string;
   company: { name: string; taxId: string; socialSecurityRegistration: string };
   periodLabel: string;
@@ -88,8 +90,10 @@ export type PayrollReceipt = {
   unmapped: { accrued: number; deducted: number };
 };
 
-/** Recibo de una paga del rango. */
+/** Recibo de una paga del rango; una paga con baja y nueva alta tiene uno por alta. */
 export type PayrollReceiptEntry = {
+  /** Único en el rango: la fecha de pago, más el número de alta si hay varias. */
+  id: string;
   paymentDate: string;
   payName: string;
   receipt: PayrollReceipt;

@@ -8,7 +8,13 @@ import type { PayrollReceiptEntry } from "@/types/payroll-receipt";
 import { sampleReceipt } from "./payroll-receipt.fixture";
 import { PayrollReceiptRange } from "./payroll-receipt-range";
 
-const entry = (paymentDate: string, payName: string, netPay: number): PayrollReceiptEntry => ({
+const entry = (
+  paymentDate: string,
+  payName: string,
+  netPay: number,
+  id = paymentDate,
+): PayrollReceiptEntry => ({
+  id,
   paymentDate,
   payName,
   receipt: {
@@ -68,6 +74,23 @@ describe("PayrollReceiptRange", () => {
       "disabled",
       true,
     );
+  });
+
+  it("shows each HR period of the same pay as its own receipt", () => {
+    render(
+      <PayrollReceiptRange
+        receipts={[
+          entry("2026-03-25", "Marzo 2026 · alta 1 de 2", 1038.25, "2026-03-25-1"),
+          entry("2026-03-25", "Marzo 2026 · alta 2 de 2", 122.69, "2026-03-25-2"),
+        ]}
+        missing={[]}
+      />,
+    );
+
+    expect(screen.getByRole("article", { name: /alta 2 de 2/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: /alta 1 de 2/ }));
+    expect(screen.getByRole("article", { name: /alta 1 de 2/ })).toBeTruthy();
+    expect(screen.getAllByRole("article")).toHaveLength(1);
   });
 
   it("hides the range navigation for a single receipt and lists pays without receipt", () => {

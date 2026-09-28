@@ -18,6 +18,7 @@ describe("PayrollReceiptView", () => {
     expect(screen.getByRole("article", { name: /Ana Pérez Gómez/ })).toBeTruthy();
     expect(screen.getByText("A28008795")).toBeTruthy();
     expect(screen.getByText("01/03/2004")).toBeTruthy();
+    expect(screen.getByText(/Paga actual · EUR/)).toBeTruthy();
 
     const table = screen.getByRole("table");
     const salaryRow = within(table).getByRole("row", { name: /Salario Base/ });

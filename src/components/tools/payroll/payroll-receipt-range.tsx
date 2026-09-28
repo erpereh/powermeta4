@@ -27,10 +27,10 @@ export function PayrollReceiptRange({
   receipts: readonly PayrollReceiptEntry[];
   missing: readonly PayrollMissingReceipt[];
 }) {
-  const [selected, setSelected] = useState(receipts.at(-1)?.paymentDate ?? "");
+  const [selected, setSelected] = useState(receipts.at(-1)?.id ?? "");
   const index = Math.max(
     0,
-    receipts.findIndex((entry) => entry.paymentDate === selected),
+    receipts.findIndex((entry) => entry.id === selected),
   );
   const current = receipts[index];
   const previous = receipts[index - 1];
@@ -80,19 +80,15 @@ export function PayrollReceiptRange({
               className="shrink-0"
               aria-label="Nómina anterior"
               disabled={!previous}
-              onClick={() => previous && setSelected(previous.paymentDate)}
+              onClick={() => previous && setSelected(previous.id)}
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
             </Button>
             <div className="min-w-0 flex-1">
-              <Tabs
-                value={current?.paymentDate ?? ""}
-                onValueChange={setSelected}
-                variant="underline"
-              >
+              <Tabs value={current?.id ?? ""} onValueChange={setSelected} variant="underline">
                 <TabsList>
                   {receipts.map((entry) => (
-                    <TabsTrigger key={entry.paymentDate} value={entry.paymentDate}>
+                    <TabsTrigger key={entry.id} value={entry.id}>
                       <span className="flex flex-col items-start leading-tight">
                         <span className="text-sm">{entry.payName}</span>
                         <span className="text-xs tabular-nums text-muted-foreground">
@@ -111,7 +107,7 @@ export function PayrollReceiptRange({
               className="shrink-0"
               aria-label="Nómina siguiente"
               disabled={!next}
-              onClick={() => next && setSelected(next.paymentDate)}
+              onClick={() => next && setSelected(next.id)}
             >
               <ChevronRight aria-hidden="true" className="size-4" />
             </Button>

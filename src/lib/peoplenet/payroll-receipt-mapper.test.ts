@@ -91,60 +91,65 @@ const template: ReceiptTemplate = {
 /** Importes de una paga real de CYC; los datos personales son ficticios. */
 const rows: PayrollReceiptRows = {
   template,
-  period: {
-    SCO_OR_HR_PERIOD: 1,
-    ID_CURRENCY: "EUR",
-    SCO_DT_PAY_START: utc("2026-04-01"),
-    SCO_DT_PAY_END: utc("2026-04-30"),
-    SSP_U_CONC_FIJOS: 1,
-    SSP_P_EXT_PRORRAT: 651.51,
-    CSP_TOT_PAGA_EXTRA: 651.51,
-    CSP_I_ABONO_TELETRABAJO: 32,
-    CSP_DES_SEG_MEG: -41.67,
-    CSP_INM_SEG_MED: -32.61,
-    CYC_SEG_SALUD: 74.28,
-    SSP_PORC_IRPF: 34.16,
-    SSP_BASE_IRPF: 7735.57,
-    SSP_IRPF: 2642.47,
-    SSP_PORC_IRPF_P_E: 34.16,
-    SSP_TOT_PAGOS_ESP: 134.14,
-    SSP_IRPF_PAGOS_ESP: 45.82,
-    SSP_PORC_IN_COT_RG: 4.7,
-    SSP_BASE_REG_GEN: 5101.2,
-    SSP_COT_RG_GEN_IND: 239.76,
-    SSP_PORC_IND_DFPS: 1.65,
-    SSP_COT_DFPS_IND: 84.17,
-    SSP_PORC_IND_COT_MEI: 0.15,
-    SSP_COT_IND_RG_MEI: 7.65,
-    SSP_PORC_IND_CAS_INT1: 0.19,
-    SSP_BAS_CAS_INT1: 510.12,
-    SSP_COT_IND_CAS_INT1: 0.97,
-    SSP_PORC_IND_CAS_INT2: 0.21,
-    SSP_BAS_CAS_INT2: 2040.48,
-    SSP_COT_IND_CAS_INT2: 4.29,
-    SSP_PORC_IND_CAS_INT3: 0.24,
-    SSP_BAS_CAS_INT3: 3488.06,
-    SSP_COT_IND_CAS_INT3: 8.37,
-    CSP_I_CUOTA_GRUP_EMP: 4,
-    CSP_I_APOR_PER_PLAN_PENSION: 250,
-    CSP_COT_SEG_VIDA: 90.43,
-    SSP_COSTE_SS_EMP: 1708.71,
-    SSP_CERN_COT_CC: 1203.88,
-    SSP_BASE_TOT_RG_RE: 11139.86,
-    SSP_PRORRATA: null,
-    SSP_TOTAL_REG_GEN: 11139.86,
-    SSP_BASE_RG_RECIBO: 5101.2,
-    SSP_BASE_ACC_RECIB: 5101.2,
-    SSP_TOTAL_DEVENGOS: 7809.85,
-    SSP_TOTAL_RETENIDO: 3287.5,
-    SSP_LIQUIDO: 4522.35,
-    CSP_REC_BASE_IRPF: 59385.01,
-    CSP_REC_RET_IRPF: 20151.2,
-    CSP_REC_CUOTA_SS: 1295.72,
-  },
+  paymentType: "current",
+  periods: [
+    {
+      SCO_OR_HR_PERIOD: 1,
+      SCO_DT_ALLOC: utc("2026-04-25"),
+      ID_CURRENCY: "EUR",
+      SCO_DT_PAY_START: utc("2026-04-01"),
+      SCO_DT_PAY_END: utc("2026-04-30"),
+      SSP_U_CONC_FIJOS: 1,
+      SSP_P_EXT_PRORRAT: 651.51,
+      CSP_TOT_PAGA_EXTRA: 651.51,
+      CSP_I_ABONO_TELETRABAJO: 32,
+      CSP_DES_SEG_MEG: -41.67,
+      CSP_INM_SEG_MED: -32.61,
+      CYC_SEG_SALUD: 74.28,
+      SSP_PORC_IRPF: 34.16,
+      SSP_BASE_IRPF: 7735.57,
+      SSP_IRPF: 2642.47,
+      SSP_PORC_IRPF_P_E: 34.16,
+      SSP_TOT_PAGOS_ESP: 134.14,
+      SSP_IRPF_PAGOS_ESP: 45.82,
+      SSP_PORC_IN_COT_RG: 4.7,
+      SSP_BASE_REG_GEN: 5101.2,
+      SSP_COT_RG_GEN_IND: 239.76,
+      SSP_PORC_IND_DFPS: 1.65,
+      SSP_COT_DFPS_IND: 84.17,
+      SSP_PORC_IND_COT_MEI: 0.15,
+      SSP_COT_IND_RG_MEI: 7.65,
+      SSP_PORC_IND_CAS_INT1: 0.19,
+      SSP_BAS_CAS_INT1: 510.12,
+      SSP_COT_IND_CAS_INT1: 0.97,
+      SSP_PORC_IND_CAS_INT2: 0.21,
+      SSP_BAS_CAS_INT2: 2040.48,
+      SSP_COT_IND_CAS_INT2: 4.29,
+      SSP_PORC_IND_CAS_INT3: 0.24,
+      SSP_BAS_CAS_INT3: 3488.06,
+      SSP_COT_IND_CAS_INT3: 8.37,
+      CSP_I_CUOTA_GRUP_EMP: 4,
+      CSP_I_APOR_PER_PLAN_PENSION: 250,
+      CSP_COT_SEG_VIDA: 90.43,
+      SSP_COSTE_SS_EMP: 1708.71,
+      SSP_CERN_COT_CC: 1203.88,
+      SSP_BASE_TOT_RG_RE: 11139.86,
+      SSP_PRORRATA: null,
+      SSP_TOTAL_REG_GEN: 11139.86,
+      SSP_BASE_RG_RECIBO: 5101.2,
+      SSP_BASE_ACC_RECIB: 5101.2,
+      SSP_TOTAL_DEVENGOS: 7809.85,
+      SSP_TOTAL_RETENIDO: 3287.5,
+      SSP_LIQUIDO: 4522.35,
+      CSP_REC_BASE_IRPF: 59385.01,
+      CSP_REC_RET_IRPF: 20151.2,
+      CSP_REC_CUOTA_SS: 1295.72,
+    },
+  ],
   roles: [
     {
       SCO_OR_HR_ROLE: 1,
+      SCO_DT_ALLOC: utc("2026-04-25"),
       SCO_DT_START_SLICE: utc("2026-04-01"),
       SSP_U_CONC_FIJ_ROL: 1,
       SSP_P_SAL_BASE: 2606.04,
@@ -174,7 +179,9 @@ const rows: PayrollReceiptRows = {
   contributionGroup: { SSP_ID_GRUP_TARIFA: "1" },
   category: { SSP_NM_CATEGORESP: "Grupo I – Nivel 1", SCO_OR_HR_ROLE: 1 },
   workLocation: { STD_WORK_LOCESP: "Madrid - Centro" },
-  payments: [{ SCO_PAYORDPRIM: 4522.35, SCO_GB_IBAN: "ES0000000000000000000001" }],
+  payments: [
+    { SCO_PAYORDPRIM: 4522.35, SCO_GB_IBAN: "ES0000000000000000000001", SCO_EMP_CHECK: "1" },
+  ],
   employeeId: "9001",
 };
 
@@ -214,14 +221,86 @@ describe("mapPayrollReceipt", () => {
     });
   });
 
+  it("splits the net pay between the main and the additional account", () => {
+    const receipt = mapPayrollReceipt({
+      ...rows,
+      payments: [
+        { SCO_PAYORDPRIM: 3522.35, SCO_GB_IBAN: "ES0000000000000000000001", SCO_EMP_CHECK: "1" },
+        { SCO_PAYORDPRIM: 1000, SCO_GB_IBAN: "ES0000000000000000000002", SCO_EMP_CHECK: "0" },
+      ],
+    });
+
+    expect(receipt.bankPayments).toEqual([
+      { account: "ES00 0000 0000 0000 0000 0001", amount: 3522.35 },
+    ]);
+    expect(receipt.beneficiaryPayments).toEqual([
+      { account: "ES00 0000 0000 0000 0000 0002", amount: 1000 },
+    ]);
+  });
+
   it("omits zero concepts and reports totals not covered by mapped lines", () => {
     const receipt = mapPayrollReceipt({
       ...rows,
-      period: { ...rows.period, CSP_I_ABONO_TELETRABAJO: 0, SSP_TOTAL_DEVENGOS: 7900 },
+      periods: [{ ...rows.periods[0], CSP_I_ABONO_TELETRABAJO: 0, SSP_TOTAL_DEVENGOS: 7900 }],
     });
 
     expect(receipt.lines.some((line) => line.id === "rteletrabajo")).toBe(false);
     expect(receipt.unmapped).toEqual({ accrued: 122.15, deducted: 0 });
+  });
+
+  it("adds up retroactive months into one receipt without units or price", () => {
+    // Regularización de un mes imputado, como las de la paga de abril 2026.
+    const month = (alloc: string, costCompany: number) => ({
+      SCO_OR_HR_PERIOD: 1,
+      SCO_DT_ALLOC: utc(alloc),
+      ID_CURRENCY: "EUR",
+      SCO_DT_PAY_START: utc("2026-04-01"),
+      SCO_DT_PAY_END: utc("2026-04-30"),
+      SSP_IRPF: 5.58,
+      SSP_PORC_IRPF: 0.24,
+      SSP_BASE_IRPF: 2325.12,
+      SSP_COSTE_SS_EMP: costCompany,
+      SSP_BASE_TOT_RG_RE: 2325.12,
+      SSP_TOTAL_DEVENGOS: 0,
+      SSP_TOTAL_RETENIDO: 5.58,
+      SSP_LIQUIDO: -5.58,
+      CSP_REC_BASE_IRPF: 0,
+    });
+    const receipt = mapPayrollReceipt({
+      ...rows,
+      paymentType: "retroactive",
+      periods: [month("2026-01-25", 28.36), month("2026-02-25", 28.37), month("2026-03-25", 28.36)],
+      roles: [],
+      payments: [],
+    });
+
+    expect(receipt.paymentType).toBe("retroactive");
+    expect(receipt.lines.find((line) => line.id === "rirpf")).toMatchObject({
+      units: null,
+      price: null,
+      deduction: 16.74,
+    });
+    expect(receipt.lines.find((line) => line.id === "rcoste")?.deduction).toBe(85.09);
+    expect(receipt.totals).toEqual({ accrued: 0, deducted: 16.74, netPay: -16.74 });
+    expect(receipt.bases.totalRemuneration).toBe(6975.36);
+    expect(receipt.accumulated.irpfBase).toBe(0);
+    expect(receipt.bankPayments).toEqual([]);
+    expect(receipt.unmapped).toEqual({ accrued: 0, deducted: 0 });
+  });
+
+  it("groups payment orders of several months by account", () => {
+    const receipt = mapPayrollReceipt({
+      ...rows,
+      paymentType: "current-and-retroactive",
+      payments: [
+        { SCO_PAYORDPRIM: 4522.35, SCO_GB_IBAN: "ES0000000000000000000001", SCO_EMP_CHECK: "1" },
+        { SCO_PAYORDPRIM: -5.58, SCO_GB_IBAN: "ES0000000000000000000001", SCO_EMP_CHECK: "1" },
+      ],
+    });
+
+    expect(receipt.bankPayments).toEqual([
+      { account: "ES00 0000 0000 0000 0000 0001", amount: 4516.77 },
+    ]);
   });
 
   it("keeps one set of role lines per role slice", () => {

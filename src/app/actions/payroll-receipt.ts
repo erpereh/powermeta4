@@ -4,10 +4,7 @@ import { requireAuthContext } from "@/lib/auth/session";
 import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
 import { getMeta4OperationalContext } from "@/lib/meta4/operational-context";
 import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
-import {
-  getCurrentPayrollReceiptRange,
-  PayrollReceiptError,
-} from "@/lib/peoplenet/payroll-receipt";
+import { getPayrollReceiptRange, PayrollReceiptError } from "@/lib/peoplenet/payroll-receipt";
 import {
   PAYROLL_PAYMENT_TYPES,
   type PayrollProcessCurrency,
@@ -49,17 +46,15 @@ export async function getPayrollReceiptAction(
   if (!PAYROLL_PAYMENT_TYPES.some((option) => option.value === parameters.paymentType)) {
     return failure("El tipo de pagas no es válido.");
   }
-  if (parameters.paymentType !== "current") {
-    return failure("La consulta de pagas retroactivas todavía no está disponible.");
-  }
 
   try {
     const context = await getMeta4OperationalContext(authSession);
-    const { receipts, missing } = await getCurrentPayrollReceiptRange({
+    const { receipts, missing } = await getPayrollReceiptRange({
       organization: context.society,
       employeeId,
       fromPaymentDate: parameters.fromPaymentDate,
       toPaymentDate: parameters.toPaymentDate,
+      paymentType: parameters.paymentType,
       currency,
     });
     return { ok: true, receipts, missing };
