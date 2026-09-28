@@ -3,6 +3,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 
 import type { HirePersonInput } from "@/lib/meta4/hire/types";
+import { lastGeoSegment } from "@/lib/meta4/hire/catalogs";
 
 import type { CurrentFieldId, PendingFieldId } from "./field-metadata";
 
@@ -55,11 +56,13 @@ export const createHirePersonDraft = (id: number): HirePersonDraft => ({
     issuingCountry: "",
     nationality: "",
     birthProvince: "",
+    birthCommunity: "",
     birthCountry: "",
     gender: "",
     maritalStatus: "",
     atradiusJobCode: "",
     atradiusCategory: "",
+    department: "",
     locationType: "",
     roadType: "",
     city: "",
@@ -96,6 +99,7 @@ export const createHirePersonDraft = (id: number): HirePersonDraft => ({
     irpfType: "",
     perceptionKey: "",
     variableCompensationMode: "",
+    referenceModelWeek: "",
     paymentCurrency: "",
     paymentType: "",
     companyBank: "",
@@ -130,11 +134,13 @@ export const toHirePersonInput = ({
   issuingCountry: current.issuingCountry,
   nationality: current.nationality,
   birthProvince: current.birthProvince,
+  birthCommunity: lastGeoSegment(current.birthCommunity),
   birthCountry: current.birthCountry,
   gender: current.gender,
   maritalStatus: current.maritalStatus,
   atradiusJobCode: current.atradiusJobCode,
   atradiusCategory: current.atradiusCategory,
+  department: current.department,
   locationType: current.locationType,
   roadType: current.roadType,
   city: current.city,
@@ -172,6 +178,7 @@ export const toHirePersonInput = ({
   irpfType: current.irpfType,
   perceptionKey: current.perceptionKey,
   variableCompensationMode: current.variableCompensationMode,
+  referenceModelWeek: current.referenceModelWeek,
   paymentCurrency: current.paymentCurrency,
   paymentType: current.paymentType,
   companyBank: current.companyBank,
@@ -239,6 +246,7 @@ export const toHirePersonInput = ({
   additionalClause: pendingValues.additionalClause ?? "",
   annualGross: pendingValues.annualGross ?? "",
   seniorityDate: pendingValues.seniorityDate ?? "",
+  extrasDate: pendingValues.extrasDate ?? "",
   timeManagementPay: pendingChecks.timeManagementPay ?? false,
   bankFormatChoice: branches.bankFormatChoice,
   iban: branches.bankFormatChoice === "iban" ? (pendingValues.iban ?? "") : "",

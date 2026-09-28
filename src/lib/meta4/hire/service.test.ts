@@ -30,7 +30,10 @@ loadCatalogs.mockResolvedValue({
   union: [{ id: "UGT", name: "Unión General de Trabajadores" }],
   irpfType: [{ id: "NAC", name: "Nacional" }],
   perceptionKey: [{ id: "A", name: "Empleados por cuenta ajena" }],
-  referenceModelWeek: [],
+  referenceModelWeek: [
+    { id: "001/1", name: "Modelo 1", detail: "Semana 004" },
+    { id: "002/2", name: "Modelo 2", detail: "Semana 005" },
+  ],
   documentType: [{ id: "1", name: "NIF" }],
   country: [{ id: "724", name: "España" }],
   nationality: [{ id: "724", name: "Española" }],
@@ -41,7 +44,7 @@ loadCatalogs.mockResolvedValue({
   maritalStatus: [{ id: "01", name: "Soltero/a" }],
   atradiusJob: [{ id: "0000", name: "Sin datos" }],
   atradiusCategory: [{ id: "00", name: "Sin datos" }],
-  department: [],
+  department: [{ id: "0000", name: "Sin datos" }],
   locationType: [{ id: "1", name: "Domicilio" }],
   roadType: [{ id: "CL", name: "Calle" }],
   legalEntity: [{ id: "ACYC_ES", name: "ACYC España" }],
@@ -162,6 +165,93 @@ const successBody = `
   </soap:Envelope>`;
 
 describe("launchMeta4Hire service", () => {
+  it.each([
+    { field: "department", value: "nonexistent", label: /ID Department/ },
+    { field: "birthCommunity", value: "nonexistent", label: /ID Comunidad nacimiento/ },
+    { field: "birthCommunity", value: "724/28", label: /ID Comunidad nacimiento/ },
+    { field: "referenceModelWeek", value: "001/2", label: /Modelo\/Semana/ },
+  ] as const)("rejects invalid $field before editing Excel", async ({ field, value, label }) => {
+    const editHireWorkbook = vi.fn(async () => Buffer.from("excel-preserved-bytes"));
+    await expect(
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, [field]: value }], {
+        getOperationalContext: async () => ({
+          mode: "meta4",
+          username: "user",
+          society: "CYC",
+          jSessionId: "session",
+          companyId: "company-cyc",
+        }),
+        editHireWorkbook,
+        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+        hireDirectory: IMPORT_DIRECTORY,
+        serialize: createSerializedQueue(),
+      }),
+    ).rejects.toMatchObject({
+      code: "META4_HIRE_VALIDATION",
+      message: expect.stringMatching(label),
+    });
+    expect(editHireWorkbook).not.toHaveBeenCalled();
+  });
+
+  it("validates the raw birth community against its country and province and forwards the four fields", async () => {
+    const editHireWorkbook = vi.fn(async (_template: string, _people: readonly HirePerson[]) =>
+      Buffer.from("excel-preserved-bytes"),
+    );
+    const options = {
+      getOperationalContext: async () => ({
+        mode: "meta4" as const,
+        username: "user",
+        society: "CYC" as const,
+        jSessionId: "session",
+        companyId: "company-cyc",
+      }),
+      editHireWorkbook,
+      loadCatalogs: async () => ({
+        ...(await loadCatalogs()),
+        country: [
+          { id: "724", name: "España" },
+          { id: "620", name: "Portugal" },
+        ],
+        community: [
+          { id: "724/28", name: "Madrid" },
+          { id: "620/28", name: "Otra comunidad" },
+          { id: "724/09", name: "Cataluña" },
+        ],
+      }),
+      executeSoap: (async (operation) =>
+        operation.parseResponse(new Response(successBody, { status: 200 }))) satisfies SoapExecute,
+      writeHireFile: async () => undefined,
+      verifyHireFile: async () => undefined,
+      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+      hireDirectory: IMPORT_DIRECTORY,
+      serialize: createSerializedQueue(),
+    };
+    const populated = {
+      ...person,
+      birthCountry: "724",
+      birthCommunity: "28",
+      birthProvince: "724/28/28",
+      extrasDate: "2024-02-29",
+      referenceModelWeek: "001/1",
+    };
+    await launchMeta4Hire(AUTH_SESSION, [populated], options);
+    expect(editHireWorkbook.mock.calls[0]?.[1]).toEqual([populated]);
+    editHireWorkbook.mockClear();
+    await expect(
+      launchMeta4Hire(AUTH_SESSION, [{ ...populated, birthCommunity: "09" }], options),
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/Provincia nacimiento no pertenece a ID Comunidad nacimiento/),
+    });
+    await expect(
+      launchMeta4Hire(
+        AUTH_SESSION,
+        [{ ...populated, birthCountry: "620", birthCommunity: "09", birthProvince: "" }],
+        options,
+      ),
+    ).rejects.toMatchObject({ message: expect.stringMatching(/ID Comunidad nacimiento/) });
+    expect(editHireWorkbook).not.toHaveBeenCalled();
+  });
+
   it("writes and calls SOAP with the same import UNC path", async () => {
     let callCount = 0;
     const executeSoap: SoapExecute = async (operation) => {

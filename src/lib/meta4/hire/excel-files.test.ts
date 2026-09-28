@@ -158,7 +158,7 @@ describe("Hire Excel temp files", () => {
     for (const cells of [first, second]) {
       expect(new Set(cells.keys())).toEqual(new Set(WRITTEN_COLUMNS));
       expect(cells.size).toBe(WRITTEN_COLUMNS.length);
-      for (const column of ["ER", "GP", "HO", "HP", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
+      for (const column of ["HO", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
         expect(cells.has(column), column).toBe(false);
       }
     }
@@ -192,6 +192,51 @@ describe("Hire Excel temp files", () => {
     expect(second.get("HZ")?.value).toBe("00491500");
     expect(second.get("IA")?.value).toBe("00491500");
     expect(second.get("ID")?.value).toBe("001234567890");
+  });
+
+  it("changes only AL, ER, GP, HN and HP for the four fields and clears only their optional destinations", async () => {
+    directory = await mkdtemp(path.join(tmpdir(), "hire-four-fields-"));
+    const changed = {
+      ...person,
+      birthCommunity: "13",
+      department: "0010",
+      extrasDate: "2024-02-29",
+      referenceModelWeek: "001/02",
+      SCO_ID_WEEK_MDL: "display-only-week",
+    };
+    const files = await writeHireEditFiles(directory, [person, changed]);
+    type Cell = { column: string; kind: string; value?: string | number };
+    const payload = JSON.parse(
+      (await readFile(files.instructionsPath)).subarray(3).toString("utf8"),
+    ) as { rows: Array<{ cells: Cell[] }> };
+    const [base, populated] = payload.rows.map(
+      (row) => new Map(row.cells.map((cell) => [cell.column, cell])),
+    );
+    expect(["AL", "ER", "GP", "HN", "HP"].map((column) => populated.get(column))).toEqual([
+      { column: "AL", kind: "literal", value: "13" },
+      { column: "ER", kind: "literal", value: "0010" },
+      { column: "GP", kind: "number", value: toExcelSerialDate("2024-02-29") },
+      { column: "HN", kind: "literal", value: "001" },
+      { column: "HP", kind: "literal", value: "02" },
+    ]);
+    expect(base.get("ER")).toEqual({ column: "ER", kind: "literal", value: "0000" });
+    for (const column of ["AL", "GP", "HN", "HP"]) {
+      expect(base.get(column)).toEqual({ column, kind: "clear" });
+    }
+    for (const [column, cell] of base) {
+      if (["AL", "ER", "GP", "HN", "HP"].includes(column)) continue;
+      expect(populated.get(column), column).toEqual(cell);
+    }
+    for (const cells of [base, populated]) {
+      expect(cells.get("AM")).toEqual({
+        column: "AM",
+        kind: "literal",
+        value: person.atradiusJobCode,
+      });
+      expect(cells.get("GQ")).toEqual({ column: "GQ", kind: "literal", value: person.iban });
+      expect(cells.has("HO")).toBe(false);
+      expect([...cells.values()].map((cell) => cell.value)).not.toContain("display-only-week");
+    }
   });
 
   it("records COM, workbook, sheet and save without personal data", () => {

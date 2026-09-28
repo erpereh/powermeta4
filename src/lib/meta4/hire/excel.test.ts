@@ -72,6 +72,10 @@ const person = (suffix: string, hireDate: string): HirePerson => ({
   additionalClause: "Cláusula revisada",
   annualGross: "32000.25",
   seniorityDate: "2020-03-01",
+  birthCommunity: suffix === "B" ? "" : "09",
+  department: suffix === "B" ? "0002" : "0010",
+  extrasDate: suffix === "B" ? "" : "2024-02-29",
+  referenceModelWeek: suffix === "B" ? "" : "001/02",
   timeManagementPay: true,
   bankFormatChoice: suffix === "B" ? "other" : "iban",
   iban: suffix === "B" ? "" : "ES5200491500061234567890",
@@ -331,6 +335,17 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(generated.get("FO")?.value).toBeUndefined();
     expect(generated.get("GJ")?.value).toBe(32000.25);
     expect(generated.get("GQ")?.value).toBe("ES5200491500061234567890");
+    expect(generated.get("AL")?.value).toBe("09");
+    expect(generated.get("ER")?.value).toBe("0010");
+    expect(generated.get("GP")?.value).toBe(toExcelSerialDate("2024-02-29"));
+    expect(sheet.GP6?.t).toBe("n");
+    expect(generated.get("HN")?.value).toBe("001");
+    expect(generated.get("HP")?.value).toBe("02");
+    for (const column of ["AL", "ER", "HN", "HP"]) {
+      expect(sheet[`${column}6`]?.t, column).toBe("s");
+      expect(generated.get(column)?.formula, column).toBeUndefined();
+    }
+    expect(generated.get("HO")).toEqual(original.get("HO"));
     expect(generated.get("HZ")?.value).toBeUndefined();
     expect(generated.get("IA")?.value).toBeUndefined();
     expect(generated.get("ID")?.value).toBeUndefined();
@@ -414,6 +429,17 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(rows[1]?.get("ID")?.value).toBe("001234567890");
 
     rows.forEach((values, index) => {
+      const populated = index !== 1;
+      expect(values.get("AL")?.value).toBe(populated ? "09" : undefined);
+      expect(values.get("ER")?.value).toBe(populated ? "0010" : "0002");
+      expect(values.get("GP")?.value).toBe(populated ? toExcelSerialDate("2024-02-29") : undefined);
+      expect(values.get("HN")?.value).toBe(populated ? "001" : undefined);
+      expect(values.get("HP")?.value).toBe(populated ? "02" : undefined);
+      expect(values.get("AM")?.value).toBe("AD00T3");
+      expect(values.get("HO")).toEqual(original.get("HO"));
+    });
+
+    rows.forEach((values, index) => {
       const row = FIRST_PERSON_ROW + index;
       for (const [column, cell] of original) {
         if (writtenColumns.has(column)) continue;
@@ -428,5 +454,42 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
 
     expect(rows[0]?.get("X")?.value).not.toEqual(rows[1]?.get("X")?.value);
     expect(rows[1]?.get("AY")?.value).not.toEqual(rows[2]?.get("AY")?.value);
+  }, 180_000);
+
+  it("preserves Atradius AM, IBAN GQ and template HO when only the four fields differ", async () => {
+    const changed = person("A", "2026-10-02");
+    const base = {
+      ...changed,
+      birthCommunity: "",
+      department: "0000",
+      extrasDate: "",
+      referenceModelWeek: "",
+    };
+    const baseSheet = readWorkbook(await editHireWorkbook(templatePath, [base])).Sheets[
+      HIRE_DATA_SHEET
+    ];
+    const changedSheet = readWorkbook(await editHireWorkbook(templatePath, [changed])).Sheets[
+      HIRE_DATA_SHEET
+    ];
+    const templateSheet = readWorkbook(readFileSync(templatePath)).Sheets[HIRE_DATA_SHEET];
+    for (const [column, expected] of [
+      ["AL", "09"],
+      ["ER", "0010"],
+      ["GP", toExcelSerialDate("2024-02-29")],
+      ["HN", "001"],
+      ["HP", "02"],
+    ] as const) {
+      expect(changedSheet[`${column}6`]?.v, column).toBe(expected);
+    }
+    for (const column of ["AL", "GP", "HN", "HP"]) {
+      expect(baseSheet[`${column}6`]?.v, column).toBeUndefined();
+    }
+    expect(baseSheet.ER6?.v).toBe("0000");
+    for (const sheet of [baseSheet, changedSheet]) {
+      expect(sheet.AM6?.v).toBe(changed.atradiusJobCode);
+      expect(sheet.GQ6?.v).toBe(changed.iban);
+      expect(sheet.HO6?.v).toBe(templateSheet.HO6?.v);
+      expect(sheet.HO6?.f).toBe(templateSheet.HO6?.f);
+    }
   }, 180_000);
 });

@@ -16,11 +16,13 @@ const EXPECTED_COLUMNS = {
   issuingCountry: ["AA", "AB"],
   nationality: ["AE", "AF"],
   birthProvince: ["AG", "AH"],
+  birthCommunity: ["AL"],
   birthCountry: ["AO", "AP"],
   gender: ["AQ", "AR"],
   maritalStatus: ["AS", "AT"],
   atradiusJobCode: ["AM"],
   atradiusCategory: ["T"],
+  department: ["ER"],
   locationType: ["BB", "BC"],
   roadType: ["BD", "BE"],
   city: ["BQ", "BR"],
@@ -87,6 +89,8 @@ const EXPECTED_COLUMNS = {
   additionalClause: ["GE"],
   annualGross: ["GJ"],
   seniorityDate: ["GN", "GO"],
+  extrasDate: ["GP"],
+  referenceModelWeek: ["HN", "HP"],
   timeManagementPay: ["HR", "HS"],
   tc1Header: ["DZ", "EA"],
   tariffGroup: ["EB", "EC"],
@@ -125,12 +129,20 @@ const COMPOUND_PARTS = {
   replacedPersonSsNumber: ["replacedSsPrefix", "replacedSsBody", "replacedSsSuffix"],
 } as const;
 
+// Explicit user confirmations supersede the legacy XLS headers for these four fields only.
+const USER_CONFIRMED_MAPPINGS = {
+  birthCommunity: { columns: ["AL"], identifiers: ["STD_ID_GEO_DIV"] },
+  department: { columns: ["ER"], identifiers: ["CSP_ID_DEPARTMENT"] },
+  extrasDate: { columns: ["GP"], identifiers: ["SSP_FEC_EXTRAS"] },
+  referenceModelWeek: { columns: ["HN", "HP"], identifiers: ["SCO_ID_REF_MOD", "SCO_OR_REF_MOD"] },
+} as const;
+
 const templatePath = path.join(process.cwd(), "fuentes", "HIRE", "Hire_1_PERSONA.xls");
 const technicalId = (header: unknown): string | null =>
   typeof header === "string" ? (header.split(".").at(-1)?.replace(/##$/, "") ?? null) : null;
 
 describe("AltaNueva exact mapping contract", () => {
-  it("writes exactly the reviewed columns for all 99 integrated fields", () => {
+  it("writes exactly the reviewed columns for all 103 integrated fields", () => {
     expect(MANUAL_COLUMNS).toEqual(EXPECTED_COLUMNS);
     const expectedKeys = new Set<string>();
     for (const [field, meta] of Object.entries(HIRE_FIELD_META)) {
@@ -141,12 +153,12 @@ describe("AltaNueva exact mapping contract", () => {
     expect(new Set(Object.keys(EXPECTED_COLUMNS))).toEqual(expectedKeys);
     expect(new Set(WRITTEN_COLUMNS)).toEqual(new Set(Object.values(EXPECTED_COLUMNS).flat()));
     expect(new Set(WRITTEN_COLUMNS).size).toBe(WRITTEN_COLUMNS.length);
-    for (const excluded of ["ER", "GP", "HO", "HP", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
+    for (const excluded of ["HO", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
       expect(WRITTEN_COLUMNS, excluded).not.toContain(excluded);
     }
   });
 
-  it("matches each technical identifier against row 5 of Hire_1_PERSONA.xls", () => {
+  it("matches technical headers or one of the four explicit user confirmations", () => {
     const sheet = XLSX.readFile(templatePath, { sheetRows: 5 }).Sheets[HIRE_DATA_SHEET];
     expect(sheet).toBeDefined();
     for (const [field, meta] of Object.entries(HIRE_FIELD_META)) {
@@ -155,6 +167,12 @@ describe("AltaNueva exact mapping contract", () => {
       const columns = (parts ?? [field]).flatMap(
         (key) => EXPECTED_COLUMNS[key as keyof typeof EXPECTED_COLUMNS],
       );
+      if (Object.hasOwn(USER_CONFIRMED_MAPPINGS, field)) {
+        const confirmed = USER_CONFIRMED_MAPPINGS[field as keyof typeof USER_CONFIRMED_MAPPINGS];
+        expect(columns, field).toEqual(confirmed.columns);
+        expect(meta.mapping.identifiers, field).toEqual(confirmed.identifiers);
+        continue;
+      }
       const bound = columns.map((column) => technicalId(sheet[`${column}5`]?.v)).filter(Boolean);
       expect(new Set(bound), field).toEqual(new Set(meta.mapping.identifiers));
       for (const column of columns) {

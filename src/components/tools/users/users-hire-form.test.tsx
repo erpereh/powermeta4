@@ -153,6 +153,9 @@ afterEach(() => {
 const inputValue = (label: string): string =>
   (screen.getByLabelText(label) as HTMLInputElement).value;
 
+const catalogValue = (name: string): string =>
+  (screen.getByRole("combobox", { name }) as HTMLInputElement).value;
+
 const fillRequired = async (
   user: ReturnType<typeof userEvent.setup>,
   values: {
@@ -217,6 +220,7 @@ const fillRequired = async (
   await user.click(screen.getByRole("button", { name: "Información Atradius" }));
   await chooseOption(user, "ID Atradius Job Code", /Sin datos/);
   await chooseOption(user, "ID Categoría Atradius", /Sin datos/);
+  await chooseOption(user, "ID Department", /Local Sales/);
   await user.click(screen.getByRole("button", { name: "Dirección" }));
   await chooseOption(user, "ID Tipo localización", /Domicilio/);
   await chooseOption(user, "ID Tipo de vía", /Calle/);
@@ -359,6 +363,9 @@ describe("UsersHireForm", () => {
     const draft = createHirePersonDraft(1);
     draft.current.project = "000000";
     draft.current.position = "POS01";
+    draft.current.birthCommunity = "724/13";
+    draft.current.department = "0010";
+    draft.current.referenceModelWeek = "001/02";
     draft.branches = {
       positionChoice: "position",
       occupationType: "ejc",
@@ -406,11 +413,10 @@ describe("UsersHireForm", () => {
       additionalClause: "Cláusula",
       annualGross: "30000",
       seniorityDate: "2020-01-01",
+      extrasDate: "2024-02-29",
       iban: "retained iban",
       bankBranch: "00491500",
       accountNumber: "001234567890",
-      birthCommunity: "retained community",
-      department: "retained department",
       faxPrefix: "retained fax",
       bic: "retained bic",
     };
@@ -439,10 +445,23 @@ describe("UsersHireForm", () => {
       womanMaternity24: true, underrepresentedWoman: true, activeInsertionIncome: true, reliefContract: true, readmittedDisabled: true, firstSelfEmployedWorker: true,
       probationDays: "15", probationEnd: "2026-11-01", additionalClause: "Cláusula", annualGross: "30000", seniorityDate: "2020-01-01", timeManagementPay: true,
       bankFormatChoice: "other", iban: "", bankBranch: "00491500", accountNumber: "001234567890",
+      birthCommunity: "13",
+      department: "0010",
+      referenceModelWeek: "001/02",
+      extrasDate: "2024-02-29",
     });
-    for (const missing of ["birthCommunity", "department", "faxPrefix", "faxNumber", "specificFic", "extrasDate", "referenceModelWeek", "personBankOrdinal", "bic"]) {
+    for (const missing of ["faxPrefix", "faxNumber", "specificFic", "personBankOrdinal", "bic"]) {
       expect(payload).not.toHaveProperty(missing);
     }
+    draft.current.birthCommunity = "";
+    draft.current.referenceModelWeek = "";
+    draft.pendingValues.extrasDate = "";
+    expect(toHirePersonInput(draft)).toMatchObject({
+      birthCommunity: "",
+      referenceModelWeek: "",
+      extrasDate: "",
+      department: "0010",
+    });
   });
 
   it("lists PeopleNet payment catalogs by ID and name and keeps the name in the field", async () => {
@@ -485,7 +504,7 @@ describe("UsersHireForm", () => {
     expect(screen.queryByRole("button", { name: "Quitar ID Moneda" })).toBeNull();
   });
 
-  it("fills payroll catalogs and keeps the reference model out of the payload", async () => {
+  it("fills payroll catalogs and lets the optional reference pair be removed", async () => {
     const user = userEvent.setup({ delay: null });
     render(<UsersHireForm catalogs={CATALOGS} />);
     await user.click(screen.getByRole("tab", { name: "Nómina" }));
@@ -509,6 +528,9 @@ describe("UsersHireForm", () => {
       "001/2LogísticaSemana 005",
     ]);
     await user.click(screen.getByRole("option", { name: /Semana 005/ }));
+    expect(catalogValue("ID Modelo/Semana de referencia")).toBe("Logística");
+    await user.click(screen.getByRole("button", { name: "Quitar ID Modelo/Semana de referencia" }));
+    expect(catalogValue("ID Modelo/Semana de referencia")).toBe("");
     await user.click(screen.getByRole("button", { name: "Añadir persona" }));
     expect(screen.getByRole("alert").textContent).toMatch(/obligatorio/);
   });
@@ -552,6 +574,19 @@ describe("UsersHireForm", () => {
     await user.click(screen.getByRole("option", { name: /Madrid · España/ }));
     expect(value("ID Población")).toBe("");
     expect(value("ID Comunidad")).toBe("Madrid");
+  });
+
+  it("fills birth community and country from the province and clears inconsistent descendants", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<UsersHireForm catalogs={CATALOGS} />);
+    await chooseOption(user, "ID Provincia nacimiento", /Barcelona/);
+    expect(catalogValue("ID Comunidad nacimiento")).toBe("Cataluña");
+    expect(catalogValue("ID País nacimiento")).toBe("España");
+    await chooseOption(user, "ID Comunidad nacimiento", /Madrid/);
+    expect(catalogValue("ID Provincia nacimiento")).toBe("");
+    await user.click(screen.getByRole("button", { name: "Quitar ID Comunidad nacimiento" }));
+    expect(catalogValue("ID Comunidad nacimiento")).toBe("");
+    expect(catalogValue("ID País nacimiento")).toBe("España");
   });
 
   it("shows partial schedule choices only for Jornada parcial", async () => {
@@ -706,21 +741,23 @@ describe("UsersHireForm", () => {
     nameLabel.focus();
     expect((await screen.findByRole("tooltip")).textContent).toBe("STD_N_FIRST_NAME");
 
-    const redLabel = labelFor("birthCommunity");
-    const redCatalog = container.querySelector<HTMLElement>(
+    const communityLabel = labelFor("birthCommunity");
+    const communityCatalog = container.querySelector<HTMLElement>(
       '[data-hire-field="birthCommunity"] [role="combobox"]',
     );
-    expect(redCatalog?.getAttribute("aria-labelledby")).toBe(redLabel.id);
-    redLabel.focus();
-    await waitFor(() =>
-      expect(screen.getByRole("tooltip").textContent).toBe("Mapping pendiente de confirmar"),
-    );
+    expect(communityCatalog?.getAttribute("aria-labelledby")).toBe(communityLabel.id);
+    communityLabel.focus();
+    await waitFor(() => expect(screen.getByRole("tooltip").textContent).toBe("STD_ID_GEO_DIV"));
 
     await user.click(screen.getByRole("button", { name: "Contactos" }));
     const emailLabel = labelFor("email");
     emailLabel.focus();
     await waitFor(() =>
       expect(screen.getByRole("tooltip").textContent).toBe("STD_EMAIL / STD_EMAIL_ATRADIUS"),
+    );
+    labelFor("fax").focus();
+    await waitFor(() =>
+      expect(screen.getByRole("tooltip").textContent).toBe("Mapping pendiente de confirmar"),
     );
 
     await user.click(screen.getByRole("tab", { name: "Organización" }));
@@ -832,7 +869,11 @@ describe("UsersHireForm", () => {
     expect(screen.getByRole("button", { name: "Editar persona 1" })).toBeTruthy();
   }, 60_000);
 
-  it("restores collapsed values when editing and keeps later people", async () => {
+  it("retains the four fields between people and tabs and submits each person's own values", async () => {
+    launchHire.mockResolvedValue({
+      ok: true,
+      data: { personCount: 2, fileName: "four-fields.xls" },
+    });
     const user = userEvent.setup({ delay: null });
     render(<UsersHireForm catalogs={CATALOGS} />);
 
@@ -843,6 +884,13 @@ describe("UsersHireForm", () => {
       email: "ana@example.test",
       hireDate: "2026-10-01",
     });
+    await user.click(screen.getByRole("button", { name: "Datos personales" }));
+    await chooseOption(user, "ID Provincia nacimiento", /Madrid/);
+    await user.click(screen.getByRole("tab", { name: "Nómina" }));
+    expect(screen.getByLabelText("Fecha Extras").getAttribute("type")).toBe("date");
+    fireEvent.change(screen.getByLabelText("Fecha Extras"), { target: { value: "2024-02-29" } });
+    await user.click(screen.getByRole("button", { name: "Tiempo teórico" }));
+    await chooseOption(user, "ID Modelo/Semana de referencia", /Semana 005/);
     await user.click(screen.getByRole("button", { name: "Añadir persona" }));
     await fillRequired(user, {
       firstName: "Luis",
@@ -851,6 +899,15 @@ describe("UsersHireForm", () => {
       email: "luis@example.test",
       hireDate: "2026-10-02",
     });
+    await user.click(screen.getByRole("button", { name: "Datos personales" }));
+    await chooseOption(user, "ID Comunidad nacimiento", /Cataluña/);
+    await user.click(screen.getByRole("button", { name: "Quitar ID Comunidad nacimiento" }));
+    await user.click(screen.getByRole("tab", { name: "Nómina" }));
+    fireEvent.change(screen.getByLabelText("Fecha Extras"), { target: { value: "2025-03-01" } });
+    fireEvent.change(screen.getByLabelText("Fecha Extras"), { target: { value: "" } });
+    await user.click(screen.getByRole("button", { name: "Tiempo teórico" }));
+    await chooseOption(user, "ID Modelo/Semana de referencia", /Semana 004/);
+    await user.click(screen.getByRole("button", { name: "Quitar ID Modelo/Semana de referencia" }));
     await user.click(screen.getByRole("button", { name: "Editar persona 1" }));
 
     expect(inputValue("Nombre")).toBe("Ana");
@@ -860,6 +917,29 @@ describe("UsersHireForm", () => {
     expect(inputValue("Correo electrónico")).toBe("ana@example.test");
     expect(screen.getByText("Luis Martín")).toBeTruthy();
     expect(screen.getByText("11111111H · luis@example.test")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Datos personales" }));
+    expect(catalogValue("ID Comunidad nacimiento")).toBe("Madrid");
+    expect(catalogValue("ID Provincia nacimiento")).toBe("Madrid");
+    await user.click(screen.getByRole("button", { name: "Información Atradius" }));
+    expect(catalogValue("ID Department")).toBe("1001-295-Local Sales Costs 1-BRA");
+    expect(
+      screen.getByRole("combobox", { name: "ID Department" }).getAttribute("aria-required"),
+    ).toBe("true");
+    await user.click(screen.getByRole("tab", { name: "Nómina" }));
+    expect(inputValue("Fecha Extras")).toBe("2024-02-29");
+    await user.click(screen.getByRole("button", { name: "Tiempo teórico" }));
+    expect(catalogValue("ID Modelo/Semana de referencia")).toBe("Logística");
+    await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+    expect(launchHire.mock.calls[0]?.[0]).toMatchObject([
+      {
+        birthCommunity: "13",
+        department: "1001",
+        extrasDate: "2024-02-29",
+        referenceModelWeek: "001/2",
+      },
+      { birthCommunity: "", department: "1001", extrasDate: "", referenceModelWeek: "" },
+    ]);
   }, 60_000);
 
   it("removes a collapsed person and submits every remaining person", async () => {

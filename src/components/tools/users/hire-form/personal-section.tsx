@@ -9,7 +9,6 @@ import {
   CompoundField,
   CurrentInput,
   GeoField,
-  PendingCatalogLookup,
   PendingInput,
   PlaceField,
   HireSubsection,
@@ -62,7 +61,7 @@ export function PersonalSection() {
                   <PendingInput field="atradiusId" />
                   <CatalogField field="atradiusJobCode" />
                   <CatalogField field="atradiusCategory" />
-                  <PendingCatalogLookup field="department" source="department" />
+                  <CatalogField field="department" />
                 </div>
               </div>
             ) : null,

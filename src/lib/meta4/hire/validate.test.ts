@@ -92,6 +92,45 @@ describe("parseHirePeople", () => {
     expect(() => parseHirePeople([])).toThrow(/al menos una persona/);
   });
 
+  it("accepts the four fields, requires Department and preserves optional empty values", () => {
+    const [person] = parseHirePeople([
+      {
+        ...validPerson,
+        birthCommunity: "13",
+        department: "0010",
+        extrasDate: "2024-02-29",
+        referenceModelWeek: "001/02",
+        SCO_ID_WEEK_MDL: "004",
+      },
+    ]);
+    expect(person).toMatchObject({
+      birthCommunity: "13",
+      department: "0010",
+      extrasDate: "2024-02-29",
+      referenceModelWeek: "001/02",
+    });
+    expect(person).not.toHaveProperty("SCO_ID_WEEK_MDL");
+    expect(parseHirePeople([validPerson])[0]).toMatchObject({
+      birthCommunity: "",
+      extrasDate: "",
+      referenceModelWeek: "",
+    });
+    expect(() => parseHirePeople([{ ...validPerson, department: "" }])).toThrow(
+      /ID Department.*obligatorio/,
+    );
+    expect(() => parseHirePeople([{ ...validPerson, extrasDate: "2026-02-30" }])).toThrow(
+      /fecha de extras.*fecha válida/,
+    );
+    expect(() => parseHirePeople([{ ...validPerson, extrasDate: "29/02/2024" }])).toThrow(
+      /AAAA-MM-DD/,
+    );
+    for (const referenceModelWeek of ["001", "001/", "/1", "001/1/004"]) {
+      expect(() => parseHirePeople([{ ...validPerson, referenceModelWeek }])).toThrow(
+        /Modelo\/Semana.*par no válido/,
+      );
+    }
+  });
+
   it("rejects missing name, document, email or hire date", () => {
     expect(() => parseHirePeople([{ ...validPerson, firstName: "" }])).toThrow(/nombre/);
     expect(() => parseHirePeople([{ ...validPerson, documentNumber: " " }])).toThrow(
