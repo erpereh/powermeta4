@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: retirada de cuatro campos sin mapping - 2026-09-28
+
+- [x] Eliminados Fax, FIC Específico, Ordinal banco persona y BIC de la UI,
+      el borrador, los tipos derivados, la metadata y los tests asociados.
+      Retirados el botón de búsqueda del ordinal y sus imports exclusivos.
+- [x] Inventario e informe: 109 campos, 103 integrados, 0 sin confirmar y
+      6 controles auxiliares intactos. Se conservan los 38 requisitos PeopleNet,
+      las ramas y todos los SQL, mappings, payload y validación funcionales.
+- [x] Fixtures sin claves eliminadas; test de accesibilidad del checkbox
+      conservado con Mujer mater. 24 meses y tooltip `SSP_MUJER_24`.
+- [x] Ejecutados `npm run lint`, `npm run typecheck`, `npm test`,
+      `npm run build`, `git diff --check` y `git status --short`.
+      Typecheck, build y diff correctos. Suite: 544 pruebas correctas,
+      2 omitidas y los 2 fallos previos de Proyecto/CZ y del fixture sin
+      Puesto/Posición; conservados fuera del alcance de esta eliminación.
+      Excel COM: 3/3 pruebas reales correctas para una y varias personas.
+      Lint: siete avisos previos de oxlint y problemas de formato en
+      368 archivos. Sin formateo global ni cambios a SQL o mappings.
+
 ## Alta de personas: cuatro mappings confirmados por el usuario - 2026-09-28
 
 - [x] Comunidad de nacimiento (`STD_ID_GEO_DIV` → AL), Department
@@ -143,10 +162,8 @@ Referencias técnicas para retomar:
       bancarias sin input confirmado se preservan en la plantilla.
 - [x] Tests de contrato para las 99 filas integradas, instrucciones Excel de
       varias personas y ramas, y lectura real de XLS editado con Excel COM.
-- [ ] Confirmar manualmente los cuatro mappings restantes de la UI: fax,
-      FIC específico, ordinal de banco persona y BIC (los otros cuatro se
-      confirmaron e integraron el 2026-09-28). Confirmar con el importador
-      el efecto de los defaults bancarios IB/IC/IE/IF/IG/IH/II al alternar
+- [ ] Confirmar con el importador el efecto de los defaults bancarios
+      IB/IC/IE/IF/IG/IH/II al alternar
       IBAN y Otro formato. Los datos de negocio del Excel sin UI están
       inventariados en el informe.
 - [x] Verificación final ejecutada el 2026-09-28: lint, typecheck, suite

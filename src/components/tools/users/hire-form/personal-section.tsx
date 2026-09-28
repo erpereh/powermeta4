@@ -87,13 +87,6 @@ export function PersonalSection() {
                   ]}
                 />
                 <CurrentInput field="email" />
-                <CompoundField
-                  field="fax"
-                  parts={[
-                    { field: "faxPrefix", label: "Prefijo" },
-                    { field: "faxNumber", label: "Número" },
-                  ]}
-                />
               </div>
             ) : null,
         },

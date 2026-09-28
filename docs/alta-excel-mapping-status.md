@@ -1,6 +1,6 @@
 # Estado del mapping Excel del alta de personas
 
-Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5** (identificador técnico), con las cuatro confirmaciones explícitas del usuario del **2026-09-28** descritas abajo. La fila 4 se usa solo para reconocer la columna visible; sus rótulos `real_*` pueden estar desactualizados. La UI contiene **113 fields**: **103 integrados**, **4 con mapping sin confirmar** y **6 controles solo UI**. Ningún mapping confirmado queda pendiente de integración. Las columnas indicadas son las que escribe el generador; «Sí» significa que se crea una instrucción Excel, incluso cuando el valor vacío provoca `ClearContents`.
+Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5** (identificador técnico), con las cuatro confirmaciones explícitas del usuario del **2026-09-28** descritas abajo. La fila 4 se usa solo para reconocer la columna visible; sus rótulos `real_*` pueden estar desactualizados. La UI contiene **109 fields**: **103 integrados**, **0 con mapping sin confirmar** y **6 controles solo UI**. Ningún mapping confirmado queda pendiente de integración. Las columnas indicadas son las que escribe el generador; «Sí» significa que se crea una instrucción Excel, incluso cuando el valor vacío provoca `ClearContents`.
 
 ## Confirmaciones explícitas del usuario
 
@@ -39,7 +39,6 @@ Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia e
 | `phone` · Teléfono | integrado | `STD_NAT_REGION_CODE_PHONE, STD_PHONE` | AU (técnica), AV (técnica), IO (técnica) | Sí | — |
 | `mobile` · Móvil | integrado | `STD_NAT_REGION_CODE_CELL, STD_MOVIL` | AW (técnica), AX (técnica) | Sí | — |
 | `email` · Correo electrónico | integrado | `STD_EMAIL, STD_EMAIL_ATRADIUS` | AY (técnica), IQ (técnica) | Sí | — |
-| `fax` · Fax | mapping sin confirmar | `—` | AZ/BA pertenecen a Estructura/Centro funcional | No | — |
 | `locationType` · ID Tipo localización | integrado | `STD_ID_LOCATION_TYPE` | BB (visible), BC (técnica) | Sí | — |
 | `roadType` · ID Tipo de vía | integrado | `SSP_ID_SIGLA_DOMIC` | BD (visible), BE (técnica) | Sí | — |
 | `address` · Dirección | integrado | `STD_ADDRESS_LINE_1, STD_ADDRESS_LINE_2` | BH (técnica), BI (técnica) | Sí | — |
@@ -95,7 +94,6 @@ Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia e
 | `socialExclusion` · Exclusión social | integrado | `SSP_TRAB_EXCL_SOC` | FM (visible), FN (técnica) | Sí | — |
 | `disabilityChoice` · Sin minusvalía / Con minusvalía | solo UI | `—` | — | No | Selector minusvalía |
 | `disabilityPercent` · % minusvalía | integrado | `SSP_PORC_MINUSVAL` | FO (técnica) | Sí | Con minusvalía |
-| `specificFic` · FIC Específico | mapping sin confirmar | `—` | Sin columna inequívoca | No | — |
 | `contractSeniorityStart` · Inicio antig. contrato | integrado | `SSP_FEC_INI_A_CONT` | FP (visible), FQ (técnica) | Sí | — |
 | `womanMaternity24` · Mujer mater. 24 meses | integrado | `SSP_MUJER_24` | FR (visible), FS (técnica) | Sí | — |
 | `underrepresentedWoman` · Mujer subrepresentada | integrado | `SSP_MUJER_SUBREPR` | FT (visible), FU (técnica) | Sí | — |
@@ -122,13 +120,11 @@ Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia e
 | `paymentCurrency` · ID Moneda | integrado | `ID_CURRENCY` | HT (visible), HU (técnica) | Sí | — |
 | `paymentType` · ID Tipo pago | integrado | `SCO_ID_PAYM_TYPE` | HV (visible), HW (técnica) | Sí | — |
 | `companyBank` · ID Banco empresa | integrado | `SCO_ID_COMP_BANK` | HX (visible), HY (técnica) | Sí | — |
-| `personBankOrdinal` · Ordinal banco persona | mapping sin confirmar | `—` | Solo aparece en SRCO_PARAM_EXCEL | No | — |
 | `bankFormatChoice` · Formato: IBAN / Otro formato | solo UI | `—` | — | No | Selector IBAN/Otro |
 | `bankAccount` · Cuenta bancaria | solo UI | `—` | — | No | Selector IBAN/Otro |
 | `iban` · IBAN | integrado | `SCO_GB_IBAN` | GQ (técnica) | Sí | IBAN |
 | `bankBranch` · Sucursal bancaria | integrado | `SCO_ID_BANK_BRANCH` | HZ (visible), IA (técnica) | Sí | Otro formato |
 | `accountNumber` · Nº de cuenta | integrado | `SCO_ACCOUNT_NUMBER` | ID (técnica) | Sí | Otro formato |
-| `bic` · BIC | mapping sin confirmar | `—` | Sin identificador inequívoco en AltaNueva | No | Ambas ramas; no se envía |
 | `accountCurrency` · ID Moneda | integrado | `ID_CURRENCY_2` | IJ (visible), IK (técnica) | Sí | — |
 
 ## Subcampos de controles compuestos
@@ -141,8 +137,6 @@ Los controles compuestos se desglosan en sus inputs reales. Un mismo identificad
 | `phone.phoneNumber` | integrado | `STD_PHONE`, `STD_PHONE` | AV (técnica), IO (técnica) | Sí | — |
 | `mobile.mobilePrefix` | integrado | `STD_NAT_REGION_CODE_CELL` | AW (técnica) | Sí | — |
 | `mobile.mobileNumber` | integrado | `STD_MOVIL` | AX (técnica) | Sí | — |
-| `fax.faxPrefix` | mapping sin confirmar | — | — | No | — |
-| `fax.faxNumber` | mapping sin confirmar | — | — | No | — |
 | `address.addressLine1` | integrado | `STD_ADDRESS_LINE_1` | BH (técnica) | Sí | — |
 | `address.addressLine2` | integrado | `STD_ADDRESS_LINE_2` | BI (técnica) | Sí | — |
 | `ssNumber.ssNumberPrefix` | integrado | `SSP_PROV_NUM_SS` | DW (técnica) | Sí | Solo Con número |
@@ -154,7 +148,7 @@ Los controles compuestos se desglosan en sus inputs reales. Un mismo identificad
 
 ## Identificadores de la fila 5 sin input que los escriba
 
-Cada fila de esta tabla es una columna técnica real de `AltaNueva` que queda fuera de `WRITTEN_COLUMNS`. «Fórmula/default» significa que la fila 6 contiene una fórmula conservada, no que el formulario deba calcularla. Algunos identificadores sí tienen un campo UI cuyo mapping no puede confirmarse; se indican en las dudas.
+Cada fila de esta tabla es una columna técnica real de `AltaNueva` que queda fuera de `WRITTEN_COLUMNS`. «Fórmula/default» significa que la fila 6 contiene una fórmula conservada, no que el formulario deba calcularla.
 
 | Columna | Identificador técnico | Rótulo fila 4 | Clase |
 |---|---|---|---|
@@ -196,9 +190,8 @@ Además, la fila 4 ofrece celdas visibles sin identificador técnico propio y si
 
 ## Campos por crear o resolver
 
-- Siguen sin mapping fiable cuatro fields ya visibles: fax, FIC específico, ordinal de banco persona y BIC. Sus valores permanecen únicamente en el borrador local. La UI no presenta hoy controles para varios datos de negocio de la tabla anterior (p. ej., mailing check, tipo empleado, complementos, fechas previstas, pluriempleo, moneda del bruto, estado IRPF y componentes bancarios adicionales). Se deben definir semántica, catálogo y obligatoriedad antes de integrarlos.
-- **Fax:** AZ/BA están vinculadas a Estructura y Centro de Trabajo Funcional en esta plantilla, aunque otras hojas muestren rótulos de fax. **Ordinal banco:** solo hay indicios en `SRCO_PARAM_EXCEL`, sin destino confirmado en `AltaNueva`. **BIC** y **FIC específico** no tienen celda confirmable.
-- **Proyecto:** CZ es `SSP_ID_CENT_COSTO` y recibe el ID literal de PeopleNet; CY se conserva. **IBAN:** GQ es `SCO_GB_IBAN`. **Otro formato:** HZ visible e IA técnica son `SCO_ID_BANK_BRANCH`, e ID es `SCO_ACCOUNT_NUMBER`. La rama IBAN limpia HZ/IA/ID; la otra limpia GQ. BIC nunca cruza el payload. Las celdas bancarias **IB/IC/IE/IF/IG/IH/II** conservan ejemplos, defaults o fórmulas de la plantilla. Debe confirmarse con el importador cómo las interpreta cuando solo se aportan las columnas verificadas.
+- La UI no presenta hoy controles para varios datos de negocio de la tabla anterior (p. ej., mailing check, tipo empleado, complementos, fechas previstas, pluriempleo, moneda del bruto, estado IRPF y componentes bancarios adicionales). Se deben definir semántica, catálogo y obligatoriedad antes de integrarlos.
+- **Proyecto:** CZ es `SSP_ID_CENT_COSTO` y recibe el ID literal de PeopleNet; CY se conserva. **IBAN:** GQ es `SCO_GB_IBAN`. **Otro formato:** HZ visible e IA técnica son `SCO_ID_BANK_BRANCH`, e ID es `SCO_ACCOUNT_NUMBER`. La rama IBAN limpia HZ/IA/ID; la otra limpia GQ. Las celdas bancarias **IB/IC/IE/IF/IG/IH/II** conservan ejemplos, defaults o fórmulas de la plantilla. Debe confirmarse con el importador cómo las interpreta cuando solo se aportan las columnas verificadas.
 - Las copias de pago de Nómina **GY/HA** conservan exactamente su contenido y fórmulas de la plantilla; los catálogos elegidos se escriben en **HV/HW** y **HX/HY** de Datos de pago. `CH/CI` sí reciben la entidad legal seleccionada para la sociedad operativa. No se ejecuta un alta SOAP real durante las pruebas.
 
 ## Comportamiento de escritura y validación

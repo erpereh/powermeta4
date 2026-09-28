@@ -37,7 +37,6 @@ const mapped = (...identifiers: [string, ...string[]]): HireFieldMapping => ({
   status: "confirmed",
   identifiers,
 });
-const unconfirmed = { status: "unconfirmed" } as const;
 const uiOnly = { status: "ui-only" } as const;
 
 const connected = (
@@ -154,7 +153,7 @@ export const HIRE_FIELD_META = {
   ),
   department: connected("ID Department", "catalog", "required", true, mapped("CSP_ID_DEPARTMENT")),
 
-  // Datos personales · Contactos (4)
+  // Datos personales · Contactos (3)
   phone: connected("Teléfono", "compound", "unmarked", false, mapped("STD_NAT_REGION_CODE_PHONE", "STD_PHONE")),
   mobile: connected("Móvil", "compound", "unmarked", false, mapped("STD_NAT_REGION_CODE_CELL", "STD_MOVIL")),
   email: connected(
@@ -164,7 +163,6 @@ export const HIRE_FIELD_META = {
     true,
     mapped("STD_EMAIL", "STD_EMAIL_ATRADIUS"),
   ),
-  fax: pending("Fax", "compound", unconfirmed),
 
   // Datos personales · Dirección (13)
   locationType: connected(
@@ -326,7 +324,7 @@ export const HIRE_FIELD_META = {
     mapped("SSP_ID_MOTIV_REDUC"),
   ),
 
-  // Seguridad Social · Bonificaciones (15)
+  // Seguridad Social · Bonificaciones (14)
   substitutionCause: connected(
     "ID Causa sustitución",
     "catalog",
@@ -364,7 +362,6 @@ export const HIRE_FIELD_META = {
   ),
   disabilityChoice: pending("Sin minusvalía / Con minusvalía", "radio", uiOnly),
   disabilityPercent: connected("% minusvalía", "number", "conditional", false, mapped("SSP_PORC_MINUSVAL")),
-  specificFic: pending("FIC Específico", "checkbox", unconfirmed),
   contractSeniorityStart: connected("Inicio antig. contrato", "date", "unmarked", false, mapped("SSP_FEC_INI_A_CONT")),
   womanMaternity24: connected("Mujer mater. 24 meses", "checkbox", "unmarked", false, mapped("SSP_MUJER_24")),
   underrepresentedWoman: connected("Mujer subrepresentada", "checkbox", "unmarked", false, mapped("SSP_MUJER_SUBREPR")),
@@ -441,7 +438,7 @@ export const HIRE_FIELD_META = {
   ),
   timeManagementPay: connected("Pago con gestión del tiempo", "checkbox", "unmarked", false, mapped("SSP_PAGO_TA")),
 
-  // Datos de pago (11)
+  // Datos de pago (9)
   paymentCurrency: connected("ID Moneda", "catalog", "unmarked", true, mapped("ID_CURRENCY")),
   paymentType: connected("ID Tipo pago", "catalog", "unmarked", true, mapped("SCO_ID_PAYM_TYPE")),
   companyBank: connected(
@@ -451,13 +448,11 @@ export const HIRE_FIELD_META = {
     true,
     mapped("SCO_ID_COMP_BANK"),
   ),
-  personBankOrdinal: pending("Ordinal banco persona", "compound", unconfirmed),
   bankFormatChoice: pending("Formato: IBAN / Otro formato", "radio", uiOnly),
   bankAccount: pending("Cuenta bancaria", "compound", uiOnly, "required"),
   iban: connected("IBAN", "text", "conditional", false, mapped("SCO_GB_IBAN")),
   bankBranch: connected("Sucursal bancaria", "text", "conditional", false, mapped("SCO_ID_BANK_BRANCH")),
   accountNumber: connected("Nº de cuenta", "text", "conditional", false, mapped("SCO_ACCOUNT_NUMBER")),
-  bic: pending("BIC", "text", unconfirmed, "conditional"),
   accountCurrency: connected("ID Moneda", "catalog", "unmarked", false, mapped("ID_CURRENCY_2")),
 } as const satisfies Record<string, HireFieldMeta>;
 

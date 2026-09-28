@@ -171,7 +171,6 @@ export function SocialSecuritySection() {
                   <PendingInput field="disabilityPercent" disabled={disabilityChoice !== "with"} />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <PendingCheckbox field="specificFic" />
                   <PendingInput field="contractSeniorityStart" />
                   <PendingCheckbox field="womanMaternity24" />
                   <PendingCheckbox field="underrepresentedWoman" />

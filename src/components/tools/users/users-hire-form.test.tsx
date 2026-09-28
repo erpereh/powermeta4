@@ -245,9 +245,9 @@ describe("UsersHireForm", () => {
     expect(screen.queryByRole("button", { name: "Editar persona 1" })).toBeNull();
   });
 
-  it("distinguishes the 37 PeopleNet requirements from temporary send requirements", async () => {
+  it("distinguishes the 38 PeopleNet requirements from temporary send requirements", async () => {
     const fields = Object.values(HIRE_FIELD_META);
-    expect(fields).toHaveLength(113); // 112 PeopleNet rows and the current hire date.
+    expect(fields).toHaveLength(109); // 108 retained PeopleNet rows and the current hire date.
     expect(
       fields.filter(
         (field) => field.peopleNet === "required" || field.peopleNet === "conditional-required",
@@ -283,7 +283,6 @@ describe("UsersHireForm", () => {
       disabilityPercent: "25",
       iban: "ES1234",
       bankBranch: "BRANCH",
-      bic: "BIC1",
     };
     draft.branches = {
       ...draft.branches,
@@ -359,7 +358,7 @@ describe("UsersHireForm", () => {
     });
   });
 
-  it("projects every newly integrated scalar and check while excluding unresolved fields", () => {
+  it("projects every integrated scalar and check for the active branches", () => {
     const draft = createHirePersonDraft(1);
     draft.current.project = "000000";
     draft.current.position = "POS01";
@@ -417,8 +416,6 @@ describe("UsersHireForm", () => {
       iban: "retained iban",
       bankBranch: "00491500",
       accountNumber: "001234567890",
-      faxPrefix: "retained fax",
-      bic: "retained bic",
     };
     draft.pendingChecks = {
       keyEmployee: true,
@@ -430,7 +427,6 @@ describe("UsersHireForm", () => {
       readmittedDisabled: true,
       firstSelfEmployedWorker: true,
       timeManagementPay: true,
-      specificFic: true,
     };
     const payload = toHirePersonInput(draft);
     expect(payload).toMatchObject({
@@ -450,9 +446,6 @@ describe("UsersHireForm", () => {
       referenceModelWeek: "001/02",
       extrasDate: "2024-02-29",
     });
-    for (const missing of ["faxPrefix", "faxNumber", "specificFic", "personBankOrdinal", "bic"]) {
-      expect(payload).not.toHaveProperty(missing);
-    }
     draft.current.birthCommunity = "";
     draft.current.referenceModelWeek = "";
     draft.pendingValues.extrasDate = "";
@@ -725,7 +718,7 @@ describe("UsersHireForm", () => {
     expect([...seen].sort()).toEqual(Object.keys(HIRE_FIELD_META).sort());
   }, 20_000);
 
-  it("shows mapped, unresolved, and UI-only tooltips from focusable labels", async () => {
+  it("shows mapped and UI-only tooltips from focusable labels", async () => {
     const user = userEvent.setup({ delay: null });
     const { container } = render(<UsersHireForm catalogs={CATALOGS} />);
     const labelFor = (field: keyof typeof HIRE_FIELD_META): HTMLElement => {
@@ -755,10 +748,6 @@ describe("UsersHireForm", () => {
     await waitFor(() =>
       expect(screen.getByRole("tooltip").textContent).toBe("STD_EMAIL / STD_EMAIL_ATRADIUS"),
     );
-    labelFor("fax").focus();
-    await waitFor(() =>
-      expect(screen.getByRole("tooltip").textContent).toBe("Mapping pendiente de confirmar"),
-    );
 
     await user.click(screen.getByRole("tab", { name: "Organización" }));
     const choiceLabel = labelFor("positionChoice");
@@ -773,15 +762,15 @@ describe("UsersHireForm", () => {
     const { container } = render(<UsersHireForm catalogs={CATALOGS} />);
     await user.click(screen.getByRole("tab", { name: "Seguridad Social" }));
     await user.click(screen.getByRole("button", { name: "Bonificaciones contrato" }));
-    const field = container.querySelector<HTMLElement>('[data-hire-field="specificFic"]');
+    const field = container.querySelector<HTMLElement>('[data-hire-field="womanMaternity24"]');
     const label = field?.querySelector<HTMLLabelElement>("label[tabindex='0']");
     const checkbox = field?.querySelector<HTMLElement>("[role='checkbox']");
     expect(label).toBeTruthy();
     expect(label?.getAttribute("for")).toBe(checkbox?.id);
     expect(checkbox?.getAttribute("aria-checked")).toBe("false");
-    if (!label) throw new Error("Missing FIC label");
+    if (!label) throw new Error("Missing checkbox label");
     await user.hover(label);
-    expect((await screen.findByRole("tooltip")).textContent).toBe("Mapping pendiente de confirmar");
+    expect((await screen.findByRole("tooltip")).textContent).toBe("SSP_MUJER_24");
     await user.click(label);
     expect(checkbox?.getAttribute("aria-checked")).toBe("true");
   });

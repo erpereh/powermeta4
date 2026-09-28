@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-09-28 - Retirada de cuatro campos del alta sin mapping confirmado
+
+- Eliminados Fax, FIC Específico, Ordinal banco persona y BIC de la UI,
+  los tipos derivados y el borrador, la metadata y los fixtures/tests.
+  Retirados el componente del ordinal y su botón de búsqueda exclusivo.
+- Inventario e informe: 109 campos, 103 integrados, 0 sin confirmar y
+  los 6 auxiliares de UI conservados. Los 38 requisitos PeopleNet, las ramas,
+  los SQL, los mappings Excel y el contrato del servidor permanecen intactos.
+- IBAN conserva su único input; Otro formato conserva Sucursal y Número
+  de cuenta en dos columnas. La prueba de accesibilidad del checkbox usa
+  Mujer mater. 24 meses con el tooltip confirmado `SSP_MUJER_24`.
+- Verificados `npm run lint`, `npm run typecheck`, `npm test`,
+  `npm run build`, `git diff --check` y `git status --short`.
+  Typecheck, build y diff correctos. Suite: 544 pruebas correctas,
+  2 omitidas y los 2 fallos anteriores de Proyecto/CZ y del fixture sin
+  Puesto/Posición, conservados fuera del alcance. Excel COM: 3/3 pruebas
+  reales correctas para una y varias personas.
+- Lint conserva siete avisos previos de oxlint; `oxfmt --check` detecta
+  problemas de formato en 368 archivos. No se aplica formateo global.
+  Revisado el diff limitado a la eliminación, sus tests y documentación;
+  sin referencias a los campos retirados en código ni tests.
+
 ## 2026-09-28 - Cuatro campos del alta confirmados por el usuario
 
 - Comunidad de nacimiento envía solo `STD_ID_GEO_DIV` a AL; la selección

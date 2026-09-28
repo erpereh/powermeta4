@@ -20,16 +20,13 @@ const shortIdentifier = (header: unknown): string | null => {
 };
 
 describe("Meta4 hire field mappings", () => {
-  it("classifies every field and reserves red only for unresolved Excel mappings", () => {
+  it("classifies every field with confirmed mappings and six UI-only controls", () => {
     const entries = Object.entries(HIRE_FIELD_META);
-    expect(entries).toHaveLength(113);
+    expect(entries).toHaveLength(109);
     expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(103);
     expect(entries.filter(([, field]) => field.mapping.status === "confirmed")).toHaveLength(103);
-    expect(entries.filter(([, field]) => field.mapping.status === "unconfirmed")).toHaveLength(4);
+    expect(entries.filter(([, field]) => field.mapping.status === "unconfirmed")).toHaveLength(0);
     expect(entries.filter(([, field]) => field.mapping.status === "ui-only")).toHaveLength(6);
-    expect(
-      entries.filter(([, field]) => field.mapping.status === "unconfirmed").map(([id]) => id),
-    ).toEqual(["fax", "specificFic", "personBankOrdinal", "bic"]);
     expect(
       entries.filter(([, field]) => field.mapping.status === "ui-only").map(([id]) => id),
     ).toEqual([
@@ -47,8 +44,6 @@ describe("Meta4 hire field mappings", () => {
         expect(field.mapping.identifiers.length).toBeGreaterThan(0);
         expect(new Set(field.mapping.identifiers).size).toBe(field.mapping.identifiers.length);
         expect(hireFieldMappingTooltip(fieldId)).toBe(field.mapping.identifiers.join(" / "));
-      } else if (field.mapping.status === "unconfirmed") {
-        expect(hireFieldMappingTooltip(fieldId)).toBe("Mapping pendiente de confirmar");
       } else {
         expect(hireFieldMappingTooltip(fieldId)).toBe("Control de UI · sin mapping directo");
       }
@@ -72,7 +67,6 @@ describe("Meta4 hire field mappings", () => {
     expect(hireFieldMappingTooltip("referenceModelWeek")).toBe("SCO_ID_REF_MOD / SCO_OR_REF_MOD");
     expect(hireFieldLabelClass("firstName")).toBe("text-foreground");
     expect(hireFieldLabelClass("legalRepresentativeNif")).toBe("text-foreground");
-    expect(hireFieldLabelClass("fax")).toBe("text-destructive");
     expect(hireFieldMappingTooltip("email")).toBe("STD_EMAIL / STD_EMAIL_ATRADIUS");
     expect(hireFieldMappingTooltip("payrollCurrency")).toBe("ID_CURRENCY");
     expect(hireFieldMappingTooltip("accountCurrency")).toBe("ID_CURRENCY_2");

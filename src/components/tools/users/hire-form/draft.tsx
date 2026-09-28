@@ -13,8 +13,6 @@ export type PendingValueKey =
   | "phoneNumber"
   | "mobilePrefix"
   | "mobileNumber"
-  | "faxPrefix"
-  | "faxNumber"
   | "addressLine1"
   | "addressLine2"
   | "ssNumberPrefix"

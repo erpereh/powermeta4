@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Accordion, Input } from "@/components/system";
+import { Accordion } from "@/components/system";
 
 import { HireCatalogsNotice } from "./catalogs";
 import { useHireDraft } from "./draft";
@@ -9,28 +9,9 @@ import {
   CatalogField,
   FieldGroup,
   PendingInput,
-  PendingLookupButton,
   PendingRadio,
   HIRE_ACCORDION_CLASS_NAMES,
 } from "./fields";
-import { hireFieldLabelClass } from "./field-metadata";
-
-function PersonBankOrdinal() {
-  return (
-    <FieldGroup field="personBankOrdinal">
-      <div className="flex max-w-xs items-end gap-2">
-        <Input
-          label="Ordinal"
-          value=""
-          disabled
-          placeholder="Pendiente"
-          classNames={{ label: hireFieldLabelClass("personBankOrdinal") }}
-        />
-        <PendingLookupButton label="Búsqueda de ordinal banco persona pendiente" />
-      </div>
-    </FieldGroup>
-  );
-}
 
 export function PaymentSection() {
   const [openSection, setOpenSection] = useState<string | null>("payment-general");
@@ -64,7 +45,6 @@ export function PaymentSection() {
           description:
             openSection === "bank-data" ? (
               <div className="space-y-6">
-                <PersonBankOrdinal />
                 <PendingRadio
                   field="bankFormatChoice"
                   value={format}
@@ -78,17 +58,11 @@ export function PaymentSection() {
                   ]}
                 />
                 <FieldGroup field="bankAccount">
-                  {format === "iban" ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <PendingInput field="iban" />
-                      <PendingInput field="bic" />
-                    </div>
-                  ) : null}
+                  {format === "iban" ? <PendingInput field="iban" /> : null}
                   {format === "other" ? (
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 md:grid-cols-2">
                       <PendingInput field="bankBranch" />
                       <PendingInput field="accountNumber" />
-                      <PendingInput field="bic" />
                     </div>
                   ) : null}
                   {format === "" ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState, type ReactNode } from "react";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import {
   Button,
@@ -708,13 +708,5 @@ export function HireSubsection({ title, children }: { title: string; children: R
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {children}
     </section>
-  );
-}
-
-export function PendingLookupButton({ label }: { label: string }) {
-  return (
-    <Button type="button" variant="outline" size="icon" disabled aria-label={label}>
-      <Search aria-hidden="true" className="size-4" />
-    </Button>
   );
 }
