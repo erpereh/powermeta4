@@ -1,5 +1,31 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: cuatro mappings confirmados por el usuario - 2026-09-28
+
+- [x] Comunidad de nacimiento (`STD_ID_GEO_DIV` → AL), Department
+      (`CSP_ID_DEPARTMENT` → ER), Fecha Extras (`SSP_FEC_EXTRAS` → GP) y
+      Modelo/Semana (`SCO_ID_REF_MOD` → HN, `SCO_OR_REF_MOD` → HP) conectados
+      desde la UI y el draft hasta el payload, la validación y Excel.
+- [x] Los tres SELECT se conservan literalmente; adaptadores tipados para
+      filas sin alias. Fecha Extras no consulta un catálogo. Department
+      obligatorio, los otros tres opcionales. Semana asociada solo informativa.
+- [x] Rótulos y tooltips confirmados; informe actualizado a 103 integrados,
+      4 sin confirmar y 6 controles solo UI. Las cuatro confirmaciones del
+      usuario prevalecen sobre las cabeceras antiguas; estos campos no
+      escriben AM/GQ/HO.
+- [x] Excel COM: 3/3 pruebas correctas, con una persona, varias personas,
+      valores opcionales vacíos y comparación de entradas que solo difieren
+      en estos cuatro campos. SELECT simuladas en tests; sin alta SOAP real.
+- [x] Verificación secuencial ejecutada: `npm run lint`, `npm run typecheck`,
+      `npm test`, `npm run build`, `git diff --check`, `git status --short`.
+      Typecheck, build y diff correctos. Suite: 544 correctas, 2 omitidas y
+      2 fallos previos fuera de estos cuatro campos: la aserción de CZ en
+      `hire/mapping.test.ts` y el fixture sin Puesto/Posición en
+      `actions/meta4-hire.test.ts`. Se conservan sin ampliar la tarea.
+      Lint: siete avisos previos de oxlint y fallo de formato preexistente en
+      213 archivos; sin avisos nuevos. Diff revisado y cambios limitados a
+      los cuatro campos, sus tests y documentación.
+
 ## Consultar una nómina: vista del recibo - 2026-09-25
 
 - [x] Ruta `/tools/payroll/receipt` y acción `payroll.consult` implementada en
@@ -117,15 +143,15 @@ Referencias técnicas para retomar:
       bancarias sin input confirmado se preservan en la plantilla.
 - [x] Tests de contrato para las 99 filas integradas, instrucciones Excel de
       varias personas y ramas, y lectura real de XLS editado con Excel COM.
-- [ ] Confirmar manualmente ocho mappings de la UI: comunidad de nacimiento,
-      Department, fax, FIC específico, fecha de extras, modelo/semana de
-      referencia, ordinal de banco persona y BIC. Confirmar con el importador
+- [ ] Confirmar manualmente los cuatro mappings restantes de la UI: fax,
+      FIC específico, ordinal de banco persona y BIC (los otros cuatro se
+      confirmaron e integraron el 2026-09-28). Confirmar con el importador
       el efecto de los defaults bancarios IB/IC/IE/IF/IG/IH/II al alternar
       IBAN y Otro formato. Los datos de negocio del Excel sin UI están
       inventariados en el informe.
-- [x] Verificación final automatizada en Windows: typecheck, suite completa,
-      build, oxlint, formato dirigido de los TypeScript tocados,
-      `git diff --check`, worktree limpio y revisión final del diff.
+- [x] Verificación final ejecutada el 2026-09-28: lint, typecheck, suite
+      completa, build, `git diff --check`, `git status --short` y revisión del
+      diff. Resultados y fallos anteriores en la entrada de los cuatro campos.
 
 ## Listado de usuarios desde PeopleNet - 2026-09-25
 

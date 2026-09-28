@@ -1,6 +1,17 @@
 # Estado del mapping Excel del alta de personas
 
-Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5** (identificador técnico). La fila 4 se usa solo para reconocer la columna visible; sus rótulos `real_*` pueden estar desactualizados. La UI contiene **113 fields**: **99 integrados**, **8 con mapping sin confirmar** y **6 controles solo UI**. Ningún mapping confirmado queda pendiente de integración. Las columnas indicadas son las que escribe el generador; «Sí» significa que se crea una instrucción Excel, incluso cuando el valor vacío provoca `ClearContents`.
+Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5** (identificador técnico), con las cuatro confirmaciones explícitas del usuario del **2026-09-28** descritas abajo. La fila 4 se usa solo para reconocer la columna visible; sus rótulos `real_*` pueden estar desactualizados. La UI contiene **113 fields**: **103 integrados**, **4 con mapping sin confirmar** y **6 controles solo UI**. Ningún mapping confirmado queda pendiente de integración. Las columnas indicadas son las que escribe el generador; «Sí» significa que se crea una instrucción Excel, incluso cuando el valor vacío provoca `ClearContents`.
+
+## Confirmaciones explícitas del usuario
+
+Estos destinos prevalecen sobre las cabeceras antiguas del XLS únicamente para los cuatro campos indicados:
+
+- Comunidad de nacimiento: `STD_ID_GEO_DIV` → **AL**. La UI conserva `país/comunidad` para distinguir opciones y completar país/provincia; el payload y Excel reciben solo el ID de comunidad. **AM** conserva Atradius Job.
+- Department: `CSP_ID_DEPARTMENT` → **ER**, como texto literal. Su cabecera antigua `CSP_ID_CODE_DEP` no altera este contrato. Department es obligatorio y se valida contra su catálogo.
+- Fecha Extras: `SSP_FEC_EXTRAS` → **GP**, como número de fecha Excel, con la misma validación y conversión que las demás fechas. No lleva SELECT ni catálogo. **GQ** conserva el IBAN.
+- Modelo/Semana: la opción identifica el par modelo/ordinal; `SCO_ID_REF_MOD` → **HN** y `SCO_OR_REF_MOD` → **HP**, ambos como texto literal. `SCO_ID_WEEK_MDL` solo aporta información descriptiva. **HO** conserva la plantilla.
+
+Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia exclusivamente AL, GP y HN/HP respectivamente. Los tres SELECT facilitados se ejecutan literalmente, sin aliases, filtros ni columnas añadidos; las expresiones sin alias se adaptan desde la clave vacía del resultado SQL Server. Los tests de contrato mantienen las comprobaciones de las demás cabeceras y añaden excepciones explícitas solo para estos cuatro mappings.
 
 ## Inventario de todos los fields del formulario
 
@@ -16,7 +27,7 @@ Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5**
 | `birthDate` · Fecha nacimiento | integrado | `STD_DT_BIRTH` | AC (visible), AD (técnica) | Sí | — |
 | `nationality` · ID Nacionalidad | integrado | `STD_ID_COUNTRY_NAC` | AE (visible), AF (técnica) | Sí | — |
 | `birthProvince` · ID Provincia nacimiento | integrado | `SCO_BIRTH_ID_SUB_GEO_DIV` | AG (visible), AH (técnica) | Sí | — |
-| `birthCommunity` · ID Comunidad nacimiento | mapping sin confirmar | `—` | AL visible; AM vincula Atradius Job | No | — |
+| `birthCommunity` · ID Comunidad nacimiento | integrado | `STD_ID_GEO_DIV` | AL (confirmación del usuario) | Sí | — |
 | `birthCountry` · ID País nacimiento | integrado | `SCO_BIRTH_ID_COUNTRY` | AO (visible), AP (técnica) | Sí | — |
 | `gender` · ID Sexo | integrado | `STD_ID_GENDER` | AQ (visible), AR (técnica) | Sí | — |
 | `maritalStatus` · ID Estado civil | integrado | `STD_ID_MARITAL_STAT` | AS (visible), AT (técnica) | Sí | — |
@@ -24,7 +35,7 @@ Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5**
 | `atradiusId` · ID Atradius | integrado | `CSP_ID_ATRADIUS` | IS (técnica) | Sí | — |
 | `atradiusJobCode` · ID Atradius Job Code | integrado | `CSP_ID_ATRADIUS_JOB` | AM (técnica) | Sí | — |
 | `atradiusCategory` · ID Categoría Atradius | integrado | `CSP_ID_CATEG_ATRADIUS` | T (técnica) | Sí | — |
-| `department` · ID Department | mapping sin confirmar | `—` | ER = CSP_ID_CODE_DEP; el catálogo usa CSP_ID_DEPARTMENT | No | — |
+| `department` · ID Department | integrado | `CSP_ID_DEPARTMENT` | ER (confirmación del usuario) | Sí | — |
 | `phone` · Teléfono | integrado | `STD_NAT_REGION_CODE_PHONE, STD_PHONE` | AU (técnica), AV (técnica), IO (técnica) | Sí | — |
 | `mobile` · Móvil | integrado | `STD_NAT_REGION_CODE_CELL, STD_MOVIL` | AW (técnica), AX (técnica) | Sí | — |
 | `email` · Correo electrónico | integrado | `STD_EMAIL, STD_EMAIL_ATRADIUS` | AY (técnica), IQ (técnica) | Sí | — |
@@ -100,13 +111,13 @@ Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5**
 | `annualGross` · Bruto anual | integrado | `SSP_BRUTO_ANUAL` | GJ (técnica) | Sí | — |
 | `salaryType` · ID Tipo salario | integrado | `SSP_ID_TP_SALARIO` | GL (visible), GM (técnica) | Sí | — |
 | `seniorityDate` · Fecha de Antigüedad | integrado | `SSP_FEC_ANTIGUEDAD` | GN (visible), GO (técnica) | Sí | — |
-| `extrasDate` · Fecha Extras | mapping sin confirmar | `—` | GP visible; GQ vincula IBAN | No | — |
+| `extrasDate` · Fecha Extras | integrado | `SSP_FEC_EXTRAS` | GP (confirmación del usuario) | Sí | — |
 | `payrollCurrency` · ID Moneda | integrado | `ID_CURRENCY` | GV (visible), GW (técnica) | Sí | — |
 | `union` · ID Sindicato | integrado | `SSP_ID_SINDICATO` | GR (visible), GS (técnica) | Sí | — |
 | `variableCompensationMode` · Tipo modalidad Variable | integrado | `CSP_TP_MOD_VAR` | IU (técnica) | Sí | — |
 | `irpfType` · ID Tipo del IRPF | integrado | `SSP_ID_TP_IRPF` | HB (visible), HC (técnica) | Sí | — |
 | `perceptionKey` · ID Clave percepción | integrado | `SSP_ID_CLAVE_PERCEP` | HD (visible), HE (técnica) | Sí | — |
-| `referenceModelWeek` · ID Modelo/Semana de referencia | mapping sin confirmar | `—` | HN visible; HO = SSP_ID_CENT_COSTO1; HP solo SCO_OR_REF_MOD | No | — |
+| `referenceModelWeek` · ID Modelo/Semana de referencia | integrado | `SCO_ID_REF_MOD, SCO_OR_REF_MOD` | HN (modelo), HP (ordinal), confirmación del usuario | Sí | — |
 | `timeManagementPay` · Pago con gestión del tiempo | integrado | `SSP_PAGO_TA` | HR (visible), HS (técnica) | Sí | — |
 | `paymentCurrency` · ID Moneda | integrado | `ID_CURRENCY` | HT (visible), HU (técnica) | Sí | — |
 | `paymentType` · ID Tipo pago | integrado | `SCO_ID_PAYM_TYPE` | HV (visible), HW (técnica) | Sí | — |
@@ -165,7 +176,6 @@ Cada fila de esta tabla es una columna técnica real de `AltaNueva` que queda fu
 | DS | `SCO_ID_DURATION` | real_SCO_ID_DURATION | fórmula/default de plantilla |
 | DT | `SCO_PERCENT_PERIOD` | real_SCO_PERCENT_PERIOD | dato de negocio |
 | EH | `SSP_NUM_PLURIEMPL` | NÚM. PLURIEMPLEO | dato de negocio |
-| ER | `CSP_ID_CODE_DEP` | real_%JornadaParcial | dato de negocio |
 | FC | `SSP_ID_MUJER_REINC` | real_SSP_ID_MUJER_REINC | fórmula/default de plantilla |
 | GK | `ID_CURRENCY_BRUTO` | real_ID_CURRENCY_BRUTO | dato de negocio |
 | GU | `SCO_ID_ORIGIN_TYPE` | real_SCO_ID_ORIGIN_TYPE | fórmula/default de plantilla |
@@ -173,7 +183,6 @@ Cada fila de esta tabla es una columna técnica real de `AltaNueva` que queda fu
 | HA | `SCO_ID_COMP_BANK` | real_SCO_ID_COMP_BANK | dato de negocio |
 | HG | `SSP_ID_EST_IRPF` | real_SSP_ID_EST_IRPF | dato de negocio |
 | HO | `SSP_ID_CENT_COSTO1` | real_SCO_ID_REF_MOD | dato de negocio |
-| HP | `SCO_OR_REF_MOD` | real_SCO_OR_REF_MOD | fórmula/default de plantilla |
 | IB | `SCO_ID_BANK` | real_SCO_ID_BANK | dato de negocio |
 | IC | `SCO_ID_BRANCH` | real_SCO_ID_BRANCH | dato de negocio |
 | IE | `SSP_DC` | D.C. | dato de negocio |
@@ -183,14 +192,12 @@ Cada fila de esta tabla es una columna técnica real de `AltaNueva` que queda fu
 | II | `SCO_IBAN_KEY` | CLAVE IBAN | dato de negocio |
 | IM | `CSP_FUSION_ID` | real_STD_ID_EXTERN_ORG | fórmula/default de plantilla |
 
-Además, la fila 4 ofrece celdas visibles sin identificador técnico propio y sin input integrado, entre ellas **BJ/BK** (líneas de dirección 3/4), **DA** (horas semanales), **DD** (tipo empleado), **DJ** (tipo de contrato organizativo), **DN/DP** (finalización prevista y último día), **DR** (duración), **FB** (mujer reincorporada), **GT** (tipo de origen), **HF** (estado IRPF) y **GP** (fecha de extras). Requieren contrato funcional antes de crear nuevos controles o reutilizar datos de otro grupo.
+Además, la fila 4 ofrece celdas visibles sin identificador técnico propio y sin input integrado, entre ellas **BJ/BK** (líneas de dirección 3/4), **DA** (horas semanales), **DD** (tipo empleado), **DJ** (tipo de contrato organizativo), **DN/DP** (finalización prevista y último día), **DR** (duración), **FB** (mujer reincorporada), **GT** (tipo de origen) y **HF** (estado IRPF). Requieren contrato funcional antes de crear nuevos controles o reutilizar datos de otro grupo.
 
 ## Campos por crear o resolver
 
-- Siguen sin mapping fiable ocho fields ya visibles: comunidad de nacimiento, Department, fax, FIC específico, fecha de extras, modelo/semana de referencia, ordinal de banco persona y BIC. Sus valores permanecen únicamente en el borrador local. La UI no presenta hoy controles para varios datos de negocio de la tabla anterior (p. ej., mailing check, tipo empleado, complementos, fechas previstas, pluriempleo, moneda del bruto, estado IRPF y componentes bancarios adicionales). Se deben definir semántica, catálogo y obligatoriedad antes de integrarlos.
-- **Comunidad de nacimiento:** AL es visible, pero AM (aunque la fila 4 diga `real_SCO_BIRTH_ID_GEO_DIV`) pertenece en la fila 5 a `CSP_ID_ATRADIUS_JOB`. Escribir ahí la comunidad corrompería Atradius Job.
-- **Department:** ER pertenece a `CSP_ID_CODE_DEP`; el catálogo de Department entrega `CSP_ID_DEPARTMENT`. No hay equivalencia demostrada por el XLS. **Fax:** AZ/BA están vinculadas a Estructura y Centro de Trabajo Funcional en esta plantilla, aunque otras hojas muestren rótulos de fax.
-- **Extras:** GP es visible, pero GQ (rotulada `real_SSP_FEC_EXTRAS` en fila 4) es técnicamente `SCO_GB_IBAN`; se reserva para IBAN. **Modelo/Semana:** HN es visible, HO es `SSP_ID_CENT_COSTO1` y HP solo `SCO_OR_REF_MOD`; falta la correspondencia segura del identificador de modelo. **Ordinal banco:** solo hay indicios en `SRCO_PARAM_EXCEL`, sin destino confirmado en `AltaNueva`. **BIC** y **FIC específico** no tienen celda confirmable.
+- Siguen sin mapping fiable cuatro fields ya visibles: fax, FIC específico, ordinal de banco persona y BIC. Sus valores permanecen únicamente en el borrador local. La UI no presenta hoy controles para varios datos de negocio de la tabla anterior (p. ej., mailing check, tipo empleado, complementos, fechas previstas, pluriempleo, moneda del bruto, estado IRPF y componentes bancarios adicionales). Se deben definir semántica, catálogo y obligatoriedad antes de integrarlos.
+- **Fax:** AZ/BA están vinculadas a Estructura y Centro de Trabajo Funcional en esta plantilla, aunque otras hojas muestren rótulos de fax. **Ordinal banco:** solo hay indicios en `SRCO_PARAM_EXCEL`, sin destino confirmado en `AltaNueva`. **BIC** y **FIC específico** no tienen celda confirmable.
 - **Proyecto:** CZ es `SSP_ID_CENT_COSTO` y recibe el ID literal de PeopleNet; CY se conserva. **IBAN:** GQ es `SCO_GB_IBAN`. **Otro formato:** HZ visible e IA técnica son `SCO_ID_BANK_BRANCH`, e ID es `SCO_ACCOUNT_NUMBER`. La rama IBAN limpia HZ/IA/ID; la otra limpia GQ. BIC nunca cruza el payload. Las celdas bancarias **IB/IC/IE/IF/IG/IH/II** conservan ejemplos, defaults o fórmulas de la plantilla. Debe confirmarse con el importador cómo las interpreta cuando solo se aportan las columnas verificadas.
 - Las copias de pago de Nómina **GY/HA** conservan exactamente su contenido y fórmulas de la plantilla; los catálogos elegidos se escriben en **HV/HW** y **HX/HY** de Datos de pago. `CH/CI` sí reciben la entidad legal seleccionada para la sociedad operativa. No se ejecuta un alta SOAP real durante las pruebas.
 

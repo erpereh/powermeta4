@@ -39,11 +39,14 @@ export const MANUAL_COLUMNS = {
   issuingCountry: ["AA", "AB"],
   nationality: ["AE", "AF"],
   birthProvince: ["AG", "AH"],
+  // Explicitly confirmed destinations; the neighboring real_* captions are stale.
+  birthCommunity: ["AL"],
   birthCountry: ["AO", "AP"],
   gender: ["AQ", "AR"],
   maritalStatus: ["AS", "AT"],
   atradiusJobCode: ["AM"],
   atradiusCategory: ["T"],
+  department: ["ER"],
   locationType: ["BB", "BC"],
   roadType: ["BD", "BE"],
   city: ["BQ", "BR"],
@@ -113,6 +116,8 @@ export const MANUAL_COLUMNS = {
   additionalClause: ["GE"],
   annualGross: ["GJ"],
   seniorityDate: ["GN", "GO"],
+  extrasDate: ["GP"],
+  referenceModelWeek: ["HN", "HP"],
   timeManagementPay: ["HR", "HS"],
   // SRSP_PA_HIRE_WIZ_SS display + real_* columns; the real_* cells of the
   // optional catalogs are VLOOKUPs over an empty validation sheet, so both

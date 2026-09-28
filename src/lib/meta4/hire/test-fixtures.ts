@@ -1,4 +1,4 @@
-import type { HireExtraFields } from "./types";
+import type { HireExtraFields, HirePerson } from "./types";
 
 /** Minimal valid branches for tests; individual tests override relevant cells. */
 export const hireExtraFixture = {
@@ -6,6 +6,9 @@ export const hireExtraFixture = {
   occupationType: "",
   legalRepresentativeNif: "",
   birthDate: "",
+  birthCommunity: "",
+  department: "0000",
+  referenceModelWeek: "",
   atradiusId: "",
   phonePrefix: "",
   phoneNumber: "",
@@ -53,9 +56,11 @@ export const hireExtraFixture = {
   additionalClause: "",
   annualGross: "",
   seniorityDate: "",
+  extrasDate: "",
   timeManagementPay: false,
   bankFormatChoice: "iban",
   iban: "ES5200491500061234567890",
   bankBranch: "",
   accountNumber: "",
-} as const satisfies HireExtraFields;
+} as const satisfies HireExtraFields &
+  Pick<HirePerson, "birthCommunity" | "department" | "referenceModelWeek">;

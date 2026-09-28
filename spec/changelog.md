@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-09-28 - Cuatro campos del alta confirmados por el usuario
+
+- Comunidad de nacimiento envía solo `STD_ID_GEO_DIV` a AL; la selección
+  conserva la clave geográfica interna y la coherencia con país y provincia.
+- Department valida `CSP_ID_DEPARTMENT` como obligatorio y lo escribe en ER.
+  Fecha Extras valida una fecha real y escribe su número Excel en GP,
+  sin SELECT ni catálogo. Modelo/Semana valida el par modelo/ordinal contra
+  PeopleNet y escribe `SCO_ID_REF_MOD` en HN y `SCO_OR_REF_MOD` en HP.
+  `SCO_ID_WEEK_MDL` sigue siendo información descriptiva.
+- Los tres SELECT facilitados se ejecutan literalmente, con adaptadores
+  tipados para las columnas originales y las expresiones sin alias.
+- UI → draft → payload → validación → Excel completos para los cuatro;
+  etiquetas normales y tooltips técnicos. Inventario: 103 integrados,
+  4 sin confirmar y 6 controles solo UI. Informe y tests de contrato con
+  excepciones explícitas del usuario a las cabeceras antiguas del XLS.
+- Tests para los cinco destinos exclusivos y conservación de Atradius AM,
+  IBAN GQ y plantilla HO, opciones vacías, fechas imposibles, IDs y pares
+  inexistentes y conservación de valores entre personas/pestañas.
+- Verificación secuencial: `npm run lint`, `npm run typecheck`, `npm test`,
+  `npm run build`, `git diff --check` y `git status --short` ejecutados.
+  Typecheck, build y diff correctos. Suite: 103 archivos y 544 pruebas
+  correctos, 2 omitidas y 2 fallos anteriores: aserción de CZ en
+  `hire/mapping.test.ts` y fixture sin Puesto/Posición en
+  `actions/meta4-hire.test.ts`. Ambos conservados fuera del alcance.
+- Lint: siete avisos previos de oxlint, sin avisos nuevos; `oxfmt --check`
+  falla por formato preexistente en 213 archivos. El formateo global
+  accidental se retiró y se revisó el diff limitado a estos cuatro campos.
+- Excel COM: 3/3 pruebas correctas para una y varias personas y comparación
+  de entradas que solo cambian los cuatro campos. SQL y SOAP simulados en
+  tests; no se ejecutó un alta real.
+
 ## 2026-09-25 - Recibo con aspecto de nómina y rango de pagas
 
 - `PayrollReceiptView` rediseñado como el documento de Meta4: casillas con

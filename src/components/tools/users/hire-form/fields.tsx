@@ -474,7 +474,7 @@ const GEO_GROUPS = {
   ],
   birth: [
     { draft: "current", field: "birthCountry", depth: 1, source: "country" },
-    { draft: "pending", field: "birthCommunity", depth: 2, source: "community" },
+    { draft: "current", field: "birthCommunity", depth: 2, source: "community" },
     { draft: "current", field: "birthProvince", depth: 3, source: "province" },
   ],
 } as const satisfies Record<string, readonly GeoLevel[]>;

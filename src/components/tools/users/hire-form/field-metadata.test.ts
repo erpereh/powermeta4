@@ -23,22 +23,13 @@ describe("Meta4 hire field mappings", () => {
   it("classifies every field and reserves red only for unresolved Excel mappings", () => {
     const entries = Object.entries(HIRE_FIELD_META);
     expect(entries).toHaveLength(113);
-    expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(99);
-    expect(entries.filter(([, field]) => field.mapping.status === "confirmed")).toHaveLength(99);
-    expect(entries.filter(([, field]) => field.mapping.status === "unconfirmed")).toHaveLength(8);
+    expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(103);
+    expect(entries.filter(([, field]) => field.mapping.status === "confirmed")).toHaveLength(103);
+    expect(entries.filter(([, field]) => field.mapping.status === "unconfirmed")).toHaveLength(4);
     expect(entries.filter(([, field]) => field.mapping.status === "ui-only")).toHaveLength(6);
     expect(
       entries.filter(([, field]) => field.mapping.status === "unconfirmed").map(([id]) => id),
-    ).toEqual([
-      "birthCommunity",
-      "department",
-      "fax",
-      "specificFic",
-      "extrasDate",
-      "referenceModelWeek",
-      "personBankOrdinal",
-      "bic",
-    ]);
+    ).toEqual(["fax", "specificFic", "personBankOrdinal", "bic"]);
     expect(
       entries.filter(([, field]) => field.mapping.status === "ui-only").map(([id]) => id),
     ).toEqual([
@@ -66,7 +57,19 @@ describe("Meta4 hire field mappings", () => {
     expect(hireFieldVisualStatus("firstName")).toBe("normal");
     expect(hireFieldVisualStatus("positionChoice")).toBe("normal");
     expect(hireFieldVisualStatus("ssNumberChoice")).toBe("normal");
-    expect(hireFieldVisualStatus("birthCommunity")).toBe("unconfirmed");
+    for (const field of [
+      "birthCommunity",
+      "department",
+      "extrasDate",
+      "referenceModelWeek",
+    ] as const) {
+      expect(hireFieldVisualStatus(field)).toBe("normal");
+      expect(hireFieldLabelClass(field)).toBe("text-foreground");
+    }
+    expect(hireFieldMappingTooltip("birthCommunity")).toBe("STD_ID_GEO_DIV");
+    expect(hireFieldMappingTooltip("department")).toBe("CSP_ID_DEPARTMENT");
+    expect(hireFieldMappingTooltip("extrasDate")).toBe("SSP_FEC_EXTRAS");
+    expect(hireFieldMappingTooltip("referenceModelWeek")).toBe("SCO_ID_REF_MOD / SCO_OR_REF_MOD");
     expect(hireFieldLabelClass("firstName")).toBe("text-foreground");
     expect(hireFieldLabelClass("legalRepresentativeNif")).toBe("text-foreground");
     expect(hireFieldLabelClass("fax")).toBe("text-destructive");
@@ -75,7 +78,7 @@ describe("Meta4 hire field mappings", () => {
     expect(hireFieldMappingTooltip("accountCurrency")).toBe("ID_CURRENCY_2");
   });
 
-  it("finds every confirmed identifier in AltaNueva technical headers", () => {
+  it("finds confirmed headers and checks the four explicit user overrides separately", () => {
     const workbook = XLSX.readFile(templatePath, { sheetRows: 5 });
     const sheet = workbook.Sheets[HIRE_DATA_SHEET];
     expect(sheet).toBeDefined();
@@ -86,8 +89,27 @@ describe("Meta4 hire field mappings", () => {
     expect(sheet.GQ4?.v).toBe("real_SSP_FEC_EXTRAS");
     expect(sheet.GQ5?.v).toBe("SRSP_PA_HIRE_WIZ_DATOS_PAGO.SCO_GB_IBAN");
 
+    const overrides = {
+      birthCommunity: { columns: ["AL"], identifiers: ["STD_ID_GEO_DIV"] },
+      department: { columns: ["ER"], identifiers: ["CSP_ID_DEPARTMENT"] },
+      extrasDate: { columns: ["GP"], identifiers: ["SSP_FEC_EXTRAS"] },
+      referenceModelWeek: {
+        columns: ["HN", "HP"],
+        identifiers: ["SCO_ID_REF_MOD", "SCO_OR_REF_MOD"],
+      },
+    } as const;
+    for (const [id, override] of Object.entries(overrides)) {
+      const field = id as keyof typeof overrides;
+      expect(MANUAL_COLUMNS[field]).toEqual(override.columns);
+      expect(HIRE_FIELD_META[field].mapping).toEqual({
+        status: "confirmed",
+        identifiers: override.identifiers,
+      });
+    }
+
     for (const [id, field] of Object.entries(HIRE_FIELD_META)) {
       if (field.mapping.status !== "confirmed") continue;
+      if (Object.hasOwn(overrides, id)) continue;
       for (const identifier of field.mapping.identifiers) {
         expect(identifiers.has(identifier), `${id}: ${identifier}`).toBe(true);
       }

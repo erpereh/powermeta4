@@ -61,6 +61,7 @@ export type HireExtraFields = {
   additionalClause: string;
   annualGross: string;
   seniorityDate: string;
+  extrasDate: string;
   timeManagementPay: boolean;
   bankFormatChoice: "" | "iban" | "other";
   iban: string;

@@ -9,6 +9,7 @@ import { getPeopleNetPool, PeopleNetConfigError } from "@/lib/peoplenet/client";
 
 import {
   contractOptionId,
+  geoPath,
   HIRE_CATALOG_SOURCES,
   type HireCatalogOption,
   type HireCatalogs,
@@ -19,11 +20,14 @@ import { Meta4HireError } from "./errors";
 
 type CatalogRow = { id: unknown; name: unknown; detail?: unknown };
 
-// Every query returns id/name(/detail). Only catalogs whose rows belong to one
+// The generic queries return id/name(/detail). Only catalogs whose rows belong to one
 // ID_ORGANIZATION filter by @organization (the active Meta4 society); the rest
 // are shared by all societies (ID_ORGANIZATION = '0000').
 const CATALOG_QUERIES: Record<
-  Exclude<HireCatalogSource, "referenceModelWeek" | "contract" | "place">,
+  Exclude<
+    HireCatalogSource,
+    "community" | "department" | "referenceModelWeek" | "contract" | "place"
+  >,
   string
 > = {
   documentType: `
@@ -39,13 +43,6 @@ SELECT STD_ID_COUNTRY AS id, ISNULL(STD_N_NACIONALESP, STD_N_COUNTRYESP) AS name
   STD_N_COUNTRYESP AS detail
 FROM STD_COUNTRY
 ORDER BY STD_ID_COUNTRY ASC`,
-  community: `
-SELECT BASE_0.STD_ID_COUNTRY + '/' + BASE_0.STD_ID_GEO_DIV AS id,
-  ISNULL(BASE_0.STD_N_GEO_DIVESP, BASE_0.STD_N_GEO_DIVGEN) AS name,
-  ALIAS_1_0.STD_N_COUNTRYESP AS detail
-FROM STD_GEO_DIV BASE_0
-LEFT JOIN STD_COUNTRY ALIAS_1_0 ON (BASE_0.STD_ID_COUNTRY = ALIAS_1_0.STD_ID_COUNTRY)
-ORDER BY BASE_0.STD_ID_COUNTRY ASC, BASE_0.STD_ID_GEO_DIV ASC`,
   province: `
 SELECT BASE_0.STD_ID_COUNTRY + '/' + BASE_0.STD_ID_GEO_DIV + '/' + BASE_0.STD_ID_SUB_GEO_DIV AS id,
   ISNULL(BASE_0.STD_N_SUB_GEO_ESP, BASE_0.STD_N_SUB_GEO_GEN) AS name,
@@ -74,11 +71,6 @@ SELECT CSP_ID_CATEG_ATRADIUS AS id, CSP_NM_CATEG_ATRADIUS AS name
 FROM M4CSP_CATEG_ATRADIUS
 WHERE ID_ORGANIZATION = @organization
 ORDER BY CSP_ID_CATEG_ATRADIUS ASC`,
-  department: `
-SELECT CSP_ID_DEPARTMENT AS id, CSP_NM_DEPARTMENT AS name
-FROM M4CSP_DEPARTMENT
-WHERE ID_ORGANIZATION = @organization
-ORDER BY CSP_ID_DEPARTMENT ASC`,
   locationType: `
 SELECT STD_ID_LOCAT_TYPE AS id, ISNULL(STD_N_LOCAT_TYESP, STD_N_LOCAT_TYENG) AS name
 FROM STD_LU_LOCAT_TYPE
@@ -270,12 +262,13 @@ ORDER BY BASE_0.SSP_ID_CONT_LEGAL ASC, ALIAS_1_0.SSP_ID_CONT_INTERN ASC`;
 
 type ContractRow = { legal: unknown; legalName: unknown; internal: unknown; internalName: unknown };
 
-const REFERENCE_MODEL_WEEK_QUERY = `
-SELECT BASE_0.SCO_ID_REF_MOD AS model, BASE_0.SCO_OR_REF_MOD AS sequence,
-  BASE_0.SCO_ID_WEEK_MDL AS week, ISNULL(ALIAS_1_0.NM_REF_MODESP, ALIAS_1_0.NM_REF_MODENG) AS name
-FROM M4SCO_REF_W_MOD BASE_0
-LEFT JOIN M4SCO_REF_MOD ALIAS_1_0 ON (BASE_0.SCO_ID_REF_MOD = ALIAS_1_0.SCO_ID_REF_MOD)
-ORDER BY BASE_0.SCO_ID_REF_MOD ASC, BASE_0.SCO_OR_REF_MOD ASC`;
+// SQL confirmed by the user, including the unnamed ISNULL result columns.
+const COMMUNITY_QUERY =
+  "SELECT BASE_0.STD_ID_COUNTRY, ALIAS_1_0.STD_N_COUNTRYESP, BASE_0.STD_ID_GEO_DIV, ISNULL(BASE_0.STD_N_GEO_DIVESP,BASE_0.STD_N_GEO_DIVGEN), BASE_0.DT_LAST_UPDATE FROM STD_GEO_DIV BASE_0 LEFT JOIN STD_COUNTRY ALIAS_1_0 ON (BASE_0.STD_ID_COUNTRY=ALIAS_1_0.STD_ID_COUNTRY) ORDER BY BASE_0.STD_ID_COUNTRY ASC, BASE_0.STD_ID_GEO_DIV ASC";
+const DEPARTMENT_QUERY =
+  "SELECT CSP_ID_DEPARTMENT, CSP_NM_DEPARTMENT, DT_LAST_UPDATE FROM M4CSP_DEPARTMENT";
+const REFERENCE_MODEL_WEEK_QUERY =
+  "SELECT BASE_0.DT_END, BASE_0.DT_START, BASE_0.SCO_ID_REF_MOD, BASE_0.SCO_OR_REF_MOD, BASE_0.SCO_ID_WEEK_MDL, ISNULL(ALIAS_1_0.NM_REF_MODESP,ALIAS_1_0.NM_REF_MODENG), ALIAS_1_0.SCO_ID_REFMOD_GRP, BASE_0.DT_LAST_UPDATE FROM M4SCO_REF_W_MOD BASE_0 LEFT JOIN M4SCO_REF_MOD ALIAS_1_0 ON (BASE_0.SCO_ID_REF_MOD=ALIAS_1_0.SCO_ID_REF_MOD) ORDER BY BASE_0.SCO_ID_REF_MOD ASC, BASE_0.SCO_OR_REF_MOD ASC";
 
 // STD_GEO_PLACE has ~36,000 rows: the form searches it and launches only
 // reload the places actually chosen.
@@ -306,7 +299,28 @@ const PLACE_SEARCH_LIMIT = 50;
 const likeContains = (text: string): string =>
   `%${text.replace(/[!%_[]/g, (character) => `!${character}`)}%`;
 
-type ReferenceModelRow = { model: unknown; sequence: unknown; week: unknown; name: unknown };
+type CommunityRow = {
+  STD_ID_COUNTRY: unknown;
+  STD_N_COUNTRYESP: unknown;
+  STD_ID_GEO_DIV: unknown;
+  "": unknown;
+  DT_LAST_UPDATE: unknown;
+};
+type DepartmentRow = {
+  CSP_ID_DEPARTMENT: unknown;
+  CSP_NM_DEPARTMENT: unknown;
+  DT_LAST_UPDATE: unknown;
+};
+type ReferenceModelRow = {
+  DT_END: unknown;
+  DT_START: unknown;
+  SCO_ID_REF_MOD: unknown;
+  SCO_OR_REF_MOD: unknown;
+  SCO_ID_WEEK_MDL: unknown;
+  "": unknown;
+  SCO_ID_REFMOD_GRP: unknown;
+  DT_LAST_UPDATE: unknown;
+};
 
 const readText = (value: unknown): string => {
   if (typeof value === "string") return value.trim();
@@ -322,17 +336,35 @@ const toOptions = (rows: readonly CatalogRow[]): HireCatalogOption[] =>
     return [{ id, name: readText(row.name) || id, ...(detail ? { detail } : {}) }];
   });
 
+const toCommunityOptions = (rows: readonly CommunityRow[]): HireCatalogOption[] =>
+  rows.flatMap((row) => {
+    const country = readText(row.STD_ID_COUNTRY);
+    const community = readText(row.STD_ID_GEO_DIV);
+    if (!country || !community) return [];
+    const detail = readText(row.STD_N_COUNTRYESP);
+    return [
+      {
+        id: geoPath(country, community),
+        name: readText(row[""]) || community,
+        ...(detail ? { detail } : {}),
+      },
+    ];
+  });
+
+const toDepartmentOptions = (rows: readonly DepartmentRow[]): HireCatalogOption[] =>
+  toOptions(rows.map((row) => ({ id: row.CSP_ID_DEPARTMENT, name: row.CSP_NM_DEPARTMENT })));
+
 /** One option per model + week order, as PeopleNet lists them ("001/1", "001/2"...). */
 const toReferenceModelOptions = (rows: readonly ReferenceModelRow[]): HireCatalogOption[] =>
   rows.flatMap((row) => {
-    const model = readText(row.model);
-    const sequence = readText(row.sequence);
+    const model = readText(row.SCO_ID_REF_MOD);
+    const sequence = readText(row.SCO_OR_REF_MOD);
     if (!model || !sequence) return [];
-    const week = readText(row.week);
+    const week = readText(row.SCO_ID_WEEK_MDL);
     return [
       {
         id: `${model}/${sequence}`,
-        name: readText(row.name) || model,
+        name: readText(row[""]) || model,
         ...(week ? { detail: `Semana ${week}` } : {}),
       },
     ];
@@ -413,6 +445,16 @@ export const loadHireCatalogs = async (
       return toOptions(result.recordset);
     }
     if (source === "place") return loadPlacesById(pool, placeIds);
+    if (source === "community") {
+      return toCommunityOptions(
+        (await pool.request().query<CommunityRow>(COMMUNITY_QUERY)).recordset,
+      );
+    }
+    if (source === "department") {
+      return toDepartmentOptions(
+        (await pool.request().query<DepartmentRow>(DEPARTMENT_QUERY)).recordset,
+      );
+    }
     if (source === "contract") {
       return toContractOptions((await pool.request().query<ContractRow>(CONTRACT_QUERY)).recordset);
     }

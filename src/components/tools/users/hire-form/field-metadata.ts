@@ -112,7 +112,13 @@ export const HIRE_FIELD_META = {
     false,
     mapped("SCO_BIRTH_ID_SUB_GEO_DIV"),
   ),
-  birthCommunity: pending("ID Comunidad nacimiento", "catalog", unconfirmed),
+  birthCommunity: connected(
+    "ID Comunidad nacimiento",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("STD_ID_GEO_DIV"),
+  ),
   birthCountry: connected(
     "ID País nacimiento",
     "catalog",
@@ -146,7 +152,7 @@ export const HIRE_FIELD_META = {
     true,
     mapped("CSP_ID_CATEG_ATRADIUS"),
   ),
-  department: pending("ID Department", "catalog", unconfirmed, "required"),
+  department: connected("ID Department", "catalog", "required", true, mapped("CSP_ID_DEPARTMENT")),
 
   // Datos personales · Contactos (4)
   phone: connected("Teléfono", "compound", "unmarked", false, mapped("STD_NAT_REGION_CODE_PHONE", "STD_PHONE")),
@@ -408,7 +414,7 @@ export const HIRE_FIELD_META = {
     mapped("SSP_ID_TP_SALARIO"),
   ),
   seniorityDate: connected("Fecha de Antigüedad", "date", "unmarked", false, mapped("SSP_FEC_ANTIGUEDAD")),
-  extrasDate: pending("Fecha Extras", "date", unconfirmed),
+  extrasDate: connected("Fecha Extras", "date", "unmarked", false, mapped("SSP_FEC_EXTRAS")),
   payrollCurrency: connected("ID Moneda", "catalog", "unmarked", false, mapped("ID_CURRENCY")),
   union: connected("ID Sindicato", "catalog", "unmarked", false, mapped("SSP_ID_SINDICATO")),
   variableCompensationMode: connected(
@@ -426,7 +432,13 @@ export const HIRE_FIELD_META = {
     true,
     mapped("SSP_ID_CLAVE_PERCEP"),
   ),
-  referenceModelWeek: pending("ID Modelo/Semana de referencia", "compound", unconfirmed),
+  referenceModelWeek: connected(
+    "ID Modelo/Semana de referencia",
+    "catalog",
+    "unmarked",
+    false,
+    mapped("SCO_ID_REF_MOD", "SCO_OR_REF_MOD"),
+  ),
   timeManagementPay: connected("Pago con gestión del tiempo", "checkbox", "unmarked", false, mapped("SSP_PAGO_TA")),
 
   // Datos de pago (11)

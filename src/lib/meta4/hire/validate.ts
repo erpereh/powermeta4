@@ -1,4 +1,8 @@
-import { HIRE_CATALOG_FIELDS, type HireCatalogFieldId } from "./catalogs";
+import {
+  HIRE_CATALOG_FIELDS,
+  parseReferenceModelOptionId,
+  type HireCatalogFieldId,
+} from "./catalogs";
 import { Meta4HireError } from "./errors";
 import { MAX_PERSON_COUNT } from "./mapping";
 import type { HireExtraFields, HirePerson, HirePersonInput } from "./types";
@@ -168,6 +172,7 @@ const parseExtraFields = (record: HirePersonInput): HireExtraFields => {
     additionalClause: optionalText(record.additionalClause),
     annualGross: parseNumber(record.annualGross, "Bruto anual"),
     seniorityDate: parseDate(record.seniorityDate, "fecha de antigüedad"),
+    extrasDate: parseDate(record.extrasDate, "fecha de extras"),
     timeManagementPay: parseCheck(record.timeManagementPay, "Pago con gestión del tiempo"),
     bankFormatChoice,
     iban: bankFormatChoice === "iban" ? parseIban(record.iban) : "",
@@ -196,7 +201,9 @@ const parseCatalogId = (value: unknown, label: string): string => {
 const parseCatalogField = (value: unknown, field: HireCatalogFieldId): string => {
   const { label, required } = HIRE_CATALOG_FIELDS[field];
   if (!required && optionalText(value) === "") return "";
-  return parseCatalogId(value, label);
+  const id = parseCatalogId(value, label);
+  if (field === "referenceModelWeek") parseReferenceModelOptionId(id);
+  return id;
 };
 
 export const parseHirePerson = (value: unknown): HirePerson => {
@@ -219,11 +226,13 @@ export const parseHirePerson = (value: unknown): HirePerson => {
     issuingCountry: parseCatalogField(record.issuingCountry, "issuingCountry"),
     nationality: parseCatalogField(record.nationality, "nationality"),
     birthProvince: parseCatalogField(record.birthProvince, "birthProvince"),
+    birthCommunity: parseCatalogField(record.birthCommunity, "birthCommunity"),
     birthCountry: parseCatalogField(record.birthCountry, "birthCountry"),
     gender: parseCatalogField(record.gender, "gender"),
     maritalStatus: parseCatalogField(record.maritalStatus, "maritalStatus"),
     atradiusJobCode: parseCatalogField(record.atradiusJobCode, "atradiusJobCode"),
     atradiusCategory: parseCatalogField(record.atradiusCategory, "atradiusCategory"),
+    department: parseCatalogField(record.department, "department"),
     locationType: parseCatalogField(record.locationType, "locationType"),
     roadType: parseCatalogField(record.roadType, "roadType"),
     city: parseCatalogField(record.city, "city"),
@@ -263,6 +272,7 @@ export const parseHirePerson = (value: unknown): HirePerson => {
       record.variableCompensationMode,
       "variableCompensationMode",
     ),
+    referenceModelWeek: parseCatalogField(record.referenceModelWeek, "referenceModelWeek"),
     paymentCurrency: parseCatalogField(record.paymentCurrency, "paymentCurrency"),
     paymentType: parseCatalogField(record.paymentType, "paymentType"),
     companyBank: parseCatalogField(record.companyBank, "companyBank"),

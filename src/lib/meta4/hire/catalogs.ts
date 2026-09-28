@@ -87,11 +87,13 @@ export const HIRE_CATALOG_FIELD_IDS = [
   "issuingCountry",
   "nationality",
   "birthProvince",
+  "birthCommunity",
   "birthCountry",
   "gender",
   "maritalStatus",
   "atradiusJobCode",
   "atradiusCategory",
+  "department",
   "locationType",
   "roadType",
   "city",
@@ -126,6 +128,7 @@ export const HIRE_CATALOG_FIELD_IDS = [
   "irpfType",
   "perceptionKey",
   "variableCompensationMode",
+  "referenceModelWeek",
   "paymentCurrency",
   "paymentType",
   "companyBank",
@@ -153,6 +156,8 @@ export const HIRE_CATALOG_FIELDS: Record<HireCatalogFieldId, HireCatalogFieldSpe
     geo: true,
   },
   birthCountry: { source: "country", label: "ID País nacimiento", required: false, geo: true },
+  // The draft keeps country/community; the payload contains STD_ID_GEO_DIV alone.
+  birthCommunity: { source: "community", label: "ID Comunidad nacimiento", required: false },
   gender: { source: "gender", label: "ID Sexo", required: false },
   maritalStatus: { source: "maritalStatus", label: "ID Estado civil", required: true },
   atradiusJobCode: { source: "atradiusJob", label: "ID Atradius Job Code", required: true },
@@ -161,6 +166,7 @@ export const HIRE_CATALOG_FIELDS: Record<HireCatalogFieldId, HireCatalogFieldSpe
     label: "ID Categoría Atradius",
     required: true,
   },
+  department: { source: "department", label: "ID Department", required: true },
   locationType: { source: "locationType", label: "ID Tipo localización", required: true },
   roadType: { source: "roadType", label: "ID Tipo de vía", required: true },
   city: { source: "place", label: "ID Población", required: true, geo: true },
@@ -221,6 +227,11 @@ export const HIRE_CATALOG_FIELDS: Record<HireCatalogFieldId, HireCatalogFieldSpe
     label: "Tipo modalidad Variable",
     required: true,
   },
+  referenceModelWeek: {
+    source: "referenceModelWeek",
+    label: "ID Modelo/Semana de referencia",
+    required: false,
+  },
   paymentCurrency: { source: "currency", label: "ID Moneda", required: true },
   paymentType: { source: "paymentType", label: "ID Tipo pago", required: true },
   companyBank: { source: "companyBank", label: "ID Banco empresa", required: true },
@@ -255,6 +266,19 @@ export const parseContractOptionId = (optionId: string): HireContractSelection =
   return { legalContract, internalContract };
 };
 
+/** The lookup identifies a model/ordinal pair; the associated week is display-only. */
+export const parseReferenceModelOptionId = (optionId: string): readonly [string, string] => {
+  if (optionId === "") return ["", ""];
+  const parts = optionId.split("/");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+    throw new Meta4HireError(
+      "META4_HIRE_VALIDATION",
+      "ID Modelo/Semana de referencia: par no válido.",
+    );
+  }
+  return [parts[0], parts[1]];
+};
+
 export type HireCatalogSelections = Record<HireCatalogFieldId, string> & HireContractSelection;
 
 const reject = (message: string): never => {
@@ -273,7 +297,16 @@ export const assertHireCatalogSelections = (
       const { source, label, required } = HIRE_CATALOG_FIELDS[field];
       const value = person[field];
       if (value === "" && !required) continue;
-      if (catalogs[source].some((option) => option.id === value)) continue;
+      const birthCountry = person.birthCountry || geoAncestor(person.birthProvince, 1);
+      if (
+        catalogs[source].some((option) =>
+          field === "birthCommunity"
+            ? lastGeoSegment(option.id) === value &&
+              (!birthCountry || geoAncestor(option.id, 1) === birthCountry)
+            : option.id === value,
+        )
+      )
+        continue;
       reject(`${who}: «${value}» no es un ${label} válido en PeopleNet para ${society}.`);
     }
     for (const { child, parent, depth } of HIRE_GEO_CHAINS) {
@@ -282,6 +315,13 @@ export const assertHireCatalogSelections = (
       reject(
         `${who}: ${HIRE_CATALOG_FIELDS[child].label} no pertenece a ${HIRE_CATALOG_FIELDS[parent].label}.`,
       );
+    }
+    if (
+      person.birthCommunity &&
+      person.birthProvince &&
+      lastGeoSegment(geoAncestor(person.birthProvince, 2)) !== person.birthCommunity
+    ) {
+      reject(`${who}: ID Provincia nacimiento no pertenece a ID Comunidad nacimiento.`);
     }
     const contract = contractOptionId(person);
     if (!catalogs.contract.some((option) => option.id === contract)) {

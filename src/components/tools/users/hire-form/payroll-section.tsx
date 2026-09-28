@@ -4,13 +4,7 @@ import { useState } from "react";
 import { Accordion } from "@/components/system";
 
 import { HireCatalogsNotice } from "./catalogs";
-import {
-  CatalogField,
-  PendingCatalogLookup,
-  PendingCheckbox,
-  PendingInput,
-  HIRE_ACCORDION_CLASS_NAMES,
-} from "./fields";
+import { CatalogField, PendingCheckbox, PendingInput, HIRE_ACCORDION_CLASS_NAMES } from "./fields";
 
 export function PayrollSection() {
   const [openSection, setOpenSection] = useState<string | null>("payroll-general");
@@ -62,7 +56,7 @@ export function PayrollSection() {
             openSection === "theoretical-time" ? (
               <div className="space-y-4">
                 <HireCatalogsNotice />
-                <PendingCatalogLookup field="referenceModelWeek" source="referenceModelWeek" />
+                <CatalogField field="referenceModelWeek" />
                 <PendingCheckbox field="timeManagementPay" />
               </div>
             ) : null,

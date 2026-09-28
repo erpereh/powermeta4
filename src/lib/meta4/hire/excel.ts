@@ -11,6 +11,7 @@ import {
   HIRE_CATALOG_FIELDS,
   HIRE_CONTRACT_FIELDS,
   lastGeoSegment,
+  parseReferenceModelOptionId,
   type HireCatalogFieldId,
 } from "./catalogs";
 import { Meta4HireError } from "./errors";
@@ -332,16 +333,21 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
     ...MANUAL_COLUMNS.hireDate.map(
       (column): CellEdit => ({ column, kind: "number", value: hireSerial }),
     ),
-    ...HIRE_CATALOG_FIELD_IDS.flatMap((field) =>
-      NUMERIC_CATALOG_FIELDS.has(field) && /^\d+$/.test(person[field])
+    ...HIRE_CATALOG_FIELD_IDS.flatMap((field) => {
+      if (field === "referenceModelWeek") {
+        const [model, ordinal] = parseReferenceModelOptionId(person[field]);
+        const [modelColumn, ordinalColumn] = MANUAL_COLUMNS.referenceModelWeek;
+        return [...literalCells([modelColumn], model), ...literalCells([ordinalColumn], ordinal)];
+      }
+      return NUMERIC_CATALOG_FIELDS.has(field) && /^\d+$/.test(person[field])
         ? MANUAL_COLUMNS[field].map(
             (column): CellEdit => ({ column, kind: "number", value: Number(person[field]) }),
           )
         : literalCells(
             MANUAL_COLUMNS[field],
             HIRE_CATALOG_FIELDS[field].geo ? lastGeoSegment(person[field]) : person[field],
-          ),
-    ),
+          );
+    }),
     ...HIRE_CONTRACT_FIELDS.flatMap((field) => literalCells(MANUAL_COLUMNS[field], person[field])),
     ...literalCells(MANUAL_COLUMNS.legalRepresentativeNif, person.legalRepresentativeNif),
     ...dateCells(MANUAL_COLUMNS.birthDate, person.birthDate),
@@ -402,6 +408,7 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
     ...textCells(MANUAL_COLUMNS.additionalClause, person.additionalClause),
     ...numberCells(MANUAL_COLUMNS.annualGross, person.annualGross),
     ...dateCells(MANUAL_COLUMNS.seniorityDate, person.seniorityDate),
+    ...dateCells(MANUAL_COLUMNS.extrasDate, person.extrasDate),
     ...checkCells(MANUAL_COLUMNS.timeManagementPay, person.timeManagementPay, "number"),
     ...literalCells(MANUAL_COLUMNS.iban, person.iban),
     ...literalCells(MANUAL_COLUMNS.bankBranch, person.bankBranch),
