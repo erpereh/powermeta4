@@ -4,8 +4,13 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button, Callout, Tabs, TabsList, TabsTrigger } from "@/components/system";
-import type { PayrollMissingReceipt, PayrollReceiptEntry } from "@/types/payroll-receipt";
+import type {
+  PayrollMissingReceipt,
+  PayrollReceiptEntry,
+  PayrollReceiptParameters,
+} from "@/types/payroll-receipt";
 
+import { PayrollReceiptDownload } from "./payroll-receipt-download";
 import { PayrollReceiptView } from "./payroll-receipt-view";
 
 const decimalFormatter = new Intl.NumberFormat("es-ES", {
@@ -21,9 +26,11 @@ const formatDate = (isoDate: string): string => {
 
 /** Una nómina a la vista; el resto del rango se recorre con pestañas o anterior/siguiente. */
 export function PayrollReceiptRange({
+  parameters,
   receipts,
   missing,
 }: {
+  parameters: PayrollReceiptParameters;
   receipts: readonly PayrollReceiptEntry[];
   missing: readonly PayrollMissingReceipt[];
 }) {
@@ -129,7 +136,18 @@ export function PayrollReceiptRange({
       ) : null}
 
       {current ? (
-        <section aria-label={`Nómina ${current.payName}`} aria-live="polite">
+        <section aria-label={`Nómina ${current.payName}`} className="space-y-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <p className="text-sm text-muted-foreground" aria-live="polite">
+              <span className="font-medium text-foreground">{current.payName}</span> · pago del{" "}
+              {formatDate(current.paymentDate)}
+            </p>
+            <PayrollReceiptDownload
+              parameters={parameters}
+              currentId={current.id}
+              total={receipts.length}
+            />
+          </div>
           <PayrollReceiptView receipt={current.receipt} />
         </section>
       ) : null}

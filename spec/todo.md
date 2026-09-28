@@ -62,6 +62,11 @@
       nómina a la vista, pestañas por paga y anterior/siguiente. Tests de
       vista, formulario y rango; servicio de rango probado contra PeopleNet.
 
+- [x] Descarga en PDF o Excel de la nómina visible o de todas las del rango
+      (`POST /api/payroll/receipts/export`, `pdf-lib` + `exceljs`). El servidor
+      regenera los recibos desde PeopleNet; revisado visualmente el PDF real de
+      la 1013 (actual y retroactivos).
+
 ### Pendiente para la próxima sesión (por prioridad)
 
 - [x] **Pagas retroactivas y paga normal + retroactivas**, con las `SELECT`

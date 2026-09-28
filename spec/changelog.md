@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-28 - Nómina: descarga en PDF y Excel
+
+- Menú «Descargar» sobre la nómina visible: esa nómina o todas las del rango,
+  en PDF o en Excel.
+- `POST /api/payroll/receipts/export` (Node.js, requiere sesión) recibe solo
+  los parámetros de la consulta, el formato y los ids; vuelve a leer los
+  recibos en PeopleNet con la sociedad del contexto operativo y devuelve el
+  fichero sin guardarlo. La validación de parámetros es compartida con la
+  action (`src/lib/payroll/receipt-parameters.ts`).
+- PDF con `pdf-lib` (dependencia nueva, JavaScript puro): una página A4 por
+  nómina con el diseño de casillas del recibo y salto de página si hay muchas
+  líneas. Excel con `exceljs`: una hoja por nómina con importes numéricos y
+  hoja «Resumen» con totales (`SUM`) si son varias.
+- Tests de validación, exportadores (Excel leído con `exceljs`, texto del PDF
+  con `unpdf`) y ruta. PDF real de la 1013 revisado visualmente y borrado.
+- Verificación: `typecheck` y `build` correctos; `npm test` 548 correctas y
+  1 fallo en `hire/excel.test.ts` (timeout de Excel COM con un proceso EXCEL
+  colgado); `oxlint` sin avisos nuevos; formato y `git diff --check`
+  correctos.
+
 ## 2026-09-28 - Nómina: pagas retroactivas y paga normal + retroactivas
 
 - «Pagas retroactivas» y «Paga normal + retroactivas» funcionan con las

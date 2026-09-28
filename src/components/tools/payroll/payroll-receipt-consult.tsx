@@ -45,6 +45,7 @@ type ConsultState =
   | {
       status: "ready";
       key: number;
+      parameters: PayrollReceiptParameters;
       receipts: readonly PayrollReceiptEntry[];
       missing: readonly PayrollMissingReceipt[];
     };
@@ -222,6 +223,7 @@ export function PayrollReceiptConsult({
           setState({
             status: "ready",
             key: Date.now(),
+            parameters,
             receipts: result.receipts,
             missing: result.missing,
           });
@@ -369,7 +371,12 @@ export function PayrollReceiptConsult({
           </Callout>
         ) : null}
         {state.status === "ready" ? (
-          <PayrollReceiptRange key={state.key} receipts={state.receipts} missing={state.missing} />
+          <PayrollReceiptRange
+            key={state.key}
+            parameters={state.parameters}
+            receipts={state.receipts}
+            missing={state.missing}
+          />
         ) : null}
       </section>
     </div>

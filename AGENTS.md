@@ -163,6 +163,11 @@ los que dependen de sociedad filtran `ID_ORGANIZATION` por la sociedad del
 contexto operativo, nunca por un valor del navegador. `GET /api/hire/places`
 (Node.js, requiere sesión) busca poblaciones en PeopleNet porque
 `STD_GEO_PLACE` es demasiado grande para enviarse entera al formulario.
+«Consultar una nómina» lee los recibos de PeopleNet con la plantilla `RECIBO`
+de Meta4 y la sociedad del contexto operativo. `POST /api/payroll/receipts/export`
+(Node.js, requiere sesión) descarga en PDF (`pdf-lib`) o Excel (`exceljs`) las
+nóminas pedidas: recibe solo los parámetros de la consulta y los ids, vuelve a
+leer los recibos en servidor y no guarda ficheros ni datos personales.
 El endpoint OpenAI-compatible global
 se configura mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL` en el entorno
 server-side; nunca se documentan credenciales ni se exponen claves al cliente.
