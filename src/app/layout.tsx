@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { AccentInitScript } from "@/components/theme/accent-init-script";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/system/toast";
-import { ACCENT_INIT_SCRIPT, DEFAULT_ACCENT } from "@/lib/theme/accent";
+import { DEFAULT_ACCENT } from "@/lib/theme/accent";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,7 +30,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: ACCENT_INIT_SCRIPT }} />
+        <AccentInitScript />
       </head>
       <body className="antialiased">
         <ThemeProvider

@@ -328,62 +328,80 @@ const readText = (value: unknown): string => {
   return "";
 };
 
-const toOptions = (rows: readonly CatalogRow[]): HireCatalogOption[] =>
-  rows.flatMap((row) => {
-    const id = readText(row.id);
-    if (!id) return [];
-    const detail = readText(row.detail);
-    return [{ id, name: readText(row.name) || id, ...(detail ? { detail } : {}) }];
+/** Keep the first complete option for each normalized ID, in PeopleNet's order. */
+const uniqueOptions = (options: readonly HireCatalogOption[]): HireCatalogOption[] => {
+  const seen = new Set<string>();
+  return options.filter((option) => {
+    if (seen.has(option.id)) return false;
+    seen.add(option.id);
+    return true;
   });
+};
+
+const toOptions = (rows: readonly CatalogRow[]): HireCatalogOption[] =>
+  uniqueOptions(
+    rows.flatMap((row) => {
+      const id = readText(row.id);
+      if (!id) return [];
+      const detail = readText(row.detail);
+      return [{ id, name: readText(row.name) || id, ...(detail ? { detail } : {}) }];
+    }),
+  );
 
 const toCommunityOptions = (rows: readonly CommunityRow[]): HireCatalogOption[] =>
-  rows.flatMap((row) => {
-    const country = readText(row.STD_ID_COUNTRY);
-    const community = readText(row.STD_ID_GEO_DIV);
-    if (!country || !community) return [];
-    const detail = readText(row.STD_N_COUNTRYESP);
-    return [
-      {
-        id: geoPath(country, community),
-        name: readText(row[""]) || community,
-        ...(detail ? { detail } : {}),
-      },
-    ];
-  });
+  uniqueOptions(
+    rows.flatMap((row) => {
+      const country = readText(row.STD_ID_COUNTRY);
+      const community = readText(row.STD_ID_GEO_DIV);
+      if (!country || !community) return [];
+      const detail = readText(row.STD_N_COUNTRYESP);
+      return [
+        {
+          id: geoPath(country, community),
+          name: readText(row[""]) || community,
+          ...(detail ? { detail } : {}),
+        },
+      ];
+    }),
+  );
 
 const toDepartmentOptions = (rows: readonly DepartmentRow[]): HireCatalogOption[] =>
   toOptions(rows.map((row) => ({ id: row.CSP_ID_DEPARTMENT, name: row.CSP_NM_DEPARTMENT })));
 
 /** One option per model + week order, as PeopleNet lists them ("001/1", "001/2"...). */
 const toReferenceModelOptions = (rows: readonly ReferenceModelRow[]): HireCatalogOption[] =>
-  rows.flatMap((row) => {
-    const model = readText(row.SCO_ID_REF_MOD);
-    const sequence = readText(row.SCO_OR_REF_MOD);
-    if (!model || !sequence) return [];
-    const week = readText(row.SCO_ID_WEEK_MDL);
-    return [
-      {
-        id: `${model}/${sequence}`,
-        name: readText(row[""]) || model,
-        ...(week ? { detail: `Semana ${week}` } : {}),
-      },
-    ];
-  });
+  uniqueOptions(
+    rows.flatMap((row) => {
+      const model = readText(row.SCO_ID_REF_MOD);
+      const sequence = readText(row.SCO_OR_REF_MOD);
+      if (!model || !sequence) return [];
+      const week = readText(row.SCO_ID_WEEK_MDL);
+      return [
+        {
+          id: `${model}/${sequence}`,
+          name: readText(row[""]) || model,
+          ...(week ? { detail: `Semana ${week}` } : {}),
+        },
+      ];
+    }),
+  );
 
 /** One option per legal + internal contract pair; name is the legal one, detail the internal one. */
 const toContractOptions = (rows: readonly ContractRow[]): HireCatalogOption[] =>
-  rows.flatMap((row) => {
-    const legalContract = readText(row.legal);
-    const internalContract = readText(row.internal);
-    if (!legalContract || !internalContract) return [];
-    return [
-      {
-        id: contractOptionId({ legalContract, internalContract }),
-        name: readText(row.legalName) || legalContract,
-        detail: readText(row.internalName) || internalContract,
-      },
-    ];
-  });
+  uniqueOptions(
+    rows.flatMap((row) => {
+      const legalContract = readText(row.legal);
+      const internalContract = readText(row.internal);
+      if (!legalContract || !internalContract) return [];
+      return [
+        {
+          id: contractOptionId({ legalContract, internalContract }),
+          name: readText(row.legalName) || legalContract,
+          detail: readText(row.internalName) || internalContract,
+        },
+      ];
+    }),
+  );
 
 /** Places matching a name or an ID, for the Población combobox. */
 export const searchHirePlaces = async (query: string): Promise<HireCatalogOption[]> => {

@@ -1,5 +1,30 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: catálogos únicos e inicialización del acento - 2026-09-28
+
+- [x] Helper privado compartido que deduplica opciones por el ID normalizado,
+      conserva la primera opción completa y mantiene el orden de PeopleNet.
+      Aplicado a catálogos genéricos, comunidades, modelos/semanas y contratos;
+      Department y búsqueda/carga de poblaciones usan la conversión genérica.
+      Las claves compuestas completas y los valores reales se conservan.
+- [x] `AccentInitScript` en el head del layout, siguiendo la guía instalada
+      de Next 16.3: script síncrono durante SSR, `text/plain` en el cliente y
+      `suppressHydrationWarning`. `useLayoutEffect` reaplica solo preferencias
+      válidas antes de pintar tras remontajes. `ACCENT_INIT_SCRIPT` intacto.
+- [x] Regresiones con Department 1001 numérico/texto/espacios, otros catálogos,
+      claves compuestas y poblaciones. Tests del acento con el React de Next:
+      parseo, hidratación y remontaje en Strict Mode sin warnings, incluyendo
+      preferencia válida, ausente, inválida y almacenamiento inaccesible.
+      Tests afectados: 3 archivos y 18 pruebas correctas.
+- [x] Verificación secuencial ejecutada: suite completa, typecheck, build,
+      lint, `git diff --check` y estado Git. Suite: 106 archivos y 557 pruebas
+      correctas, 2 omitidas y ningún fallo; incluidas las 3/3 pruebas reales
+      de Excel COM. Typecheck, build y diff correctos. Lint conserva siete
+      avisos previos y falla por formato en 367 archivos.
+- [x] Revisado el alcance final: sin cambios en SQL, mappings Excel, payload,
+      validación, writer, controles del alta ni dependencias. El formateo
+      accidental quedó completamente revertido fuera de esta corrección.
+
 ## Alta de personas: tests desactualizados corregidos - 2026-09-28
 
 - [x] Corregida la expectativa antigua que excluía CZ: Proyecto escribe

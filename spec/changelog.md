@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-28 - Catálogos únicos e inicialización del acento sin warnings
+
+- Los adaptadores del alta deduplican por el ID normalizado mediante un helper
+  privado común. Conservan la primera opción completa y el orden original,
+  incluidas las claves completas de comunidad, modelo/ordinal, contrato y
+  población. Department conserva su SELECT literal y el ID real como valor.
+- El layout servidor usa `AccentInitScript` en el head, con el patrón de la
+  guía instalada de Next 16.3: `text/javascript` durante SSR, `text/plain` en
+  cliente y `suppressHydrationWarning`. El script original permanece intacto;
+  un efecto de layout reaplica únicamente un acento guardado válido antes de
+  pintar tras remontajes y tolera almacenamiento inaccesible.
+- Tests afectados: 3 archivos y 18 pruebas correctas. Cubiertos Department
+  1001 repetido con distintas representaciones, otros catálogos genéricos,
+  claves compuestas y las dos cargas de poblaciones. El React instalado de
+  Next comprueba parseo, hidratación y remontaje en Strict Mode sin warnings
+  con preferencias válidas, ausentes, inválidas y almacenamiento inaccesible.
+- Verificación secuencial: suite completa, typecheck, build, lint,
+  `git diff --check` y estado Git. Suite: 106 archivos y 557 pruebas correctas,
+  2 omitidas y ningún fallo, incluidas las 3/3 pruebas reales de Excel COM.
+  Typecheck, build y diff correctos. Lint conserva siete avisos previos y
+  falla por formato en 367 archivos.
+- Sin cambios en SQL, mappings Excel, payload, validación, writer, controles
+  del alta, dependencias ni persistencia. El formateo accidental se revirtió
+  completamente fuera de los archivos de esta corrección; alcance final revisado.
+
 ## 2026-09-28 - Corrección de dos tests desactualizados del alta
 
 - El test de mapping confirma `project` → CZ y excluye CY; las instrucciones
