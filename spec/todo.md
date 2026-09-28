@@ -67,6 +67,13 @@
       regenera los recibos desde PeopleNet; revisado visualmente el PDF real de
       la 1013 (actual y retroactivos).
 
+- [x] Filtro del calendario de pagas: Todas · Mensuales · Revisiones e
+      incrementos · Retribución variable · Otras, con contador. Clasificación en
+      `src/lib/payroll/pay-category.ts`: `SCO_ID_PAY_TYPE` 2 es variable; el
+      resto por nombre (mensual = solo el nombre del mes), comprobado con las
+      332 pagas de CYC, IBER y COLL. El rango solo consulta las del grupo.
+      Commit propio para poder revertirlo si no convence.
+
 ### Pendiente para la próxima sesión (por prioridad)
 
 - [x] **Pagas retroactivas y paga normal + retroactivas**, con las `SELECT`

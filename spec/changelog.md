@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-28 - Nómina: filtro del calendario de pagas
+
+- «Qué pagas ver» encima de Desde/Hasta: Todas · Mensuales · Revisiones e
+  incrementos · Retribución variable · Otras, con el número de pagas de cada
+  grupo. Los selectores muestran solo el grupo elegido y en «Todas» marcan las
+  pagas que no son mensuales.
+- La consulta y la descarga reciben `payFilter` y el servidor solo lee las
+  pagas de ese grupo dentro del rango (1013, enero–abril 2026, «Mensuales»:
+  Enero, Febrero, Marzo y Abril, sin pagas sin recibo).
+- Clasificación en `src/lib/payroll/pay-category.ts`: PeopleNet solo marca la
+  variable (`SCO_ID_PAY_TYPE` 2); el resto se deduce del nombre, comprobado con
+  las pagas reales de CYC, IBER y COLL.
+- `tsc --noEmit` con la caché incremental (`tsconfig.tsbuildinfo`) dio un falso
+  verde durante el cambio; la verificación se hace con `--incremental false`.
+- Verificación: `tsc --noEmit --incremental false` y `build` correctos;
+  `npm test` 564 correctas y 2 fallos que no son de nómina (`hire/excel.test.ts`
+  por Excel COM colgado y `meta4/config.test.ts`, que pasa aislado);
+  `oxlint` sin avisos nuevos; formato y `git diff --check` correctos.
+
 ## 2026-09-28 - Nómina: descarga en PDF y Excel
 
 - Menú «Descargar» sobre la nómina visible: esa nómina o todas las del rango,

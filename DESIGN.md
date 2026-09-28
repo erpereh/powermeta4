@@ -316,6 +316,12 @@ informativos se muestran como en Meta4 (`*** … ***`, desglose sangrado y en
 `muted-foreground`). En móvil las casillas pasan a dos columnas y solo el
 cuerpo tiene scroll horizontal propio.
 
+El calendario de pagas se filtra con Tabs `pill` con contador («Qué pagas
+ver»: Todas · Mensuales · Revisiones e incrementos · Retribución variable ·
+Otras, ocultando los grupos vacíos). En «Todas», las pagas que no son mensuales
+llevan una etiqueta `muted` con su grupo; el filtro también limita qué pagas
+consulta el rango.
+
 Un rango de pagas nunca apila recibos: se ve uno cada vez, el más reciente al
 entrar, con Tabs `underline` (una por paga, con desbordamiento) y botones
 anterior/siguiente con nombre accesible, más un resumen del rango. Encima de

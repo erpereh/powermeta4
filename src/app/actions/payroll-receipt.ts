@@ -16,7 +16,8 @@ export async function getPayrollReceiptAction(
 
   const parsed = parsePayrollReceiptParameters(parameters);
   if (!parsed.ok) return { ok: false, message: parsed.message };
-  const { employeeId, fromPaymentDate, toPaymentDate, paymentType, currency } = parsed.value;
+  const { employeeId, fromPaymentDate, toPaymentDate, payFilter, paymentType, currency } =
+    parsed.value;
 
   try {
     const context = await getMeta4OperationalContext(authSession);
@@ -25,6 +26,7 @@ export async function getPayrollReceiptAction(
       employeeId,
       fromPaymentDate,
       toPaymentDate,
+      payFilter,
       paymentType,
       currency,
     });

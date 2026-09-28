@@ -28,6 +28,7 @@ const PARAMETERS: PayrollReceiptParameters = {
   employeeId: "9001",
   fromPaymentDate: "2026-02-25",
   toPaymentDate: "2026-04-25",
+  payFilter: "all",
   paymentType: "current",
   currency: { mode: "calculation" },
 };

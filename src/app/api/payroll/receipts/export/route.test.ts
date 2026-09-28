@@ -33,6 +33,7 @@ const parameters = {
   employeeId: "1013",
   fromPaymentDate: "2026-03-25",
   toPaymentDate: "2026-04-25",
+  payFilter: "all",
   paymentType: "current",
   currency: { mode: "calculation" },
 };

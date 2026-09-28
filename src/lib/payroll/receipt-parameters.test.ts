@@ -6,6 +6,7 @@ const valid = {
   employeeId: " 1013 ",
   fromPaymentDate: "2026-01-25",
   toPaymentDate: "2026-04-25",
+  payFilter: "revision",
   paymentType: "retroactive",
   currency: { mode: "other", currencyId: " usd " },
 };
@@ -18,6 +19,7 @@ describe("parsePayrollReceiptParameters", () => {
         employeeId: "1013",
         fromPaymentDate: "2026-01-25",
         toPaymentDate: "2026-04-25",
+        payFilter: "revision",
         paymentType: "retroactive",
         currency: { mode: "other", currencyId: "USD" },
       },
@@ -35,6 +37,7 @@ describe("parsePayrollReceiptParameters", () => {
     ],
     [{ ...valid, currency: { mode: "other" } }, "El ID de moneda no es válido."],
     [{ ...valid, paymentType: "bonus" }, "El tipo de pagas no es válido."],
+    [{ ...valid, payFilter: "extras" }, "El grupo de pagas no es válido."],
   ])("rejects %j", (input, message) => {
     expect(parsePayrollReceiptParameters(input)).toEqual({ ok: false, message });
   });

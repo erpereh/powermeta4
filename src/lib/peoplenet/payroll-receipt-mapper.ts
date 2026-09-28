@@ -1,3 +1,4 @@
+import { classifyPay } from "@/lib/payroll/pay-category";
 import type { PeopleNetSqlValue } from "@/lib/peoplenet/employees";
 import {
   evaluateReceiptTemplate,
@@ -293,6 +294,7 @@ export const mapPayrollPays = (rows: readonly PeopleNetRow[]): PayrollPayOption[
         name: toText(row.PAY_NAME) || paymentDate,
         startDate: toIsoDate(row.SCO_DT_START) ?? "",
         endDate: toIsoDate(row.SCO_DATE_END) ?? "",
+        category: classifyPay(toText(row.PAY_NAME), toText(row.SCO_ID_PAY_TYPE)),
       },
     ];
   });

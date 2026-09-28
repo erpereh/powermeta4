@@ -3,6 +3,7 @@ import "server-only";
 import sql from "mssql";
 
 import type { Meta4Society } from "@/lib/meta4/societies";
+import { matchesPayFilter } from "@/lib/payroll/pay-category";
 import { getPeopleNetPool } from "@/lib/peoplenet/client";
 import {
   mapPayrollPays,
@@ -22,6 +23,7 @@ import {
   PAYROLL_RANGE_MAX_PAYS,
   type PayrollMissingReceipt,
   type PayrollPaymentType,
+  type PayrollPayFilter,
   type PayrollPayOption,
   type PayrollProcessCurrency,
   type PayrollReceipt,
@@ -232,13 +234,13 @@ WHERE D.ID_ORGANIZATION = @organization AND D.SCO_ID_HR = @employeeId
 ORDER BY D.SCO_OR_PAYMENTDATA`;
 
 const PAYS_QUERY = `SELECT TOP 240 SCO_DT_ACCRUED, ISNULL(SCO_NM_PAYESP, SCO_NM_PAYENG) AS PAY_NAME,
-  SCO_DT_START, SCO_DATE_END
+  SCO_DT_START, SCO_DATE_END, SCO_ID_PAY_TYPE
 FROM M4SCO_HT_PAYS
 WHERE ID_ORGANIZATION = @organization AND SCO_DT_ACCRUED <= @today
 ORDER BY SCO_DT_ACCRUED DESC`;
 
 const PAYS_RANGE_QUERY = `SELECT SCO_DT_ACCRUED, ISNULL(SCO_NM_PAYESP, SCO_NM_PAYENG) AS PAY_NAME,
-  SCO_DT_START, SCO_DATE_END
+  SCO_DT_START, SCO_DATE_END, SCO_ID_PAY_TYPE
 FROM M4SCO_HT_PAYS
 WHERE ID_ORGANIZATION = @organization AND SCO_DT_ACCRUED >= @fromDate AND SCO_DT_ACCRUED <= @toDate
 ORDER BY SCO_DT_ACCRUED`;
@@ -384,6 +386,7 @@ export const getPayrollReceipts = async (inputs: QueryInputs): Promise<PayrollRe
 type RangeInputs = Omit<QueryInputs, "paymentDate"> & {
   fromPaymentDate: string;
   toPaymentDate: string;
+  payFilter: PayrollPayFilter;
 };
 
 /** Consultas de recibo en paralelo por rango; acotadas para no saturar el pool. */
@@ -403,7 +406,9 @@ export const getPayrollReceiptRange = async (
     .input("fromDate", sql.Date, toSqlDate(inputs.fromPaymentDate))
     .input("toDate", sql.Date, toSqlDate(inputs.toPaymentDate))
     .query<PeopleNetRow>(PAYS_RANGE_QUERY);
-  const pays = mapPayrollPays(result.recordset);
+  const pays = mapPayrollPays(result.recordset).filter((pay) =>
+    matchesPayFilter(pay.category, inputs.payFilter),
+  );
   if (pays.length > PAYROLL_RANGE_MAX_PAYS) {
     throw new PayrollReceiptError(
       "RANGE_TOO_LARGE",

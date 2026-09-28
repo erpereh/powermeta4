@@ -26,6 +26,7 @@ const parameters: PayrollReceiptParameters = {
   employeeId: " 1013 ",
   fromPaymentDate: "2026-01-25",
   toPaymentDate: "2026-04-25",
+  payFilter: "ordinary",
   paymentType: "current",
   currency: { mode: "calculation" },
 };
@@ -55,6 +56,7 @@ describe("getPayrollReceiptAction", () => {
       employeeId: "1013",
       fromPaymentDate: "2026-01-25",
       toPaymentDate: "2026-04-25",
+      payFilter: "ordinary",
       paymentType: "current",
       currency: { mode: "calculation" },
     });

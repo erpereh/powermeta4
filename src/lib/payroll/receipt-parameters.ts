@@ -1,5 +1,7 @@
 import {
+  PAYROLL_PAY_CATEGORIES,
   PAYROLL_PAYMENT_TYPES,
+  type PayrollPayFilter,
   type PayrollPaymentType,
   type PayrollProcessCurrency,
   type PayrollReceiptParameters,
@@ -18,6 +20,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isPaymentType = (value: unknown): value is PayrollPaymentType =>
   PAYROLL_PAYMENT_TYPES.some((option) => option.value === value);
+
+const isPayFilter = (value: unknown): value is PayrollPayFilter =>
+  value === "all" || PAYROLL_PAY_CATEGORIES.some((option) => option.value === value);
 
 const parseCurrency = (value: unknown): PayrollProcessCurrency | null => {
   if (!isRecord(value)) return null;
@@ -54,9 +59,17 @@ export const parsePayrollReceiptParameters = (input: unknown): ParsedPayrollRece
   const currency = parseCurrency(input.currency);
   if (!currency) return failure("El ID de moneda no es válido.");
   if (!isPaymentType(input.paymentType)) return failure("El tipo de pagas no es válido.");
+  if (!isPayFilter(input.payFilter)) return failure("El grupo de pagas no es válido.");
 
   return {
     ok: true,
-    value: { employeeId, fromPaymentDate, toPaymentDate, paymentType: input.paymentType, currency },
+    value: {
+      employeeId,
+      fromPaymentDate,
+      toPaymentDate,
+      payFilter: input.payFilter,
+      paymentType: input.paymentType,
+      currency,
+    },
   };
 };

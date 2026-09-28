@@ -336,6 +336,7 @@ describe("payroll receipt helpers", () => {
         {
           SCO_DT_ACCRUED: utc("2026-03-24"),
           PAY_NAME: "Incrementos 2026",
+          SCO_ID_PAY_TYPE: "1",
           SCO_DT_START: utc("2026-03-01"),
           SCO_DATE_END: utc("2026-03-31"),
         },
@@ -347,6 +348,7 @@ describe("payroll receipt helpers", () => {
         name: "Incrementos 2026",
         startDate: "2026-03-01",
         endDate: "2026-03-31",
+        category: "revision",
       },
     ]);
   });
