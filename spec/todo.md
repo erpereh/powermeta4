@@ -1,5 +1,26 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: tests desactualizados corregidos - 2026-09-28
+
+- [x] Corregida la expectativa antigua que excluía CZ: Proyecto escribe
+      `SSP_ID_CENT_COSTO` exclusivamente en CZ. Las instrucciones de ambas
+      personas comprueban el texto literal `000000` y la ausencia de CY;
+      se conserva la prueba real de Excel que verifica CY en la plantilla.
+- [x] Fixture de la acción actualizado con `hireExtraFixture`, Puesto
+      `RDCI`, `positionChoice: "job"` y Proyecto `000000`; comprobado con
+      `satisfies HirePerson`. Conservados los mocks y tests de privacidad
+      y rechazo de entradas inválidas. Sin cambios de producción.
+- [x] Tests afectados ejecutados: 3 archivos y 9 pruebas correctas.
+- [x] Suite completa: 105 archivos y 546 pruebas correctas, 2 omitidas y
+      ningún fallo. Incluidas las 3/3 pruebas reales de Excel COM.
+      Typecheck, build y `git diff --check` correctos; estado Git revisado.
+- [x] La primera suite agotó el límite de 5 segundos en un test de backups
+      y el siguiente encontró su bloqueo ocupado. Los 6 tests de backups
+      pasaron aislados y `npm test` completo pasó al repetir, sin cambiar
+      archivos de backups ni límites de tiempo.
+- [x] Lint ejecutado: siete avisos previos de oxlint; `oxfmt --check`
+      sigue fallando por formato en 368 archivos. Sin formateo global.
+
 ## Alta de personas: retirada de cuatro campos sin mapping - 2026-09-28
 
 - [x] Eliminados Fax, FIC Específico, Ordinal banco persona y BIC de la UI,

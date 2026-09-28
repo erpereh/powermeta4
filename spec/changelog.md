@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-28 - Corrección de dos tests desactualizados del alta
+
+- El test de mapping confirma `project` → CZ y excluye CY; las instrucciones
+  Excel de ambas personas comprueban el texto literal `000000` en CZ y
+  ninguna escritura en CY. La prueba real de conservación de CY permanece.
+- El fixture antiguo de la acción reutiliza `hireExtraFixture` y selecciona
+  Puesto `RDCI` con `positionChoice: "job"` y Proyecto `000000`, comprobado
+  mediante `satisfies HirePerson`. Conservadas las aserciones de éxito,
+  privacidad y validación. Sin cambios en producción, SQL, mappings o writer.
+- Tests afectados: 3 archivos y 9 pruebas correctas.
+- Suite final: 105 archivos y 546 pruebas correctas, 2 omitidas y ningún
+  fallo. Excel COM: 3/3 pruebas reales correctas. Typecheck, build y
+  `git diff --check` correctos; estado Git revisado.
+- La primera suite agotó 5 segundos en un test de backups y el siguiente
+  encontró el bloqueo ocupado. Backups pasó 6/6 aislado y la suite completa
+  pasó al repetir `npm test`, sin cambios en backups ni en los timeouts.
+- Lint ejecutado: siete avisos previos de oxlint y fallo de `oxfmt --check`
+  por formato en 368 archivos. No se aplica formateo global.
+
 ## 2026-09-28 - Retirada de cuatro campos del alta sin mapping confirmado
 
 - Eliminados Fax, FIC Específico, Ordinal banco persona y BIC de la UI,

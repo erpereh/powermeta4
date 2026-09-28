@@ -158,6 +158,8 @@ describe("Hire Excel temp files", () => {
     for (const cells of [first, second]) {
       expect(new Set(cells.keys())).toEqual(new Set(WRITTEN_COLUMNS));
       expect(cells.size).toBe(WRITTEN_COLUMNS.length);
+      expect(cells.get("CZ")).toEqual({ column: "CZ", kind: "literal", value: "000000" });
+      expect(cells.has("CY")).toBe(false);
       for (const column of ["HO", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
         expect(cells.has(column), column).toBe(false);
       }

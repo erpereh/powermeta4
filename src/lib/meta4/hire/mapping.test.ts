@@ -8,12 +8,14 @@ describe("hire mapping", () => {
     expect(toExcelSerialDate("2026-09-15")).toBe(46280);
   });
 
-  it("writes duplicate email, identity and legal entity columns", () => {
+  it("writes duplicate fields and project to CZ without overwriting CY", () => {
     expect(MANUAL_COLUMNS.email).toEqual(["AY", "IQ"]);
     expect(WRITTEN_COLUMNS).toContain("IQ");
     expect(WRITTEN_COLUMNS).toContain("AY");
     expect(WRITTEN_COLUMNS).toContain("Y");
     expect(MANUAL_COLUMNS.legalEntity).toEqual(["CH", "CI"]);
-    expect(WRITTEN_COLUMNS).not.toContain("CZ");
+    expect(MANUAL_COLUMNS.project).toEqual(["CZ"]);
+    expect(WRITTEN_COLUMNS).toContain("CZ");
+    expect(WRITTEN_COLUMNS).not.toContain("CY");
   });
 });
