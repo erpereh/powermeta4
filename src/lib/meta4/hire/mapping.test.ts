@@ -14,6 +14,7 @@ describe("hire mapping", () => {
     expect(WRITTEN_COLUMNS).toContain("AY");
     expect(WRITTEN_COLUMNS).toContain("Y");
     expect(MANUAL_COLUMNS.legalEntity).toEqual(["CH", "CI"]);
-    expect(WRITTEN_COLUMNS).not.toContain("CZ");
+    expect(MANUAL_COLUMNS.project).toEqual(["CZ"]);
+    expect(WRITTEN_COLUMNS).toContain("CZ");
   });
 });
