@@ -27,10 +27,50 @@ export const findDevTestPlace = (
       hasProvinceAncestors(catalogs, place.id),
   );
 
-export const getDevTestPlaceQuery = (catalogs: HireCatalogs): string | undefined =>
-  catalogs.province
-    .find((option) => option.name.trim().length >= 2 && hasProvinceAncestors(catalogs, option.id))
-    ?.name.trim();
+const DEV_TEST_PLACE_ERROR =
+  "No se ha encontrado una población compatible para los datos de prueba.";
+
+const isCatalogOption = (value: unknown): value is HireCatalogOption =>
+  typeof value === "object" &&
+  value !== null &&
+  "id" in value &&
+  typeof value.id === "string" &&
+  "name" in value &&
+  typeof value.name === "string" &&
+  (!("detail" in value) || value.detail === undefined || typeof value.detail === "string");
+
+const readPlaces = (body: unknown): HireCatalogOption[] => {
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    "ok" in body &&
+    body.ok === true &&
+    "data" in body &&
+    Array.isArray(body.data) &&
+    body.data.every(isCatalogOption)
+  ) {
+    return body.data;
+  }
+  throw new Error(DEV_TEST_PLACE_ERROR);
+};
+
+const searchDevTestPlace = async (
+  catalogs: HireCatalogs,
+  signal: AbortSignal,
+): Promise<HireCatalogOption> => {
+  try {
+    signal.throwIfAborted();
+    const response = await fetch("/api/hire/places?q=Madrid", { signal });
+    if (!response.ok) throw new Error(DEV_TEST_PLACE_ERROR);
+    const body: unknown = await response.json();
+    const place = findDevTestPlace(catalogs, readPlaces(body));
+    if (!place) throw new Error(DEV_TEST_PLACE_ERROR);
+    return place;
+  } catch (caught) {
+    if (signal.aborted) throw caught;
+    throw new Error(DEV_TEST_PLACE_ERROR);
+  }
+};
 
 const testDocument = (id: number): string => {
   const number = 90_000_000 + id;
@@ -104,4 +144,16 @@ export const createDevHirePersonDraft = (
     society,
   );
   return draft;
+};
+
+/** Resolve a real PeopleNet place before building the complete development draft. */
+export const loadDevHirePersonDraft = async (
+  id: number,
+  state: Extract<HireCatalogState, { status: "ready" }>,
+  now: Date,
+  signal: AbortSignal,
+): Promise<HirePersonDraft> => {
+  const place = await searchDevTestPlace(state.catalogs, signal);
+  signal.throwIfAborted();
+  return createDevHirePersonDraft(id, state, place, now);
 };

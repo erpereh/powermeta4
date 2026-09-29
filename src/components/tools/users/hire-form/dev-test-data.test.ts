@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   assertHireCatalogSelections,
@@ -7,7 +7,11 @@ import {
 } from "@/lib/meta4/hire/catalogs";
 import { parseHirePerson } from "@/lib/meta4/hire/validate";
 
-import { createDevHirePersonDraft, findDevTestPlace, getDevTestPlaceQuery } from "./dev-test-data";
+import {
+  createDevHirePersonDraft,
+  findDevTestPlace,
+  loadDevHirePersonDraft,
+} from "./dev-test-data";
 import { toHirePersonInput } from "./draft";
 
 const options = (id: string): HireCatalogOption[] => [{ id, name: `Opción ${id}` }];
@@ -64,6 +68,8 @@ const state = {
   },
 } satisfies Extract<HireCatalogState, { status: "ready" }>;
 const now = new Date(2026, 8, 29, 0, 30);
+
+afterEach(() => vi.restoreAllMocks());
 
 describe("development hire test data", () => {
   it("builds a valid person from the supplied catalogs without changing them", () => {
@@ -142,11 +148,98 @@ describe("development hire test data", () => {
     ).toThrow(/puestos ni posiciones/);
   });
 
-  it("selects compatible places and derives the search from a coherent province", () => {
+  it("selects places whose complete geographic path belongs to the loaded catalogs", () => {
     expect(findDevTestPlace(state.catalogs, [{ ...place, id: "OTHER/COM/PROV/TEST" }, place])).toBe(
       place,
     );
-    expect(getDevTestPlaceQuery(state.catalogs)).toBe("Opción ZZ/COM/PROV");
-    expect(getDevTestPlaceQuery({ ...state.catalogs, community: [] })).toBeUndefined();
+    expect(findDevTestPlace({ ...state.catalogs, community: [] }, [place])).toBeUndefined();
+  });
+
+  it("queries Madrid and builds a valid person from the first compatible result without preloaded places", async () => {
+    const signal = new AbortController().signal;
+    const search = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          data: [
+            { ...place, id: "OTHER/COM/PROV/TEST" },
+            place,
+            { ...place, id: "ZZ/COM/PROV/SECOND" },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    const draft = await loadDevHirePersonDraft(7, state, now, signal);
+    const person = parseHirePerson(toHirePersonInput(draft));
+    expect(search).toHaveBeenCalledExactlyOnceWith("/api/hire/places?q=Madrid", { signal });
+    expect(person).toMatchObject({
+      city: "ZZ/COM/PROV/TEST",
+      province: "ZZ/COM/PROV",
+      community: "ZZ/COM",
+      country: "ZZ",
+      legalContract: "LEGAL_TEST",
+      internalContract: "INTERNAL_TEST",
+    });
+    expect(draft.id).toBe(7);
+    expect(draft.pendingValues.cityName).toBe(place.name);
+    expect(() =>
+      assertHireCatalogSelections([person], { ...state.catalogs, place: [place] }, state.society),
+    ).not.toThrow();
+    expect(state.catalogs.place).toEqual([]);
+  });
+
+  it.each([
+    {
+      name: "HTTP failure",
+      response: () => new Response(JSON.stringify({ ok: false }), { status: 500 }),
+    },
+    {
+      name: "unsuccessful API response",
+      response: () => new Response(JSON.stringify({ ok: false }), { status: 200 }),
+    },
+    {
+      name: "empty results",
+      response: () => new Response(JSON.stringify({ ok: true, data: [] }), { status: 200 }),
+    },
+    {
+      name: "incompatible geography",
+      response: () =>
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: [{ ...place, id: "OTHER/COM/PROV/TEST" }],
+          }),
+          { status: 200 },
+        ),
+    },
+    {
+      name: "invalid option",
+      response: () =>
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: [{ id: 123, name: place.name }],
+          }),
+          { status: 200 },
+        ),
+    },
+    {
+      name: "invalid JSON",
+      response: () => new Response("Invalid JSON", { status: 200 }),
+    },
+  ])("reports the existing place error for $name", async ({ response }) => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(response());
+    await expect(
+      loadDevHirePersonDraft(7, state, now, new AbortController().signal),
+    ).rejects.toThrow("No se ha encontrado una población compatible para los datos de prueba.");
+  });
+
+  it("reports the existing place error when the network request fails", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("Network failure"));
+    await expect(
+      loadDevHirePersonDraft(7, state, now, new AbortController().signal),
+    ).rejects.toThrow("No se ha encontrado una población compatible para los datos de prueba.");
   });
 });

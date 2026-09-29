@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: población de prueba buscada bajo demanda - 2026-09-29
+
+- [x] El helper de desarrollo consulta `/api/hire/places?q=Madrid` y elige
+      el primer resultado compatible, sin depender de poblaciones precargadas
+      ni del orden de provincias. Conserva el ID geográfico completo y el
+      nombre; Provincia, Comunidad y País siguen derivados con `geoAncestor`.
+- [x] Búsqueda, lectura de respuesta y selección aisladas en el helper;
+      constructor puro y validadores existentes intactos. El control espera
+      el draft completo, conserva la cancelación y solo actualiza la persona
+      activa. Fallos, respuestas inválidas o vacías muestran el mensaje de
+      población compatible y conservan los datos del formulario.
+- [x] Tests afectados: 3 archivos y 41 pruebas correctas. Cubiertos catálogo
+      de poblaciones vacío, Barcelona como primera provincia, IDs alternativos,
+      geografía derivada, errores HTTP/API/red/JSON, resultados vacíos,
+      aislamiento entre personas, cancelación, producción y ausencia de alta.
+      Búsqueda y SOAP simulados; sin alta real.
+- [x] Typecheck y build correctos. Suite completa: 107 archivos,
+      575 pruebas correctas y 2 omitidas, sin fallos. Lint mantiene siete
+      avisos previos y falla por formato en 367 archivos; los tres archivos
+      de desarrollo pasan el chequeo dirigido de formato.
+- [x] Cambios limitados al helper, control, tests y seguimiento; sin cambios
+      en APIs, SQL, mappings, validaciones ni comportamiento de producción.
+
 ## Alta de personas: datos de prueba en desarrollo - 2026-09-29
 
 - [x] Bloque separado «Desarrollo» con «Rellenar datos de prueba», visible

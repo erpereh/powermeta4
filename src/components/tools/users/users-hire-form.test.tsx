@@ -239,16 +239,30 @@ const fillRequired = async (
 };
 
 describe("UsersHireForm", () => {
-  it("fills a valid development person without launching the hire", async () => {
+  it("queries Madrid and fills a valid development person regardless of province order without launching the hire", async () => {
     const user = userEvent.setup({ delay: null });
-    render(<UsersHireForm catalogs={CATALOGS} />);
+    render(
+      <UsersHireForm catalogs={{
+        ...CATALOGS,
+        catalogs: { ...CATALOGS.catalogs, province: [...CATALOGS.catalogs.province].reverse() },
+      }} />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
     await waitFor(() => expect(inputValue("Nombre")).toBe("Prueba"));
+    expect(fetch).toHaveBeenLastCalledWith("/api/hire/places?q=Madrid", {
+      signal: expect.any(AbortSignal),
+    });
     expect(inputValue("Primer apellido")).toBe("Automática");
     expect(inputValue("Núm. de documento")).toMatch(/^90000001[A-Z]$/);
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(launchHire).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Dirección" }));
+    expect(catalogValue("ID Población")).toBe("MADRID");
+    expect(catalogValue("ID Provincia")).toBe("Madrid");
+    expect(catalogValue("ID Comunidad")).toBe("Madrid");
+    expect(catalogValue("ID País")).toBe("España");
 
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
     expect(screen.getByText("Se van a procesar 1 personas en Meta4")).toBeTruthy();
@@ -282,15 +296,24 @@ describe("UsersHireForm", () => {
     expect(screen.queryByText("Desarrollo")).toBeNull();
   });
 
-  it("keeps the draft unchanged when the development place search fails", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ ok: false }), { status: 500 }),
-    );
+  it.each([
+    {
+      name: "fails",
+      response: () => new Response(JSON.stringify({ ok: false }), { status: 500 }),
+    },
+    {
+      name: "returns no results",
+      response: () => new Response(JSON.stringify({ ok: true, data: [] }), { status: 200 }),
+    },
+  ])("keeps the draft unchanged when the development place search $name", async ({ response }) => {
+    vi.mocked(fetch).mockResolvedValueOnce(response());
     const user = userEvent.setup({ delay: null });
     render(<UsersHireForm catalogs={CATALOGS} />);
     fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Conservar" } });
     await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
-    expect((await screen.findByRole("alert")).textContent).toMatch(/buscar una población/);
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "No se ha encontrado una población compatible para los datos de prueba.",
+    );
     expect(inputValue("Nombre")).toBe("Conservar");
     expect(inputValue("Primer apellido")).toBe("");
     expect(inputValue("Núm. de documento")).toBe("");

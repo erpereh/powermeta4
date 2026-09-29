@@ -3,38 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/system";
-import {
-  lastGeoSegment,
-  type HireCatalogOption,
-  type HireCatalogState,
-} from "@/lib/meta4/hire/catalogs";
+import type { HireCatalogState } from "@/lib/meta4/hire/catalogs";
 
-import { createDevHirePersonDraft, findDevTestPlace, getDevTestPlaceQuery } from "./dev-test-data";
+import { loadDevHirePersonDraft } from "./dev-test-data";
 import type { HirePersonDraft } from "./draft";
-
-const isCatalogOption = (value: unknown): value is HireCatalogOption =>
-  typeof value === "object" &&
-  value !== null &&
-  "id" in value &&
-  typeof value.id === "string" &&
-  "name" in value &&
-  typeof value.name === "string" &&
-  (!("detail" in value) || value.detail === undefined || typeof value.detail === "string");
-
-const readPlaces = (body: unknown): HireCatalogOption[] => {
-  if (
-    typeof body === "object" &&
-    body !== null &&
-    "ok" in body &&
-    body.ok === true &&
-    "data" in body &&
-    Array.isArray(body.data) &&
-    body.data.every(isCatalogOption)
-  ) {
-    return body.data;
-  }
-  throw new Error("No se ha podido buscar una población para los datos de prueba.");
-};
 
 /** Remove this component and its guarded form insertion to retire the development button. */
 export function DevTestDataControls({
@@ -78,35 +50,9 @@ export function DevTestDataControls({
     setMessage(null);
 
     try {
-      const selected = draft.current.city
-        ? [
-            {
-              id: draft.current.city,
-              name: draft.pendingValues.cityName || lastGeoSegment(draft.current.city),
-            },
-          ]
-        : [];
-      let place = findDevTestPlace(catalogs.catalogs, [...selected, ...catalogs.catalogs.place]);
-      if (!place) {
-        const query = getDevTestPlaceQuery(catalogs.catalogs);
-        if (!query) {
-          throw new Error("No hay provincias con país y comunidad disponibles para la prueba.");
-        }
-        const response = await fetch(`/api/hire/places?q=${encodeURIComponent(query)}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new Error("No se ha podido buscar una población para los datos de prueba.");
-        }
-        const body: unknown = await response.json();
-        place = findDevTestPlace(catalogs.catalogs, readPlaces(body));
-      }
-      if (!place) {
-        throw new Error("No se ha encontrado una población compatible para los datos de prueba.");
-      }
+      const next = await loadDevHirePersonDraft(draft.id, catalogs, new Date(), controller.signal);
       if (controller.signal.aborted) return;
 
-      const next = createDevHirePersonDraft(draft.id, catalogs, place, new Date());
       onFill(next);
       setMessage("Datos ficticios preparados. Puedes revisarlos y editarlos antes de confirmar.");
     } catch (caught) {

@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-09-29 - Población de prueba desde la búsqueda de PeopleNet
+
+- El rellenador de desarrollo consulta `/api/hire/places?q=Madrid` desde su
+  helper y selecciona la primera población compatible devuelta. Ya no depende
+  de opciones precargadas ni del nombre de la primera provincia del catálogo.
+- El ID geográfico completo y el nombre devueltos se conservan en el draft;
+  Provincia, Comunidad y País se derivan con `geoAncestor`, con la validación
+  existente antes de aplicar los datos. El constructor puro no cambia.
+- El componente mantiene solo estados, cancelación y aplicación sobre la
+  persona activa. Fallos de búsqueda, respuestas inválidas o ausencia de
+  resultados compatibles muestran «No se ha encontrado una población compatible
+  para los datos de prueba.» y conservan el draft. El alta sigue bajo la
+  confirmación normal; sin cambios en APIs, SQL, mappings ni validaciones.
+- Tests afectados: 3 archivos y 41 pruebas correctas, incluyendo poblaciones
+  sin precargar, primera provincia distinta de Madrid, IDs geográficos
+  alternativos, errores y conservación de datos. Se mantienen las pruebas de
+  cancelación, producción, persona activa y ausencia de llamadas al alta.
+- Typecheck y build correctos. Suite completa: 107 archivos y 575 pruebas
+  correctas, 2 omitidas y ningún fallo. Lint conserva siete avisos previos y
+  falla por formato en 367 archivos; el helper, control y test de desarrollo
+  pasan el chequeo dirigido de formato. Búsqueda y SOAP simulados en las pruebas.
+
 ## 2026-09-29 - Relleno de una persona de prueba en desarrollo
 
 - «Rellenar datos de prueba» vive en un bloque «Desarrollo», oculto en
