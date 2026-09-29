@@ -10,6 +10,7 @@ import type { HirePersonInput } from "@/lib/meta4/hire/types";
 import { parseHirePeople, parseHirePerson } from "@/lib/meta4/hire/validate";
 
 import { HireCatalogsProvider } from "./hire-form/catalogs";
+import { DevTestDataControls } from "./hire-form/dev-test-controls";
 import {
   createHirePersonDraft,
   HireDraftProvider,
@@ -186,6 +187,14 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                   <legend className="px-1 text-sm font-medium text-foreground">
                     Persona {index + 1}
                   </legend>
+                  {process.env.NODE_ENV !== "production" ? (
+                    <DevTestDataControls
+                      draft={draft}
+                      catalogs={catalogs}
+                      disabled={pending || confirmOpen}
+                      onFill={(next) => updateDraft(draft.id, () => next)}
+                    />
+                  ) : null}
                   <HireDraftProvider
                     key={draft.id}
                     draft={draft}

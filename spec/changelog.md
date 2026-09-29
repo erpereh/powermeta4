@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-29 - Relleno de una persona de prueba en desarrollo
+
+- «Rellenar datos de prueba» vive en un bloque «Desarrollo», oculto en
+  producción. Helper y componente independientes en `hire-form`, conectados
+  mediante una inserción condicional; solo sustituyen el draft expandido.
+- Datos personales ficticios, documento diferenciado por persona, email de
+  prueba, fecha actual e IBAN con control válido. Los campos obligatorios usan
+  opciones existentes de los catálogos, incluido el par contrato legal/interno.
+  Se prefiere Puesto; si solo existen posiciones, se elige Posición con 40 horas.
+- Se reutiliza una población compatible o se busca mediante el endpoint
+  existente, por nombre de provincia, conservando país, comunidad, provincia y
+  nombre de población. Validación y proyección existentes antes del relleno;
+  un fallo no modifica el draft y una búsqueda obsoleta se cancela.
+- El botón no llama a la acción de alta ni a SOAP; el envío mantiene su
+  confirmación normal. Sin cambios en validaciones, mappings, SQL, APIs,
+  dependencias ni configuración de producción.
+- Tests afectados: 3 archivos y 32 pruebas correctas. Cubiertos IDs distintos
+  de los habituales, contrato y geografía, alternativa Posición, persona activa,
+  producción, fallo de búsqueda y cancelación. Búsqueda y alta simuladas.
+- Verificación secuencial ejecutada: tests afectados, typecheck, build, lint,
+  suite completa, `git diff --check` y estado Git. Suite: 107 archivos y
+  566 pruebas correctas, 2 omitidas y ningún fallo. Typecheck, build y diff
+  correctos. Lint mantiene siete avisos anteriores y falla por formato en
+  367 archivos; los tres archivos nuevos pasan el chequeo dirigido de formato.
+
 ## 2026-09-28 - Catálogos únicos e inicialización del acento sin warnings
 
 - Los adaptadores del alta deduplican por el ID normalizado mediante un helper

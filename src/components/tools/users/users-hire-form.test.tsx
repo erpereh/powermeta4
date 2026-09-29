@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -148,6 +148,7 @@ afterAll(() => vi.unstubAllGlobals());
 afterEach(() => {
   cleanup();
   launchHire.mockReset();
+  vi.unstubAllEnvs();
 });
 
 const inputValue = (label: string): string =>
@@ -238,6 +239,94 @@ const fillRequired = async (
 };
 
 describe("UsersHireForm", () => {
+  it("fills a valid development person without launching the hire", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<UsersHireForm catalogs={CATALOGS} />);
+
+    await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
+    await waitFor(() => expect(inputValue("Nombre")).toBe("Prueba"));
+    expect(inputValue("Primer apellido")).toBe("Automática");
+    expect(inputValue("Núm. de documento")).toMatch(/^90000001[A-Z]$/);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(launchHire).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
+    expect(screen.getByText("Se van a procesar 1 personas en Meta4")).toBeTruthy();
+    expect(launchHire).not.toHaveBeenCalled();
+  });
+
+  it("fills only the expanded person and preserves the other person's edits", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<UsersHireForm catalogs={CATALOGS} />);
+    await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
+    await waitFor(() => expect(inputValue("Nombre")).toBe("Prueba"));
+    const firstDocument = inputValue("Núm. de documento");
+    fireEvent.change(screen.getByLabelText("Primer apellido"), { target: { value: "Conservar" } });
+    await user.click(screen.getByRole("button", { name: "Añadir persona" }));
+    expect(inputValue("Nombre")).toBe("");
+
+    await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
+    await waitFor(() => expect(inputValue("Nombre")).toBe("Prueba"));
+    expect(inputValue("Núm. de documento")).not.toBe(firstDocument);
+    expect(screen.getByText("Prueba Conservar Persona 1")).toBeTruthy();
+    expect(screen.getByText(`${firstDocument} · persona-1@example.test`)).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
+    expect(screen.getByText("Se van a procesar 2 personas en Meta4")).toBeTruthy();
+    expect(launchHire).not.toHaveBeenCalled();
+  });
+
+  it("hides development controls in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    render(<UsersHireForm catalogs={CATALOGS} />);
+    expect(screen.queryByRole("button", { name: "Rellenar datos de prueba" })).toBeNull();
+    expect(screen.queryByText("Desarrollo")).toBeNull();
+  });
+
+  it("keeps the draft unchanged when the development place search fails", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ ok: false }), { status: 500 }),
+    );
+    const user = userEvent.setup({ delay: null });
+    render(<UsersHireForm catalogs={CATALOGS} />);
+    fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Conservar" } });
+    await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
+    expect((await screen.findByRole("alert")).textContent).toMatch(/buscar una población/);
+    expect(inputValue("Nombre")).toBe("Conservar");
+    expect(inputValue("Primer apellido")).toBe("");
+    expect(inputValue("Núm. de documento")).toBe("");
+    expect(launchHire).not.toHaveBeenCalled();
+  });
+
+  it("aborts the development lookup when the expanded person changes", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<UsersHireForm catalogs={CATALOGS} />);
+    await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
+    await waitFor(() => expect(inputValue("Nombre")).toBe("Prueba"));
+    await user.click(screen.getByRole("button", { name: "Añadir persona" }));
+
+    let resolveSearch: ((response: Response) => void) | undefined;
+    let signal: AbortSignal | null | undefined;
+    const response = new Promise<Response>((resolve) => { resolveSearch = resolve; });
+    vi.mocked(fetch).mockImplementationOnce((_input, init) => {
+      signal = init?.signal;
+      return response;
+    });
+    const fillButton = screen.getByRole("button", { name: "Rellenar datos de prueba" });
+    await user.click(fillButton);
+    expect(fillButton.getAttribute("aria-busy")).toBe("true");
+    expect(fillButton.hasAttribute("disabled")).toBe(true);
+    await user.click(screen.getByRole("button", { name: "Eliminar persona 2" }));
+    expect(signal?.aborted).toBe(true);
+    await act(async () => {
+      if (!resolveSearch) throw new Error("Missing pending place search");
+      resolveSearch(new Response(JSON.stringify({ ok: true, data: PLACES }), { status: 200 }));
+      await response;
+    });
+    expect(inputValue("2º apellido")).toBe("Persona 1");
+    expect(screen.queryByText("Persona 2")).toBeNull();
+    expect(launchHire).not.toHaveBeenCalled();
+  });
+
   it("starts with Persona 1 expanded", () => {
     render(<UsersHireForm catalogs={CATALOGS} />);
     expect(screen.getByText("Persona 1")).toBeTruthy();

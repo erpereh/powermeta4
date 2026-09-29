@@ -1,5 +1,32 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: datos de prueba en desarrollo - 2026-09-29
+
+- [x] Bloque separado «Desarrollo» con «Rellenar datos de prueba», visible
+      solo con `NODE_ENV !== "production"`. Componente y helper propios en
+      `hire-form`; una inserción condicional en el formulario. Solo sustituye
+      la persona expandida y conserva su ID, sin ejecutar la acción de alta.
+- [x] Identidad, documento, email, dirección e IBAN ficticios. Obligatorios
+      seleccionados desde el registro y los catálogos cargados; contrato como
+      par legal/interno, Puesto preferido y Posición con 40 horas como alternativa.
+      Opcionales innecesarios vacíos, jornada completa y S.S. sin asignar.
+- [x] Población elegida/cargada reutilizada si es compatible; en su ausencia,
+      búsqueda por el nombre de una provincia coherente en `/api/hire/places`.
+      Resultado validado con la proyección y los validadores existentes antes
+      de actualizar. Fallos conservan el draft; la búsqueda se cancela al
+      cambiar de persona o desactivar el control durante la confirmación/envío.
+- [x] Tests afectados: 3 archivos y 32 pruebas correctas. Incluyen catálogo
+      con IDs alternativos, geografía y contrato válidos, fallback a Posición,
+      ausencia en producción, aislamiento entre personas, fallo y cancelación.
+      SOAP y búsqueda simulados; sin alta real.
+- [x] Verificación secuencial: tests afectados, typecheck, build, lint,
+      suite completa, `git diff --check` y estado Git. Suite: 107 archivos,
+      566 pruebas correctas y 2 omitidas, sin fallos. Typecheck, build y diff
+      correctos. Lint conserva siete avisos previos y falla por formato en
+      367 archivos. Los tres archivos nuevos pasan el chequeo dirigido de formato.
+- [x] Diff revisado: sin cambios en validaciones, mappings, SQL, SOAP,
+      dependencias ni configuración de producción.
+
 ## Alta de personas: catálogos únicos e inicialización del acento - 2026-09-28
 
 - [x] Helper privado compartido que deduplica opciones por el ID normalizado,

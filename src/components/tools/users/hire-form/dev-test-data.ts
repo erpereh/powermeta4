@@ -1,0 +1,107 @@
+import {
+  assertHireCatalogSelections,
+  geoAncestor,
+  HIRE_CATALOG_FIELD_IDS,
+  HIRE_CATALOG_FIELDS,
+  parseContractOptionId,
+  type HireCatalogOption,
+  type HireCatalogs,
+  type HireCatalogState,
+} from "@/lib/meta4/hire/catalogs";
+import { parseHirePerson } from "@/lib/meta4/hire/validate";
+
+import { createHirePersonDraft, toHirePersonInput, type HirePersonDraft } from "./draft";
+
+const hasProvinceAncestors = (catalogs: HireCatalogs, provinceId: string): boolean =>
+  catalogs.country.some((option) => option.id === geoAncestor(provinceId, 1)) &&
+  catalogs.community.some((option) => option.id === geoAncestor(provinceId, 2));
+
+export const findDevTestPlace = (
+  catalogs: HireCatalogs,
+  places: readonly HireCatalogOption[],
+): HireCatalogOption | undefined =>
+  places.find(
+    (place) =>
+      place.id.split("/").length === 4 &&
+      catalogs.province.some((option) => option.id === geoAncestor(place.id, 3)) &&
+      hasProvinceAncestors(catalogs, place.id),
+  );
+
+export const getDevTestPlaceQuery = (catalogs: HireCatalogs): string | undefined =>
+  catalogs.province
+    .find((option) => option.name.trim().length >= 2 && hasProvinceAncestors(catalogs, option.id))
+    ?.name.trim();
+
+const testDocument = (id: number): string => {
+  const number = 90_000_000 + id;
+  return `${number}${"TRWAGMYFPDXBNJZSQVHLCKE"[number % 23]}`;
+};
+
+/** Temporary development data; no action, persistence or network calls. */
+export const createDevHirePersonDraft = (
+  id: number,
+  state: Extract<HireCatalogState, { status: "ready" }>,
+  place: HireCatalogOption,
+  now: Date,
+): HirePersonDraft => {
+  const { catalogs, society } = state;
+  const draft = createHirePersonDraft(id);
+
+  for (const field of HIRE_CATALOG_FIELD_IDS) {
+    const { source, label, required, geo } = HIRE_CATALOG_FIELDS[field];
+    if (!required || geo) continue;
+    const option = catalogs[source][0];
+    if (!option) throw new Error(`No hay opciones disponibles para ${label}.`);
+    draft.current[field] = option.id;
+  }
+
+  const contract = catalogs.contract[0];
+  if (!contract) throw new Error("No hay contratos disponibles para los datos de prueba.");
+  Object.assign(draft.current, parseContractOptionId(contract.id));
+
+  const job = catalogs.job[0];
+  const position = catalogs.position[0];
+  if (job) {
+    draft.current.job = job.id;
+    draft.branches.positionChoice = "job";
+  } else if (position) {
+    draft.current.position = position.id;
+    draft.branches.positionChoice = "position";
+    draft.branches.occupationType = "hours";
+    draft.pendingValues.occupationHours = "40";
+  } else {
+    throw new Error("No hay puestos ni posiciones disponibles para los datos de prueba.");
+  }
+
+  draft.current.firstName = "Prueba";
+  draft.current.lastName1 = "Automática";
+  draft.current.lastName2 = `Persona ${id}`;
+  draft.current.documentNumber = testDocument(id);
+  draft.current.email = `persona-${id}@example.test`;
+  draft.current.hireDate = [
+    String(now.getFullYear()),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+  draft.current.city = place.id;
+  draft.current.province = geoAncestor(place.id, 3);
+  draft.current.community = geoAncestor(place.id, 2);
+  draft.current.country = geoAncestor(place.id, 1);
+  draft.pendingValues.cityName = place.name;
+  draft.pendingValues.addressLine1 = "Calle de Prueba";
+  draft.pendingValues.streetNumber = "1";
+  draft.pendingValues.postalCode = "28001";
+  draft.pendingValues.iban = "ES5200491500061234567890";
+  draft.branches.ssNumberChoice = "unassigned";
+  draft.branches.scheduleChoice = "full";
+  draft.branches.disabilityChoice = "without";
+  draft.branches.bankFormatChoice = "iban";
+
+  const person = parseHirePerson(toHirePersonInput(draft));
+  assertHireCatalogSelections(
+    [person],
+    { ...catalogs, place: [...catalogs.place, place] },
+    society,
+  );
+  return draft;
+};
