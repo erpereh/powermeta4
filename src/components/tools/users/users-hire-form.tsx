@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { launchMeta4HireAction } from "@/app/actions/meta4-hire";
@@ -16,6 +16,7 @@ import {
   HireDraftProvider,
   toHirePersonInput,
   type HireBranches,
+  type HireDraftActions,
   type HirePersonDraft,
   type PendingValueKey,
 } from "./hire-form/draft";
@@ -58,35 +59,40 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
     [people.length],
   );
 
-  const updateDraft = (id: number, update: (draft: HirePersonDraft) => HirePersonDraft) => {
-    setPeople((current) => current.map((draft) => (draft.id === id ? update(draft) : draft)));
-  };
+  const updateDraft = useCallback(
+    (id: number, update: (draft: HirePersonDraft) => HirePersonDraft) => {
+      setPeople((current) => current.map((draft) => (draft.id === id ? update(draft) : draft)));
+    },
+    [],
+  );
 
-  const updateCurrent = (id: number, field: CurrentFieldId, value: string) => {
-    updateDraft(id, (draft) => ({ ...draft, current: { ...draft.current, [field]: value } }));
-  };
-
-  const updatePending = (id: number, field: PendingValueKey, value: string) => {
-    updateDraft(id, (draft) => ({
-      ...draft,
-      pendingValues: { ...draft.pendingValues, [field]: value },
-    }));
-  };
-
-  const updateCheck = (id: number, field: PendingFieldId, checked: boolean) => {
-    updateDraft(id, (draft) => ({
-      ...draft,
-      pendingChecks: { ...draft.pendingChecks, [field]: checked },
-    }));
-  };
-
-  const updateBranch = <K extends keyof HireBranches>(
-    id: number,
-    field: K,
-    value: HireBranches[K],
-  ) => {
-    updateDraft(id, (draft) => ({ ...draft, branches: { ...draft.branches, [field]: value } }));
-  };
+  // Bound to the expanded person and stable while it stays expanded, so memoized
+  // fields keep their callbacks when another field changes.
+  const draftActions = useMemo<HireDraftActions>(
+    () => ({
+      onCurrentChange: (field: CurrentFieldId, value: string) =>
+        updateDraft(expandedId, (draft) => ({
+          ...draft,
+          current: { ...draft.current, [field]: value },
+        })),
+      onPendingChange: (field: PendingValueKey, value: string) =>
+        updateDraft(expandedId, (draft) => ({
+          ...draft,
+          pendingValues: { ...draft.pendingValues, [field]: value },
+        })),
+      onCheckChange: (field: PendingFieldId, checked: boolean) =>
+        updateDraft(expandedId, (draft) => ({
+          ...draft,
+          pendingChecks: { ...draft.pendingChecks, [field]: checked },
+        })),
+      onBranchChange: <K extends keyof HireBranches>(field: K, value: HireBranches[K]) =>
+        updateDraft(expandedId, (draft) => ({
+          ...draft,
+          branches: { ...draft.branches, [field]: value },
+        })),
+    }),
+    [expandedId, updateDraft],
+  );
 
   const validateExpanded = (): boolean => {
     const current = people.find((person) => person.id === expandedId);
@@ -195,14 +201,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                       onFill={(next) => updateDraft(draft.id, () => next)}
                     />
                   ) : null}
-                  <HireDraftProvider
-                    key={draft.id}
-                    draft={draft}
-                    onCurrentChange={(field, value) => updateCurrent(draft.id, field, value)}
-                    onPendingChange={(field, value) => updatePending(draft.id, field, value)}
-                    onCheckChange={(field, checked) => updateCheck(draft.id, field, checked)}
-                    onBranchChange={(field, value) => updateBranch(draft.id, field, value)}
-                  >
+                  <HireDraftProvider key={draft.id} draft={draft} {...draftActions}>
                     <Tabs
                       value={activeTab}
                       onValueChange={setActiveTab}

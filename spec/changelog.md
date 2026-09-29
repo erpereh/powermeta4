@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-29 - Rendimiento del alta de personas
+
+- Editar un campo ya no vuelve a renderizar los catálogos: `CatalogCombobox`
+  está memoizado y recibe props estables; las acciones del draft se ligan una
+  vez a la persona expandida y la selección geográfica lee el draft por ref.
+- Un combobox que aún no se ha abierto monta solo la opción elegida; el resto
+  del catálogo se monta en la primera apertura y se conserva.
+- El Combobox registra sus items en un registro mutable con contador de
+  versión, en lugar de copiar un `Map` por item (O(N²) → O(N)).
+- La página reutiliza los catálogos de PeopleNet de cada sociedad durante
+  5 minutos; el lanzamiento del alta los sigue recargando para validar.
+- Benchmark temporal con 200 opciones por catálogo: montaje 2917 → 820 ms,
+  cambio de pestaña ~2,9 s → ~0,2 s, pulsación 576 → ~50 ms.
+- Tests afectados (8 archivos, 70 pruebas), typecheck, build y
+  `git diff --check` correctos. En la suite completa solo falla por tiempo
+  agotado la prueba real de Excel COM, que no depende de estos cambios.
+
 ## 2026-09-29 - Población de prueba desde la búsqueda de PeopleNet
 
 - El rellenador de desarrollo consulta `/api/hire/places?q=Madrid` desde su

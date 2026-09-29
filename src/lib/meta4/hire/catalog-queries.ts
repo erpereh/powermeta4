@@ -510,12 +510,35 @@ export const loadHireCatalogsForLaunch = async (
   }
 };
 
+/** How long the form reuses a society's catalogs; launches always reload them. */
+const FORM_CATALOG_TTL_MS = 5 * 60 * 1000;
+const formCatalogCache = new Map<
+  Meta4Society,
+  { expiresAt: number; catalogs: Promise<HireCatalogs> }
+>();
+
+/**
+ * Catalogs shown by the form, shared per society for a few minutes so reopening
+ * the page does not rerun every PeopleNet query. Concurrent loads share one
+ * request and failures are not kept.
+ */
+const loadFormHireCatalogs = (society: Meta4Society): Promise<HireCatalogs> => {
+  const cached = formCatalogCache.get(society);
+  if (cached && cached.expiresAt > Date.now()) return cached.catalogs;
+  const catalogs = loadHireCatalogs(society);
+  formCatalogCache.set(society, { expiresAt: Date.now() + FORM_CATALOG_TTL_MS, catalogs });
+  catalogs.catch(() => {
+    if (formCatalogCache.get(society)?.catalogs === catalogs) formCatalogCache.delete(society);
+  });
+  return catalogs;
+};
+
 export const loadHireCatalogState = async (
   authSession: ResolvedAuthSession,
 ): Promise<HireCatalogState> => {
   try {
     const context = await getMeta4OperationalContext(authSession);
-    const catalogs = await loadHireCatalogs(context.society);
+    const catalogs = await loadFormHireCatalogs(context.society);
     return { status: "ready", society: context.society, catalogs };
   } catch (error) {
     logCatalogFailure(error);

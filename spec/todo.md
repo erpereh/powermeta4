@@ -1,5 +1,32 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: rendimiento del formulario - 2026-09-29
+
+- [x] Diagnóstico: cada pulsación rehacía todo el formulario y todas las
+      opciones de todos los comboboxes visibles (callbacks inline rompían
+      cualquier memo); cada combobox montaba y registraba su catálogo completo
+      en el panel oculto aunque no se abriera, con registro O(N²) por copia de
+      `Map`; la página relanzaba las 45 consultas de catálogos en cada visita.
+- [x] `CatalogCombobox` memoizado con props estables (acciones del draft
+      ligadas a la persona expandida, `useCallback`, `displayId` y `search`
+      estables, selección geográfica leyendo el draft por ref). Hasta la primera
+      apertura solo se monta la opción elegida (da nombre al campo); después la
+      lista completa queda montada.
+- [x] Registro de items del Combobox con registro mutable + versión: O(N).
+- [x] Catálogos del formulario reutilizados 5 minutos por sociedad, con carga
+      concurrente compartida y sin guardar fallos. El lanzamiento sigue
+      recargándolos para validar.
+- [x] Medido con un benchmark temporal (jsdom, 200 opciones por catálogo,
+      eliminado): montaje 2917 → 820 ms, cambio de pestaña ~2,9 s → ~0,2 s,
+      pulsación 576 → ~50 ms. Con 1500 opciones antes no terminaba en 10 min;
+      ahora monta en 435 ms y la primera apertura de un combobox tarda ~2,9 s.
+- [x] Tests afectados: 8 archivos y 70 pruebas correctas, incluidas dos nuevas
+      de la caché. Typecheck y build correctos, `git diff --check` limpio.
+      Suite completa: 105 archivos correctos, 1 omitido y 1 fallo en la prueba
+      real de Excel COM de `excel.test.ts` (tiempo agotado a 180 s; el writer
+      no se ha tocado).
+- [x] Sin cambios en mappings, validaciones, SQL, APIs ni UI visible.
+
 ## Alta de personas: población de prueba buscada bajo demanda - 2026-09-29
 
 - [x] El helper de desarrollo consulta `/api/hire/places?q=Madrid` y elige

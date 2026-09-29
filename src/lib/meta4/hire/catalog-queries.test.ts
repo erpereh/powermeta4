@@ -14,7 +14,15 @@ vi.mock("@/lib/peoplenet/client", () => {
   };
 });
 
-import { loadHireCatalogs, searchHirePlaces } from "./catalog-queries";
+const { operationalSociety } = vi.hoisted(() => ({ operationalSociety: vi.fn<() => string>() }));
+
+vi.mock("@/lib/meta4/operational-context", () => ({
+  getMeta4OperationalContext: async () => ({ society: operationalSociety() }),
+}));
+
+import type { ResolvedAuthSession } from "@/lib/auth/service";
+
+import { loadHireCatalogs, loadHireCatalogState, searchHirePlaces } from "./catalog-queries";
 
 // Independent literals: changes to these SELECTs require explicit user approval.
 const COMMUNITY_SQL =
@@ -276,4 +284,36 @@ describe("unique hire catalog options", () => {
       ]);
     },
   );
+});
+
+describe("form catalog cache", () => {
+  const session = {} as ResolvedAuthSession;
+
+  it("reuses a society's catalogs for the form and reloads them after the TTL", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      operationalSociety.mockReturnValue("COLL");
+      const first = await loadHireCatalogState(session);
+      const queries = query.mock.calls.length;
+      expect(first.status).toBe("ready");
+
+      expect(await loadHireCatalogState(session)).toEqual(first);
+      expect(query.mock.calls.length).toBe(queries);
+
+      vi.setSystemTime(Date.now() + 5 * 60 * 1000 + 1);
+      await loadHireCatalogState(session);
+      expect(query.mock.calls.length).toBe(queries * 2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not keep a failed load", async () => {
+    operationalSociety.mockReturnValue("IBER");
+    query.mockRejectedValueOnce(new Error("down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect((await loadHireCatalogState(session)).status).toBe("unavailable");
+    expect((await loadHireCatalogState(session)).status).toBe("ready");
+  });
 });

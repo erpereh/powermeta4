@@ -140,7 +140,13 @@ export function Combobox({
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const [internalQuery, setInternalQuery] = useState(defaultQuery);
-  const [items, setItems] = useState<Map<string, RegisteredItem>>(new Map());
+  // Items register from their layout effects. Mutating one registry and
+  // bumping a version keeps a list of N items at O(N) per commit; queuing a
+  // Map copy per item made mounting a large catalog O(N²).
+  const registryRef = useRef<Map<string, RegisteredItem>>(new Map());
+  const [itemsVersion, setItemsVersion] = useState(0);
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- the version tracks registry changes.
+  const items = useMemo(() => new Map(registryRef.current), [itemsVersion]);
 
   const valueControlled = controlledValue !== undefined;
   const openControlled = controlledOpen !== undefined;
@@ -172,31 +178,25 @@ export function Combobox({
   );
 
   const registerItem = useCallback((item: RegisteredItem) => {
-    setItems((current) => {
-      const existing = current.get(item.value);
-      if (
-        existing?.label === item.label &&
-        existing.disabled === item.disabled &&
-        existing.id === item.id &&
-        existing.ref === item.ref &&
-        existing.groupId === item.groupId &&
-        existing.keywords.join("\u0000") === item.keywords.join("\u0000")
-      ) {
-        return current;
-      }
-      const next = new Map(current);
-      next.set(item.value, item);
-      return next;
-    });
+    const registry = registryRef.current;
+    const existing = registry.get(item.value);
+    if (
+      existing?.label === item.label &&
+      existing.disabled === item.disabled &&
+      existing.id === item.id &&
+      existing.ref === item.ref &&
+      existing.groupId === item.groupId &&
+      existing.keywords.join("\u0000") === item.keywords.join("\u0000")
+    ) {
+      return;
+    }
+    registry.set(item.value, item);
+    setItemsVersion((version) => version + 1);
   }, []);
 
   const unregisterItem = useCallback((itemValue: string) => {
-    setItems((current) => {
-      if (!current.has(itemValue)) return current;
-      const next = new Map(current);
-      next.delete(itemValue);
-      return next;
-    });
+    if (!registryRef.current.delete(itemValue)) return;
+    setItemsVersion((version) => version + 1);
   }, []);
 
   // The query the list filters by. Closing clears `query`, but the panel is

@@ -1,6 +1,16 @@
 "use client";
 
-import { useEffect, useId, useState, type ReactNode } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { X } from "lucide-react";
 
 import {
@@ -33,7 +43,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { useHireCatalogs } from "./catalogs";
-import { useHireDraft, type PendingValueKey } from "./draft";
+import { useHireDraft, type HirePersonDraft, type PendingValueKey } from "./draft";
 import {
   HIRE_FIELD_META,
   hireFieldLabelClass,
@@ -256,14 +266,22 @@ type CatalogSearch = {
   emptyMessage: string;
 };
 
-/** PeopleNet catalog: the list shows ID and name, the field keeps the name, the value is the ID. */
-function CatalogCombobox({
+const optionId = (option: HireCatalogOption): string => option.id;
+const geoDisplayId = (option: HireCatalogOption): string => lastGeoSegment(option.id);
+const NO_OPTIONS: readonly HireCatalogOption[] = [];
+
+/**
+ * PeopleNet catalog: the list shows ID and name, the field keeps the name, the value is the ID.
+ * Memoized so editing another field does not re-render every option of every catalog;
+ * callers pass stable `options`, `onValueChange`, `displayId` and `search`.
+ */
+const CatalogCombobox = memo(function CatalogCombobox({
   field,
   options,
   value,
   onValueChange,
   unavailable = false,
-  displayId = (option) => option.id,
+  displayId = optionId,
   search,
 }: {
   field: HireFieldId;
@@ -282,6 +300,41 @@ function CatalogCombobox({
     : search
       ? "Escribe al menos 2 letras"
       : "Buscar por ID o nombre";
+  // A closed list is hidden, but every registered option still renders. Until the
+  // first opening only the chosen option is mounted (it gives the field its name);
+  // after that the whole list stays mounted.
+  const [listed, setListed] = useState(false);
+  const onOpenChange = useCallback((open: boolean) => {
+    if (open) setListed(true);
+  }, []);
+  const mountedOptions = useMemo(
+    () => (listed ? options : options.filter((option) => option.id === value)),
+    [listed, options, value],
+  );
+  const items = useMemo(
+    () =>
+      mountedOptions.map((option) => (
+        <ComboboxItem
+          key={option.id}
+          value={option.id}
+          textValue={option.name}
+          keywords={option.detail ? [option.detail] : []}
+        >
+          <span className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-3">
+            <span className="truncate tabular-nums">{displayId(option)}</span>
+            <span className="min-w-0">
+              <span className="block truncate text-foreground">{option.name}</span>
+              {option.detail ? (
+                <span className="block truncate text-xs text-muted-foreground">
+                  {option.detail}
+                </span>
+              ) : null}
+            </span>
+          </span>
+        </ComboboxItem>
+      )),
+    [displayId, mountedOptions],
+  );
 
   return (
     <FieldFrame field={field} id={id}>
@@ -292,6 +345,7 @@ function CatalogCombobox({
           filter={search ? keepAll : catalogFilter}
           query={search?.query}
           onQueryChange={search?.onQueryChange}
+          onOpenChange={onOpenChange}
           disabled={unavailable}
         >
           <ComboboxTrigger className="h-11 rounded-full">
@@ -312,26 +366,7 @@ function CatalogCombobox({
               <span>Nombre</span>
             </div>
             <ComboboxList ariaLabel={meta.label}>
-              {options.map((option) => (
-                <ComboboxItem
-                  key={option.id}
-                  value={option.id}
-                  textValue={option.name}
-                  keywords={option.detail ? [option.detail] : []}
-                >
-                  <span className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-3">
-                    <span className="truncate tabular-nums">{displayId(option)}</span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-foreground">{option.name}</span>
-                      {option.detail ? (
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {option.detail}
-                        </span>
-                      ) : null}
-                    </span>
-                  </span>
-                </ComboboxItem>
-              ))}
+              {items}
               <ComboboxEmpty>
                 {search
                   ? search.emptyMessage
@@ -357,26 +392,30 @@ function CatalogCombobox({
       </div>
     </FieldFrame>
   );
-}
+});
 
 const useCatalogOptions = (source: HireCatalogSource) => {
   const catalogState = useHireCatalogs();
   return catalogState.status === "ready"
     ? { options: catalogState.catalogs[source], unavailable: false }
-    : { options: [], unavailable: true };
+    : { options: NO_OPTIONS, unavailable: true };
 };
 
 /** Catalog field sent to Excel: its ID lives in the draft's current values. */
 export function CatalogField({ field }: { field: HireCatalogFieldId }) {
   const { draft, onCurrentChange } = useHireDraft();
   const { options, unavailable } = useCatalogOptions(HIRE_CATALOG_FIELDS[field].source);
+  const onValueChange = useCallback(
+    (next: string) => onCurrentChange(field, next),
+    [field, onCurrentChange],
+  );
   return (
     <CatalogCombobox
       field={field}
       options={options}
       unavailable={unavailable}
       value={draft.current[field]}
-      onValueChange={(next) => onCurrentChange(field, next)}
+      onValueChange={onValueChange}
     />
   );
 }
@@ -390,7 +429,18 @@ export function ContractField() {
   const { draft, onCurrentChange } = useHireDraft();
   const { options, unavailable } = useCatalogOptions("contract");
   const selected = contractOptionId(draft.current);
-  const option = options.find((candidate) => candidate.id === selected);
+  const option = useMemo(
+    () => options.find((candidate) => candidate.id === selected),
+    [options, selected],
+  );
+  const onValueChange = useCallback(
+    (next: string) => {
+      const pair = parseContractOptionId(next);
+      onCurrentChange("legalContract", pair.legalContract);
+      onCurrentChange("internalContract", pair.internalContract);
+    },
+    [onCurrentChange],
+  );
 
   return (
     <>
@@ -399,11 +449,7 @@ export function ContractField() {
         options={options}
         unavailable={unavailable}
         value={selected}
-        onValueChange={(next) => {
-          const pair = parseContractOptionId(next);
-          onCurrentChange("legalContract", pair.legalContract);
-          onCurrentChange("internalContract", pair.internalContract);
-        }}
+        onValueChange={onValueChange}
       />
       <FieldFrame field="internalContract" id={internalId}>
         <Input
@@ -429,13 +475,17 @@ export function PendingCatalogLookup({
 }) {
   const { draft, onPendingChange } = useHireDraft();
   const { options, unavailable } = useCatalogOptions(source);
+  const onValueChange = useCallback(
+    (next: string) => onPendingChange(field, next),
+    [field, onPendingChange],
+  );
   return (
     <CatalogCombobox
       field={field}
       options={options}
       unavailable={unavailable}
       value={draft.pendingValues[field] ?? ""}
-      onValueChange={(next) => onPendingChange(field, next)}
+      onValueChange={onValueChange}
     />
   );
 }
@@ -449,12 +499,16 @@ export function PendingChoice({
   options: readonly HireCatalogOption[];
 }) {
   const { draft, onPendingChange } = useHireDraft();
+  const onValueChange = useCallback(
+    (next: string) => onPendingChange(field, next),
+    [field, onPendingChange],
+  );
   return (
     <CatalogCombobox
       field={field}
       options={options}
       value={draft.pendingValues[field] ?? ""}
-      onValueChange={(next) => onPendingChange(field, next)}
+      onValueChange={onValueChange}
     />
   );
 }
@@ -485,30 +539,39 @@ type GeoGroup = keyof typeof GEO_GROUPS;
  * Choosing a level fills its ancestors from the path and clears descendants
  * that no longer belong to it, as PeopleNet does.
  */
+const readGeoLevel = (draft: HirePersonDraft, level: GeoLevel): string =>
+  level.draft === "current" ? draft.current[level.field] : (draft.pendingValues[level.field] ?? "");
+
 const useGeoSelection = (group: GeoGroup) => {
   const { draft, onCurrentChange, onPendingChange } = useHireDraft();
   const levels: readonly GeoLevel[] = GEO_GROUPS[group];
-  const read = (level: GeoLevel): string =>
-    level.draft === "current"
-      ? draft.current[level.field]
-      : (draft.pendingValues[level.field] ?? "");
-  const write = (level: GeoLevel, value: string) => {
-    if (level.draft === "current") onCurrentChange(level.field, value);
-    else onPendingChange(level.field, value);
-  };
-  return {
-    levels,
-    read,
-    select: (depth: number, value: string) => {
+  // `select` runs from events, after the commit: it reads the committed draft
+  // through a ref so its identity stays stable while other fields change.
+  const draftRef = useRef(draft);
+  useLayoutEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+  const select = useCallback(
+    (depth: number, value: string) => {
+      const write = (level: GeoLevel, next: string) => {
+        if (level.draft === "current") onCurrentChange(level.field, next);
+        else onPendingChange(level.field, next);
+      };
       for (const level of levels) {
         if (level.depth === depth) write(level, value);
         else if (level.depth < depth) {
           if (value) write(level, geoAncestor(value, level.depth));
-        } else if (geoAncestor(read(level), depth) !== value) {
+        } else if (geoAncestor(readGeoLevel(draftRef.current, level), depth) !== value) {
           write(level, "");
         }
       }
     },
+    [levels, onCurrentChange, onPendingChange],
+  );
+  return {
+    levels,
+    read: (level: GeoLevel): string => readGeoLevel(draft, level),
+    select,
   };
 };
 
@@ -517,6 +580,7 @@ export function GeoField({ group, depth }: { group: GeoGroup; depth: 1 | 2 | 3 }
   const { levels, read, select } = useGeoSelection(group);
   const level = levels.find((candidate) => candidate.depth === depth);
   const { options, unavailable } = useCatalogOptions(level?.source ?? "country");
+  const onValueChange = useCallback((next: string) => select(depth, next), [depth, select]);
   if (!level) return null;
   return (
     <CatalogCombobox
@@ -524,8 +588,8 @@ export function GeoField({ group, depth }: { group: GeoGroup; depth: 1 | 2 | 3 }
       options={options}
       unavailable={unavailable}
       value={read(level)}
-      displayId={(option) => lastGeoSegment(option.id)}
-      onValueChange={(next) => select(depth, next)}
+      displayId={geoDisplayId}
+      onValueChange={onValueChange}
     />
   );
 }
@@ -571,10 +635,12 @@ export function PlaceField() {
   }, [text]);
 
   // The chosen place stays listed while the field is closed so it keeps its name.
-  const selected: HireCatalogOption | null = value
-    ? { id: value, name: draft.pendingValues.cityName || lastGeoSegment(value) }
-    : null;
-  const options = text.length < 2 ? (selected ? [selected] : []) : results;
+  const cityName = draft.pendingValues.cityName;
+  const selectedOptions = useMemo<readonly HireCatalogOption[]>(
+    () => (value ? [{ id: value, name: cityName || lastGeoSegment(value) }] : NO_OPTIONS),
+    [cityName, value],
+  );
+  const options = text.length < 2 ? selectedOptions : results;
   const emptyMessage =
     text.length < 2
       ? "Escribe al menos 2 letras del nombre o del código"
@@ -583,6 +649,17 @@ export function PlaceField() {
         : status === "error"
           ? "No se ha podido buscar en PeopleNet"
           : "Sin resultados";
+  const search = useMemo<CatalogSearch>(
+    () => ({ query, onQueryChange: setQuery, emptyMessage }),
+    [emptyMessage, query],
+  );
+  const onValueChange = useCallback(
+    (next: string) => {
+      onPendingChange("cityName", results.find((option) => option.id === next)?.name ?? "");
+      select(4, next);
+    },
+    [onPendingChange, results, select],
+  );
 
   return (
     <CatalogCombobox
@@ -590,12 +667,9 @@ export function PlaceField() {
       options={options}
       unavailable={catalogState.status !== "ready"}
       value={value}
-      displayId={(option) => lastGeoSegment(option.id)}
-      search={{ query, onQueryChange: setQuery, emptyMessage }}
-      onValueChange={(next) => {
-        onPendingChange("cityName", results.find((option) => option.id === next)?.name ?? "");
-        select(4, next);
-      }}
+      displayId={geoDisplayId}
+      search={search}
+      onValueChange={onValueChange}
     />
   );
 }
