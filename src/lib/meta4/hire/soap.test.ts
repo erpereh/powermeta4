@@ -20,7 +20,7 @@ describe("Meta4 hire SOAP builder", () => {
       "<sch:ARG_ID_GROUP_INTERFACE>INIT_EMPLOYEES_FD</sch:ARG_ID_GROUP_INTERFACE>",
     );
     expect(xml).toContain(`<sch:ARG_PATH_FILE>${escapeXml(filePath)}</sch:ARG_PATH_FILE>`);
-    expect(xml).toContain("<sch:ARG_LIST_EMAIL>0</sch:ARG_LIST_EMAIL>");
+    expect(xml).not.toContain("ARG_LIST_EMAIL");
     expect(xml).toContain("<sch:ARG_ATTACH_FILE>0</sch:ARG_ATTACH_FILE>");
     expect(xml).toContain("<sch:ARG_SCHEDULE_TASK>0</sch:ARG_SCHEDULE_TASK>");
     expect(xml).not.toContain("SOAPAction");

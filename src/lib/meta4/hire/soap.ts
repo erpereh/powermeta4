@@ -49,7 +49,6 @@ export const buildLaunchImportEnvelope = (filePath: string): string =>
     <sch:SRTC_LAUNCH_IMPORT>
       <sch:ARG_ID_GROUP_INTERFACE>${escapeXml(GROUP_INTERFACE)}</sch:ARG_ID_GROUP_INTERFACE>
       <sch:ARG_PATH_FILE>${escapeXml(filePath)}</sch:ARG_PATH_FILE>
-      <sch:ARG_LIST_EMAIL>${FLAG_OFF}</sch:ARG_LIST_EMAIL>
       <sch:ARG_ATTACH_FILE>${FLAG_OFF}</sch:ARG_ATTACH_FILE>
       <sch:ARG_SCHEDULE_TASK>${FLAG_OFF}</sch:ARG_SCHEDULE_TASK>
     </sch:SRTC_LAUNCH_IMPORT>
