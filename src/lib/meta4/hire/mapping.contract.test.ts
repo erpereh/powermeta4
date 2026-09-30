@@ -5,7 +5,13 @@ import { describe, expect, it } from "vitest";
 
 import { HIRE_FIELD_META } from "@/components/tools/users/hire-form/field-metadata";
 
-import { HIRE_DATA_SHEET, HIRE_IMPORT_HEADERS, MANUAL_COLUMNS, WRITTEN_COLUMNS } from "./mapping";
+import {
+  DERIVED_COLUMNS,
+  HIRE_DATA_SHEET,
+  HIRE_IMPORT_HEADERS,
+  MANUAL_COLUMNS,
+  WRITTEN_COLUMNS,
+} from "./mapping";
 
 /** Independent, explicit contract for every UI input written to AltaNueva. */
 const EXPECTED_COLUMNS = {
@@ -148,9 +154,19 @@ describe("AltaNueva exact mapping contract", () => {
       for (const key of parts ?? [field]) expectedKeys.add(key);
     }
     expect(new Set(Object.keys(EXPECTED_COLUMNS))).toEqual(expectedKeys);
-    expect(new Set(WRITTEN_COLUMNS)).toEqual(new Set(Object.values(EXPECTED_COLUMNS).flat()));
+    expect(DERIVED_COLUMNS).toEqual({
+      bankId: ["IB"],
+      branchId: ["IC"],
+      controlDigits: ["IE"],
+      ibanCountry: ["IF"],
+      ibanKey: ["II"],
+      fusionId: ["IM"],
+    });
+    expect(new Set(WRITTEN_COLUMNS)).toEqual(
+      new Set([...Object.values(EXPECTED_COLUMNS).flat(), "IB", "IC", "IE", "IF", "II", "IM"]),
+    );
     expect(new Set(WRITTEN_COLUMNS).size).toBe(WRITTEN_COLUMNS.length);
-    for (const excluded of ["HO", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
+    for (const excluded of ["HO", "GY", "HA", "IG", "IH"]) {
       expect(WRITTEN_COLUMNS, excluded).not.toContain(excluded);
     }
   });

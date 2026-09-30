@@ -63,7 +63,7 @@ Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia e
 | `occupationEjc` · Núm. EJC | integrado | `SCO_NUM_EJC` | CQ (técnica) | Sí | Posición · EJC |
 | `occupationHeadcount` · Núm. Efectivos | integrado | `SCO_NUM_HEADCOUNT` | CR (técnica) | Sí | Posición · Efectivos |
 | `category` · Categoría | integrado | `SSP_ID_CATEGORIA` | CW (visible), CX (técnica) | Sí | — |
-| `project` · Proyecto | integrado | `SSP_ID_CENT_COSTO` | CZ (técnica) | Sí | — |
+| `project` · Proyecto | integrado (fijo) | `SSP_ID_CENT_COSTO` | CZ (técnica) = `000000\|000000` | No (solo lectura) | — |
 | `startReason` · ID Motivo inicio | integrado | `STD_ID_HRP_START_REASON` | DB (visible), DC (técnica) | Sí | — |
 | `keyEmployee` · Empleado clave | integrado | `STD_KEY_EMPLOYEE` | DF (visible), DG (técnica) | Sí | — |
 | `strategicEmployee` · Empleado estratégico | integrado | `STD_STRATEGIC_EMP` | DH (visible), DI (técnica) | Sí | — |
@@ -191,7 +191,7 @@ Además, la fila 4 ofrece celdas visibles sin identificador técnico propio y si
 ## Campos por crear o resolver
 
 - La UI no presenta hoy controles para varios datos de negocio de la tabla anterior (p. ej., mailing check, tipo empleado, complementos, fechas previstas, pluriempleo, moneda del bruto, estado IRPF y componentes bancarios adicionales). Se deben definir semántica, catálogo y obligatoriedad antes de integrarlos.
-- **Proyecto:** CZ es `SSP_ID_CENT_COSTO` y recibe el ID literal de PeopleNet; CY se conserva. **IBAN:** GQ es `SCO_GB_IBAN`. **Otro formato:** HZ visible e IA técnica son `SCO_ID_BANK_BRANCH`, e ID es `SCO_ACCOUNT_NUMBER`. La rama IBAN limpia HZ/IA/ID; la otra limpia GQ. Las celdas bancarias **IB/IC/IE/IF/IG/IH/II** conservan ejemplos, defaults o fórmulas de la plantilla. Debe confirmarse con el importador cómo las interpreta cuando solo se aportan las columnas verificadas.
+- **Proyecto:** CZ es `SSP_ID_CENT_COSTO` y el importador espera el valor de la lista Meta4 `<centro>|<proyecto>`; la parte tras `|` es la columna obligatoria «Proyecto» del histórico de centro de coste. Solo `000000|000000` («Sin Centro de Costo», plantillas buenas) está demostrado, así que se escribe siempre ese valor y el campo es de solo lectura; otros centros quedan pendientes de un Excel generado por Meta4. CY se conserva. **IBAN:** GQ es `SCO_GB_IBAN`; con IBAN `ES` se derivan HZ/IA (banco+sucursal), IB (`SCO_ID_BANK`), IC (`SCO_ID_BRANCH`), IE (`SSP_DC`), ID (`SCO_ACCOUNT_NUMBER`), IF (`SCO_IBAN_CODE`) e II (`SCO_IBAN_KEY`); con IBAN extranjero solo IF/II y se limpian las partes CCC. **Otro formato:** HZ/IA = sucursal de 8 dígitos, IB/IC sus mitades, ID la cuenta de 10 dígitos e IE el DC calculado; GQ, IF e II se limpian. IG/IH conservan los defaults de la plantilla (`ES`/`01`). **IM** (`CSP_FUSION_ID`) se limpia en todas las filas: la plantilla traía el ID de la persona de ejemplo.
 - Las copias de pago de Nómina **GY/HA** conservan exactamente su contenido y fórmulas de la plantilla; los catálogos elegidos se escriben en **HV/HW** y **HX/HY** de Datos de pago. `CH/CI` sí reciben la entidad legal seleccionada para la sociedad operativa. No se ejecuta un alta SOAP real durante las pruebas.
 
 ## Comportamiento de escritura y validación

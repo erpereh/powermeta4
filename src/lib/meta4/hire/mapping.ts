@@ -91,6 +91,9 @@ export const MANUAL_COLUMNS = {
   occupationHours: ["CP"],
   occupationEjc: ["CQ"],
   occupationHeadcount: ["CR"],
+  // SSP_ID_CENT_COSTO takes the import list value "<centro>|<proyecto>"; the
+  // project half is the history's mandatory "Proyecto". Only the default
+  // below is proven (Hire_1_PERSONA / Hire_3_PERSONAS), so it is not editable.
   project: ["CZ"],
   keyEmployee: ["DF", "DG"],
   strategicEmployee: ["DH", "DI"],
@@ -164,7 +167,28 @@ export const MANUAL_COLUMNS = {
   accountNumber: ["ID"],
 } as const;
 
-export const WRITTEN_COLUMNS: readonly string[] = Object.values(MANUAL_COLUMNS).flat();
+/** CZ value of the successful templates: cost centre 000000 "Sin Centro de Costo". */
+export const HIRE_COST_CENTER_LIST_VALUE = "000000|000000";
+
+/**
+ * SRSP_PA_HIRE_WIZ_DATOS_PAGO account parts derived from the IBAN or from the
+ * branch + account of "Otro formato", and PERS_DATA.CSP_FUSION_ID (IM), whose
+ * template value belongs to the sample person and is cleared for every row.
+ * IG (SCO_ID_STANDARD) and IH (SCO_ID_ORIGIN_TYPE) keep the template defaults.
+ */
+export const DERIVED_COLUMNS = {
+  bankId: ["IB"],
+  branchId: ["IC"],
+  controlDigits: ["IE"],
+  ibanCountry: ["IF"],
+  ibanKey: ["II"],
+  fusionId: ["IM"],
+} as const;
+
+export const WRITTEN_COLUMNS: readonly string[] = [
+  ...Object.values(MANUAL_COLUMNS).flat(),
+  ...Object.values(DERIVED_COLUMNS).flat(),
+];
 
 export const toExcelSerialDate = (isoDate: string): number => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);

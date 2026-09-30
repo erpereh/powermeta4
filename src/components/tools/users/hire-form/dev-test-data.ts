@@ -3,6 +3,7 @@ import {
   geoAncestor,
   HIRE_CATALOG_FIELD_IDS,
   HIRE_CATALOG_FIELDS,
+  lastGeoSegment,
   parseContractOptionId,
   type HireCatalogOption,
   type HireCatalogs,
@@ -130,7 +131,8 @@ export const createDevHirePersonDraft = (
   draft.pendingValues.cityName = place.name;
   draft.pendingValues.addressLine1 = "Calle de Prueba";
   draft.pendingValues.streetNumber = "1";
-  draft.pendingValues.postalCode = "28001";
+  // Spanish postal codes start with the province code.
+  draft.pendingValues.postalCode = `${lastGeoSegment(draft.current.province).padStart(2, "0")}001`;
   draft.pendingValues.iban = "ES5200491500061234567890";
   draft.branches.ssNumberChoice = "unassigned";
   draft.branches.scheduleChoice = "full";

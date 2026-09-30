@@ -134,7 +134,6 @@ describe("Meta4 hire field mappings", () => {
       "workUnit",
       "workLocation",
       "category",
-      "project",
       "startReason",
       "structure",
       "functionalWorkCenter",

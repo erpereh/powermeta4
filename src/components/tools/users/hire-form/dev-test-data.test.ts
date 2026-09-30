@@ -39,7 +39,6 @@ const state = {
     workUnit: options("UNIT_TEST"),
     workLocation: options("WORK_LOCATION_TEST"),
     category: options("CATEGORY_TEST"),
-    costCenter: options("COST_TEST"),
     startReason: options("REASON_TEST"),
     structure: options("STRUCTURE_TEST"),
     functionalWorkCenter: options("CENTER_TEST"),

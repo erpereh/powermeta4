@@ -3,6 +3,7 @@
 import { HireCatalogsNotice } from "./catalogs";
 import {
   CatalogField,
+  FixedValueField,
   PendingCheckbox,
   PendingInput,
   PendingRadio,
@@ -62,7 +63,7 @@ export function OrganizationSection() {
         <CatalogField field="workUnit" />
         <CatalogField field="workLocation" />
         <CatalogField field="category" />
-        <CatalogField field="project" />
+        <FixedValueField field="project" value="000000 · Sin Centro de Costo" />
         <CatalogField field="startReason" />
         <div className="flex flex-wrap gap-x-6 gap-y-3 md:col-span-2">
           <PendingCheckbox field="keyEmployee" />

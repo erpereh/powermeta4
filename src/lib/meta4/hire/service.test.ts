@@ -123,7 +123,6 @@ const person: HirePerson = {
   workUnit: "00",
   workLocation: "724",
   category: "I1",
-  project: "000000",
   startReason: "001",
   structure: "0",
   functionalWorkCenter: "O_CEN1",
@@ -185,6 +184,7 @@ describe("launchMeta4Hire service", () => {
         hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
         hireDirectory: IMPORT_DIRECTORY,
         serialize: createSerializedQueue(),
+        readImportLog: async () => null,
       }),
     ).rejects.toMatchObject({
       code: "META4_HIRE_VALIDATION",
@@ -225,6 +225,7 @@ describe("launchMeta4Hire service", () => {
       hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
       hireDirectory: IMPORT_DIRECTORY,
       serialize: createSerializedQueue(),
+      readImportLog: async () => null,
     };
     const populated = {
       ...person,
@@ -288,6 +289,7 @@ describe("launchMeta4Hire service", () => {
       now: () => HIRE_NOW,
       templatePath: "./fuentes/HIRE/Hire_1_PERSONA.xls",
       serialize: createSerializedQueue(),
+      readImportLog: async () => null,
     });
 
     expect(result).toEqual({
@@ -335,6 +337,7 @@ describe("launchMeta4Hire service", () => {
       hireDirectory: IMPORT_DIRECTORY,
       now: () => HIRE_NOW,
       serialize: createSerializedQueue(),
+      readImportLog: async () => null,
       log: (message, details) => {
         logs.push({ message, details });
       },
@@ -369,6 +372,7 @@ describe("launchMeta4Hire service", () => {
       hireDirectory: IMPORT_DIRECTORY,
       now: () => HIRE_NOW,
       serialize: createSerializedQueue(),
+      readImportLog: async () => null,
     };
 
     const known = [
@@ -415,6 +419,7 @@ describe("launchMeta4Hire service", () => {
         hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
         hireDirectory: IMPORT_DIRECTORY,
         serialize: createSerializedQueue(),
+        readImportLog: async () => null,
       }),
     ).rejects.toMatchObject({
       code: "META4_HIRE_VALIDATION",
@@ -435,6 +440,7 @@ describe("launchMeta4Hire service", () => {
         hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
         hireDirectory: IMPORT_DIRECTORY,
         serialize: createSerializedQueue(),
+        readImportLog: async () => null,
       }),
     ).rejects.toMatchObject({ message: expect.stringMatching(/Moneda de la cuenta/) });
 
@@ -451,6 +457,7 @@ describe("launchMeta4Hire service", () => {
         hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
         hireDirectory: IMPORT_DIRECTORY,
         serialize: createSerializedQueue(),
+        readImportLog: async () => null,
       }),
     ).rejects.toMatchObject({ message: expect.stringMatching(/«IBER» .*ID Empresa.*CYC/) });
 
@@ -467,6 +474,7 @@ describe("launchMeta4Hire service", () => {
         hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
         hireDirectory: IMPORT_DIRECTORY,
         serialize: createSerializedQueue(),
+        readImportLog: async () => null,
       }),
     ).rejects.toMatchObject({ message: expect.stringMatching(/«0004» .*ID Convenio.*CYC/) });
 
@@ -488,10 +496,57 @@ describe("launchMeta4Hire service", () => {
         hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
         hireDirectory: IMPORT_DIRECTORY,
         serialize: createSerializedQueue(),
+        readImportLog: async () => null,
       }),
     ).rejects.toMatchObject({
       message: expect.stringMatching(/ID Población no pertenece a ID Provincia/),
     });
     expect(editHireWorkbook).not.toHaveBeenCalled();
+  });
+
+  it("turns PeopleNet log rejections into a controlled error without logging their text", async () => {
+    const logs: Array<Record<string, string>> = [];
+    const readImportLog = vi.fn(async (_filePath: string) => [
+      { person: 1, failed: true, message: 'La columna obligatoria "Proyecto" está vacía.' },
+    ]);
+    const options = {
+      getOperationalContext: async () => ({
+        mode: "meta4" as const,
+        username: "JORGE.SALVADOR",
+        society: "CYC" as const,
+        jSessionId: "jsession",
+        companyId: "company-cyc",
+      }),
+      executeSoap: (async (operation) =>
+        operation.parseResponse(new Response(successBody, { status: 200 }))) satisfies SoapExecute,
+      editHireWorkbook: async () => Buffer.from("xls"),
+      writeHireFile: async () => undefined,
+      verifyHireFile: async () => undefined,
+      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+      hireDirectory: IMPORT_DIRECTORY,
+      now: () => HIRE_NOW,
+      templatePath: "./fuentes/HIRE/Hire_1_PERSONA.xls",
+      serialize: createSerializedQueue(),
+      readImportLog,
+      log: (_message: string, details: Record<string, string>) => {
+        logs.push(details);
+      },
+    };
+
+    const rejection = launchMeta4Hire(AUTH_SESSION, [person], options);
+    await expect(rejection).rejects.toBeInstanceOf(Meta4HireError);
+    await expect(rejection).rejects.toMatchObject({
+      code: "META4_HIRE_IMPORT_REJECTED",
+      message: "PeopleNet rechazó el alta de 1 persona.",
+      issues: [{ person: 1, message: 'La columna obligatoria "Proyecto" está vacía.' }],
+    });
+    expect(readImportLog).toHaveBeenCalledWith(exampleFilePath);
+    expect(JSON.stringify(logs)).not.toContain("Proyecto");
+    expect(logs.at(-1)).toMatchObject({ code: "IMPORT_LOG_REJECTED", rows: "1", failed: "1" });
+
+    readImportLog.mockResolvedValueOnce([{ person: 1, failed: false, message: "" }]);
+    await expect(launchMeta4Hire(AUTH_SESSION, [person], options)).resolves.toMatchObject({
+      personCount: 1,
+    });
   });
 });

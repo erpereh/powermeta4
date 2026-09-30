@@ -221,7 +221,8 @@ export const HIRE_FIELD_META = {
   occupationEjc: connected("Núm. EJC", "number", "unmarked", false, mapped("SCO_NUM_EJC")),
   occupationHeadcount: connected("Núm. Efectivos", "number", "unmarked", false, mapped("SCO_NUM_HEADCOUNT")),
   category: connected("Categoría", "catalog", "required", true, mapped("SSP_ID_CATEGORIA")),
-  project: connected("Proyecto", "catalog", "required", true, mapped("SSP_ID_CENT_COSTO")),
+  // Fixed: only "000000|000000" is proven to import (see HIRE_COST_CENTER_LIST_VALUE).
+  project: connected("Proyecto", "text", "required", false, mapped("SSP_ID_CENT_COSTO")),
   startReason: connected(
     "ID Motivo inicio",
     "catalog",

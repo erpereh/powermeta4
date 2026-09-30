@@ -85,7 +85,7 @@ const person = (suffix: string, hireDate: string): HirePerson => ({
   bankFormatChoice: suffix === "B" ? "other" : "iban",
   iban: suffix === "B" ? "" : "ES5200491500061234567890",
   bankBranch: suffix === "B" ? "00491500" : "",
-  accountNumber: suffix === "B" ? "001234567890" : "",
+  accountNumber: suffix === "B" ? "1234567890" : "",
   firstName: `Nombre${suffix}`,
   lastName1: `Apellido${suffix}`,
   lastName2: suffix === "B" ? "" : `Segundo${suffix}`,
@@ -113,7 +113,6 @@ const person = (suffix: string, hireDate: string): HirePerson => ({
   workUnit: "1_GRCFO",
   workLocation: "076",
   category: "012",
-  project: "000000",
   startReason: "002",
   structure: "2",
   functionalWorkCenter: "O_CEN",
@@ -432,7 +431,8 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     ] as const) {
       expect(generated.get(column)?.value, column).toBe(value);
     }
-    expect(generated.get("CZ")?.value).toBe("000000");
+    expect(generated.get("CZ")?.value).toBe("000000|000000");
+    expect(generated.get("IM")?.value).toBeUndefined();
     expect(generated.get("CY")?.value).toBe(original.get("CY")?.value);
     expect(generated.get("AU")?.value).toBe("0034");
     expect(generated.get("AV")?.value).toBe("001234567");
@@ -461,10 +461,20 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
       expect(generated.get(column)?.formula, column).toBeUndefined();
     }
     expect(generated.get("HO")).toEqual(original.get("HO"));
-    expect(generated.get("HZ")?.value).toBeUndefined();
-    expect(generated.get("IA")?.value).toBeUndefined();
-    expect(generated.get("ID")?.value).toBeUndefined();
-    for (const column of ["GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
+    for (const [column, value] of [
+      ["HZ", "00491500"],
+      ["IA", "00491500"],
+      ["IB", "0049"],
+      ["IC", "1500"],
+      ["IE", "06"],
+      ["ID", "1234567890"],
+      ["IF", "ES"],
+      ["II", "52"],
+    ] as const) {
+      expect(generated.get(column)?.value, column).toBe(value);
+      expect(generated.get(column)?.formula, column).toBeUndefined();
+    }
+    for (const column of ["GY", "HA", "IG", "IH"]) {
       expect(generated.get(column)?.value, column).toEqual(original.get(column)?.value);
       expect(generated.get(column)?.formula, column).toEqual(original.get(column)?.formula);
     }
@@ -551,7 +561,7 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(rows[1]?.get("GQ")?.value).toBeUndefined();
     expect(rows[1]?.get("HZ")?.value).toBe("00491500");
     expect(rows[1]?.get("IA")?.value).toBe("00491500");
-    expect(rows[1]?.get("ID")?.value).toBe("001234567890");
+    expect(rows[1]?.get("ID")?.value).toBe("1234567890");
 
     rows.forEach((values, index) => {
       const populated = index !== 1;

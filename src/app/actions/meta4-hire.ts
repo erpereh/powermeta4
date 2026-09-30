@@ -4,7 +4,7 @@ import { requireAuthContext } from "@/lib/auth/session";
 import { SessionExpiredError } from "@/lib/meta4/authenticated-soap-client";
 import { Meta4HttpError } from "@/lib/meta4/client";
 import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
-import { isMeta4HireError } from "@/lib/meta4/hire/errors";
+import { isMeta4HireError, type Meta4HireIssue } from "@/lib/meta4/hire/errors";
 import { launchMeta4Hire } from "@/lib/meta4/hire/service";
 import { parseHirePeople } from "@/lib/meta4/hire/validate";
 import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
@@ -15,6 +15,11 @@ export type HireActionData = {
   personCount: number;
   fileName: string;
 };
+
+/** Validation problems and PeopleNet rejections come back per person and field. */
+export type HireActionResult =
+  | ActionResult<HireActionData>
+  | { ok: false; errorCode: string; message: string; issues: readonly Meta4HireIssue[] };
 
 const resolveHireErrorMessage = (error: unknown): { errorCode: string; message: string } => {
   if (isMeta4HireError(error)) return { errorCode: error.code, message: error.message };
@@ -47,9 +52,7 @@ const resolveHireErrorMessage = (error: unknown): { errorCode: string; message: 
   };
 };
 
-export async function launchMeta4HireAction(
-  people: unknown,
-): Promise<ActionResult<HireActionData>> {
+export async function launchMeta4HireAction(people: unknown): Promise<HireActionResult> {
   try {
     const parsed = parseHirePeople(people);
     const authSession = await requireAuthContext();
@@ -59,10 +62,16 @@ export async function launchMeta4HireAction(
     return { ok: true, data: { personCount: result.personCount, fileName: result.fileName } };
   } catch (error) {
     const resolved = resolveHireErrorMessage(error);
+    const issues = isMeta4HireError(error) ? error.issues : [];
+    // Issues and rejection texts may contain personal data: only counts are logged.
     console.error("[meta4-hire] launchMeta4HireAction failed", {
       errorCode: resolved.errorCode,
-      message: error instanceof Error ? error.message : String(error),
+      ...(issues.length > 0
+        ? { issueCount: issues.length }
+        : { message: error instanceof Error ? error.message : String(error) }),
     });
-    return { ok: false, errorCode: resolved.errorCode, message: resolved.message };
+    return issues.length > 0
+      ? { ok: false, errorCode: resolved.errorCode, message: resolved.message, issues }
+      : { ok: false, errorCode: resolved.errorCode, message: resolved.message };
   }
 }

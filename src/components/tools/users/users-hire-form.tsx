@@ -1,13 +1,18 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type FocusEvent } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { launchMeta4HireAction } from "@/app/actions/meta4-hire";
 import { Button, Modal, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/system";
 import type { HireCatalogState } from "@/lib/meta4/hire/catalogs";
+import type { Meta4HireIssue } from "@/lib/meta4/hire/errors";
 import type { HirePersonInput } from "@/lib/meta4/hire/types";
-import { parseHirePeople, parseHirePerson } from "@/lib/meta4/hire/validate";
+import {
+  collectHirePersonIssues,
+  type HireFieldIssue,
+  type HireValidationContext,
+} from "@/lib/meta4/hire/validate";
 
 import { HireCatalogsProvider } from "./hire-form/catalogs";
 import { DevTestDataControls } from "./hire-form/dev-test-controls";
@@ -21,6 +26,13 @@ import {
   type PendingValueKey,
 } from "./hire-form/draft";
 import type { CurrentFieldId, PendingFieldId } from "./hire-form/field-metadata";
+import {
+  HIRE_TABS,
+  HireIssuesProvider,
+  hireIssueTab,
+  type HireIssueMap,
+  type HireTabId,
+} from "./hire-form/issues";
 import { OrganizationSection } from "./hire-form/organization-section";
 import { PaymentSection } from "./hire-form/payment-section";
 import { PayrollSection } from "./hire-form/payroll-section";
@@ -36,13 +48,41 @@ const personFullName = (person: HirePersonInput): string =>
     .filter(Boolean)
     .join(" ");
 
-const TABS = [
-  { id: "personal", label: "Datos personales" },
-  { id: "organization", label: "Organización" },
-  { id: "social-security", label: "Seguridad Social" },
-  { id: "payroll", label: "Nómina" },
-  { id: "payment", label: "Datos de pago" },
-] as const;
+/** Field problems stay hidden until the field is left or the person is validated. */
+type PersonFeedback = { attempted: boolean; touched: readonly string[] };
+
+type FormError = { message: string; issues: readonly Meta4HireIssue[] };
+
+const ENTRY_SEPARATOR = "\u0001";
+const FIELD_SEPARATOR = "\u0000";
+
+/** Same map for the same visible problems, so memoized fields do not re-render per key. */
+const useIssueMap = (issues: readonly HireFieldIssue[]): HireIssueMap => {
+  const key = issues
+    .map((issue) => `${issue.field}${FIELD_SEPARATOR}${issue.message}`)
+    .join(ENTRY_SEPARATOR);
+  return useMemo(
+    () =>
+      new Map(
+        key
+          ? key.split(ENTRY_SEPARATOR).map((entry) => {
+              const [field = "", message = ""] = entry.split(FIELD_SEPARATOR);
+              return [field, message] as const;
+            })
+          : [],
+      ),
+    [key],
+  );
+};
+
+const issueKeysOf = (target: EventTarget): readonly string[] => {
+  if (!(target instanceof HTMLElement)) return [];
+  const keys = target.closest<HTMLElement>("[data-hire-issue-keys]")?.dataset.hireIssueKeys;
+  if (!keys) return [];
+  const all = keys.split(" ").filter(Boolean);
+  const name = target.getAttribute("name");
+  return name && all.includes(name) ? [name] : all;
+};
 
 export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
   const [people, setPeople] = useState<HirePersonDraft[]>([createHirePersonDraft(1)]);
@@ -50,9 +90,67 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
   const [activeTab, setActiveTab] = useState<string>("personal");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<FormError | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Readonly<Record<number, PersonFeedback>>>({});
   const nextId = useRef(2);
+
+  const validationContext = useMemo<HireValidationContext>(
+    () => (catalogs.status === "ready" ? { documentTypes: catalogs.catalogs.documentType } : {}),
+    [catalogs],
+  );
+  const issuesOf = useCallback(
+    (draft: HirePersonDraft): readonly HireFieldIssue[] =>
+      collectHirePersonIssues(toHirePersonInput(draft), validationContext).issues,
+    [validationContext],
+  );
+
+  const expandedDraft = people.find((person) => person.id === expandedId);
+  const expandedIssues = useMemo(
+    () => (expandedDraft ? issuesOf(expandedDraft) : []),
+    [expandedDraft, issuesOf],
+  );
+  const expandedFeedback = feedback[expandedId];
+  const visibleIssues = useMemo(
+    () =>
+      expandedIssues.filter(
+        (issue) => expandedFeedback?.attempted || expandedFeedback?.touched.includes(issue.field),
+      ),
+    [expandedFeedback, expandedIssues],
+  );
+  const issueMap = useIssueMap(visibleIssues);
+  const tabIssueCounts = useMemo(() => {
+    const counts = new Map<HireTabId, number>();
+    for (const issue of visibleIssues) {
+      const tab = hireIssueTab(issue.field);
+      counts.set(tab, (counts.get(tab) ?? 0) + 1);
+    }
+    return counts;
+  }, [visibleIssues]);
+
+  const markTouched = useCallback(
+    (event: FocusEvent<HTMLElement>) => {
+      const keys = issueKeysOf(event.target);
+      if (keys.length === 0) return;
+      setFeedback((current) => {
+        const previous = current[expandedId] ?? { attempted: false, touched: [] };
+        if (keys.every((key) => previous.touched.includes(key))) return current;
+        return {
+          ...current,
+          [expandedId]: { ...previous, touched: [...new Set([...previous.touched, ...keys])] },
+        };
+      });
+    },
+    [expandedId],
+  );
+
+  const markAttempted = (ids: readonly number[]) => {
+    setFeedback((current) => {
+      const next = { ...current };
+      for (const id of ids) next[id] = { touched: next[id]?.touched ?? [], attempted: true };
+      return next;
+    });
+  };
 
   const confirmation = useMemo(
     () => `Se van a procesar ${people.length} personas en Meta4`,
@@ -94,17 +192,25 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
     [expandedId, updateDraft],
   );
 
+  /** Shows every problem of the person and opens the tab of the first one. */
+  const revealIssues = (id: number, issues: readonly HireFieldIssue[]) => {
+    markAttempted([id]);
+    const index = people.findIndex((person) => person.id === id);
+    setError({
+      message: `Revisa ${issues.length === 1 ? "1 dato" : `${issues.length} datos`} de la Persona ${index + 1} antes de continuar.`,
+      issues: [],
+    });
+    if (issues[0]) setActiveTab(hireIssueTab(issues[0].field));
+  };
+
   const validateExpanded = (): boolean => {
-    const current = people.find((person) => person.id === expandedId);
-    if (!current) return false;
-    try {
-      parseHirePerson(toHirePersonInput(current));
-      setError(null);
-      return true;
-    } catch (caught) {
-      setError(errorMessage(caught));
+    if (!expandedDraft) return false;
+    if (expandedIssues.length > 0) {
+      revealIssues(expandedId, expandedIssues);
       return false;
     }
+    setError(null);
+    return true;
   };
 
   const addPerson = () => {
@@ -139,11 +245,26 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
   const requestConfirm = () => {
     setError(null);
     setSuccess(null);
-    try {
-      parseHirePeople(currentPayload());
+    const withIssues = people
+      .map((draft) => ({ draft, issues: issuesOf(draft) }))
+      .filter((entry) => entry.issues.length > 0);
+    const first = withIssues[0];
+    if (!first) {
       setConfirmOpen(true);
-    } catch (caught) {
-      setError(errorMessage(caught));
+      return;
+    }
+    markAttempted(withIssues.map((entry) => entry.draft.id));
+    setExpandedId(first.draft.id);
+    revealIssues(first.draft.id, first.issues);
+    if (withIssues.length > 1) {
+      const others = withIssues
+        .slice(1)
+        .map((entry) => people.indexOf(entry.draft) + 1)
+        .join(", ");
+      setError({
+        message: `Revisa los datos marcados de la Persona ${people.indexOf(first.draft) + 1}. También hay datos por revisar en: Persona ${others}.`,
+        issues: [],
+      });
     }
   };
 
@@ -153,7 +274,23 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
     try {
       const result = await launchMeta4HireAction(currentPayload());
       if (!result.ok) {
-        setError(result.message);
+        const issues = "issues" in result ? result.issues : [];
+        const firstField = issues.find((issue) => issue.field && issue.person);
+        if (firstField?.person) {
+          const draft = people[firstField.person - 1];
+          if (draft) {
+            markAttempted([draft.id]);
+            setExpandedId(draft.id);
+            if (firstField.field) setActiveTab(hireIssueTab(firstField.field));
+          }
+          setConfirmOpen(false);
+        }
+        setError({
+          message: firstField
+            ? "Revisa los datos marcados antes de lanzar el alta."
+            : result.message,
+          issues: issues.filter((issue) => !issue.field),
+        });
         return;
       }
       setSuccess(`Alta enviada correctamente · ${result.data.fileName}`);
@@ -162,7 +299,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
       setActiveTab("personal");
       setConfirmOpen(false);
     } catch (caught) {
-      setError(errorMessage(caught));
+      setError({ message: errorMessage(caught), issues: [] });
     } finally {
       setPending(false);
     }
@@ -188,6 +325,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
               return (
                 <fieldset
                   key={draft.id}
+                  onBlurCapture={markTouched}
                   className="min-w-0 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm"
                 >
                   <legend className="px-1 text-sm font-medium text-foreground">
@@ -201,37 +339,75 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                       onFill={(next) => updateDraft(draft.id, () => next)}
                     />
                   ) : null}
-                  <HireDraftProvider key={draft.id} draft={draft} {...draftActions}>
-                    <Tabs
-                      value={activeTab}
-                      onValueChange={setActiveTab}
-                      variant="underline"
-                      className="min-w-0"
-                    >
-                      <TabsList wrapperClassName="w-full max-w-full" className="min-w-max">
-                        {TABS.map((tab) => (
-                          <TabsTrigger key={tab.id} value={tab.id}>
-                            {tab.label}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
-                      <TabsContent value="personal">
-                        {activeTab === "personal" ? <PersonalSection /> : null}
-                      </TabsContent>
-                      <TabsContent value="organization">
-                        {activeTab === "organization" ? <OrganizationSection /> : null}
-                      </TabsContent>
-                      <TabsContent value="social-security">
-                        {activeTab === "social-security" ? <SocialSecuritySection /> : null}
-                      </TabsContent>
-                      <TabsContent value="payroll">
-                        {activeTab === "payroll" ? <PayrollSection /> : null}
-                      </TabsContent>
-                      <TabsContent value="payment">
-                        {activeTab === "payment" ? <PaymentSection /> : null}
-                      </TabsContent>
-                    </Tabs>
-                  </HireDraftProvider>
+                  <HireIssuesProvider issues={issueMap}>
+                    <HireDraftProvider key={draft.id} draft={draft} {...draftActions}>
+                      <Tabs
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        variant="underline"
+                        className="min-w-0"
+                      >
+                        <TabsList wrapperClassName="w-full max-w-full" className="min-w-max">
+                          {HIRE_TABS.map((tab) => {
+                            const count = tabIssueCounts.get(tab.id) ?? 0;
+                            return (
+                              <TabsTrigger key={tab.id} value={tab.id}>
+                                {tab.label}
+                                {/* Visual hint only: the summary below lists the problems for
+                                  screen readers and keeps the tab name stable. */}
+                                {count > 0 ? (
+                                  <span aria-hidden="true" className="ml-1.5 text-destructive">
+                                    ({count})
+                                  </span>
+                                ) : null}
+                              </TabsTrigger>
+                            );
+                          })}
+                        </TabsList>
+                        <TabsContent value="personal">
+                          {activeTab === "personal" ? <PersonalSection /> : null}
+                        </TabsContent>
+                        <TabsContent value="organization">
+                          {activeTab === "organization" ? <OrganizationSection /> : null}
+                        </TabsContent>
+                        <TabsContent value="social-security">
+                          {activeTab === "social-security" ? <SocialSecuritySection /> : null}
+                        </TabsContent>
+                        <TabsContent value="payroll">
+                          {activeTab === "payroll" ? <PayrollSection /> : null}
+                        </TabsContent>
+                        <TabsContent value="payment">
+                          {activeTab === "payment" ? <PaymentSection /> : null}
+                        </TabsContent>
+                      </Tabs>
+                    </HireDraftProvider>
+                  </HireIssuesProvider>
+                  {expandedFeedback?.attempted && visibleIssues.length > 0 ? (
+                    <div className="mt-5 rounded-2xl border border-destructive/40 p-4">
+                      <p className="text-sm font-medium text-destructive">
+                        Datos por revisar de la Persona {index + 1}
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm">
+                        {visibleIssues.map((issue) => {
+                          const tab = hireIssueTab(issue.field);
+                          const tabLabel =
+                            HIRE_TABS.find((candidate) => candidate.id === tab)?.label ?? "";
+                          return (
+                            <li key={issue.field}>
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab(tab)}
+                                className="text-left text-foreground underline-offset-2 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              >
+                                <span className="text-muted-foreground">{tabLabel} · </span>
+                                {issue.message}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ) : null}
                   <div className="mt-5">
                     <Button
                       type="button"
@@ -297,9 +473,19 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
         </div>
 
         {error ? (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
+          <div role="alert" className="space-y-1 text-sm text-destructive">
+            <p>{error.message}</p>
+            {error.issues.length > 0 ? (
+              <ul className="list-disc space-y-1 pl-5">
+                {error.issues.map((issue, index) => (
+                  <li key={`${issue.person ?? 0}-${index}`}>
+                    {issue.person ? `Persona ${issue.person}: ` : ""}
+                    {issue.message}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
         ) : null}
         {success ? (
           <p role="status" className="text-sm text-foreground">

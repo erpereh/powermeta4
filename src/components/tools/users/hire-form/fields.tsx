@@ -53,6 +53,7 @@ import {
   type HireFieldId,
   type PendingFieldId,
 } from "./field-metadata";
+import { describedBy, useHireIssue } from "./issues";
 
 export const HIRE_ACCORDION_CLASS_NAMES = {
   trigger: "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
@@ -70,8 +71,9 @@ const displayLabel = (field: HireFieldId): string => {
   return meta.label;
 };
 
-const fieldAttributes = (field: HireFieldId) => ({
+const fieldAttributes = (field: HireFieldId, issueKeys: readonly string[] = [field]) => ({
   "data-hire-field": field,
+  "data-hire-issue-keys": issueKeys.join(" "),
   "data-peoplenet-requirement": HIRE_FIELD_META[field].peopleNet,
   "data-integration": HIRE_FIELD_META[field].integration,
   "data-mapping-status": HIRE_FIELD_META[field].mapping.status,
@@ -135,21 +137,42 @@ function FieldCaption({ field, htmlFor }: { field: HireFieldId; htmlFor: string 
   );
 }
 
+/** Problem shown under a control; the control references it with `${id}-error`. */
+function FieldError({ id, message }: { id: string; message: string | undefined }) {
+  if (!message) return null;
+  return (
+    <p id={`${id}-error`} className="px-1 text-xs text-destructive">
+      {message}
+    </p>
+  );
+}
+
+const errorId = (id: string, message: string | undefined): string | undefined =>
+  message ? `${id}-error` : undefined;
+
 function FieldFrame({
   field,
   id,
   children,
   className,
+  error,
+  issueKeys,
 }: {
   field: HireFieldId;
   id: string;
   children: ReactNode;
   className?: string;
+  error?: string;
+  issueKeys?: readonly string[];
 }) {
   return (
-    <div {...fieldAttributes(field)} className={cn("flex min-w-0 flex-col gap-1.5", className)}>
+    <div
+      {...fieldAttributes(field, issueKeys)}
+      className={cn("flex min-w-0 flex-col gap-1.5", className)}
+    >
       <FieldCaption field={field} htmlFor={id} />
       {children}
+      <FieldError id={id} message={error} />
     </div>
   );
 }
@@ -158,13 +181,25 @@ export function FieldGroup({
   field,
   children,
   className,
+  issueKeys = [field],
+  showIssue = true,
 }: {
   field: HireFieldId;
   children: ReactNode;
   className?: string;
+  /** HirePerson keys edited inside the group, for touched tracking and messages. */
+  issueKeys?: readonly string[];
+  /** False when the children render their own messages. */
+  showIssue?: boolean;
 }) {
+  const id = useId();
+  const error = useHireIssue(showIssue ? issueKeys : []);
   return (
-    <fieldset {...fieldAttributes(field)} className={cn("min-w-0 space-y-3", className)}>
+    <fieldset
+      {...fieldAttributes(field, issueKeys)}
+      aria-describedby={errorId(id, error)}
+      className={cn("min-w-0 space-y-3", className)}
+    >
       <legend className="px-1 text-sm font-medium">
         <MappingLabel field={field} />
         {isPeopleNetRequired(field) ? (
@@ -178,6 +213,7 @@ export function FieldGroup({
         ) : null}
       </legend>
       {children}
+      <FieldError id={id} message={error} />
     </fieldset>
   );
 }
@@ -186,18 +222,14 @@ export function CurrentInput({ field }: { field: CurrentFieldId }) {
   const id = useId();
   const { draft, onCurrentChange } = useHireDraft();
   const meta = HIRE_FIELD_META[field];
+  const error = useHireIssue([field]);
   return (
-    <FieldFrame field={field} id={id}>
+    <FieldFrame field={field} id={id} error={error}>
       <Input
         id={id}
         name={field}
-        aria-describedby={
-          meta.requiredForCurrentHire && !isPeopleNetRequired(field)
-            ? `${id}-integration`
-            : isPeopleNetRequired(field)
-              ? `${id}-peoplenet`
-              : undefined
-        }
+        error={Boolean(error)}
+        aria-describedby={describedBy(requirementDescription(field, id), errorId(id, error))}
         type={meta.kind}
         required={meta.requiredForCurrentHire}
         value={draft.current[field]}
@@ -222,13 +254,18 @@ export function PendingInput({
   const id = useId();
   const { draft, onPendingChange } = useHireDraft();
   const meta = HIRE_FIELD_META[field];
+  const error = useHireIssue([field]);
   return (
-    <FieldFrame field={field} id={id} className={className}>
+    <FieldFrame field={field} id={id} className={className} error={error}>
       <Input
         id={id}
         name={field}
         type={type ?? (meta.kind === "compound" ? "text" : meta.kind)}
-        aria-describedby={isPeopleNetRequired(field) ? `${id}-peoplenet` : undefined}
+        error={Boolean(error)}
+        aria-describedby={describedBy(
+          isPeopleNetRequired(field) ? `${id}-peoplenet` : undefined,
+          errorId(id, error),
+        )}
         disabled={disabled}
         value={draft.pendingValues[field] ?? ""}
         onChange={(value) => onPendingChange(field, value)}
@@ -283,6 +320,7 @@ const CatalogCombobox = memo(function CatalogCombobox({
   unavailable = false,
   displayId = optionId,
   search,
+  issueKeys,
 }: {
   field: HireFieldId;
   options: readonly HireCatalogOption[];
@@ -291,9 +329,13 @@ const CatalogCombobox = memo(function CatalogCombobox({
   unavailable?: boolean;
   displayId?: (option: HireCatalogOption) => string;
   search?: CatalogSearch;
+  /** Stable list of HirePerson keys this combobox edits; defaults to `field`. */
+  issueKeys?: readonly string[];
 }) {
   const id = useId();
   const meta = HIRE_FIELD_META[field];
+  const keys = issueKeys ?? [field];
+  const error = useHireIssue(keys);
   const required = meta.requiredForCurrentHire || isPeopleNetRequired(field);
   const placeholder = unavailable
     ? "Catálogo no disponible"
@@ -337,7 +379,7 @@ const CatalogCombobox = memo(function CatalogCombobox({
   );
 
   return (
-    <FieldFrame field={field} id={id}>
+    <FieldFrame field={field} id={id} error={error} issueKeys={keys}>
       <div className="flex min-w-0 items-center gap-2">
         <Combobox
           value={value}
@@ -348,11 +390,17 @@ const CatalogCombobox = memo(function CatalogCombobox({
           onOpenChange={onOpenChange}
           disabled={unavailable}
         >
-          <ComboboxTrigger className="h-11 rounded-full">
+          <ComboboxTrigger
+            className={cn(
+              "h-11 rounded-full",
+              error && "border-destructive ring-2 ring-destructive/25",
+            )}
+          >
             <ComboboxInput
               aria-label={meta.label}
               aria-labelledby={`${id}-label`}
-              aria-describedby={requirementDescription(field, id)}
+              aria-describedby={describedBy(requirementDescription(field, id), errorId(id, error))}
+              aria-invalid={error ? true : undefined}
               aria-required={required}
               placeholder={placeholder}
             />
@@ -420,6 +468,8 @@ export function CatalogField({ field }: { field: HireCatalogFieldId }) {
   );
 }
 
+const CONTRACT_ISSUE_KEYS = ["legalContract", "internalContract"] as const;
+
 /**
  * Legal + internal contract are one PeopleNet pair: it is chosen once in the
  * legal field and the internal row shows the resulting internal contract.
@@ -450,6 +500,7 @@ export function ContractField() {
         unavailable={unavailable}
         value={selected}
         onValueChange={onValueChange}
+        issueKeys={CONTRACT_ISSUE_KEYS}
       />
       <FieldFrame field="internalContract" id={internalId}>
         <Input
@@ -723,11 +774,13 @@ export function PendingRadio({
 export function PendingTextarea({ field }: { field: PendingFieldId }) {
   const id = useId();
   const { draft, onPendingChange } = useHireDraft();
+  const error = useHireIssue([field]);
   return (
     <FieldFrame field={field} id={id}>
       <Textarea
         id={id}
         name={field}
+        error={error}
         value={draft.pendingValues[field] ?? ""}
         onChange={(event) => onPendingChange(field, event.target.value)}
       />
@@ -754,25 +807,80 @@ export function CompoundField({
 }) {
   const { draft, onPendingChange } = useHireDraft();
   const parentLabel = HIRE_FIELD_META[field].label;
+  const id = useId();
+  const partKeys = parts.map((part) => part.field);
   return (
-    <FieldGroup field={field} className={className}>
+    <FieldGroup field={field} className={className} issueKeys={partKeys} showIssue={false}>
       <div className={cn("grid gap-3", parts.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
         {parts.map((part) => (
-          <Input
+          <CompoundPartInput
             key={part.field}
-            label={part.label}
-            aria-label={`${parentLabel}, ${part.label}`}
-            name={part.field}
-            type={part.type ?? "text"}
+            part={part}
+            id={`${id}-${part.field}`}
+            parentLabel={parentLabel}
+            labelClassName={hireFieldLabelClass(field)}
             disabled={disabled}
             value={draft.pendingValues[part.field] ?? ""}
             onChange={(value) => onPendingChange(part.field, value)}
-            classNames={{ label: hireFieldLabelClass(field) }}
-            autoComplete="off"
           />
         ))}
       </div>
     </FieldGroup>
+  );
+}
+
+function CompoundPartInput({
+  part,
+  id,
+  parentLabel,
+  labelClassName,
+  disabled,
+  value,
+  onChange,
+}: {
+  part: CompoundPart;
+  id: string;
+  parentLabel: string;
+  labelClassName: string;
+  disabled: boolean;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const error = useHireIssue([part.field]);
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <Input
+        id={id}
+        label={part.label}
+        aria-label={`${parentLabel}, ${part.label}`}
+        aria-describedby={errorId(id, error)}
+        name={part.field}
+        type={part.type ?? "text"}
+        disabled={disabled}
+        error={Boolean(error)}
+        value={value}
+        onChange={onChange}
+        classNames={{ label: labelClassName }}
+        autoComplete="off"
+      />
+      <FieldError id={id} message={error} />
+    </div>
+  );
+}
+
+/** Value PeopleNet needs but the form does not let change (only one value is proven). */
+export function FixedValueField({ field, value }: { field: PendingFieldId; value: string }) {
+  const id = useId();
+  return (
+    <FieldFrame field={field} id={id}>
+      <Input
+        id={id}
+        readOnly
+        aria-labelledby={`${id}-label`}
+        aria-describedby={requirementDescription(field, id)}
+        value={value}
+      />
+    </FieldFrame>
   );
 }
 

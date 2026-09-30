@@ -103,7 +103,6 @@ const CATALOGS: HireCatalogState = {
     workUnit: [{ id: "00", name: "Pendiente de definir" }],
     workLocation: [{ id: "724", name: "España", detail: "País" }],
     category: [{ id: "I1", name: "Categoría I1" }],
-    costCenter: [{ id: "000000", name: "Sin Centro de Costo" }],
     startReason: [{ id: "001", name: "Nueva Alta" }],
     structure: [{ id: "0", name: "Empleado" }],
     functionalWorkCenter: [{ id: "O_CEN1", name: "Oficinas Centrales", detail: "Madrid" }],
@@ -176,7 +175,6 @@ const fillRequired = async (
   await chooseOption(user, "ID Unidad organizativa", /Pendiente de definir/);
   await chooseOption(user, "ID Lugar trabajo", /España/);
   await chooseOption(user, "Categoría", /Categoría I1/);
-  await chooseOption(user, "Proyecto", /Sin Centro de Costo/);
   await chooseOption(user, "ID Motivo inicio", /Nueva Alta/);
   await chooseOption(user, "Id Estructura", /Empleado/);
   await chooseOption(user, "Centro de Trabajo Funcional", /Oficinas Centrales/);
@@ -472,7 +470,6 @@ describe("UsersHireForm", () => {
 
   it("projects every integrated scalar and check for the active branches", () => {
     const draft = createHirePersonDraft(1);
-    draft.current.project = "000000";
     draft.current.position = "POS01";
     draft.current.birthCommunity = "724/13";
     draft.current.department = "0010";
@@ -527,7 +524,7 @@ describe("UsersHireForm", () => {
       extrasDate: "2024-02-29",
       iban: "retained iban",
       bankBranch: "00491500",
-      accountNumber: "001234567890",
+      accountNumber: "1234567890",
     };
     draft.pendingChecks = {
       keyEmployee: true,
@@ -542,7 +539,7 @@ describe("UsersHireForm", () => {
     };
     const payload = toHirePersonInput(draft);
     expect(payload).toMatchObject({
-      project: "000000", position: "POS01", occupationType: "ejc", occupationHours: "", occupationEjc: "0.75", occupationHeadcount: "",
+      position: "POS01", occupationType: "ejc", occupationHours: "", occupationEjc: "0.75", occupationHeadcount: "",
       legalRepresentativeNif: "00001234X", birthDate: "1990-01-01", atradiusId: "00044",
       phonePrefix: "0034", phoneNumber: "000123456", mobilePrefix: "0034", mobileNumber: "000600123",
       addressLine1: "Calle Mayor", addressLine2: "Portal 2", streetNumber: "0005", buildingBlock: "B", staircase: "2", floor: "3", door: "A", postalCode: "08001",
@@ -552,7 +549,7 @@ describe("UsersHireForm", () => {
       replacedSsPrefix: "08", replacedSsBody: "0009876543", replacedSsSuffix: "01", disabilityChoice: "with", disabilityPercent: "33", contractSeniorityStart: "2024-01-01",
       womanMaternity24: true, underrepresentedWoman: true, activeInsertionIncome: true, reliefContract: true, readmittedDisabled: true, firstSelfEmployedWorker: true,
       probationDays: "15", probationEnd: "2026-11-01", additionalClause: "Cláusula", annualGross: "30000", seniorityDate: "2020-01-01", timeManagementPay: true,
-      bankFormatChoice: "other", iban: "", bankBranch: "00491500", accountNumber: "001234567890",
+      bankFormatChoice: "other", iban: "", bankBranch: "00491500", accountNumber: "1234567890",
       birthCommunity: "13",
       department: "0010",
       referenceModelWeek: "001/02",
@@ -637,7 +634,9 @@ describe("UsersHireForm", () => {
     await user.click(screen.getByRole("button", { name: "Quitar ID Modelo/Semana de referencia" }));
     expect(catalogValue("ID Modelo/Semana de referencia")).toBe("");
     await user.click(screen.getByRole("button", { name: "Añadir persona" }));
-    expect(screen.getByRole("alert").textContent).toMatch(/obligatorio/);
+    expect(screen.getByRole("alert").textContent).toMatch(/Revisa \d+ datos de la Persona 1/);
+    expect(screen.getByText("Datos por revisar de la Persona 1")).toBeTruthy();
+    expect(screen.getAllByText(/obligatorio/).length).toBeGreaterThan(0);
   });
 
   it("picks legal and internal contract as one PeopleNet pair", async () => {
@@ -729,15 +728,13 @@ describe("UsersHireForm", () => {
     expect(
       (screen.getByRole("combobox", { name: "ID Puesto (según rama)" }) as HTMLInputElement).value,
     ).toBe("Actuarial Analyst");
-    await chooseOption(user, "Proyecto", /Sin Centro de Costo/);
+    expect(screen.getByDisplayValue("000000 · Sin Centro de Costo")).toHaveProperty("readOnly", true);
 
     const draft = createHirePersonDraft(1);
     draft.current.job = "GR_ACAN";
-    draft.current.project = "000000";
     expect(toHirePersonInput(draft).job).toBe("");
     draft.branches.positionChoice = "job";
     expect(toHirePersonInput(draft).job).toBe("GR_ACAN");
-    expect(toHirePersonInput(draft).project).toBe("000000");
 
     await user.click(screen.getByRole("radio", { name: "Posición" }));
     await chooseOption(user, "ID Posición (según rama)", /Analista/);
@@ -944,7 +941,8 @@ describe("UsersHireForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Añadir persona" }));
 
-    expect(screen.getByRole("alert").textContent).toMatch(/obligatorio/i);
+    expect(screen.getByRole("alert").textContent).toMatch(/Revisa \d+ datos de la Persona 1/);
+    expect(screen.getAllByText(/obligatorio/i).length).toBeGreaterThan(0);
     expect(screen.queryByText("Persona 2")).toBeNull();
     expect(launchHire).not.toHaveBeenCalled();
   });
@@ -962,6 +960,7 @@ describe("UsersHireForm", () => {
       hireDate: "2026-10-01",
     });
     await user.type(screen.getByLabelText("Teléfono, Prefijo"), "34");
+    await user.type(screen.getByLabelText("Teléfono, Número"), "912345678");
     await user.click(screen.getByRole("button", { name: "Añadir persona" }));
 
     expect(screen.getByText("Persona 1")).toBeTruthy();
@@ -1076,6 +1075,7 @@ describe("UsersHireForm", () => {
       hireDate: "2026-10-04",
     });
     await user.type(screen.getByLabelText("Teléfono, Prefijo"), "34");
+    await user.type(screen.getByLabelText("Teléfono, Número"), "912345678");
     await user.click(screen.getByRole("button", { name: "Añadir persona" }));
     await fillRequired(user, {
       firstName: "Luis",

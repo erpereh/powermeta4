@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-30 - Proyecto del alta, validaciones por campo y rechazos de PeopleNet
+
+- El alta fallaba por «Proyecto» vacío: CZ debe llevar el valor de lista
+  `centro|proyecto`. Se escribe siempre `000000|000000` (único valor probado,
+  decisión del usuario) y Proyecto pasa a solo lectura; se retira el catálogo
+  `costCenter` del formulario y del payload.
+- La copia limpia IM (`CSP_FUSION_ID` de la persona de ejemplo) y deriva del
+  IBAN o de «Otro formato» todas las partes bancarias IB/IC/IE/ID/HZ/IA/IF/II.
+- Validación completa y compartida: `collectHirePersonIssues` devuelve todos
+  los problemas por campo; el formulario los muestra junto a cada control,
+  cuenta los de cada pestaña y lista un resumen. Nuevas reglas de documento,
+  teléfonos, CP, NUSS, fechas, números, pares condicionales, IBAN/CCC y
+  longitudes (las deducidas se documentan como pendientes de confirmar).
+- `Meta4HireError` lleva `issues`; la Server Action los devuelve. Tras
+  `SRTC_LAUNCH_IMPORT` se lee el log de PeopleNet y sus rechazos se muestran
+  por persona sin perder el borrador ni registrar su texto.
+- Verificación: `npm test` 109 archivos, 603 correctas y 2 omitidas (incluye
+  Excel COM real); typecheck, build y `git diff --check` correctos; lint con
+  los siete avisos y el formato global pendiente ya existentes.
+
 ## 2026-09-30 - Enlaces de importación del alta Excel
 
 - El modelo se escribía en HN sin identificador en HN5; el importador recibía

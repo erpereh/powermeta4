@@ -38,7 +38,6 @@ const person: HirePerson = {
   workUnit: "00",
   workLocation: "724",
   category: "I1",
-  project: "000000",
   job: "RDCI",
   startReason: "001",
   structure: "0",
@@ -146,7 +145,7 @@ describe("Hire Excel temp files", () => {
         bankFormatChoice: "other",
         iban: "",
         bankBranch: "00491500",
-        accountNumber: "001234567890",
+        accountNumber: "1234567890",
       },
     ];
     const files = await writeHireEditFiles(directory, people);
@@ -167,9 +166,10 @@ describe("Hire Excel temp files", () => {
       for (const column of ["GR", "GS", "EF", "EG"]) {
         expect(cells.get(column)).toEqual({ column, kind: "clear" });
       }
-      expect(cells.get("CZ")).toEqual({ column: "CZ", kind: "literal", value: "000000" });
+      expect(cells.get("CZ")).toEqual({ column: "CZ", kind: "literal", value: "000000|000000" });
+      expect(cells.get("IM")).toEqual({ column: "IM", kind: "clear" });
       expect(cells.has("CY")).toBe(false);
-      for (const column of ["HO", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
+      for (const column of ["HO", "GY", "HA", "IG", "IH"]) {
         expect(cells.has(column), column).toBe(false);
       }
     }
@@ -184,9 +184,19 @@ describe("Hire Excel temp files", () => {
     expect(first.get("FS")).toEqual({ column: "FS", kind: "text", value: "S" });
     expect(first.get("GJ")).toEqual({ column: "GJ", kind: "number", value: 37500.25 });
     expect(first.get("GQ")?.value).toBe("ES5200491500061234567890");
-    expect(first.get("HZ")?.kind).toBe("clear");
-    expect(first.get("IA")?.kind).toBe("clear");
-    expect(first.get("ID")?.kind).toBe("clear");
+    // A Spanish IBAN fills every CCC part of DATOS_PAGO.
+    for (const [column, value] of [
+      ["HZ", "00491500"],
+      ["IA", "00491500"],
+      ["IB", "0049"],
+      ["IC", "1500"],
+      ["IE", "06"],
+      ["ID", "1234567890"],
+      ["IF", "ES"],
+      ["II", "52"],
+    ] as const) {
+      expect(first.get(column), column).toEqual({ column, kind: "literal", value });
+    }
     expect(second.get("CL")?.kind).toBe("clear");
     expect(second.get("CN")?.value).toBe("POS01");
     expect(second.get("CP")?.kind).toBe("clear");
@@ -202,7 +212,12 @@ describe("Hire Excel temp files", () => {
     expect(second.get("GQ")?.kind).toBe("clear");
     expect(second.get("HZ")?.value).toBe("00491500");
     expect(second.get("IA")?.value).toBe("00491500");
-    expect(second.get("ID")?.value).toBe("001234567890");
+    expect(second.get("ID")?.value).toBe("1234567890");
+    expect(second.get("IB")?.value).toBe("0049");
+    expect(second.get("IC")?.value).toBe("1500");
+    expect(second.get("IE")?.value).toBe("06");
+    expect(second.get("IF")?.kind).toBe("clear");
+    expect(second.get("II")?.kind).toBe("clear");
   });
 
   it.each([

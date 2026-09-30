@@ -8,6 +8,42 @@ El fichero generado exportaba un ordinal de semana sin un **modelo vinculado** a
 
 También faltaban los enlaces de AL (comunidad de nacimiento, con valor en el adjunto) y GP (fecha de extras, vacía en el adjunto). Los tres se reparan en la **copia de salida**, conservando las columnas de datos ya confirmadas. No se cambian SQL, validaciones, forma de pago, monedas ni otros destinos. No se ha ejecutado un alta SOAP real.
 
+## Segundo diagnóstico: «Proyecto» vacío (alta de las 15:34:42)
+
+El log (`AltaNueva!A6 = 1`) rechazó la persona porque la columna obligatoria **«Proyecto»** de «Histórico Centro de Costo» estaba vacía; el aviso posterior de «Núm periodo» en `SRSP_ALTA_MASIVA_LOG` es la consecuencia de la anulación, no un dato de entrada.
+
+| Celda | Generado | X1 / X3 (funcionan) | XV |
+| ----- | -------- | ------------------- | -- |
+| CZ6 `SRCO_PA_HIRE_WIZ_ORG.SSP_ID_CENT_COSTO` | `000000` | `000000\|000000` | `=VLOOKUP(CY; SRSP_VALIDATION!J:K; 2)` |
+
+El importador recibe en CZ el valor de la lista Meta4 `SRSP_OR_MT_CENTR_COSTO` (`<centro>|<proyecto>`) y toma la parte tras `|` como «Proyecto». `M4SSP_CENTR_COSTO` (SELECT confirmada por el usuario, 98 filas en CYC) no tiene columna de proyecto. Solo `000000|000000` está demostrado; **por decisión del usuario CZ se escribe siempre así** y el campo Proyecto es de solo lectura («000000 · Sin Centro de Costo»). Otros centros requieren confirmar el formato con un Excel generado por Meta4.
+
+Otros datos heredados de la plantilla que se corrigen en la copia: IM (`CSP_FUSION_ID`) se limpia (era el ID de la persona de ejemplo) e IB/IC/IE/ID/HZ/IA/IF/II se derivan del IBAN o de «Otro formato» (antes solo coincidían porque el IBAN de prueba era el de la plantilla).
+
+## Validaciones del formulario y del servidor
+
+`collectHirePersonIssues` (`src/lib/meta4/hire/validate.ts`) revisa todos los campos a la vez, devuelve como máximo un problema por campo y se usa igual en el formulario (errores bajo cada campo, contador por pestaña y resumen) y en la Server Action. El servidor repite la validación con los catálogos cargados (tipo de documento) y comprueba los IDs contra PeopleNet. Si el importador rechaza el alta, se lee el log `<fichero>_log_<fecha>.xls` junto al fichero generado y se muestra el mensaje de PeopleNet por persona; los textos no se registran en el log del servidor.
+
+Origen: **M1** manual, **X** plantillas, **N** norma pública (NIF/NIE, NUSS, IBAN/CCC, CP), **✱** deducido sin acceso al diccionario PeopleNet (`M4RDC_FIELDS`), pendiente de confirmar.
+
+| Regla | Origen |
+| ----- | ------ |
+| Obligatorios de siempre (sin cambios) y ramas Puesto/Posición, S.S., jornada, minusvalía y banco | M1, metadata local |
+| Textos sin caracteres de control; máximos: nombre y apellidos 50, documento 20, correo 100, dirección 100 por línea, núm./bloque/escalera/piso/puerta 10, cláusula 250 | ✱ |
+| Núm. de documento con letra de control si el tipo se llama NIF/DNI o NIE; otros tipos: letras, números, `.`, `-`, `/` | N |
+| NIF Representante legal: NIF o NIE válido; obligatorio si la persona tiene menos de 18 años en la fecha de alta | N, M1 p. 41 |
+| Fechas entre 1900 y 2100; nacimiento anterior al alta y 16 años o más | ✱ (edad mínima laboral) |
+| Fin de contrato y fin del periodo de prueba no anteriores al alta; antigüedad e inicio antig. contrato no posteriores | ✱ |
+| Teléfono y móvil: prefijo `+NN` (acepta `34`/`0034`), 6–15 dígitos; con `+34`, 9 dígitos (móvil 6/7, fijo 6–9); prefijo y número juntos | N, ✱ |
+| Código postal: en España 5 dígitos que empiezan por el código de la provincia elegida; otros países 2–10 caracteres | N |
+| Núm. S.S. y del sustituido: provincia 01–53, número 7–8 dígitos, control mod 97; del sustituido los tres segmentos o ninguno, y exige causa de sustitución (y viceversa) | N, M1 p. 50 |
+| Números: % jornada parcial > 0 y < 100; % reducción y % minusvalía > 0 y ≤ 100 (2 decimales); horas ≤ 168/744/8784 según tipo; días semanales 1–7; días de prueba 0–365; bruto anual > 0 (2 decimales); EJC > 0; efectivos ≥ 1 | M1 p. 48, ✱ |
+| % reducción y motivo de reducción van juntos | M1 p. 50 |
+| Pago con gestión del tiempo o jornada parcial irregular exigen Modelo/Semana | M1 p. 54, log anterior |
+| IBAN: formato, mod 97; `ES` de 24 caracteres con dígitos de control de la cuenta; Otro formato: sucursal 8 dígitos y cuenta 10 | N, ✱ |
+
+Pendiente: confirmar con el diccionario de PeopleNet (`M4RDC_FIELDS`: NOT NULL y longitudes de las tablas del alta) las reglas ✱, la ubicación real del log y el formato de CZ para centros distintos de `000000`.
+
 ## Fuentes y certeza
 
 - **M1:** [Guía de usuario de Administración de Personal](../manuales/oficiales/usuario/administracion-personal/GuiaUsuarioAdministracionPersonal.pdf). Páginas del lector PDF: 36 (fecha/tipo), 40–44 (persona/rol), 45–52 (S.S./contrato), 53–55 (nómina/tiempo), 56–57 (pago), 68–69 (Excel) y 75 (periodo generado).
@@ -117,7 +153,7 @@ La columna «Actual» describe lo que acepta hoy la app. Las recomendaciones sig
 | `occupationEjc` · Núm. EJC                             | Condicional.                      | M1: dedicación al rol; no requisito universal para las tres métricas.                | Posición y esta métrica seleccionada.                                                         | CQ                            | Bloquea si está elegida; limpia las métricas inactivas.       | Mantener obligatoria únicamente la métrica seleccionada.                                                   |
 | `occupationHeadcount` · Núm. Efectivos                 | Condicional.                      | M1: dedicación al rol; no requisito universal para las tres métricas.                | Posición y esta métrica seleccionada.                                                         | CR                            | Bloquea si está elegida; limpia las métricas inactivas.       | Mantener obligatoria únicamente la métrica seleccionada.                                                   |
 | `category` · Categoría                                 | Obligatorio.                      | M1, pp. 43–44: datos obligatorios del rol.                                           | Rol principal de un alta interna.                                                             | CW/CX                         | Bloquea el envío.                                             | Mantener obligatorio y validar el catálogo.                                                                |
-| `project` · Proyecto                                   | Obligatorio.                      | X1, CY4, marcado en negrita; metadata local obligatorio.                             | Contrato local del proyecto/centro de coste.                                                  | CZ                            | Bloquea el envío.                                             | Mantener CZ con ID literal del catálogo; no inferir requisito universal.                                   |
+| `project` · Proyecto | Fijo, solo lectura. | X1/X3: CZ = `000000\|000000`; log: «Proyecto» obligatorio. | Toda alta. | CZ | No aplica: siempre `000000\|000000`. | Confirmar el formato de otros centros con un Excel de Meta4. |
 | `startReason` · ID Motivo inicio                       | Obligatorio.                      | M1, pp. 43–44: datos obligatorios del rol.                                           | Rol principal de un alta interna.                                                             | DB/DC                         | Bloquea el envío.                                             | Mantener obligatorio y validar el catálogo.                                                                |
 | `keyEmployee` · Empleado clave                         | Opcional (marca).                 | M1, p. 44: indicaciones opcionales.                                                  | Según el caso.                                                                                | DF/DG                         | Normaliza a false; escribe No y código 0.                     | Mantener false como ausencia de marca.                                                                     |
 | `strategicEmployee` · Empleado estratégico             | Opcional (marca).                 | M1, p. 44: indicaciones opcionales.                                                  | Según el caso.                                                                                | DH/DI                         | Normaliza a false; escribe No y código 0.                     | Mantener false como ausencia de marca.                                                                     |

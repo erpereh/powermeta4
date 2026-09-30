@@ -17,6 +17,7 @@ import type { Meta4Society } from "@/lib/meta4/societies";
 import { editHireWorkbook } from "./excel";
 import { Meta4HireError, isMeta4HireError } from "./errors";
 import { buildHireFileName, buildHireFilePath } from "./filename";
+import { readHireImportLog, type HireImportLogRow } from "./import-log";
 import { hireExecutionQueue, type SerializedTask } from "./mutex";
 import { parseLaunchImportResponse } from "./parser";
 import { loadHireCatalogsForLaunch } from "./catalog-queries";
@@ -28,6 +29,7 @@ import {
   getMeta4HireUrl,
 } from "./soap";
 import type { HireLaunchResult, HirePerson } from "./types";
+import { parseHirePeople } from "./validate";
 import { verifyWrittenHireFile, writeHireFileAtomically } from "./write-file";
 
 export const HIRE_SOAP_TIMEOUT_MS = 60_000;
@@ -44,6 +46,7 @@ export type LaunchMeta4HireDeps = {
   templatePath?: string;
   now?: () => Date;
   serialize?: SerializedTask;
+  readImportLog?: (filePath: string) => Promise<readonly HireImportLogRow[] | null>;
   log?: (message: string, details: Record<string, string>) => void;
 };
 
@@ -57,6 +60,42 @@ const isKnownSystemError = (error: unknown): boolean =>
 
 const safeLog = (log: LaunchMeta4HireDeps["log"], details: Record<string, string>): void => {
   log?.("meta4-hire", details);
+};
+
+/** The import ran (or may have run) only after these outcomes; others never reached it. */
+const importMayHaveRun = (error: unknown): boolean =>
+  error instanceof Meta4SoapFaultError ||
+  (isMeta4HireError(error) && error.code === "META4_HIRE_IMPORT_FAILED");
+
+/**
+ * PeopleNet's own log decides per person: its rejections become a controlled
+ * error with each person's message. The text may contain personal data, so
+ * only counts are logged here.
+ */
+const rejectFromImportLog = async (
+  readImportLog: NonNullable<LaunchMeta4HireDeps["readImportLog"]>,
+  filePath: string,
+  log: LaunchMeta4HireDeps["log"],
+): Promise<void> => {
+  const rows = await readImportLog(filePath).catch(() => null);
+  if (!rows) return;
+  const failed = rows.filter((row) => row.failed);
+  safeLog(log, {
+    operation: "SRTC_LAUNCH_IMPORT",
+    code: failed.length > 0 ? "IMPORT_LOG_REJECTED" : "IMPORT_LOG_OK",
+    rows: String(rows.length),
+    failed: String(failed.length),
+  });
+  if (failed.length === 0) return;
+  const issues = failed.map((row) => ({
+    person: row.person,
+    message: row.message || "PeopleNet no indicó el motivo.",
+  }));
+  throw new Meta4HireError(
+    "META4_HIRE_IMPORT_REJECTED",
+    `PeopleNet rechazó el alta de ${issues.length === 1 ? "1 persona" : `${issues.length} personas`}.`,
+    issues,
+  );
 };
 
 const resolveTemplatePath = (templatePath: string): string =>
@@ -82,6 +121,7 @@ export const launchMeta4Hire = async (
   const verifyHireFile = deps.verifyHireFile ?? verifyWrittenHireFile;
   const serialize = deps.serialize ?? hireExecutionQueue;
   const loadCatalogs = deps.loadCatalogs ?? loadHireCatalogsForLaunch;
+  const readImportLog = deps.readImportLog ?? readHireImportLog;
 
   const context = await getContext(authSession);
   const catalogs = await loadCatalogs(
@@ -89,6 +129,8 @@ export const launchMeta4Hire = async (
     people.map((person) => person.city),
   );
   assertHireCatalogSelections(people, catalogs, context.society);
+  // Rules that need catalog names (document type) run once catalogs are loaded.
+  const validated = parseHirePeople(people, { documentTypes: catalogs.documentType });
   const directory = getMeta4HireDirectory(deps.hireDirectory);
   const fileName = buildHireFileName(context.username, deps.now?.() ?? new Date());
   const filePath = buildHireFilePath(directory, fileName);
@@ -96,64 +138,23 @@ export const launchMeta4Hire = async (
   const templatePath = resolveTemplatePath(getMeta4HireTemplatePath(deps.templatePath));
   const xml = buildLaunchImportEnvelope(filePath);
 
-  return serialize(async () => {
-    try {
-      const workbookBytes = await editWorkbook(templatePath, people);
-      await writeHireFile(filePath, workbookBytes);
-      await verifyHireFile(filePath);
+  const launchImport = (): Promise<HireLaunchResult> =>
+    executeSoap({
+      url,
+      xml,
+      timeoutMs: HIRE_SOAP_TIMEOUT_MS,
+      parseResponse: async (response) => {
+        const body = await response.text();
 
-      return await executeSoap({
-        url,
-        xml,
-        timeoutMs: HIRE_SOAP_TIMEOUT_MS,
-        parseResponse: async (response) => {
-          const body = await response.text();
-
-          if (!response.ok) {
-            try {
-              parseLaunchImportResponse(body);
-            } catch (error) {
-              if (error instanceof Meta4SoapFaultError) {
-                // Safe to log verbatim: this call only ever sends
-                // ARG_ID_GROUP_INTERFACE/ARG_PATH_FILE/flags to Meta4, never
-                // any person field, so nothing personal can come back in a
-                // fault on this specific operation.
-                safeLog(deps.log, {
-                  operation: "SRTC_LAUNCH_IMPORT",
-                  status: String(response.status),
-                  code: "SOAP_FAULT",
-                  faultCode: error.code ?? "",
-                  faultMessage: error.message,
-                  personCount: String(people.length),
-                });
-                throw error;
-              }
-            }
-            safeLog(deps.log, {
-              operation: "SRTC_LAUNCH_IMPORT",
-              status: String(response.status),
-              code: "HTTP_ERROR",
-              personCount: String(people.length),
-            });
-            throw new Meta4HttpError(response.status);
-          }
-
+        if (!response.ok) {
           try {
-            const parsed = parseLaunchImportResponse(body);
-            safeLog(deps.log, {
-              operation: "SRTC_LAUNCH_IMPORT",
-              status: String(response.status),
-              code: "OK",
-              personCount: String(people.length),
-            });
-            return {
-              personCount: people.length,
-              returnCode: parsed.returnCode,
-              fileName,
-              filePath,
-            };
+            parseLaunchImportResponse(body);
           } catch (error) {
             if (error instanceof Meta4SoapFaultError) {
+              // Safe to log verbatim: this call only ever sends
+              // ARG_ID_GROUP_INTERFACE/ARG_PATH_FILE/flags to Meta4, never
+              // any person field, so nothing personal can come back in a
+              // fault on this specific operation.
               safeLog(deps.log, {
                 operation: "SRTC_LAUNCH_IMPORT",
                 status: String(response.status),
@@ -164,22 +165,74 @@ export const launchMeta4Hire = async (
               });
               throw error;
             }
-            if (isMeta4HireError(error)) {
-              safeLog(deps.log, {
-                operation: "SRTC_LAUNCH_IMPORT",
-                status: String(response.status),
-                code: error.code,
-                // Just Meta4's numeric return code / a fixed template
-                // string, per parseLaunchImportResponse - never person data.
-                detail: error.message,
-                personCount: String(people.length),
-              });
-              throw error;
-            }
+          }
+          safeLog(deps.log, {
+            operation: "SRTC_LAUNCH_IMPORT",
+            status: String(response.status),
+            code: "HTTP_ERROR",
+            personCount: String(people.length),
+          });
+          throw new Meta4HttpError(response.status);
+        }
+
+        try {
+          const parsed = parseLaunchImportResponse(body);
+          safeLog(deps.log, {
+            operation: "SRTC_LAUNCH_IMPORT",
+            status: String(response.status),
+            code: "OK",
+            personCount: String(people.length),
+          });
+          return {
+            personCount: people.length,
+            returnCode: parsed.returnCode,
+            fileName,
+            filePath,
+          };
+        } catch (error) {
+          if (error instanceof Meta4SoapFaultError) {
+            safeLog(deps.log, {
+              operation: "SRTC_LAUNCH_IMPORT",
+              status: String(response.status),
+              code: "SOAP_FAULT",
+              faultCode: error.code ?? "",
+              faultMessage: error.message,
+              personCount: String(people.length),
+            });
             throw error;
           }
-        },
-      });
+          if (isMeta4HireError(error)) {
+            safeLog(deps.log, {
+              operation: "SRTC_LAUNCH_IMPORT",
+              status: String(response.status),
+              code: error.code,
+              // Just Meta4's numeric return code / a fixed template
+              // string, per parseLaunchImportResponse - never person data.
+              detail: error.message,
+              personCount: String(people.length),
+            });
+            throw error;
+          }
+          throw error;
+        }
+      },
+    });
+
+  return serialize(async () => {
+    try {
+      const workbookBytes = await editWorkbook(templatePath, validated);
+      await writeHireFile(filePath, workbookBytes);
+      await verifyHireFile(filePath);
+
+      let launched: HireLaunchResult;
+      try {
+        launched = await launchImport();
+      } catch (error) {
+        if (importMayHaveRun(error)) await rejectFromImportLog(readImportLog, filePath, deps.log);
+        throw error;
+      }
+      await rejectFromImportLog(readImportLog, filePath, deps.log);
+      return launched;
     } catch (error) {
       if (isKnownSystemError(error)) throw error;
       safeLog(deps.log, {

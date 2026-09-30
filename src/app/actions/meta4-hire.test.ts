@@ -48,7 +48,6 @@ const person = {
   workUnit: "00",
   workLocation: "724",
   category: "I1",
-  project: "000000",
   startReason: "001",
   structure: "0",
   functionalWorkCenter: "O_CEN1",

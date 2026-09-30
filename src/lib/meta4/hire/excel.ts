@@ -14,9 +14,12 @@ import {
   parseReferenceModelOptionId,
   type HireCatalogFieldId,
 } from "./catalogs";
+import { spanishControlDigits, splitSpanishIban } from "./bank";
 import { Meta4HireError } from "./errors";
 import {
+  DERIVED_COLUMNS,
   FIRST_PERSON_ROW,
+  HIRE_COST_CENTER_LIST_VALUE,
   HIRE_DATA_SHEET,
   HIRE_IMPORT_HEADERS,
   MANUAL_COLUMNS,
@@ -357,6 +360,81 @@ const NUMERIC_CATALOG_FIELDS: ReadonlySet<HireCatalogFieldId> = new Set([
   "variableCompensationMode",
 ]);
 
+type BankAccountParts = {
+  iban: string;
+  /** Bank + branch (HZ/IA). */
+  bankBranch: string;
+  bank: string;
+  branch: string;
+  account: string;
+  controlDigits: string;
+  ibanCountry: string;
+  ibanKey: string;
+};
+
+/**
+ * Every account cell of DATOS_PAGO from the chosen format, so no part of the
+ * template's sample account survives. A Spanish IBAN also fills its CCC parts;
+ * "Otro formato" is a Spanish CCC (bank + branch and account) without IBAN.
+ */
+export const bankAccountParts = (person: HirePerson): BankAccountParts => {
+  const empty: BankAccountParts = {
+    iban: "",
+    bankBranch: "",
+    bank: "",
+    branch: "",
+    account: "",
+    controlDigits: "",
+    ibanCountry: "",
+    ibanKey: "",
+  };
+  if (person.bankFormatChoice === "iban" && person.iban) {
+    const spanish = splitSpanishIban(person.iban);
+    const international = {
+      ...empty,
+      iban: person.iban,
+      ibanCountry: person.iban.slice(0, 2),
+      ibanKey: person.iban.slice(2, 4),
+    };
+    if (!spanish) return international;
+    return {
+      ...international,
+      bankBranch: `${spanish.bank}${spanish.branch}`,
+      bank: spanish.bank,
+      branch: spanish.branch,
+      account: spanish.account,
+      controlDigits: spanish.controlDigits,
+    };
+  }
+  if (person.bankFormatChoice === "other" && person.bankBranch && person.accountNumber) {
+    const bank = person.bankBranch.slice(0, 4);
+    const branch = person.bankBranch.slice(4);
+    return {
+      ...empty,
+      bankBranch: person.bankBranch,
+      bank,
+      branch,
+      account: person.accountNumber,
+      controlDigits: spanishControlDigits(bank, branch, person.accountNumber),
+    };
+  }
+  return empty;
+};
+
+const bankCells = (person: HirePerson): CellEdit[] => {
+  const parts = bankAccountParts(person);
+  return [
+    ...literalCells(MANUAL_COLUMNS.iban, parts.iban),
+    ...literalCells(MANUAL_COLUMNS.bankBranch, parts.bankBranch),
+    ...literalCells(MANUAL_COLUMNS.accountNumber, parts.account),
+    ...literalCells(DERIVED_COLUMNS.bankId, parts.bank),
+    ...literalCells(DERIVED_COLUMNS.branchId, parts.branch),
+    ...literalCells(DERIVED_COLUMNS.controlDigits, parts.controlDigits),
+    ...literalCells(DERIVED_COLUMNS.ibanCountry, parts.ibanCountry),
+    ...literalCells(DERIVED_COLUMNS.ibanKey, parts.ibanKey),
+  ];
+};
+
 const cellsForPerson = (person: HirePerson): CellEdit[] => {
   const hireSerial = toExcelSerialDate(person.hireDate);
   return [
@@ -449,9 +527,9 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
     ...dateCells(MANUAL_COLUMNS.seniorityDate, person.seniorityDate),
     ...dateCells(MANUAL_COLUMNS.extrasDate, person.extrasDate),
     ...checkCells(MANUAL_COLUMNS.timeManagementPay, person.timeManagementPay, "number"),
-    ...literalCells(MANUAL_COLUMNS.iban, person.iban),
-    ...literalCells(MANUAL_COLUMNS.bankBranch, person.bankBranch),
-    ...literalCells(MANUAL_COLUMNS.accountNumber, person.accountNumber),
+    ...bankCells(person),
+    ...literalCells(MANUAL_COLUMNS.project, HIRE_COST_CENTER_LIST_VALUE),
+    ...literalCells(DERIVED_COLUMNS.fusionId, ""),
   ];
 };
 

@@ -1,5 +1,39 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: Proyecto vacío, validaciones y rechazos controlados - 2026-09-30
+
+- [x] Diagnóstico del alta de las 15:34 y su log: «Proyecto» vacío en
+      «Histórico Centro de Costo». CZ6 recibía `000000`; X1/X3 usan el valor
+      de lista `000000|000000` y el importador toma la parte tras `|`. «Núm
+      periodo» es la consecuencia de la anulación.
+- [x] Decisión del usuario: CZ siempre `000000|000000`; Proyecto de solo
+      lectura, fuera del payload, de la validación y de los catálogos
+      (`costCenter` retirado). La SELECT aportada es la misma tabla sin proyecto.
+- [x] Copia Excel: IM (`CSP_FUSION_ID`) se limpia; IB/IC/IE/ID/HZ/IA/IF/II se
+      derivan del IBAN (`ES` → partes CCC) o de «Otro formato» (DC calculado).
+- [x] Validación por campo compartida cliente/servidor
+      (`collectHirePersonIssues`): todos los problemas a la vez, errores bajo
+      cada campo, contador por pestaña y resumen; NIF/NIE por tipo de
+      documento, teléfonos, CP-provincia, NUSS, fechas frente al alta, menores,
+      rangos numéricos, pares reducción/motivo y sustitución, Modelo/Semana
+      condicional, IBAN con DC nacional y longitudes. Reglas deducidas
+      marcadas ✱ en `docs/alta-obligatorios-y-diagnostico.md`.
+- [x] Rechazos del importador: se lee `<fichero>_log_<fecha>.xls` junto al
+      fichero y se devuelve `META4_HIRE_IMPORT_REJECTED` con el mensaje por
+      persona; el servidor solo registra recuentos. Lector probado con el log
+      real adjunto (Persona 1 rechazada) mediante un test temporal eliminado.
+- [x] Tests: nuevos de validación (7), banco (3), lector del log (3) y servicio
+      (rechazo por log); actualizados contrato, instrucciones, Excel COM y
+      formulario. `npm test`: 109 archivos, 603 pruebas correctas y 2 omitidas.
+- [x] `npm run typecheck`, `npm run build` y `git diff --check` correctos.
+      `npm run lint`: siete avisos previos de oxlint y formato pendiente en
+      362 archivos; los archivos nuevos y los que estaban formateados pasan
+      el chequeo dirigido.
+- [ ] Confirmar con el diccionario PeopleNet (`M4RDC_FIELDS`) las reglas ✱,
+      la ubicación real del log y el formato de CZ para otros centros.
+- [ ] Revisión en navegador con sesión Meta4 y alta real por el usuario
+      (no ejecutadas en esta sesión; sin SOAP real).
+
 ## Alta de personas: enlaces del importador Excel - 2026-09-30
 
 - [x] Diagnóstico del generado, su log y los tres XLS de `fuentes/HIRE`:
