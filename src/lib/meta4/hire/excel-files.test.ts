@@ -110,7 +110,7 @@ describe("Hire Excel temp files", () => {
     expect(payload.rows[0]?.cells.length).toBeGreaterThan(0);
   });
 
-  it("writes all mapped columns with correct types, branches and no ambiguous bank fields", async () => {
+  it("writes mapped columns except empty optional currencies with correct types and branches", async () => {
     directory = await mkdtemp(path.join(tmpdir(), "hire-cells-"));
     const people: HirePerson[] = [
       {
@@ -155,9 +155,18 @@ describe("Hire Excel temp files", () => {
     };
     expect(payload.rows.map((row) => [row.row, row.copyFromTemplate])).toEqual([[6, false], [7, true]]);
     const [first, second] = payload.rows.map((row) => new Map(row.cells.map((cell) => [cell.column, cell])));
+    const preservedColumns = new Set(["GV", "GW", "IJ", "IK"]);
+    const expectedColumns = WRITTEN_COLUMNS.filter((column) => !preservedColumns.has(column));
     for (const cells of [first, second]) {
-      expect(new Set(cells.keys())).toEqual(new Set(WRITTEN_COLUMNS));
-      expect(cells.size).toBe(WRITTEN_COLUMNS.length);
+      expect(new Set(cells.keys())).toEqual(new Set(expectedColumns));
+      expect(cells.size).toBe(expectedColumns.length);
+      for (const column of preservedColumns) expect(cells.has(column), column).toBe(false);
+      for (const column of ["HT", "HU"]) {
+        expect(cells.get(column)).toEqual({ column, kind: "literal", value: "EUR" });
+      }
+      for (const column of ["GR", "GS", "EF", "EG"]) {
+        expect(cells.get(column)).toEqual({ column, kind: "clear" });
+      }
       expect(cells.get("CZ")).toEqual({ column: "CZ", kind: "literal", value: "000000" });
       expect(cells.has("CY")).toBe(false);
       for (const column of ["HO", "GY", "HA", "IB", "IC", "IE", "IF", "IG", "IH", "II"]) {
@@ -194,6 +203,37 @@ describe("Hire Excel temp files", () => {
     expect(second.get("HZ")?.value).toBe("00491500");
     expect(second.get("IA")?.value).toBe("00491500");
     expect(second.get("ID")?.value).toBe("001234567890");
+  });
+
+  it.each([
+    { payrollCurrency: "", accountCurrency: "" },
+    { payrollCurrency: "USD", accountCurrency: "" },
+    { payrollCurrency: "", accountCurrency: "0001" },
+    { payrollCurrency: "USD", accountCurrency: "0001" },
+  ])("preserves only empty optional currencies: %j", async (currencies) => {
+    directory = await mkdtemp(path.join(tmpdir(), "hire-currencies-"));
+    const files = await writeHireEditFiles(directory, [{ ...person, ...currencies }]);
+    const payload = JSON.parse(
+      (await readFile(files.instructionsPath)).subarray(3).toString("utf8"),
+    ) as {
+      rows: Array<{ cells: Array<{ column: string; kind: string; value?: string | number }> }>;
+    };
+    const cells = new Map(payload.rows[0].cells.map((cell) => [cell.column, cell]));
+    for (const [value, columns] of [
+      [currencies.payrollCurrency, ["GV", "GW"]],
+      [currencies.accountCurrency, ["IJ", "IK"]],
+    ] as const) {
+      for (const column of columns) {
+        if (value === "") expect(cells.has(column), column).toBe(false);
+        else expect(cells.get(column)).toEqual({ column, kind: "literal", value });
+      }
+    }
+    for (const column of ["HT", "HU"]) {
+      expect(cells.get(column)).toEqual({ column, kind: "literal", value: person.paymentCurrency });
+    }
+    for (const column of ["GR", "GS", "EF", "EG"]) {
+      expect(cells.get(column)).toEqual({ column, kind: "clear" });
+    }
   });
 
   it("changes only AL, ER, GP, HN and HP for the four fields and clears only their optional destinations", async () => {

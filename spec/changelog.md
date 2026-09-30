@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-30 - Conservación de defaults de monedas opcionales en el alta
+
+- `payrollCurrency` (GV/GW) y `accountCurrency` (IJ/IK) vacíos omiten las
+  ediciones y conservan los valores o fórmulas de la plantilla. Con valor
+  mantienen la escritura literal en ambas columnas. `paymentCurrency` (HT/HU),
+  SQL, mappings y el borrado de los demás opcionales permanecen intactos.
+- Excel copia las filas adicionales antes de editar la fila 6, de modo que
+  cada persona parte de los defaults originales y no de las monedas de otra.
+- Tests de instrucciones para ambas monedas de forma independiente, HT/HU y
+  otros opcionales; 13 pruebas dirigidas correctas. Excel COM: 5/5 pruebas
+  correctas, con defaults y fórmulas, una y varias personas, referencias
+  relativas y sobrescritura. Solo copias temporales; sin alta SOAP real.
+- Verificación: typecheck, suite completa (107 archivos, 583 pruebas correctas
+  y 2 omitidas), build y `git diff --check` correctos; estado Git y diff revisados.
+- Lint ejecutado: siete avisos anteriores y fallo global de formato en 370
+  archivos. El test COM ampliado pasa el chequeo dirigido de formato; el writer
+  y el test de instrucciones ya tienen diferencias de formato en `HEAD`.
+  Sin formateo global ni cambios en APIs, tipos públicos o dependencias.
+
 ## 2026-09-29 - Rendimiento del alta de personas
 
 - Editar un campo ya no vuelve a renderizar los catálogos: `CatalogCombobox`

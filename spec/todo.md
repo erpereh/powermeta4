@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: defaults de monedas opcionales - 2026-09-30
+
+- [x] `payrollCurrency` y `accountCurrency` vacíos no generan ninguna edición
+      en GV/GW e IJ/IK; con valor conservan la escritura literal existente.
+      Sin cambios en `paymentCurrency` (HT/HU), SQL ni otros mappings.
+- [x] Excel copia todas las filas desde la fila plantilla intacta antes de
+      aplicar las ediciones, evitando heredar las monedas de la primera persona.
+      Los demás opcionales conservan sus instrucciones `clear`.
+- [x] Tests de instrucciones para las cuatro combinaciones de monedas,
+      ausencia de ediciones, literales, HT/HU y otros opcionales vacíos.
+      Tests dirigidos del writer y contratos: 3 archivos y 13 pruebas correctas.
+- [x] Excel COM real: 5/5 pruebas correctas en la suite completa. Incluyen
+      defaults del XLS, una y varias personas, fórmulas en una copia temporal,
+      referencias relativas y sobrescritura independiente de cada moneda.
+      Plantillas intactas y sin procesos nuevos de Excel pendientes; sin alta SOAP.
+- [x] `npm run typecheck`, `npm test` (107 archivos, 583 pruebas correctas
+      y 2 omitidas), `npm run build` y `git diff --check` correctos;
+      `git status --short` y diff revisados.
+- [x] `npm run lint` ejecutado: siete avisos anteriores y fallo global de
+      formato en 370 archivos. El test COM ampliado pasa el chequeo dirigido;
+      `excel.ts` y `excel-files.test.ts` ya presentan diferencias de formato
+      en `HEAD`. Sin formateo global ni cambios de dependencias.
+
 ## Alta de personas: rendimiento del formulario - 2026-09-29
 
 - [x] Diagnóstico: cada pulsación rehacía todo el formulario y todas las

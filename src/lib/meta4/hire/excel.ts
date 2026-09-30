@@ -203,6 +203,7 @@ try {
   $sheet = Invoke-ComMethod $worksheets "Item" @([string]$payload.sheetName)
   [Console]::Out.WriteLine("STAGE=sheet-ready")
   $templateRow = [int]$payload.templateRow
+  # Copy every row before editing the source, preserving its original defaults.
   foreach ($personRow in @($payload.rows)) {
     $rowNumber = [int]$personRow.row
     if ($personRow.copyFromTemplate) {
@@ -211,6 +212,9 @@ try {
       $dstRow = Invoke-ComMethod $rows "Item" @($rowNumber)
       Invoke-ComMethod $srcRow "Copy" @($dstRow) | Out-Null
     }
+  }
+  foreach ($personRow in @($payload.rows)) {
+    $rowNumber = [int]$personRow.row
     foreach ($cell in @($personRow.cells)) {
       $address = "{0}{1}" -f $cell.column, $rowNumber
       $range = Get-ComProp $sheet "Range" @($address)
@@ -334,6 +338,10 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
       (column): CellEdit => ({ column, kind: "number", value: hireSerial }),
     ),
     ...HIRE_CATALOG_FIELD_IDS.flatMap((field) => {
+      // Only these optional currencies inherit the template when left empty.
+      if ((field === "payrollCurrency" || field === "accountCurrency") && person[field] === "") {
+        return [];
+      }
       if (field === "referenceModelWeek") {
         const [model, ordinal] = parseReferenceModelOptionId(person[field]);
         const [modelColumn, ordinalColumn] = MANUAL_COLUMNS.referenceModelWeek;

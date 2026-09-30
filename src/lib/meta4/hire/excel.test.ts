@@ -1,11 +1,14 @@
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
+import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 
 import * as XLSX from "xlsx";
 import { describe, expect, it } from "vitest";
 
-import { editHireWorkbook, findInstalledExcel } from "./excel";
+import { editHireWorkbook, encodeUtf8Bom, findInstalledExcel, powershellForExcel } from "./excel";
 import { hireExtraFixture } from "./test-fixtures";
 import {
   FIRST_PERSON_ROW,
@@ -20,6 +23,8 @@ const OLE_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
 const templatePath = path.join(process.cwd(), "fuentes", "HIRE", "Hire_1_PERSONA.xls");
 const canEdit = existsSync(templatePath) && findInstalledExcel() !== null;
 const writtenColumns = new Set(WRITTEN_COLUMNS);
+const optionalCurrencyColumns = ["GV", "GW", "IJ", "IK"] as const;
+const runFile = promisify(execFile);
 
 const person = (suffix: string, hireDate: string): HirePerson => ({
   ...hireExtraFixture,
@@ -186,6 +191,76 @@ const excelProcessIds = (): number[] => {
 const readWorkbook = (bytes: Buffer): XLSX.WorkBook =>
   XLSX.read(bytes, { type: "buffer", raw: true, cellFormula: true });
 
+/** A temporary COM-edited template exercises formulas absent from the shipped defaults. */
+const addCurrencyFormulas = async (directory: string): Promise<string> => {
+  const workbookPath = path.join(directory, "CurrencyFormulas.xls");
+  const scriptPath = path.join(directory, "currency-formulas.ps1");
+  await copyFile(templatePath, workbookPath);
+  await writeFile(
+    scriptPath,
+    encodeUtf8Bom(String.raw`
+param([Parameter(Mandatory = $true)][string]$WorkbookPath)
+$ErrorActionPreference = "Stop"
+function Com-Member($com, [string]$name, $flags, [object[]]$comArgs = @()) {
+  $result = $com.GetType().InvokeMember($name, $flags, $null, $com, $comArgs)
+  Write-Output -NoEnumerate $result
+}
+$get = [System.Reflection.BindingFlags]::GetProperty
+$set = [System.Reflection.BindingFlags]::SetProperty
+$invoke = [System.Reflection.BindingFlags]::InvokeMethod -bor $get
+$excel = $null
+$workbook = $null
+try {
+  $excel = New-Object -ComObject Excel.Application
+  Com-Member $excel "Visible" $set @($false) | Out-Null
+  Com-Member $excel "DisplayAlerts" $set @($false) | Out-Null
+  Com-Member $excel "EnableEvents" $set @($false) | Out-Null
+  Com-Member $excel "AskToUpdateLinks" $set @($false) | Out-Null
+  Com-Member $excel "AutomationSecurity" $set @(3) | Out-Null
+  Unblock-File -LiteralPath $WorkbookPath -ErrorAction SilentlyContinue
+  $workbooks = Com-Member $excel "Workbooks" $get
+  $workbook = Com-Member $workbooks "Open" $invoke @($WorkbookPath, 0, $false)
+  $worksheets = Com-Member $workbook "Worksheets" $get
+  $sheet = Com-Member $worksheets "Item" $invoke @("AltaNueva")
+  foreach ($column in @("GV", "GW", "IJ", "IK")) {
+    $currency = if ($column -in @("GV", "GW")) { "EUR" } else { "ESP" }
+    $range = Com-Member $sheet "Range" $get @($column + "6")
+    $formula = '=IF($A6=$A6,"{0}","{0}")' -f $currency
+    Com-Member $range "NumberFormat" $set @("General") | Out-Null
+    Com-Member $range "Formula" $set @($formula) | Out-Null
+  }
+  Com-Member $workbook "Save" $invoke | Out-Null
+} finally {
+  if ($null -ne $workbook) {
+    Com-Member $workbook "Close" $invoke @($false) | Out-Null
+    [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook)
+  }
+  if ($null -ne $excel) {
+    Com-Member $excel "Quit" $invoke | Out-Null
+    [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel)
+  }
+  [GC]::Collect()
+  [GC]::WaitForPendingFinalizers()
+}
+`),
+  );
+  await runFile(
+    powershellForExcel(),
+    [
+      "-NoProfile",
+      "-NonInteractive",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      scriptPath,
+      "-WorkbookPath",
+      workbookPath,
+    ],
+    { windowsHide: true, timeout: 180_000 },
+  );
+  return workbookPath;
+};
+
 describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
   it("changes only manual cells for one person and keeps workbook structure", async () => {
     const templateBytes = readFileSync(templatePath);
@@ -229,6 +304,9 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(generated.get("HY")?.value).toBe("0002");
     expect(generated.get("IJ")?.value).toBe("EUR");
     expect(generated.get("IK")?.value).toBe("EUR");
+    for (const column of optionalCurrencyColumns) {
+      expect(generated.get(column)?.formula, column).toBeUndefined();
+    }
     expect(generated.get("GF")?.value).toBe(1);
     expect(generated.get("GG")?.value).toBe(1);
     expect(generated.get("GH")?.value).toBe("0003");
@@ -397,10 +475,19 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(rows[1]?.get("IQ")?.value).toBe("userb@example.test");
     expect(rows[1]?.get("HY")?.value).toBe("0003");
     expect(rows[2]?.get("HY")?.value).toBe("0002");
-    expect(rows[1]?.get("IK")?.value).toBeUndefined();
+    for (const column of optionalCurrencyColumns) {
+      const expected = original.get(column);
+      expect(rows[1]?.get(column)?.value, column).toEqual(expected?.value);
+      expect(rows[1]?.get(column)?.formula, column).toBe(
+        expected?.formula ? shiftFormula(expected.formula, FIRST_PERSON_ROW, 7) : undefined,
+      );
+    }
     expect(rows[2]?.get("IK")?.value).toBe("EUR");
     expect(rows[1]?.get("GS")?.value).toBeUndefined();
-    expect(rows[1]?.get("GW")?.value).toBeUndefined();
+    for (const column of ["GV", "GW"]) expect(rows[2]?.get(column)?.value).toBe("USD");
+    for (const values of rows) {
+      for (const column of ["HT", "HU"]) expect(values.get(column)?.value).toBe("USD");
+    }
     expect(rows[2]?.get("GS")?.value).toBe("UGT");
     expect(rows[1]?.get("EG")?.value).toBeUndefined();
     expect(rows[1]?.get("AF")?.value).toBeUndefined();
@@ -454,6 +541,92 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
 
     expect(rows[0]?.get("X")?.value).not.toEqual(rows[1]?.get("X")?.value);
     expect(rows[1]?.get("AY")?.value).not.toEqual(rows[2]?.get("AY")?.value);
+  }, 180_000);
+
+  it("keeps the original currency defaults for a single person with empty currencies", async () => {
+    const templateBytes = readFileSync(templatePath);
+    const templateSheet = readWorkbook(templateBytes).Sheets[HIRE_DATA_SHEET];
+    const input = { ...person("A", "2026-10-02"), payrollCurrency: "", accountCurrency: "" };
+    const before = new Set(excelProcessIds());
+    const sheet = readWorkbook(await editHireWorkbook(templatePath, [input])).Sheets[
+      HIRE_DATA_SHEET
+    ];
+    expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
+    const original = rowCells(templateSheet, FIRST_PERSON_ROW);
+    const generated = rowCells(sheet, FIRST_PERSON_ROW);
+    for (const column of optionalCurrencyColumns) {
+      expect(generated.get(column), column).toEqual(original.get(column));
+    }
+    for (const column of ["HT", "HU"]) expect(generated.get(column)?.value).toBe("USD");
+    expect(readFileSync(templatePath).equals(templateBytes)).toBe(true);
+  }, 180_000);
+
+  it("preserves currency formulas for empty fields and overwrites them for populated fields", async () => {
+    const templateBytes = readFileSync(templatePath);
+    const before = new Set(excelProcessIds());
+    const directory = await mkdtemp(path.join(tmpdir(), "hire-currency-formulas-"));
+    try {
+      const formulaTemplatePath = await addCurrencyFormulas(directory);
+      const formulaBytes = await readFile(formulaTemplatePath);
+      const original = rowCells(
+        readWorkbook(formulaBytes).Sheets[HIRE_DATA_SHEET],
+        FIRST_PERSON_ROW,
+      );
+      for (const column of optionalCurrencyColumns) {
+        expect(original.get(column)?.formula, column).toBeTruthy();
+      }
+      const populated = {
+        ...person("A", "2026-10-02"),
+        payrollCurrency: "USD",
+        accountCurrency: "CAD",
+      };
+      const empty = { ...populated, payrollCurrency: "", accountCurrency: "" };
+      const single = readWorkbook(await editHireWorkbook(formulaTemplatePath, [empty])).Sheets[
+        HIRE_DATA_SHEET
+      ];
+      for (const column of optionalCurrencyColumns) {
+        expect(rowCells(single, FIRST_PERSON_ROW).get(column), column).toEqual(
+          original.get(column),
+        );
+      }
+      const people = [
+        populated,
+        empty,
+        { ...empty, payrollCurrency: "GBP" },
+        { ...empty, accountCurrency: "JPY" },
+      ];
+      const sheet = readWorkbook(await editHireWorkbook(formulaTemplatePath, people)).Sheets[
+        HIRE_DATA_SHEET
+      ];
+      people.forEach((input, index) => {
+        const row = FIRST_PERSON_ROW + index;
+        const generated = rowCells(sheet, row);
+        for (const [value, columns] of [
+          [input.payrollCurrency, ["GV", "GW"]],
+          [input.accountCurrency, ["IJ", "IK"]],
+        ] as const) {
+          for (const column of columns) {
+            const cell = generated.get(column);
+            if (value === "") {
+              const expected = original.get(column);
+              expect(cell?.value, `${column}${row}`).toEqual(expected?.value);
+              expect(cell?.formula, `${column}${row}`).toBe(
+                shiftFormula(expected?.formula ?? "", FIRST_PERSON_ROW, row),
+              );
+            } else {
+              expect(cell?.value, `${column}${row}`).toBe(value);
+              expect(cell?.formula, `${column}${row}`).toBeUndefined();
+            }
+          }
+        }
+        for (const column of ["HT", "HU"]) expect(generated.get(column)?.value).toBe("USD");
+      });
+      expect((await readFile(formulaTemplatePath)).equals(formulaBytes)).toBe(true);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+    expect(readFileSync(templatePath).equals(templateBytes)).toBe(true);
+    expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
   }, 180_000);
 
   it("preserves Atradius AM, IBAN GQ and template HO when only the four fields differ", async () => {
