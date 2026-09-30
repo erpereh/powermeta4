@@ -3,7 +3,7 @@ import path from "node:path";
 import * as XLSX from "xlsx";
 import { describe, expect, it } from "vitest";
 
-import { HIRE_DATA_SHEET, MANUAL_COLUMNS } from "@/lib/meta4/hire/mapping";
+import { HIRE_DATA_SHEET, HIRE_IMPORT_HEADERS, MANUAL_COLUMNS } from "@/lib/meta4/hire/mapping";
 
 import {
   HIRE_FIELD_META,
@@ -61,7 +61,7 @@ describe("Meta4 hire field mappings", () => {
       expect(hireFieldVisualStatus(field)).toBe("normal");
       expect(hireFieldLabelClass(field)).toBe("text-foreground");
     }
-    expect(hireFieldMappingTooltip("birthCommunity")).toBe("STD_ID_GEO_DIV");
+    expect(hireFieldMappingTooltip("birthCommunity")).toBe("SCO_BIRTH_ID_GEO_DIV");
     expect(hireFieldMappingTooltip("department")).toBe("CSP_ID_DEPARTMENT");
     expect(hireFieldMappingTooltip("extrasDate")).toBe("SSP_FEC_EXTRAS");
     expect(hireFieldMappingTooltip("referenceModelWeek")).toBe("SCO_ID_REF_MOD / SCO_OR_REF_MOD");
@@ -72,25 +72,22 @@ describe("Meta4 hire field mappings", () => {
     expect(hireFieldMappingTooltip("accountCurrency")).toBe("ID_CURRENCY_2");
   });
 
-  it("finds confirmed headers and checks the four explicit user overrides separately", () => {
+  it("finds configured import items and preserves only the Department alias override", () => {
     const workbook = XLSX.readFile(templatePath, { sheetRows: 5 });
     const sheet = workbook.Sheets[HIRE_DATA_SHEET];
     expect(sheet).toBeDefined();
     const row = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "" })[4];
-    const identifiers = new Set(row.map(shortIdentifier).filter((value) => value !== null));
+    const importHeaders = new Map<string, string>(Object.entries(HIRE_IMPORT_HEADERS));
+    const identifiers = new Set(
+      [...row, ...importHeaders.values()].map(shortIdentifier).filter((value) => value !== null),
+    );
     expect(sheet.AM4?.v).toBe("real_SCO_BIRTH_ID_GEO_DIV");
     expect(sheet.AM5?.v).toBe("SRCO_PA_HIRE_WIZ_PERS_DATA.CSP_ID_ATRADIUS_JOB");
     expect(sheet.GQ4?.v).toBe("real_SSP_FEC_EXTRAS");
     expect(sheet.GQ5?.v).toBe("SRSP_PA_HIRE_WIZ_DATOS_PAGO.SCO_GB_IBAN");
 
     const overrides = {
-      birthCommunity: { columns: ["AL"], identifiers: ["STD_ID_GEO_DIV"] },
       department: { columns: ["ER"], identifiers: ["CSP_ID_DEPARTMENT"] },
-      extrasDate: { columns: ["GP"], identifiers: ["SSP_FEC_EXTRAS"] },
-      referenceModelWeek: {
-        columns: ["HN", "HP"],
-        identifiers: ["SCO_ID_REF_MOD", "SCO_OR_REF_MOD"],
-      },
     } as const;
     for (const [id, override] of Object.entries(overrides)) {
       const field = id as keyof typeof overrides;
@@ -171,7 +168,7 @@ describe("Meta4 hire field mappings", () => {
       expect(mapping.status).toBe("confirmed");
       if (mapping.status !== "confirmed") continue;
       const writtenIdentifiers = MANUAL_COLUMNS[field]
-        .map((column) => shortIdentifier(sheet[`${column}5`]?.v))
+        .map((column) => shortIdentifier(importHeaders.get(column) ?? sheet[`${column}5`]?.v))
         .filter((value) => value !== null);
       for (const identifier of mapping.identifiers) {
         expect(writtenIdentifiers, `${field}: ${identifier}`).toContain(identifier);

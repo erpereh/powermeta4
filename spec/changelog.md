@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-09-30 - Enlaces de importación del alta Excel
+
+- El modelo se escribía en HN sin identificador en HN5; el importador recibía
+  solo el ordinal y el log reclamaba «ID Modelo/1ª Semana». AL5 y GP5 tampoco
+  vinculaban comunidad de nacimiento ni fecha de extras. El fallo posterior
+  del periodo se documenta como consecuencia probable; no se fija un periodo.
+- Excel COM configura solo AL5/GP5/HN5 en la copia con sus elementos completos,
+  valida cabeceras vacías/corregidas y comprueba AM5/GQ5/HO5/HP5 antes de editar.
+  Una plantilla incompatible usa el error existente. Datos AL/GP/HN/HP y los
+  destinos Atradius/IBAN/centro de coste/Department se conservan. Sin cambios
+  en SQL, validaciones, tipos públicos, instrucciones ni monedas.
+- Metadata distingue el catálogo de comunidad del elemento de nacimiento.
+  Se eliminan las tres excepciones que ocultaban enlaces ausentes; solo queda
+  el alias antiguo de Department pendiente de confirmación funcional.
+- Tests dirigidos: 14 de contrato/instrucciones/metadata y 27 del formulario
+  correctos. COM real: 10/10, con bindings, valores/vacíos, una/varias personas,
+  `001`/`02`, idempotencia, rechazo de cabeceras y regresiones de defaults,
+  fórmulas, hojas y nombres. La prueba inicial de idempotencia se ajustó para
+  comparar contenido y merges, evitando diferencias en IDs/orden internos.
+- Informe nuevo con 109 campos/grupos, fuentes, condiciones y recomendaciones
+  sin datos personales; mapping actualizado. Copia corregida del adjunto en
+  Downloads: 418.991 celdas comparadas, solo tres cabeceras diferentes; originales
+  intactos. Sin ficheros personales en Git ni ejecución de un alta SOAP real.
+- Typecheck, build y `git diff --check` correctos; estado y diff revisados.
+  Suite completa: 107 archivos, 589 pruebas correctas y 2 omitidas, incluidas
+  las 10 COM. El primer pase falló solo por el tooltip antiguo; su expectativa
+  se corrigió y la repetición completa pasó.
+- Fallos previos: lint mantiene siete avisos y formato pendiente en 370 archivos.
+  Tests COM/contrato e informe nuevo pasan formato dirigido; sin formateo global.
+
 ## 2026-09-30 - Conservación de defaults de monedas opcionales en el alta
 
 - `payrollCurrency` (GV/GW) y `accountCurrency` (IJ/IK) vacíos omiten las

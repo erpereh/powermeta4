@@ -191,8 +191,33 @@ const excelProcessIds = (): number[] => {
 const readWorkbook = (bytes: Buffer): XLSX.WorkBook =>
   XLSX.read(bytes, { type: "buffer", raw: true, cellFormula: true });
 
-/** A temporary COM-edited template exercises formulas absent from the shipped defaults. */
-const addCurrencyFormulas = async (directory: string): Promise<string> => {
+const expectedImportHeaders = {
+  AL: "SRCO_PA_HIRE_WIZ_PERS_DATA.SCO_BIRTH_ID_GEO_DIV",
+  GP: "SRCO_PA_HIRE_WIZ_PAYROLL.SSP_FEC_EXTRAS",
+  HN: "SRCO_PA_HIRE_WIZ_PAYROLL.SCO_ID_REF_MOD",
+} as const;
+
+/** Resolve the actual import item rather than trusting a manually chosen data column. */
+const importedValue = (sheet: XLSX.WorkSheet, identifier: string, row: number): unknown => {
+  const bindings = [...rowCells(sheet, 5)].filter(([, cell]) => cell.value === identifier);
+  expect(bindings, identifier).toHaveLength(1);
+  return sheet[`${bindings[0][0]}${row}`]?.v;
+};
+
+const expectImportHeaders = (sheet: XLSX.WorkSheet, template: XLSX.WorkSheet): void => {
+  const expected = rowCells(template, 5);
+  for (const [column, value] of Object.entries(expectedImportHeaders)) {
+    expected.set(column, { value, formula: undefined });
+  }
+  expect(rowCells(sheet, 5)).toEqual(expected);
+};
+
+/** COM fixtures alter only temporary copies, never the shipped XLS. */
+const prepareTemplateCopy = async (
+  directory: string,
+  headers: Readonly<Record<string, string>> = {},
+  currencyFormulas = false,
+): Promise<string> => {
   const workbookPath = path.join(directory, "CurrencyFormulas.xls");
   const scriptPath = path.join(directory, "currency-formulas.ps1");
   await copyFile(templatePath, workbookPath);
@@ -222,12 +247,19 @@ try {
   $workbook = Com-Member $workbooks "Open" $invoke @($WorkbookPath, 0, $false)
   $worksheets = Com-Member $workbook "Worksheets" $get
   $sheet = Com-Member $worksheets "Item" $invoke @("AltaNueva")
-  foreach ($column in @("GV", "GW", "IJ", "IK")) {
-    $currency = if ($column -in @("GV", "GW")) { "EUR" } else { "ESP" }
-    $range = Com-Member $sheet "Range" $get @($column + "6")
-    $formula = '=IF($A6=$A6,"{0}","{0}")' -f $currency
-    Com-Member $range "NumberFormat" $set @("General") | Out-Null
-    Com-Member $range "Formula" $set @($formula) | Out-Null
+  $headers = '${JSON.stringify(headers)}' | ConvertFrom-Json
+  foreach ($entry in $headers.PSObject.Properties) {
+    $range = Com-Member $sheet "Range" $get @($entry.Name)
+    Com-Member $range "Value2" $set @($entry.Value) | Out-Null
+  }
+  if (${currencyFormulas ? "$true" : "$false"}) {
+    foreach ($column in @("GV", "GW", "IJ", "IK")) {
+      $currency = if ($column -in @("GV", "GW")) { "EUR" } else { "ESP" }
+      $range = Com-Member $sheet "Range" $get @($column + "6")
+      $formula = '=IF($A6=$A6,"{0}","{0}")' -f $currency
+      Com-Member $range "NumberFormat" $set @("General") | Out-Null
+      Com-Member $range "Formula" $set @($formula) | Out-Null
+    }
   }
   Com-Member $workbook "Save" $invoke | Out-Null
 } finally {
@@ -283,6 +315,11 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     const sheet = generatedBook.Sheets[HIRE_DATA_SHEET];
     const original = rowCells(templateSheet, FIRST_PERSON_ROW);
     const generated = rowCells(sheet, FIRST_PERSON_ROW);
+    expectImportHeaders(sheet, templateSheet);
+    expect(importedValue(sheet, expectedImportHeaders.AL, 6)).toBe("09");
+    expect(importedValue(sheet, expectedImportHeaders.GP, 6)).toBe(toExcelSerialDate("2024-02-29"));
+    expect(importedValue(sheet, expectedImportHeaders.HN, 6)).toBe("001");
+    expect(importedValue(sheet, "SRCO_PA_HIRE_WIZ_PAYROLL.SCO_OR_REF_MOD", 6)).toBe("02");
 
     expect(generated.get("R")?.value).toBe("NombreA");
     expect(generated.get("O")?.value).toBe("ApellidoA");
@@ -466,6 +503,7 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     const sheet = readWorkbook(bytes).Sheets[HIRE_DATA_SHEET];
     const original = rowCells(templateSheet, FIRST_PERSON_ROW);
     const rows = [6, 7, 8].map((row) => rowCells(sheet, row));
+    expectImportHeaders(sheet, templateSheet);
 
     expect(rows[0]?.get("R")?.value).toBe("NombreA");
     expect(rows[1]?.get("R")?.value).toBe("NombreB");
@@ -517,6 +555,19 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
 
     rows.forEach((values, index) => {
       const populated = index !== 1;
+      const row = FIRST_PERSON_ROW + index;
+      expect(importedValue(sheet, expectedImportHeaders.AL, row)).toBe(
+        populated ? "09" : undefined,
+      );
+      expect(importedValue(sheet, expectedImportHeaders.GP, row)).toBe(
+        populated ? toExcelSerialDate("2024-02-29") : undefined,
+      );
+      expect(importedValue(sheet, expectedImportHeaders.HN, row)).toBe(
+        populated ? "001" : undefined,
+      );
+      expect(importedValue(sheet, "SRCO_PA_HIRE_WIZ_PAYROLL.SCO_OR_REF_MOD", row)).toBe(
+        populated ? "02" : undefined,
+      );
       expect(values.get("AL")?.value).toBe(populated ? "09" : undefined);
       expect(values.get("ER")?.value).toBe(populated ? "0010" : "0002");
       expect(values.get("GP")?.value).toBe(populated ? toExcelSerialDate("2024-02-29") : undefined);
@@ -566,7 +617,7 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     const before = new Set(excelProcessIds());
     const directory = await mkdtemp(path.join(tmpdir(), "hire-currency-formulas-"));
     try {
-      const formulaTemplatePath = await addCurrencyFormulas(directory);
+      const formulaTemplatePath = await prepareTemplateCopy(directory, {}, true);
       const formulaBytes = await readFile(formulaTemplatePath);
       const original = rowCells(
         readWorkbook(formulaBytes).Sheets[HIRE_DATA_SHEET],
@@ -659,10 +710,85 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     }
     expect(baseSheet.ER6?.v).toBe("0000");
     for (const sheet of [baseSheet, changedSheet]) {
+      expectImportHeaders(sheet, templateSheet);
       expect(sheet.AM6?.v).toBe(changed.atradiusJobCode);
       expect(sheet.GQ6?.v).toBe(changed.iban);
       expect(sheet.HO6?.v).toBe(templateSheet.HO6?.v);
       expect(sheet.HO6?.f).toBe(templateSheet.HO6?.f);
     }
+    expect(importedValue(baseSheet, expectedImportHeaders.AL, 6)).toBeUndefined();
+    expect(importedValue(baseSheet, expectedImportHeaders.GP, 6)).toBeUndefined();
+    expect(importedValue(baseSheet, expectedImportHeaders.HN, 6)).toBeUndefined();
+    expect(importedValue(baseSheet, "SRCO_PA_HIRE_WIZ_PAYROLL.SCO_OR_REF_MOD", 6)).toBeUndefined();
   }, 180_000);
+
+  it("accepts already repaired headers without changing existing data", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "hire-import-headers-"));
+    const originalBytes = readFileSync(templatePath);
+    const before = new Set(excelProcessIds());
+    try {
+      const repaired = await editHireWorkbook(templatePath, []);
+      const repairedPath = path.join(directory, "Repaired.xls");
+      await writeFile(repairedPath, repaired);
+      const repeated = await editHireWorkbook(repairedPath, []);
+      const first = readWorkbook(repaired);
+      const second = readWorkbook(repeated);
+      expectImportHeaders(
+        second.Sheets[HIRE_DATA_SHEET],
+        readWorkbook(originalBytes).Sheets[HIRE_DATA_SHEET],
+      );
+      expect(second.SheetNames).toEqual(first.SheetNames);
+      expect(definedNames(second)).toEqual(definedNames(first));
+      for (const name of first.SheetNames) {
+        const original = first.Sheets[name];
+        const repeatedSheet = second.Sheets[name];
+        const addresses = new Set([...Object.keys(original), ...Object.keys(repeatedSheet)]);
+        let changedAddress: string | undefined;
+        for (const address of addresses) {
+          if (address.startsWith("!")) continue;
+          const left = original[address];
+          const right = repeatedSheet[address];
+          if (left?.t !== right?.t || left?.v !== right?.v || left?.f !== right?.f) {
+            changedAddress = address;
+            break;
+          }
+        }
+        expect(changedAddress, `${name}: changed cell content`).toBeUndefined();
+        expect(repeatedSheet["!ref"], name).toBe(original["!ref"]);
+        // Excel can reorder merges and renumber drawing objects on a save.
+        const mergeRanges = (sheet: XLSX.WorkSheet): string[] =>
+          (sheet["!merges"] ?? []).map((range) => XLSX.utils.encode_range(range)).sort();
+        expect(mergeRanges(repeatedSheet), name).toEqual(mergeRanges(original));
+      }
+      expect((await readFile(repairedPath)).equals(repaired)).toBe(true);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+    expect(readFileSync(templatePath).equals(originalBytes)).toBe(true);
+    expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
+  }, 180_000);
+
+  it.each(["AL5", "GP5", "HN5", "HP5"])(
+    "rejects incompatible %s before saving the copy",
+    async (address) => {
+      const directory = await mkdtemp(path.join(tmpdir(), "hire-invalid-header-"));
+      const originalBytes = readFileSync(templatePath);
+      const before = new Set(excelProcessIds());
+      try {
+        const invalidPath = await prepareTemplateCopy(directory, { [address]: "UNEXPECTED.ITEM" });
+        const invalidBytes = await readFile(invalidPath);
+        await expect(
+          editHireWorkbook(invalidPath, [person("A", "2026-10-02")]),
+        ).rejects.toMatchObject({
+          code: "META4_HIRE_EDIT_FAILED",
+        });
+        expect((await readFile(invalidPath)).equals(invalidBytes)).toBe(true);
+      } finally {
+        await rm(directory, { recursive: true, force: true });
+      }
+      expect(readFileSync(templatePath).equals(originalBytes)).toBe(true);
+      expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
+    },
+    180_000,
+  );
 });

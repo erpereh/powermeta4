@@ -9,6 +9,13 @@ export const HIRE_PERSON_SHEET = "AltaPersona";
 export const FIRST_PERSON_ROW = 6;
 export const MAX_PERSON_COUNT = 300;
 
+/** Bind the UI cells whose original real_* columns were repurposed in the filled template. */
+export const HIRE_IMPORT_HEADERS = {
+  AL: "SRCO_PA_HIRE_WIZ_PERS_DATA.SCO_BIRTH_ID_GEO_DIV",
+  GP: "SRCO_PA_HIRE_WIZ_PAYROLL.SSP_FEC_EXTRAS",
+  HN: "SRCO_PA_HIRE_WIZ_PAYROLL.SCO_ID_REF_MOD",
+} as const;
+
 export const HIRE_TEMPLATE_SHEET_NAMES = [
   "AltaNueva",
   "AltaPersona",

@@ -18,6 +18,7 @@ import { Meta4HireError } from "./errors";
 import {
   FIRST_PERSON_ROW,
   HIRE_DATA_SHEET,
+  HIRE_IMPORT_HEADERS,
   MANUAL_COLUMNS,
   toExcelSerialDate,
   toExcelSerialDateTime,
@@ -202,6 +203,36 @@ try {
   $worksheets = Get-ComProp $workbook "Worksheets"
   $sheet = Invoke-ComMethod $worksheets "Item" @([string]$payload.sheetName)
   [Console]::Out.WriteLine("STAGE=sheet-ready")
+  # Validate the customized template before changing any header or person data.
+  $expectedHeaders = @{
+    AM = "SRCO_PA_HIRE_WIZ_PERS_DATA.CSP_ID_ATRADIUS_JOB"
+    GQ = "SRSP_PA_HIRE_WIZ_DATOS_PAGO.SCO_GB_IBAN"
+    HO = "SRCO_PA_HIRE_WIZ_ORG.SSP_ID_CENT_COSTO1"
+    HP = "SRCO_PA_HIRE_WIZ_PAYROLL.SCO_OR_REF_MOD"
+  }
+  foreach ($entry in $expectedHeaders.GetEnumerator()) {
+    $address = "{0}5" -f $entry.Key
+    $range = Get-ComProp $sheet "Range" @($address)
+    if ([string](Get-ComProp $range "Value2") -cne $entry.Value) {
+      throw "Plantilla de alta incompatible: cabecera $address no esperada."
+    }
+  }
+  $importHeaders = '${JSON.stringify(HIRE_IMPORT_HEADERS)}' | ConvertFrom-Json
+  foreach ($entry in $importHeaders.PSObject.Properties) {
+    $address = "{0}5" -f $entry.Name
+    $range = Get-ComProp $sheet "Range" @($address)
+    $currentHeader = [string](Get-ComProp $range "Value2")
+    if ($currentHeader -cne "" -and $currentHeader -cne $entry.Value) {
+      throw "Plantilla de alta incompatible: cabecera $address ocupada por otro campo."
+    }
+  }
+  foreach ($entry in $importHeaders.PSObject.Properties) {
+    $range = Get-ComProp $sheet "Range" @("{0}5" -f $entry.Name)
+    if ([string](Get-ComProp $range "Value2") -ceq "") {
+      Set-ComProp $range "Value2" ([string]$entry.Value)
+    }
+  }
+  [Console]::Out.WriteLine("STAGE=headers-ready")
   $templateRow = [int]$payload.templateRow
   # Copy every row before editing the source, preserving its original defaults.
   foreach ($personRow in @($payload.rows)) {
@@ -572,7 +603,7 @@ export const assertOle2Buffer = (bytes: Buffer): void => {
 };
 
 /**
- * Copies Hire_1_PERSONA.xls and lets Excel edit only the manual cells.
+ * Copies Hire_1_PERSONA.xls, binds three missing import headers and edits the manual cells.
  * The original template is never opened. The returned bytes are Excel's save.
  */
 export const editHireWorkbook = async (

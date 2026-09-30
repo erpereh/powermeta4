@@ -1,5 +1,40 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: enlaces del importador Excel - 2026-09-30
+
+- [x] Diagnóstico del generado, su log y los tres XLS de `fuentes/HIRE`:
+      HN tenía modelo pero HN5 no lo vinculaba al importador; AL5 y GP5
+      también estaban vacías. El periodo del log queda como consecuencia
+      probable, sin añadir un periodo fijo ni ejecutar un alta SOAP real.
+- [x] COM repara solo AL5, GP5 y HN5 en la copia; admite enlaces vacíos o
+      corregidos y verifica AM5/GQ5/HO5/HP5 antes de editar. Rechaza plantillas
+      incompatibles con el error existente. Sin cambios en SQL, validaciones,
+      tipos públicos, instrucciones, HT/HU ni defaults de GV/GW e IJ/IK.
+- [x] Metadata de nacimiento distingue el catálogo `STD_ID_GEO_DIV` del
+      elemento `SCO_BIRTH_ID_GEO_DIV`. Department conserva ER y su alias antiguo.
+      Contratos e instrucciones: 14 tests correctos; formulario: 27 correctos.
+      Excel COM real: 10/10 correctos, con bindings reales, valores/vacíos,
+      una y varias personas, modelo `001`/ordinal `02`, idempotencia y rechazo
+      de cabeceras incompatibles; regresiones de monedas, fórmulas y estructura.
+- [x] Informe `docs/alta-obligatorios-y-diagnostico.md`: 109 campos/grupos,
+      requisitos actuales/documentados/condicionales, destinos, vacíos,
+      recomendaciones y evidencias sin datos personales. Mapping actualizado.
+- [x] Copia corregida del adjunto entregada en Downloads: comparación de
+      418.991 celdas en 15 hojas; únicamente AL5/GP5/HN5 difieren. Valores,
+      fórmulas, rangos combinados y nombres definidos conservados; originales
+      intactos. Ningún XLS personal se añade al repositorio.
+- [x] `npm run typecheck`, `npm run build` y `git diff --check` correctos;
+      diff y `git status --short` revisados.
+- [x] `npm test`: 107 archivos, 589 pruebas correctas y 2 omitidas, incluidas
+      las 10 COM. El primer pase pasó 588 y falló solo la expectativa antigua
+      del tooltip de nacimiento; corregida y superada en la repetición completa.
+- [x] Fallos de verificación resueltos: la comparación inicial de idempotencia
+      incluía IDs/orden de objetos BIFF que Excel regenera y agotó memoria al
+      mostrar el diff; ahora compara contenidos y rangos combinados normalizados.
+- [x] Fallos previos separados: lint mantiene siete avisos y diferencias de
+      formato en 370 archivos. Los tests COM/contrato ampliados y el nuevo
+      informe pasan el chequeo de formato dirigido; sin formateo global.
+
 ## Alta de personas: defaults de monedas opcionales - 2026-09-30
 
 - [x] `payrollCurrency` y `accountCurrency` vacíos no generan ninguna edición

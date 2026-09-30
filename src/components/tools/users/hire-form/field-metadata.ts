@@ -116,7 +116,7 @@ export const HIRE_FIELD_META = {
     "catalog",
     "unmarked",
     false,
-    mapped("STD_ID_GEO_DIV"),
+    mapped("SCO_BIRTH_ID_GEO_DIV"),
   ),
   birthCountry: connected(
     "ID País nacimiento",

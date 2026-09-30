@@ -1,17 +1,17 @@
 # Estado del mapping Excel del alta de personas
 
-Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5** (identificador técnico), con las cuatro confirmaciones explícitas del usuario del **2026-09-28** descritas abajo. La fila 4 se usa solo para reconocer la columna visible; sus rótulos `real_*` pueden estar desactualizados. La UI contiene **109 fields**: **103 integrados**, **0 con mapping sin confirmar** y **6 controles solo UI**. Ningún mapping confirmado queda pendiente de integración. Las columnas indicadas son las que escribe el generador; «Sí» significa que se crea una instrucción Excel, incluso cuando el valor vacío provoca `ClearContents`.
+Fuente auditada: `fuentes/HIRE/Hire_1_PERSONA.xls`, hoja `AltaNueva`, fila **5** (identificador técnico), con las cuatro confirmaciones explícitas del usuario del **2026-09-28** descritas abajo y la reparación de tres enlaces de importación del **2026-09-30**. La fila 4 se usa solo para reconocer la columna visible; sus rótulos `real_*` pueden estar desactualizados. La UI contiene **109 fields**: **103 integrados**, **0 con mapping sin confirmar** y **6 controles solo UI**. Department conserva un identificador antiguo pendiente de confirmar. Las columnas indicadas son las que escribe el generador; «Sí» significa que se crea una instrucción Excel, incluso cuando el valor vacío provoca `ClearContents`. Las monedas opcionales de nómina y cuenta solo generan instrucciones cuando tienen valor.
 
 ## Confirmaciones explícitas del usuario
 
-Estos destinos prevalecen sobre las cabeceras antiguas del XLS únicamente para los cuatro campos indicados:
+Estos destinos manuales se conservan. El writer repara en la copia las cabeceras vacías de AL5, GP5 y HN5 para que el importador reconozca los valores:
 
-- Comunidad de nacimiento: `STD_ID_GEO_DIV` → **AL**. La UI conserva `país/comunidad` para distinguir opciones y completar país/provincia; el payload y Excel reciben solo el ID de comunidad. **AM** conserva Atradius Job.
+- Comunidad de nacimiento: catálogo `STD_ID_GEO_DIV`, elemento importado `SCO_BIRTH_ID_GEO_DIV` → **AL**. La UI conserva `país/comunidad` para distinguir opciones y completar país/provincia; el payload y Excel reciben solo el ID de comunidad. AL5 se vincula a `SRCO_PA_HIRE_WIZ_PERS_DATA.SCO_BIRTH_ID_GEO_DIV`. **AM** conserva Atradius Job.
 - Department: `CSP_ID_DEPARTMENT` → **ER**, como texto literal. Su cabecera antigua `CSP_ID_CODE_DEP` no altera este contrato. Department es obligatorio y se valida contra su catálogo.
-- Fecha Extras: `SSP_FEC_EXTRAS` → **GP**, como número de fecha Excel, con la misma validación y conversión que las demás fechas. No lleva SELECT ni catálogo. **GQ** conserva el IBAN.
-- Modelo/Semana: la opción identifica el par modelo/ordinal; `SCO_ID_REF_MOD` → **HN** y `SCO_OR_REF_MOD` → **HP**, ambos como texto literal. `SCO_ID_WEEK_MDL` solo aporta información descriptiva. **HO** conserva la plantilla.
+- Fecha Extras: `SSP_FEC_EXTRAS` → **GP**, como número de fecha Excel, con la misma validación y conversión que las demás fechas. GP5 se vincula a `SRCO_PA_HIRE_WIZ_PAYROLL.SSP_FEC_EXTRAS`. No lleva SELECT ni catálogo. **GQ** conserva el IBAN.
+- Modelo/Semana: la opción identifica el par modelo/ordinal; `SCO_ID_REF_MOD` → **HN** y `SCO_OR_REF_MOD` → **HP**, ambos como texto literal. HN5 se vincula a `SRCO_PA_HIRE_WIZ_PAYROLL.SCO_ID_REF_MOD`; HP5 ya contiene el enlace del ordinal. `SCO_ID_WEEK_MDL` solo aporta información descriptiva. **HO** conserva el centro de coste de la plantilla.
 
-Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia exclusivamente AL, GP y HN/HP respectivamente. Los tres SELECT facilitados se ejecutan literalmente, sin aliases, filtros ni columnas añadidos; las expresiones sin alias se adaptan desde la clave vacía del resultado SQL Server. Los tests de contrato mantienen las comprobaciones de las demás cabeceras y añaden excepciones explícitas solo para estos cuatro mappings.
+Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia exclusivamente AL, GP y HN/HP respectivamente. Antes de editar, COM admite estas tres cabeceras vacías o ya corregidas y verifica también AM5, GQ5, HO5 y HP5; rechaza una plantilla incompatible. Los tres SELECT facilitados se ejecutan literalmente, sin aliases, filtros ni columnas añadidos; las expresiones sin alias se adaptan desde la clave vacía del resultado SQL Server. Los tests comprueban los identificadores reales del XLS generado; solo Department mantiene una excepción explícita por su cabecera antigua. Véase el [diagnóstico e inventario de obligatoriedad](alta-obligatorios-y-diagnostico.md).
 
 ## Inventario de todos los fields del formulario
 
@@ -27,7 +27,7 @@ Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia e
 | `birthDate` · Fecha nacimiento | integrado | `STD_DT_BIRTH` | AC (visible), AD (técnica) | Sí | — |
 | `nationality` · ID Nacionalidad | integrado | `STD_ID_COUNTRY_NAC` | AE (visible), AF (técnica) | Sí | — |
 | `birthProvince` · ID Provincia nacimiento | integrado | `SCO_BIRTH_ID_SUB_GEO_DIV` | AG (visible), AH (técnica) | Sí | — |
-| `birthCommunity` · ID Comunidad nacimiento | integrado | `STD_ID_GEO_DIV` | AL (confirmación del usuario) | Sí | — |
+| `birthCommunity` · ID Comunidad nacimiento | integrado | `SCO_BIRTH_ID_GEO_DIV` (catálogo `STD_ID_GEO_DIV`) | AL (enlace reparado en AL5) | Sí | — |
 | `birthCountry` · ID País nacimiento | integrado | `SCO_BIRTH_ID_COUNTRY` | AO (visible), AP (técnica) | Sí | — |
 | `gender` · ID Sexo | integrado | `STD_ID_GENDER` | AQ (visible), AR (técnica) | Sí | — |
 | `maritalStatus` · ID Estado civil | integrado | `STD_ID_MARITAL_STAT` | AS (visible), AT (técnica) | Sí | — |
@@ -109,13 +109,13 @@ Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia e
 | `annualGross` · Bruto anual | integrado | `SSP_BRUTO_ANUAL` | GJ (técnica) | Sí | — |
 | `salaryType` · ID Tipo salario | integrado | `SSP_ID_TP_SALARIO` | GL (visible), GM (técnica) | Sí | — |
 | `seniorityDate` · Fecha de Antigüedad | integrado | `SSP_FEC_ANTIGUEDAD` | GN (visible), GO (técnica) | Sí | — |
-| `extrasDate` · Fecha Extras | integrado | `SSP_FEC_EXTRAS` | GP (confirmación del usuario) | Sí | — |
-| `payrollCurrency` · ID Moneda | integrado | `ID_CURRENCY` | GV (visible), GW (técnica) | Sí | — |
+| `extrasDate` · Fecha Extras | integrado | `SSP_FEC_EXTRAS` | GP (enlace reparado en GP5) | Sí | — |
+| `payrollCurrency` · ID Moneda | integrado | `ID_CURRENCY` | GV (visible), GW (técnica) | Solo con valor; vacío conserva valor/fórmula | — |
 | `union` · ID Sindicato | integrado | `SSP_ID_SINDICATO` | GR (visible), GS (técnica) | Sí | — |
 | `variableCompensationMode` · Tipo modalidad Variable | integrado | `CSP_TP_MOD_VAR` | IU (técnica) | Sí | — |
 | `irpfType` · ID Tipo del IRPF | integrado | `SSP_ID_TP_IRPF` | HB (visible), HC (técnica) | Sí | — |
 | `perceptionKey` · ID Clave percepción | integrado | `SSP_ID_CLAVE_PERCEP` | HD (visible), HE (técnica) | Sí | — |
-| `referenceModelWeek` · ID Modelo/Semana de referencia | integrado | `SCO_ID_REF_MOD, SCO_OR_REF_MOD` | HN (modelo), HP (ordinal), confirmación del usuario | Sí | — |
+| `referenceModelWeek` · ID Modelo/Semana de referencia | integrado | `SCO_ID_REF_MOD, SCO_OR_REF_MOD` | HN (modelo, enlace reparado en HN5), HP (ordinal) | Sí | — |
 | `timeManagementPay` · Pago con gestión del tiempo | integrado | `SSP_PAGO_TA` | HR (visible), HS (técnica) | Sí | — |
 | `paymentCurrency` · ID Moneda | integrado | `ID_CURRENCY` | HT (visible), HU (técnica) | Sí | — |
 | `paymentType` · ID Tipo pago | integrado | `SCO_ID_PAYM_TYPE` | HV (visible), HW (técnica) | Sí | — |
@@ -125,7 +125,7 @@ Comunidad, Fecha Extras y Modelo/Semana son opcionales: un valor vacío limpia e
 | `iban` · IBAN | integrado | `SCO_GB_IBAN` | GQ (técnica) | Sí | IBAN |
 | `bankBranch` · Sucursal bancaria | integrado | `SCO_ID_BANK_BRANCH` | HZ (visible), IA (técnica) | Sí | Otro formato |
 | `accountNumber` · Nº de cuenta | integrado | `SCO_ACCOUNT_NUMBER` | ID (técnica) | Sí | Otro formato |
-| `accountCurrency` · ID Moneda | integrado | `ID_CURRENCY_2` | IJ (visible), IK (técnica) | Sí | — |
+| `accountCurrency` · ID Moneda | integrado | `ID_CURRENCY_2` | IJ (visible), IK (técnica) | Solo con valor; vacío conserva valor/fórmula | — |
 
 ## Subcampos de controles compuestos
 
@@ -196,4 +196,4 @@ Además, la fila 4 ofrece celdas visibles sin identificador técnico propio y si
 
 ## Comportamiento de escritura y validación
 
-El servidor exige Puesto o Posición, verifica los IDs de catálogo contra PeopleNet de la sociedad operativa y requiere los campos marcados como obligatorios que poseen mapping confirmado. Valida fechas reales, números finitos, checks booleanos, listas fijas de jornada e IBAN. Solo procesa la métrica de ocupación elegida, los segmentos de S.S. con «Con número», la jornada parcial en su rama, el porcentaje de minusvalía con «Con minusvalía» y el formato bancario elegido. Los valores retenidos al cambiar de rama no se envían ni se escriben. Fechas, importes, porcentajes y conteos se guardan como números Excel; IDs y segmentos se guardan como texto literal para preservar ceros iniciales. Se copia `Hire_1_PERSONA.xls` y Excel COM edita exclusivamente las columnas de `WRITTEN_COLUMNS`; las demás hojas, nombres definidos, fórmulas y defaults permanecen en la copia.
+El servidor exige Puesto o Posición, verifica los IDs de catálogo contra PeopleNet de la sociedad operativa y requiere los campos marcados como obligatorios que poseen mapping confirmado. Valida fechas reales, números finitos, checks booleanos, listas fijas de jornada e IBAN. Solo procesa la métrica de ocupación elegida, los segmentos de S.S. con «Con número», la jornada parcial en su rama, el porcentaje de minusvalía con «Con minusvalía» y el formato bancario elegido. Los valores retenidos al cambiar de rama no se envían ni se escriben. Fechas, importes, porcentajes y conteos se guardan como números Excel; IDs y segmentos se guardan como texto literal para preservar ceros iniciales. Se copia `Hire_1_PERSONA.xls` y Excel COM repara exclusivamente AL5, GP5 y HN5 y edita las columnas de `WRITTEN_COLUMNS`. Primero copia las filas adicionales desde la fila 6 intacta y después aplica los datos. GV/GW e IJ/IK vacías no se editan; conservan exactamente el valor o fórmula del XLS, con el desplazamiento de referencias relativas propio de Excel para las filas copiadas. Las demás hojas y nombres definidos se conservan.

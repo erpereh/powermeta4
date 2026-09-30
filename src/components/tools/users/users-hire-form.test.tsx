@@ -852,7 +852,9 @@ describe("UsersHireForm", () => {
     );
     expect(communityCatalog?.getAttribute("aria-labelledby")).toBe(communityLabel.id);
     communityLabel.focus();
-    await waitFor(() => expect(screen.getByRole("tooltip").textContent).toBe("STD_ID_GEO_DIV"));
+    await waitFor(() =>
+      expect(screen.getByRole("tooltip").textContent).toBe("SCO_BIRTH_ID_GEO_DIV"),
+    );
 
     await user.click(screen.getByRole("button", { name: "Contactos" }));
     const emailLabel = labelFor("email");

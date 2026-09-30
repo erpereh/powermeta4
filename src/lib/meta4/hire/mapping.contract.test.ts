@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { HIRE_FIELD_META } from "@/components/tools/users/hire-form/field-metadata";
 
-import { HIRE_DATA_SHEET, MANUAL_COLUMNS, WRITTEN_COLUMNS } from "./mapping";
+import { HIRE_DATA_SHEET, HIRE_IMPORT_HEADERS, MANUAL_COLUMNS, WRITTEN_COLUMNS } from "./mapping";
 
 /** Independent, explicit contract for every UI input written to AltaNueva. */
 const EXPECTED_COLUMNS = {
@@ -129,12 +129,9 @@ const COMPOUND_PARTS = {
   replacedPersonSsNumber: ["replacedSsPrefix", "replacedSsBody", "replacedSsSuffix"],
 } as const;
 
-// Explicit user confirmations supersede the legacy XLS headers for these four fields only.
+// Department retains the confirmed catalog ID and the template's legacy item alias.
 const USER_CONFIRMED_MAPPINGS = {
-  birthCommunity: { columns: ["AL"], identifiers: ["STD_ID_GEO_DIV"] },
   department: { columns: ["ER"], identifiers: ["CSP_ID_DEPARTMENT"] },
-  extrasDate: { columns: ["GP"], identifiers: ["SSP_FEC_EXTRAS"] },
-  referenceModelWeek: { columns: ["HN", "HP"], identifiers: ["SCO_ID_REF_MOD", "SCO_OR_REF_MOD"] },
 } as const;
 
 const templatePath = path.join(process.cwd(), "fuentes", "HIRE", "Hire_1_PERSONA.xls");
@@ -158,9 +155,12 @@ describe("AltaNueva exact mapping contract", () => {
     }
   });
 
-  it("matches technical headers or one of the four explicit user confirmations", () => {
+  it("matches configured import headers, retaining only the Department alias exception", () => {
     const sheet = XLSX.readFile(templatePath, { sheetRows: 5 }).Sheets[HIRE_DATA_SHEET];
     expect(sheet).toBeDefined();
+    const importHeaders = new Map<string, string>(Object.entries(HIRE_IMPORT_HEADERS));
+    const headerAt = (column: string): unknown =>
+      importHeaders.get(column) ?? sheet[`${column}5`]?.v;
     for (const [field, meta] of Object.entries(HIRE_FIELD_META)) {
       if (meta.integration !== "connected" || meta.mapping.status !== "confirmed") continue;
       const parts = COMPOUND_PARTS[field as keyof typeof COMPOUND_PARTS];
@@ -173,14 +173,31 @@ describe("AltaNueva exact mapping contract", () => {
         expect(meta.mapping.identifiers, field).toEqual(confirmed.identifiers);
         continue;
       }
-      const bound = columns.map((column) => technicalId(sheet[`${column}5`]?.v)).filter(Boolean);
+      const bound = columns.map((column) => technicalId(headerAt(column))).filter(Boolean);
       expect(new Set(bound), field).toEqual(new Set(meta.mapping.identifiers));
       for (const column of columns) {
-        if (technicalId(sheet[`${column}5`]?.v)) continue;
+        if (technicalId(headerAt(column))) continue;
         const next = XLSX.utils.encode_col(XLSX.utils.decode_col(column) + 1);
         expect(columns, `${field}: visible ${column}`).toContain(next);
-        expect(technicalId(sheet[`${next}5`]?.v), `${field}: ${next}`).toBeTruthy();
+        expect(technicalId(headerAt(next)), `${field}: ${next}`).toBeTruthy();
       }
+    }
+  }, 30_000);
+
+  it("binds only the three missing items, using the native template identifiers", () => {
+    const workbook = XLSX.readFile(templatePath, {
+      sheets: [HIRE_DATA_SHEET, "BaseTemplate"],
+      sheetRows: 5,
+    });
+    const sheet = workbook.Sheets[HIRE_DATA_SHEET];
+    const native = workbook.Sheets.BaseTemplate;
+    expect(HIRE_IMPORT_HEADERS).toEqual({
+      AL: native.AM5?.v,
+      GP: native.GQ5?.v,
+      HN: native.HO5?.v,
+    });
+    for (const column of Object.keys(HIRE_IMPORT_HEADERS)) {
+      expect(sheet[`${column}5`]?.v, column).toBeUndefined();
     }
   }, 30_000);
 });
