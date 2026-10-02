@@ -1,0 +1,454 @@
+DIV.scoPortalPage
+{
+    MIN-WIDTH: 950px;
+    WIDTH: 100%;
+    HEIGHT: 100%
+}
+DIV.scoPageHeader
+{
+    WIDTH: 100%;
+    HEIGHT: 115px;
+    TOP: 5px;
+    LEFT: 5px
+}
+DIV.scoPageHeader DIV.especificcompanylogoleft
+{
+    FLOAT: left;
+    HEIGHT: 90px
+}
+DIV.scoPageHeader DIV.especificcompanylogoright
+{
+    FLOAT: right;
+    HEIGHT: 90px
+}
+DIV.scoPageHeader DIV.logo
+{
+    BACKGROUND-IMAGE: url(/iconos/logo_cyc.jpg);
+    Z-INDEX: 0;
+    WIDTH: 292px;
+    BACKGROUND-REPEAT: no-repeat;
+    FLOAT: left;
+    HEIGHT: 90px
+}
+DIV.scoPageHeader DIV.title
+{
+    Z-INDEX: 2;
+    LINE-HEIGHT: 70%;
+    FONT-STYLE: italic;
+    MARGIN: 20px 0px 0px 120px;
+    FONT-FAMILY: 'Gill Sans MT','Lucida Grande',sans-serif;
+    COLOR: white;
+    FONT-SIZE: 28px
+}
+DIV.scoPageHeader SPAN.maintitle
+{
+    Z-INDEX: 2;
+    FONT-STYLE: italic;
+    COLOR: white;
+    FONT-SIZE: 23px
+}
+DIV.scoPageHeader SPAN.subtitle
+{
+    Z-INDEX: 1;
+    FONT-STYLE: normal;
+    FLOAT: left;
+    COLOR: #ace4f5;
+    MARGIN-LEFT: 65px;
+    FONT-SIZE: 18px
+}
+DIV.scoPageHeader DIV.fill
+{
+    /*BACKGROUND-IMAGE: url(/iconos/background_title_center.png);*/
+    /*BACKGROUND-REPEAT: repeat-x;*/
+	BACKGROUND-COLOR : #ffffff;
+    BACKGROUND-POSITION: left center;
+    MARGIN: 0px 0px 0px 292px;
+    HEIGHT: 82px
+}
+DIV.scoPageHeader DIV.right
+{
+    /*BACKGROUND-IMAGE: url(/iconos/background_title_right.png);*/
+	BACKGROUND-COLOR : #ffffff;
+    BACKGROUND-REPEAT: no-repeat;
+    BACKGROUND-POSITION: right center;
+    FLOAT: right;
+    WIDTH: 364px;
+    HEIGHT: 82px
+}
+DIV.scoPageHeader DIV.buttons
+{
+    MARGIN: 20px 15px 0px 0px;
+    FLOAT: right
+}
+DIV.scoPageHeader DIV.buttons SPAN
+{
+    MIN-WIDTH: 58px;
+    MIN-HEIGHT: 58px
+}
+DIV.scoPageHeader DIV.buttons IMG
+{
+    WIDTH: 36px;
+    HEIGHT: 36px
+}
+DIV.scoPageHeader .subline
+{
+    WIDTH: 100%;
+    FONT-SIZE: 10px
+}
+DIV.scoPageHeader .menuSwitchShow
+{
+    BACKGROUND-IMAGE: url(/iconos/menu_closed.png);
+    TEXT-ALIGN: left;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 20px;
+    PADDING-RIGHT: 0px;
+    BACKGROUND-REPEAT: no-repeat;
+    FLOAT: left;
+    HEIGHT: 16px;
+    COLOR: #aa5211;
+    CURSOR: pointer;
+    PADDING-TOP: 2px
+}
+DIV.scoPageHeader .menuSwitchHide
+{
+    BACKGROUND-IMAGE: url(/iconos/menu_open.png);
+    TEXT-ALIGN: left;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 20px;
+    PADDING-RIGHT: 0px;
+    BACKGROUND-REPEAT: no-repeat;
+    FLOAT: left;
+    HEIGHT: 16px;
+    COLOR: #aa5211;
+    CURSOR: pointer;
+    PADDING-TOP: 2px
+}
+DIV.scoPageHeader .hidden
+{
+    DISPLAY: none
+}
+DIV.scoPageHeader .information
+{
+    TEXT-ALIGN: right;
+    FLOAT: right;
+    COLOR: #DC0028;
+}
+DIV.scoPageHeader DIV.separator
+{
+    BACKGROUND-IMAGE: url(/iconos/login_sep.png);
+    BACKGROUND-COLOR: transparent;
+    MARGIN-TOP: 5px;
+    WIDTH: 100%;
+    BACKGROUND-REPEAT: repeat-x;
+    HEIGHT: 1px;
+    CLEAR: both
+}
+DIV.scoMenuLeftWrapper
+{
+    POSITION: static;
+    FLOAT: left;
+    OVERFLOW: hidden
+}
+DIV.scoMenuLeft DIV.title_1
+{
+    BACKGROUND-IMAGE: url(/iconos/menu_title_ess.png);
+    MIN-WIDTH: 180px;
+    BACKGROUND-REPEAT: repeat-x;
+    BACKGROUND-POSITION: left bottom;
+    HEIGHT: 40px;
+    COLOR: #ffffff;
+    CLEAR: both;
+    FONT-SIZE: 11px;
+    CURSOR: pointer;
+    FONT-WEIGHT: bold;
+}
+DIV.scoMenuLeft DIV.title_1 DIV.titleImg
+{
+    MARGIN: 0px 0px 0px 5px;
+    FLOAT: left
+}
+DIV.scoMenuLeft DIV.title_1 DIV.titleText
+{
+    MARGIN: 18px 0px 0px 5px;
+    FLOAT: left
+}
+DIV.scoMenuLeft DIV.active
+{
+    COLOR: #0c4f8a;
+    FONT-WEIGHT: bold
+}
+DIV.scoMenuLeft P.title
+{
+    MARGIN: 18px 0px 0px 40px
+}
+DIV.scoMenuLeft DIV.content_1
+{
+    BACKGROUND-COLOR: #efefef;
+    MARGIN: 0px 0px 5px;
+    FONT-SIZE: 11px
+}
+DIV.scoMenuLeft DIV.content_1 UL
+{
+    LIST-STYLE-TYPE: none;
+    MARGIN: 6px 0px 6px 10px;
+    WIDTH: 200px;
+    COLOR: #365a7c;
+    FONT-SIZE: 11px
+}
+DIV.scoMenuLeft DIV.content_1 LI
+{
+    TEXT-INDENT: -11px;
+    MIN-HEIGHT: 16px;
+    PADDING-LEFT: 10px;
+    WIDTH: 190px
+}
+DIV.scoMenuLeft DIV.content_1 A
+{
+    FONT-SIZE: 11px
+}
+DIV.scoMenuLeft LI.withSubMenu
+{
+    MARGIN: 2px 0px 0px
+}
+DIV.scoMenuLeft DIV.withSubMenu
+{
+    FLOAT: left
+}
+DIV.scoMenuLeft DIV.withSubMenu A
+{
+    FLOAT: left
+}
+DIV.scoMenuLeft DIV.content_1 SPAN.noLink
+{
+    FLOAT: left;
+    CURSOR: default
+}
+DIV.scoMenuLeft DIV.content_1 SPAN.closed
+{
+    BACKGROUND-IMAGE: url(/iconos/menu_closed.png);
+    MARGIN: 0px 3px 0px 0px;
+    WIDTH: 16px;
+    BACKGROUND-REPEAT: no-repeat;
+    BACKGROUND-POSITION: center center;
+    FLOAT: right;
+    HEIGHT: 16px;
+    CURSOR: pointer
+}
+DIV.scoMenuLeft DIV.content_1 SPAN.open
+{
+    BACKGROUND-IMAGE: url(/iconos/menu_open.png)
+}
+DIV.scoMenuLeft DIV.content_1 SPAN.delete
+{
+    BACKGROUND-IMAGE: url(/iconos/icono_borrar_16_16.gif);
+    MARGIN: 0px 3px 0px 0px;
+    WIDTH: 14px;
+    BACKGROUND-REPEAT: no-repeat;
+    BACKGROUND-POSITION: center center;
+    FLOAT: right;
+    HEIGHT: 14px;
+    CURSOR: pointer
+}
+DIV.scoMenuLeft DIV.content_1 .section
+{
+    FONT-WEIGHT: bold
+}
+DIV.scoMenuLeft DIV.content_2
+{
+    BACKGROUND-COLOR: #ffffff;
+    MARGIN: 0px 8px 0px 0px;
+    FONT-SIZE: 10px
+}
+DIV.scoMenuLeft DIV.content_2 A
+{
+    FONT-SIZE: 10px
+}
+DIV.scoMenuLeft DIV.content_2 UL
+{
+    MARGIN: 3px 0px 5px 10px;
+    WIDTH: 170px
+}
+DIV.scoMenuLeft DIV.content_2 LI
+{
+    TEXT-INDENT: -11px;
+    MIN-HEIGHT: 13px;
+    PADDING-LEFT: 10px;
+    WIDTH: 160px
+}
+DIV.scoMenuLeft .search
+{
+    MARGIN: 15px 0px 0px 10px;
+    BACKGROUND: url(/iconos/lu_zoom_16.png) #ffffff no-repeat right 50%;
+    FONT-SIZE: 11px
+}
+DIV.scoMenuLeft .inactive
+{
+    COLOR: #aaa
+}
+DIV.scoPortalPage DIV.contentWrapper
+{
+    MARGIN: 0px 0px 0px 215px;
+    m4marginLeftMenu: 215
+}
+DIV.scoPageBody
+{
+  font-size: 13px;
+  font-family:  Arial, Helvetica, sans-serif;
+}
+DIV.scoPageBody IFRAME.content
+{
+    WIDTH: 100%;
+    COLOR: #6877a3;
+    overflow: hidden;
+    opacity: 0.1
+}
+DIV.scoPageBody .displayNone
+{
+    DISPLAY: none
+}
+DIV.contentWrapper DIV.pageFooter
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #f9f9f9;
+    MARGIN: 25px 0px 0px;
+    COLOR: #0e033f;
+    FONT-SIZE: 9px
+}
+.scoSpinner
+{
+    BACKGROUND: url(/iconos/spinner.gif) no-repeat center 50%;
+    HEIGHT: 18px
+}
+.scoSpinnerRev
+{
+    BACKGROUND: url(/iconos/spinner_rev.gif) no-repeat center 50%;
+    HEIGHT: 18px
+}
+.scoMenuLeft
+{
+    MIN-WIDTH: 210px;
+    WIDTH: 210px;
+    FLOAT: left;
+    FONT-SIZE: 11px;
+    OVERFLOW: hidden
+}
+.scoMenuLeft .divSep
+{
+    WIDTH: 0px;
+    HEIGHT: 0px;
+    CLEAR: both
+}
+.scoMenuLeft .divHeader
+{
+    /*BACKGROUND-IMAGE: url(/iconos/menu_title_ess.png);*/
+	BACKGROUND-COLOR : #fff; 
+    MIN-WIDTH: 180px;
+    BACKGROUND-REPEAT: repeat-x;
+    BACKGROUND-POSITION: left bottom;
+    HEIGHT: 40px;
+    COLOR: #DC0028;
+    CLEAR: both;
+    CURSOR: pointer;
+    FONT-WEIGHT: bold;
+}
+.m4activeColor
+{
+    COLOR: #404040 !important;
+}
+.scoMenuLeft .divHeaderImg
+{
+    MARGIN: 0px 0px 0px 5px;
+    WIDTH: 32px;
+    FLOAT: left;
+    HEIGHT: 32px
+}
+.scoMenuLeft .divHeaderTitle
+{
+    MARGIN: 15px 0px 0px;
+    WIDTH: 168px;
+    MAX-WIDTH: 168px;
+    FLOAT: left;
+    OVERFLOW: hidden
+}
+.scoMenuLeft .divHeaderTitle SPAN
+{
+    MARGIN: 3px 0px 0px 5px;
+    DISPLAY: block;
+    HEIGHT: 20px
+}
+.scoMenuLeft .divContent
+{
+    PADDING-BOTTOM: 5px;
+    BACKGROUND-COLOR: #efefef;
+    PADDING-LEFT: 10px;
+    WIDTH: 200px;
+    PADDING-RIGHT: 0px;
+    MAX-WIDTH: 200px;
+    OVERFLOW: hidden;
+    PADDING-TOP: 5px
+}
+.scoMenuLeft .divContentTitle
+{
+    MARGIN: 0px 0px 3px
+}
+.scoMenuLeft .divContentTitleBold
+{
+    MARGIN: 0px 0px 3px;
+    FONT-WEIGHT: bold
+}
+.scoMenuLeft .divContentSubmenuImg_1
+{
+    WIDTH: 14px;
+    BACKGROUND-REPEAT: no-repeat;
+    BACKGROUND-POSITION: center center;
+    FLOAT: right;
+    HEIGHT: 14px;
+    CURSOR: pointer
+}
+.scoMenuLeft .divContent .divImgClosed
+{
+    BACKGROUND-IMAGE: url(/iconos/menu_closed.png)
+}
+.scoMenuLeft .divContent .divImgOpen
+{
+    BACKGROUND-IMAGE: url(/iconos/menu_open.png)
+}
+.scoMenuLeft .divContentSubmenuTitle
+{
+}
+.scoMenuLeft .divContentSubmenuTitle SPAN
+{
+    WIDTH: 185px;
+    FLOAT: left
+}
+.scoMenuLeft .divContentSubtitle_1
+{
+    PADDING-BOTTOM: 5px;
+    BACKGROUND-COLOR: #fff;
+    MARGIN: 0px 5px 0px 8px;
+    PADDING-LEFT: 5px;
+    PADDING-RIGHT: 5px;
+    FONT-SIZE: 10px;
+    PADDING-TOP: 5px
+}
+.scoMenuLeft .divContentSubtitle_1 SPAN
+{
+    DISPLAY: block
+}
+.scoMenuLeft .divContentFav
+{
+}
+.scoMenuLeft .divContentFav .divContentTitle
+{
+    FLOAT: left
+}
+.scoMenuLeft .divContentFav .divContentImg
+{
+    BACKGROUND-IMAGE: url(/iconos/icono_borrar_16_16.gif);
+    WIDTH: 14px;
+    BACKGROUND-REPEAT: no-repeat;
+    BACKGROUND-POSITION: center center;
+    FLOAT: right;
+    HEIGHT: 14px;
+    CURSOR: pointer
+}

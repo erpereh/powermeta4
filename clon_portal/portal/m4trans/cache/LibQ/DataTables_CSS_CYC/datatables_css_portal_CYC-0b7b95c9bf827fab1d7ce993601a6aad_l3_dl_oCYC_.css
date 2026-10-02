@@ -1,0 +1,68 @@
+.dataTables_wrapper{
+  /*margin-top: 10px;*/
+}
+
+.dataTables_paginate{
+  font-size: 13px;
+  padding-top: 10px;
+}
+
+.paginate_button {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.dataTables_info{
+  font-size: 13px;
+  padding-top: 10px;
+  float: right;
+}
+.dataTables_filter{
+  font-size: 13px;
+  padding-bottom: 10px;
+}    
+
+.dataTables_length{
+  float: right;
+  font-size: 13px;
+}
+
+.sorting{
+  min-width: 100px;
+}    
+
+.sorting_asc{
+  min-width: 100px;
+  border-bottom-color: grey;
+  border-bottom-style: solid;
+  border-bottom-width: 4px;
+}
+
+.sorting_desc{
+  min-width: 100px;
+  border-bottom-color: black;
+  border-bottom-style: solid;
+  border-bottom-width: 4px;
+}
+
+.dataTables_wrapper table thead tr{
+    font-weight: bold;
+    background-color: #DC0028;
+    text-indent: 5px;
+    background-repeat: repeat-x;
+    font-family: arial, verdana;
+    color: #ffffff;
+    font-size: 13px;
+    text-align: center; 
+    cursor: pointer;
+}
+
+.dataTable tbody tr:nth-child(even) {
+  background: #e7e8ec;
+  font-size: 13px;
+}
+.dataTable tbody tr:nth-child(odd) {
+  background: #FFF;
+  font-size: 13px;
+}
+

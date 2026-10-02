@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file.fileSystems-roots",function(f,b,e){var d=null;var c=f("./FileSystem");var a=f("cordova/exec");f("./fileSystems").getFs=function(h,g){function i(m){d={};for(var l=0;l<m.length;++l){var k=m[l];if(k){var j=new c(k.filesystemName,k);d[j.name]=j}}g(d[h])}if(d){g(d[h])}else{a(i,null,"File","requestAllFileSystems",[])}}});

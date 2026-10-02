@@ -1,6 +1,6 @@
 # Inventario y cobertura
 
-El análisis de 2026-10-02 cuenta 33517 archivos de la copia. La cobertura principal identifica 771 rutas lógicas en 2.090 JSP españoles o compartidos de autoservicio y plataforma. Se añaden 343 rutas de dependencias alcanzadas por referencias estáticas. Una ruta lógica puede ser una pantalla, wrapper, cuerpo, controlador o copia histórica. No son 771 pantallas públicas.
+El inventario de 2026-10-02 cuenta 33.518 archivos de la copia tras comprobar las rutas largas durante su incorporación a Git. El recuento inicial omitía un HTML de caché; véase [fuentes locales](../referencias/fuentes-locales.md). La cobertura principal identifica 771 rutas lógicas en 2.090 JSP españoles o compartidos de autoservicio y plataforma. Se añaden 343 rutas de dependencias alcanzadas por referencias estáticas. Una ruta lógica puede ser una pantalla, wrapper, cuerpo, controlador o copia histórica. No son 771 pantallas públicas.
 
 | Perfil      | Dominio      | Rutas documentadas | Matriz                                                  | Huellas                                       |
 | ----------- | ------------ | ------------------ | ------------------------------------------------------- | --------------------------------------------- |
@@ -27,7 +27,7 @@ Cada fila enumera fuentes BASE/CYC/IBER/COLL, número de versiones SHA-256, depe
 | ------------------------------------ | -------- |
 | recurso-o-soporte                    | 2866     |
 | runtime-java-y-configuracion         | 3176     |
-| dependencia-o-generacion-alternativa | 18532    |
+| dependencia-o-generacion-alternativa | 18533    |
 | localizacion-secundaria              | 6285     |
 | ayuda-sdk-administracion             | 568      |
 | fuente-funcional                     | 2090     |

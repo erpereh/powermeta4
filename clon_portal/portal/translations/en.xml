@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<labels>
+	<login>
+      <title>Connect to the ESS/MSS</title>
+      <welcome>Welcome to the Meta4 Self-Service.</welcome>
+	  <description1>Use this application to carry out</description1>
+	  <description2>such as modifying your personal information or viewing your payslips, and</description2>
+	  <description3>such as requesting to fill a vacancy or validating your employee requests.</description3>
+	  <descriptionemployee>employee tasks,</descriptionemployee>
+	  <descriptionmanager>work unit manager tasks,</descriptionmanager>
+	  <remember>Remember that to access this and other Self-Service sections, you must</remember>
+	  <rememberidentify>first log in.</rememberidentify>
+	  <loginhead>Please enter a username and password valid for this application</loginhead>
+	  <leyendhead>Login</leyendhead>
+	  <labeluser>Username:</labeluser>
+	  <labelpwd>Password:</labelpwd>
+	  <labellang>Language:</labellang>
+	  <buttonenter>Access</buttonenter>
+	  <userwrong>The username is required</userwrong>
+	  <pwdwrong>The password is required</pwdwrong>
+	  <modeClassic>Classic Version</modeClassic>	  
+	  <langlogin>2</langlogin>
+	  <copyright>All rights reserved.</copyright>
+	  <employeetittle>Employee</employeetittle>
+	  <employeesubtittle>Self-Service</employeesubtittle>
+	  <lnklost>I forgot my username/password</lnklost>
+	  <lnkCondition>Terms of Use</lnkCondition>
+	  <lnkPrivacy>Privacy Policy</lnkPrivacy>
+      	  <labelRequireCaptcha>Please type the following characters:</labelRequireCaptcha>
+      	  <labelRetypeCaptcha>Please retype the following characters:</labelRetypeCaptcha>
+	  <titleRequireCaptcha>Please type the following characters</titleRequireCaptcha>
+	  <titleRetypeCaptcha>Please retype the following characters</titleRetypeCaptcha>
+	  </login> 
+		<subtitle>
+			<userlogin>Enter your username</userlogin>
+			<pwdlogin>Enter your password</pwdlogin>
+			<selectlang>Select the login language</selectlang>
+			<buttonenter>Login</buttonenter>
+			<lnklost>Did you forget your username or password?</lnklost>
+			<lnkCondition>Terms of Use</lnkCondition>
+			<lnkPrivacy>Privacy Policy</lnkPrivacy>
+		</subtitle>
+		<error>
+			<_1>The username is required</_1>
+			<_2>The password is required</_2>
+		</error>
+</labels>

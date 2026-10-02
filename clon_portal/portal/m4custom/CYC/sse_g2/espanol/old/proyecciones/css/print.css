@@ -1,0 +1,51 @@
+@page { 
+  size: A4 landscape;
+  margin: 2%;
+}
+@media print {
+  html, body {
+    height: 210mm;
+    width: 297mm;
+  }
+}
+.boxshadow {
+  page-break-inside: avoid;
+}
+
+.container {
+  font-size: 7px;
+  width: 100% !important;
+}
+#charts {
+  /*display: block;*/
+  margin-top: 20px;
+  width: 100%;
+  text-align: center;
+  margin: auto;
+}
+.m10 {
+  position: relative;
+  text-align: center;
+}
+.m10 svg {
+  position: relative !important;
+  zoom: .8;
+}
+
+.ct-chart-1 svg {
+  /*position: absolute;*/
+  transform: translate(-140px, 0);
+}
+.ct-chart-2 svg {
+  /*position: absolute;*/
+  transform: translate(-140px, 0);
+}
+.ct-legend.ct-legend-inside {
+  position: absolute;
+  top: 0;
+  right: unset;
+  left: 60%;
+}
+.boxshadow.col-xs-12 {
+  border: 1px solid #aaa;
+}

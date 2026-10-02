@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - File: WEB-INF/classes/com/meta4/soapservices/services/rpc/PLCO_ES_WS_APP_USER/deploy.wsdd
+  - Description: Self generated deployment descriptor for PLCO_ES_WS_APP_USER Soap Service. 
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edificio Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+    xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+    <service name="PLCO_ES_WS_APP_USER" provider="java:RPC" style="wrapped" use="literal"> 
+
+
+        <namespace>http://schemas.meta4.com/</namespace>
+
+        <!-- 
+          - [SOAP] Service parameters
+          - <parameter name="scope" value="{request/session/application}"/>
+          -     "request" will get you a new object each request.
+          -     "application" uses a singleton (which should be thread-safe).  
+          -     "session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+          -->
+        <parameter name="scope" value="session"/>
+        <parameter name="className" value="com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_Es_Ws_App_UserService"/>
+        <parameter name="allowedMethods" value="*"/>
+
+        <!-- class for LogMessage object -->
+        <typeMapping 
+            qname="meta4:LogMessage" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.m4operations.LogMessage"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+        
+        <!-- class for M4SoapException object -->
+        <typeMapping 
+            qname="meta4:M4SoapException" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.exception.M4SoapException"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method PLCO_USER_ROLE_ORG -->
+        <typeMapping 
+            qname="meta4:Plco_User_Role_OrgOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_User_Role_OrgOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method PLCO_GET_REQUEST_STATUS -->
+        <typeMapping 
+            qname="meta4:Plco_Get_Request_StatusOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_Get_Request_StatusOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method M4LoadObject -->
+        <typeMapping 
+            qname="meta4:M4LoadobjectOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.M4LoadobjectOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+		<!-- class for node PLCO_ES_WS_APP_USER -->
+		<typeMapping 
+			qname="meta4:Plco_Es_Ws_App_UserBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_Es_Ws_App_UserBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Plco_Es_Ws_App_UserRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_Es_Ws_App_UserRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node PLCO_ES_WS_AU_REQUESTS -->
+		<typeMapping 
+			qname="meta4:Plco_Es_Ws_Au_RequestsBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_Es_Ws_Au_RequestsBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Plco_Es_Ws_Au_RequestsRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_Es_Ws_Au_RequestsRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node PLCO_ES_WS_AU_APP_VALUES -->
+		<typeMapping 
+			qname="meta4:Plco_Es_Ws_Au_App_ValuesBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_Es_Ws_Au_App_ValuesBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Plco_Es_Ws_Au_App_ValuesRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.plco_es_ws_app_user.Plco_Es_Ws_Au_App_ValuesRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+    </service>
+</deployment>
+
+

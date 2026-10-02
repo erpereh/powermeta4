@@ -1,0 +1,523 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: tech_0.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+
+/* tech style */
+
+/* page */
+body {background-color: #ffffff;color: #000000;font-family: Verdana,Arial,Helvetica,Sans-Serif}
+img{border-bottom: 0px;border-left: 0px;border-right: 0px;border-top: 0px}
+
+/* change password */
+.password1 {background-color: #ffffff; color: #b90000; font-size: 18px; FONT-WEIGHT: bold}
+.password2 {background-color: #ffffff; color: #195095; font-size: 12px;}
+.password3 {background-color: #41608b; color: #ffffff; font-size: 12px; font-weight: bold}
+.password4 {background-color: #eaf2ff; color: #2064b9; font-size: 12px; font-weight: bold; text-align: left;}
+.password5 {background-color: #ffffff; color: #2064b9; font-size: 10px;}
+.password6 {background-color: #ffffff; color: #b90000; font-size: 16px; FONT-WEIGHT: bold}
+.password7 {background-color: #ffffff; color: #195095; font-size: 12px;}
+
+/* estilo_sse */
+
+A:link
+{
+    BACKGROUND-COLOR: transparent;
+    BORDER-BOTTOM: #e0ffff;
+    BORDER-LEFT: #e0ffff;
+    BORDER-RIGHT: #e0ffff;
+    BORDER-TOP: #e0ffff;
+    COLOR: #2064b9;
+    TEXT-DECORATION: none
+}
+A:visited
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #2064b9;
+    TEXT-DECORATION: none
+}
+A:active
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #2064b9;
+    TEXT-DECORATION: none
+}
+A:hover
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #d40000;
+    TEXT-DECORATION: underline
+}
+TABLE.tabladatos
+{
+    BACKGROUND-COLOR: #ff4500;
+    COLOR: #000000
+}
+.tablaestadosceldatitulo
+{
+    BACKGROUND-COLOR: #41608b;
+    COLOR: #ffffff;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bold
+}
+.titulofuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #b90000;
+    FONT-SIZE: 18px;
+    FONT-WEIGHT: bold
+}
+.descripcionfuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #195095;
+    FONT-SIZE: 12px
+}
+.enlacefuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px
+}
+.calendario
+{
+    BACKGROUND-COLOR: #808cbf;
+    BORDER-BOTTOM: 1px;
+    BORDER-LEFT: 1px;
+    BORDER-RIGHT: 1px;
+    BORDER-TOP: 1px;
+    COLOR: #000000;
+    WIDTH: 35%
+}
+.colortabla
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #000000
+}
+.today
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #ff0000;
+    FONT-WEIGHT: bolder
+}
+.days
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #000080;
+    FONT-WEIGHT: bold
+}
+.fuentecampo
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #2064b9;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bold;
+    TEXT-ALIGN: left
+}
+.fuentecampo2
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #2064b9;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bold;
+    TEXT-ALIGN: left
+}
+.fuentevalor
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #000000;
+    FONT-SIZE: 10px;
+    TEXT-ALIGN: left
+}
+.fuentebarranombre
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #000000;
+    FONT-SIZE: 10px
+}
+.fuentelinktitulo
+{
+    BACKGROUND-COLOR: #41608b;
+    COLOR: #ffffff;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bolder
+}
+.fuentelinkcampo
+{
+    BACKGROUND-COLOR: #c2d7ed;
+    COLOR: #d40000;
+    FONT-SIZE: 10px
+}
+.tablalink
+{
+    BACKGROUND-COLOR: #41608b;
+    COLOR: #ffffff
+}
+.fuentedescripcion
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #195095;
+    FONT-SIZE: 13px
+}
+.fuentetitulomenu
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #b90000;
+    FONT-SIZE: 14px;
+    FONT-WEIGHT: bolder
+}
+.fuentedisclaimer
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px
+}
+TABLE.tablacabecera
+{
+    BACKGROUND-COLOR: #c2d7ed;
+    COLOR: #ffffff
+}
+.separador
+{
+    BACKGROUND-COLOR: #c60008;
+    COLOR: #ffffff
+}
+DIV.capamenu
+{
+    BACKGROUND-COLOR: #ffc0cb;
+    COLOR: #ffffff
+}
+TABLE.tablamenu
+{
+    BACKGROUND-COLOR: #f8dba5;
+    COLOR: #395a82
+}
+DIV.capalinks
+{
+    BACKGROUND-COLOR: #008000;
+    COLOR: #ffffff
+}
+DIV.capacuerpo
+{
+    BACKGROUND-COLOR: #ffe4c4;
+    COLOR: #ffffff
+}
+DIV.capadisclaimer
+{
+    BACKGROUND-COLOR: #0000ff;
+    COLOR: #ffffff
+}
+.fuentecapamenu
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: navy;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+TABLE.tablamenusuperior
+{
+    BACKGROUND-COLOR: #52a2c8;
+    COLOR: #ffffff
+}
+.fuentemenusuperior
+{
+    BACKGROUND-COLOR: #52a2c8;
+    COLOR: #ffffff;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+.fuentemenu
+{
+    BACKGROUND-COLOR: #f8dba5;
+    COLOR: #395a82;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+.fuentemenu1
+{
+    BACKGROUND-COLOR: #395a82;
+    COLOR: white;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+HR.barramenu
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #eebe8b
+}
+UL.listaenlace
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #fdbb58;
+    TEXT-ALIGN: left
+}
+.fuentecalendario1
+{
+    BACKGROUND-COLOR: #ffebcd;
+    COLOR: #6495ed
+}
+.fuentecalendario2
+{
+    BACKGROUND-COLOR: #add8e6;
+    COLOR: #6495ed
+}
+.fuentecalendario3
+{
+    BACKGROUND-COLOR: #ffdead;
+    COLOR: #6495ed
+}
+.fuentecalendario4
+{
+    BACKGROUND-COLOR: #dc143c;
+    COLOR: #6495ed
+}
+.fuentecalendario
+{
+    BACKGROUND-COLOR: #808cbf;
+    COLOR: #f0ffff;
+    FONT-SIZE: 12px;
+    TEXT-ALIGN: center
+}
+.separadorlinea
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #ffffff
+}
+.fuentecamponombre
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #b90000;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bold
+}
+.fuentecampoaccion
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #b90000;
+    FONT-SIZE: 12px
+}
+.fuentecampoaccion2
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #b90000;
+    FONT-SIZE: 12px
+}
+.fuentecampofiltro
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #b90000;
+    FONT-SIZE: 12px
+}
+A
+{
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+.fuentebarraregistros
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    BORDER-BOTTOM: #087aa8 1px solid;
+    BORDER-LEFT: #087aa8 1px solid;
+    BORDER-RIGHT: #087aa8 1px solid;
+    BORDER-TOP: #087aa8 1px solid;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder;
+    TEXT-ALIGN: center
+}
+.fuentebarraregistrosanulado
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    BORDER-BOTTOM: #087aa8 1px solid;
+    BORDER-LEFT: #087aa8 1px solid;
+    BORDER-RIGHT: #087aa8 1px solid;
+    BORDER-TOP: #087aa8 1px solid;
+    COLOR: #ff4500;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: lighter;
+    TEXT-ALIGN: center
+}
+.tablacapamenu
+{
+    BACKGROUND-COLOR: #f8dba5;
+    COLOR: #ffffff
+}
+.fuentemenuprincipal
+{
+    BACKGROUND-COLOR: #c2d7ed;
+    COLOR: #395a82;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+.acep
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #4169e1;
+    LIST-STYLE: square
+}
+.cance
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #e9967a;
+    LIST-STYLE: square
+}
+.fest
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #ffd700;
+    LIST-STYLE: square
+}
+.pend
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #dc143c;
+    LIST-STYLE: square
+}
+.tablanavegacion
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    BORDER-BOTTOM: #087aa8 thin solid;
+    BORDER-LEFT: #087aa8 thin solid;
+    BORDER-RIGHT: #087aa8 thin solid;
+    BORDER-TOP: #087aa8 thin solid;
+    COLOR: #ffffff
+}
+.fuenteformulario
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px
+}
+.fuenteboton
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+.fuentetitulomapa
+{
+    BACKGROUND-COLOR: #fff8eb;
+    COLOR: #3b5f91;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bolder
+}
+.fuentemapa
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #3b5f91;
+    FONT-SIZE: 10px
+}
+.tablamapa
+{
+    BACKGROUND-COLOR: #fff8eb;
+    BORDER-BOTTOM: #3b5f91 2px solid;
+    BORDER-LEFT: #3b5f91 2px solid;
+    BORDER-RIGHT: #3b5f91 2px solid;
+    BORDER-TOP: #3b5f91 2px solid;
+    COLOR: #3b5f91
+}
+.tablaplan
+{
+    BACKGROUND-COLOR: #fff8eb;
+    BORDER-BOTTOM: #3b5f91 2px solid;
+    BORDER-LEFT: #3b5f91 2px solid;
+    BORDER-RIGHT: #3b5f91 2px solid;
+    BORDER-TOP: #3b5f91 2px solid;
+    COLOR: #3b5f91
+}
+.fuentenodatos
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #a04107;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bolder;
+    TEXT-ALIGN: center
+}
+.fuenteformulario100
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px;
+    WIDTH: 100px
+}
+.fuenteformulario150
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px;
+    WIDTH: 150px
+}
+.fuenteformulario200
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px;
+    WIDTH: 200px
+}
+.tablamenuright
+{
+    TEXT-ALIGN: right
+}
+.tablamenuleft
+{
+    TEXT-ALIGN: left
+}
+.fuentevalor2
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #000000;
+    FONT-SIZE: 10px;
+    TEXT-ALIGN: left
+}
+.fuentebotonright
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #ffffff;
+    TEXT-ALIGN: right
+}
+.fuentebotonright2
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #ffffff;
+    TEXT-ALIGN: right
+}
+.tablaestadosceldatituloflecha
+{
+    BACKGROUND-COLOR: #41608b;
+    COLOR: #ffffff;
+    TEXT-ALIGN: right
+}
+.fuenteactualizar
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #b90000;
+    FONT-SIZE: 14px;
+    FONT-WEIGHT: bolder;
+    TEXT-ALIGN: center
+}
+.fuenteactualizar2
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #195095;
+    FONT-SIZE: 12px;
+    TEXT-ALIGN: center
+}
+.enlacenofuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #000000;
+    FONT-SIZE: 10px
+}
+
+/* change password */
+.password1 {background-color: #ffffff; color: #b90000; font-size: 18px; FONT-WEIGHT: bold}
+.password2 {background-color: #ffffff; color: #195095; font-size: 12px;}
+.password3 {background-color: #41608b; color: #ffffff; font-size: 12px; font-weight: bold}
+.password4 {background-color: #eaf2ff; color: #2064b9; font-size: 12px; font-weight: bold; text-align: left;}
+.password5 {background-color: #ffffff; color: #2064b9; font-size: 10px;}
+.password6 {background-color: #ffffff; color: #b90000; font-size: 16px; FONT-WEIGHT: bold}
+.password7 {background-color: #ffffff; color: #195095; font-size: 12px;}

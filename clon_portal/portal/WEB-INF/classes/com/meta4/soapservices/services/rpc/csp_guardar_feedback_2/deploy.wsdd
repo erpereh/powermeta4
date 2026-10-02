@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - File: WEB-INF/classes/com/meta4/soapservices/services/rpc/CSP_GUARDAR_FEEDBACK_2/deploy.wsdd
+  - Description: Self generated deployment descriptor for CSP_GUARDAR_FEEDBACK_2 Soap Service. 
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edificio Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+    xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+    <service name="CSP_GUARDAR_FEEDBACK_2" provider="java:RPC" style="wrapped" use="literal"> 
+
+
+        <namespace>http://schemas.meta4.com/</namespace>
+
+        <!-- 
+          - [SOAP] Service parameters
+          - <parameter name="scope" value="{request/session/application}"/>
+          -     "request" will get you a new object each request.
+          -     "application" uses a singleton (which should be thread-safe).  
+          -     "session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+          -->
+        <parameter name="scope" value="session"/>
+        <parameter name="className" value="com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Feedback_2Service"/>
+        <parameter name="allowedMethods" value="*"/>
+
+        <!-- class for LogMessage object -->
+        <typeMapping 
+            qname="meta4:LogMessage" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.m4operations.LogMessage"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+        
+        <!-- class for M4SoapException object -->
+        <typeMapping 
+            qname="meta4:M4SoapException" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.exception.M4SoapException"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method CSP_GUARDAR_FEEDBACK_2 -->
+        <typeMapping 
+            qname="meta4:Csp_Guardar_Feedback_2Output" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Feedback_2Output"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method M4LoadObject -->
+        <typeMapping 
+            qname="meta4:M4LoadobjectOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.M4LoadobjectOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+		<!-- class for node CSP_PASAR_ESTADO -->
+		<typeMapping 
+			qname="meta4:Csp_Pasar_EstadoBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Pasar_EstadoBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Pasar_EstadoRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Pasar_EstadoRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_INSERTAR_PUNTOS -->
+		<typeMapping 
+			qname="meta4:Csp_Insertar_PuntosBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Insertar_PuntosBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Insertar_PuntosRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Insertar_PuntosRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_GUARDAR_DATOS_FB -->
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Datos_FbBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Datos_FbBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Datos_FbRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Datos_FbRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_GUARDAR_COMENT_FB -->
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Coment_FbBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Coment_FbBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Coment_FbRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Coment_FbRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_GUARDAR_PUNTOS_FB -->
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Puntos_FbBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Puntos_FbBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Puntos_FbRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Puntos_FbRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_INSERTAR_ACCIONES -->
+		<typeMapping 
+			qname="meta4:Csp_Insertar_AccionesBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Insertar_AccionesBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Insertar_AccionesRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Insertar_AccionesRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_INSERTAR_DATOS_FB -->
+		<typeMapping 
+			qname="meta4:Csp_Insertar_Datos_FbBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Insertar_Datos_FbBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Insertar_Datos_FbRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Insertar_Datos_FbRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_GUARDAR_FEEDBACK_2 -->
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Feedback_2Block" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Feedback_2Block"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Feedback_2Record" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Feedback_2Record"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_GUARDAR_ACCIONES_FB -->
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Acciones_FbBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Acciones_FbBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Guardar_Acciones_FbRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_guardar_feedback_2.Csp_Guardar_Acciones_FbRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+    </service>
+</deployment>
+
+

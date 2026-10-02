@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<WebWorksHelpTOC version="4.0">
+ <i t="Como começar" l="0">
+  <i t="Ferramentas" l="1">
+   <i t="Lista de tarefas" l="2" />
+   <i t="Editar tarefas pessoais" l="3">
+    <i t="Como modificar uma tarefa pessoal existente" l="4" />
+    <i t="Como definir uma nova tarefa pessoal" l="5" />
+   </i>
+   <i t="Alterar a password de conexão" l="6" />
+   <i t="Personalizar as opções da sessão de trabalho" l="7" />
+   <i t="Planificador de tarefas" l="8">
+    <i t="Como definir as opções avançadas" l="9" />
+    <i t="Como estabelecer os parâmetros da planificação" l="10" />
+   </i>
+   <i t="Como consultar o estado das execuções" l="11">
+    <i t="Parâmetros de execução" l="12" />
+    <i t="Execuções das tarefas" l="13" />
+    <i t="Documentos gerados" l="14" />
+   </i>
+   <i t="Como..." l="15" />
+  </i>
+  <i t="Relatórios" l="16">
+   <i t="Como ver um gráfico publicado" l="17" />
+   <i t="Como gerar um relatório da empresa" l="18" />
+  </i>
+ </i>
+</WebWorksHelpTOC>

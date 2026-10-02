@@ -1,0 +1,15 @@
+<%-- =========================================================
+	@(#) FileVersion: 819.001.005
+	@(#) FileDescription: _log_declaration.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2022
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+
+<%-- ******************** Inicializa un objeto log  ******************** --%>
+<%
+	//Ver fichero .../properties/m4logsystem.cfg
+	//En ese fichero se indica dónde va la traza, en principio puede ser jsp.log o webservices.log
+	M4Logger m_log = M4Logger.getLogger("com.meta4.jsp");
+%>

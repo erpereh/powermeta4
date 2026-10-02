@@ -1,0 +1,149 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>meta4data basic</title>
+		
+		
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/console.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+					
+		<!-- syntax highlighter -->
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+		
+		
+		<!-- load example -->
+        <script type="text/javascript" src="/js_examples/resources/m4loadExample.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+		
+		<script>
+
+			var channel = null;
+
+			var example = {
+				example1 : function() {
+					/**
+					 *Function callback of load metadata
+					 */
+					function createChannel() {
+						channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+						console.log("load metadata");
+					}
+					//load metadata
+					meta4.data.loadMetadata(['EXJSAPI_COMPONENT'], createChannel);
+				},
+				example2 : function() {
+
+					/**
+					 *Function callback of success method
+					 */
+					function successMethod() {
+						console.log('method successfully executed');
+					}
+
+					if (channel == null) {
+						alert('Primero debe cargar los metadatos del canal');
+						return 0;
+					}
+
+					//create request
+					var request = new meta4.M4Request(channel, 'EXJSAPI_TUTORIAL', 'LOAD_BLK', null);
+					request.textLoading = "Loading channel";
+					//call server
+					meta4.data.execute(request, successMethod);
+				}
+			};
+			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_data_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+			
+		</script>	
+		
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>		
+			<div id="exampleContainer">
+			<h1 data-m4trans="_ComponentDataTitle"></h1>
+
+			<h2 data-m4trans="_ComponentDataSubTitle"></h2>
+			<p data-m4trans="_ComponentDataDescription"></p>
+			<ul>
+				<li><b class="bold">metea4.data.loadMetadata: </b><span data-m4trans="_ComponentDataListFirst"></span>
+					
+				</li>
+				<li><b class="bold">meta4.data.execute: </b><span data-m4trans="_ComponentDataListSecond"></span>
+					
+				</li>
+			</ul>
+
+			<br>
+
+			<h2 data-m4trans="_ComponentDataWrapTitle"></h2>
+
+			<p data-m4trans="_ComponentDataWrapDescription"></p>
+			
+				<p data-m4trans="_ComponentDataWrapUsage"></p> <pre class="brush: js;">var dataWrap = new meta4.dataWrap(new Element('div'));</pre> 
+		
+		<h2 m4trans="_ComponentDataLoadMetadataTitle"></h2>
+
+				<script>
+					m4loadExample('example.example1');
+				</script>
+
+				<p data-m4trans="_ComponentDataExecuteExample1"></p>
+				<div>
+					<button onclick="example.example1()" data-m4trans="_ComponentDataButtonLoadMetadata"></button>
+				</div>
+				<br>
+				<h2 data-m4trans="_ComponentDataChannelMethodExecution1"></h2>
+				<div>
+					<script>
+						m4loadExample('example.example2');
+					</script>
+				</div>
+				<p data-m4trans="_ComponentDataExecuteExample2"></p>
+				<div>
+					<button onclick="example.example2()" data-m4trans="_ComponentDataButtonExecuteMethods"></button>
+				</div>
+			</div>
+			</div>
+	</body>
+</html>
+

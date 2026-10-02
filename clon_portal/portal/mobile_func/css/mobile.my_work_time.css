@@ -1,0 +1,361 @@
+/*
+ @(#)FileVersion: 770.000.001
+ @(#)FileDescription: css for my my_work_time js
+ @(#)CompanyName: Meta4 Spain, S.A.
+ @(#)LegalCopyright: (c)2013
+ @(#)ProductName: PeopleNet
+ @(#)ProductVersion: 7.1SP7
+ @(#)InternalName: mobile.my_work_time.css
+ @(#)Date: 01/02/2013
+ */
+
+.m4-status-bar-task-no_selected {
+	width: 48%;
+	height: 100%;
+	margin-left: 1%;
+	margin-right: 1%;
+	background-color: gray;
+	float: left;
+}
+
+.m4-status-bar-task-left {
+	width: 48%;
+	height: 100%;
+	background-color: gray;
+	float: left;
+}
+.m4-status-bar-task-right {
+	width: 48%;
+	height: 100%;
+	background-color: gray;
+	float: left;
+	margin-left: 2px;
+}
+
+[data-theme="a"] .m4-status-bar-task-selected {
+	background-color: #c3cd1c;
+}
+
+[data-theme="b"] .m4-status-bar-task-selected {
+	background-color: #22a3d9;
+}
+
+#contentCalendar{
+	left:0px;	
+}
+
+#divNumberHours {
+	margin-top: 10px;
+	display: none;
+}
+
+#divControlSomeDays, #divHelp,#divControlOneDay, #divAbsenceRequest {
+	display: none;
+}
+
+#fieldSetOneDay{
+	margin: 0px;
+}
+
+#divControlSomeDays label {
+	float: left;
+	margin-top: 8px;
+	font-size: 0.8em;
+	color: white;
+}
+
+#switchEndHalfDay, switchStartHalfDay {
+	float: right;
+}
+
+.divSwitch, .divSwitchLabel {
+	display: inline-block;
+}
+.divSwitch {
+	float: right;
+}
+
+#divButtonRequestAbsence, #divButtonContinueRequestAbsence, #divButtonSendRequestAbsence {
+	width: 80%;
+	margin: 0 auto;
+}
+
+#divButtonContinueRequestAbsence, #divButtonSendRequestAbsence {
+	display: none;
+}
+
+.titleSummary {
+	font-size: 1.2em;
+	float: left;
+	clear: both;
+	width: 100%;
+}
+
+[data-theme="a"] .titleSummary {
+	color: white;
+}
+
+[data-theme="b"] .titleSummary {
+	color: black;
+}
+
+.divIconSummary {
+	float: left;
+	height: 100%;	
+	width: 10%;
+}
+.divResumeSummary{
+	width: 100%;
+	float: left;
+}
+.divResumeSummary2{
+	font-size: 0.9em;
+	width: 100%;
+	float: left;
+}
+
+.divResumeSummary2 img {
+	margin-left: 7px;
+}
+
+.divDetailSummary {	
+	display: none;
+	float: left;
+}
+.textResumeAvailable{
+	float: left;	
+	margin-left: 10px;
+}
+.textResume1 {	
+	float: left;	
+}
+
+.textResume2 {
+	float: left;
+	clear: right;
+	margin-left: 10px;
+}
+
+[data-theme="a"] .textResume2, [data-theme="a"] .textResumeAvailable  {
+	color: #f89553;
+}
+
+[data-theme="b"] .textResume2, [data-theme="b"] .textResumeAvailable  {
+	color: #7f3f98;
+}
+
+.textWarning {
+	color: #e3d108;
+	font-size: 0.9em;
+	margin-left: 0px
+}
+
+.textDetail1 {
+	font-size: 0.9em;
+	margin-left: 7px;
+	clear: left;
+}
+
+.textDetail2 {
+	font-size: 0.9em;
+	margin-left: 7px;
+	display: block;
+}
+
+[data-theme="a"] .textDetail2 {
+	color: #c3cd1c;/*6abcc3*/
+}
+
+[data-theme="b"] .textDetail2 {
+	color: #1d84b6;
+}
+
+.imgClose {
+	position: relative;
+	float: right;
+}
+
+.titleDaily {
+
+}
+
+[data-theme="a"] .infoDayTypeDay {
+	color: #36bdf5; 
+	font-size: 0.9em;
+}
+
+[data-theme="b"] .infoDayTypeDay {
+	color: #1d84b6; 
+	font-size: 0.9em;
+}
+
+
+.infoDayNameInc {
+
+}
+
+[data-theme="a"] .infoDayHoursInc {
+	color: #c3cd1c;/*6abcc3*/
+}
+
+[data-theme="b"] .infoDayHoursInc {
+	color: #1d84b6;/*6abcc3*/
+}
+
+.divInc, .divStatus {
+	margin-left: 5%;
+}
+
+.divButtonInc {
+	text-align: center;
+}
+
+[data-theme="a"] .infoDayStatusInc {
+	color: #6abcc3;
+}
+
+[data-theme="b"] .infoDayStatusInc {
+	color: #6abcc3;
+}
+
+#buttonBack {
+	display: none;
+}
+
+#fieldSetOneDay .ui-controlgroup-controls {
+	width: 100%;
+}
+
+#contentResumeRequest {
+	display: none;
+}
+
+[data-theme="a"] .labelResumeRequest1 {
+	color: white;
+	font-size: 0.8em;
+}
+
+[data-theme="b"] .labelResumeRequest1 {
+	color: black;
+	font-size: 0.8em;
+}
+
+[data-theme="a"] .labelResumeRequest2 {
+	color: #d2da55;
+	font-size: 0.8em;
+}
+
+[data-theme="b"] .labelResumeRequest2 {
+	color: #1d84b6;
+	font-size: 0.8em;
+}
+
+
+.m4-calendar-special-div {
+	width: 100%;
+	text-align: center;
+	display: table-row;
+}
+
+.m4-calendar-special-div label {
+	display: none;
+	font-size: 1em;	
+	color: white;
+	vertical-align: middle;
+}
+
+/* nth-of-type apply only to label inside div*/
+.m4-calendar-special-div label:nth-of-type(2)  {
+	display: inline-block;
+}
+
+
+.m4-calendar-special-div img {
+	display: none;	
+	vertical-align: middle;
+}
+/* nth-of-type apply only to img inside div*/
+.m4-calendar-special-div img:nth-of-type(1) {
+	display: inline-block;
+}
+
+#inputNumHours {
+	margin-top: 10px;
+	background-image: -webkit-linear-gradient( #716868,#5c5555);
+	width: 100%;
+}
+
+.buttonClose {	
+	width: 32px;
+	height: 32px;	
+	float: right;	
+	display: none;
+	margin-top: 10px;
+	background-repeat:no-repeat;
+	background-position:center; 
+}
+[data-theme="a"] .buttonClose {
+	background-image: url("../icons/close_a.png");	
+}
+[data-theme="b"] .buttonClose {
+	background-image: url("../icons/close_b.png");	
+}
+
+#closePopupAbsenceRequest {	
+	background-repeat:no-repeat;
+	background-position:center; 
+	border-style:none;
+}
+[data-theme="a"] #closePopupAbsenceRequest {
+	background-image: url("../icons/close_a.png");	
+}
+[data-theme="b"] #closePopupAbsenceRequest {
+	background-image: url("../icons/close_b.png");	
+}
+
+#divAbsenceRequest{
+	margin-top: 30px;	
+}
+
+.divInfoSummary{
+	margin-bottom: 15px;
+	float: left;
+	width: 100%;
+}
+
+.divContentSummary{	
+	width: 90%;
+	float: left
+}
+
+.imgWarning{
+	float:left;
+	clear:both;
+	margin-right: 10px;
+}
+
+[data-theme="a"] .numberDaysFloating{
+	color: #d2da55;
+}
+
+[data-theme="b"] .numberDaysFloating{
+	color: #7f3f98;
+}
+
+.layerHour{
+	display: block !important;
+}
+
+[data-theme="a"] .msgHelp{
+	font-size: 0.9em;
+	color: #f89553;
+}
+
+[data-theme="b"] .msgHelp{
+	font-size: 0.9em;
+	color: #7f3f98;
+}
+
+.contentWorkTime{
+	overflow:auto;
+}

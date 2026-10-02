@@ -1,0 +1,1 @@
+src= "/iconos/icono_eliminar_ess_11_12.gif"height ="12" width= "11"onmouseover ="m4luztotal(this,255,255,255,8,8,200,255,255,255)" onmouseout="m4oscuridad(this)" 

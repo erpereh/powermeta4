@@ -1,0 +1,440 @@
+body{
+   font-size:14px;
+   font-family:Arial, Helvetica, sans-serif;
+ }
+
+.loginheader {
+   background-color: transparent;
+   background-image: url(../images/background_title.jpg);
+   background-repeat: no-repeat;
+   height: 90px;
+   margin: auto;
+}
+
+.logintittle {
+   font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+   color: whitesmoke;
+   padding: 24px 0px 0px 115px;
+   font-size: 18px;
+   font-weight: bold;
+   font-style: italic;
+}
+
+.logintittle #employeesubtittle {
+   float:left;
+   margin: auto 190px;
+   color: #ace4f5;
+   font-size: 13px;
+   font-style: normal;
+}
+
+.body-content {
+  width:800px;
+  margin: 5px auto;
+}
+
+.allbody {
+  margin: 10px 0 0 0;
+  background-image: url(../images/main_login.jpg);
+  background-repeat: no-repeat;
+  background-position: right;
+  height:400px;
+}
+
+.frmlogin {
+   width:280px;
+   margin: 50px 0 0 250px;
+}
+
+#frmlogin legend {
+   margin:0 0 0 5px;
+   font-size:14px;
+   color:#005fc9;
+   padding:2px 6px;
+}   
+
+#frmlogin label {
+  color:#b4b4b4;
+  font-size:11px;
+  float:left;
+  text-align: right;
+  display: block;
+  width: 90px;
+  margin: 3px 5px 0 5px;
+}
+
+#frmlogin .labelfocus {
+  color:#005fc9;
+}
+
+#frmlogin .labelnofocus {
+  color:#000;
+}
+
+#frmlogin input {
+   font-size:12px;
+   width:150px;
+}
+
+#frmlogin .inputnofocus {
+   color:#781351;
+   border: 1px solid #000;
+}
+
+#frmlogin .inputfocus {
+   color:#000;
+   border: 1px solid #005fc9;
+}
+
+#frmlogin select {
+   width: 155px;
+   margin: 2px 0 0 0;
+   font-size: 12px;
+}
+
+#frmlogin .selectnofocus {
+   color:#781351;
+   background-color: #f5f5f5;
+}
+
+#frmlogin .selectfocus {
+   color:#005fc9;
+}
+
+.langdiv {
+   margin: 2px;
+}
+
+#langdiv span {
+   float:left;
+   color:#b4b4b4;
+   margin: 2px 5px 0 5px;
+   font-size:11px;
+   cursor: pointer;
+   width:50px;
+   text-align: center;
+   border: 2px solid #e8e8d0;
+   background-color: whitesmoke;
+}
+
+#enterdiv {
+  margin: 5px 0px 5px 0px;
+}
+
+#enterdiv input {
+   margin: 5px 0 0 80px;
+   cursor: pointer;
+   text-align: center;
+   padding: 1px;
+   width: 100px;
+   font-size: 12px;
+   border: 1px solid #005fc9;
+}
+
+#enterdiv .enterloginfocus {
+   color:#fff;
+   background-color:#005fc9;
+}
+
+#enterdiv .enterloginnofocus {
+   color:#000;
+   background-color:#f5f5f5;
+}
+
+#enterdiv a {
+  font-size:18px;
+  text-decoration: none;
+  color: #005fc9;
+  margin: 0px 0px 0px 60px;
+  display: inline-block;
+}
+.datadiv {
+  margin: 5px 0 0 0;
+  width:100%;
+}
+
+.imglogin {
+   background-image: url(/iconos/main_login1.jpg);
+   background-repeat: no-repeat;
+   height: 395px;
+   width: 377px;
+   margin: 0 0 0 420px;
+}
+
+.body-clearfloat {
+    clear:both;
+    height:0;
+    font-size: 1px;
+    line-height: 0px;
+}    
+
+.footer-disclaimer {
+   margin:10px auto;
+   text-align: center;
+   font-size: 11px;
+   color: #0e033f;
+   background-color: #f9f9f9;
+   width:800px;
+}
+
+.divrigth {
+   font-size: 9px;
+   display: block;
+   margin: 0px 0 0px 100px;
+   width: 150px;
+   padding: 1px;
+   height: 0px;
+}
+
+.divwrong {
+   height: 12px;
+   color: #c51022;
+}
+
+#divspinner {
+   background-image: url("/ssco_migrate/process/images/spinner.gif");
+   background-repeat: no-repeat;
+   background-position: center center;
+   background-color: #fdfdfd;
+   height:400px;
+   width:100%;
+}
+
+#divbodymain {
+  visibility:'hidden';
+}
+
+.bodyprocess {
+   background-color: #FCFCFC;
+}
+.frmprocess {
+   font-size:12px;
+   min-width: 1000px;
+}
+
+.frmprocess legend {
+   font-size:18px;
+}
+
+.frmprocess .labelfocus {
+  color:#000;
+}
+
+.frmprocess .labelnofocus {
+  color:#B4B4B4;
+}
+
+.frmprocess div {
+   margin: 1px 0px;
+}
+
+.frmprocess div label{
+  color:#B4B4B4;
+  float:left;
+  text-align: right;
+  display: block;
+  width: 200px;
+  margin: 4px 5px 0 5px;
+}
+
+.frmprocess div .labelnofocus{
+  color:#000;
+}
+
+.frmprocess div input{
+  color:#781351;
+  border: 1px solid #e8e8e6;
+  background-color: #f5f5f5;
+  margin: 0 0 2px 2px;
+  width: 48px;
+}
+
+.frmprocess .inputnofocus {
+   color:#781351;
+   border: 1px solid #e8e8e6;
+   background-color: #f5f5f5;
+}
+
+.frmprocess .inputfocus{
+   color:#000;
+   border: 1px solid #000080;
+   background-color: #e8e8e6;
+}
+
+.frmprocess div #idPageProc {
+    width: 500px; 
+}
+
+.frmprocess div select{
+   color:#781351;
+   width: 55px;
+   margin: 0 0 2px 2px;
+   border: 1px solid #e8e8e6;
+   background-color: #f5f5f5;
+}
+
+.frmprocess .divsep {
+   display: block;
+   border: 1px solid  #D6D6D6;
+   margin: 10px 2% 10px 2%;
+}
+
+.frmprocess .divgroup input{
+   font-size:13px;
+   font-weight:bolder;
+   margin: 0 0 0 2px;
+   text-align: center;
+   padding: 1px;
+   width: 120px;
+   border: 1px solid whitesmoke;
+   color: #fff;
+   background-color:#005fc9;
+}
+
+.frmprocess table {
+  width:100%;
+  padding: 1px 2px 1px 2px;
+  text-align:left;
+}
+
+.frmprocess table thead {
+   font-size:14px;
+   background-color:#68A2F9;
+   color:#fff;
+}
+.frmprocess table thead #lblidGroupGrps {
+  width:24px;
+}
+
+.frmprocess table thead #lblnmGroupGrps {
+  width:40%;
+}
+
+.frmprocess table thead #lblnmSiteGrps {
+  width:60%;
+}
+
+.frmprocess table thead #lblnSubmenuGrps {
+  width:5px;
+}
+
+.frmprocess table thead #lblchkProcess {
+  width:22px;
+}
+
+.frmprocess table input {
+  background-color: #fff;
+}
+.frmprocess table .idgroup {
+  width:22px;
+  float:left;
+  text-align: center;
+}
+.frmprocess table .idnamegroup {
+  width:330px;
+  float:left;
+  text-align: left;
+}
+
+.frmprocess table .idsitegroup {
+  width:500px;
+  float:left;
+  text-align: left;
+}
+
+.frmprocess table .idchecked {
+  width:20px;
+  background-color: #fcfcfc;
+  border:0;
+}
+
+.divbutton input {
+   margin: 5px 5px 0 0;   
+   float:right;
+   width:80px;
+   color:#000;
+   background-color: #fcfcfc;
+   border: 1px solid #005fc9;   
+}
+
+.divtable table {
+  font-size:12px;
+  margin: 2px;
+  padding: 2px;
+  border:solid 1px;
+  background-color: #fcfcfc;
+}
+
+.divtable caption {
+   color:#619C69;
+   font-size:12px;
+   text-align:left;
+   padding: 2px 0 2px 5px;
+   background-color: whitesmoke;
+   border:solid 1px #005fc9;
+}
+
+.divtable .nofound{
+  color:#E0625F;
+}
+.divtable caption span{
+  font-weight:bold;
+}
+
+.divtable caption .cpitalic{
+  font-weight:normal;
+  font-style:italic;
+}
+
+.divtable table thead {
+   font-size:14px;
+   background-color:#68A2F9;
+   color:#fff;
+}
+
+.divtable table thead #lblcheck {
+   width:24px; 
+}
+
+.divtable table thead #lblidmenu {
+   width:50px; 
+}
+
+.divtable table thead #lblidparentmenu {
+   width:50px; 
+}
+
+.divtable table thead #lblmenuname {
+   width:20%; 
+}
+
+.divtable table thead #lblsite {
+   width:25%; 
+}
+
+.divtable table thead #lblcoment {
+   width:55%; 
+}
+
+.divtable table input {
+  color: #781351;
+  border: 1px solid #e8e8e6;
+  margin: 0 0 1px 1px;
+  font-size:10px;
+}
+
+.divtable table .green {
+  color: #619c69;
+}
+
+.divtable table .blue {
+  color: #0066cc;
+}
+
+.divtable table .red {
+  color: #cc0033;
+}
+
+.divtable table .idcheck {
+   border:0;
+}

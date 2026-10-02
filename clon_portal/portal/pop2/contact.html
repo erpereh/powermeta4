@@ -1,0 +1,31 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <title>HR Experience</title>
+        <script>
+            var urlParams = new URLSearchParams(window.location.search)
+            var language = urlParams.get("lang")
+            if (!language) language = navigator.language.substring(0, 2)
+            var url = "https://www.cegid.com/global/contact/"
+            switch (language) {
+                case "fr":
+                    url = "https://www.cegid.com/fr/contact/"
+                    break
+                case "es":
+                    url = "https://www.cegid.com/ib/es/contacto/"
+                    break
+                case "pt":
+                    url = "https://www.cegid.com/ib/pt/contacte-nos/"
+                    break
+                default:
+                    break
+            }
+            window.location.assign(url)
+        </script>
+    </head>
+
+    <body>
+        <noscript><strong>We're sorry but HR Framework doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript>
+    </body>
+</html>

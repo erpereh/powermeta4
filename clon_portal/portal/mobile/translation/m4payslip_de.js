@@ -1,0 +1,1 @@
+﻿var _emptyPayslipList="Keine Nachrichten zum Anzeigen";var _metadataError="Nachrichten können nicht angezeigt werden";var _methodError="Nachrichten können nicht angezeigt werden";var _payslip_title_toolbar="Letzte Abrechnungen";

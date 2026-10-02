@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<labels>
+	<login>
+      <title>Connect to the Migration Process</title>
+      <logintittle>ESS/MSS Menu Migration Process</logintittle> 
+	  <leyendhead>Login</leyendhead> 
+	  <labeluser>Username:</labeluser> 
+	  <labelpwd>Password:</labelpwd> 
+	  <labellang>Language:</labellang> 
+	  <buttonenter>Access</buttonenter> 
+	  <userwrong>The username is required</userwrong> 
+	  <pwdwrong>The password is required</pwdwrong> 
+	  <langlogin>2</langlogin> 
+	  <copyright>All rights reserved</copyright>
+	</login> 
+	<subtitle>
+		<userlogin>Enter your username</userlogin> 
+		<pwdlogin>Enter your password</pwdlogin> 
+		<selectlang>Select the login language</selectlang> 
+		<buttonenter>Login</buttonenter>
+	 </subtitle> 
+	 <error>
+		<_1>The username is required</_1> 
+		<_2>The password is required</_2>
+	 </error>
+</labels>

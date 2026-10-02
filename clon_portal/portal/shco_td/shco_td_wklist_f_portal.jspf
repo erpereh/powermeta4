@@ -1,0 +1,45 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: shco_td_wklist_f_portal.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+<m4:checklink taskname="shco_td">
+<%	//requiere shco_gen_taglib.jsp, shco_gen_portal_load.jsp, shco_gen_bag.jsp, shco_gen_css.jsp,
+	// así como definir zsubsesion, zm4object, znodoraiz, znodo
+	// es decir, se debe usar sólo en el ámbito del portal. 	
+  	String zdireccion = z_gPortal;  
+    String zredireccion = z_gPortal;
+	String z_portal_f = "1";
+	String zsWklistMaxIndex = "4";
+%>
+<%@ include file="shco_td_wklist_f_m4def.jsp" %>
+<%@ include file="shco_td_wklist_f_vardef.jsp" %>
+<%@ include file="../shco_g0/shco_gen_label.jsp" %>
+<%@ include file="shco_td_wklist_f_execprocess.jsp" %>
+<%@ include file="shco_td_wklist_f_fnodes.jsp" %>
+<%@ include file="../shco_g0/shco_gen_datadef.jsp" %>
+<%@ include file="shco_td_wklist_f_bexec.jsp" %>
+<%@ include file="../shco_g0/shco_gen_exec.jsp" %>
+<%@ include file="shco_td_wklist_f_outputdef.jsp" %>
+<%@ include file="shco_td_wklist_f_cabec.jsp" %>
+<table width="100%" class="wizard">
+	<tr><td><table class="subwizard" width="100%" cellspacing="0" cellpadding="2">
+				<tr><td class="titulo" ><%=Tran_shco_portal_code.getProperty("portal.1")%></td>
+				<td class="titulo">
+					<a tabindex="" title="<m4:label m4name="<%=zSHCOLBLIST%>" htmlsafe="true"/>"
+					href="" onclick="m4navegar('/servlet/CheckSecurity/JSP/<%=zWklistPag%>');return false;">
+					<img alt="<%=Tran_shco_portal_code.getProperty("portal.1")%>" <%@ include file="../files_gif/ic_list.jsp"%>  />
+					</a>
+				</td></tr>
+				<tr><td class="subwizard"></td></tr>
+				<tr><td class="wzdesactivado">&nbsp;</td></tr>
+       		</table>
+      </td>	</tr>
+	<tr><td><%@ include file="shco_td_wklist_f_block1.jsp" %></td></tr>
+	<tr><td><%@ include file="shco_td_wklist_f_block2.jsp" %></td></tr>
+</table>
+<%@ include file="shco_td_wklist_f_oblock.jsp" %>
+</m4:checklink>

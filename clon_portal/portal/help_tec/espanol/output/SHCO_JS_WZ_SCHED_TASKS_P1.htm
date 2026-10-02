@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/11/05 16:13:31" />
+    <title>Planificador de tareas</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp1311237"> </a><h2 class="pTitle">
+Planificador de tareas
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_JS_WZ_SCHED_TASKS_P1-->
+<p class="bodytex"> Finalidad</p>
+<a name="wp1311254"> </a><p class="pBody">
+En este formulario describe los pasos que se tienen que seguir para configurar la planificación de una tarea.
+</p>
+<a name="wp1312729"> </a><p class="pBody">
+La tarea se puede considerar como un modelo preparado que sirve de punto de partida para definir un trabajo o tarea de grupo. Se trata de una pieza de código LN4 con un conjunto de parámetros que no tienen un valor definido. Una vez asignados los valores a estos parámetros, la tarea se convierte en una tarea del grupo propiamente dicha. La finalidad de las tareas es reducir el tiempo de creación de las tareas del grupo.
+</p>
+<a name="wp1311687"> </a><p class="pBody">
+El Planificador de tareas evita la repetición de ciertas tareas. Con él se puede definir una serie de tareas para ejecutarlas en diferido en un momento dado o siempre que se cumplan ciertas condiciones temporales.
+</p>
+<a name="wp1311689"> </a><p class="pBody">
+El Planificador de tareas permite gestionar todos los procesos relacionados con la creación y el mantenimiento de las tareas diferidas.
+</p>
+<p class="bodytex"> Acciones</p>
+<a name="wp1311178"> </a><p class="pBody">
+Desde esta pantalla puedes tanto introducir una nueva tarea en el sistema como editar los datos relativos a otra que ya forme parte de él.
+</p>
+<a name="wp1311747"> </a><p class="pBody">
+Para ello sigue estos procesos y recomendaciones:
+</p>
+<ol>
+<li class="numero">Haz clic en el botón <b class="cBold">Nuevo</b> para planificar una nueva tarea o filtra por el código identificativo de la tarea o el nombre, grupo de tareas o usuario de ejecución para editar una tarea planificada previamente. También tienes la opción de filtrar por los estados: </li>
+<ul class="item">
+<li><b class="cBold">Finalizado: </b>recupera los grupos de tareas cuyas ejecuciones planificadas hayan finalizado. Es decir, relaciona los grupos de tareas que no tengan ninguna ejecución con estado <em class="cEmphasis">Esperando, En ejecución, Cancelando, Abortando</em>.</li>
+<li><b style="font-weight: bold" class="cBold">Iniciado:</b><span style="font-weight: normal"> recupera los grupos de tareas de los que se haya iniciado alguna de las ejecuciones pero no se hayan terminado de ejecutar todas. Considera ejecuciones que aún no se han ejecutado aquellas que tienen estado: </span><em style="font-weight: bold" class="cEmphasis">Esperando, En ejecución, Cancelando, Abortando</em><span style="font-weight: normal">.</span></li>
+<li><b style="font-weight: bold" class="cBold">No iniciado: </b><span style="font-weight: normal">recupera los grupos de tareas cuyas ejecuciones todavía no se hayan iniciado. Concretamente, muestra los grupos cuyas ejecuciones estén en estado </span><em style="font-weight: bold" class="cEmphasis">Esperando</em><span style="font-weight: normal">.</span></li>
+<p class="cont">Haz clic en el botón <img src="images/ic_search_36_36_0.gif" id="wp1311829" border="0" hspace="0" vspace="0"/>. Registra de manera obligatoria el 
+<span style="font-weight: bold">Grupo de tarea</span> y el <span style="font-weight: bold">ID Tarea</span>, nombre y código identificativo de 
+la tarea.
+</p>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+El <em class="cEmphasis">grupo de tareas</em> es una sucesión de tareas del grupo que se ejecutan en un orden concreto. Cuando se define un grupo de tareas, se le asigna un nombre, un código identificativo, una descripción, unos parámetros y, posteriormente, se asignan valores a estos parámetros. Se indica la tarea que forma parte del grupo, así como la fecha en la que ha de ejecutarse, la cual queda determinada por las reglas temporales.
+</p></td></tr>
+</table><br/></ul>
+<li class="numero">Selecciona de forma obligatoria las opciones de <b class="cBold">Reglas de tiempo</b>, es decir, indica las reglas temporales que determinan cuándo se ejecutará el grupo de tareas: </li>
+<ul class="dash">
+<li><b class="cBold">Inmediato</b>, se ejecutará en cuanto sea posible.</li>
+<li><b class="cBold">Cíclico</b>, para lo que deberás indicar una fecha de comienzo a partir de la cual se ejecutará el grupo de tareas a intervalos regulares y establecer el número de veces que se va a ejecutar el grupo, que en el modo cíclico nunca podrá superar las 500. Para esta opción:</li>
+<ul class="dash">
+<li>establece el número de veces que se ejecutará el grupo. El contenido de la opción <b class="cBold">Hasta</b> se actualizará automáticamente en función del número de ejecuciones que se introduzca.</li>
+<li><b class="cBold">Hasta</b>: si activas esta opción, en lugar de establecer un número de ejecuciones, deberás indicar la fecha y hora límite hasta las que se podrá ejecutar el grupo. El número de veces que se podrá ejecutar cambiará en función de la fecha de inicio y la periodicidad establecidas.</li>
+</ul>
+<li><b class="cBold">Lista de fechas</b>: puedes crear una lista de fechas en las que debe ejecutarse el grupo. Se fija el día y la hora de ejecución. Existe un cuadro de texto en el que se introducen las fechas. Para gestionarlo tienes los botones <b class="cBold">Añadir</b>, <b class="cBold">Borrar seleccionada</b> y <b class="cBold">Borrar todas</b>. Las fechas introducidas siempre tienen que ser posteriores al momento actual.</li>
+<p class="cont">Una vez que se ha seleccionado el modo de ejecución, para 
+terminar de definir las reglas de tiempo, registra de forma 
+obligatoria:
+</p>
+<li><b class="cBold">ID Franja horaria</b>: menú desplegable en el que debes seleccionar la zona horaria que se utilizará para determinar el momento de ejecución del grupo. </li>
+<li><b class="cBold">Expira después de</b>: cuadro de grupo en el que se define la expiración que se aplicará a cada ejecución; así, si pasado el tiempo especificado no se ha iniciado la ejecución del grupo, ya no se iniciará. El tiempo se indica en minutos.</li>
+</ul>
+<li class="numero">Registra de manera opcional: </li>
+<ul class="item">
+<li>Descripción del grupo para aclarar su finalidad.</li>
+<li>Sociedad, sobre la que se van a ejecutar las tareas, en el caso de que esté trabajando en un entorno multisociedad.</li>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+A la hora de seleccionar la sociedad, puedes optar por que la ejecución del grupo de tareas sea para una única sociedad; si, por el contrario, hace una selección múltiple, se generarán tantos grupos de tareas como sociedades haya seleccionado.
+</p></td></tr>
+</table><br/></ul>
+<li class="numero">Haz clic en los enlaces o utiliza los botones de navegación de esta página para completar la configuración. Así podrás introducir información relativa a: </li>
+<ul class="item">
+<li><span style="font-weight: bold">Opciones avanzadas</span>. Más información: <a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_SCHED_TASKS_P4.htm#wp1181217');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_SCHED_TASKS_P4.htm#wp1181217', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Cómo definir las opciones avanzadas</a>.</li>
+<li><b class="cBold">Parámetros</b>. Más información: <a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_SCHED_TASKS_P2.htm#wp1311453');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_SCHED_TASKS_P2.htm#wp1311453', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Cómo establecer los parámetros de la planificación</a>.</li>
+<li><b class="cBold">Ejecuciones</b>. Más información: <a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_TASK_EXE_P1.htm#wp1311446');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_TASK_EXE_P1.htm#wp1311446', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Cómo consultar el estado de las ejecuciones</a>.</li>
+</ul>
+</ol>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

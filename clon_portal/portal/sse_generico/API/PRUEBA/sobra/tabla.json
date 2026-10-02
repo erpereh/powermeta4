@@ -1,0 +1,154 @@
+{
+	"RP_PROYECCIONES": {
+		"00_DATOS_PROYECCION": {
+			"n_real_pays": 1,
+			"n_cols_tot": 16,
+			"id_hr": "0000",
+			"nm_first_name": "Name",
+			"nm_family_name": "Surnames",
+			"nm_category": "Category 1",
+			"nm_work_location": "Madrid - Paseo de la Castellana",
+			"nm_pay": ["nm_pay_01", "nm_pay_02", "nm_pay_03", "nm_pay_04", "nm_pay_05", "nm_pay_06", "nm_pay_07", "nm_pay_08", "nm_pay_09", "nm_pay_10", "nm_pay_11", "nm_pay_12", "nm_pay_13", "nm_pay_14", "nm_pay_15", "nm_pay_16"] // 20 PAY MAX
+		},
+		// Direct remuneration
+		"01_SALARIO_CONVENIO": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"02_COMP_ORG": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"03_COMP_FUNCIONAL": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"04_TOTAL_RET_FIJA": [
+			{
+				"tot_pays": [12700.44000011, 12700.44000011] // 20 PAY MAX
+			}
+		],
+		"05_RET_VAR": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"06_TOT_RET_VAR": [
+			{
+				"tot_pays": [12700.44000011, 12700.44000011] // 20 PAY MAX
+			}
+		],
+		"07_BASE_RET_VAR": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"08_SEG_SOC": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		// Indirect Retribution
+		"09_VAL_ESPECIE": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"10_CONTRATO_SEGUROS": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"11_COMPRO_JUB": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"12_PLAN_PREV_EMP": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"13_RP_APORTACION_DEFINIDA": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"14_INV_FORMACION": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"15_AYUDAS": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"16_DIET_KM": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"17_COMIDAS": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		],
+		"18_RET_FLEX": [
+			// One or many
+			{
+				"concept": "Concept Text",
+				"pays": [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays": 4000.12000022
+			}
+		]
+	}
+}

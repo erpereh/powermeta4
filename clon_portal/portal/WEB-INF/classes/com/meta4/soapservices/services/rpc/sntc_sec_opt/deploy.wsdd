@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - File: WEB-INF/classes/com/meta4/soapservices/services/rpc/SNTC_SEC_OPT/deploy.wsdd
+  - Description: Self generated deployment descriptor for SNTC_SEC_OPT Soap Service. 
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edificio Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+    xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+    <service name="SNTC_SEC_OPT" provider="java:RPC"> 
+
+
+        <namespace>http://schemas.meta4.com/</namespace>
+
+        <!-- 
+          - [SOAP] Service parameters
+          - <parameter name="scope" value="{request/session/application}"/>
+          -     "request" will get you a new object each request.
+          -     "application" uses a singleton (which should be thread-safe).  
+          -     "session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+          -->
+        <parameter name="scope" value="session"/>
+        <parameter name="className" value="com.meta4.soapservices.services.rpc.sntc_sec_opt.Sntc_Sec_OptService"/>
+        <parameter name="allowedMethods" value="*"/>
+
+        <!-- class for LogMessage object -->
+        <typeMapping 
+            qname="meta4:LogMessage" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.m4operations.LogMessage"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method VALIDATE_OPTION -->
+        <typeMapping 
+            qname="meta4:Validate_OptionOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_sec_opt.Validate_OptionOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method M4LoadObject -->
+        <typeMapping 
+            qname="meta4:M4LoadobjectOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_sec_opt.M4LoadobjectOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+		<!-- class for node SNTC_SEC_OPT -->
+		<typeMapping 
+			qname="meta4:Sntc_Sec_OptBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_sec_opt.Sntc_Sec_OptBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Sntc_Sec_OptRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_sec_opt.Sntc_Sec_OptRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+    </service>
+</deployment>
+
+

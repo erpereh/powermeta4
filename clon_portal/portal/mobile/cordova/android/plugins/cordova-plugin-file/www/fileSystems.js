@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file.fileSystems",function(c,a,b){b.exports.getFs=function(e,d){d(null)}});

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- [=======================================================] -->
+<!-- @(#) FileVersion: 822.004.002                             -->
+<!-- @(#) FileDescription: SoapServices configuration (AXIS).  -->
+<!-- @(#) CompanyName: Meta4 Spain, S.A.                       -->
+<!-- @(#) LegalCopyright: (c) 2025                             -->
+<!-- @(#) ProductName: PeopleNet                               -->
+<!-- [=======================================================] -->
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+    <globalConfiguration>
+        <parameter name="adminPassword" value="admin"/>
+        <parameter name="attachments.Directory" value="c:\meta4\webservices\WEB-INF\attachments"/>
+        <parameter name="attachments.implementation" value="org.apache.axis.attachments.AttachmentsImpl"/>
+        <parameter name="axis.disableServiceList" value="true"/>   
+        <parameter name="axis.sendMinimizedElements" value="true"/>
+        <parameter name="sendMultiRefs" value="false"/>
+        <parameter name="sendXMLDeclaration" value="true"/> 
+        <parameter name="sendXsiTypes" value="true"/>
+        <parameter name="dotNetSoapEncFix" value="true"/>
+        <!-- Fix JWS exception CSS 3536422  
+        <requestFlow>
+            <handler type="java:org.apache.axis.handlers.JWSHandler">
+                <parameter name="scope" value="session"/>
+            </handler>
+            <handler type="java:org.apache.axis.handlers.JWSHandler">
+                <parameter name="scope" value="request"/>
+                <parameter name="extension" value=".jwr"/>
+            </handler>
+        </requestFlow>
+        -->
+    </globalConfiguration>
+    
+    <handler name="URLMapper" type="java:org.apache.axis.handlers.http.URLMapper"/>
+    <handler name="LocalResponder" type="java:org.apache.axis.transport.local.LocalResponder"/>
+    <handler name="Authenticate" type="java:org.apache.axis.handlers.SimpleAuthenticationHandler"/>
+    <handler name="RPCDispatcher" type="java:org.apache.axis.providers.java.RPCProvider"/>
+    <handler name="MsgDispatcher" type="java:org.apache.axis.providers.java.MsgProvider"/>
+    
+    <service name="AdminService" provider="java:MSG">
+        <parameter name="allowedMethods" value="AdminService"/>
+        <parameter name="enableRemoteAdmin" value="false"/>
+        <parameter name="className" value="org.apache.axis.utils.Admin"/>
+        <namespace>http://xml.apache.org/axis/wsdd/</namespace>
+    </service>
+    
+    <service name="Version" provider="java:RPC">
+        <parameter name="allowedMethods" value="getVersion"/>
+        <parameter name="className" value="org.apache.axis.Version"/>
+    </service>
+    
+    <service name="M4MetadataService" provider="java:RPC">
+        <parameter name="allowedMethods" value="*"/>
+        <parameter name="className" value="com.meta4.soapservices.services.m4metadataservice.M4MetadataService"/>
+        <parameter name="scope" value="session"/>
+        <typeMapping deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory" 
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" 
+            qname="ns2:M4MetaXMLOutput" 
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory" 
+            type="java:com.meta4.soapservices.services.m4metadataservice.M4MetadataXMLOutput" 
+            xmlns:ns2="http://schemas.meta4.com/types"/>
+        <namespace>http://schemas.meta4.com/</namespace>
+    </service>
+ 
+    <service name="LoginService" provider="java:RPC">
+        <parameter name="allowedMethods" value="*"/>
+        <parameter name="className" value="com.meta4.soapservices.services.loginservice.LoginService"/>
+        <parameter name="scope" value="session"/>
+        <typeMapping deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory" 
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" 
+            qname="ns1:M4loginOutput" serializer="org.apache.axis.encoding.ser.BeanSerializerFactory" 
+            type="java:com.meta4.soapservices.services.loginservice.M4loginOutput" 
+            xmlns:ns1="http://schemas.meta4.com/types"/>
+        <namespace>http://schemas.meta4.com/</namespace>
+    </service>
+        
+    <service name="Login" provider="java:RPC" style="wrapped" use="literal">
+      <parameter name="allowedMethods" value="*"/>
+      <parameter name="className" value="com.meta4.soapservices.services.loginservice.LoginService"/>
+      <parameter name="scope" value="session"/>
+      <typeMapping deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory" 
+        encodingStyle="" 
+        qname="ns3:M4loginOutput" serializer="org.apache.axis.encoding.ser.BeanSerializerFactory" 
+        type="java:com.meta4.soapservices.services.loginservice.M4loginOutput" 
+        xmlns:ns3="http://schemas.meta4.com/"/>
+     <namespace>http://schemas.meta4.com/</namespace>
+    </service>
+ 
+    <service name="M4Metadata" provider="java:RPC" style="wrapped" use="literal">
+      <parameter name="allowedMethods" value="*"/>
+      <parameter name="className" value="com.meta4.soapservices.services.m4metadataservice.M4MetadataService"/>
+      <parameter name="scope" value="session"/>
+      <typeMapping deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory" 
+        encodingStyle="" 
+        qname="ns4:M4MetaXMLOutput" serializer="org.apache.axis.encoding.ser.BeanSerializerFactory" 
+        type="java:com.meta4.soapservices.services.m4metadataservice.M4MetadataXMLOutput" 
+        xmlns:ns4="http://schemas.meta4.com"/>
+    <namespace>http://schemas.meta4.com/</namespace>
+  </service>   
+    
+    <transport name="http">
+        <requestFlow>
+            <handler type="URLMapper"/>
+            <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+        </requestFlow>
+    </transport>
+    
+    <transport name="local">
+        <responseFlow>
+            <handler type="java:org.apache.axis.transport.local.LocalResponder"/>
+        </responseFlow>
+    </transport>
+</deployment>

@@ -1,0 +1,1 @@
+<%@ include file="../sgco_put_object.jsp"%>

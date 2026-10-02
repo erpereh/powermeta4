@@ -1,0 +1,204 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: mobile.m4select_platform.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('/css/fonts/OpenSans/OpenSans-Regular.eot');
+    src: url('/css/fonts/OpenSans/OpenSans-Regular.eot?#iefix') format('embedded-opentype'),url('/css/fonts/OpenSans/OpenSans-Regular_renhash_37cb390fee6fbd716c15899f9cfa300d_dl_v1.woff2') format('woff2'),url('/css/fonts/OpenSans/OpenSans-Regular.woff') format('woff'),url('/css/fonts/OpenSans/OpenSans-Regular.ttf') format('truetype'),url('/css/fonts/OpenSans/OpenSans-Regular_renhash_7e735d7ae17da9ead1360165b1dc3cfb.svg#OpenSans') format('svg');
+    font-weight: normal;
+    font-weight: 400;
+    font-style: normal
+}
+html{
+    background-image: url(/mobile/icons/background.jpg) !important;
+    background-repeat: no-repeat;
+    background-size: cover !important;
+    background-position: 75% 50%;
+    overflow: hidden !important;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0 !important;
+}
+html *{
+    text-shadow: none !important;
+}
+.ui-overlay-a{
+    position:absolute;
+    top:0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    font-family: 'Open Sans', Verdana, Arial, sans-serif;
+    background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.40), rgba(0, 0, 0, 0.50),rgba(0, 0, 0, 0.60),rgba(0, 0, 0, 0.60));
+    background-color: rgba(255, 255, 255, 0) !important;
+    overflow: hidden !important;
+}
+.ui-page-theme-a{
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0) !important; 
+}
+
+#codehelptext {
+    margin-top: 50px;
+    margin-bottom: 20px;
+    display: block;
+    font-weight: normal;
+    text-align: left;
+    color: #ffffff;
+}
+html *,
+input:focus,
+select:focus,
+textarea:focus,
+button:focus,
+.ui-focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+#goBackDiv {
+    background: none !important;
+    text-align: center;
+    margin-top: 36px;
+}
+#goBackDiv img {
+    width: 36px;
+    height: 36px;
+    opacity: 0.7;
+}
+
+#divcodehelp.deployed {
+    visibility: visible;
+    opacity: 1;
+    -webkit-transition-delay: 0;
+    transition-delay: 0;
+    text-align: left
+}
+
+#cliencodelabel {
+    color: #ffffff;
+    text-align: left;
+    margin-top: 40px
+}
+
+.ui-input-text.ui-body-inherit.ui-corner-all.ui-shadow-inset {
+    background: rgba(255, 255, 255, 0) !important;
+    border: 1px solid rgba(255, 255, 255, 0) !important;
+}
+
+#clientcode {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 6px !important;
+    padding-left: 8px !important;
+    line-height: 20px !important;
+    border: 1px solid rgba(119, 119, 119, 0.2);
+    background: rgba(255, 255, 255, 0.50);
+    height: 50px !important;
+    width: 100%;
+}
+#connect {
+    margin-top: 8px;
+    background: rgba(0, 120, 215, 0.80) !important;
+    border: 1px solid rgba(0, 120, 215, 0.82) !important;
+    border-radius: 6px;
+    height: 50px;
+    padding: 0 !important;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: inherit !important;
+}
+
+.ui-content {
+    text-align: center
+}
+
+.ui-content:before {
+    display: inline-block;
+    content: url(../icons/logo-meta4.svg) !important;
+    width: 150px;
+    height: 43px;
+}
+
+#divcodehelp {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 13px !important
+}
+
+.ui-content {
+    border-width: 0;
+    overflow: visible;
+    overflow-x: hidden;
+    padding: 10px 16px 16px 16px;
+    margin: 40px 0 0 0 !important;
+}
+
+.ui-btn {
+    font-size: 16px;
+    margin: .5em 0;
+    padding: .7em 1em;
+    display: block;
+    position: relative;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none
+}
+
+.ui-mobile label,.ui-controlgroup-label {
+    display: block;
+    margin: 0 0 .4em
+}
+
+
+.ui-input-text,.ui-input-search {
+    margin: .5em 0;
+    border-width: 1px;
+    border-style: solid
+}
+
+
+.ui-input-text input,.ui-input-search input {
+    margin: 0;
+    min-height: 2.2em;
+    text-align: left;
+    border: 0;
+    background: transparent none;
+    -webkit-appearance: none;
+    -webkit-border-radius: inherit;
+    border-radius: inherit
+}
+
+@media all and (max-height: 645px){
+    #cliencodelabel {
+        margin-top: 28px !important;
+    }
+    #clientcode, #connect {
+        height: 40px !important;
+    }
+    .ui-content{
+        margin-top: 32px !important;
+    }
+    #codehelptext{
+        margin-top: 28px;
+    }
+    #goBackDiv{
+        margin-top: 28px;
+    }
+}

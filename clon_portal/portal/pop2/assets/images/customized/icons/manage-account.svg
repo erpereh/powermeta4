@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M61,75 C74.04,75 85.56,78.12 94.92,82.2 C103.56,86.04 109,94.68 109,104.04 L109,109 C109,113.4 105.4,117 101,117 L21,117 C16.6,117 13,113.4 13,109 L13,104.12 C13,94.68 18.44,86.04 27.08,82.28 C36.44,78.12 47.96,75 61,75 Z" id="manage-account-path-1"></path>
+        <circle id="manage-account-path-2" cx="61" cy="45" r="24"></circle>
+        <path d="M125.5,93 C125.5,91.68 125.32,90.48 125.14,89.22 L130.18,84.84 C131.26,83.88 131.5,82.32 130.78,81.06 L127.24,74.94 C126.52,73.68 125.02,73.14 123.7,73.62 L117.34,75.78 C115.42,74.16 113.26,72.9 110.86,72 L109.54,65.46 C109.24,64.08 108.04,63.06 106.6,63.06 L99.52,63.06 C98.08,63.06 96.88,64.08 96.58,65.46 L95.26,72 C92.86,72.9 90.7,74.16 88.78,75.78 L82.42,73.62 C81.04,73.14 79.6,73.74 78.88,74.94 L75.34,81.06 C74.62,82.32 74.86,83.88 75.94,84.84 L80.98,89.22 C80.8,90.48 80.62,91.68 80.62,93 C80.62,94.32 80.8,95.52 80.98,96.78 L75.94,101.16 C74.86,102.12 74.62,103.68 75.34,104.94 L78.88,111.06 C79.6,112.32 81.1,112.86 82.42,112.38 L88.78,110.22 C90.7,111.84 92.86,113.1 95.26,114 L96.58,120.54 C96.88,121.92 98.08,122.94 99.52,122.94 L106.6,122.94 C108.04,122.94 109.24,121.92 109.54,120.54 L110.86,114 C113.26,113.1 115.42,111.84 117.34,110.22 L123.7,112.38 C125.08,112.86 126.52,112.26 127.24,111.06 L130.78,104.94 C131.5,103.68 131.26,102.12 130.18,101.16 L125.14,96.78 C125.32,95.52 125.5,94.32 125.5,93 Z" id="manage-account-path-3"></path>
+        <path d="M103,105 C96.4,105 91,99.6 91,93 C91,86.4 96.4,81 103,81 C109.6,81 115,86.4 115,93 C115,99.6 109.6,105 103,105 Z" id="manage-account-path-4"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Manage_Account">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#manage-account-path-1"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#manage-account-path-1"></use>
+            </g>
+            <g id="Oval">
+                <use class="primary--fill" xlink:href="#manage-account-path-2"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#manage-account-path-2"></use>
+            </g>
+            <g id="Shape">
+                <use class="secondary--fill" xlink:href="#manage-account-path-3"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#manage-account-path-3"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#manage-account-path-4"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#manage-account-path-4"></use>
+            </g>
+        </g>
+    </g>
+</svg>

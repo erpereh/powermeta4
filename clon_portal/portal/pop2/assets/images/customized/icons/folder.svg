@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M59.75,28 L26.75,28 C20.7,28 15.805,32.95 15.805,39 L15.75,105 C15.75,111.05 20.7,116 26.75,116 L114.75,116 C120.8,116 125.75,111.05 125.75,105 L125.75,50 C125.75,43.95 120.8,39 114.75,39 L70.75,39 L59.75,28 Z" id="folder-path-1"></path>
+        <path d="M59.75,28 L26.75,28 C20.7,28 15.805,32.95 15.805,39 L15.75,105 C15.75,111.05 20.7,116 26.75,116 L114.75,116 C120.8,116 125.75,111.05 125.75,105 L125.75,50 C125.75,43.95 120.8,39 114.75,39 L70.75,39 L59.75,28 Z" id="folder-path-2"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Folder">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#folder-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#folder-path-1"></use>
+            </g>
+            <g id="folder-path-Copy" transform="translate(70.750000, 72.000000) scale(-1, 1) translate(-70.750000, -72.000000) ">
+                <use class="primary--fill" xlink:href="#folder-path-2"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#folder-path-2"></use>
+            </g>
+        </g>
+    </g>
+</svg>

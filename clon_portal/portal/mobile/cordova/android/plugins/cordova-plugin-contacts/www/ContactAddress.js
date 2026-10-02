@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-contacts.ContactAddress",function(d,b,c){var a=function(i,l,f,k,g,j,h,e){this.id=null;this.pref=(typeof i!="undefined"?i:false);this.type=l||null;this.formatted=f||null;this.streetAddress=k||null;this.locality=g||null;this.region=j||null;this.postalCode=h||null;this.country=e||null};c.exports=a});

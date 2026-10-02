@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-contacts.ContactError",function(d,b,c){var a=function(e){this.code=(typeof e!="undefined"?e:null)};a.UNKNOWN_ERROR=0;a.INVALID_ARGUMENT_ERROR=1;a.TIMEOUT_ERROR=2;a.PENDING_OPERATION_ERROR=3;a.IO_ERROR=4;a.NOT_SUPPORTED_ERROR=5;a.OPERATION_CANCELLED_ERROR=6;a.PERMISSION_DENIED_ERROR=20;c.exports=a});

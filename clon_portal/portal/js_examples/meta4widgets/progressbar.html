@@ -1,0 +1,149 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>Meta4 data utils</title>
+
+       
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+        
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		<style>
+			#divContenedor {
+				width: 100%;
+				height: 100px;
+			}
+
+			#div1, #div2 {
+				float: left;
+				width: 50%;
+				height: 100%;
+			}
+
+			#div1 {
+				background-color: rgb(125, 154, 206);
+			}
+			#div2 {
+				background-color: blue;
+			}
+
+		</style>
+
+		<script>
+			var interval = null;
+			var example = function() {
+				var progressBar = null;
+
+				var stepValue = 25;
+				var maxValue = 100;
+
+				function progressbar() {
+					if (!progressBar) {
+						var options = {
+							maximun : maxValue,
+							step : stepValue,
+							editable : true
+						};
+						progressBar = new meta4.widget.ProgressBar('test', options);
+					}
+				}
+
+				function doWork() {
+
+					draw = function() {
+						stepValue = stepValue + 1;
+						if (stepValue > maxValue) {
+							stepValue = 0;
+						}
+						progressBar.setValue(stepValue);
+					};
+
+					if (progressBar) {
+						if (interval) {
+							clearInterval(interval);
+						}
+						interval = setInterval(draw, stepValue);
+					}
+				}
+
+				return {
+					progressbar : progressbar,
+					doWork : doWork
+				};
+			};
+
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+			
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+		<div  id = "exampleContainer" data-m4context="contexto1" data-m4t3="EXJSAPI_COMPONENT">
+
+		<h1 data-m4trans="_WidgetsProgressbarTitle"></h1>
+		<h2 data-m4trans="_WidgetsProgressbarSubtitle"></h2>
+
+		<p data-m4trans="_WidgetsProgressbarName"></p>
+
+		<h2 data-m4trans="_WidgetsProgressbarComponent"></h2>
+		
+		<p data-m4trans="_WidgetsProgressbarDescription"></p>
+
+		<script>
+			m4loadExample('example');
+		</script>
+		<div>
+			<button onclick="example = new example();example.progressbar()" data-m4trans="_WidgetsProgressbarButtonShow">			
+			</button>
+		</div>
+		
+		<div id="test" style="height:50px;">
+
+		</div>
+		
+		<div>
+			<button onclick="example.doWork();" data-m4trans="_WidgetsProgressbarButtonActivateProcess">			
+			</button>
+			<button onclick="clearInterval(interval);" data-m4trans="_WidgetsProgressbarButtonStopProgress">			
+			</button>
+        </div>
+       </div>
+	</body>
+</html>
+

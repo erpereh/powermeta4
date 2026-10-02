@@ -1,0 +1,13 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: shco_gen_so_include.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+
+<%
+String sStyleSheet = request.getParameter ("css");
+%>
+

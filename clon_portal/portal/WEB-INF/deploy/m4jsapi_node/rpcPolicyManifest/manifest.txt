@@ -1,0 +1,3 @@
+# Module m4jsapi_node
+# RPC service class, partial path of RPC policy file
+com.meta4.js.client.M4Service, A2AAC9433BE0A9EAA69F7AD0D806780E.gwt.rpc

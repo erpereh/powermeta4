@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file.LocalFileSystem",function(c,a,b){a.TEMPORARY=0;a.PERSISTENT=1});

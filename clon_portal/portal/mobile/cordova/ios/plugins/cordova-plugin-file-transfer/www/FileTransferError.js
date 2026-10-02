@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file-transfer.FileTransferError",function(d,a,c){var b=function(f,h,j,i,e,g){this.code=f||null;this.source=h||null;this.target=j||null;this.http_status=i||null;this.body=e||null;this.exception=g||null};b.FILE_NOT_FOUND_ERR=1;b.INVALID_URL_ERR=2;b.CONNECTION_ERR=3;b.ABORT_ERR=4;b.NOT_MODIFIED_ERR=5;c.exports=b});

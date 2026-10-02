@@ -1,0 +1,422 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<title>meta4.widget.titlebar</title>
+
+
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+
+
+<!-- mootools -->
+<script type="text/javascript" src="/js/mootools-1.4.5.meta4v1.0.js"></script>
+
+<!-- m4jsapi -->
+<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+<!-- meta4 -->
+<script type="text/javascript" src="/js/data/data.js"></script>
+<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+<!-- syntax highlighter -->
+<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+
+<!-- load example -->
+ <script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+ <script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+<!-- load example -->
+<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+<script>
+	SyntaxHighlighter.all();
+</script>
+
+<style type="text/css">
+
+	.m4-titleBar {
+		width: 100%;
+		background-color: #dadeea;
+		border-bottom: 1px solid #babdc7;
+		border-left: 1px solid #babdc7;
+		height: 40px;
+		border-top: 1px solid #fff;
+	}
+
+	ul.meta4-widget-select li {
+		height: 35px;
+	}
+	
+	.infoDates {
+		font-size: 14px;
+		color: #cde77c;
+		margin-left: 25px;
+	}
+
+	#m4-titleBar{
+		min-width: 1000px;
+	}
+	
+	#containerTemplate {
+		float: left;
+		width: -moz-calc(100% - 13px);
+		width: -webkit-calc(100% - 13px);
+		width: -o-calc(100% - 13px);
+		width: calc(100% - 13px);
+		max-height: -moz-calc(100% - 42px);
+		max-height: -webkit-calc(100% - 42px);
+		max-height: -o-calc(100% - 42px);
+		max-height: calc(100% - 42px);
+		overflow: auto;
+		height: 100%;
+		width: 100%;
+		padding-left: 20px;
+		-webkit-box-sizing: border-box;
+		-moz-box-sizing: border-box;
+		box-sizing: border-box;
+	}
+
+</style>
+
+<script>
+	var channelId = 'EXJSAPI_COMPONENT';
+	var nodeId = 'EXJSAPI_WIDGET_FORM';
+	var nodeAuxId = 'EXJSAPI_WIDGET_FORM_AUX';
+	var channel;
+	var colorBar = 'grey';
+	
+	var _g3_description = "Descripción de la página";
+	var _g3_showInfo = "Más información";
+	var _g3_hideInfo = "Ocultar información";
+	var _g3_xsave = "Guardar cambios";
+	var _g3_graph = "Informe gráfico";
+	var _g3_excel = "Informe en Excel";
+	var _g3_pageTitle = "Título de la página";
+	var _g3_send = "Enviar";
+	var _g3_addInfo1 = "Información adicional 1";
+	var _g3_addInfo2 = "Información adicional 2";
+	var _g3_addInfo3 = "Información adicional 3";
+	var _g3_3charsNeeded = "Introduzca por lo menos 3 caracteres.";
+	var _g3_search = "Búsqueda";
+	var _g3_blueBar = "Blue Bar";
+	var _g3_greyBar = "Grey Bar";
+	
+	function setModeInfo() {
+		if ($('m4-header').hasClass('smallMode')) {
+				$('m4-header').removeClass('smallMode');
+				$('containerTemplate').removeClass('smallModeTable');
+				$('plegarInfo').set('src', '/iconos/arrow_up.png');
+		} else {
+				$('m4-header').addClass('smallMode');
+				$('containerTemplate').addClass('smallModeTable');
+				$('plegarInfo').set('src', '/iconos/arrow_down.png');
+		}
+	}
+
+	function clickSave(){
+		alert ('Save');
+	}
+	function clickGraph(){
+		alert ('Graph');
+	}
+	function clickSend(){
+		alert ('Send');
+	}
+	function onKeySearch(){
+		alert ('Search');
+	}
+	function changeColor(){
+		if (colorBar === 'blue'){
+			$('m4-titleBar').setStyle('background-color', '#DADEEA');
+			colorBar = 'grey';
+		}else {
+			$('m4-titleBar').setStyle('background-color', '#03C2F7');
+			colorBar = 'blue';
+		}
+	}
+
+	function CreateChannel() {
+        
+        //meta4.widget.translate.loadLanguageFile(['pmco_process_executions'], function(){});
+
+		channel = new meta4.M4Object(channelId);
+		var request = new meta4.M4Request(channel, nodeId, 'LOAD_BLK', null);
+		meta4.data.execute(request, exampleExecute);
+	}
+	
+	function exampleExecute() {
+		
+		paintTitleBar();
+		$('main').setStyle('visibility','visible');
+	}
+	
+	function paintTitleBar() {
+		
+		/* code only selector */
+		function afterPainting(trProcessM4) {
+			//code after painting the combo
+		}
+		function afterMove(trProcessM4) {
+			//code after clicking on combo
+			alert (channel.getNode(nodeAuxId).getValue('N_COUNTRY'));
+		}	
+		/* code only selector */
+		
+		var options = {
+			'meta4object' : channel,
+			'elements' : [{
+				'type' : 'help',
+				'tooltip' : meta4.widget.translate.getTranslate('_g3_description')
+					}, {
+				'type' : 'title',
+				'text' : meta4.widget.translate.getTranslate('_g3_pageTitle')
+					}, {
+				'type' : 'select',
+				'nodeId' : nodeAuxId,
+				'options' : {
+					'onDraw' : afterPainting, 			//after painting the combo
+					'onRowClick' : afterMove, 			//after clicking on combo
+					'preload' : true
+					}}, {
+				'type' : 'showInfo',
+				'nodeId' : nodeAuxId,
+				'info' : [{'class' : 'infoDates','item' : 'INFO_1'},{'class' : 'info','item' : 'INFO_2'},{'class' : 'info','item' : 'INFO_3'}]
+					}, {
+				'type' : 'widgetbutton',
+				'id' : 'cmdChangeColor',
+				'text' : meta4.widget.translate.getTranslate('_g3_blueBar'),
+				'img' : '/iconos/view_more_blue.png',
+				'options' : {
+					'pressed' : true,
+					'textPressed' : meta4.widget.translate.getTranslate('_g3_greyBar'),
+					'imgPressed' : '/iconos/view_aproved.png',
+					'functionClick' : changeColor
+					}}, {
+				'type' : 'icon',
+				'id' : 'imgGraph',
+				'tooltip' : meta4.widget.translate.getTranslate('_g3_graph'),
+				'img' : '/iconos/graph.png',
+				'onClick' : clickGraph
+					}, {
+				'type' : 'separator'
+					}, {
+				'type' : 'button',
+				'id' : 'cmdSend',
+				'text' : meta4.widget.translate.getTranslate('_g3_send'),
+				'onClick' : clickSend
+					}, {
+				'type' : 'separator'
+					}, {
+				'type' : 'search',
+				'tooltip' : meta4.widget.translate.getTranslate('_g3_3charsNeeded'),
+				'hint' : meta4.widget.translate.getTranslate('_g3_search'),
+				'onKey' : onKeySearch
+    			    }
+			]
+		};
+		var titlebar = new meta4.widget.titlebar('m4-titleBar', options);
+	}
+		
+		function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);	
+		
+</script>
+</head>
+
+
+	<body>
+	    <div id = 'maincontainer'>
+	
+<!-- BEGIN - HTML DE LA PÁGINA **************************************************************** -->
+<div id="main" data-m4context="dinamicContext" data-m4t3="EXJSAPI_COMPONENT" style="visibility: hidden;">
+	<div id="m4-titleBar"></div>
+	<div id="content">	
+		<div id="containerTemplate">
+<!-- BEGIN - EXPLICACIÓN DE LA PLANTILLA ****************************************************** -->	
+<!-- BEGIN - EXPLICACIÓN DE LA PLANTILLA TITLEBAR ********************************************* -->			
+<div id='templateTitleBar'>
+<h1 data-m4trans="_WidgetsTitlebarTitle"></h1>
+		
+<h2 data-m4trans="_WidgetsTitlebarSubtitle"></h2>
+<p data-m4trans="_WidgetsTitlebarDescription">	
+</p> 
+<h2 data-m4trans="_WidgetsTitlebarImport"></h2>
+<pre class="brush: js;">    
+<link type="text/css" rel="stylesheet" href="/css/fastlane.css" />
+<link type="text/css" rel="stylesheet" href="/style/meta4.widget.css" />
+</pre>
+<p data-m4trans="_WidgetsTitlebarm4Libraries">		
+</p>
+<h2 data-m4trans="_WidgetsTitlebarStructure"></h2>
+	<pre class="brush: js;">
+	<div id="main" data-m4context="dinamicContext" data-m4t3="EXJSAPI_COMPONENT">
+		<div id="m4-titleBar"></div>
+		
+		<div id="content">
+			      
+			/* resto de la página */
+		
+		</div>
+	</div>
+	</pre>
+	<p data-m4trans="_WidgetsTitlebarJSCode"></p>
+	<script>
+		m4loadExample('paintTitleBar');
+	</script>
+	<h2 data-m4trans="_WidgetsTitlebarElementsTitle"></h2>
+	<p data-m4trans="_WidgetsTitlebarElementsDescriptionTitle"></p>
+	
+	<p data-m4trans="_WidgetsTitlebarHelpIcon">
+	</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'help',
+	'tooltip' : meta4.widget.translate.getTranslate('_g3_description')
+	}
+	</pre>
+	<p data-m4trans="_WidgetsTitlebarHeadTitle">
+	</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'title',
+	'text' : meta4.widget.translate.getTranslate('_g3_pageTitle')
+	}
+	</pre>
+	<p data-m4trans="_WidgetsTitlebarSelector">
+	</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'select',
+	'nodeId' : nodeAuxId,
+	'options' : {
+		'onDraw' : afterPainting, //after painting the combo
+		'onRowClick' : afterMove, //after clicking on combo
+		'preload' : true
+	}}
+	</pre>
+	<p data-m4trans="_WidgetsTitlebarOptions">
+	</p>
+	<p data-m4trans="_WidgetsTitlebarDeployExtraInformation">
+	</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'showInfo',
+	'nodeId' : nodeAuxId,
+	'info' : [{'class' : 'infoDates','data' : 'INFO_1'},{'class' : 'info','data' : 'INFO_2'},{'class' : 'info','data' : 'INFO_3'}]
+	}
+	</pre>	
+	<p data-m4trans="_WidgetsTitlebarmeta4object">
+	</p>
+	<p data-m4trans="_WidgetsTitlebarTextButton">
+	</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'widgetbutton',
+	'id' : 'cmdChangeColor',
+	'text' : meta4.widget.translate.getTranslate('_g3_blueBar'),
+	'img' : '/iconos/view_more_blue.png',
+	'options' : {
+		'pressed' : true,
+		'classButtonPressed' : 'spanIconCommentGlobal',
+		'classButton' : 'spanCommentGlobal framelessTextAndImageButton',
+		'textPressed' : meta4.widget.translate.getTranslate('_g3_greyBar'),
+		'imgPressed' : '/iconos/view_aproved.png',
+		'functionClick' : changeColor
+	}}
+	</pre>
+		<p data-m4trans="_WidgetsTitlebarTextButtonConfiguration">
+		</p>
+		<p data-m4trans="_WidgetsTitlebarTextButtonAdditionalIcon">
+		</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'icon',
+	'tooltip' : meta4.widget.translate.getTranslate('_g3_graph'),
+	'img' : '/iconos/graph.png',
+	'onClick' : clickGraph
+	}
+	</pre>
+	<p data-m4trans="_WidgetsTitlebarSeparator">
+	</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'separator'
+	}
+	</pre>
+	<p data-m4trans="_WidgetsTitlebarButton">
+	</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'button',
+	'text' : meta4.widget.translate.getTranslate('_g3_send')
+	'onClick' : clickSend
+	}
+	</pre>
+	<p data-m4trans="_WidgetsTitlebarSearchBox">
+	</p>
+	<pre class="brush: js;">
+	{
+	'type' : 'search',
+	'tooltip' : meta4.widget.translate.getTranslate('_g3_3charsNeeded'),
+	'hint' : meta4.widget.translate.getTranslate('_g3_search'),
+	'onkey' : onKeySearch
+	}
+	</pre>
+	<p data-m4trans="_WidgetsTitlebarLink">
+	</p>
+    <pre class="brush: js;">
+    {
+        'type' : 'anchor',
+        'options':{
+            'text' : meta4.widget.translate.getTranslate('_g3_search'),
+            'href' : '#',
+            'events' : {
+                'click' : function(event) {
+                    var targethref = '';
+                    window.location.href = targethref;
+                }
+            }
+        }
+    }
+    </pre>
+</div>
+<!-- END - EXPLICACIÓN DE LA PLANTILLA TITLEBAR *********************************************** -->	
+<h2 data-m4trans="_WidgetsTitlebarFullExample"></h2>
+<pre class="brush: js;">
+<div id="main" data-m4context="dinamicContext" data-m4t3="EXJSAPI_COMPONENT">
+	<div id="m4-titleBar"></div>
+	
+	<div id="content">	
+
+		/* resto de la página */
+			
+	</div> 
+</div>
+</pre>
+<!-- END - EXPLICACIÓN DE LA PLANTILLA ******************************************************** -->
+	</div> 
+</div>
+<!-- END - HTML DE LA PÁGINA ****************************************************************** -->
+<script>
+	document.addEvent('meta4Ready', CreateChannel);
+</script>
+</div>
+</body>
+</html>

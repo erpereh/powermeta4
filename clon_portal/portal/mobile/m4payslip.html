@@ -1,0 +1,69 @@
+<!-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: m4payslip.html
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= -->
+
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title></title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" />
+		<meta content="yes" name="apple-mobile-web-app-capable" />
+
+		<script type="text/javascript" src="../m4jsapi/m4jsapi.nocache.js"></script>
+
+		<script src="../library/jquery.js"></script>
+		<script src="js/meta4.mobile.js"></script>
+		<script src="../library/jquery.mobile.js"></script>
+		
+		<script type="text/javascript">
+			jQuery.noConflict();	
+		</script>			
+
+		<link rel="stylesheet" href="css/mobile.generic.css" />
+		<link rel="stylesheet" href="css/mobile.payslip.css" />
+		<script src="js/meta4.mobile.payslip.js"></script>		
+	</head>
+	<body id="payslipBody">
+		<div id="spinnerContainer" >
+	        <div class="spinner-header">
+	        	<h2 data-m4trans="_payslip_title_toolbar"></h2>
+	        </div>
+	        <div class="spinner">
+	            <img src="icons/m4-loading.gif">
+	        </div>
+	    </div>
+		<!--INITIAL LIST PAYSLIP PAGE-->
+		<div data-role="page" id="list_payslip_page" style="visibility: hidden;">
+				<div data-role="header" data-position="fixed" data-tap-toggle="false" class="m4-mobileHeader">			
+					<h2 class="ui-title" data-m4trans="_payslip_title_toolbar"></h2>	
+					<a id="goHome" href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+				</div>
+					
+				<div id="contentRoot" data-role="content">
+					<div class="content-primary">
+						<ul data-role="listview" id="listPayslip"></ul>
+					</div>
+				</div>		
+			</div>
+	
+			<!-- DETAIL PAYSLIP PAGE-->
+			<div data-role="page" id="detail_payslip_page" style="display: none; visibility: hidden;">
+				<div data-role="header" data-position="fixed" data-tap-toggle="false" class="m4-mobileHeader">
+					<a href="m4payslip.html" id="back-detail" data-icon="m4back" data-iconpos="notext" data-direction="reverse" class="backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+					<h2 class="ui-title"></h2>
+					<a href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="homeButton"><img id="logout-icon" src="/mobile/icons/home.svg"></a>
+				</div>
+	
+				<div id="contentDetails" data-role="content">
+					<div class="content-primary">
+						<div id="payslipPage"></div>
+					</div>				
+				</div>
+			</div>
+	</body>
+</html>

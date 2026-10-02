@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/11/05 16:46:07" />
+    <title>Job Scheduler</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp177277"> </a><h2 class="pTitle">
+Job Scheduler
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_JS_WZ_SCHED_TASKS_P1-->
+<p class="bodytex"> Description</p>
+<a name="wp177283"> </a><p class="pBody">
+This form describes the steps required to configure the scheduling of a task.
+</p>
+<a name="wp177285"> </a><p class="pBody">
+A task is a predefined model you can take as a starting point to define a task or group task. A task really is a LN4 code command that contains a set of parameters that do not have any defined values. Once you have assigned values to the parameters, the task becomes a task in box. The purpose of tasks is to reduce the time required to create the box tasks.
+</p>
+<a name="wp177287"> </a><p class="pBody">
+The Job Scheduler avoids having to repeat certain tasks. Use this tool to define a series of tasks to be run in batch, at a specific time or when a series of time-related conditions are met.
+</p>
+<a name="wp177289"> </a><p class="pBody">
+Use Job Scheduler to manage all processes related to creating and maintaining batch tasks.
+</p>
+<p class="bodytex"> Actions</p>
+<a name="wp177293"> </a><p class="pBody">
+Use this screen to enter a new task in the system or to edit the information related to another task that is part of it.
+</p>
+<a name="wp177295"> </a><p class="pBody">
+To do so, use the procedures and follow the recommendations below:
+</p>
+<ol>
+<li class="numero">Click <b class="cBold">New</b> to schedule a new task or filter for the ID or name of the task, box, or execution user to edit a previously scheduled task. You can also filter by status: </li>
+<ul class="item">
+<li><b class="cBold">Completed: </b>groups all boxes that have run their scheduled executions. In other words, it lists the boxes without a status of <em class="cEmphasis">Waiting, Executing, Cancelling, or Aborting</em>.</li>
+<li><b style="font-weight: bold" class="cBold">Started</b><span style="font-weight: normal"> groups all boxes that have partially started their executions, but that have not yet finished all of them. It considers executions that have not been run to be those with the status: </span><span style="font-weight: bold">Waiting, Executing, Cancelling, or Aborting</span><span style="font-weight: normal">.</span></li>
+<li><b style="font-weight: bold" class="cBold">Not Started: </b><span style="font-weight: normal">groups all boxes that have not yet started. Specifically, it shows boxes whose execution status is </span><span style="font-weight: bold">Waiting</span><span style="font-weight: normal">.</span></li>
+<p class="cont">Click <img src="images/ic_search_36_36_0.gif" id="wp1311829" border="0" hspace="0" vspace="0"/>. Complete the required <span style="font-weight: bold">Task Box</span> and <span style="font-weight: bold">Task ID</span> fields 
+with the name and ID of the task.
+</p>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+A<em class="cEmphasis">group box</em> is a series of tasks in box that are run sequentially. When you define a box, you assign a name, an identifier, a description, and parameters to it. Next you assign values to these parameters. You specify the list of tasks in box, as well as the expected run date that is determined by the time rules you set.
+</p></td></tr>
+</table><br/></ul>
+<li class="numero">Select the required <b class="cBold">Time Rules</b> options; that is, indicate the time rules that determine when the box is run: </li>
+<ul class="dash">
+<li><b class="cBold">Immediate</b>, it is run as soon as possible.</li>
+<li><b class="cBold">Cyclical</b>, in which case you must enter a start date from which the box will be run at regular intervals, and set the number of times that the box will be run, which, in cyclical mode, can never exceed 500. For this option:</li>
+<ul class="dash">
+<li>Set the number of times the box is executed. The content of the <b class="cBold">Until</b> option is updated according to the number of executions you specify.</li>
+<li><b class="cBold">Until</b>: if you select this option, instead of specifying a number of executions, you specify the date and time until which the box will be executed. The number of times the box can be executed changes according to the start date and the frequency you previously specified.</li>
+</ul>
+<li><b class="cBold">Dates List</b>: you can create a list of dates on which the box is to be executed. Set the date and time of the execution. There is a text box in which you enter the dates. To manage it, use the <b class="cBold">Add</b>, <b class="cBold">Delete Selected</b>, and <b class="cBold">Delete All</b> buttons. The dates you enter must be later than the current date.</li>
+<p class="cont">Once you have selected the run mode, complete the following 
+required information to finish defining the time rules:
+</p>
+<li><b class="cBold">Time Zone ID</b>: in this drop-down box, you select the time zone to determine the start time of the box execution. </li>
+<li><b class="cBold">Expire after</b>: group box where you define the expiry period for each execution process. Once this period has expired the box no longer runs. The time is indicated in minutes.</li>
+</ul>
+<li class="numero">Enter the following optional information: </li>
+<ul class="item">
+<li>Description of the box to clarify its purpose.</li>
+<li>If you are working in a multicompany environment, the company in which the tasks will run.</li>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+When you select the company, you can choose to execute the box as single company. If not single company, you can select more than one at a time and as many boxes as companies that you select are generated.
+</p></td></tr>
+</table><br/></ul>
+<li class="numero">Click the links or use the navigation buttons on this page to complete the configuration. This way you can enter information related to: </li>
+<ul class="item">
+<li><span style="font-weight: bold">Advanced Options</span>. More information: <a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_SCHED_TASKS_P4.htm#wp177358');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_SCHED_TASKS_P4.htm#wp177358', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Defining the advanced options</a>.</li>
+<li><b class="cBold">Parameters</b>. More information: <a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_SCHED_TASKS_P2.htm#wp177402');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_SCHED_TASKS_P2.htm#wp177402', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Setting the schedule parameters</a>.</li>
+<li><b class="cBold">Executions</b>. More information: <a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_TASK_EXE_P1.htm#wp177443');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_TASK_EXE_P1.htm#wp177443', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Viewing the status of the executions</a>.</li>
+</ul>
+</ol>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

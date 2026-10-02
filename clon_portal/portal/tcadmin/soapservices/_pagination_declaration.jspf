@@ -1,0 +1,28 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: _pagination_declaration.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+
+<%-- ******************** Define las variables globales necesarias para paginar  ******************** --%>
+
+<%	//Paginacion
+	
+	String argPageCurrent = (String)request.getParameter("argPageCurrent");
+	if (argPageCurrent == null) argPageCurrent = "0";	
+
+	int giPageSize = 10;
+	int giPageCurrent = new Integer(argPageCurrent).intValue();
+	
+	//El primero de cada pagina siempre es argPageCurrent * argPageSize.
+	int giPageFirst = new Integer (giPageCurrent * giPageSize).intValue();		//Indice del primero de cada pagina
+	int giTotalRecordCount = 0;													//Numero total de registros.	
+	int giTotalRecordCountVisibles = 0;
+	int giCurrent = 0;															//Es el iterador de registros.
+	
+	int giVisibleWindowSize = 6;							//Numero de slots visibles en el pie de pagina.
+	int giVisibleWindowDelta = giVisibleWindowSize / 2;		//Incremento cuando cambiamos de bloque de slots.
+%>

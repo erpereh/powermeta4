@@ -1,0 +1,37 @@
+@page { 
+    size: landscape;
+}
+.container {
+  font-size: 7px;
+  width: 100vw !important;
+}
+#charts {
+  /*display: block;*/
+  margin-top: 20px;
+  width: 100%;
+  text-align: center;
+  margin: auto;
+}
+.m10 {
+  width: 90vw !important;
+  text-align: center;
+  margin: auto;
+}
+
+.ct-chart-1 svg {
+  /*position: absolute;*/
+  transform: translate(-140px, 0);
+}
+.ct-chart-2 svg {
+  /*position: absolute;*/
+  transform: translate(-140px, 0);
+}
+.ct-legend.ct-legend-inside {
+  position: absolute;
+  top: 0;
+  right: unset;
+  left: 60%;
+}
+.boxshadow.col-xs-12 {
+  border: 1px solid #aaa;
+}

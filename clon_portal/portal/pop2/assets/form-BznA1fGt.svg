@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M22.6666667,136 L121.333333,136 C125,136 128,133 128,129.333333 L128,18.6666667 C128,15 125,12 121.333333,12 L22.6666667,12 C19,12 16,15 16,18.6666667 L16,129.333333 C16,133 19,136 22.6666667,136 Z" id="form-path-1"></path>
+        <path d="M78.0645161,36 L111.935484,36 C116.370968,36 120,32.4 120,28 C120,23.6 116.370968,20 111.935484,20 L78.0645161,20 C73.6290323,20 70,23.6 70,28 C70,32.4 73.6290323,36 78.0645161,36 Z" id="form-path-2"></path>
+        <path d="M59.3,128 L83.0333333,128 C89.6333333,128 95.0333333,122.6 95.0333333,116 C95.0333333,109.4 89.6333333,104 83.0333333,104 L59.3,104 C52.7,104 47.3,109.4 47.3,116 C47.3,122.6 52.7,128 59.3,128 Z" id="form-path-3"></path>
+        <path d="M32,36 L49.6,36 C54,36 57.6,32.4 57.6,28 C57.6,23.6 54,20 49.6,20 L32,20 C27.6,20 24,23.6 24,28 C24,32.4 27.6,36 32,36 Z" id="form-path-4"></path>
+        <circle id="form-path-5" cx="33" cy="84" r="8"></circle>
+        <circle id="form-path-6" cx="72" cy="84" r="8"></circle>
+        <circle id="form-path-7" cx="111" cy="84" r="8"></circle>
+        <circle id="form-path-8" cx="33" cy="84" r="4"></circle>
+        <path d="M32.0842105,64 L111.915789,64 C116.362105,64 120,60.4 120,56 C120,51.6 116.362105,48 111.915789,48 L32.0842105,48 C27.6378947,48 24,51.6 24,56 C24,60.4 27.6378947,64 32.0842105,64 Z" id="form-path-9"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Form">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#form-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#form-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#form-path-2"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#form-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#form-path-3"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#form-path-3"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#form-path-4"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#form-path-4"></use>
+            </g>
+            <g id="Oval">
+                <use class="primary--fill" xlink:href="#form-path-5"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#form-path-5"></use>
+            </g>
+            <g id="Oval">
+                <use class="primary--fill" xlink:href="#form-path-6"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#form-path-6"></use>
+            </g>
+            <g id="Oval">
+                <use class="primary--fill" xlink:href="#form-path-7"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#form-path-7"></use>
+            </g>
+            <g id="Oval">
+                <use class="primary--fill" xlink:href="#form-path-8"></use>
+                <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#form-path-8"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#form-path-9"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#form-path-9"></use>
+            </g>
+            <path d="M67.1123596,123.191011 L61.7191011,117.797753 C60.7602996,116.838951 60.7602996,115.161049 61.7191011,114.202247 C62.6779026,113.243446 64.3558052,113.243446 65.3146067,114.202247 L68.9101124,117.797753 L78.0187266,108.808989 C78.9775281,107.730337 80.5355805,107.730337 81.6142322,108.808989 C82.5730337,109.76779 82.5730337,111.325843 81.6142322,112.404494 L70.7078652,123.191011 C69.7490637,124.269663 68.1910112,124.269663 67.1123596,123.191011 Z" id="Path" fill="#FFFFFF"></path>
+        </g>
+    </g>
+</svg>

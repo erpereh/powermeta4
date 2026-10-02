@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - File: WEB-INF/classes/com/meta4/soapservices/services/rpc/CYC_FILTRO_CABECERA/deploy.wsdd
+  - Description: Self generated deployment descriptor for CYC_FILTRO_CABECERA Soap Service. 
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edificio Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+    xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+    <service name="CYC_FILTRO_CABECERA" provider="java:RPC" style="wrapped" use="literal"> 
+
+
+        <namespace>http://schemas.meta4.com/</namespace>
+
+        <!-- 
+          - [SOAP] Service parameters
+          - <parameter name="scope" value="{request/session/application}"/>
+          -     "request" will get you a new object each request.
+          -     "application" uses a singleton (which should be thread-safe).  
+          -     "session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+          -->
+        <parameter name="scope" value="session"/>
+        <parameter name="className" value="com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_CabeceraService"/>
+        <parameter name="allowedMethods" value="*"/>
+
+        <!-- class for LogMessage object -->
+        <typeMapping 
+            qname="meta4:LogMessage" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.m4operations.LogMessage"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+        
+        <!-- class for M4SoapException object -->
+        <typeMapping 
+            qname="meta4:M4SoapException" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.exception.M4SoapException"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method CYC_FILTRO_CABECERA -->
+        <typeMapping 
+            qname="meta4:Cyc_Filtro_CabeceraOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_CabeceraOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method FILTROS_SECUNDARIOS -->
+        <typeMapping 
+            qname="meta4:Filtros_SecundariosOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Filtros_SecundariosOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method M4LoadObject -->
+        <typeMapping 
+            qname="meta4:M4LoadobjectOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.M4LoadobjectOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+		<!-- class for node CYC_FILTRO_CAB -->
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_CabBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_CabBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_CabRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_CabRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CYC_FAMILA_PUESTO -->
+		<typeMapping 
+			qname="meta4:Cyc_Famila_PuestoBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Famila_PuestoBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Cyc_Famila_PuestoRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Famila_PuestoRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CYC_FILTRO_CERTIF -->
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_CertifBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_CertifBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_CertifRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_CertifRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CYC_FILTRO_DIRECCION -->
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_DireccionBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_DireccionBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_DireccionRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_DireccionRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CYC_FILTRO_GRUPONIVEL -->
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_GruponivelBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_GruponivelBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_GruponivelRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_GruponivelRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CYC_FILTRO_TITULACION -->
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_TitulacionBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_TitulacionBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_TitulacionRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_TitulacionRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CYC_FILTRO_CABECERA_PCP -->
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_Cabecera_PcpBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_Cabecera_PcpBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Cyc_Filtro_Cabecera_PcpRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.cyc_filtro_cabecera.Cyc_Filtro_Cabecera_PcpRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+    </service>
+</deployment>
+
+

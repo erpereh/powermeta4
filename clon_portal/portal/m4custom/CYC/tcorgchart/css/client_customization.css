@@ -1,0 +1,37 @@
+/*
+    Customization Client Meta4
+*/
+
+
+/* HEAD TABLES 
+ --------------------------------------------------- */
+thead th,
+thead td,
+.m4-table thead th,
+.m4-table-header.m4-table-list,
+.m4-table.m4-table-fixedHead {
+    background-color: #7B93AF!important; /* Uso exclusivo para dar color a las cabeceras de todas las tablas */
+}
+
+/* HEADER
+ --------------------------------------------------- */
+
+
+/* EMPLOYEE HEADER
+ --------------------------------------------------- */
+
+
+/* COLLAPSE HEADER
+ --------------------------------------------------- */
+
+
+/* BACKGROUND IMAGE HOME
+ --------------------------------------------------- */
+
+
+ /* MEDIA QUERIES
+ --------------------------------------------------- */
+@media screen and (max-width : 1023px) {
+    /*@media screen and (min-width : 768px) and (max-width : 1023px) {*/
+
+}

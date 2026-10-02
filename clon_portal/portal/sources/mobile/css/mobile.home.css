@@ -1,0 +1,177 @@
+﻿/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: mobile.home.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+body{
+    overflow: hidden;
+}
+.m4-mobileHeaderHome {
+    top: 0;
+    width: 100%;
+    height: 164px;
+    position: absolute;
+    z-index: 0;
+}
+.loginName {
+    color: #fff;
+    font-size: initial;
+    font-weight: normal;
+    width: 70%;
+    margin: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 36px;
+    margin-top:8px;
+}
+#listContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 0px;
+    margin-top: 0;
+}
+#listContainer li {
+    text-decoration: none;
+    list-style: none;
+    padding: 12px 24px 12px 24px;
+    border-bottom: 1px solid rgba(211, 211, 211, 0.40);
+}
+#listContainer li a {
+    display: flex;
+    text-decoration:none;
+    align-items: center;
+    vertical-align: middle;
+}
+#listContainer li a span {
+    background-color: #f05043;
+    color: white;
+    font-size: 12px;
+    border-radius: 100%;
+    min-width: 24px;
+    max-width: 24px;
+    min-height: 24px;
+    max-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+}
+#listContainer li a span:empty{
+    visibility: hidden;
+}
+.ui-li-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 16px;
+}
+.contentInfoPerson{
+    text-align: center;
+    line-height: 24px;
+}
+.person-photo {
+    width: 88px;
+    height: 88px;
+    min-width: 88px;
+    max-width: 88px;
+    min-height: 88px;
+    max-height: 88px;
+    border-radius: 100%;
+    background: rgba(255, 255, 255, 0.22);
+}
+.employeeInfo {
+    color: rgba(255, 255, 255, 0.54);
+    font-size: 14px;
+    line-height: 24px;
+}
+#logoutList {
+    position: fixed;
+    top: 24px;
+    left: 24px
+}
+#logout-icon{
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+    margin-top: 10px !important;
+    margin-left: 10px !important;
+}
+#settingsButton {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}
+.hideHomeBall {
+    display: none !important;
+}
+
+html {
+    background-image: url(/mobile/icons/background.jpg) !important;
+    background-repeat: no-repeat;
+    background-size: cover !important;
+    background-position: 75% 50%;
+    overflow: hidden !important;
+}
+
+#contentRoot {
+    background: #ffffff;
+    height: -webkit-fill-available;
+    overflow: auto;
+    z-index: 999999999 !important;
+}
+
+#listPage {
+    background-color: rgba(0, 0, 0, 0.47);
+}
+
+#photoPerson img {
+    width: 72px;
+    height: 72px;
+    border-radius: 100%;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+}
+#employeePosition {
+    line-height: 16px;
+}
+.contentInfoPerson{
+    margin-top: 24px;
+}
+#spinnerContainer{
+    background: #ffffff !important;
+}
+.spinner-header{
+    background: #ffffff !important;
+}
+#deprecatedVersion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+}
+#deprecatedContent {
+    background: rgba(255, 255, 255, 0.80);
+    padding: 16px;
+    margin: 16px;
+    border-radius: 6px;
+    text-align: center;
+    -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.30);
+    -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.30);
+    box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.30);
+}
+#deprecatedText {
+    text-align: left;
+    margin-top: 0;
+    margin-bottom: 32px;
+}
+#deprecatedVersion img {
+    width: 150px;
+    margin-bottom: 42px;
+}
+html.ui-mobile.deprecated {
+    background: linear-gradient(to bottom right, #628ae3, #03b5d1) !important;
+    background-image: linear-gradient(to bottom right, #628ae3, #03b5d1) !important;
+    background: linear-gradient(to bottom right, #628ae3, #03b5d1) !important;
+}

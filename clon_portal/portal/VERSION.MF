@@ -1,0 +1,15 @@
+Version-File: 1.0
+Created-By: Meta4 Spain, S.A.
+
+Version-CompanyName: Meta4 Spain, S.A.
+Version-ProductName: Meta4 PeopleNet
+Version-ProductVersion: 8.1SP1
+Version-LegalCopyright: Copyright (c) 2014 Meta4 Spain, S.A. All rights reserved.
+Version-BuildTimeStamp: 20140711
+Version-BuildNumber: 
+Version-FileVersion: 811.000.025
+Version-FileDescription: 
+Version-Debug: 
+Version-InternalName: jsapi_examples
+Version-AdditionalInfo: 
+

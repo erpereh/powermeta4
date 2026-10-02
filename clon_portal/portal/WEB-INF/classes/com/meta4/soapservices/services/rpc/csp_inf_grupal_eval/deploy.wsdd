@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - File: WEB-INF/classes/com/meta4/soapservices/services/rpc/CSP_INF_GRUPAL_EVAL/deploy.wsdd
+  - Description: Self generated deployment descriptor for CSP_INF_GRUPAL_EVAL Soap Service. 
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edificio Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+    xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+    <service name="CSP_INF_GRUPAL_EVAL" provider="java:RPC" style="wrapped" use="literal"> 
+
+
+        <namespace>http://schemas.meta4.com/</namespace>
+
+        <!-- 
+          - [SOAP] Service parameters
+          - <parameter name="scope" value="{request/session/application}"/>
+          -     "request" will get you a new object each request.
+          -     "application" uses a singleton (which should be thread-safe).  
+          -     "session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+          -->
+        <parameter name="scope" value="session"/>
+        <parameter name="className" value="com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Inf_Grupal_EvalService"/>
+        <parameter name="allowedMethods" value="*"/>
+
+        <!-- class for LogMessage object -->
+        <typeMapping 
+            qname="meta4:LogMessage" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.m4operations.LogMessage"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+        
+        <!-- class for M4SoapException object -->
+        <typeMapping 
+            qname="meta4:M4SoapException" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.exception.M4SoapException"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method CSP_INF_GRUPAL_EVAL -->
+        <typeMapping 
+            qname="meta4:Csp_Inf_Grupal_EvalOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Inf_Grupal_EvalOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+        <!-- output class for method M4LoadObject -->
+        <typeMapping 
+            qname="meta4:M4LoadobjectOutput" 
+            xmlns:meta4="http://schemas.meta4.com/"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.M4LoadobjectOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle=""
+        />
+
+		<!-- class for node CSP_INF_ORO_GRUPAL -->
+		<typeMapping 
+			qname="meta4:Csp_Inf_Oro_GrupalBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Inf_Oro_GrupalBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Inf_Oro_GrupalRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Inf_Oro_GrupalRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_INF_GRUPAL_EVAL -->
+		<typeMapping 
+			qname="meta4:Csp_Inf_Grupal_EvalBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Inf_Grupal_EvalBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Inf_Grupal_EvalRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Inf_Grupal_EvalRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_SIGNIFICADO -->
+		<typeMapping 
+			qname="meta4:Csp_SignificadoBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_SignificadoBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_SignificadoRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_SignificadoRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_MT_EVAL_CAPAB_READ -->
+		<typeMapping 
+			qname="meta4:Csp_Mt_Eval_Capab_ReadBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Mt_Eval_Capab_ReadBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Mt_Eval_Capab_ReadRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Mt_Eval_Capab_ReadRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+		<!-- class for node CSP_MT_EVAL_OBJECT_READ -->
+		<typeMapping 
+			qname="meta4:Csp_Mt_Eval_Object_ReadBlock" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Mt_Eval_Object_ReadBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""
+		/>
+
+		<typeMapping 
+			qname="meta4:Csp_Mt_Eval_Object_ReadRecord" 
+			xmlns:meta4="http://schemas.meta4.com/"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.csp_inf_grupal_eval.Csp_Mt_Eval_Object_ReadRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle=""						
+		/>
+
+    </service>
+</deployment>
+
+

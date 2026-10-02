@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<data>
+   <config>
+      <title>Configuración del proceso de migración</title>
+      <lblheadfrm>Parámetros</lblheadfrm>
+      <lblOptions>Elegir portal inicial:</lblOptions>
+      <lblESS>SSE</lblESS>
+      <lblMSS>SSM</lblMSS>
+      <lblidPageProc>Página a procesar:</lblidPageProc>
+      <lblidPrefix>ID Prefijo menu</lblidPrefix>
+      <btnAddGroup>Añadir grupo +</btnAddGroup>
+      <lblidGroupGrps>ID</lblidGroupGrps>
+      <lblnmGroupGrps>Nombre grupo</lblnmGroupGrps>
+      <lblnmSiteGrps>Portal</lblnmSiteGrps>
+      <btnLogout>Salir</btnLogout>
+      <btnStart>Empezar</btnStart>
+   </config>
+   <process>
+       <btnBack>Volver</btnBack>
+       <btnStart>Salvar</btnStart>
+   </process>
+   <label>
+      <_2>ID menú</_2>
+      <_3>ID menú padre</_3>
+      <_4>Nombre menú</_4>
+      <_5>Página</_5>
+      <_6>Comentario</_6>
+      <_7>Menú raiz del grupo</_7>
+   </label>
+   <warning>
+      <_0>El submenú ya existe.</_0>
+      <_1>Cambiado el ID por el de BBDD.</_1>
+      <_2>El submenú tiene un padre distinto en BBDD.</_2>
+      <_3>El nombre del submenú no coincide</_3>
+      <_4>La dirección URL ha sido encontrado más de una vez.</_4>
+      <_5>Nuevo menú.</_5>
+      <_6>La definición del grupo %1 no ha sido encontrada.</_6>
+      <_7>Se debe elegir al menos un grupo a procesar.</_7>
+   </warning>
+   <error>
+      <_1>El identificador del grupo es obligatorio y debe ser un número.</_1>
+      <_2>El identificador del grupo está repetido.</_2>
+      <_3>El nombre del grupo es obligatorio.</_3>
+      <_4>La dirección del portal es obligatoria.</_4>
+      <_5>La página de proceso es obligatoria.</_5>
+      <_6>El prefijo es obligatorio y debe contener 4 caracteres.</_6>
+      <_7>No se ha podido traspasar la información a Peoplenet.</_7> 
+      <_8>El ID del padre no ha sido encontrado. Menú no añadido.</_8> 
+      <_9>La dirección URL ha llegado vacia a Peoplenet. Menú no añadido.</_9> 
+      <_10>Menú añadido correctamente.</_10> 
+      <_11>La definición del menú coincide con la información de Peoplenet. Menú no actualizado.</_11> 
+      <_12>Menú actualizado correctamente.</_12> 
+      <_13>Error insertando o actualizando el menú.</_13> 
+      <_14>El ID menú está repetido. Modificalo e intentalo de nuevo. Menu no añadido.</_14> 
+   </error>
+</data>

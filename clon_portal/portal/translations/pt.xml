@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<labels>
+   <login>
+      <title>Conexão a SSE/SSM</title>
+      <welcome>Bem-vindo ao Self Service de Meta4.</welcome>
+      <description1>A partir desta aplicação pode realizar</description1>
+      <description2>como por exemplo modificar os seus dados pessoais, consultar os seus recibos de salário o</description2>
+      <description3>como por exemplo solicitar a cobertura de uma vaga ou validar pedidos dos seus empregados.</description3>
+      <descriptionemployee>tarefas de empregado</descriptionemployee>
+      <descriptionmanager>tarefas de responsável de uma unidade</descriptionmanager>
+      <remember>Lembre-se que para aceder a estas e outras secções do Self Service, deve</remember>
+      <rememberidentify>identificar-se previamente.</rememberidentify>
+      <loginhead>Especifique utilizador e password válidos para esta aplicação</loginhead>
+      <leyendhead>Identifique-se</leyendhead>
+      <labeluser>Utilizador:</labeluser>
+      <labelpwd>Password:</labelpwd>
+      <labellang>Idioma:</labellang>
+      <buttonenter>Entrar</buttonenter>
+      <userwrong>O nome do utilizador é obrigatório</userwrong>
+      <pwdwrong>A password é obrigatória</pwdwrong>
+      <modeClassic>Versão clássica</modeClassic>
+      <langlogin>5</langlogin>
+      <copyright>Todos os direitos reservados</copyright>
+      <employeetittle>Self Service</employeetittle>
+      <employeesubtittle>do empregado</employeesubtittle>
+      <lnklost>Tenho esquecido o meu utilizador/password</lnklost>
+      <lnkCondition>Condições e Termos de uso</lnkCondition>
+      <lnkPrivacy>Política de privacidade</lnkPrivacy>
+      <labelRequireCaptcha>Por favor, introduza os seguintes caracteres:</labelRequireCaptcha>
+      <labelRetypeCaptcha>Por favor, introduza novamente os seguintes caracteres:</labelRetypeCaptcha>
+      <titleRequireCaptcha>Por favor, introduza os seguintes caracteres</titleRequireCaptcha>
+      <titleRetypeCaptcha>Por favor, introduza novamente os seguintes caracteres</titleRetypeCaptcha>
+   </login>
+   <subtitle>
+      <userlogin>Introduza seu utilizador</userlogin>
+      <pwdlogin>Introduza sua password</pwdlogin>
+      <selectlang>Seleccione o idioma de conexão</selectlang>
+      <buttonenter>Contacte-se</buttonenter>
+      <lnklost>Tem esquecido o seu utilizador ou password?</lnklost>
+      <lnkCondition>Condições e Termos de uso</lnkCondition>
+      <lnkPrivacy>Política de privacidade</lnkPrivacy>
+   </subtitle>
+   <error>
+      <_1>O nome do utilizador é obrigatório</_1>
+      <_2>A password é obrigatória</_2>
+   </error>
+</labels>

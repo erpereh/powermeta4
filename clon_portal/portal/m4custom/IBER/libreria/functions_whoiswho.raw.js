@@ -1,0 +1,406 @@
+//-------------------------------------------------------------------------------------------------
+//Compact with e.g. http://fmarcia.info/jsmin/test.html
+//-------------------------------------------------------------------------------------------------
+
+var m4WhoisWho = {};
+m4WhoisWho.l_sEngineWhoIsWhoURL = '/servlet/CheckSecurity/JSP/sse_g0/ssco_engine_who.jsp';
+m4WhoisWho.l_aLabels = new Array;
+
+m4WhoisWho.Table = function() {
+  
+  var l_oTableEmp = null;
+  var l_oInfPers = null;
+
+  function _init() {
+
+    var options = {
+      maxRows: 10,
+      orderAsc: m4WhoisWho.l_aLabels['OrderAsc'], //SCO_PRP_LBL_ORDER_ASC
+      orderDesc: m4WhoisWho.l_aLabels['OrderDesc'], //SCO_PRP_LBL_ORDER_DESC
+      orderNo: m4WhoisWho.l_aLabels['NoOrder'] //SCO_PRP_LBL_NO_ORDER
+    };
+
+    l_oTableEmp = new meta4Table.Table('tblEmp', options);
+  }
+
+  function _loadTable(sName, sIdWU, sIdLoc) {
+    var aParams = new Array;
+    if ((sName) || (sIdWU) || (sIdLoc)) {
+      aParams[0] = ['Action', 'SearchEmp'];
+      aParams[1] = ['Name', sName];
+      aParams[2] = ['WUnit', sIdWU];
+      aParams[3] = ['WLoc', sIdLoc];
+      l_oTableEmp.setAction(m4WhoisWho.l_aLabels['LoadingEmp'] +  '...'); //SCO_PRP_LBL_LOADING_EMP      
+      meta4Ajax.ajax.sendAsyncJSON(m4WhoisWho.l_sEngineWhoIsWhoURL, aParams, _searchEmpEnd);
+    } else {
+      l_oTableEmp.reset();
+    }
+  }
+
+  function _sortMe(me) {
+    var aParams = new Array;
+    var sNameCol = m4WhoisWho.l_aLabels['Ordering'] + ' ' + $(me.id).get('text') + '...'; //SCO_PRP_LBL_ORDERING
+    aParams[0] = ['Action', 'Sort'];
+    aParams[1] = ['Column', me.m4column];
+    aParams[2] = ['Order', me.m4sort];
+    l_oTableEmp.setAction(sNameCol);
+    meta4Ajax.ajax.sendAsyncJSON(m4WhoisWho.l_sEngineWhoIsWhoURL, aParams, _searchEmpEnd); 
+  }
+
+  function _searchEmpEnd(objResp) {
+    var saTable = new Array;
+    if (objResp) {
+      //format each column
+      var sFormatCol0 = "<div><a href='#'><span title='sLiteral' idHR='sID' onmouseover='m4WhoisWho.Functions.showPhoto(this);' onmouseout='meta4Photo.Photo.hidePhoto();' onclick='m4WhoisWho.Functions.show(this)'>sName</span></a></div>";
+      var sFormatCol1 = "<div><a href='/servlet/CheckSecurity/JSP/sse_g0/ssco_g0_org_chart.jsp?IdWUnit=sID'><span title='sLiteral'>sName</span></a></div>";
+      var sFormatCol2 = "<div><span class='spanPhone'>sPhone</span><img class='imgPhone' title='sLiteral' src='sImg'/></div>";
+      var sFormatCol3 = "<a href='mailto:sEmail'><span title='sLiteral'>sEmail</span></a>";
+      var sFormatCol4 = "<span>sName</span>";
+      var sFormatCol5 = "<img idHR='sID' class='m4tableImg' src='/iconos/lu_add_con_nor_24.png' title='sLiteral' onclick='m4WhoisWho.Table.insertContact(event);'/>";
+
+      objResp.saWho.each(function(item,index){
+
+        var sCol0 = '';
+        var sCol1 = '';
+        var sCol2 = '';
+        var sCol3 = '';
+        var sCol4 = '';
+        var sCol5 = '';
+
+        sCol0 = sFormatCol0.replace(/sID/g,item[0][0]);
+        sCol0 = sCol0.replace(/sLiteral/g,item[0][1]);
+        sCol0 = sCol0.replace(/sName/g,item[0][2]);
+        
+        sCol1 = sFormatCol1.replace(/sID/g,item[1][0]);
+        sCol1 = sCol1.replace(/sLiteral/g,item[1][1]);
+        sCol1 = sCol1.replace(/sName/g,item[1][2]);
+        
+        sCol2 = '';
+        if (item[2][0]) {
+          sCol2 = sFormatCol2.replace(/sPhone/g,item[2][0]);
+          sCol2 = sCol2.replace(/sLiteral/g,item[2][1]);
+          sCol2 = sCol2.replace(/sImg/g,item[2][2]);
+        }
+
+        sCol3 = '';
+        if (item[3][0]) {
+          sCol3 = sFormatCol3.replace(/sEmail/g,item[3][0]);
+          sCol3 = sCol3.replace(/sLiteral/g,item[3][1]);
+        }
+
+        sCol4 = sFormatCol4.replace(/sName/g,item[4][0]);
+
+        sCol5 = sFormatCol5.replace(/sID/g,item[5][0]);
+        sCol5 = sCol5.replace(/sLiteral/g,item[5][1]);
+
+        saTable[saTable.length] = [sCol0, sCol1, sCol2, sCol3, sCol4, sCol5];
+      });
+
+      l_oTableEmp.load(saTable);
+    }
+    
+  }
+  
+  return {
+
+    init: function() {
+      _init();
+    },
+    
+    loadTable: function(sName, sIdWU, sIdLoc) {
+      _loadTable(sName, sIdWU, sIdLoc);
+    },
+
+    sortMe: function(me) {
+      _sortMe(me);
+    },
+    
+    showInfoPers: function(sIdHR) {
+      l_oInfPers.show(sIdHR);
+    },
+
+    insertContact: function(ev) {
+      var objResult = meta4Table.functions.InsertContact(ev);
+      if (objResult.sResult == '0') {
+        l_oTableEmp.setTempCaption(m4WhoisWho.l_aLabels['ContactOK']);
+      } else {
+        l_oTableEmp.setTempCaption(m4WhoisWho.l_aLabels['ContactKO']);
+      }
+    }
+
+  }
+
+} ();
+
+m4WhoisWho.Search = function() {
+  
+  var l_objDIVSchResult = null;
+  var l_objSPNSchResult = null;
+  var l_objInputWU = null;
+  var l_objInputWLoc = null;
+  
+  var l_sSearching = '';
+  var l_sOldWU = '';
+  var l_sOldWLoc = '';
+  
+  function _init() {
+
+    var aParams = new Array;
+    var objResp = null;
+    
+    document.title = $('sHeadTitle').get('text');
+    
+    aParams[0] = ['Action', 'Init'];
+    meta4Ajax.ajax.sendSyncJSON(m4WhoisWho.l_sEngineWhoIsWhoURL, aParams);
+    objResp = meta4Ajax.ajax.getResponseJSON();
+    if (objResp) {
+      for (var item in objResp) {
+        if (typeof(objResp[item]) == 'string') {
+          m4WhoisWho.l_aLabels[item.substring(1)] = objResp[item];
+        }
+      }
+    }
+
+    l_objDIVSchResult = $('divSearchResult');
+    l_objSPNSchResult = $('spanSearchResult');
+    
+    l_objInputEmp = $('inputSearchEmp');
+    l_objInputEmp.nameEmp = '';
+    l_objInputWU = $('inputSearchWU');
+    l_objInputWU.idWU = '';
+    l_objInputWLoc = $('inputSearchWLoc');
+    l_objInputWLoc.idWLoc = '';
+  }
+  
+  function _searchEmp(me) {
+    var bLoad = true;
+    if (me.value.length > 1) {
+      if (me.value == l_objInputEmp.nameEmp) {
+        bLoad = false;
+      } else {
+        $('imgSearchEmp').removeClass('nophoto');
+        $('spanFilterEmp').set('text', me.value);
+        $('spanFilterEmp').highlight('#a1a1a1');
+        l_objInputEmp.nameEmp = me.value;
+      }
+    } else if (l_objInputEmp.nameEmp) {
+      l_objInputEmp.nameEmp = '';
+      _eraseFilter($('imgSearchEmp'));
+    } else {
+      bLoad = false;
+    }
+    if (bLoad) {m4WhoisWho.Table.loadTable(l_objInputEmp.nameEmp,l_objInputWU.idWU,l_objInputWLoc.idWLoc);}
+  }
+  
+  function _searchWU(me) {
+    var aParams = new Array;
+    if (l_sOldWU == me.value) {return}
+    me.idWU = '';
+    l_sOldWU = me.value;
+    l_sSearching = 'WU';
+    l_objDIVSchResult.innerHTML = '';
+    if (me.value.length > 1) {
+      l_objDIVSchResult.addClass('divSearching');
+      aParams[0] = ['Action', 'SearchWU'];
+      aParams[1] = ['Name', me.value];
+      meta4Ajax.ajax.sendAsync(m4WhoisWho.l_sEngineWhoIsWhoURL, aParams, _searchWorkEnd);
+    } else {
+      l_objDIVSchResult.searchWU = '';
+      l_objSPNSchResult.set('html','');
+    }
+  }
+  
+  function _searchWLoc(me) {
+    var aParams = new Array;
+    if (l_sOldWLoc == me.value) {return}
+    me.idLoc = '';
+    l_sOldWLoc = me.value;
+    l_sSearching = 'WLOC';
+    l_objDIVSchResult.innerHTML = '';
+    if (me.value.length > 1) {
+      l_objDIVSchResult.addClass('divSearching');
+      aParams[0] = ['Action', 'SearchWLoc'];
+      aParams[1] = ['Name', me.value];
+      meta4Ajax.ajax.sendAsync(m4WhoisWho.l_sEngineWhoIsWhoURL, aParams, _searchWorkEnd);
+    } else {
+      l_objDIVSchResult.searchWLoc = '';
+      l_objSPNSchResult.set('html','');
+    }
+  }
+
+  function _searchWorkEnd(objResp) {
+    var sText = ''; 
+    var iNResult = 0;
+    l_objDIVSchResult.removeClass('divSearching');
+    if (objResp) {
+      l_objDIVSchResult.innerHTML = objResp;
+      iNResult = l_objDIVSchResult.children.length
+      sText = m4WhoisWho.l_aLabels['Nofound']; //SCO_PRP_LBL_NO_FOUNDED
+      if (l_sSearching == 'WLOC') {
+        if (iNResult == 1) {sText = iNResult + ' ' + m4WhoisWho.l_aLabels['FoundWLoc'];} //SCO_PRP_LBL_FOUNDED_WLOC
+        else if (iNResult > 1) {sText = iNResult + ' ' + m4WhoisWho.l_aLabels['FoundWLocs'];} //SCO_PRP_LBL_FOUNDED_WLOCS
+        l_objDIVSchResult.searchWLoc = l_objDIVSchResult.innerHTML;
+      } else if (l_sSearching == 'WU') {
+        if (iNResult == 1) {sText = iNResult + ' ' + m4WhoisWho.l_aLabels['FoundWU'];} //SCO_PRP_LBL_FOUNDED_WU
+        else if (iNResult > 1) {sText = iNResult + ' ' + m4WhoisWho.l_aLabels['FoundWUs'];} //SCO_PRP_LBL_FOUNDED_WUS
+        l_objDIVSchResult.searchWU = l_objDIVSchResult.innerHTML;
+      }
+      l_objSPNSchResult.set('html', sText);
+    }
+    l_sSearching = '';
+  }
+
+  function _chooseMe(me) {
+    var sValue = $(me.id).get('text');
+    var objFilter = null;
+    if (me.getAttribute('idWU')) {
+      l_objInputWU.idWU = me.id;
+      objFilter = $('spanFilterWU');
+      $('imgSearchWU').removeClass('nophoto');
+    } else if (me.getAttribute('idWLoc')) {
+      l_objInputWLoc.idWLoc = me.id;
+      $('imgSearchWLoc').removeClass('nophoto');
+      objFilter = $('spanFilterWLoc');
+    }
+    objFilter.set('text', sValue);
+    objFilter.highlight('#a1a1a1');
+    m4WhoisWho.Table.loadTable(l_objInputEmp.nameEmp,l_objInputWU.idWU,l_objInputWLoc.idWLoc);
+  }
+  
+  function _eraseFilter(me) {
+    var objFilter = null;
+    me.addClass('nophoto');
+    switch (me.id)
+    {
+      case 'imgSearchEmp':
+       objFilter = $('spanFilterEmp');
+       l_objInputEmp.nameEmp = '';
+       l_objInputEmp.focus();
+       break;
+      case 'imgSearchWU':
+       objFilter = $('spanFilterWU');
+       l_objInputWU.idWU = '';
+       l_objInputWU.focus();
+       l_objInputWU.select();
+       break;
+      case 'imgSearchWLoc':
+       objFilter = $('spanFilterWLoc');
+      l_objInputWLoc.idWLoc = '';
+      l_objInputWLoc.focus();
+      l_objInputWLoc.select();
+    }
+    objFilter.set('text','');
+    m4WhoisWho.Table.loadTable(l_objInputEmp.nameEmp,l_objInputWU.idWU,l_objInputWLoc.idWLoc);
+  }
+
+  return {
+    
+    init: function() {
+      _init();
+    },
+    
+    chooseMe: function(me) {
+     _chooseMe(me); 
+    },
+    
+    searchEmp: function(ev) {
+      var me = (ev.target) ? ev.target : ev;
+      _searchEmp(me);
+    },
+    
+    focusEmp: function(ev) {
+      var me = ev.target;
+      if (me.value.length > 0) {me.select();}
+      l_objDIVSchResult.removeClass('divSearching');
+      l_objDIVSchResult.innerHTML = '';
+      l_objSPNSchResult.set('html', '');
+    },
+
+    searchWU: function(ev) {
+      var me = ev.target;
+      _searchWU(me);
+    },
+
+    focusWU: function(ev) {
+      var me = ev.target;
+      if (me.value.length > 0) {me.select();}
+      l_objDIVSchResult.innerHTML = '';
+      l_objSPNSchResult.set('html', '');
+      if (l_objDIVSchResult.searchWU) {
+        l_sSearching = 'WU';
+        _searchWorkEnd(l_objDIVSchResult.searchWU);
+      } else if (me.value.length > 1) {
+        l_objSPNSchResult.set('html', m4WhoisWho.l_aLabels['Nofound']);
+      }
+    },
+
+    searchWLoc: function(ev) {
+      var me = ev.target;
+      _searchWLoc(me);
+    },
+
+    focusWLoc: function(ev) {
+      var me = ev.target;
+      if (me.value.length > 0) {me.select();}
+      l_objDIVSchResult.innerHTML = '';
+      l_objSPNSchResult.set('html', '');
+      if (l_objDIVSchResult.searchWLoc) {
+        l_sSearching = 'WLOC';
+        _searchWorkEnd(l_objDIVSchResult.searchWLoc);
+      } else if (me.value.length > 1) {
+        l_objSPNSchResult.set('html', m4WhoisWho.l_aLabels['Nofound']);
+      }
+    },
+    
+    eraseFilter: function(ev) {
+      var me = ev.target;
+      if (me.id == 'imgSearchEmp') {l_objInputEmp.value = '';}
+      _eraseFilter(me);
+    }
+  }
+
+} ();
+
+
+m4WhoisWho.Functions = function(){
+  
+  return {
+
+    showPhoto: function(me) {
+      meta4Photo.Photo.showPhoto(me.getAttribute('idHR'));
+    },
+    
+    show: function(me) {
+      meta4InfPers.Info.show(me.getAttribute('idHR'));
+    }
+
+  }
+  
+}();
+
+window.addEvent('domready', function() {
+
+  meta4Photo.Photo.init(document.body.getAttribute('m4path'), document.body.getAttribute('m4pathURI'), $('imgPhoto'));
+  m4WhoisWho.Search.init();
+  m4WhoisWho.Table.init();
+  meta4InfPers.Info.init(null);
+
+  $('inputSearchEmp').addEvent('keyup', function(e) {m4WhoisWho.Search.searchEmp(e);});
+  $('inputSearchEmp').addEvent('focus', function(e) {m4WhoisWho.Search.focusEmp(e);});
+  $('inputSearchWU').addEvent('keyup', function(e) {m4WhoisWho.Search.searchWU(e);});
+  $('inputSearchWU').addEvent('focus', function(e) {m4WhoisWho.Search.focusWU(e);});
+  $('inputSearchWLoc').addEvent('keyup', function(e) {m4WhoisWho.Search.searchWLoc(e);});
+  $('inputSearchWLoc').addEvent('focus', function(e) {m4WhoisWho.Search.focusWLoc(e);});
+  
+  $('divSearch').getElements('.nophoto').addEvent('click',function(e) {m4WhoisWho.Search.eraseFilter(e);});
+
+  $('body').addEvent('resize', function(e) {
+    $('divTotal').style.width='100%';$('divTotal').style.height='100%'
+  });
+  
+  $('inputSearchEmp').focus();
+  if ($('inputSearchEmp').value.length > 0) {
+    $('inputSearchEmp').fireEvent('keyup', $('inputSearchEmp'));
+  }
+
+});

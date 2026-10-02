@@ -1,0 +1,91 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>Meta4 widget console</title>
+
+        
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+        
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+				
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+		<script type="text/javascript" src="/js/widget/console.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+        <!-- syntax highlighter -->
+        <script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+        <script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+        
+			<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		<style>
+			
+		</style>
+
+		<script>
+			SyntaxHighlighter.all();
+		</script>
+
+		<script>
+			var examples = {
+				example1 : function() {
+				console.log('salida por consola');
+				}
+				
+			};
+		</script>
+				
+		<script>	
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);	
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+		
+		<h1 data-m4trans="_WidgetsWidgetConsoleTitle"></h1>
+		<h2 data-m4trans="_WidgetsWidgetConsoleSubtitle"></h2>
+		<p data-m4trans="_WidgetsWidgetConsoleInclude"></p>
+		<pre class="brush: js;">        
+			&lt;script type="text/javascript" src="/js/widget/console.js"&gt;&lt;/script&gt;
+        </pre>
+        
+		<p data-m4trans="_WidgetsWidgetConsoleDescription"></p>
+
+		<button onclick="examples.example1()" data-m4trans="_WidgetsWidgetConsoleButtonShowOutput"></button>
+
+	</body>
+	</div>
+</html>
+

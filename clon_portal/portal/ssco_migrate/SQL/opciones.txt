@@ -1,0 +1,67 @@
+SELECT 'DELETE FROM M4RMN_OPTIONS1 WHERE ID_MENU = ''' || ID_MENU || ''';'
+FROM M4RMN_TREE
+START WITH ID_PARENT_MENU = 'SSCO_MENU'
+CONNECT BY PRIOR ID_MENU = ID_PARENT_MENU
+
+-ESS-------------------------------------------------------------------------------------------------------------------
+/servlet/CheckSecurity/JSP/sse_g1/sse_g1_menu.jsp?estado=1
+/servlet/CheckSecurity/JSP/sse_g2/sse_g2_menu.jsp?estado=2
+/servlet/CheckSecurity/JSP/sse_g3/sse_g3_menu.jsp?estado=3
+/servlet/CheckSecurity/JSP/sse_g4/sse_g4_menu.jsp?estado=4
+/servlet/CheckSecurity/JSP/sse_g5/sse_g5_menu.jsp?estado=5
+
+My Personal Information
+My Financial Information
+My Job
+My Work Time
+My Knowlegde
+
+Mi información personal
+Mis datos económicos
+Mi puesto de trabajo
+Mi tiempo de trabajo
+Mi conocimiento
+
+Votre dossier personnel
+Vos données financières
+Votre emploi
+Votre temps de travail
+Votre le savoir
+
+A minha informação pessoal
+A minha informação financeira
+O meu posto de trabalho
+O meu tempo de trabalho
+A meus conhecimentos
+
+
+-MSS-------------------------------------------------------------------------------------------------------------------
+/servlet/CheckSecurity/JSP/mss_g1/mss_g1_menu.jsp?estado=1
+/servlet/CheckSecurity/JSP/mss_g2/mss_g2_menu.jsp?estado=2
+/servlet/CheckSecurity/JSP/mss_g2/mss_g2_menu_comp.jsp?estado=5
+/servlet/CheckSecurity/JSP/mss_g3/mss_g3_menu.jsp?estado=3
+/servlet/CheckSecurity/JSP/mss_g4/mss_g4_menu.jsp?estado=4
+
+Personal Information
+Financial Information
+Cash Compensation
+Jobs
+Work Time
+
+Información personal
+Datos económicos
+Compensación salarial
+Puestos de trabajo
+Tiempo de trabajo
+
+Dossiers personnels
+Données financières
+Rémunération
+Emplois
+Temps de travail
+
+Informação pessoal
+Dados financeiros
+Compensação salarial
+Postos de trabalho
+Tempo de trabalho

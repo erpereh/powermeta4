@@ -1,0 +1,38 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: _includes.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+
+<%@ taglib uri="M4Tags" prefix="m4" %>
+<%@ page import="java.io.*, java.util.*, java.net.*, java.lang.*" %>
+<%@ page import="com.meta4.session.*, com.meta4.m4operations.*, com.meta4.common.utils.logsystem.*" %>
+
+<%-- ******************** Disclaimer  ******************** --%>
+<%@include file="../../shco_g0/shco_gen_taglib.jsp" %>
+<%@include file="../../shco_g0/shco_gen_bag.jsp" %>
+<%@include file="../../shco_g0/shco_gen_arg.jsp" %>
+<%znivelmenu="1";%>
+<%-- ******************** Fin Disclaimer  ******************** --%>
+
+<link rel=stylesheet href="/style/shco_gen100.css" type="text/css">
+
+<%!
+/**
+ * Splits an string in a substring array.
+ */
+ String[] splitString(String ai_text, String ai_separator)
+ {
+    StringTokenizer st = new StringTokenizer(ai_text, ai_separator);
+    String[] tokens = new String[st.countTokens()];
+    int i=0;
+    while (st.hasMoreTokens()) {
+        tokens[i++] = st.nextToken();
+    }
+
+    return tokens;
+ }
+%>

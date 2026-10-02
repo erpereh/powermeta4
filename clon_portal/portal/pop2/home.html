@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Metadata -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, minimal-ui" />
+
+		<meta charset="UTF-8" />
+
+		<script type="text/javascript">
+			console.log("Loading Cegid HR Experience Home Page from window " + window.name);
+		</script>
+
+		<!-- Vue and Vuetify Styles -->
+		<link href="/library/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet" />
+		<link href="/library/npm/vuetify@3/dist/vuetify.min.css" rel="stylesheet" />
+
+		<!-- Vue and Vuetify JS -->
+		<script src="/library/npm/vue@3/dist/vue.global.prod.js"></script>
+		<script src="/library/npm/vuetify@3/dist/vuetify.min.js"></script>
+
+		<!-- CDS Styles -->
+		<link href="/css/cds.css" rel="stylesheet" />
+
+		<!-- Teams SDK for JS -->
+		<script src="/library/npm/@microsoft/teams-js@2/dist/MicrosoftTeams.min.js"></script>
+
+		<!-- Template -->
+		<script type="text/javascript" src="/library/framework/common.vue.js"></script>
+		<script>
+			var appVue;
+			const { createApp } = Vue;
+			function loadPage() {
+				const vuetify = m4Vuetify.vuetify;
+
+				const vuePage = createApp({
+					template: `
+						<v-app :lang="language">
+							<v-container :class="['container-home bg-primary height-100', $vuetify.display.mdAndUp && 'bg-home', $vuetify.display.mdAndUp && 'mdAndUp', $vuetify.display.smAndDown && 'smAndDown pa-0']" fluid>
+								<v-row no-gutters class="height-100">
+									<v-col cols="12" :class="['d-flex align-center', $vuetify.display.smAndDown && 'flex-column']">
+										<p 
+											v-if="$vuetify.display.mdAndUp" 
+											:class="[
+												'title-home text-white',
+												$vuetify.display.lgAndUp && 'text-h2',
+												$vuetify.display.mdAndUp && 'ml-16 mt-16',
+												$vuetify.display.md && 'text-h3'
+											]"
+										>
+											{{ titleHome }}
+										</p>
+
+										<div :class="['box-home bg-white px-10 mx-auto text-center position-relative', $vuetify.display.mdAndUp && 'pb-10 my-auto']">
+											<img class="logo-home" src="/iconos/cegid/logo-home.png" />
+
+											<div class="content-box">
+												<div :class="['d-flex justify-center align-center', $vuetify.display.mdAndUp && 'mt-8 mb-10', $vuetify.display.smAndDown && 'my-4']">
+													<img class="mt-1 mr-2" src="/iconos/cegid/cegid.svg" />
+													<p class="text-h5 mb-0">HR Experience</p>
+												</div>
+												<p class="text-primary text-subtitle-1 mb-8 font-weight-medium">
+													{{ text1 }}
+												</p>
+												<p class="text-primary text-body-1 mb-8" id="text-main">
+													{{ text2 }}
+												</p>
+												<p class="text-primary text-body-1 mb-8" id="text-main">
+													{{ text4 }}
+												</p>
+												<v-btn color="primary" id="connect-button" @click="navigate(appId)">
+													{{ textButton }}
+												</v-btn>
+												<p class="text-subtitle-1 mt-6 mb-0">
+													{{ text3 }}
+
+													<a href="/pop2/contact.html" target="_blank" class="text-subtitle-1" >{{ text3link }}</a>
+
+													{{ text3fin }}
+												</p>
+											</div>
+										</div>
+									</v-col>
+								</v-row>
+							</v-container>
+						</v-app>
+					`,
+					data() {
+						return {
+							appId: "",
+							deepLinkDashboardTab: "",
+							titleHome: "",
+							textButton: "",
+							text1: "",
+							text2: "",
+							text3: "",
+							text4: "",
+							text3fin: "",
+							text3link: "",
+							realLanguage: ""
+						};
+					},
+					computed: {
+						async language() {
+							var language = navigator.language.substring(0, 2);
+							var that = this;
+							var urlParams = new URLSearchParams(window.location.search);
+							var appId = urlParams.get("appId");
+							that.appId = appId;
+							if (this.appId !== "") {
+								try {
+									await microsoftTeams.initialize();
+									const context = await microsoftTeams.app.getContext();
+									if (context && context.app.locale !== "") {
+										// languageId-countryId
+										const localeString = context.app.locale;
+										that.realLanguage = localeString.substring(0, 2);
+										console.log("Language from context: " + language);
+									}
+								} catch (error) {
+									console.error("Unable to initialize Teams library ", error);
+								}
+								if (this.realLanguage) {
+									language = this.realLanguage;
+								}
+							}
+
+							switch (language) {
+								case "es":
+									this.titleHome = "Recursos Humanos";
+									this.textButton = "Acceso";
+									this.text1 = "Accede a un único espacio para gestionar tus procesos y requerimientos de RR.HH.";
+									this.text2 =
+										"Si quieres acceder a esta app, tu empresa debe ser cliente de las soluciones de Gestión de Nómina, Gestión del Talento y/o Gestión del Tiempo de Cegid.";
+									this.text3 = "Pregunta a tu departamento de RR.HH. si no puedes acceder o ";
+									this.text3link = "ponte en contacto con nosotros";
+									this.text3fin = " si estás interesado en adquirir esta solución.";
+									break;
+
+								case "fr":
+									this.titleHome = "Ressources Humaines";
+									this.textButton = "Se connecter";
+									this.text1 = "Accédez à un outil unique pour votre gestion RH et vos tâches liées.";
+									this.text2 =
+										"Pour accéder à cette application, votre entreprise doit être cliente des solutions Cegid Gestion de Paie, Gestion des Talents ou Gestion des Temps.";
+									this.text3 = "Si vous ne pouvez pas vous connecter, rapprochez-vous de votre service RH ou ";
+									this.text3link = "contactez-nous";
+									this.text3fin = " si vous êtes intéressé par l'acquisition de cette solution.";
+
+									break;
+
+								case "pt":
+									this.titleHome = "Recursos humanos";
+									this.textButton = "Se connecter";
+									this.text1 = "Acesse um único espaço para gerenciar seus processos e requisitos de RH.";
+									this.text2 =
+										"Se você deseja acessar este aplicativo, sua empresa deve ser cliente das soluções de Gestão de Folha de Pagamento, Gestão de Talento e/ou Gestão de Tempo da Cegid.";
+									this.text3 = "Pergunte ao seu departamento de RH se não pode acessá-lo ";
+									this.text3link = "ou entre em contato connosco";
+									this.text3fin = " se estiver interessado em adquirir esta solução.";
+									break;
+
+								default:
+									this.titleHome = "Human Resources";
+									this.textButton = "Connect";
+									this.text1 = "Get access to a single place to manage your HR requirements and work-related tasks.";
+									this.text2 =
+										"If you want to access this app, your company must be a customer of Cegid's Payroll Management, Talent Management and/or Time Management solutions.";
+									this.text3 = "Ask your HR department if you are unable to login or ";
+									this.text3link = "contact us";
+									this.text3fin = " if you are interested in acquiring this solution.";
+
+									break;
+							}
+
+							if (!this.isTeamsWebOrDesktop()) {
+								switch (language) {
+									case "es":
+										this.text4 = "Haz clic en 'Dashboard' para comenzar.";
+										break;
+									case "fr":
+										this.text4 = "Cliquez sur 'Vue d'ensemble' pour commencer.";
+										break;
+									case "pt":
+										this.text4 = "Clique em 'Dashboard' para começar.";
+										break;
+									default:
+										this.text4 = "Click on 'Dashboard' to start.";
+										break;
+								}
+							}
+							return language;
+						}
+					},
+					mounted() {
+						var urlParams = new URLSearchParams(window.location.search);
+						var appId = urlParams.get("appId");
+
+						if (!this.isTeamsWebOrDesktop() || appId === "") {
+							// Remove the "Connect" button because it is not working in Outlook or Microsoft 365, or mobile.
+							let connectButton = document.getElementById("connect-button");
+							connectButton?.parentElement?.removeChild(connectButton);
+						}
+
+						if (!this.appId || this.appId === "") {
+							var updateElement = document.getElementById("text-main");
+							if (updateElement) {
+								updateElement.innerHTML = "This content has to be viewed in the latest Cegid HR Experience Application. ";
+							}
+						} else {
+							microsoftTeams.appInitialization.notifySuccess();
+						}
+					},
+					methods: {
+						isTeamsWebOrDesktop() {
+							return window.name === "embedded-page-container" || window.name === "extension-tab-frame";
+						},
+						isMobileTeams() {
+							return window.parent === window.self && window.nativeInterface;
+						},
+						isInEmbeddedTeams() {
+							return this.isTeamsWebOrDesktop() || this.isMobileTeams();
+						},
+						async navigate(appId) {
+							if (this.isInEmbeddedTeams()) {
+								// the teams v1 version works well with classic/new teams
+								const domain = "teams.microsoft.com";
+								const deepLinkDashboardTab = "https://" + domain + "/l/entity/" + this.appId + "/dashboard?webURL=/pop2/dashboard";
+								console.log("Classic/New Teams: " + deepLinkDashboardTab);
+								microsoftTeams.executeDeepLink(deepLinkDashboardTab);
+							} else {
+								// the teams v2 version is giving some trouble
+								if (microsoftTeams.pages.isSupported()) {
+									await microsoftTeams.pages.navigateToApp({ appId: appId, pageId: "dashboard" });
+								} else {
+									console.error("microsoftTeams.pages not supported");
+								}
+							}
+						}
+					}
+				})
+					.use(vuetify)
+					.mount("#app");
+				appVue = vuePage;
+			}
+		</script>
+
+		<style>
+			#cds .height-100 {
+				height: 100%;
+			}
+
+			.container-home .box-home {
+				width: 469px;
+				border-radius: 24px;
+				padding-top: 56px;
+				margin-top: auto;
+			}
+
+			.container-home .logo-home {
+				position: absolute;
+				top: -48px;
+				left: calc(50% - 53px);
+			}
+
+			.container-home.bg-home {
+				background-image: url("/iconos/cegid/1440-bg-home.png");
+				background-position: top left;
+			}
+
+			.title-home {
+				padding-top: 12vh;
+			}
+
+			@media screen and (min-width: 1024px) and (max-width: 1439px) {
+				.container-home.bg-home {
+					background-image: url("/iconos/cegid/1024-bg-home.png");
+				}
+			}
+
+			@media screen and (min-width: 768px) and (max-width: 1023px) {
+				.container-home.bg-home {
+					background-image: url("/iconos/cegid/768-bg-home.png");
+				}
+
+				.title-home {
+					padding-right: 44px;
+				}
+			}
+
+			@media screen and (max-width: 960px) {
+				.container-home.bg-home {
+					background-image: url("/iconos/cegid/390-bg-home.png");
+				}
+
+				.title-home {
+					padding-top: 120px;
+					padding-left: 46px;
+					margin-bottom: 94px !important;
+				}
+
+				.container-home .box-home {
+					height: 100vh;
+					margin-top: 80px;
+					max-height: calc(100vh - 80px) !important;
+				}
+			}
+
+			.container-home.smAndDown .box-home {
+				width: 100%;
+				border-radius: 0;
+				border-top-left-radius: 24px;
+				border-top-right-radius: 24px;
+			}
+
+			.title-home.smAndDown {
+				max-width: 50%;
+			}
+
+			.container-home .box-home .content-box {
+				height: 100%;
+				overflow: auto;
+			}
+
+			@media (orientation: landscape) {
+			}
+
+			@media screen and (max-height: 600px) {
+				.container-home.mdAndUp .box-home {
+					margin-top: 38px !important;
+				}
+
+				.container-home.mdAndUp .box-home .content-box {
+					height: 100vh;
+					max-height: calc(100vh - 170px);
+				}
+			}
+		</style>
+
+		<title></title>
+	</head>
+
+	<body id="cds">
+		<noscript>
+			<strong>We're sorry but HR Framework doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+		</noscript>
+
+		<div id="app"></div>
+
+		<script type="text/javascript">
+			window.addEventListener("DOMContentLoaded", function (e) {
+				loadPage();
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en-US">
+	<head>	
+		<!--script type="text/javascript" src="js/login.js"></script-->
+		<link rel="stylesheet" type="text/css" media="all" href="/js_examples/css/login.css">
+		
+		<!-- mootools -->
+        <script type="text/javascript" src="/js/mootools.js"></script>
+
+        <!-- m4jsapi -->
+        <script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+        <!-- meta4 -->
+        <script type="text/javascript" src="/js/data/data.js"></script>
+        <script type="text/javascript" src="/js/widget/widget.js"></script>
+		
+		<script>  
+         
+            function meta4OnLoad() {
+                executor = new meta4.M4Executor();
+					document.getElementById("maincontainer").style.visibility="visible";
+            }
+      
+            function onLogonSuccess(request) {
+                //document.getElementById("fLogonResult").value = request.getResult();
+                console.log (request.getResult());
+                document.location='/js_examples/home.html';
+            }
+            
+            function onLogonFail(request) {
+                //console.log (request.getErrorMessage());
+                meta4.widget.log.showErrors(request);
+            }
+            
+            function doLogon() {
+                executor.logon(document.getElementById("userlogin").value, document.getElementById("pwdlogin").value, "3", onLogonSuccess, onLogonFail);
+                
+                //document.location='/js_examples/home.html';
+            }
+
+        </script>
+        
+	</head>
+	<body>
+		<div id="login">
+			<p>
+				<label id="labeluser" class="labelnofocus" for="userlogin">Username</label>
+				<input id="userlogin"type="text"/>
+			</p>
+			<p>
+				<label id="labelpwd" class="labelnofocus" for="pwdlogin">Password</label>
+				<input  id="pwdlogin" type="password"/>
+			</p>
+			<span><button type="button" onclick="doLogon()">Login</button><span>
+			<div id="loginsumarize">
+				<p>
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce gravida semper dolor a semper. Vestibulum lacinia, nibh vitae ullamcorper dictum, orci urna tempus dui, id convallis ipsum nisl vel massa. Morbi ultrices convallis felis, rutrum volutpat mauris fermentum eu. Donec fermentum erat risus, at consectetur enim faucibus a. Nulla varius dignissim tincidunt. Aliquam commodo porttitor quam. Aliquam erat volutpat. Ut id porttitor elit. Cras aliquet odio nisi, eu euismod velit condimentum vitae. Aenean lobortis metus in erat vestibulum hendrerit. Nunc semper, massa sit amet laoreet dapibus, dolor arcu auctor ipsum, pharetra faucibus erat purus in est. Phasellus ut dui lacinia tellus euismod luctus. Ut suscipit erat sed ligula placerat ultricies. Suspendisse potenti. Nunc pretium sem at orci aliquet, sit amet pharetra lectus consequat.
+				</p>
+			</div>
+		</div>
+	</body>
+</html>

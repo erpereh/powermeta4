@@ -1,0 +1,56 @@
+/**
+	@(#)FileVersion: 812.000.042
+	@(#)FileDescription:Style to autocomplete search
+	@(#)CompanyName: Meta4 Spain, S.A.
+	@(#)LegalCopyright: (c)2014
+	@(#)ProductName: PeopleNet KSystem
+	@(#)ProductVersion: 8.1SP1
+	@(#)InternalName: autocomplete.css
+	@(#)Date: 08/09/2012
+*/
+
+.output
+{	
+	color:#000000;	
+	padding-top: 3px;	
+	max-height: 100%;
+	background: white;
+	width:200px;
+	border: 1px solid #7f9db9;
+	text-align:left;	
+	position:relative;
+	
+}
+
+.autocompletadoPrincipal{	/*se aplica a la primera linea del autocompletado */	
+	font-family: Microsoft Sans serif;
+	font-size: 9pt;	
+	padding-left:10px;
+	
+}
+
+.autocompletadoSecundario{/*se aplica a la segunda linea del autocompletado */
+	font-family: Microsoft Sans serif;
+	font-size: 8pt;
+	color:#6e6e6e;	
+	padding-left:15px;
+	padding-bottom:3px;
+}
+
+.titleAutocomplete{
+	font-family: Microsoft Sans serif;
+	font-weight:bold;
+	font-size: 10pt;	
+	padding-left:5px;	
+	padding-bottom:3px;
+}
+
+.AtributteAutoComplete{
+	font-style:italic;
+}
+
+#text{
+	width:200px;	
+	position:relative;
+	top: 3px;	
+}

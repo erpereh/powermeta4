@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<labels>
+   <login>
+      <title>Connexion au processus de migration</title>
+      <logintittle>Processus de migration des menus de l'ESS/du MSS</logintittle>
+      <leyendhead>Votre identification</leyendhead>
+      <labeluser>Nom d'utilisateur :</labeluser>
+      <labelpwd>Mot de passe :</labelpwd>
+      <labellang>Langue :</labellang>
+      <buttonenter>Entrer</buttonenter>
+      <userwrong>Le nom d'utilisateur est obligatoire.</userwrong>
+      <pwdwrong>Le mot de passe est obligatoire.</pwdwrong>
+      <langlogin>4</langlogin>
+      <copyright>Tous droits réservés.</copyright>
+   </login>
+   <subtitle>
+      <userlogin>Saisissez votre nom d'utilisateur</userlogin>
+      <pwdlogin>Saisissez votre mot de passe</pwdlogin>
+      <selectlang>Choisissez une langue de connexion</selectlang>
+      <buttonenter>Connectez-vous</buttonenter>
+   </subtitle>
+   <error>
+      <_1>Le nom d'utilisateur est obligatoire.</_1>
+      <_2>Le mot de passe est obligatoire.</_2>
+   </error>
+</labels>
+

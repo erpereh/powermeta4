@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<!--
+@(#)FileVersion: 770.000.001
+@(#)FileDescription: Html file to holidays
+@(#)CompanyName: Meta4 Spain, S.A.
+@(#)LegalCopyright: (c)2013
+@(#)ProductName: PeopleNet
+@(#)ProductVersion: 7.1SP7
+@(#)InternalName: m4calendar.html
+@(#)Date: 01/02/2013
+-->
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" />	
+		<meta content="yes" name="apple-mobile-web-app-capable" />
+		<link rel="apple-touch-icon" href="/mobile/icons/iconHome.png"/>	
+		
+		<title>Calendar</title>
+			
+		<link rel="stylesheet" href="../style/jquery.mobile.structure.css" />
+		<link rel="stylesheet" href="../style/jquery.mobile.meta4.min.css" />
+		<script src="../library/jquery.js"></script>		
+		<script src="../mobile/js/meta4.mobile.js"></script>
+
+		<script src="../library/jquery.mobile.js"></script>
+
+		<link rel="stylesheet" href="../mobile/css/mobile.generic.css" />
+
+		<script type="text/javascript" src="../m4jsapi/m4jsapi.nocache.js"></script>
+
+		<script src="../mobile/js/meta4.ui.log.js"></script>
+		<script src="../mobile/js/meta4.mobile.calendar.js"></script>
+		<link rel="stylesheet" href="css/mobile.my_work_time.css" />
+		<link rel="stylesheet" href="../mobile/css/mobile.calendar.css" />
+		<script src="js/meta4.mobile.my_work_time.js"></script>
+
+	</head>
+	<body>
+		<!--INITIAL PAGE-->
+		<div data-role="page" id="page_my_work_time">
+			<div data-role="header" data-position="fixed" data-tap-toggle="false">
+				<h2 data-m4trans="_titlePage"></h2>
+				<a data-icon="m4back" data-iconpos="notext" data-direction="reverse" id="buttonBack"></a>
+				<a href="../mobile/m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right">Home</a>
+			</div>
+			<div data-role="content" class="contentWorkTime">
+
+				<div class="m4-status-bar">
+					<div id="status-bar-left" class="m4-status-bar-task-left m4-status-bar-task-selected"></div>
+					<div id="status-bar-right" class="m4-status-bar-task-right"></div>
+				</div>
+
+				<div id="contentCalendar">
+					<!-- stores the dynamically generated calendar -->
+				</div>
+				<div><a class="buttonClose" id="buttonClose"></a></div>				
+				<div id="contentResume">
+					<label class="titleSummary" id="labTittleSummary"></label>
+					<!--  dynamically generated  -->
+				</div>
+				<div id="contentDailyDetail">
+					<!--  dynamically generated  -->
+				</div>
+				<div data-role="popup" id="popupAbsenceRequest">
+					<a id="closePopupAbsenceRequest" href="#" data-rel="back" data-role="button" data-iconpos="notext" class="ui-btn-right">Close</a>
+					<fieldset data-role="controlgroup" id="fieldsetTypeAbsence" data-iconpos="right">
+						<legend></legend>
+						<!--  dynamically generated  -->
+					</fieldset>
+					<div data-role="footer" data-position="fixed" data-tap-toggle="false">
+						<div id="divButtonContinueRequestAbsence">
+							<button id="buttonContinueRequestAbsence"  data-m4trans="_buttonContinueRequestAbsence" ></button>
+						</div>
+					</div>					
+				</div>
+				
+				<div id= "contentResumeRequest">
+					<div>
+						<label data-m4trans="_requestResumeType" class="labelResumeRequest1"></label>
+						<label id="typeRequest" class="labelResumeRequest2"></label>						
+					</div>					
+					<div>
+						<label data-m4trans="_requestResumeDays" class="labelResumeRequest1"></label>
+						<label id="numberDaysRequest" class="labelResumeRequest2"></label>						
+					</div>
+					<div>
+						<label data-m4trans="_schemePeriod2" class="labelResumeRequest1"></label>
+						<label id="preiodRequest" class="labelResumeRequest2"></label>						
+					</div>
+				</div>
+				
+				<div id="divControlOneDay">				
+						<fieldset data-role="controlgroup" id="fieldSetOneDay" data-iconpos="right">
+							<legend></legend>
+							<label id="labelRadioFullDay" for="radioFullDay" data-m4trans="_requestFullDay"></label>
+							<input type="radio" name="radio-choice-1" id="radioFullDay" value="allHours" checked="checked"  onchange="meta4.mobile.myWorkTime.engine.controlHalfDay(meta4.mobile.myWorkTime.modeCalendar.MODE_ALL_HOURS)"/>
+
+							<label id="labelRadioMorning" for="radioMorning" data-m4trans="_requestMorning"></label>
+							<input type="radio" name="radio-choice-1" id="radioMorning" value="morning" onchange="meta4.mobile.myWorkTime.engine.controlHalfDay(meta4.mobile.myWorkTime.modeCalendar.MODE_MORNING)"/>
+
+							<label id="labelRadioAfternoon" for="radioAfternoon" data-m4trans="_requestAfternoon"></label>
+							<input type="radio" name="radio-choice-1" id="radioAfternoon" value="afternoon" onchange="meta4.mobile.myWorkTime.engine.controlHalfDay(meta4.mobile.myWorkTime.modeCalendar.MODE_AFTERNOON)"/>
+
+							<label id="labelRadioHours" for="radioHours" data-m4trans="_requestHours"></label>
+							<input type="radio" name="radio-choice-1" id="radioHours" value="hours" onchange="meta4.mobile.myWorkTime.engine.controlHalfDay(meta4.mobile.myWorkTime.modeCalendar.MODE_HOURS)"/>
+
+						</fieldset>
+						<div id="divNumberHours">
+							<label class='labelNumberHours' data-m4trans="_inputNumberHours"></label>
+							<input type="number" id="inputNumHours" step="any" value="1" min="0"></input>
+						</div>					
+				</div>
+
+				<div id="divControlSomeDays">
+					<div id="divSwitchStart">
+						<div class="divSwitchLabel">
+							<label for="switchStartHalfDay" data-m4trans="_switchStartHalfDay"></label>
+						</div>
+						<div class="divSwitch">
+							<select name="switchStartHalfDay" id="switchStartHalfDay" data-role="slider" data-mini="true" onchange="meta4.mobile.myWorkTime.engine.controlHalfDay(meta4.mobile.myWorkTime.modeCalendar.MODE_START_HALF)">
+								<option value="false">Off</option>
+								<option value="true">On</option>
+							</select>
+						</div>
+					</div>
+					<br />
+					<div id="divSwitchEnd">
+						<div class="divSwitchLabel">
+							<label for="switchEndHalfDay" data-m4trans="_switchEndHalfDay"></label>
+						</div>
+						<div class="divSwitch">
+							<select name="switchEndHalfDay" id="switchEndHalfDay" data-role="slider" data-mini="true" onchange="meta4.mobile.myWorkTime.engine.controlHalfDay(meta4.mobile.myWorkTime.modeCalendar.MODE_END_HALF)">
+								<option value="false">Off</option>
+								<option value="true">On</option>
+							</select>
+						</div>
+
+					</div>
+				</div>
+				
+				<div id="divHelp">
+					<span class="msgHelp" data-m4trans="_txtHelp1"></span>
+					<br>
+					<span class="msgHelp" data-m4trans="_txtHelp2"></span>
+				</div>
+
+				<div id="divFooter" data-role="footer" data-position="fixed" data-tap-toggle="false">
+
+					<div id="divButtonRequestAbsence" >
+						<button  id="buttonRequestAbsence" data-m4trans="_buttonRequestAbsence"></button>
+					</div>
+					<!--
+					<div id="divButtonContinueRequestAbsence">
+						<button id="buttonContinueRequestAbsence"  data-m4trans="_buttonContinueRequestAbsence" ></button>
+					</div>
+					-->
+					<div id="divButtonSendRequestAbsence">
+						<button id="buttonSendRequestAbsence" data-m4trans="_buttonSendRequestAbsence"></button>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,131 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: tcadmin.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+BODY
+{
+    COLOR: #738aa5;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+TABLE.form
+{
+    BORDER-RIGHT: #08516b 1px solid;
+    BORDER-TOP: #08516b 1px solid;
+    FONT-SIZE: 75%;
+    BORDER-LEFT: #08516b 1px solid;
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: left
+}
+TABLE.form TD.campo
+{
+    COLOR: #738aa5;
+    BACKGROUND-COLOR: #f5f7fa
+}
+TABLE.form TR.cabecera
+{
+    FONT-WEIGHT: bolder;
+    COLOR: white;
+    BACKGROUND-COLOR: #08516b
+}
+TABLE.form TD.obligatorio
+{
+    FONT-WEIGHT: bolder;
+    BACKGROUND-COLOR: #f5f7fa
+}
+TABLE.form TD.operador
+{
+    BACKGROUND-COLOR: #f5f7fa;
+    TEXT-ALIGN: right
+}
+TABLE.form TD.inhabilitado
+{
+    BORDER-RIGHT: 1px inset;
+    BORDER-TOP: 1px inset;
+    BORDER-LEFT: 1px inset;
+    COLOR: navy;
+    BORDER-BOTTOM: 1px inset;
+    BACKGROUND-COLOR: #f5f7fa
+}
+TABLE.form TR.titulo
+{
+    FONT-SIZE: medium;
+    COLOR: white;
+    BACKGROUND-COLOR: cadetblue
+}
+TABLE.depuracion
+{
+    DISPLAY: none;
+    FONT-SIZE: x-small;
+    VISIBILITY: hidden;
+    COLOR: black;
+    BACKGROUND-COLOR: orange;
+    TEXT-ALIGN: center
+}
+TABLE.paginacion
+{
+    FONT-SIZE: 75%;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.paginacion TD.campopagina
+{
+    FONT-SIZE: 75%;
+    BACKGROUND-COLOR: powderblue
+}
+TABLE.error
+{
+    COLOR: red
+}
+TABLE.form TD.error
+{
+    COLOR: red;
+    BACKGROUND-COLOR: #f5f7fa
+}
+TABLE.form TD.indiceregistro
+{
+    FONT-SIZE: xx-small;
+    COLOR: #738aa5;
+    BACKGROUND-COLOR: powderblue;
+    TEXT-ALIGN: center
+}
+TABLE.form TD.campo A.showlinkdetail
+{
+    FONT-SIZE: xx-small;
+    FONT-STYLE: italic
+}
+UL.subtitulolistalink
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: xx-small;
+    COLOR: silver;
+    LIST-STYLE-TYPE: square;
+    TEXT-ALIGN: right
+}
+LABEL.subtitulolista
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: small;
+    COLOR: navy;
+    LINE-HEIGHT: 200%;
+    LIST-STYLE-TYPE: none;
+    TEXT-ALIGN: center;
+    TEXT-DECORATION: underline
+}
+LABEL.titulolista
+{
+    CLEAR: left;
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: large;
+    COLOR: navy;
+    LINE-HEIGHT: 100%;
+    LIST-STYLE-TYPE: none;
+    TEXT-ALIGN: center;
+    TEXT-DECORATION: underline
+}

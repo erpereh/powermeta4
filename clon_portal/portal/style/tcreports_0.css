@@ -1,0 +1,333 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: tcreports_0.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+
+BODY
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif
+}
+IMG
+{
+    BORDER-BOTTOM: 0px;
+    BORDER-LEFT: 0px;
+    BORDER-RIGHT: 0px;
+    BORDER-TOP: 0px
+}
+A:link
+{
+    BACKGROUND-COLOR: transparent;
+    BORDER-BOTTOM: #e0ffff;
+    BORDER-LEFT: #e0ffff;
+    BORDER-RIGHT: #e0ffff;
+    BORDER-TOP: #e0ffff;
+    COLOR: #2064b9;
+    TEXT-DECORATION: none
+}
+A:visited
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #2064b9;
+    TEXT-DECORATION: none
+}
+A:active
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #2064b9;
+    TEXT-DECORATION: none
+}
+A:hover
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #d40000;
+    TEXT-DECORATION: underline
+}
+A.button
+{
+    FONT-SIZE: 100%;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: center;
+}
+A.button2
+{
+    FONT-SIZE: 100%;
+    COLOR: #ff4500;
+    BACKGROUND-COLOR: transparent;
+}
+TABLE.tabladatos
+{
+    BACKGROUND-COLOR: #ff4500;
+    COLOR: #000000
+}
+.titulofuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #b90000;
+    FONT-SIZE: 18px;
+    FONT-WEIGHT: bold
+}
+.descripcionfuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #195095;
+    FONT-SIZE: 12px
+}
+.enlacefuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px
+}
+.colortabla
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #000000
+}
+.fuentecabeceratabla
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: black;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bolder
+}
+.fuentecampo
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px;
+    TEXT-ALIGN: left
+}
+.fuentevalor
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #000000;
+    FONT-SIZE: 10px;
+    TEXT-ALIGN: left
+}
+.fuentelinktitulo
+{
+    BACKGROUND-COLOR: #41608b;
+    COLOR: #ffffff;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bolder
+}
+.fuentelinkcampo
+{
+    BACKGROUND-COLOR: #c2d7ed;
+    COLOR: #d40000;
+    FONT-SIZE: 10px
+}
+.tablalink
+{
+    BACKGROUND-COLOR: #41608b;
+    COLOR: #ffffff
+}
+.fuentedescripcion
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #195095;
+    FONT-SIZE: 13px
+}
+.fuentetitulomenu
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #b90000;
+    FONT-SIZE: 14px;
+    FONT-WEIGHT: bolder
+}
+TABLE.tablacabecera
+{
+    BACKGROUND-COLOR: #c2d7ed;
+    COLOR: #ffffff
+}
+.separador
+{
+    BACKGROUND-COLOR: #c60008;
+    COLOR: #ffffff
+}
+.separadorlinea
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #ffffff
+}
+.fuentecamponombre
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #b90000;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bold
+}
+.fuentecampoaccion
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #b90000;
+    FONT-SIZE: 12px
+}
+.fuentecampoaccion2
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #b90000;
+    FONT-SIZE: 12px
+}
+.fuentecampofiltro
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #b90000;
+    FONT-SIZE: 12px
+}
+A
+{
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+.acep
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #4169e1;
+    LIST-STYLE: square
+}
+.cance
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #e9967a;
+    LIST-STYLE: square
+}
+.fest
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #ffd700;
+    LIST-STYLE: square
+}
+.pend
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #dc143c;
+    LIST-STYLE: square
+}
+.tablanavegacion
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    BORDER-BOTTOM: #087aa8 thin solid;
+    BORDER-LEFT: #087aa8 thin solid;
+    BORDER-RIGHT: #087aa8 thin solid;
+    BORDER-TOP: #087aa8 thin solid;
+    COLOR: #ffffff
+}
+.fuenteformulario
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px
+}
+.fuenteboton
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+.fuentenodatos
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #a04107;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bolder;
+    TEXT-ALIGN: center
+}
+.fuenteformulario100
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px;
+    WIDTH: 100px
+}
+.fuenteformulario150
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px;
+    WIDTH: 150px
+}
+.fuenteformulario200
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #2064b9;
+    FONT-SIZE: 10px;
+    WIDTH: 200px
+}
+.fuentevalor2
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #000000;
+    FONT-SIZE: 10px;
+    TEXT-ALIGN: left
+}
+.fuentebotonright
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #ffffff;
+    TEXT-ALIGN: right
+}
+.fuentebotonright2
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #ffffff;
+    TEXT-ALIGN: right
+}
+.tablaestadosceldatituloflecha
+{
+    BACKGROUND-COLOR: #41608b;
+    COLOR: #ffffff;
+    TEXT-ALIGN: right
+}
+.fuenteactualizar
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #b90000;
+    FONT-SIZE: 14px;
+    FONT-WEIGHT: bolder;
+    TEXT-ALIGN: center
+}
+.textarea
+{
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 100%
+}
+.enlacenofuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #000000;
+    FONT-SIZE: 10px
+}
+TEXTAREA.fuentevalor
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #ffffff;
+    FONT-SIZE: 12px;
+    TEXT-ALIGN: left
+}
+TD.fuentelabel
+{
+    COLOR: #000000;
+    FONT-SIZE: 14px
+}
+.select40
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #000000;
+    FONT-SIZE: 10px;
+    WIDTH: 40%
+}
+.select100
+{
+    BACKGROUND-COLOR: #eaf2ff;
+    COLOR: #000000;
+    FONT-SIZE: 10px;
+    WIDTH: 100%
+}

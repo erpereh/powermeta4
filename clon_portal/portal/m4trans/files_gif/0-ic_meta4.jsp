@@ -1,0 +1,1 @@
+src="/images/ic_meta4_136_38.gif" width="136" height="38"

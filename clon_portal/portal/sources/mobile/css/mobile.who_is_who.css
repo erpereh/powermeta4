@@ -1,0 +1,367 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: mobile.who_is_who.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+.m4-mobileHeaderHome {
+    background: #196988;
+    top: 24px;
+    width: 100%;
+    height: 184px;
+    position: fixed;
+    padding-top: 36px;
+    z-index: 2;
+    display: none
+}
+
+.loginName {
+    color: #fff;
+    font-size: initial;
+    font-weight: normal;
+    margin: 4px 0 4px 0
+}
+
+.contentInfoPerson {
+    text-align: center
+}
+
+.person-photo {
+    width: 88px;
+    height: 88px;
+    min-width: 88px;
+    max-width: 88px;
+    min-height: 88px;
+    max-height: 88px;
+    border-radius: 100%;
+    background: rgba(255,255,255,0.22)
+}
+
+.employeeInfo {
+    color: rgba(255,255,255,0.54);
+    font-size: 14px
+}
+
+#logoutList {
+    position: fixed;
+    top: 24px;
+    left: 24px
+}
+
+#logout-icon {
+    width: 20px;
+    height: 20px;
+    opacity: .8
+}
+
+#settingsButton {
+    position: fixed;
+    top: 24px;
+    left: 24px
+}
+
+#pageInformation {
+    min-height: 0 !important
+}
+
+#popupContactInfo {
+    display: none
+}
+
+#pageFavorites {
+    display: none
+}
+
+.divContact div {
+    border-bottom: 1px solid #d8d8d8;
+    padding: 16px
+}
+
+.divContact h4 {
+    font-weight: normal;
+    margin: 0;
+    color: #5876a3;
+    font-size: 16px
+}
+
+.divContact div p {
+    padding-left: 16px;
+    margin: 8px 0 0 0
+}
+
+.divContact div p * {
+    text-decoration: none;
+    color: #333;
+    font-size: 14px
+}
+
+.m4DataClass1,.m4DataClass2 {
+    font-weight: bold;
+    font-size: 16px !important
+}
+
+.divContact div:empty {
+    display: none
+}
+
+#addContact {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 8px;
+    background: #e5e5e5;
+    border-top: 1px solid #d4d4d4
+}
+
+.divContact {
+    margin-bottom: 56px;
+    padding-top: 38px
+}
+
+#showAddConctactPopup {
+    background: #0078d7;
+    padding: 8px;
+    color: #fff;
+    text-align: center;
+    margin: 0 48px
+}
+
+#employeeManager {
+    width: 100%;
+    text-align: center;
+    padding: 8px 0;
+    background: #7eabbc;
+    color: #fff;
+    position: fixed
+}
+
+#employeeManager:empty {
+    display: none
+}
+
+#whoTabs {
+    margin: 0 auto;
+    display: flex;
+    background: #efefef;
+    padding: 0;
+    text-align: center;
+    position: fixed;
+    width: 100%;
+    z-index: 1;
+    height: 48px
+}
+
+.ui-li-has-count {
+    list-style: none;
+    display: flex;
+    width: 50%;
+    padding: 0 8px
+}
+
+.ui-li-has-count h1 {
+    margin-right: 8px
+}
+
+.borderBottomActive {
+    border-top: 3px solid #c9d31e !important;
+    color: #333;
+    background: #ffffff;
+}
+
+.borderBottomNonActive {
+    /* border-bottom:2px solid #9fc3d0 */
+    color: #0060C9;
+}
+
+#favouritesTab.borderBottomNonActive {
+    color: #0060C9;
+    -webkit-box-shadow: inset 1px 0 3px 0 rgba(0,0,0,0.2);
+    -moz-box-shadow: inset 1px 0 3px 0 rgba(0,0,0,0.2);
+    box-shadow: inset 1px 0 3px 0 rgba(0,0,0,0.2);
+}
+
+#searchTab.borderBottomNonActive {
+    -webkit-box-shadow: inset -1px 0 3px 0 rgba(0,0,0,0.2);
+    -moz-box-shadow: inset -1px 0 3px 0 rgba(0,0,0,0.2);
+    box-shadow: inset -1px 0 3px 0 rgba(0,0,0,0.2)
+}
+
+.borderBottomActive h1 {
+    color: #333 !important;
+}
+
+.borderBottomNonActive h1 {
+    padding-top: 3px;
+    color: #0060C9;
+}
+
+#whoTabs li a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    margin: 0 auto
+}
+
+.contentWhoisWho {
+    margin-top: 48px
+}
+
+.pageVisible {
+    display: block
+}
+
+.pageNoVisible {
+    display: none
+}
+
+#divSearchPerson {
+    width: 100%;
+    margin: 0;
+    padding: 8px;
+    border-bottom: 2px solid #c3c2c2;
+    position: fixed;
+    background: #ffffff;
+    z-index: 1;
+}
+
+#divSearchPerson div {
+    width: 100%;
+    margin: 0;
+    padding: 0
+}
+
+#divSearchPerson div a {
+    display: none
+}
+
+#divSearchPerson div input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: calc(100% - 26px);
+    margin: 0;
+    padding: 0 0 0 8px;
+    height: 36px !important;
+    border: 1px solid #d8d8d8;
+    font-size: 16px;
+    box-shadow: none
+}
+
+.contentSearch {
+    padding-top: 48px !important
+}
+
+#pageFavorites {
+    padding-top: 52px
+}
+
+#contentListEmployees,#ulContentFavorites {
+    margin: 0;
+    padding: 0
+}
+
+#contentListEmployees li,#ulContentFavorites li {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex;
+    border-bottom: 1px solid #d4d4d4
+}
+
+.personLi {
+    display: flex;
+    padding: 16px;
+    align-items: center;
+    width: 100%
+}
+
+.imgStar {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    right: 16px
+}
+
+.photoSearch {
+    width: 64px;
+    height: 64px;
+    border-radius: 100%;
+    border: 1px solid #e4e4e4
+}
+
+.divSearchInfo h4 {
+    font-size: 16px;
+    font-weight: normal;
+    color: #333;
+    margin: 0 0 0 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 212px;
+    text-overflow: ellipsis
+}
+
+.divSearchInfo h5,.divSearchInfo h6 {
+    font-size: 16px;
+    font-weight: normal;
+    color: #5876a3;
+    margin: 0 0 0 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 212px;
+    text-overflow: ellipsis
+}
+
+#employeeManager a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding-left: 16px
+}
+
+.managerIcon {
+    margin-right: 8px;
+    width: 20px;
+    height: 20px
+}
+#contentFavorites form {
+    display: none;
+}
+.divSearchNotFound {
+    width: 100%;
+    text-align: center;
+    margin-top: 50%;
+}
+p.notFoundText {
+    color: #333;
+}
+img#notFoundImg {
+    width: 100px;
+    height: 100px;
+    opacity: 0.2;
+}
+@media only screen and (device-width : 320px) { 
+
+    .divSearchInfo h5, .divSearchInfo h6{
+        max-width: 50px !important;
+    }
+}
+
+#emptyNewsDiv {
+    width: 100%;
+    text-align:  center;
+    margin-top: calc(50% + 52px);
+}
+
+#emptyNewsImg {
+    width: 100px;
+    height: 100px;
+    opacity: 0.2;
+}
+
+#emptyNewsP {
+    font-size: 15px;
+    color: #333;
+}
+

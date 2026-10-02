@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<WebWorksHelpTOC version="4.0">
+ <i t="Comment débuter" l="0">
+  <i t="Outils" l="1">
+   <i t="Liste des tâches" l="2" />
+   <i t="Vos tâches personnelles" l="3">
+    <i t="Comment modifier une tâche personnelle" l="4" />
+    <i t="Comment définir une nouvelle tâche personnelle" l="5" />
+   </i>
+   <i t="Changer de mot de passe" l="6" />
+   <i t="Options de session" l="7" />
+   <i t="Planificateur de tâches" l="8">
+    <i t="Comment définir les options avancées" l="9" />
+    <i t="Comment établir les paramètres de la planification" l="10" />
+   </i>
+   <i t="Comment consulter l&#39;état des exécutions" l="11">
+    <i t="Paramètres d&#39;exécution" l="12" />
+    <i t="Exécutions des tâches" l="13" />
+    <i t="Documents générés" l="14" />
+   </i>
+   <i t="Comment procéder..." l="15" />
+  </i>
+  <i t="États" l="16">
+   <i t="Comment consulter un graphique publié" l="17" />
+   <i t="Comment générer un état" l="18" />
+  </i>
+ </i>
+</WebWorksHelpTOC>

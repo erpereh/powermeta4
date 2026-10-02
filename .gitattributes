@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Preserve the reference portal byte-for-byte, including original whitespace.
+clon_portal/** -text -whitespace

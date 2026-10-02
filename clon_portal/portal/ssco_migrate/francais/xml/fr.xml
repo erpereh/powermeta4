@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<data>
+   <config>
+      <title>Configuration du processus de migration</title>
+      <lblheadfrm>Paramètres</lblheadfrm>
+      <lblOptions>Sélectionnez le portail de départ :</lblOptions>
+      <lblESS>ESS</lblESS>
+      <lblMSS>MSS</lblMSS>
+      <lblidPageProc>Page à traiter :</lblidPageProc>
+      <lblidPrefix>Code préfixe du menu</lblidPrefix>
+      <btnAddGroup>Ajouter un groupe +</btnAddGroup>
+      <lblidGroupGrps>Code</lblidGroupGrps>
+      <lblnmGroupGrps>Libellé du groupe</lblnmGroupGrps>
+      <lblnmSiteGrps>Portail</lblnmSiteGrps>
+      <btnLogout>Quitter</btnLogout>
+      <btnStart>Commencer</btnStart>
+   </config>
+   <process>
+       <btnBack>Précédente</btnBack>
+       <btnStart>Enregistrer</btnStart>
+   </process>
+   <label>
+      <_2>Code du menu</_2>
+      <_3>Code du menu père</_3>
+      <_4>Libellé du menu</_4>
+      <_5>Page</_5>
+      <_6>Commentaires</_6>
+      <_7>Menu racine du groupe</_7>
+   </label>
+   <warning>
+      <_0>Le sous-menu existe déjà.</_0>
+      <_1>Code remplacé par celui de la base de données.</_1>
+      <_2>Le sous-menu a un père différent dans la base de données.</_2>
+      <_3>Le libellé du sous-menu ne correspond pas.</_3>
+      <_4>L'adresse URL a été trouvée plus d'une fois.</_4>
+      <_5>Nouveau menu.</_5>
+      <_6>La définition du groupe %1 n'a pas été trouvée.</_6>
+      <_7>Vous devez sélectionner au moins un groupe à traiter.</_7>
+   </warning>
+   <error>
+      <_1>Le code du groupe est une information obligatoire de type numérique.</_1>
+      <_2>Le code du groupe est dupliqué.</_2>
+      <_3>Le libellé du groupe est une information obligatoire.</_3>
+      <_4>L'adresse du portail est une information obligatoire.</_4>
+      <_5>La page de traitement est obligatoire.</_5>
+      <_6>Le préfixe est une information obligatoire composée de 4 caractères.</_6>
+      <_7>Les informations n'ont pas pu être envoyées à PeopleNet.</_7> 
+      <_8>Le code du père n'a pas été localisé. Le menu n'a pas été ajouté.</_8> 
+      <_9>L'adresse URL est arrivée vide sur PeopleNet. Le menu n'a pas été ajouté.</_9> 
+      <_10>Le menu a été correctement ajouté.</_10> 
+      <_11>La définition du menu correspond aux informations disponibles dans PeopleNet. Le menu n'a pas été mis à jour.</_11> 
+      <_12>Le menu a été correctement mis à jour.</_12> 
+      <_13>Une erreur s'est produite lors de l'ajout ou de la mise à jour du menu.</_13> 
+      <_14>Le code du menu est dupliqué. Veuillez le modifier, puis réessayer. Le menu n'a pas été ajouté.</_14> 
+   </error>
+</data>
+

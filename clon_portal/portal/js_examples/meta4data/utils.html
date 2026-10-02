@@ -1,0 +1,280 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html >
+	<head >
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title data-m4trans="_ComponentUtilsMainTitle"></title>
+
+		<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/console.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+					
+		<!-- syntax highlighter -->
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+		
+		
+		<!-- load example -->
+        <script type="text/javascript" src="/js_examples/resources/m4loadExample.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+		
+		<script>
+			var channel = null;
+
+			var example = {
+				example0 : function() {
+					function successLoad() {
+						console.log('canal de ejemplos cargado');
+					}
+
+					//metadata load by context(HTML)
+					channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+					var request = new meta4.M4Request(channel, 'EXJSAPI_DATA_UTILS', 'LOAD_BLK', null);
+					request.textLoading = "Cargando canal";
+					meta4.data.execute(request, successLoad);
+				},
+				example1 : function() {
+					//Usando la libreria meta4.data.utils
+					//item con dos decimales
+					if (channel == null) {
+						alert('Es necesario cargar los metadatos del canal (primer ejemplo)');
+						return 0;
+					}
+
+					channel.getNode('EXJSAPI_DATA_UTILS').moveTo(0);
+
+					var numberWithScale = meta4.data.utils.getValue(channel.getNode('EXJSAPI_DATA_UTILS'), 'EX_NUMBER');
+					//Sin usar la libreria meta4.data.utils
+					var number = channel.getNode('EXJSAPI_DATA_UTILS').getValue('EX_NUMBER');
+
+					console.log('Numero formateado:' + numberWithScale);
+					console.log('Numero sin formatear: ' + number);
+
+					//Fecha formateada
+					var dateFormat = meta4.data.utils.getValue(channel.getNode('EXJSAPI_DATA_UTILS'), 'EX_DATE');
+					//Fecha sin formato
+					var date = channel.getNode('EXJSAPI_DATA_UTILS').getValue('EX_DATE');
+
+					console.log('Fecha formateada: ' + dateFormat);
+					console.log('Fecha sin formatear: ' + date);
+
+					//cadena
+					var strg = channel.getNode('EXJSAPI_DATA_UTILS').getValue('EX_STRING');
+
+					console.log('Cadena: ' + strg);
+					
+					meta4.data.log.dumpNode(channel.getNode('EXJSAPI_DATA_UTILS'));
+				},
+				example2 : function() {
+
+					if (channel == null) {
+						alert('Es necesario cargar los metadatos del canal (primer ejemplo)');
+						return 0;
+					}
+
+					channel.getNode('EXJSAPI_DATA_UTILS').moveTo(0);
+
+					//Fecha sin formato
+					meta4.data.utils.setValue(channel.getNode('EXJSAPI_DATA_UTILS'),'EX_DATE','12-12-2005');
+					console.log('Fecha sin formato: ' + channel.getNode('EXJSAPI_DATA_UTILS').getValue('EX_DATE'));
+
+					//Fecha formateada
+					meta4.data.utils.setValue(channel.getNode('EXJSAPI_DATA_UTILS'), 'EX_DATE', '12-12-2005');
+
+					console.log('Fecha con formato: ' + channel.getNode('EXJSAPI_DATA_UTILS').getValue('EX_DATE'));
+				},
+
+				example3 : function() {
+					if (channel == null) {
+						alert('Es necesario cargar los metadatos del canal (primer ejemplo)');
+						return 0;
+					}
+					var list = meta4.data.utils.getVisibleItems(channel.getNode('EXJSAPI_DATA_UTILS'));
+					var i;
+					for ( i = 0; i < list.length; i++) {
+						console.log(list[i]);
+					}
+				},
+
+				example4 : function() {
+					if (channel == null) {
+						alert('Es necesario cargar los metadatos del canal (primer ejemplo)');
+						return 0;
+					}
+
+					var node = channel.getNode('EXJSAPI_DATA_UTILS');
+					node.moveTo(0);
+					var check = meta4.data.utils.checkValidValue(node, 'EX_NUMBER', '100000.123215435746');					
+					console.log(check);
+				}
+			};
+
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_data_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+			
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+	
+		
+		<div id='exampleContainer' data-m4context="contexto1" data-m4t3="EXJSAPI_COMPONENT">
+
+		<h1 data-m4trans="_ComponentUtilsTitle"></h1>
+
+		<h2 data-m4trans="_ComponentUtilsSubtitle"></h2>
+		<p data-m4trans="_ComponentUtilsDescription"></p>
+		<ul>
+			<li>
+				<span class="bold">meta4.data.utils.getValue(dataNode, itemId): </span><span data-m4trans="_ComponentUtilsElement"></span>
+				<ul>
+					<li data-m4trans="_ComponentUtilsSubelement">
+					</li>
+					<li data-m4trans="_ComponentUtilsSubelement2">						
+					</li>
+				</ul>
+			</li>
+			<li>
+				<span class="bold">meta4.data.utils.setValue(dataNode, itemId, value):</span><span data-m4trans="_ComponentUtilsElement2"></span>
+				<ul>
+					<li data-m4trans="_ComponentUtilsSubelement3">						
+					</li>
+				</ul>
+			</li>
+			<li>
+				<span class="bold">meta4.data.utils.getVisibleItems(node):</span><span data-m4trans="_ComponentUtilsElement3"></span>
+			</li>
+			<li>
+				<span class="bold">meta4.data.utils.getPkItems(node):</span><span data-m4trans="_ComponentUtilsElement4"></span>
+			</li>
+			<li>
+				<span class="bold">meta4.data.utils.getCurrentData(position, node, items):</span><span data-m4trans="_ComponentUtilsElement5"></span>
+			</li>
+			<li>
+				<span class="bold">meta4.data.utils.checkValidValue(node, idItem, value):</span><span data-m4trans="_ComponentUtilsElement6"> </span>
+			</li>
+			<li>
+				<span class="bold">meta4.data.utils.checkNullValues(node, listErrors)</span><span data-m4trans="_ComponentUtilsElement7"></span>
+				<ul>
+					<li data-m4trans="_ComponentUtilsSubelement4">						
+					</li>
+					<li data-m4trans="_ComponentUtilsSubelement5">						
+					</li>
+					<li data-m4trans="_ComponentUtilsSubelement6">						
+					</li>
+				</ul>
+			</li>
+			
+		</ul>
+
+		<h2 data-m4trans="_ComponentUtilsSubtitle2"></h2>
+		<br>
+		
+
+		<script>
+			m4loadExample('example.example0');
+		</script>
+		<br>
+		
+
+		<button onclick="example.example0()" data-m4trans="_ComponentUtilsButtonLoadChannel">			
+		</button>
+		<br>
+
+		<p class="bold"  data-m4trans="_ComponentUtilsTextLoadChannel"></p>
+
+		<h2><span data-m4trans="_ComponentUtilsSubtitle3"></span> meta4.data.utils.getValue(node, itemId)</h2>
+		<br>
+
+
+		<script>
+			m4loadExample('example.example1');
+		</script>
+		<br>
+		
+
+		<div>
+			<button onclick="example.example1()" data-m4trans="_ComponentUtilsExecueButtonGetValue"></button>
+		</div>
+		<br>
+		
+		<h2><span data-m4trans="_ComponentUtilsSubtitle4"></span> meta4.data.utils.setValue(node, itemId, value)</h2>
+		<br>
+
+		<script>
+			m4loadExample('example.example2');
+		</script>
+		<br>
+		
+
+		<div>
+			<button onclick="example.example2()" data-m4trans="_ComponentUtilsExecueButtonSetValue"></button>
+		</div>
+		<br>
+		
+		<h2><span data-m4trans="_ComponentUtilsSubtitle5"></span> meta4.data.utils.getVisibleItems(node)</h2>
+		<br>
+		
+		<script>
+			m4loadExample('example.example3');
+		</script>
+		<br>
+		
+
+		<div>
+			<button onclick="example.example3()" data-m4trans="_ComponentUtilsExecueButtonGetVisibleItems"></button>
+		</div>
+		<br>
+		
+		<h2><span data-m4trans="_ComponentUtilsSubtitle6"></span> meta4.data.utils.checkValidValue(node, idItem, value)</h2>
+		<br>
+		
+		<script>
+			m4loadExample('example.example4');
+		</script>
+		<br>
+		
+
+		<div>
+			<button onclick="example.example4()"  data-m4trans="_ComponentUtilsExecueButtonCheckValidValue"></button>
+		</div>
+		</div>
+	</div>
+	</body>
+</html>
+

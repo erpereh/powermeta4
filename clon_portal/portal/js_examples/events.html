@@ -1,0 +1,420 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 14 (filtered)">
+
+		<title data-m4trans="_m4jsapiEventsTitle"></title>
+		
+		<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+		
+<script>
+	function initTranslation() {
+						
+		function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+		}
+		
+		meta4.widget.translate.loadLanguageFile(['examples_global'], loadlanguage);
+	}
+				
+	//event to inicialice program
+	document.addEvent('meta4Ready', initTranslation);
+	
+</script>
+
+</head>
+
+
+	<body>
+	    <div id = 'maincontainer'>
+
+<div>
+
+<h1 data-m4trans="_m4jsapiEventsTitle"></h1>
+
+<h1><span data-m4trans="_m4jsapiEventsMotivation"></span></h1>
+
+<p><span data-m4trans="_m4jsapiEventsDescriptionMotivation"> </span></p>
+
+<h1><span data-m4trans="_m4jsapiEvents">Impacto</span></h1>
+
+<p><span data-m4trans="_m4jsapiEventsDescriptionImpact"> </span></p>
+
+<h1><span data-m4trans="_m4jsapiEventsTypesOfEvents"></span></h1>
+
+<p><span data-m4trans="_m4jsapiEventsNumberOfTypes"></span></p>
+
+<ul>
+	<li><span><b>M4NodeCurrentChangedEvent</b></span><span data-m4trans="_m4jsapiEventsTypesOfEventsDescription1"></span></li>
+
+	<li><span><b>M4NodeRecordsChangedEvent</b></span><span data-m4trans="_m4jsapiEventsTypesOfEventsDescription2"> </span></li>
+
+	<li><span><b>M4RecordChangedEvent:</b></span><span data-m4trans="_m4jsapiEventsTypesOfEventsDescription3"></span></li>
+</ul>
+
+<h1><span data-m4trans="_m4jsapiEventsUsingEvents"></span></h1>
+
+<p><span data-m4trans="_m4jsapiEventsUsingEventsDescription1"></span></p>
+
+<div style='border:solid windowtext 1.0pt;padding:1.0pt 4.0pt 1.0pt 4.0pt;
+margin-left:72.0pt'>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>var</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> eventTypes =
+meta4.M4EventTypes;</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // registra un
+M4NodeRecordsChangedEvent&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+rootNode.register(eventTypes.getNodeRecordsChanged(), nodeRecordsChangedFired, </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>null</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'>);</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas'>&nbsp;</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // registra un
+M4NodeCurrentChangedEvent&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+rootNode.register(eventTypes.getNodeCurrentChanged(), nodeCurrentChangedFired, </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>null</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'>);</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // registra un
+M4RecordChangedEvent&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+rootNode.register(eventTypes.getRecordChanged(), recordChangedFired, </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>null</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'>);</span></p>
+
+</div>
+
+<p><span data-m4trans="_m4jsapiEventsUsingEventsDescription2"></span></p>
+
+<div style='border:solid windowtext 1.0pt;padding:1.0pt 4.0pt 1.0pt 4.0pt;
+margin-left:72.0pt'>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp; </span><b><span style='font-size:10.0pt;
+font-family:Consolas;color:#7F0055'>function</span></b><span style='font-size:
+10.0pt;font-family:Consolas;color:black'> recordChangedFired(param) {</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </span><b><span style='font-size:
+10.0pt;font-family:Consolas;color:#7F0055'>var</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> type =
+param.getType();</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </span><b><span style='font-size:
+10.0pt;font-family:Consolas;color:#7F0055'>var</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> item =
+param.getItemId();</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </span><b><span lang=PT-BR
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>var</span></b><span
+lang=PT-BR style='font-size:10.0pt;font-family:Consolas;color:black'>
+objContext = param.<span style='background:silver'>getContext</span> ();</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span lang=PT-BR style='font-size:10.0pt;
+font-family:Consolas;color:black'>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span lang=PT-BR style='font-size:10.0pt;
+font-family:Consolas;color:black'>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </span><b><span
+lang=PT-BR style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>var</span></b><span
+lang=PT-BR style='font-size:10.0pt;font-family:Consolas;color:black'> objOrigin
+= param.<span style='background:silver'>getOrigin</span> ();</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span lang=PT-BR style='font-size:10.0pt;
+font-family:Consolas;color:black'>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span lang=PT-BR style='font-size:10.0pt;
+font-family:Consolas;color:black'>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </span><b><span
+ style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>return</span></b><span
+ style='font-size:10.0pt;font-family:Consolas;color:black'> 0;</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;
+font-family:Consolas;color:black'>&nbsp;&nbsp;&nbsp; }</span></p>
+
+</div>
+
+<p><span data-m4trans="_m4jsapiEventsM4RecordChangedevent"></span></p>
+
+<p><span data-m4trans="_m4jsapiEventsM4EventTypes"></span></p>
+
+<p><span>&nbsp;</span></p>
+
+<div style='border:solid windowtext 1.0pt;padding:1.0pt 4.0pt 1.0pt 4.0pt;
+margin-left:72.0pt'>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><b><span style='font-size:10.0pt;font-family:Consolas;
+color:#7F0055'>public</span></b><span style='font-size:10.0pt;font-family:Consolas;
+color:black'> </span><b><span style='font-size:10.0pt;font-family:Consolas;
+color:#7F0055'>enum</span></b><span style='font-size:10.0pt;font-family:Consolas;
+color:black'> M4EventTypes </span><b><span style='font-size:10.0pt;font-family:
+Consolas;color:#7F0055'>implements</span></b><span style='font-size:10.0pt;
+font-family:Consolas;color:black'> Exportable {</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F7F5F'>// The number of records
+changed</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><i><span
+style='font-size:10.0pt;font-family:Consolas;color:#0000C0'>NODE_RECORDS_CHANGED</span></i><span
+style='font-size:10.0pt;font-family:Consolas;color:black'>,</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F7F5F'>// Current changed</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><i><span
+style='font-size:10.0pt;font-family:Consolas;color:#0000C0'>NODE_CURRENT_CHANGED</span></i><span
+style='font-size:10.0pt;font-family:Consolas;color:black'>,</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F7F5F'>// The register
+changed</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><i><span
+style='font-size:10.0pt;font-family:Consolas;color:#0000C0'>RECORD_CHANGED</span></i><span
+style='font-size:10.0pt;font-family:Consolas;color:black'>;</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F5FBF'>/**</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* Gets the node
+record changed event index</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F9FBF'>@return</span></b></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;*/</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>public</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>static</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>int</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'>
+getNodeRecordsChanged();</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F5FBF'>/**</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* Gets the node
+current changed event index</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F9FBF'>@return</span></b></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;*/</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>public</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>static</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>int</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'>
+getNodeCurrentChanged();</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F5FBF'>/**</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* Gets the record
+changed event index</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F9FBF'>@return</span></b></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;*/</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>public</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>static</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>int</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> getRecordChanged();</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F5FBF'>/**</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* Simple converter</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F9FBF'>@param</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F5FBF'> type The integral
+event</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;* </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F9FBF'>@return</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:#3F5FBF'> The typed event</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:#3F5FBF'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;*/</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>public</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> </span><b><span
+style='font-size:10.0pt;font-family:Consolas;color:#7F0055'>static</span></b><span
+style='font-size:10.0pt;font-family:Consolas;color:black'> M4EventTypes
+getByIndex(</span><b><span style='font-size:10.0pt;font-family:Consolas;
+color:#7F0055'>int</span></b><span style='font-size:10.0pt;font-family:Consolas;
+color:black'> type);</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas;
+color:black'>}</span></p>
+
+<p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:
+normal;text-autospace:none'><span style='font-size:10.0pt;font-family:Consolas'>&nbsp;</span></p>
+
+</div>
+
+</div>
+</div>
+</body>
+
+</html>

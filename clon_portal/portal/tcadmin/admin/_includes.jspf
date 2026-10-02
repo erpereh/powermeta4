@@ -1,0 +1,24 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: _includes.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+<%@ taglib uri="M4Tags" prefix="m4"%>
+<%@ page import="java.io.*, java.util.*, java.net.*, java.lang.*"%>
+<%@ page import="com.meta4.m4operations.*"%>
+<%@ page import="com.meta4.security.*"%>
+<%@ page import="com.meta4.session.*"%>
+<%@ page import="com.meta4.Task.*"%>
+
+<%-- ******************** Disclaimer  ******************** --%>
+<%@ include file="../../shco_g0/shco_gen_taglib.jsp" %>
+<%@ include file="../../shco_g0/shco_gen_bag.jsp" %>
+<%@ include file="../../shco_g0/shco_gen_arg.jsp" %>
+<%  znivelmenu="1"; %>
+<%-- ******************** Fin Disclaimer  ******************** --%>
+<link rel=stylesheet href="/style/shco_gen100.css" type="text/css">
+
+

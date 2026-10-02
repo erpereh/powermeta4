@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/11/05 16:46:07" />
+    <title>Viewing the status of the executions</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp177443"> </a><h2 class="pTitle">
+Viewing the status of the executions
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_JS_WZ_TASK_EXE_P1-->
+<p class="bodytex"> Description</p>
+<a name="wp177449"> </a><p class="pBody">
+This option explains how to view the scheduled tasks, view the execution status, edit the execution, and even cancel or abort it. There are two options for viewing the evolution of a scheduled task:
+</p>
+<ul class="item">
+<li>In <b class="cBold">Tools | Job Scheduler</b>, use <b class="cBold">Execution</b> option to view the status of the execution of a task scheduled previously.</li>
+<li>Use <b class="cBold">Manage Executions</b> to view the run queue filtered by specific criteria. This gives you a quick way to view the scheduled tasks and their status.</li>
+</ul>
+<p class="bodytex"> Steps</p>
+<a name="wp177457"> </a><p class="pBody">
+To so:
+</p>
+<ol>
+<li class="numero">To filter for the status that you want to consult, select the corresponding check boxes and click the <img src="images/ic_search_36_36_0.gif" id="wp1312339" border="0" hspace="0" vspace="0"/> button. Statuses include: </li>
+<ul class="item">
+<li><b class="cBold">Run</b>: the box has finished its execution.</li>
+<li><b class="cBold">Pending</b>: execution has not yet started.</li>
+<li><b class="cBold">Running</b>: the box is running. In other words, it has started running at least the first task in box, but there are still tasks pending.</li>
+<li><b class="cBold">Cancelling</b>: the status prior to<b class="cBold">Cancelled</b>. Cancelling a box, will not be immediate because the task that is running at that moment will first have to finish. This status is assigned to the box while it is waiting to be cancelled.</li>
+<li><b class="cBold">Expired</b>: if the box execution is delayed past the time defined, the box is not executed and acquires this status.</li>
+<li><b class="cBold">Interrupted</b>: the box execution is interrupted due to reasons beyond the control of the user. For example, the server goes down. The box status will stay at <b class="cBold">Running</b> until the server is up again. When that happens, the status will change to <b class="cBold">Interrupted</b>.</li>
+<li><b class="cBold">Cancelled</b>: if the run process of the box has been cancelled. Aborting a run process implies cancelling a box execution process. However, the task that is running at that moment will finish the process, but the next ones pending will not run.</li>
+<li><b class="cBold">Aborting</b>: the status prior to<b class="cBold">Aborted</b>. When you abort a box execution, it will not be immediate. In the meantime, the box&#39;s status is <b class="cBold">Aborting</b>.</li>
+<li><b class="cBold">Aborted</b>: the run process of the box has been aborted. Aborting an execution means that the execution is cancelled directly. In other words, when you abort a box, all the tasks in box, including the one that is being executed, are cancelled.</li>
+</ul>
+<li class="numero">Select the execution that you want to consult. The <b class="cBold">Execution Details</b> window opens. </li>
+<li class="numero">This box data is displayed for the schedule and for the tasks. The information displayed is general; it consists of the ID of the task in the box, the name, the start and end times of the execution, and so on. </li>
+<li class="numero">You can <b class="cBold">Abort</b> or <b class="cBold">Cancel</b> the active executions (waiting, executing, and so on). Aborting involves halting an execution that is running; cancelling is halting an execution that has not yet begun to run. These actions change the execution status automatically. </li>
+<li class="numero">Click the links or use the navigation buttons on this page to continue. This way you can view information related to: </li>
+<ul class="item">
+<li><b class="cBold">Execution Parameters</b>. More information: <a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_TASK_EXE_P2.htm#wp177516');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_TASK_EXE_P2.htm#wp177516', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Query execution parameters</a></li>
+<li><b class="cBold">Task Executions</b>. More information: <a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_TASK_EXE_P3.htm#wp177545');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_TASK_EXE_P3.htm#wp177545', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Task Executions</a></li>
+<li><b class="cBold">Documents Generated</b>. More information: <a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_TASK_EXE_P4.htm#wp177574');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_TASK_EXE_P4.htm#wp177574', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Documents Generated</a></li>
+</ul>
+</ol>
+<p class="bodytex"> See also</p>
+<ul class="triangulo">
+<li><a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_SCHED_TASKS_P1.htm');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_JS_WZ_SCHED_TASKS_P1.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Job Scheduler</a></li>
+</ul>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/31/05 12:32:45" />
+    <title>Como consultar o estado das execuções</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp652296"> </a><h2 class="pTitle">
+Como consultar o estado das execuções
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_JS_WZ_TASK_EXE_P1-->
+<p class="bodytex"> Finalidade</p>
+<a name="wp652302"> </a><p class="pBody">
+Esta opção explica como consultar as tarefas planificadas, como ver o estado da execução, editar a sua execução e inclusivamente cancelá-la ou abortá-la. Tem duas opções para consultar a evolução de uma tarefa planificada:
+</p>
+<ul class="item">
+<li>Desde <b class="cBold">Ferramentas | Planificador de tarefas</b> utilizando a acção <b class="cBold">Execução</b> para consultar o estado em que se encontra a execução de uma tarefa planificada anteriormente.</li>
+<li>Desde <b class="cBold">Ferramentas | Gerir execuções</b> pode consultar a fila de execuções filtrada por determinados critérios. Assim poderá consultar rapidamente que tarefas tem planificadas e o estado das mesmas.</li>
+</ul>
+<p class="bodytex"> Passos</p>
+<a name="wp652310"> </a><p class="pBody">
+O processo é o seguinte:
+</p>
+<ol>
+<li class="numero">Para filtrar por aqueles estados que pretenda consultar, marque as caixas correspondentes e clique no botão <img src="images/ic_search_36_36_0.gif" id="wp1312339" border="0" hspace="0" vspace="0"/>. Os possíveis estados são: </li>
+<ul class="item">
+<li><b class="cBold">Executado</b>: terminaram todas as execuções das tarefas do grupo.</li>
+<li><b class="cBold">Em espera</b>: a execução do grupo de tarefas ainda não começou.</li>
+<li><b class="cBold">Em execução</b>: o grupo de tarefas está a ser executado nesse momento, isto é, começou a execução pelo menos da primeira tarefa do grupo; no entanto, ainda há tarefas pendentes.</li>
+<li><b class="cBold">Cancelando</b>: é o estado prévio a <b class="cBold">Cancelado</b>. O cancelamento de um grupo de tarefas não é realizado de forma imediata; antes, finaliza-se a execução da tarefa que se estiver a executar. Durante o tempo que se demora a cancelar o grupo, atribui-se-lhe este estado.</li>
+<li><b class="cBold">Caducado</b>: se a execução do grupo acumular um atraso superior ao tempo definido como de caducidade, o grupo não é executado e fica com este estado.</li>
+<li><b class="cBold">Interrompido</b>: a execução do grupo interrompeu-se por motivos alheios ao utilizador, por exemplo uma paragem do servidor. O estado do grupo de tarefas permanecerá como <b class="cBold">Em execução</b> até se iniciar o servidor, momento em que o estado passará a <b class="cBold">Interrompido</b>.</li>
+<li><b class="cBold">Cancelado</b>: a execução do grupo cancelou-se. Cancelar uma execução supõe anular a execução do grupo de tarefas, de tal maneira que finaliza a tarefa que se esteja a executar nesse momento, mas as seguintes tarefas que estão em espera não se vão executar.</li>
+<li><b class="cBold">Abortando</b>: é o estado prévio a <b class="cBold">Abortado</b>. Quando se aborta a execução de um grupo de tarefas, essa paragem não é realizada de forma imediata; durante esse tempo o estado do grupo será <b class="cBold">Abortando</b>.</li>
+<li><b class="cBold">Abortado</b>: abortou-se a execução do grupo. Abortar uma execução pressupõe anular a execução do grupo de tarefas de forma imediata; quando se aborta um grupo de tarefas, anula-se de forma drástica a execução de todas as tarefas do grupo, incluindo a tarefa que se esteja a executar nesse momento.</li>
+</ul>
+<li class="numero">Seleccione a execução que pretende consultar. Abre-se a janela <b class="cBold">Detalhe da execução</b>. </li>
+<li class="numero">Mostram-se os dados do grupo: da planificação e das tarefas. A informação é de tipo geral; consiste no identificador da tarefa dentro do grupo, o nome, o momento de início e fim da execução, etc. </li>
+<li class="numero">Pode <b class="cBold">Abortar</b> ou <b class="cBold">Cancelar</b> as execuções activas (esperando, executando-se, etc.). Abortar implica deter uma execução em processo; cancelar implica deter uma execução que ainda não se começou a processar. Estas acções mudam o estado da execução automaticamente. </li>
+<li class="numero">Clique nos links ou utilize os botões de navegação desta página para continuar a navegação. Assim poderá consultar informação em relação a: </li>
+<ul class="item">
+<li><b class="cBold">Parâmetros de execução</b>. Mais informação: <a href="javascript:WWHClickedPopup('TECH_HELP_POR', 'SHCO_JS_WZ_TASK_EXE_P2.htm');" onMouseOver="WWHShowPopup('TECH_HELP_POR', 'SHCO_JS_WZ_TASK_EXE_P2.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Parâmetros de execução</a></li>
+<li><b class="cBold">Execuções das tarefas</b>. Mais informação:<a href="javascript:WWHClickedPopup('TECH_HELP_POR', 'SHCO_JS_WZ_TASK_EXE_P3.htm');" onMouseOver="WWHShowPopup('TECH_HELP_POR', 'SHCO_JS_WZ_TASK_EXE_P3.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Execuções das tarefas</a></li>
+<li><b class="cBold">Documentos gerados</b>. Mais informação: <a href="javascript:WWHClickedPopup('TECH_HELP_POR', 'SHCO_JS_WZ_TASK_EXE_P4.htm');" onMouseOver="WWHShowPopup('TECH_HELP_POR', 'SHCO_JS_WZ_TASK_EXE_P4.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Documentos gerados</a></li>
+</ul>
+</ol>
+<p class="bodytex"> Consulte também</p>
+<ul class="triangulo">
+<li><a href="javascript:WWHClickedPopup('TECH_HELP_POR', 'SHCO_JS_WZ_SCHED_TASKS_P1.htm');" onMouseOver="WWHShowPopup('TECH_HELP_POR', 'SHCO_JS_WZ_SCHED_TASKS_P1.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Planificador de tarefas</a></li>
+</ul>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

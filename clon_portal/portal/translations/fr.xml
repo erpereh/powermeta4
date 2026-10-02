@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<labels>
+   <login>
+      <title>Connexion à l'ESS/au MSS</title>
+      <welcome>Bienvenue sur le self-service de Meta4.</welcome>
+      <description1>Cette application vous permet de réaliser</description1>
+      <description2>(modifier vos renseignements personnels, accéder à vos bulletins de paie, etc.) ou</description2>
+      <description3>(lancer des offres d'emploi, valider les demandes de vos collaborateurs, etc.).</description3>
+      <descriptionemployee>des tâches de collaborateur</descriptionemployee>
+      <descriptionmanager>des tâches de responsable d'unité de travail</descriptionmanager>
+      <remember>Pour accéder au self-service, vous devez d'abord</remember>
+      <rememberidentify>vous identifier.</rememberidentify>
+      <loginhead>Veuillez indiquer un nom d'utilisateur et un mot de passe valides pour cette application :</loginhead>
+      <leyendhead>Votre identification</leyendhead>
+      <labeluser>Nom d'utilisateur :</labeluser>
+      <labelpwd>Mot de passe :</labelpwd>
+      <labellang>Langue :</labellang>
+      <buttonenter>Entrer</buttonenter>
+      <userwrong>Le nom d'utilisateur est obligatoire.</userwrong>
+      <pwdwrong>Le mot de passe est obligatoire.</pwdwrong>
+      <modeClassic>Version classique</modeClassic>
+      <langlogin>4</langlogin>
+      <copyright>Tous droits réservés.</copyright>
+      <employeetittle>Employee</employeetittle>
+      <employeesubtittle>self-service</employeesubtittle>
+      <lnklost>Vous avez oublié votre nom d'utilisateur ou votre mot de passe ?</lnklost>
+      <lnkCondition>Termes et conditions d'utilisation</lnkCondition>
+      <lnkPrivacy>Politique de confidentialité</lnkPrivacy>
+      <labelRequireCaptcha>Veuillez saisir les caractères suivants:</labelRequireCaptcha>
+      <labelRetypeCaptcha>Veuillez saisir à nouveau les caractères suivants:</labelRetypeCaptcha>
+      <titleRequireCaptcha>Veuillez saisir les caractères suivants</titleRequireCaptcha>
+      <titleRetypeCaptcha>Veuillez saisir à nouveau les caractères suivants</titleRetypeCaptcha>
+   </login>
+   <subtitle>
+      <userlogin>Saisissez votre nom d'utilisateur</userlogin>
+      <pwdlogin>Saisissez votre mot de passe</pwdlogin>
+      <selectlang>Choisissez une langue de connexion</selectlang>
+      <buttonenter>Connectez-vous</buttonenter>
+      <lnklost>Retrouvez vos identificateurs</lnklost>
+      <lnkCondition>Termes et conditions d'utilisation</lnkCondition>
+      <lnkPrivacy>Politique de confidentialité</lnkPrivacy>
+   </subtitle>
+   <error>
+      <_1>Le nom d'utilisateur est obligatoire.</_1>
+      <_2>Le mot de passe est obligatoire.</_2>
+   </error>
+</labels>
+

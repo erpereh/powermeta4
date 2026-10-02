@@ -1,0 +1,103 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>meta4data basic</title>
+		
+		
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+					
+		<!-- syntax highlighter -->
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+		
+		
+		<!-- load example -->
+        <script type="text/javascript" src="/js_examples/resources/m4loadExample.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+		
+
+		<script>
+			// the security token
+			var secToken = "##M4JSSecToken##";
+		</script>
+		<script>			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_global'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+
+			function getURLParameter(name) {
+				return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(parent.window.location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+			}
+			
+			window.addEvent('domready', function() {			
+				if(getURLParameter('showHidden')=='show'){
+					$$('p.menuhidden').forEach(function(entry){
+						entry.removeClass("menuhidden");
+					});
+				}
+			});
+			
+		</script>	
+	
+	</head>
+	<body>
+	    <div id = 'maincontainer'>
+			<p data-m4trans="_ComponentHomeText1">
+				
+			</p>
+			<p>
+				<span><b>m4jsapi.</b></span>
+			</p>
+			<p>
+				<span data-m4trans="_ComponentHomeText2"></span><a data-m4trans="_ComponentHomeText2b" href="/js_examples/apidoc.html"></a>			
+			</p>
+			<p class="menuhidden">
+				<span><b>meta4.data</b></span>
+			</p>
+			<p class="menuhidden">
+				<span data-m4trans="_ComponentHomeText3"></span><a href="/js_examples/meta4data/basic.html" data-m4trans="_ComponentHomemMoreInfo"></a>			
+			</p>
+			<p class="menuhidden">
+				<span><b>meta4.widget</b></span>
+			</p>	
+			<p class="menuhidden">
+				<span data-m4trans="_ComponentHomeText4"></span><a href="/js_examples/meta4widgets/createelements.html" data-m4trans="_ComponentHomemMoreInfo"></a>			
+			</p>
+		</div>
+	</body>
+</html>

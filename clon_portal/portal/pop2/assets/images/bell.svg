@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="76px" height="98px" viewBox="0 0 76 98" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>7FCEF4D0-E43E-4F01-BCDE-D0F9EF53FE9E@1.5x</title>
+    <g id="bell-06-—-To-do-list" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="bell-06---01.0---Notification-pattern---empty-state" transform="translate(-1092.000000, -234.000000)">
+            <g id="bell-Header-Layers-/-Notification-/-Layer-/-Simple-with-Actions" transform="translate(892.000000, 53.000000)">
+                <g id="bell-Empty-state" transform="translate(59.000000, 170.000000)">
+                    <g id="bell-Group" transform="translate(119.000000, 0.000000)">
+                        <rect id="bell-Rectangle" x="0" y="0" width="120" height="120"></rect>
+                        <path d="M89.9958745,78.5 L89.9958745,53.65625 C89.9958745,38.1875 81.7927495,25.296875 67.4958745,22.015625 L67.4958745,18.5 C67.4958745,14.515625 64.2146245,11 59.9958745,11 C55.7771245,11 52.4958745,14.515625 52.4958745,18.5 L52.4958745,22.015625 C38.1989995,25.296875 29.9958745,38.1875 29.9958745,53.65625 L29.9958745,78.5 L23.4333745,85.0625 C20.3864995,88.109375 22.4958745,93.5 26.9489995,93.5 L92.8083745,93.5 C97.2614995,93.5 99.6052495,88.109375 96.5583745,85.0625 L89.9958745,78.5 Z" id="notifications" fill="#82B4FF" fill-rule="nonzero"></path>
+                        <path d="M59.9958745,108.5 C65.3864995,108.5 70.0739995,104.046875 70.0739995,98.65625 L49.9177495,98.65625 C49.9177495,104.046875 54.3708745,108.5 59.9958745,108.5 Z" id="bell-path" fill="#FE8D70" fill-rule="nonzero"></path>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

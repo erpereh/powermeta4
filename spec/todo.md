@@ -1,5 +1,21 @@
 # powermeta4 - estado de tareas
 
+## Copia completa del portal en Git - 2026-10-02
+
+- [x] Incorporada `clon_portal/` íntegra por petición expresa del usuario,
+      incluida la publicación de sus fotografías en el repositorio público.
+      Sin modificar, mover ni renombrar originales; se conserva `davidev`.
+- [x] Comparados los 33.518 archivos y 528.948.252 bytes de la carpeta con
+      el índice Git: ninguna omisión ni diferencia de contenido. Git conserva
+      bytes y espacios originales con `.gitattributes`; rutas largas habilitadas
+      en este checkout y documentadas para Windows.
+- [x] Referencia excluida de TypeScript, oxlint y oxfmt; README e índices de
+      `docs/portal` actualizados para consultar los originales versionados.
+- [x] Typecheck, tests (109 archivos; 603 correctas y 2 omitidas), build y
+      `git diff --check` correctos. `git status --short` revisado. Lint mantiene
+      los siete avisos y 362 archivos con formato pendiente preexistentes;
+      formato dirigido de los archivos modificados que antes pasaban, correcto.
+
 ## Especificación del portal para clonación - 2026-10-02
 
 - [x] Entrada única `docs/portal/README.md`, orden de lectura y plantilla de

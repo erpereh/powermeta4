@@ -1,0 +1,91 @@
+body{
+	font-size: 12px;
+}
+
+@media (min-width: 1200px) {
+  .container-xl, .container-lg, .container-md, .container-sm, .container {
+    max-width: 1330px;
+  }
+}
+
+.fr{
+	float:right;
+}
+
+.paganormal{
+	color: green;
+}
+
+.pagapro{
+	color: #bd2626;
+}
+
+thead tr th{
+	text-align: center;
+}
+
+tr td:not(tr td:nth-child(1)){
+	text-align: right;
+}
+
+tfoot tr th:not(tfoot tr th:nth-child(1)){
+	text-align: right;
+	padding-right: 9px;
+}
+
+tfoot tr th:nth-child(1){
+	padding-left: 9px;
+}
+
+.grafico00{
+    float: right;
+    bottom: -60px;
+    position: relative;
+    right: 60px;
+}
+
+.grafico01{
+    float: right;
+    bottom: 0px;
+    position: relative;
+    right: 60px;
+}
+
+.canvasgra00{
+	width: 400px; 
+	margin: auto;
+}
+
+
+
+
+
+@media print {
+
+	body {
+	    font-size: 7px;
+	}
+
+   .p-5 {
+	    padding: 0rem !important;
+	}
+
+	.shadow {
+	    box-shadow: 0 0rem 0rem rgba(0, 0, 0, 0) !important;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

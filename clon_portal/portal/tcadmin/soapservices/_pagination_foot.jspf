@@ -1,0 +1,78 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: _pagination_foot.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+
+<%-- ******************** Muestra el pie para la paginacion  ******************** --%>
+<%-- Las variables globales ha tenido que ser definidas en la página!. --%>
+
+<%
+//******************** Calculo del numero de paginas ********************
+int iNumPages = (giTotalRecordCount / giPageSize);
+int iMod = giTotalRecordCount%giPageSize;
+if (iMod > 0) {iNumPages = iNumPages + 1;}     
+//******************** Fin Calculo del numero de paginas ********************
+
+//******************** Calculo de slots visibles ********************
+//Escenario Size = 5, Delta = 2.
+//0-1-2-3-4
+//5-6-7-8-9
+//Calculo de la primera pagina visible en el slot.
+//El delta calculado es la diferencia entre la pagina actual y el inicio del slot. Si es mayor avanzamos slot.
+//Si el delta es menor no avanzamos slot, se queda igual el minimo.
+int iVisibleWindowMin = (giPageCurrent / giVisibleWindowSize) * giVisibleWindowSize;
+int iVisibleWindowMax = giVisibleWindowSize;
+int iDeltaCalculated = giPageCurrent - iVisibleWindowMin;
+
+if (iDeltaCalculated > giVisibleWindowDelta) iVisibleWindowMin = iVisibleWindowMin + giVisibleWindowDelta;
+if ((iDeltaCalculated == 0) && (iVisibleWindowMin > 0)) iVisibleWindowMin = iVisibleWindowMin - 1;
+if ((iVisibleWindowMin + giVisibleWindowSize) >= iNumPages) iVisibleWindowMin = iNumPages - giVisibleWindowSize;
+
+//El max siempre es el min + la cantidad de slots visibles - 1: [0..4] son 5 paginas.
+iVisibleWindowMax = iVisibleWindowMin + giVisibleWindowSize - 1;
+//******************** Fin Calculo de slots visibles ********************
+
+%>
+
+<%-- ******************** DEPURACION ******************** --%>
+<table class="depuracion">
+	<tr><td>giTotalRecordCount = </td><td><%=giTotalRecordCount%></td></tr>
+	<tr><td>giTotalRecordCountVisibles = </td><td><%=giTotalRecordCountVisibles%></td></tr>
+	<tr><td>giPageCurrent = </td><td><%=giPageCurrent%></td></tr>
+	<tr><td>giPageFirst = </td><td><%=giPageFirst%></td></tr>
+	<tr><td>giPageSize = </td><td><%=giPageSize%></td></tr>
+	<tr><td>iNumPages = </td><td><%=iNumPages%></td></tr>								
+	<tr><td>iVisibleWindowMin = </td><td><%=iVisibleWindowMin%></td></tr>	
+	<tr><td>iVisibleWindowMax = </td><td><%=iVisibleWindowMax%></td></tr>		
+	<tr><td>iDeltaCalculated = </td><td><%=iDeltaCalculated%></td></tr>	
+</table>
+<%-- ******************** FIN DEPURACION ******************** --%>
+
+<%
+if (giTotalRecordCountVisibles > 0) {
+//if (iNumPages > 1) {%>	
+	<table class="navegacion" width="100%" cellspacing="0">
+	    <tr>
+			<%for (int iPage = 0; iPage < iNumPages; iPage++) {%>
+				<%if (iPage < iVisibleWindowMin) continue;
+				if (iPage > iVisibleWindowMax) break; %>
+				<%if ((iPage >= iVisibleWindowMin) && (iPage <= iVisibleWindowMax) ) {%>
+					<%if (iPage != giPageCurrent) {%>
+						<td class="navegacion2" align="center">
+						<a title="<%=gTranslateAdmin.getProperty("tooltip._pagination_foot.Pagination")%>" href="javascript:ChangePage('<%=iPage%>');"><%=((giPageSize*iPage)+1)%>&nbsp;-&nbsp;<%=Math.min(((giPageSize)*(iPage+1)),giTotalRecordCount)%></a>
+						</td>
+					<%}else{%>
+						<td class="navegacion">
+						[<%=((giPageSize*iPage)+1)%>&nbsp;-&nbsp;<%=Math.min(((giPageSize)*(iPage+1)),giTotalRecordCount)%>]
+						</td>
+					<%}%>
+				<%}%>
+			<%}%>			
+		</tr>	
+	</table>		
+<%//}%>
+<%}%>

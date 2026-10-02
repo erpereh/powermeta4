@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-wkwebview-engine.ios-wkwebview",function(d,b,c){var a=d("cordova/exec");var e={allowsBackForwardNavigationGestures:function(f){a(null,null,"CDVWKWebViewEngine","allowsBackForwardNavigationGestures",[f])}};c.exports=e});

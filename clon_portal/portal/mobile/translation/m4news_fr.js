@@ -1,0 +1,1 @@
+﻿var _emptyNews="Il n'y a aucune information à afficher.";var _label_next="Suivant";var _label_previous="Précédent";var _news_title_toolbar="Informations";

@@ -1,0 +1,99 @@
+/* MOBILE */
+body{
+	font-family: segoe ui;
+}
+
+#loginEMSS{
+	height: 100%;
+	width:100%;	
+}
+
+
+[data-theme="a"] div{
+	background-color: #1c1b1b !important;
+	color: white;
+}
+
+[data-theme="b"] div{
+	background-color: white  !important;
+	color: #1c1b1b;
+}
+
+
+#userlogin, #pwdlogin, #selectlang, #divCaptcha{
+	margin-bottom: 20px;
+}
+
+#enterdiv{
+	margin-top: 20px;
+}
+
+#datadiv{
+	margin-bottom: 20px;
+}
+
+#userwrong, #pwdwrong, #labelRequireCaptcha,#labelRetypeCaptcha{
+	padding-bottom: 10px;
+	color: red !important;
+}
+
+.body-clearfloat{
+	display: none;
+}
+
+
+.modeClasic{
+	position: absolute;	
+	top: 2%;
+	right:5%;
+}
+
+.loginhead, .titulosendpass, .descripcionsendpass, .titulofuncional, .descripcionfuncional, .fuenteactualizar, .fuenteactualizar2{
+	text-align: center;
+	margin-left: 10%;
+	margin-right: 10%;	
+}
+
+#labeluser, #labelpwd,#tablePrivacy, .loginheaderleft, .loginheadercenter, #loginintro, .frmloginbottom,.loginseparator, #labellang, #lblsociedad, #imgSend, .tablaestadosceldatitulo { 
+	display: none;
+}
+
+.fuentecampo{
+	display: none;
+	width : 0%; 
+}
+
+.fuentevalor{
+	width : 100%; 
+}
+
+#allloginbody{
+	background-image: none;	
+	margin-top: 10%;
+	height: 100%;
+}
+
+
+#frmlogin{
+	background-image: none;	
+	width:80%;
+	position: relative;
+	top: 10%;
+	left:10%;
+	height: auto !important;
+	
+}
+
+a{
+	color: #4ec9fc;
+}
+
+#footer-disclaimer{
+	color: #a2abaa;
+	margin-left: 5%;
+	margin-top: 30px;
+
+	position: absolute;	
+	top: 90%;
+	vertical-align:middle;	
+}

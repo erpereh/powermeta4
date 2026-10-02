@@ -1,0 +1,126 @@
+/**
+	@(#)FileVersion: 812.000.042
+	@(#)FileDescription: Style to table of employees and WU
+	@(#)CompanyName: Meta4 Spain, S.A.
+	@(#)LegalCopyright: (c)2014
+	@(#)ProductName: PeopleNet KSystem
+	@(#)ProductVersion: 8.1SP1
+	@(#)InternalName: sorter_table.css
+	@(#)Date: 08/09/2012
+*/
+
+#containerTablesNodes{
+	float:right;
+}
+
+#tablePerson,#tableDepartament,#tablePos{
+	width: 100%;			
+	color:#000000;
+	background: url(images/header-bg.png);
+	border: 1px solid #828790;
+	border-right: 1px solid #d5d5d5;
+	border-collapse:collapse;	
+	text-align: left;
+}
+.column1 { width: 10%; }
+.column2 { width: 18%; }
+#idTextField,#nameTextField,#departamentTextField,#postTextField,#tlfTextField,#emailTextField,#costCenterField{
+	width: 80%;
+}
+
+a{text-decoration:none} 
+.m4tablePerson th, .m4tableDepartament th, .m4tablePos th {
+	text-align: center;
+	height: 25px;
+	vertical-align: middle;
+}
+
+.headerTableGrey{
+	text-align: center;
+	background-color: #6e6e6e;		
+}
+
+.evenrow {
+	font-size: 10pt;	
+	font-family: Microsoft Sans Serif;
+	background: #ffffff;		
+	border-right: 1px solid #d5d5d5;    	
+	border-top: 1px solid #d5d5d5;
+}
+
+.oddrow {
+	font-size: 10pt;	
+	font-family: Microsoft Sans Serif;
+	background: #e8e8eb;
+	border-right: 1px solid #d5d5d5;
+	border-top: 1px solid #d5d5d5;
+}
+.linkQW{
+	color:blue;
+	cursor: pointer;
+}
+
+#controls {	
+	width:100%;
+	text-align: left;	
+}
+#td1Controls {			
+	width:75%;	
+}
+
+#td3Controls{	
+	width:25%;	
+}
+
+/* Sorting */
+th.table-sortable {
+	cursor: pointer;
+	background-image: url("images/sortable.gif");	
+	background-repeat: no-repeat;	
+	background-position: center right;
+	color: #ffffff;
+}
+
+th.table-sorted-asc {
+	background-position:center left;
+	position:relative;
+	background-image: url("images/sorted_up.png");
+	background-repeat: no-repeat;
+	background-position: center right;	 	
+}
+
+th.table-sorted-desc {
+background-position:center left;	
+	position:relative;
+	background-image: url("images/sorted_down.png");	
+	background-repeat: no-repeat;
+	background-position: center right;	
+}
+
+
+#NameDepTableEmployee{
+	font-size: 8pt;	
+	color:#535353;
+	font-family: Microsoft Sans Serif;		
+}
+
+.infoPage{
+	font-size: 8pt;	
+	color:#535353;
+	font-family: Microsoft Sans Serif;
+}
+
+#NameDepTableEmployee2,#labelSearchRecursive{
+	font-size: 8pt;	
+	color:#000000;
+	font-family: Microsoft Sans Serif;
+}
+
+#labelSearchRecursive{
+	padding: 0 6px;
+}
+
+.hideColumn{
+	display:none;
+}
+

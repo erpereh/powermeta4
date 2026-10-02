@@ -1,0 +1,123 @@
+#[=====================================================]
+# @(#) FileVersion: 822.002.041
+# @(#) FileDescription: CSRF & Clickjacking Configuration
+# @(#) CompanyName: Meta4 Spain, S.A.
+# @(#) LegalCopyright: (c) 2025
+# @(#) ProductName: PeopleNet
+#[=====================================================]
+#
+# Activation of the csrf validator
+# ------------------------------------------
+m4csrfvalidator.active=false
+
+# Behavior of the validator (logout if CSRF)
+# ------------------------------------------
+m4csrfvalidator.dologoutonerror=true
+
+# Origin based validation
+# ------------------------------------------
+m4csrfvalidator.enable_same_origin_check=false
+
+# Clickjacking protection
+# ------------------------------------------
+m4csrfvalidator.enable_same_origin_frame_options=true
+m4csrfvalidator.enable_same_origin_frame_options.without_session=false
+
+# Expired Restriction
+# ------------------------------------------
+m4csrfvalidator.enable_allowed_expired_check=true
+
+
+# CSRF unprotected resources
+# ------------------------------------------
+# Definition of unprotected resources. It is not mandatory to define the first portal page, 
+# unless the logon is triggered asynchronously.
+# 
+# Example:
+# 
+# m4csrfvalidator.unprotected.tec.0=/servlet/CheckSecurity/JSP/tctask/tcpage.jsp
+
+m4csrfvalidator.unprotected.tec.0=/mobile/index.jsp
+m4csrfvalidator.unprotected.tec.1=/servlet/CheckSecurity/JSP/mobile/index.jsp
+m4csrfvalidator.unprotected.tec.2=/servlet/CheckSecurity/JSP/shco_g0/shco_gen_logout.jsp
+m4csrfvalidator.unprotected.tec.3=/servlet/CheckSecurity/JSP/tctools/change_password.jsp
+m4csrfvalidator.unprotected.tec.4=/servlet/CheckSecurity/JSP/tcadmin/soapservices/sch_bo_method.jsp
+m4csrfvalidator.unprotected.tec.5=/servlet/M4JSServices/blobfile
+m4csrfvalidator.unprotected.tec.6=/tctools/tc_logout.jsp
+m4csrfvalidator.unprotected.tec.7=/framework/mashup/show_origin_host.jsp
+m4csrfvalidator.unprotected.tec.8=/framework/is_alive.jsp
+# 
+m4csrfvalidator.unprotected.ess.0=/servlet/CheckSecurity/JSP/sse_generico/sgco_menu_back.jsp
+m4csrfvalidator.unprotected.ess.1=/servlet/CheckSecurity/JSP/sse_generico/generico_invisible.jsp
+m4csrfvalidator.unprotected.ess.2=/servlet/CheckSecurity/JSP/sse_generico/ssco_portal.jsp
+m4csrfvalidator.unprotected.ess.3=/servlet/CheckSecurity/JSP/sse_generico/sse_logout.jsp
+m4csrfvalidator.unprotected.ess.4=/servlet/CheckSecurity/JSP/sse_g0/change_password.jsp
+m4csrfvalidator.unprotected.ess.5=/sse_g0/english/change_password.jsp
+m4csrfvalidator.unprotected.ess.6=/sse_g0/espanol/change_password.jsp
+m4csrfvalidator.unprotected.ess.7=/sse_g0/francais/change_password.jsp
+m4csrfvalidator.unprotected.ess.8=/sse_g0/portugues/change_password.jsp
+m4csrfvalidator.unprotected.ess.9=/sse_g0/deutsch/change_password.jsp
+m4csrfvalidator.unprotected.ess.10=/sse_g0/italiano/change_password.jsp
+m4csrfvalidator.unprotected.ess.11=/sse_g0/polski/change_password.jsp
+m4csrfvalidator.unprotected.ess.12=/servlet/CheckSecurity/JSP/mss_generico/pmco_profs_info.jsp
+m4csrfvalidator.unprotected.ess.13=/servlet/CheckSecurity/JSP/sse_g4/sse_g4_gta_virtual_clock.jsp
+m4csrfvalidator.unprotected.ess.14=/sse_g0/mobile_change_password.jsp
+m4csrfvalidator.unprotected.ess.15=/exp/index.jsp
+
+
+# Expired Restriction Exceptions
+# ------------------------------------------
+#
+# Definition of expired unrestricted resources. Must include login, error, logout and change password, 
+# but never ever the portal page. 
+# 
+# Example:
+# 
+m4csrfvalidator.allowedexpired.tec.0=/mobile/index.jsp
+m4csrfvalidator.allowedexpired.tec.1=/servlet/CheckSecurity/JSP/mobile/index.jsp
+m4csrfvalidator.allowedexpired.tec.2=/servlet/CheckSecurity/JSP/shco_g0/shco_gen_logout.jsp
+m4csrfvalidator.allowedexpired.tec.3=/servlet/CheckSecurity/JSP/tctools/change_password.jsp
+m4csrfvalidator.allowedexpired.tec.4=/servlet/CheckSecurity/JSP/tctools/change_password_operation.jsp
+m4csrfvalidator.allowedexpired.tec.5=/tctools/english/change_password.jsp
+m4csrfvalidator.allowedexpired.tec.6=/tctools/espanol/change_password.jsp
+m4csrfvalidator.allowedexpired.tec.7=/tctools/francais/change_password.jsp
+m4csrfvalidator.allowedexpired.tec.8=/tctools/portugues/change_password.jsp
+m4csrfvalidator.allowedexpired.tec.9=/tctools/english/tc_login.jsp
+m4csrfvalidator.allowedexpired.tec.10=/tctools/espanol/tc_login.jsp
+m4csrfvalidator.allowedexpired.tec.11=/tctools/francais/tc_login.jsp
+m4csrfvalidator.allowedexpired.tec.12=/tctools/portugues/tc_login.jsp
+m4csrfvalidator.allowedexpired.tec.13=/tctools/tc_logout.jsp
+
+m4csrfvalidator.allowedexpired.ess.0=/servlet/CheckSecurity/JSP/sse_g0/change_password.jsp
+m4csrfvalidator.allowedexpired.ess.1=/sse_g0/english/change_password.jsp
+m4csrfvalidator.allowedexpired.ess.2=/sse_g0/espanol/change_password.jsp
+m4csrfvalidator.allowedexpired.ess.3=/sse_g0/francais/change_password.jsp
+m4csrfvalidator.allowedexpired.ess.4=/sse_g0/portugues/change_password.jsp
+m4csrfvalidator.allowedexpired.ess.5=/sse_generico/generico_login.jsp
+m4csrfvalidator.allowedexpired.ess.6=/sse_generico/english/generico_login.jsp
+m4csrfvalidator.allowedexpired.ess.7=/sse_generico/espanol/generico_login.jsp
+m4csrfvalidator.allowedexpired.ess.8=/sse_generico/francais/generico_login.jsp
+m4csrfvalidator.allowedexpired.ess.9=/sse_generico/portugues/generico_login.jsp
+m4csrfvalidator.allowedexpired.ess.10=/sse_g0/mobile_change_password.jsp
+
+# Definition of allowed frame ancestors
+# ------------------------------------------
+# Additional domains will be needed if we extend a Teams personal tab across Microsoft 365
+# m4csrfvalidator.allowed_frame_ancestors.0=teams.microsoft.com
+# m4csrfvalidator.allowed_frame_ancestors.1=local.teams.office.com
+
+
+# Exclude framing restriction from these pages
+# ----------------------------------
+#
+# Pages where the framing is not forbidden. For example, logout pages which might be called without session
+# 
+# m4csrfvalidator.enable_same_origin_frame_options.excluded.tec.0=/tctools/tc_logout.jsp
+# m4csrfvalidator.enable_same_origin_frame_options.excluded.tec.1=/servlet/CheckSecurity/JSP/shco_g0/shco_gen_logout.jsp
+
+
+# Definition of additional Content-Security-Policy headers
+# --------------------------------------------------------
+# Additional semicolon separated csp options such as these
+# default-src 'none'; connect-src 'self'
+# m4csrfvalidator.additional_csp_entries=object-src 'self'

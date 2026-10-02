@@ -1,0 +1,1 @@
+module.exports={exec:function(c,e,a,d,b){return prompt(b,"gap:"+JSON.stringify([c,e,a,d]))},setNativeToJsBridgeMode:function(a,b){prompt(b,"gap_bridge_mode:"+a)},retrieveJsMessages:function(a,b){return prompt(+b,"gap_poll:"+a)}};

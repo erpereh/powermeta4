@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<WebWorksHelpIX version="4.0">
+ <g t="E" o="002">
+  <i t="États et graphiques publiés">
+   <j l="17#wp282750" />
+   <j l="18#wp282781" />
+  </i>
+ </g>
+ <g t="S" o="002">
+  <i t="Sessions de travail">
+   <j l="7#wp933798" />
+  </i>
+ </g>
+ <g t="T" o="002">
+  <i t="Tâches affectées">
+   <j l="2#wp933649" />
+  </i>
+  <i t="Tâches personnelles">
+   <j l="2#wp933658" />
+   <j l="3" />
+   <j l="4#wp933720" />
+  </i>
+ </g>
+</WebWorksHelpIX>

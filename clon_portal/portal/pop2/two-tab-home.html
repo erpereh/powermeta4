@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" />
+    </head>
+
+    <body>
+        <noscript>
+            <strong>We're sorry but HR Framework doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+        </noscript>
+
+        <script>
+            var urlParams = new URLSearchParams(window.location.search)
+            var productId = urlParams.get("productId")
+            var appId = urlParams.get("appId")
+            if (productId && appId) {
+                // to read this value, and redirect to functional, the manifest must contain this parameter
+                // "contentUrl": "https://localhost/pop2/home.html?appId=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee&productId=exp",
+                var url = "/" + productId + "/" + "home.html" + "?appId=" + appId
+                window.location.assign(url)
+            }
+        </script>
+    </body>
+</html>

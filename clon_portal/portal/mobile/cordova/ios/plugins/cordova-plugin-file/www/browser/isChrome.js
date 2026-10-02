@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file.isChrome",function(c,a,b){b.exports=function(){return window.webkitRequestFileSystem&&window.webkitResolveLocalFileSystemURL}});

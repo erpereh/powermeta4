@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file.FileError",function(d,a,c){function b(e){this.code=e||null}b.NOT_FOUND_ERR=1;b.SECURITY_ERR=2;b.ABORT_ERR=3;b.NOT_READABLE_ERR=4;b.ENCODING_ERR=5;b.NO_MODIFICATION_ALLOWED_ERR=6;b.INVALID_STATE_ERR=7;b.SYNTAX_ERR=8;b.INVALID_MODIFICATION_ERR=9;b.QUOTA_EXCEEDED_ERR=10;b.TYPE_MISMATCH_ERR=11;b.PATH_EXISTS_ERR=12;c.exports=b});

@@ -1,0 +1,1 @@
+var nativeApi=this._cordovaNative||require("cordova/android/promptbasednativeapi");var currentApi=nativeApi;module.exports={get:function(){return currentApi},setPreferPrompt:function(a){currentApi=a?require("cordova/android/promptbasednativeapi"):nativeApi},set:function(a){currentApi=a}};

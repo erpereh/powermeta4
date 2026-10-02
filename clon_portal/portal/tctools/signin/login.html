@@ -1,0 +1,101 @@
+<!-- =========================================================
+	@(#) FileVersion: 819.003.001
+	@(#) FileDescription: login.html
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2022
+	@(#) ProductName: PeopleNet
+========================================================= -->
+
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Pragma" content="no-cache" />
+	<meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+	<meta http-equiv="Expires" content="-1" />
+	<title>Sign In</title>
+
+	<script type="text/javascript">
+		try {
+			if (typeof (Storage) !== "undefined") {
+				var time = (new Date()).getTime();
+				sessionStorage.setItem("m4jseventsLoginEventTime", time);
+			}
+		}
+		catch (err) { }
+
+		function moveTopWindow() {
+			try {
+				if (window.top && window.top != window) {
+					top.location = window.document.location;
+				}
+			}
+			catch (err) {
+				console.error("Error accessing window.parent: ", err);
+			}
+		}
+
+		function getHashParam(paramId) {
+			var hash = window.location.hash;
+
+			var matches = hash.match(new RegExp(paramId + '=([^&]*)'));
+			if (matches) {
+				return decodeURIComponent(matches[1]);
+			}
+		}
+
+		function checkError(errorMessage) {
+
+			var error = getHashParam('error');
+			if (error) {
+				errorMessage += ' ' + error;
+			}
+			var errorDescription = getHashParam('error_description');
+			if (errorDescription) {
+				errorMessage += ' ' + errorDescription;
+			}
+
+			throw errorMessage;
+		}
+
+		function HTMLloaded() {
+			moveTopWindow();
+
+			try {
+				var state = getHashParam('state');
+				if (!state) {
+					checkError("state param is empty.");
+				}
+				var stateJson = JSON.parse(atob(state));
+
+				var id_token = getHashParam('id_token');
+				if (!id_token) {
+					checkError("id_token param is empty.");
+				}
+
+				var loginForm = document.loginForm;
+				loginForm._JWT.value = id_token;
+				loginForm._DOMAIN.value = stateJson.domain;
+				loginForm._LOGINTYPE.value = stateJson.loginType;
+				loginForm.action = stateJson.sourceUrl;
+				
+				loginForm.submit();
+			}
+			catch (err) {
+				console.error("Error generating login post form: ", err);
+				console.log("On url: ", location.href);
+			}
+		}
+	</script>
+
+</head>
+
+<body onload="javascript:HTMLloaded()">
+	<form method="post" name="loginForm" action="">
+		<input type="hidden" name="_JWT" value="" />
+		<input type="hidden" name="_DOMAIN" value="" />
+		<input type="hidden" name="_LOGINTYPE" value="" />
+	</form>
+</body>
+
+</html>

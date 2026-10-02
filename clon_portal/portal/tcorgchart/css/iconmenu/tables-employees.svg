@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<?xml-stylesheet type="text/css" href="../css/m4svg.css" ?>
+<svg width="16" height="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#4e647e" class="icon" id="tables-employees">
+<path d="M0,288v224h512V288H0z M96,480H32v-64h64V480z M96,384H32v-64h64V384z M192,480h-64v-64h64V480z M192,384h-64v-64h64V384z
+	 M288,480h-64v-64h64V480z M288,384h-64v-64h64V384z M384,480h-64v-64h64V480z M384,384h-64v-64h64V384z M480,480h-64v-64h64V480z
+	 M480,384h-64v-64h64V384z"/>
+<path d="M179.199,76.801c0,42.414,34.385,76.799,76.8,76.799s76.8-34.385,76.8-76.799C332.8,34.385,298.415,0,255.999,0
+	S179.199,34.385,179.199,76.801z M307.199,153.6H204.8c-42.239,0-76.8,23.039-76.8,51.201V256h256v-51.199
+	C384,176.639,349.44,153.6,307.199,153.6z"/>
+</svg>

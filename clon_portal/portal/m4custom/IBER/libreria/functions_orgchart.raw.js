@@ -1,0 +1,537 @@
+//-------------------------------------------------------------------------------------------------
+//Compact with e.g. http://fmarcia.info/jsmin/test.html
+//-------------------------------------------------------------------------------------------------
+
+var m4OrgChart = {};
+
+m4OrgChart.EngineORGChartURL = '/servlet/CheckSecurity/JSP/sse_g0/ssco_engine_org_chart.jsp';
+
+m4OrgChart.Search = function() {
+  
+  var l_aLabels = new Array;
+  var l_objDIVSchResult = null;
+  var l_objSPNSchResult = null;
+  var l_sSearching = '';
+  var l_sOldEmp = '';
+  var l_sOldWU = '';
+
+  function _init() {
+    var aParams = new Array;
+    var objResp = null;
+    aParams[0] = ['Action','InitSearch'];
+    meta4Ajax.ajax.sendSyncJSON(m4OrgChart.EngineORGChartURL, aParams);
+    objResp = meta4Ajax.ajax.getResponseJSON();
+    if (objResp) {
+      for (var item in objResp) {
+        if (typeof(objResp[item]) == 'string') {
+          l_aLabels[item.substring(1)] = objResp[item];
+        }
+      }
+    }
+    l_objDIVSchResult = $('divSearchResult');
+    l_objSPNSchResult = $('spanSearchResult');
+  }
+
+  function _searchEmp(me) {
+    var aParams = new Array;
+    if (l_sOldEmp == me.value) {return}
+    l_sOldEmp = me.value;
+    if (me.value.length > 1) {
+      l_objDIVSchResult.innerHTML = '';
+      l_objDIVSchResult.addClass('divSearching');
+      aParams[0] = ['Action', 'SearchEmp'];
+      aParams[1] = ['Name', me.value];
+      meta4Ajax.ajax.sendAsync(m4OrgChart.EngineORGChartURL, aParams, m4OrgChart.Search.searchEmpEnd);
+      l_sSearching = 'emp';
+    } else {
+      l_objDIVSchResult.searchEmp = '';
+      l_objDIVSchResult.innerHTML = '';
+      l_objSPNSchResult.set('text','');
+    }
+  }
+
+  function _searchWU(me) {
+    var aParams = new Array;
+    if (l_sOldWU == me.value) {return}
+    l_sOldWU = me.value;
+    if (me.value.length > 1) {
+      l_objDIVSchResult.innerHTML = '';
+      l_objDIVSchResult.addClass('divSearching');
+      aParams[0] = ['Action', 'SearchWU'];
+      aParams[1] = ['Name', me.value];
+      meta4Ajax.ajax.sendAsync(m4OrgChart.EngineORGChartURL, aParams, m4OrgChart.Search.searchEmpEnd);
+      l_sSearching = 'work';
+    } else {
+      l_objDIVSchResult.searchWU = '';
+      l_objDIVSchResult.innerHTML = '';
+      l_objSPNSchResult.set('text','');
+    }
+  }
+
+  function _searchEmpEnd(objResp) {
+    var sText = ''; 
+    var iNResult = 0;
+    l_objDIVSchResult.removeClass('divSearching');
+    if (objResp) {
+      l_objDIVSchResult.innerHTML = objResp;
+      iNResult = l_objDIVSchResult.children.length
+      if (l_sSearching == 'emp') {
+        sText = l_aLabels['Nofound']; //SCO_PRP_LBL_NO_FOUNDED
+        if (iNResult == 1) {sText = iNResult + ' ' + l_aLabels['FoundEmp'];} //SCO_PRP_LBL_FOUNDED_EMP
+        else if (iNResult > 1) {sText = iNResult + ' ' + l_aLabels['FoundEmps'];} //SCO_PRP_LBL_FOUNDED_EMPS
+        l_objDIVSchResult.getElements('span').addEvents({
+          'mouseenter': function(e) {meta4Photo.Photo.showPhoto(e.target.id)},
+          'mouseleave': function(e) {meta4Photo.Photo.hidePhoto();}
+        });
+        l_objDIVSchResult.searchEmp = l_objDIVSchResult.innerHTML;
+      } else if (l_sSearching == 'work') {
+        sText = l_aLabels['Nofound']; //SCO_PRP_LBL_NO_FOUNDED
+        if (iNResult == 1) {sText = iNResult + ' ' + l_aLabels['FoundWU'];} //SCO_PRP_LBL_FOUNDED_WU
+        else if (iNResult > 1) {sText = iNResult + ' ' + l_aLabels['FoundWUs'];} //SCO_PRP_LBL_FOUNDED_WUS
+        l_objDIVSchResult.searchWU = l_objDIVSchResult.innerHTML;
+      }
+      l_objSPNSchResult.set('text', sText);
+    }
+  }
+
+  return {
+    init: function() {
+      _init();
+    },
+    
+    searchEmp: function(ev) {
+      var me = ev.target;
+      _searchEmp(me);
+    },
+    
+    focusEmp: function(ev) {
+      var me = ev.target;
+      me.select();
+      l_objDIVSchResult.innerHTML = '';
+      l_objSPNSchResult.set('text', '');
+      if (l_objDIVSchResult.searchEmp) {
+        l_sSearching = 'emp';
+        if (l_objDIVSchResult.searchEmp == '##') {
+          l_sOldEmp = '';
+          _searchEmp(me);
+        } else {
+          _searchEmpEnd(l_objDIVSchResult.searchEmp);
+        }
+      } else if (me.value.length > 1) {
+        l_objSPNSchResult.set('text', l_aLabels['Nofound']);
+      }
+    },
+
+    searchWU: function(ev) {
+      var me = ev.target;
+      _searchWU(me);
+    },
+
+    focusWU: function(ev) {
+      var me = ev.target;
+      me.select();
+      l_objDIVSchResult.innerHTML = '';
+      l_objSPNSchResult.set('text', '');
+      if (l_objDIVSchResult.searchWU) {
+        l_sSearching = 'work';
+        if (l_objDIVSchResult.searchWU == '##') {
+          l_sOldWU = '';
+          _searchWU(me);
+        } else {
+        _searchEmpEnd(l_objDIVSchResult.searchWU);
+        }
+      } else if (me.value.length > 1) {
+        l_objSPNSchResult.set('text', l_aLabels['Nofound']);
+      }
+    },
+    
+    searchEmpEnd: function(objResp) {
+      _searchEmpEnd(objResp);
+    }
+  }
+} ();
+
+m4OrgChart.Orgchart = function() {
+
+  var l_aLabels = new Array;
+  var l_idCurShow = '';
+  var l_objOrgTree = null;
+  var l_objNameWU = null;
+  var l_oTableEmp = null;
+  var l_oTableResp = null;
+  
+  function _init(sIdWU) {
+    var aParams = new Array;
+    var objResp = null;
+    var objOrg = new Object;
+    
+    document.title = $('sHeadTitle').get('text');
+    
+    aParams[0] = ['Action','InitOrgChart'];
+    meta4Ajax.ajax.sendSyncJSON(m4OrgChart.EngineORGChartURL, aParams);
+    objResp = meta4Ajax.ajax.getResponseJSON();
+    if (objResp) {
+      for (var item in objResp) {
+        if (typeof(objResp[item]) == 'string') {
+          l_aLabels[item.substring(1)] = objResp[item];
+        }
+      }
+    }
+    var options = {
+      maxRows: 8,
+      orderAsc:l_aLabels['OrderAsc'], //SCO_PRP_LBL_ORDER_ASC
+      orderDesc:l_aLabels['OrderDesc'], //SCO_PRP_LBL_ORDER_DESC
+      orderNo:l_aLabels['NoOrder'] //SCO_PRP_LBL_NO_ORDER
+    };
+
+    l_oTableEmp = new meta4Table.Table('tblEmp', options);
+    options = {
+      maxRows: 3,
+      orderAsc:l_aLabels['OrderAsc'], //SCO_PRP_LBL_ORDER_ASC
+      orderDesc:l_aLabels['OrderDesc'], //SCO_PRP_LBL_ORDER_DESC
+      orderNo:l_aLabels['NoOrder'] //SCO_PRP_LBL_NO_ORDER
+    };
+    l_oTableResp = new meta4Table.Table('tblResp', options);
+    
+    l_objOrgTree = $('divOrgtree');
+    l_objNameWU = $('spnNameWorkUnit');
+    
+    if (sIdWU) {
+      objOrg.idWU = sIdWU;
+      _loadMe(objOrg);
+    }
+
+  }
+
+  function _loadMe(objOrg) {
+    var aParams = new Array;
+    var aPath = new Array;
+    var objResp = null;
+    
+    if (!objOrg.idWU) {objOrg.idWU = objOrg.getAttribute('idWU');}
+    
+    aParams[0] = ['Action', 'Getpath'];
+    aParams[1] = ['WUnit', objOrg.idWU];
+    meta4Ajax.ajax.sendSyncJSON(m4OrgChart.EngineORGChartURL, aParams);
+    objResp = meta4Ajax.ajax.getResponseJSON();
+    if (objResp) {
+      aPath = objResp.sPath.split('|');
+      aPath.each(
+        function(item,index){
+          var me = $(item); 
+          if (index < aPath.length - 1) {
+            if (!me.bLoaded) {me.bLoaded = me.getAttribute('bLoaded');}
+            if (!me.bExpanded) {me.bExpanded = me.getAttribute('bExpanded');}
+            if (me.bLoaded == 'false') {
+              _expandMe(me);
+            } else if (me.bExpanded == 'false') {
+              me.bExpanded = 'true';
+              me.removeClass('closedOrgtree');
+              me.addClass('openedOrgtree');
+              if (!me.idSons) {me.idSons = me.getAttribute('idSons');}
+              $(me.idSons).style.display = '';
+            }
+          }
+        }
+      );
+      _showMe($(aPath[aPath.length - 1]));
+    }
+  }
+
+  function _showMe(objOrg) {
+    l_objOrg = objOrg;
+    if (!objOrg.idWU) {objOrg.idWU = objOrg.getAttribute('idWU');}
+
+    var aParams = new Array;
+    if (!(l_idCurShow == objOrg.idWU)) {
+      aParams[0] = ['Action', 'List'];
+      aParams[1] = ['WUnit', objOrg.idWU];
+
+      l_objNameWU.fade('hide');
+      l_objNameWU.set('text',objOrg.get('text'));
+      l_objNameWU.idWU = objOrg.idWU;
+
+      l_oTableEmp.reset();
+      l_oTableEmp.setAction(l_aLabels['LoadingEmp'] +  '...'); //SCO_PRP_LBL_LOADING_EMP
+      l_oTableResp.reset();
+      l_oTableResp.setAction(l_aLabels['LoadingResp'] +  '...'); //SCO_PRP_LBL_LOADING_RESP
+
+      meta4Ajax.ajax.sendAsyncJSON(m4OrgChart.EngineORGChartURL, aParams, _endShowMe);
+    } else {
+      _endShowMe(null);
+    }
+  }
+  
+  function _endShowMe(objResult) {
+    var lMaxBox = l_objOrgTree.scrollTop + 247;
+    var objOrg = l_objOrg;
+    var iposY = objOrg.getPosition().y - l_objOrgTree.getPosition().y - 1;
+    
+    if ((iposY - lMaxBox) > 0) {
+      l_objOrgTree.scrollTop = iposY - 247;
+    } else if ((iposY - l_objOrgTree.scrollTop) < 0) {
+      l_objOrgTree.scrollTop = iposY;
+    }
+    
+    if (objResult) {
+      if (l_idCurShow) {
+        $(l_idCurShow).style.backgroundColor = '';;
+        $(l_idCurShow).removeClass('showOrgtree');
+      }
+      l_idCurShow = objOrg.idWU;
+
+      $(l_idCurShow).addClass('showOrgtree');
+      $(l_idCurShow).highlight('#a1a1a1');
+
+      l_objNameWU.fade('in');
+      _loadTable('tblEmp',objResult.saEmp);
+      _loadTable('tblResp',objResult.saResp);
+    }
+
+  }
+  
+  function _sortMe(me) {
+    var aParams = new Array;
+    var sNameCol = l_aLabels['Ordering'] + ' ' + $(me.id).get('text') + '...'; //SCO_PRP_LBL_ORDERING
+    aParams[0] = ['Action', 'Sort'];
+    aParams[1] = ['Column', me.m4column];
+    aParams[2] = ['Order', me.m4sort];
+    if (me.idTable == 'tblEmp') {
+      aParams[3] = ['Node', 'Employee'];
+      l_oTableEmp.setAction(sNameCol);
+    } else {
+      aParams[3] = ['Node', 'Responsible'];
+      l_oTableResp.setAction(sNameCol);
+    }
+    
+    l_objSort = me;
+    meta4Ajax.ajax.sendAsyncJSON(m4OrgChart.EngineORGChartURL, aParams, _endSortMe); 
+  }
+  
+  function _endSortMe(objResult) {
+
+    _loadTable(l_objSort.idTable, objResult.saList)
+    l_objSort = null;
+  }
+  
+  function _loadTable(sIdTable, objTable)  {
+    var oTable = null;
+    var saTable = new Array();
+
+    if (sIdTable == 'tblEmp') {
+      oTable = l_oTableEmp;
+    } else {
+      oTable = l_oTableResp;
+    }
+
+    if (objTable.length > 0) {
+      //format each column
+      var sFormatCol0 = "<div><a href='#'><span title='sLiteral' idHR='sID' onmouseover='m4OrgChart.Functions.showPhoto(this);' onmouseout='meta4Photo.Photo.hidePhoto();' onclick='m4OrgChart.Functions.show(this)'>sName</span></a></div>";
+      var sFormatCol1 = "<div><span class='spanPhone'>sPhone</span><img class='imgPhone' title='sLiteral' src='sImg'/></div>";
+      var sFormatCol2 = "<a href='mailto:sEmail'><span title='sLiteral'>sEmail</span></a>";
+      var sFormatCol3 = "<span>sName</span>";
+      var sFormatCol4 = "<img idHR='sID' class='m4tableImg' src='/iconos/lu_add_con_nor_24.png' title='sLiteral' onclick='m4OrgChart.Orgchart.insertContact(event);'/>";
+
+      objTable.each(function(item,index){
+
+        var sCol0 = '';
+        var sCol1 = '';
+        var sCol2 = '';
+        var sCol3 = '';
+        var sCol4 = '';
+
+        sCol0 = sFormatCol0.replace(/sID/g,item[0][0]);
+        sCol0 = sCol0.replace(/sLiteral/g,item[0][1]);
+        sCol0 = sCol0.replace(/sName/g,item[0][2]);
+        
+        sCol1 = '';
+        if (item[1][0]) {
+          sCol1 = sFormatCol1.replace(/sPhone/g,item[1][0]);
+          sCol1 = sCol1.replace(/sLiteral/g,item[1][1]);
+          sCol1 = sCol1.replace(/sImg/g,item[1][2]);
+        }
+
+        sCol2 = '';
+        if (item[2][0]) {
+          sCol2 = sFormatCol2.replace(/sEmail/g,item[2][0]);
+          sCol2 = sCol2.replace(/sLiteral/g,item[2][1]);
+        }
+
+        sCol3 = sFormatCol3.replace(/sName/g,item[3][0]);
+
+        sCol4 = sFormatCol4.replace(/sID/g,item[4][0]);
+        sCol4 = sCol4.replace(/sLiteral/g,item[4][1]);
+
+        saTable[saTable.length] = [sCol0, sCol1, sCol2, sCol3, sCol4];
+      });
+    }
+    oTable.load(saTable);
+
+  }
+
+  function _expandMe(objOrg) {
+    var aParams = new Array;
+    
+    if (!objOrg.idWU) {objOrg.idWU = objOrg.getAttribute('idWU');}
+
+    var me = $(objOrg.idWU);
+    var objSons = null;
+
+    if (!me.bLoaded) {me.bLoaded = me.getAttribute('bLoaded');}
+    if (!me.bExpanded) {me.bExpanded = me.getAttribute('bExpanded');}
+    if (!me.idWU) {me.idWU = me.getAttribute('idWU');}
+    if (!me.idSons) {me.idSons = me.getAttribute('idSons');}
+    if (!me.bChild) {me.bChild = me.getAttribute('bChild');}
+    if (!me.idParent) {me.idParent = me.getAttribute('idParent');}
+    
+    if (me.bLoaded == 'false') {
+      aParams[0] = ['Action', 'Expand'];
+      aParams[1] = ['WUnit', me.id];
+      meta4Ajax.ajax.sendSync(m4OrgChart.EngineORGChartURL, aParams);
+      objSons = meta4Ajax.ajax.getResponse();
+      me.bExpanded = 'true';
+      me.bLoaded = 'true';
+      me.removeClass('closedOrgtree');
+      if (objSons) {
+        if (objSons.indexOf('levelOrgtree') > -1) {
+          $(me.idSons).innerHTML = objSons;
+          $(me.idSons).style.display = '';
+          me.addClass('openedOrgtree');
+          me.bChild = 'true';
+        } else { 
+          me.addClass('leafOrgtree');
+          me.bChild = null;
+        } 
+      }
+    } else if (me.bChild) {
+      if (me.bExpanded == 'true') {
+        me.bExpanded = 'false';
+        me.removeClass('openedOrgtree');
+        me.addClass('closedOrgtree');
+        $(me.idSons).style.display = 'none';
+      } else {
+        me.bExpanded = 'true';
+        me.removeClass('closedOrgtree');
+        me.addClass('openedOrgtree');
+        $(me.idSons).style.display = '';
+      }
+    }
+  }
+  
+  function _rootMe(me) {
+    var aParams = new Array;
+    var objResp = null;
+    
+    if (!l_idCurShow) {return;}
+
+    aParams[0] = ['Action', 'Root'];
+    aParams[1] = ['WUnit', l_idCurShow];
+    meta4Ajax.ajax.sendSync(m4OrgChart.EngineORGChartURL, aParams);
+    objResp = meta4Ajax.ajax.getResponse();
+    if (objResp) {
+      l_objOrgTree.innerHTML = objResp;
+      $(l_idCurShow).addClass('showOrgtree');
+      $(l_idCurShow).highlight('#a1a1a1');
+      $('divSearchResult').innerHTML = '';
+      $('divSearchResult').searchEmp = '##';
+      $('divSearchResult').searchWU = '##';
+      $('spanSearchResult').set('text', '');
+    }
+  }
+
+  return {
+     
+    init: function(sIdWU) {
+      _init(sIdWU);
+    },
+
+    clickMe: function(ev) {
+      var me = ev.target || ev.srcElement;
+      var sAction = 'show';
+      if (ev.offsetX) {
+        if (((me.nodeName == 'DIV') && (ev.offsetX < (me.offsetLeft + 10))) || (ev.offsetX < me.offsetLeft)) {sAction = 'expand';}
+      } else if (me.nodeName == 'DIV') {
+        if (ev.layerX < (me.offsetLeft + 10)) {sAction = 'expand';}
+      }
+      if (me.nodeName == 'SPAN') {me = me.parentNode;}
+      me = $(me.id);
+      if (!me.idWU) {me.idWU = me.getAttribute('idWU');}
+      if (sAction == 'show') {_showMe(me);
+      } else {_expandMe(me);}
+    },
+     
+    expandMe: function(ev) {
+      var me = ev.target || ev.srcElement;
+      me = $(me.id);
+      _loadMe(me);
+    },
+     
+    loadMe: function(ev) {
+      var me = ev.target || ev.srcElement;
+      me = $(me.id);
+      _loadMe(me);
+    },
+     
+    sortMe: function(me) {
+      _sortMe(me);
+    },
+    
+    rootMe: function(ev) {
+      var me = ev.target || ev.srcElement;
+      me = $(me.id);
+      _rootMe(me);
+    },
+    
+    insertContact: function(ev) {
+      var objTable = null;
+      var objResult = meta4Table.functions.InsertContact(ev);
+      if (objResult.sIdTable == 'tblEmp') {
+        objTable = l_oTableEmp;
+      } else {
+        objTable = l_oTableResp;
+      }
+      if (objResult.sResult == '0') {
+        objTable.setTempCaption(l_aLabels['ContactOK']);
+      } else {
+        objTable.setTempCaption(l_aLabels['ContactKO']);
+      }
+    }
+
+  }
+} ();
+
+m4OrgChart.Functions = function(){
+  
+  return {
+
+    showPhoto: function(me) {
+      meta4Photo.Photo.showPhoto(me.getAttribute('idHR'));
+    },
+    
+    show: function(me) {
+      meta4InfPers.Info.show(me.getAttribute('idHR'));
+    }
+
+  }
+  
+}();
+
+window.addEvent('domready', function() {
+
+  meta4Photo.Photo.init(document.body.getAttribute('m4path'), document.body.getAttribute('m4pathURI'), $('imgPhoto'));
+  m4OrgChart.Search.init();
+  m4OrgChart.Orgchart.init(document.body.getAttribute('m4idWU'));
+  meta4InfPers.Info.init(null);
+  
+  $('inputSearchEmp').addEvent('keyup', function(e) {m4OrgChart.Search.searchEmp(e);});
+  $('inputSearchEmp').addEvent('focus', function(e) {m4OrgChart.Search.focusEmp(e);});
+  $('inputSearchWU').addEvent('keyup', function(e) {m4OrgChart.Search.searchWU(e);});
+  $('inputSearchWU').addEvent('focus', function(e) {m4OrgChart.Search.focusWU(e);});
+  
+  $('spnNameWorkUnit').addEvent('click', function(e) {m4OrgChart.Orgchart.expandMe(e);});
+  
+  $('imgRoot').addEvent('click', function(e) {m4OrgChart.Orgchart.rootMe(e);});
+
+  $('body').addEvent('resize', function(e) {$('divTotal').style.width='100%';$('divTotal').style.height='100%'})
+
+});

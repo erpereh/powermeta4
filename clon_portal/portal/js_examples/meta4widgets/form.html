@@ -1,0 +1,495 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>meta4.widget.form</title>
+
+		
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools-1.4.5.meta4v1.0.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		<style type="text/css">
+			.popupbutton {
+				float: right;
+				margin-left: 3%;
+				margin-right: 3%;
+				margin-top: 10px;
+				margin-bottom: 10px;
+				width: 100px
+			}
+		</style>
+
+		<script>
+			var channel = null;
+			document.addEvent('meta4Ready', function() {
+				
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);				
+				
+				var nodeId = 'EXJSAPI_WIDGET_FORM_AUX';
+
+				function checkData(request) {
+					var node = channel.getNode(nodeId);
+				}
+
+				channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+				//create request
+				var request = new meta4.M4Request(channel, nodeId, 'LOAD_BLK', null);
+
+				request.textLoading = "Loading channel";
+				//call server
+				meta4.data.execute(request, checkData);
+			});
+
+			var examples = {
+				'example1' : function() {
+					var channelId = 'EXJSAPI_COMPONENT';
+					var nodeId = 'EXJSAPI_WIDGET_FORM';
+					var nodeAuxId = 'EXJSAPI_WIDGET_FORM_AUX';
+
+					//var channel = new meta4.M4Object(channelId);
+					var options = {
+						itemTypes : {
+							'VALUE_COUNTRY' : {
+								'nodeName' : meta4.widget.TypeElement.m4Select,
+								'idNodeAux' : nodeAuxId,
+								'idItemNameAux' : 'N_COUNTRY',
+								'idItemValueAux' : 'ID_COUNTRY'
+							},
+							'VALUE_ADDRESS' : {},
+							'VALUE_EMAIL' : {
+								'data-item' : 'VALUE_EMAIL'
+							},
+							'VALUE_NAME' : {
+								'events' : {
+									'keyup' : function(event) {
+										var myInput = event.target;
+										var myform = event.target.closest('.m4-form-table');
+										var emailInput = myform.getElement('[data-item=VALUE_EMAIL]');
+										var myvalue = event.target.get('value');
+
+										emailInput.setProperty('value', myvalue + '@company.com');
+									}
+								}
+							},
+							'VALUE_PHONE' : {}
+						}
+					};
+
+					var form = new meta4.widget.Form(channel, nodeId, options);
+
+					var button = new Element('button', {
+						'class' : 'popupbutton',
+						text : 'OK'
+					});
+
+					button.addEvent('click', function(popUp, object) {
+
+						//validamos el nodo
+
+						var controlMail = function(value) {
+							if (value.indexOf('@') == -1) {
+								return false;
+							} else {
+								return true;
+							}
+						};
+
+						var objValidationMail = new meta4.data.utils.ValidationItem('validationMail', 'VALUE_EMAIL', controlMail);
+
+						var optionsValidation = [];
+						optionsValidation.push(objValidationMail);
+
+						var errors = meta4.data.utils.checkNodeValues(channel.getNode(nodeId), optionsValidation);
+
+						var i;
+						for ( i = 0; i < errors.length; i++) {
+							if (errors[i].idItem == 'VALUE_EMAIL') {
+								meta4.data.log.addErrorMessage('El email no es correcto');
+							} else {
+								meta4.data.log.addErrorMessage('El campo ' + channel.getNode(nodeId).getItemMetadata(errors[i].idItem).getProperty('Name') + ' debe tener valor');
+							}
+						}
+						if (errors.length === 0) {
+							form.destroyPopUp();
+						} else {
+							meta4.data.log.addErrorMessage(meta4.widget.translate.getTranslate('_gen_mandatoryData'));
+							meta4.widget.log.showErrors(meta4.data.log);
+						}
+
+					}.bind(this, form));
+
+					//add button to popUp
+					form.addElement(button);
+
+				},
+				'example2' : function() {
+					var channelId = 'EXJSAPI_COMPONENT';
+					var nodeId = 'EXJSAPI_WIDGET_FORM';
+					var nodeAuxId = 'EXJSAPI_WIDGET_FORM_AUX';
+
+					var channel = new meta4.M4Object(channelId);
+					var options = {
+						makePopUp : false,
+						showTitle : false,
+						itemTypes : {
+							'VALUE_COUNTRY' : {
+								'nodeName' : meta4.widget.TypeElement.m4Select,
+								'idNodeAux' : nodeAuxId,
+								'idItemNameAux' : 'N_COUNTRY',
+								'idItemValueAux' : 'ID_COUNTRY'
+							},
+							'VALUE_ADDRESS' : {},
+							'VALUE_EMAIL' : {},
+							'VALUE_COUNTRY' : {},
+							'VALUE_NAME' : {},
+							'VALUE_PHONE' : {}
+						}
+					};
+
+					var form = new meta4.widget.Form(channel, nodeId, options);
+
+					$('containerFormExample2').empty();
+					$('containerFormExample2').grab(form.getElement());
+
+				},
+
+				'example4' : function() {
+					var channelId = 'EXJSAPI_COMPONENT';
+					var nodeId = 'EXJSAPI_WIDGET_FORM_ADVANCED';
+					var nodeAuxId = 'EXJSAPI_WIDGET_FORM_AUX';
+
+					var channel = new meta4.M4Object(channelId);
+					var options = {
+						makePopUp : false,
+						classDiv : 'claseAlternativa',
+						title : 'Datos personales',
+						description : 'Datos personales del usuario',
+						itemTypes : {
+							'CODIGO_BANCO' : {
+								'multipleItem' : {
+									'CODIGO_BANCO' : {
+										'nodeName' : meta4.widget.TypeElement.input
+									},
+									'CODIGO_SUCURSAL' : {
+										'nodeName' : meta4.widget.TypeElement.input
+									},
+									'DIGITO_CONTROL' : {
+										'nodeName' : meta4.widget.TypeElement.input
+									},
+									'NUMERO_CUENTA' : {
+										'nodeName' : meta4.widget.TypeElement.input
+									}
+								},
+								'text' : 'Cuenta bancaria'
+							}
+						}
+					};
+
+					var form = new meta4.widget.Form(channel, nodeId, options);
+
+					$('containerFormExample4').empty();
+					$('containerFormExample4').grab(form.getElement());
+
+				},
+				'example5' : function() {
+					var channelId = 'EXJSAPI_COMPONENT';
+					var nodeId = 'EXJSAPI_WIDGET_FORM';
+					var nodeAuxId = 'EXJSAPI_WIDGET_FORM_AUX';
+
+					//var channel = new meta4.M4Object(channelId);
+
+					//Definimos la función de validación
+					var functionControlMail = function(value) {
+						if (value.indexOf('@') == -1) {
+							return false;
+						} else {
+							return true;
+						}
+					};
+
+					//Mensajes de las validaciones
+					var msgValidation1 = 'El email no es correcto';
+					var msgValidation2 = 'El email no es correcto2';
+
+					//Definimos la validación por cada campo
+					var totalValidations = [['validationMail', 'VALUE_EMAIL', functionControlMail, msgValidation1], ['validationMail2', 'VALUE_EMAIL', functionControlMail, msgValidation2]]
+					//Definimos los eventos con sus validaciones
+					var totalEvents = [['click', totalValidations]];
+
+					var options = {
+						itemTypes : {
+							'VALUE_COUNTRY' : {
+								'nodeName' : meta4.widget.TypeElement.m4Select,
+								'idNodeAux' : nodeAuxId,
+								'idItemNameAux' : 'N_COUNTRY',
+								'idItemValueAux' : 'ID_COUNTRY'
+							}
+						},
+						actionbutton : {
+							'text' : 'Ok',
+							'events' : totalEvents
+						}
+					};
+
+					var form = new meta4.widget.Form(channel, nodeId, options);
+
+				},
+				'example6' : function() {
+					var channelId = 'EXJSAPI_COMPONENT';
+					var nodeId = 'EXJSAPI_WIDGET_FORM';
+					var nodeAuxId = 'EXJSAPI_WIDGET_FORM_AUX';
+					//var channel = new meta4.M4Object(channelId);
+
+					//Definimos la función de validación
+					var functionControlMail = function(value) {
+						if (value.indexOf('@') == -1) {
+							return false;
+						} else {
+							return true;
+						}
+					};
+
+					//Mensajes de las validaciones
+					var msgValidation1 = 'El email no es correcto';
+					var msgValidation2 = 'El email no es correcto2';
+
+					//Definimos la validación por cada campo
+					var totalValidations = [['validationMail', 'VALUE_EMAIL', functionControlMail, msgValidation1], ['validationMail2', 'VALUE_EMAIL', functionControlMail, msgValidation2]]
+
+					var options = {
+						itemTypes : {
+							'VALUE_COUNTRY' : {
+								'nodeName' : meta4.widget.TypeElement.m4Select,
+								'idNodeAux' : nodeAuxId,
+								'idItemNameAux' : 'N_COUNTRY',
+								'idItemValueAux' : 'ID_COUNTRY'
+							}
+						},
+						validations : totalValidations
+					};
+
+					var form = new meta4.widget.Form(channel, nodeId, options);
+
+					var button = new Element('button', {
+						'class' : 'popupbutton',
+						text : 'OK'
+					});
+
+					button.addEvent('click', function(popUp, object) {
+						var errors = form.showErrors();
+
+						if (errors === false) {
+							form.destroyPopUp();
+						}
+					}.bind(this, form));
+
+					//add button to popUp
+					form.addElement(button);
+				},
+				'example7' : function() {
+					var channelId = 'EXJSAPI_COMPONENT';
+					var nodeId = 'EXJSAPI_WIDGET_FORM_ADVANCED';
+					var nodeAuxId = 'EXJSAPI_WIDGET_FORM_AUX';
+
+					var channel = new meta4.M4Object(channelId);
+					var options = {
+						classDiv : 'claseAlternativa',
+						columnsNumber : 2,
+						title : 'Datos personales',
+						description : 'Datos personales del usuario',
+						itemTypes : {
+							'CODIGO_BANCO' : {},
+							'CODIGO_SUCURSAL' : {},
+							'DIGITO_CONTROL' : {},
+							'NUMERO_CUENTA' : {}
+						}
+					};
+
+					var form = new meta4.widget.Form(channel, nodeId, options);
+				},
+				'example8' : function() {
+					var channelId = 'EXJSAPI_COMPONENT';
+					var nodeId = 'EXJSAPI_WIDGET_FORM_ADVANCED';
+
+					var channel = new meta4.M4Object(channelId);
+					var options = {
+						classDiv : 'claseAlternativa',
+						columnsNumber : 2,
+						title : 'Datos personales',
+						description : 'Datos personales del usuario',
+						itemTypes : {
+							'CODIGO_BANCO' : {
+								nodeName : 'input'
+							},
+							'CODIGO_SUCURSAL' : {
+								nodeName : 'input'
+							},
+							'DIGITO_CONTROL' : {
+								nodeName : 'input'
+							},
+							'NUMERO_CUENTA' : {
+								nodeName : 'input'
+							}
+						},
+
+						onFormDraw : function(object) {
+							var form = object.m4Form;
+							var container = object.container;
+
+							var newItem = {
+								'CODIGO_BANCO' : {
+									nodeName : 'input'
+								}
+							};
+							form.options.itemTypes = newItem;
+							form._visibleItems = form.getVisibleItemsForm();
+							form.defaultFormDraw();
+
+						}
+					};
+
+					var form = new meta4.widget.Form(channel, nodeId, options);
+				}
+			};
+
+		</script>
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+		<div data-m4context="exampleForm" data-m4t3="EXJSAPI_COMPONENT"></div>
+		<h1 data-m4trans="_WidgetsFormTitle"></h1>
+		<p data-m4trans="_WidgetsFormDescription1">
+		</p>
+		<p data-m4trans="_WidgetsFormDescription2"> 
+		</p>
+
+		<label class="subTitlePage" data-m4trans="_WidgetsFormImportFiles"></label>
+		<pre class="brush: js;">    
+		src="/libreria/mootools.js"
+		src="/libreria/meta4.data.js"    
+		src="/libreria/meta4.widget.js"
+        </pre>																						
+
+ <h2 data-m4trans="_WidgetsFormExample1Subtitle"></h2>
+		
+		<p data-m4trans="_WidgetsFormExample1Description"></p>
+		<p>
+			<b data-m4trans="_WidgetsFormExample1Note1"></b><span data-m4trans="_WidgetsFormExample1Note2"></span>
+		</p>
+		<script>
+			m4loadExample('examples.example1');
+		</script>
+
+		<p data-m4trans="_WidgetsFormExecueExample1Label"></p>
+		<button onclick="examples.example1()" data-m4trans="_WidgetsFormButtonExecuteExample1">			
+		</button>
+
+		<h2 data-m4trans="_WidgetsFormExample2Subtitle"></h2>
+
+		<br>
+		<p data-m4trans="_WidgetsFormExample2Description"></p>
+		<script>
+			m4loadExample('examples.example2');
+		</script>
+
+		<p data-m4trans="_WidgetsFormExecueExample2Label"></p>
+		<button onclick="examples.example2()"  data-m4trans="_WidgetsFormExecueExample2ButtonExecute">			
+		</button>
+
+		<div id="containerFormExample2"></div>
+
+		<br>
+		<br>
+
+		<h2 data-m4trans="_WidgetsFormExample4Subtitle"></h2>
+
+		<br>
+		<p data-m4trans="_WidgetsFormExample4Descripion"></p>
+		<script>
+			m4loadExample('examples.example4');
+		</script>
+
+		<p data-m4trans="_WidgetsFormExample4ExecuteText"></p>
+		<button onclick="examples.example4()" data-m4trans="_WidgetsFormExample4ExecuteButton">			
+		</button>
+		<br>
+		<div id="containerFormExample4"></div>
+
+		<h2 data-m4trans="_WidgetsFormExample5Subtitle"></h2>
+		<p data-m4trans="_WidgetsFormExample5Differences"></p>
+		<ul>
+			<li data-m4trans="_WidgetsFormExample5ListElement1"></li>
+			<li data-m4trans="_WidgetsFormExample5ListElement2"></li>
+			<li data-m4trans="_WidgetsFormExample5ListElement3"></li>
+			<li data-m4trans="_WidgetsFormExample5ListElement4"></li>
+			<li data-m4trans="_WidgetsFormExample5ListElement5"></li>
+			<li><span data-m4trans="_WidgetsFormExample5ListElement6"></span><span style="color:green">: ['validationMail', 'VALUE_EMAIL', functionControlMail, msgValidation1]</span> = <span style="color:red">[<span  data-m4trans="_WidgetsFormExample5Parameter0"></span>, <span data-m4trans="_WidgetsFormExample5Parameter1"></span>, <span data-m4trans="_WidgetsFormExample5Parameter3"></span>, <span data-m4trans="_WidgetsFormExample5Parameter2"></span>]</span> </li>
+		</ul>
+
+		<script>
+			m4loadExample('examples.example5');
+		</script>
+		<p data-m4trans="_WidgetsFormExample5ExecuteText"></p>
+		<button onclick="examples.example5()" data-m4trans="_WidgetsFormExample5ExecuteButton">			
+		</button>
+
+		<h2 data-m4trans="_WidgetsFormExample6Subtitle"></h2>
+		<p data-m4trans="_WidgetsFormExample6Description"></p>
+		<p data-m4trans="_WidgetsFormExample6Description2"></p>
+		<script>
+			m4loadExample('examples.example6');
+		</script>
+		<p data-m4trans="_WidgetsFormExample6ExecuteText"></p>
+		<button onclick="examples.example6()" data-m4trans="_WidgetsFormExample6ExecuteButton">			
+		</button>
+
+		<h2 data-m4trans="_WidgetsFormExample7Subtitle"></h2>
+		<p data-m4trans="_WidgetsFormExample7Description">
+		</p>
+		<script>
+			m4loadExample('examples.example7');
+		</script>
+		<p data-m4trans="_WidgetsFormExample7ExecuteText"></p>
+		<button onclick="examples.example7()" data-m4trans="_WidgetsFormExample7ExecuteButton">			
+		</button>
+
+		<h2 data-m4trans="_WidgetsFormExample7bSubtitle"></h2>
+		<p data-m4trans="_WidgetsFormExample7bDescription"></p>
+		<script>
+			m4loadExample('examples.example8');
+		</script>
+		<p data-m4trans="_WidgetsFormExample7bExecuteText"></p>
+		<button onclick="examples.example8()" data-m4trans="_WidgetsFormExample7bExecuteButton">			
+		</button>
+	</div>
+	</body>
+</html>

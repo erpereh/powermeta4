@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<?xml-stylesheet type="text/css" href="../css/m4svg.css" ?>
+<svg width="16" height="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000" class="icon" id="expand-collapse-horizontal2">
+<g id="Layer_2_copy">
+	<rect x="160" y="64" width="32" height="32"/>
+	<rect x="192" y="96" width="32" height="32"/>
+	<rect x="224" y="128" width="32" height="32"/>
+	<rect x="256" y="160" width="32" height="32"/>
+	<rect x="288" y="192" width="32" height="32"/>
+	<rect x="320" y="224" width="32" height="32"/>
+	<rect x="160" y="416" width="32" height="32"/>
+	<rect x="192" y="384" width="32" height="32"/>
+	<rect x="224" y="352" width="32" height="32"/>
+	<rect x="256" y="320" width="32" height="32"/>
+	<rect x="288" y="288" width="32" height="32"/>
+	<rect x="320" y="256" width="32" height="32"/>
+	<rect x="128" y="32" width="32" height="32"/>
+	<rect x="128" y="448" width="32" height="32"/>
+</g>
+</svg>

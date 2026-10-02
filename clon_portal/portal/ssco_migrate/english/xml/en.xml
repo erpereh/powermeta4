@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<data>
+   <config>
+      <title>Migration Process Configuration</title>
+      <lblheadfrm>Parameters</lblheadfrm>
+      <lblOptions>Choose Home Portal:</lblOptions>
+      <lblESS>ESS</lblESS>
+      <lblMSS>MSS</lblMSS>
+      <lblidPageProc>Page To Be Processed:</lblidPageProc>
+      <lblidPrefix>Menu Prefix ID</lblidPrefix>
+      <btnAddGroup>Add Group +</btnAddGroup>
+      <lblidGroupGrps>ID</lblidGroupGrps>
+      <lblnmGroupGrps>Group Name</lblnmGroupGrps>
+      <lblnmSiteGrps>Portal</lblnmSiteGrps>
+      <btnLogout>Exit</btnLogout>
+      <btnStart>Start</btnStart>
+   </config>
+   <process>
+       <btnBack>Back</btnBack>
+       <btnStart>Save</btnStart>
+   </process>
+   <label>
+      <_2>Menu ID</_2>
+      <_3>Parent Menu ID</_3>
+      <_4>Menu Name</_4>
+      <_5>Page</_5>
+      <_6>Comment</_6>
+      <_7>Group Root Menu</_7>
+   </label>
+   <warning>
+      <_0>The submenu already exists.</_0>
+      <_1>The ID has been replaced with the DB ID.</_1>
+      <_2>The submenu has a different DB parent.</_2>
+      <_3>The submenu name does not match</_3>
+      <_4>The URL address has been found repeatedly.</_4>
+      <_5>New Menu.</_5>
+      <_6>Unable to find the definition of group %1.</_6>
+      <_7>Choose at least a group to be processed.</_7>
+   </warning>
+   <error>
+      <_1>The Group ID is a required number field.</_1>
+      <_2>The Group ID is repeated.</_2>
+      <_3>The group name is required.</_3>
+      <_4>The portal address is required.</_4>
+      <_5>The process page is required.</_5>
+      <_6>The prefix is a required field and it must contain 4 characters.</_6>
+      <_7>Unable to transfer the information to Peoplenet.</_7> 
+      <_8>Unable to find the parent ID. Menu not added.</_8> 
+      <_9>The URL address was empty as it reached Peoplenet. Menu not added.</_9> 
+      <_10>The menu has been successfully added.</_10> 
+      <_11>The menu definition matches PeopleNet data. Menu not updated.</_11> 
+      <_12>The menu has been successfully updated.</_12> 
+      <_13>Menu update or insert error.</_13> 
+      <_14>The menu ID is repeated. Modify it and try again. Menu not added.</_14> 
+   </error>
+</data>
+

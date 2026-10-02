@@ -4,7 +4,7 @@ Fecha: 2026-10-02. Rama conservada: `davidev`. La entrega añade documentación 
 
 ## Cobertura comprobada
 
-- Copia inventariada: 33.517 archivos, clasificados por familia y naturaleza.
+- Copia inventariada: 33.518 archivos, clasificados por familia y naturaleza; recuento corregido tras comprobar rutas largas al incorporarla a Git.
 - Cobertura principal: 771 rutas lógicas, con 2.090 JSP españoles/compartidos de autoservicio y plataforma.
 - Dependencias adicionales documentadas: 343 rutas; total 1.114 fichas técnicas sobre 2.571 archivos fuente.
 - Diccionarios españoles: 40 familias de propiedades con sus variantes, claves y líneas.
@@ -32,3 +32,11 @@ Los avisos de oxlint corresponden a archivos de código sin cambios en esta entr
 ## Pendientes que esta verificación no cierra
 
 Consultar [P01–P09](../implementacion/pendientes.md): publicación y variantes efectivas, metadatos/reglas, identidad y alcance, contratos/escrituras, ejecución, dependencias dinámicas, otras generaciones, documentos y relación sociedad/NAE. Los tests del repositorio no son pruebas de un `/portal` ya implementado.
+
+## Incorporación de los originales a Git
+
+El mismo 2026-10-02, el usuario solicitó publicar `clon_portal/` íntegra y confirmó expresamente conservarla tal como estaba, incluidas las fotografías, en el repositorio público. La verificación documental anterior no incluía esa publicación.
+
+Se compararon los 33.518 archivos y 528.948.252 bytes locales con el índice Git: cero omisiones y cero diferencias de contenido. La comparación usa los hashes Git sin filtros y contempla rutas largas de Windows. No se modificaron los originales; `.gitattributes` conserva bytes y espacios, y TypeScript, oxlint y oxfmt excluyen esta referencia.
+
+Tras esos ajustes se ejecutaron typecheck, tests (109 archivos, 603 correctas y 2 omitidas), build y las comprobaciones de diferencias de Git, con resultado correcto. Lint mantuvo los siete avisos y los 362 archivos con formato pendiente preexistentes. Se revisó el estado Git y el formato dirigido de los documentos modificados y `tsconfig.json`. La configuración de rutas largas para recuperar la copia se explica en [fuentes locales](fuentes-locales.md).

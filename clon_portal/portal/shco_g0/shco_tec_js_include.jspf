@@ -1,0 +1,9 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: shco_tec_js_include.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+<script type="text/javascript" language="Javascript1.5" src="/library/meta4cookies.js "></script>

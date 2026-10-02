@@ -1,0 +1,94 @@
+<!-- =========================================================
+	@(#) FileVersion: 821.004.019
+	@(#) FileDescription: m4news.html
+	@(#) CompanyName: Cegid Spain, S.A.U.
+	@(#) LegalCopyright: (c) 2024
+	@(#) ProductName: Peoplenet
+========================================================= -->
+
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>News</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" />
+		<meta content="yes" name="apple-mobile-web-app-capable" />
+
+		<!--                                           -->
+		<!-- This script loads your compiled module.   -->
+		<!-- If you add any GWT meta tags, they must   -->
+		<!-- be added before this line.                -->
+		<!--                                           -->
+		<script type="text/javascript" src="../m4jsapi/m4jsapi.nocache.js"></script>
+
+		<script src="../library/jquery.js"></script>
+		<script src="js/meta4.mobile.js"></script>
+
+		<script src="../library/jquery.mobile.js"></script>
+		
+		<script type="text/javascript">
+			jQuery.noConflict();	
+		</script>			
+
+		<link rel="stylesheet" href="css/mobile.generic.css" />
+		<link rel="stylesheet" href="css/mobile.news.css" />
+		<script src="js/meta4.mobile.news.js"></script>		
+
+	</head>
+	<body id="newsBody">
+		<div id="spinnerContainer" >
+	        <div class="spinner-header"></div>
+	        <div class="spinner">
+	            <img src="/mobile/icons/m4-loading.gif">
+	        </div>
+	    </div>
+		<!--INITIAL LIST NEWS PAGE-->
+		<div data-role="page" id="list_news_page" style="visibility: hidden;">
+			
+			<div data-role="header" data-position="fixed" data-tap-toggle="false" class="m4-mobileHeader">			
+				<h2 data-m4trans="_news_title_toolbar"></h2>	
+				<a id="goHome" href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+			</div>
+			
+			<div id="contentRoot" data-role="content">
+				<div class="content-primary">
+					<ul data-role="listview" id="listNews"></ul>
+				</div>
+			</div>
+				
+		</div>
+		
+		
+		<!-- DETAIL NEWS PAGE-->
+		<div data-role="page" id="detail_news_page" style="display: none; visibility: hidden;">
+			
+			<div data-role="header" data-position="fixed" data-tap-toggle="false" class="m4-mobileHeader">
+				<a href="/mobile/m4news.html" data-icon="m4back" data-iconpos="notext" data-direction="reverse" class="backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+				<div class="m4-navigation-toolbar">
+					<div class="m4-button-navigation-toolbar">
+						<a data-role="button" id="previousNews"><img id="nav-icon" src="/mobile/icons/prev.svg"></a>
+					</div>
+					<h2 data-m4trans="_news_title_toolbar" class="ui-title"></h2>
+					<div class="m4-button-navigation-toolbar">
+						<a data-role="button" id="nextNews"><img id="nav-icon" src="/mobile/icons/next.svg"></a>
+					</div>
+				</div>
+				<a href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="homeButton"><img id="logout-icon" src="/mobile/icons/home.svg"></a>
+			</div>	
+			
+			<div data-role="content">
+				<div class="content-primary">
+					<div id="photoNews"></div>
+					<div id="newsContent">
+						<h3 id="title_detail_news_page"></h3>
+						<h5 id="date_detail_news_page"></h5>
+						<p id="desc_detail_news_page"></p>
+						<a id="doc_detail_news_page"></a>
+					</div>
+					
+				</div>				
+			</div>
+		</div>		
+		
+	</body>
+</html>

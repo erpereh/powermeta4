@@ -1,0 +1,385 @@
+html{
+                margin: 0px;
+                font-family: "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+                height: 100%;
+                font-size: 12px;
+                padding: 0;
+                margin: 0;
+                background-color: white;
+                color: #333;
+}
+
+body {
+                margin: 0px;
+                font-family: "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+                height: 100%;
+                font-size: 12px;
+                padding: 0;
+                margin: 0;
+                background-color: white;
+                color: #333;
+}
+
+h1 {
+                font-size: 160%;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                color: #4F5070;
+                margin-left: 7px;
+                margin-right: 10px;
+                position: relative;
+                font-weight: normal;
+}
+
+h2 {
+                font-size: 140%;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                color: #6982C7;
+                margin-left: 7px;
+                margin-right: 10px;
+                position: relative;
+                font-weight: normal;
+                margin: 0px 5px 0px 5px;
+                cursor: default;
+}
+
+h3 {
+                font-size: 130%;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                text-align:left;
+                color: #8aa7f7;/*1dabd8*/
+                margin-left: 7px;
+                margin-right: 10px;
+                font-weight: normal;
+                margin: 0px 5px 0px 5px;
+                cursor: default;
+}
+
+
+p {
+                cursor: default;
+				text-align:justify;
+}
+
+label {
+                cursor: default;
+}
+
+a {
+                color: #0060c9;
+}
+a:visited {
+                color: #0060c9;
+}
+
+
+                
+textarea[disabled] {
+                color: rgb(84, 84, 84);
+                background-color: rgb(235, 235, 228);
+}
+
+button/*, button:hover.noHover*/ {
+                font-family: "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+                font-size:100%;
+                padding-bottom:4px;
+                cursor: default;
+                height: 22px;
+                min-width: 100px;
+                width: auto;
+                border: 1px solid #354a67;
+                text-decoration: none;
+                display: inline-block;
+                color: #FFFFFF;
+                background-color: #a5b8da;
+                background-image: url(../iconos/buton_background.png);
+                /*
+                background-image: -webkit-gradient(linear, left top, left bottom, from(#a5b8da), to(#7089b3));
+                background-image: -webkit-linear-gradient(top, #a5b8da, #7089b3);
+                background-image: -moz-linear-gradient(top, #a5b8da, #7089b3);
+                background-image: -ms-linear-gradient(top, #a5b8da, #7089b3);
+                background-image: -o-linear-gradient(top, #a5b8da, #7089b3);
+                background-image: linear-gradient(to bottom, #a5b8da, #7089b3);
+                */
+
+                color: #fff;
+                /* For WebKit (Safari, Google Chrome etc) */
+                background: -webkit-gradient(linear, right top, left top, from(#a5b8da), to(#7089b3), color-stop(0.7, #7089b3));
+                /* For Mozilla/Gecko (Firefox etc) */
+                background: -moz-linear-gradient(right top, #a5b8da, #7089b3 50%);
+                /* IE10 Consumer Preview */
+                background-image: -ms-linear-gradient(right top, #a5b8da, #7089b3 50%);
+                /* For Internet Explorer 5.5 - 7 */
+                filter: progid:DXImageTransform.Microsoft.gradient(startColorStr=#7089b3, endColorStr=#a5b8da, GradientType=1);
+                /* For Internet Explorer 8 */
+                -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7089b3, endColorstr=#a5b8da, GradientType=1)";         
+}
+
+.containertPopUp {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: 100;
+	background-color: rgba(0,0,0,0.6);
+}
+
+.containertPopUp h2{
+	width:80%;
+}
+
+.imgAction {
+	cursor: pointer;
+	-moz-opacity: 1.0;
+	opacity: 1.0;
+	-khtml-opacity: 1.0;
+	padding: 3px;
+}
+
+.imgAction:hover {
+	background-color: #d5eaf9;/*d8e9ed*/
+}
+
+.bold{
+	font-weight: bold;
+}
+
+#exampleContainerFrame{
+	width:100%;
+	height:90%;
+}
+
+#exampleContainer{	
+box-sizing:border-box;
+-moz-box-sizing:border-box; /* Firefox */
+	width:100%;
+	height:95%;
+	padding-left:10px;
+}
+
+#examplesbody{
+	width:100%;
+	height:100%;
+}
+
+#leftmenu{
+	background:white;
+	background:rgba(255,255,255,0.8);
+	position:absolute;
+	left:-200px;
+	width:200px;
+	transition: 1s;
+	padding-bottom:7px;
+	border-bottom:2px solid #4B99DD;
+	border-right: 15px solid #4B99DD;
+}
+
+#leftmenu:hover{
+	left:0px;
+	transition: 1s;
+}
+
+#leftmenu.deployed{
+	left:0px;
+	transition: 1s;
+}
+
+#examplesheader{
+	display:block;
+	width:100%;
+	height:60px;
+	border-bottom: 1px solid white;
+	background-color:#4B99DD;
+	padding-left: 40px;
+}
+
+
+#examplesheader button{
+	height:40px;
+	width:40px;
+	vertical-align:bottom;
+	min-width:45px;
+}
+
+#examplesheader h2{
+	font-size: 40px;
+	display:inline;
+	color: white;
+	padding-top:5px;
+	margin-left:20px;
+}
+
+.clickable{
+	cursor:pointer;
+}
+
+#homebutton{
+	width:50px;
+	height:50px;
+	cursor: pointer;
+	padding-top:25px;
+	padding-left:25px;
+}
+
+#maincontainer{
+	padding: 10px;
+	margin-left: 30px;
+	margin-right: auto;
+	visibility:hidden;
+}
+#container{
+	width:100%;
+	height:100%;
+}
+
+#accordion  {
+  	margin: 0;
+  	position:relative;
+}
+#accordion H2 {
+    background: #efefef;
+    color: #6982C7;
+    cursor: pointer;
+    font: 12px Helvetica, Arial, sans-serif;
+    line-height: 16px;
+    margin: 0 0 0 0;
+    padding: 3px 5px 1px;
+    padding-left: 15px;
+  }
+  
+#accordion p:hover{
+	background:#4B99DD;
+	color:white;
+}
+  
+#accordion .content {
+    color:grey;
+    margin-bottom: 1px;
+  }
+#accordion .content p {
+    margin: 0.5em 0;
+    padding: 0 6px 8px 6px;
+  }
+  
+ #accordion h2{
+	border-bottom: solid white 1px;
+ }
+  
+#showhidebutton{	
+	position: relative;
+	display:block;
+	bottom: 0;
+	width:20%;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:10px;
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    opacity: 1;
+}
+
+#showhidebutton.noconsole{
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    opacity: 0;
+}
+
+.m4UploadFile-container-input{
+	float: none !important;
+}
+
+.m4-titleBar {
+	/** width: 100%;
+	 background-color: #dadeea;
+	 border-bottom: 1px solid #babdc7;
+	 border-left: 1px solid #babdc7;
+	 height: 40px;
+	 border-top: 1px solid #fff;*/
+}
+
+.m4-titleBar-content {
+	/*height: 100%;*/
+	height: 40px;
+	display: table;
+	position: relative;
+}
+
+.m4-titleBar-content
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+	.m4-titleBar-content {
+		height: 30px;
+	}
+}
+
+.m4-titleBar-panelInfo {
+	display: none;
+	float: left;
+	width: 100%;
+	color: white;
+	background-color: #505070;
+	padding-right: 1px; /*BUG 260313*/
+}
+
+.m4-titleBar-panelInfo p {
+	margin-top: 0px;
+	margin-bottom: 0px;
+	-webkit-margin-before: 1px;
+	-webkit-margin-after: 0px;
+	-webkit-margin-end: 0em;
+}
+
+.m4-titleBar-closeInfo {
+	position: relative;
+	margin: 3px;
+	float: right;
+}
+
+.m4-titleBar-search {
+	width: 275px;
+	border-top: 1px solid #a3a3a3;
+	border-left: 1px solid #a3a3a3;
+	border-bottom: 1px solid #f6f6f6;
+	border-right: 1px solid #f6f6f6;
+	background: #fff;
+	color: #666;
+	margin: 0;
+	padding-left: 5px;
+	vertical-align: middle;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	height: 30px;
+}
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+	.m4-titleBar-search {
+		height: 22px;
+	}
+}
+
+.verticalCenter {
+	height: 100%;
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.verticalCenter a{
+	margin-left: 7px;
+	margin-right: 10px;
+}
+
+
+.verticalCenter img{
+	vertical-align:middle;
+}
+
+.menuhidden{
+	display: none;
+}

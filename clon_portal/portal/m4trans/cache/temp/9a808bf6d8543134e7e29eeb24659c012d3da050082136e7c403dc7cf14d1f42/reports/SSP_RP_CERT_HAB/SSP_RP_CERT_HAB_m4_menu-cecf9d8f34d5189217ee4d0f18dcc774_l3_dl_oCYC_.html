@@ -1,0 +1,240 @@
+<!-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> m4_menu.html  -->
+
+<html dir="ltr">
+<META HTTP-EQUIV="Content-Type" content="text/html; charset=windows-1252">
+<META NAME="GENERATOR" CONTENT="META4 Report Engine">
+
+<script language='JavaScript'>
+	var zoom=1;
+</script>
+
+<script LANGUAGE='Javascript' src='SSP_RP_CERT_HAB_m4_lang_renhash_5324520b4de23234a19a64a955e0ea2f_l3_dl_oCYC_v1.js'></script>
+
+<script language='JavaScript'>
+
+	var iCount=1;
+	var Files=["SSP_RP_CERT_HAB0_renhash_a7e2f4eeb10986d2db69383ecdb8fb50_l3_dl_oCYC_v1.html"];
+	var iMax=Files.length ;
+	
+
+	function Incr(){
+		if(iCount<iMax){
+			iCount++;
+		}
+		var m_pcFileName=Files[iCount-1];
+		parent.frames['overdrive'].frames['main'].location=m_pcFileName;
+		document.menu.page.value=iCount;
+	}
+
+	function Decr(){
+		if(iCount>1) {
+			iCount--;
+		}
+		var m_pcFileName=Files[iCount-1];
+		parent.frames['overdrive'].frames['main'].location=m_pcFileName;
+		document.menu.page.value=iCount;
+	} 
+
+	function M4Select(page){
+		if (page==-1) page=iMax;
+		var m_pcFileName=Files[page-1];
+		if (page>0 && page<=iMax){
+			parent.frames['overdrive'].frames['main'].location=m_pcFileName;
+			iCount=page;
+			document.menu.page.value=iCount;
+		};
+	} 
+
+	function M4Zoom(page, x)
+	{
+		zoom=x;
+		if (page==-1) page=iMax;
+		var m_pcFileName=Files[page-1];
+		if (page>0 && page<=iMax){
+			parent.frames['overdrive'].frames['main'].location=m_pcFileName;
+			iCount=page;
+			document.menu.page.value=iCount;
+		};
+	}
+
+	function M4SetPageValue(page)
+	{
+		document.menu.page.value=page;
+		iCount=page;
+	}
+
+	var hide=true;
+
+	function SwitchFrame()
+	{
+		if(hide){
+			parent.frames['overdrive'].location='SSP_RP_CERT_HAB_m4_index_frame_renhash_3468908df5781ca8cc127d8d5bda5c47_l3_dl_oCYC_v1.html';
+		} else {
+			parent.frames['overdrive'].location='SSP_RP_CERT_HAB_m4_frameoff_renhash_7f7d33247d7e7512475a4a48e79de91e_l3_dl_oCYC_v1.html';
+		};
+		hide=!hide;
+	}
+
+	function SwitchSearch()
+	{
+		if(hide){
+			parent.frames['overdrive'].location='SSP_RP_CERT_HAB_m4_search_frame_renhash_648e0b94359fc5bcb1c94f99f12220d5_l3_dl_oCYC_v1.html';
+		} else {
+			parent.frames['overdrive'].location='SSP_RP_CERT_HAB_m4_frameoff_renhash_7f7d33247d7e7512475a4a48e79de91e_l3_dl_oCYC_v1.html';
+		};
+		hide=!hide;
+	}
+
+</script>
+
+
+<body bgcolor='#cdcdcd' topmargin=0 leftmargin=0 marginwidth=0 marginheight=0>
+
+<!---Main table, 2 columns: logo (left aligned) & options (center aligned) -->
+
+<form name='menu' method='POST' action='javascript:M4Select(menu.page.value);'>
+
+<table width="100%"> 
+<tr> 
+
+<!-- Logo, first cell of main table  
+
+<!-- Logo, first cell of main table  (71sp6@2 taken out) -->
+
+<!-- <td align="left" valign="center"  width="80">  -->
+    <!-- <img src=images/m4logo_renhash_11152d12af3624cce9a486641517ef53_l3_dl_oCYC_v1.gif border=1> --> 
+<!-- </td>  -->
+
+
+<!-- Options, second cell of main table, contains a centered table  -->
+
+<td align="center">
+	<table align ="center">
+	<tr>
+
+<!-- LEFT cell -->
+
+<td valign="center">
+     <a href='javascript:M4Select(1);'><img src=images/m4left2_renhash_fa0ba2e3bc8ed283dc55b3ec3ef5020c_l3_dl_oCYC_v1.gif 
+		name=l2 border=0></a>&nbsp;
+	 <a href='javascript:Decr();'><img src=images/m4left_renhash_73a339a9bfb6a3ab3d74a11e5a546eee_l3_dl_oCYC_v1.gif 
+		name=l border=0></a>
+</td>
+
+
+<!-- Page & ZOOM -->
+
+<td valign="center">
+
+<script type="text/javascript" language="Javascript1.5">
+
+
+	document.write(
+		
+	"<font size='2' face='Verdana, Arial, Helvetica, sans-serif' color='#000000'><b>"+
+			MenuMsg[0]+"</b>\r\n"+
+	"<input type='text' name='page' value='1' size=3>\r\n"+
+		"<font size='2' face='Verdana, Arial, Helvetica, sans-serif' color='#000000'><b>"+
+			MenuMsg[1]+" "+iMax+"</b>&nbsp;&nbsp;\r\n"
+	) ;
+
+	if (true) {
+
+		document.write(
+			"<select name='zoom' size='1' onchange='M4Zoom(page.value, zoom.value);'>\r\n"+
+				"<option value='2'>200%</option>\r\n"+
+				"<option value='1.5'>150%</option>\r\n"+
+				"<option value='1' selected>100%</option>\r\n"+
+				"<option value='0.75'>75%</option>\r\n"+
+				"<option value='0.5'>50%</option>\r\n"+
+			"</select>\r\n"
+		) ;
+
+	} ;
+
+</script>
+
+</td>
+
+<!-- RIGHT -->
+
+<td valign="center">
+
+	<a href='javascript:Incr();'><img src=images/m4right_renhash_dcbc966de46562bb16c6f662451e0fa7_l3_dl_oCYC_v1.gif name=r border=0></a>&nbsp;
+	<a href='javascript:M4Select(-1);'><img src=images/m4right2_renhash_3ea05a9dde37d498945c86c90f3ec831_l3_dl_oCYC_v1.gif name=r2 border=0></a>
+
+</td>
+
+
+<!-- Separator for Index or search -->
+
+<script type="text/javascript" language="Javascript1.5">
+	if ( true || false ) {
+		document.write(
+			"<td width=\"40\"/>\r\n"
+		) ;
+	} ;
+</script>
+
+<!-- INDEX -->
+
+<script type="text/javascript" language="Javascript1.5">
+	if (true) {
+		
+		document.write(
+
+		"<td valign=\"center\">\r\n"+
+	
+		"<a href=javascript:SwitchFrame()>"+
+		"<img src=images/m4index_renhash_1d6b997b90cc4a96ce3293eb341f933f_l3_dl_oCYC_v1.gif border=0 alt='"+
+			MenuMsg[2]+"'></a>\r\n"+
+
+		"</td>\r\n"
+		) ;
+	} ;
+</script>
+
+
+<!-- SEARCH -->
+
+<script type="text/javascript" language="Javascript1.5">
+
+	if (false) {
+		document.write(
+
+		"<td valign=\"center\">\r\n"+
+
+		"<a href=javascript:SwitchSearch()>"+
+		"<img src=images/m4search_renhash_64d717323187591675b8d44b54634187_l3_dl_oCYC_v1.gif border=0 alt='"+
+			MenuMsg[3]+"'></a>\r\n"+
+
+		"</td>\r\n"
+		) ;
+	} ;
+
+</script>
+
+<!-- SEARCH -->
+
+
+<!-- End of options table-->
+
+</tr>
+</table>
+</td> 
+
+<!---End of Main table-->
+
+</tr> 
+</table> 
+
+</form>
+
+
+<!---End of HTML file-->
+
+</body>
+</html>
+
+<!-- m4_menu.html <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  -->
+

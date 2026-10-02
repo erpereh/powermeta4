@@ -1,0 +1,225 @@
+.divTotal {
+  width: 100%;
+  min-width: 650px;
+  font-family: Verdana,Arial,Helvetica,Sans-Serif;
+  font-size: 11px;
+}
+
+.divTitle
+{
+  font-weight: bolder;
+  color: #fff;
+  text-indent: 10px;
+  background-color:#610000;
+  background-image: url(/iconos/back_title_task.png);
+  background-repeat: repeat-x;
+  height: 20px;
+}
+
+.divTitle span {
+  position: relative;
+  top: 2px;
+}
+
+.divLeftPhoto {
+  float: left;
+  max-width: 640px;
+  min-height: 110px;
+}
+
+.divLeftPhoto img {
+  float: left;
+  width: 100px;
+  height: 100px;
+  margin: 5px;
+}
+
+.divDesc {
+  margin: 20px 0px 0px 120px;
+}
+
+.divDesc span {
+  color: #235298;
+}
+
+.divSubtitle {
+  margin: 5px 0px 1px 0px;
+}
+
+.divSubtitle .unsortedlist {
+  color: #5faae4;
+  font-weight: normal;
+}
+
+.divSubtitle .unsortedlist .aLink {
+  color: #000;
+  text-decoration: none;
+}
+
+.divSubtitle .unsortedlist .aLink:hover {
+  color: #0000ff;
+}
+
+.divPhoto {
+  float: right;
+  margin: 10px 30px 1px 0px;
+  width: 80px;
+  height: 80px;
+}
+
+.divPhoto .photo {
+  width: 80px;
+  height: 80px;
+}
+
+.divPhoto .nophoto {
+  width: 0px;
+  height: 0px;
+}
+
+.divSep {
+  clear: both;
+}
+
+.divSearch {
+  float: left;
+  margin: 2px 0px;
+  border: 1px solid #f1f1f1;
+  height: 150px;
+  width: 40%;
+}
+
+.divSearch .nophoto {
+  width: 0px;
+  height: 0px;
+}
+
+.divSearch img {
+  cursor: pointer; 
+  width: 22px;
+  height: 22px;
+}
+
+.divSearchEmp {
+  margin: 10px 0px 0px 10px;
+}
+
+.divSearchEmp span {
+  display: block;
+}
+
+.divSearchEmp input {
+  color: #07346b;
+  border: 1px solid #a1a1a1;
+  margin: 2px 0px;
+  width: 180px;
+  float: left;
+}
+
+.divSearchWork {
+  clear: both;
+  margin: 0px 0px 2px 10px;
+}
+
+.divSearchWork span {
+  display: block;
+}
+
+.divSearchWork input {
+  color: #07346b;
+  border: 1px solid #a1a1a1;
+  margin: 2px 0px;
+  width: 230px;
+  float: left;
+}
+
+.divResultSearch {
+  float: left;
+  margin: 2px 0px 0px 5px;
+  border: 1px solid #f1f1f1;
+  color: #8d8f90;
+  width: 58%;
+  height: 150px;
+}
+
+.divSearchTitle {
+  border-bottom: 1px solid #f1f1f1;
+  height: 15px;
+  text-align: center;
+  vertical-align: middle;
+  background-color: #e7e7e7;
+  color: #07346b;
+  font-weight: bold;
+  clear: both;
+}
+
+.divSearchTitle span {
+
+}
+
+.divResultSearch .divSearchTitle span {
+
+}
+
+.divSearchResult {
+  height: 115px;
+  overflow: auto;
+  margin: 5px 5px 2px 5px;
+  background-color: #f1f1f1;
+}
+
+.divSearching {
+  background-image: url(/iconos/spinner.gif);
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+.divSearchResult div {
+  margin: 0px 0px 0px 4px;
+  text-align: left;
+  font-weight: normal;
+  color: #a1a1a1;
+}
+
+.divSearchResult div:hover {
+  color: #07346b;
+}
+
+.divSearchResult div span {
+  cursor: pointer;
+}
+
+.spanSearchResult {
+  margin: 0px 0px 0px 4px;
+  color: #575757;
+}
+
+.divFilterAct {
+  border-left: 1px solid #f1f1f1;
+  border-right: 1px solid #f1f1f1;
+  border-bottom: 1px solid #f1f1f1;
+  color: #8d8f90;
+  margin: 2px 0px 5px 0px;
+}
+
+.divFilterAct .divFilter {
+  margin: 3px 0px 2px 5px
+}
+
+.divFilter .spanFilter {
+  margin: 0px 0px 0px 5px; 
+  color: #07346b;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.spanPhone {
+  float: left;
+  margin: 2px 0px;
+}
+
+.imgPhone {
+  float: right;
+  width: 18px;
+  height: 18px;
+}

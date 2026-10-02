@@ -1,0 +1,1 @@
+<%@ include file="../smco_pm_wz_transfer.jsp"%>

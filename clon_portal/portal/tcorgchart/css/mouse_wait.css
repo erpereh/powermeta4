@@ -1,0 +1,36 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: mouse_wait.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+
+#infovis {		
+	cursor: wait;		
+}
+
+.contentTab {	
+	cursor: wait;
+}
+
+.TabsMenu {
+	cursor: wait;
+}
+
+.TabsSubMenu {
+	cursor: wait;	
+}
+
+.lockHover:hover{	
+	cursor : wait;	
+}
+
+.box{
+	cursor : wait;
+}
+
+.divTriangle{
+	cursor : wait;
+}

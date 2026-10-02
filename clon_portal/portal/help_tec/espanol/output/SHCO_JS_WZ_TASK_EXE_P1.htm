@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/11/05 16:13:31" />
+    <title>Cómo consultar el estado de las ejecuciones</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp1311446"> </a><h2 class="pTitle">
+Cómo consultar el estado de las ejecuciones
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_JS_WZ_TASK_EXE_P1-->
+<p class="bodytex"> Finalidad</p>
+<a name="wp1312261"> </a><p class="pBody">
+Esta opción te explica cómo consultar las tareas planificadas, cómo ver el estado de la ejecución, editar su ejecución e incluso proceder a cancelarla o abortarla. Tienes dos opciones para consultar la evolución de una tarea planificada:
+</p>
+<ul class="item">
+<li>Desde <b class="cBold">Herramientas | Planificador de tareas</b> utilizando la acción <b class="cBold">Ejecución</b> para consultar el estado en el que se encuentra la ejecución de una tarea planificada con anterioridad.</li>
+<li>Desde <b class="cBold">Gestionar ejecuciones</b> puedes consultar la cola de ejecuciones filtrada por unos determinados criterios. Así podrás rápidamente consultar qué tareas tienes planificadas y su estado.</li>
+</ul>
+<p class="bodytex"> Pasos</p>
+<a name="wp1312263"> </a><p class="pBody">
+El proceso es el siguiente:
+</p>
+<ol>
+<li class="numero">Para filtrar por aquellos estados que quieras consultar, marca las casillas correspondientes y haz clic en el botón <img src="images/ic_search_36_36_0.gif" id="wp1312339" border="0" hspace="0" vspace="0"/>. Los posibles estados son: </li>
+<ul class="item">
+<li><b class="cBold">Ejecutado</b>: han finalizado todas las ejecuciones de las tareas del grupo.</li>
+<li><b class="cBold">Esperando</b>: la ejecución del grupo de tareas todavía no ha comenzado.</li>
+<li><b class="cBold">En ejecución</b>: el grupo de tareas se está ejecutando en ese momento, es decir, ha empezado la ejecución de al menos la primera tarea del grupo pero todavía quedan tareas pendientes.</li>
+<li><b class="cBold">Cancelando</b>: es el estado previo a <b class="cBold">Cancelado</b>. Cuando se cancela un grupo de tareas no se hace de manera inmediata, sino que se finaliza la ejecución de la tarea que se estuviese ejecutando. Durante el tiempo que tarda en cancelarse el grupo, se le asigna este estado.</li>
+<li><b class="cBold">Expirado</b>: si la ejecución del grupo acumula un retraso superior al tiempo definido como de expiración, el grupo no se ejecuta y pasa a este estado.</li>
+<li><b class="cBold">Interrumpido</b>: la ejecución del grupo se ha interrumpido por motivos ajenos al usuario, por ejemplo una parada del servidor. El estado del grupo de tareas permanecerá como <b class="cBold">Ejecutando</b> hasta que no vuelva a iniciarse el servidor, momento en que el estado pasará a <b class="cBold">Interrumpido</b>.</li>
+<li><b class="cBold">Cancelado</b>: la ejecución del grupo se ha cancelado. Cancelar una ejecución supone anular la ejecución del grupo de tareas, de tal manera que se finaliza la tarea que se esté ejecutando en ese momento, pero las siguientes tareas que están en espera no se ejecutarán.</li>
+<li><b class="cBold">Abortando</b>: es el estado previo a <b class="cBold">Abortado</b>. Cuando se aborta la ejecución de un grupo de tareas, no se hace de manera inmediata; durante ese tiempo el estado del grupo será <b class="cBold">Abortando</b>.</li>
+<li><b class="cBold">Abortado</b>: se ha abortado la ejecución del grupo. Abortar una ejecución supone anular la ejecución del grupo de tareas de manera inmediata; cuando se aborta un grupo de tareas, se anula de manera drástica la ejecución de todas las tareas del grupo, incluida la tarea que se esté ejecutando en ese momento.</li>
+</ul>
+<li class="numero">Selecciona la ejecución que quieres consultar. Se abre la ventana <b class="cBold">Detalle de la ejecución</b>. </li>
+<li class="numero">Se muestran los datos del grupo: de la planificación y de la tareas. La información es de tipo general; consiste en el identificador de la tarea dentro del grupo, el nombre, el momento de inicio y fin de la ejecución, etcétera. </li>
+<li class="numero">Puedes <b class="cBold">Abortar</b> o <b class="cBold">Cancelar</b> aquellas ejecuciones activas (esperando, ejecutándose, etcétera). Abortar implica detener una ejecución en proceso; cancelar implica detener una ejecución que aún no ha comenzado a procesarse. Estas acciones cambian el estado de la ejecución automáticamente. </li>
+<li class="numero">Haz clic en los enlaces o utiliza los botones de navegación de esta página para continuar la navegación. Así podrás consultar información relativa a: </li>
+<ul class="item">
+<li><b class="cBold">Parámetros de ejecución</b>. Más información: <a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_TASK_EXE_P2.htm#wp1312353');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_TASK_EXE_P2.htm#wp1312353', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Parámetros de ejecución</a></li>
+<li><b class="cBold">Ejecuciones de las tareas</b>. Más información:<a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_TASK_EXE_P3.htm#wp1312375');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_TASK_EXE_P3.htm#wp1312375', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Ejecuciones de las tareas</a></li>
+<li><b class="cBold">Documentos generados</b>. Más información: <a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_TASK_EXE_P4.htm#wp1312379');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_TASK_EXE_P4.htm#wp1312379', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Documentos generados</a></li>
+</ul>
+</ol>
+<p class="bodytex"> Consulta también</p>
+<ul class="triangulo">
+<li><a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_SCHED_TASKS_P1.htm');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_JS_WZ_SCHED_TASKS_P1.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Planificador de tareas</a></li>
+</ul>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

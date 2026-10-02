@@ -1,0 +1,195 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>Meta4 data utils</title>
+
+        
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+        
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		<style>
+			#divContenedor {
+				width: 100%;
+				height: 100px;
+			}
+
+			#div1, #div2 {
+				float: left;
+				width: 50%;
+				height: 100%;
+			}
+
+			#div1 {
+				background-color: rgb(125, 154, 206);
+			}
+			#div2 {
+				background-color: blue;
+			}
+
+			.imgAction {
+				/*filter:alpha(opacity=100); */ /* For IE8 and earlier */
+				cursor: pointer;
+				-moz-opacity: 1.0;
+				opacity: 1.0;
+				-khtml-opacity: 1.0;
+				padding: 3px;
+			}
+			
+			.imgAction label, .imgAction img {
+				cursor: pointer;
+			}
+
+			.imgAction:hover {
+				background-color: #d5eaf9;/*d8e9ed*/
+			}
+
+			.labelIconCommentGlobal {						
+				background-image: url(/iconos/pressed_button_background.png) !important;
+				background-size: 6px;
+				background-repeat: repeat-x;
+				padding: 2px;
+				vertical-align: middle;
+			}
+
+		</style>
+
+		<script>
+			var examples = {
+				example1 : function() {
+					var options = {
+						'functionClick' : function() {
+							alert('pulsado');
+						}
+					};
+
+					var widgetButton = new meta4.widget.Button('boton normal', '/iconos/comment_global.png', options);
+
+					$('botonSimple').grab(widgetButton.container);
+				},
+				example2 : function() {
+					var options = {
+						'pressed' : true,
+						'classButtonPressed' : 'labelIconCommentGlobal',
+						'textPressed' : 'botón pulsado',
+						'functionClick' : function() {
+							alert('pulsado:'+this.isPressed);
+						}
+					};
+
+					var widgetButton = new meta4.widget.Button('botón sin pulsar', '/iconos/comment_global.png', options);
+
+					$('botonPressed').grab(widgetButton.container);
+				}
+			};
+			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);	
+			
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+	    
+	    
+		<div id ="exampleContainer" data-m4context="contexto1" data-m4t3="EXJSAPI_COMPONENT">
+
+		<h1 data-m4trans="_WidgetsWidgetButtonTitle"></h1>
+		<h2 data-m4trans="_WidgetsWidgetButtonSubtitle"></h2>
+
+		<p data-m4trans="_WidgetsWidgetButtonDescription"></p>
+		<p data-m4trans="_WidgetsWidgetButtonExplanation">			
+		</p>
+		<p>
+			<ul>
+				<span data-m4trans="_WidgetsWidgetButtonOptions"></span>
+				<li>
+					<span class="bold">pressed: </span><span data-m4trans="_WidgetsWidgetButtonListElement1"></span>
+				</li>
+				<li>
+					<span class="bold">classButton: </span><span data-m4trans="_WidgetsWidgetButtonListElement2"></span>
+				</li>
+				<li>
+					<span class="bold">classButtonPressed: </span><span data-m4trans="_WidgetsWidgetButtonListElement3"></span>
+				</li>
+				<li>
+					<span class="bold">textPressed: </span><span data-m4trans="_WidgetsWidgetButtonListElement4"></span>
+				</li>
+				<li>
+					<span class="bold">imgPressed: </span><span data-m4trans="_WidgetsWidgetButtonListElement5"></span>
+				</li>
+				<li>
+					<span class="bold">functionClick: </span><span data-m4trans="_WidgetsWidgetButtonListElement6"></span>
+				</li>
+				<li>
+					<span class="bold">positionIcon: </span><span data-m4trans="_WidgetsWidgetButtonListElement7"></span>
+				</li>
+				<li>
+					<span class="bold">imgAction: </span><span data-m4trans="_WidgetsWidgetButtonListElement8"></span>
+				</li>
+
+			</ul>
+        </p>
+		<p data-m4trans="_WidgetsWidgetButtonExampleSimpleButtonText"></p>
+
+		<script>
+			m4loadExample('examples.example1');
+		</script>
+		<br>
+
+		<div id="botonSimple"></div>
+
+		<button onclick="examples.example1()" data-m4trans="_WidgetsWidgetButtonExampleCreateSimpleButton"></button>
+		
+		
+		<p data-m4trans="_WidgetsWidgetButtonExampleStateButton"></p>
+
+		<script>
+			m4loadExample('examples.example2');
+		</script>
+		<br>
+
+		<div id="botonPressed"></div>
+
+		<button onclick="examples.example2()" data-m4trans="_WidgetsWidgetButtonExampleCreateStateButton">			
+		</button>
+        </div>
+       </div>
+	</body>
+</html>
+

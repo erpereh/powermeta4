@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M101.835809,50.6942924 L95.3057076,44.1641908 C93.5043002,42.3627834 90.3518374,42.3627834 88.55043,44.1641908 L45.5418296,87.1727912 L58.8272088,100.45817 L101.835809,57.44957 C103.637217,55.6481626 103.637217,52.4956998 101.835809,50.6942924 Z" id="design-path-1"></path>
+        <path d="M47.8686474,83.7200938 C39.9874902,83.7200938 33.4573886,90.0250195 33.4573886,98.1313526 C33.4573886,104.436278 28.0531665,107.588741 24,107.588741 C28.2783425,113.443315 35.9343237,117.271306 43.1399531,117.271306 C53.7232213,117.271306 62.2799062,108.714621 62.2799062,98.1313526 C62.2799062,90.0250195 55.9749805,83.7200938 47.8686474,83.7200938 Z" id="design-path-2"></path>
+        <path d="M118.648944,33.8811572 L112.118843,27.3510555 C110.317435,25.5496482 107.164973,25.5496482 105.363565,27.3510555 L62.3549648,70.359656 L75.640344,83.6450352 L118.648944,40.6364347 C120.450352,38.8350274 120.450352,35.6825645 118.648944,33.8811572 Z" id="design-path-3"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Design">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#design-path-1"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#design-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#design-path-2"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#design-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#design-path-3"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#design-path-3"></use>
+            </g>
+        </g>
+    </g>
+</svg>

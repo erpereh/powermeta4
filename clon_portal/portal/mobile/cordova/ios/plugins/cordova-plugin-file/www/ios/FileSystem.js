@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file.iosFileSystem",function(c,a,b){FILESYSTEM_PROTOCOL="cdvfile";b.exports={__format__:function(d){var e=("/"+this.name+(d[0]==="/"?"":"/")+FileSystem.encodeURIPath(d)).replace("//","/");return FILESYSTEM_PROTOCOL+"://localhost"+e}}});

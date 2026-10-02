@@ -1,0 +1,45 @@
+<!-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: m4select_platform.html
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= -->
+
+ 
+<html>
+    <head>
+    	<title>Platform</title>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+		
+        <link rel="stylesheet" href="/style/jquery.mobile.structure.css" />
+		<link rel="stylesheet" href="/style/jquery.mobile.meta4.min.css" />
+		<link rel="stylesheet" href="css/mobile.generic.css" />
+		<link rel="stylesheet" href="css/mobile.m4select_platform.css" />
+        
+		<script src="/library/jquery.js"></script>
+		<!--<script src="/library/jquery.mobile.js"></script>-->
+		<!--script src="/mobile/cordova/cordova.js"></script-->
+		
+		<script src="js/meta4.ui.log.js"></script>
+		<script src="js/meta4.ui.translate.js"></script>
+		
+        <script type="text/javascript" charset="utf-8" src="js/meta4.mobile.select_platform.js"></script>
+                
+    </head>
+    <body>
+	    <div data-role="page" id="settings_page" data-theme="a">
+	    <div data-role="content" style="margin: 10%">
+	    	
+					<label id="cliencodelabel" for="clientcode" data-m4trans="_platformSelectionClientCode"></label>             	
+                	<input type="text" id="clientcode"/>
+                    <a data-role="button" id="connect" rel="external" data-m4trans="_platformSelectionConnect"></a> 
+			<a id="codehelptext" data-m4trans="_codehelptext" ></a>
+			<div id="divcodehelp" class="deployed" data-m4trans="_divcodehelp">
+			</div>
+	      </div>
+	     </div>
+    </body>
+</html>

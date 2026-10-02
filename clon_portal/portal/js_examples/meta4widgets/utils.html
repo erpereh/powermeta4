@@ -1,0 +1,197 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>Meta4 data utils</title>
+        
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+        
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		<style>
+			#divContenedor {
+				width: 100%;
+				height: 100px;
+			}
+
+			#div1, #div2 {
+				float: left;
+				width: 50%;
+				height: 100%;
+			}
+
+			#div1 {
+				background-color: rgb(125, 154, 206);
+			}
+			#div2 {
+				background-color: blue;
+			}
+
+		</style>
+
+		<script>
+			var channel = null;
+
+			var example = {
+				example0 : function() {
+					var h2 = new Element('h2', {
+						'text' : 'Este es un ejemplo de un popup'
+					});
+					var label = new Element('label', {
+						'text' : 'El componente se encarga de bloquear el resto de la página, y deja el foco en el primer elemento que lo pueda coger'
+					});
+
+					var br = new Element('br');
+
+					var input = new Element('input');
+
+					var div = new Element('div', {
+						styles : {
+							'backgroundColor' : 'white'
+						}
+					});
+					div.adopt(h2, label, br, input);
+
+					meta4.widget.utils.makePopUp(div);
+				},
+				example1 : function() {
+					function getResponse(result) {
+						if (result == true) {
+							alert('El usuario ha elegido Si');
+						} else {
+							alert('El usuario ha elegido No');
+						}
+					}
+
+
+					meta4.widget.utils.m4Confirm('¿Le ha gustado el ejemplo?', getResponse);
+				},
+				example2 : function() {
+					meta4.widget.utils.makeSplitHorizontal($('div1'), $('div2'), [40, 70], true);
+				}
+			};
+			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+		<div  data-m4context="contexto1" data-m4t3="EXJSAPI_COMPONENT"></div>
+
+		<h1 data-m4trans="_WidgetsUtilsTitle"></h1>
+
+		<h2 data-m4trans="_WidgetsUtilsSubtitle"></h2>
+
+		<p data-m4trans="_WidgetsUtilsDescription"> </p>
+
+		<h2>meta4.widget.utils.makePopUp(div)</h2>
+		<br>
+		<p data-m4trans="_WidgetsUtilsMakePopUpDescription"></p>
+
+		<script>
+			m4loadExample('example.example0');
+		</script>
+		
+		<br>
+
+		<button onclick="example.example0()" data-m4trans="_WidgetsUtilsMakePopUpButton">
+			
+		</button>
+
+
+		<h2>meta4.widget.utils.m4Confirm(title, msg, callback) </h2>
+		<br>
+		<p data-m4trans="_WidgetsUtilsm4ConfirmDescription">
+			<ul>
+				<li data-m4trans="_WidgetsUtilsm4ConfirmListElement1">
+					
+				</li>
+				<li data-m4trans="_WidgetsUtilsm4ConfirmListElement2">
+					
+				</li>
+			</ul> 
+		</p>
+		
+		<script>
+			m4loadExample('example.example1');
+		</script>
+		<br>
+
+		<button onclick="example.example1()" data-m4trans="_WidgetsUtilsm4ConfirmListButton">
+			
+		</button>
+
+		<br>
+
+		<h2>meta4.widget.utils.makeSplitHorizontal(divHandler, divAux, limit, buttonCollapse) </h2>
+		<br>
+		<p data-m4trans="_WidgetsUtilsMakeSplitHorizonalDescription">
+			<ul>
+				<li data-m4trans="_WidgetsUtilsHorizonalDescriptionListElement1">
+					
+				</li>
+				<li data-m4trans="_WidgetsUtilsHorizonalDescriptionListElement2">
+					
+				</li>
+				<li data-m4trans="_WidgetsUtilsHorizonalDescriptionListElement3">
+					
+				</li>
+				<li data-m4trans="_WidgetsUtilsHorizonalDescriptionListElement4">
+					
+				</li>
+			</ul>
+		</p>
+		
+		<script>
+			m4loadExample('example.example2');
+		</script>
+		<br>
+
+		<div id="divContenedor">
+			<div id="div1">
+				<p data-m4trans="_WidgetsUtilsContainerExampleText"></p>
+			</div>
+			<div id="div2"></div>
+		</div>
+		<br>
+		<button onclick="example.example2()" data-m4trans="_WidgetsUtilsContainerButton">			
+		</button>
+	</div>
+	</body>
+</html>
+

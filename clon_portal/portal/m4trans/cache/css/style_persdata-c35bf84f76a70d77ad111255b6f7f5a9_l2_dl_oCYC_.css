@@ -1,0 +1,28 @@
+.divHeaderMod .imgChooseMod {
+  float: left;
+}
+
+.divHeaderMod span {
+  font-size : 12px;
+  color : #07346b;
+  display: block;
+}
+
+.divHeaderMod .spanImgTypeMod {
+  font-size : 10px;
+}
+
+.divHeaderMod .spanImgSizeMod {
+  font-size : 10px;
+}
+
+.divHeaderMod .divButtonsMod {
+  clear: both;
+}
+
+.divHeaderDel .spanTitleDel {
+  font-size : 12px;
+  margin : 10px;
+  color : #07346b;
+  display: block;
+}

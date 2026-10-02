@@ -1,0 +1,152 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: mobile.news.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+#listNews {
+    padding: 0px;
+    padding-top: 0px;
+    margin-top:0px;
+    list-style: none; 
+}
+.newsDate h5 {
+    margin-bottom: 4px;
+    margin-right: 24px;
+    margin-top: 16px;
+}
+.newsLi {
+    width: 100%;
+    overflow: hidden;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #d8d8d8;
+}
+.newsImg {
+    height: 240px;
+    margin-top: -262px;
+}
+
+.newsTitle {
+    position: inherit;
+    margin-top: -140px;
+    margin-left: 12px;
+    margin-right: 12px;
+    text-decoration: none !important;
+}
+.newsTitle h4{
+    margin: 0; 
+    font-weight: normal;
+    color: #fff;
+    max-height: 54px;
+    overflow: hidden;
+}
+
+.linkContent {
+    height: 230px;
+    overflow: hidden;
+    border-radius: 5px;
+    border: 1px solid #eeeeee;
+    margin-left: 16px;
+    margin-right: 16px;
+}
+
+.newsLi a {
+    text-decoration: none;
+}
+.newsOverlay {
+    height: 230px;
+    margin-top: 40px;
+    background: transparent;
+    background: -webkit-linear-gradient(transparent,rgba(0, 0, 0, 0),rgba(0, 0, 0, 0.25),rgba(0, 0, 0, 0.58),rgba(0, 0, 0, 0.81),rgba(0, 0, 0, 0.96), rgb(0, 0, 0));
+    background: -o-linear-gradient(transparent,rgba(0, 0, 0, 0),rgba(0, 0, 0, 0.25),rgba(0, 0, 0, 0.58),rgba(0, 0, 0, 0.81),rgba(0, 0, 0, 0.96), rgb(0, 0, 0));
+    background: -moz-linear-gradient(transparent,rgba(0, 0, 0, 0),rgba(0, 0, 0, 0.25),rgba(0, 0, 0, 0.58),rgba(0, 0, 0, 0.81),rgba(0, 0, 0, 0.96), rgb(0, 0, 0));
+    background: -ms-linear-gradient(transparent,rgba(0, 0, 0, 0),rgba(0, 0, 0, 0.25),rgba(0, 0, 0, 0.58),rgba(0, 0, 0, 0.81),rgba(0, 0, 0, 0.96), rgb(0, 0, 0));
+    background: linear-gradient(transparent,rgba(0, 0, 0, 0),rgba(0, 0, 0, 0.25),rgba(0, 0, 0, 0.58),rgba(0, 0, 0, 0.81),rgba(0, 0, 0, 0.96), rgb(0, 0, 0));
+}
+.newsDate {
+    width: 100%;
+    color: #5876a3;
+    text-align: right;
+}
+.newsDesc {
+    margin: 0px 12px 0px 12px;
+    height: 34px;
+    overflow: hidden;
+}
+.newsDesc h5 {
+    font-weight: normal;
+    color: #ffffff;
+}
+.newsDesc * {
+    color: #ffffff !important;
+    background-color:transparent !important;
+    background:none !important;
+    font-size:13px !important;
+    font-weight: normal !important;
+    font-family: 'Open Sans', Arial, sans-serif !important;
+    margin: 0px !important;
+    text-decoration: none !important;
+    opacity: 0.9 !important;
+}
+.newsTitle * {
+    color: #ffffff !important;
+    background-color:transparent !important;
+    background:none !important;
+    font-size: 20px !important;
+    font-weight: normal !important;
+    font-family: 'Open Sans', Arial, sans-serif !important;
+    margin: 0px !important;
+    text-decoration: none !important;
+}
+.m4-navigation-toolbar {
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+}
+.m4-navigation-toolbar h2 {
+    margin: 0;
+    padding: 0px 16px;
+}
+.nav-icon{
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+}
+#newsContent * {
+    color: #4c4c4c !important;
+}
+#photoNews {
+    width: 100%;
+    height: 240px;
+    border-bottom: 1px solid #e7e6e6;
+}
+#newsContent {
+    padding: 16px;
+}
+.m4-button-navigation-toolbar {
+    width: 20px;
+    height: 20px;
+}
+.disabled-button{
+    visibility: hidden;
+}
+
+#emptyNewsDiv {
+    width: 100%;
+    text-align:  center;
+    margin-top: calc(50% + 52px);
+}
+
+#emptyNewsImg {
+    width: 100px;
+    height: 100px;
+    opacity: 0.2;
+}
+
+#emptyNewsP {
+    font-size: 15px;
+    color: #333;
+}

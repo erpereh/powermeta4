@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/11/05 16:46:12" />
+    <title>Configuring the report output</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp1316658"> </a><h2 class="pTitle">
+Configuring the report output
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_M4THROW_WZ_CONFIG_STEP1-->
+<p class="bodytex"> Description</p>
+<a name="wp1316661"> </a><p class="pBody">
+This form describes the steps required to configure the running or scheduling of a report.
+</p>
+<p class="bodytex"> Actions</p>
+<a name="wp1316663"> </a><p class="pBody">
+This option provides you to possibilities:
+</p>
+<ul class="item">
+<li>Run a report directly. To do so, select the necessary options and run the report.</li>
+<li>Schedule the report. Determine when you need to run the report.</li>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+To view the results of scheduling the running of a report, see the <b class="cBold">Executions</b> option in the <b class="cBold">Job Scheduler</b>.
+</p></td></tr>
+</table><br/></ul>
+<a name="wp1316667"> </a><p class="pBody">
+To facilitate the task of entering parameters, the system allows you to view a window with most of the configuration options. This configuration window is divided into 3 steps.
+</p>
+<a name="wp1316668"> </a><p class="pBody">
+In the first step, <b class="cBold">Output Type and Format</b>, follow the procedure below:
+</p>
+<ol>
+<li class="numero">Select the execution type. </li>
+<li class="numero">Select the output type. The options are: </li>
+<ul class="item">
+<li><b class="cBold">Viewer</b>: allows you to view the report in the browser.</li>
+<li><b class="cBold">File on Client</b>: the result of running the report is saved on the client machine.</li>
+<p class="cont">The system displays a dialogue box that allows you to save 
+the file to the desired location on the local disk.
+</p>
+<li><b class="cBold">File on Server</b>: the file resulting from running the report is stored in the file system on the server.</li>
+<p class="cont">To do so, enter the <b class="cBold">Relative Path to Temporary Report 
+Directory</b> on the server where the report is saved.
+</p>
+<li><b class="cBold">Printer on Client</b>: the report is printed on a printer on the client machine.</li>
+<p class="cont">The system displays a combo list to select the printer.
+</p>
+<li><b class="cBold">Printer on Server</b>: printing is on a server printer.</li>
+<p class="cont">If the selected output type is <b class="cBold">Printer on Server</b>, the system 
+displays the list of available printers and, once one is 
+selected, sets the default language associated with it.
+</p>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+When scheduling reports, the only output types allowed are <b class="cBold">File on Server</b> and <b class="cBold">Printer on Server</b>. The rest of the options are disabled.
+</p></td></tr>
+</table><br/></ul>
+<li class="numero">Select the output format. The formats allowed vary depending on the output type selected in the previous step: </li>
+<ul class="dash">
+<li><b class="cBold">HTML</b>: allowed for the viewer and the file on server options.</li>
+<li><b class="cBold">PDF</b>: allowed for the viewer and file options, both on the client machine and on the server.</li>
+<li><b class="cBold">Text</b>: this format can be used in any case.</li>
+<li><b class="cBold">PCL</b>: allowed in any type of output except the viewer.</li>
+<li><b class="cBold">ESCP</b>: allowed in any type of output except the viewer.</li>
+<li><b class="cBold">PostScript</b>: allowed in any type of output except the viewer.</li>
+</ul>
+<li class="numero">Click the links or use the navigation buttons on this page to complete the configuration. This way you can enter information related to: </li>
+<ul class="item">
+<li><span style="font-weight: bold">Device Options</span>. More information: <a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_M4THROW_WZ_CONFIG_STEP2.htm#wp1316698');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_M4THROW_WZ_CONFIG_STEP2.htm#wp1316698', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Registering the device options</a></li>
+<li><span style="font-weight: bold">Advanced Options</span>. More information: <a href="javascript:WWHClickedPopup('TECH_HELP_ENG', 'SHCO_M4THROW_WZ_CONFIG_STEP3.htm#wp1316723');" onMouseOver="WWHShowPopup('TECH_HELP_ENG', 'SHCO_M4THROW_WZ_CONFIG_STEP3.htm#wp1316723', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Registering the advanced options</a></li>
+</ul>
+</ol>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- [=======================================================] -->
+<!-- @(#) FileVersion: 815.002.001                             -->
+<!-- @(#) FileDescription: Login deploy descriptor.            -->
+<!-- @(#) CompanyName: Meta4 Spain, S.A.                       -->
+<!-- @(#) LegalCopyright: (c) 2018                             -->
+<!-- @(#) ProductName: PeopleNet                               -->
+<!-- [=======================================================] -->
+
+<undeployment xmlns="http://xml.apache.org/axis/wsdd/">
+	<service name="Login"/>
+</undeployment>

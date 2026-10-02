@@ -1,0 +1,1 @@
+﻿var _emptyPayslipList="Il n'y a aucun bulletin de paie à afficher.";var _metadataError="Les bulletins de paie ne peuvent pas être affichés.";var _methodError="Les bulletins de paie ne peuvent pas être affichés.";var _payslip_title_toolbar="Vos derniers bulletins de paie";

@@ -1,0 +1,41 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: mouse.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+
+
+#infovis {		
+	cursor: move;		
+}
+
+.contentTab {	
+	cursor: default;
+}
+
+.TabsMenu {
+	cursor: pointer;
+}
+
+.TabsSubMenu {
+	cursor: pointer;	
+}
+
+.lockHover:hover{	
+	cursor : pointer;	
+}
+.labelId{
+	cursor : pointer;
+}
+
+.box{
+	cursor : move;
+}
+
+
+.divTriangle{
+	cursor : pointer;
+}

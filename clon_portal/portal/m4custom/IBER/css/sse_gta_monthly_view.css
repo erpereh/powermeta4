@@ -1,0 +1,338 @@
+
+.floating-tip {
+                background-color: #0c4f8a;
+                padding: 5px 15px;
+                color: white;
+                font-weight: bold;
+                font-size: 11px;
+                -moz-border-radius: 3px;
+                -webkit-border-radius: 3px;
+                border-radius: 3px;
+
+                border-width: 1px;
+                border-color:white;
+                border-style: solid;
+                
+                z-index: 99999;
+
+}
+.floating-tip-content {
+                color: white;
+                font-weight: normal;
+                font-size: 9px;
+                z-index: 99999;
+
+}
+.floating-background
+{
+    BACKGROUND-COLOR:white;
+}
+
+.tablaestadosceldatitulowhite2Blue a {text-decoration:none;color: #383a3b}
+.tablaestadosceldatitulowhite2Blue a:hover{color: #0956b4;text-decoration:underline}
+
+.tablabordes
+{
+border-style:solid;
+border-width:3px;
+border-color:#365a7c;
+}
+
+.tablabordesGreen
+{
+border-style:solid;
+border-width:2px;
+border-color:#424242;
+}
+
+
+.tablaestadosceldatituloGris
+{
+    BACKGROUND-COLOR: #BDBDBD;
+    TEXT-INDENT: 5px;
+    BACKGROUND-REPEAT: repeat-x;
+    FONT-FAMILY: arial, verdana;
+    COLOR: #ffffff;
+    FONT-SIZE: 11px
+}
+
+.tablaestadosceldatituloGrisValor
+{
+
+	border-top : none;
+	border-left : none;
+	border-bottom: 1.5px ridge #BDBDBD;
+	border-right: none;
+	BACKGROUND-COLOR: #ffffff;
+	COLOR: #084B8A;
+    FONT-SIZE: 11px
+    TEXT-INDENT: 5px;
+    FONT-FAMILY: arial, verdana;
+}
+
+
+.tablaestadosceldatitulo
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    BACKGROUND-COLOR: #365a7c;
+    TEXT-INDENT: 5px;
+    BACKGROUND-REPEAT: repeat-x;
+    FONT-FAMILY: arial, verdana;
+    COLOR: #ffffff;
+    FONT-SIZE: 11px
+}
+
+.tablaestadosceldatitulowhite
+{
+    BACKGROUND-COLOR: white;
+    TEXT-INDENT: 5px;
+    BACKGROUND-REPEAT: repeat-x;
+    FONT-FAMILY: arial, verdana;
+    COLOR: #0B3B0B;
+
+}
+
+.tablaestadosceldatitulowhite1
+{
+     BACKGROUND-COLOR: #848484;
+     FONT-FAMILY: arial, verdana;
+     COLOR: white;
+     FONT-SIZE: 11px;
+
+	border-top : 1.5px ridge #BDBDBD;
+	border-left : 1.5px ridge #BDBDBD;
+	border-bottom: 1.5px ridge #BDBDBD;
+	border-right: 1.5px ridge #BDBDBD;
+}
+
+.tablaestadosceldatitulowhite1Sup
+{
+     BACKGROUND-COLOR: #D8D8D8;
+     FONT-FAMILY: arial, verdana;
+     COLOR: white;
+     FONT-SIZE: 12px;
+
+	border-top : none;
+	border-left : none;
+	border-bottom: 1.5px ridge #BDBDBD;
+	border-right: none;
+}
+
+
+.tablaestadosceldatitulowhite2
+{
+     BACKGROUND-COLOR: white;
+     FONT-FAMILY: arial, verdana;
+     COLOR: #084B8A;
+     FONT-SIZE: 11px;
+
+	border-top : 1px ridge #BDBDBD;
+	border-left : 1px ridge #BDBDBD;
+	border-bottom: 1px ridge #BDBDBD;
+	border-right: 1px ridge #BDBDBD;
+
+}
+
+.tablaestadosceldatitulowhite2yy
+{
+     BACKGROUND-COLOR: white;
+     FONT-FAMILY: arial, verdana;
+     COLOR: #610B0B;
+     FONT-SIZE: 11px;
+
+	border-top : 1px ridge #BDBDBD;
+	border-left : 1px ridge #BDBDBD;
+	border-bottom: 1px ridge #BDBDBD;
+	border-right: 1px ridge #BDBDBD;
+
+}
+
+.tablaestadosceldatitulowhite2xx
+{
+     BACKGROUND-COLOR: white;
+     FONT-FAMILY: arial, verdana;
+     COLOR: #DBA901;
+     FONT-SIZE: 11px;
+
+	border-top : 1px ridge #BDBDBD;
+	border-left : 1px ridge #BDBDBD;
+	border-bottom: 1px ridge #BDBDBD;
+	border-right: 1px ridge #BDBDBD;
+
+}
+
+.tablaestadosceldatitulowhite2Red
+{
+     BACKGROUND-COLOR: white;
+     FONT-FAMILY: arial, verdana;
+     COLOR: red;
+     FONT-SIZE: 11px;
+
+	border-top : 1px ridge #BDBDBD;
+	border-left : 1px ridge #BDBDBD;
+	border-bottom: 1px ridge #BDBDBD;
+	border-right: 1px ridge #BDBDBD;
+
+}
+
+.tablaestadosceldatitulowhite2Green
+{
+     BACKGROUND-COLOR: white;
+     FONT-FAMILY: arial, verdana;
+     COLOR: green;
+     FONT-SIZE: 11px;
+
+	border-top : 1px ridge #BDBDBD;
+	border-left : 1px ridge #BDBDBD;
+	border-bottom: 1px ridge #BDBDBD;
+	border-right: 1px ridge #BDBDBD;
+
+}
+
+.tablaestadosceldatitulowhite2Blue
+{
+     BACKGROUND-COLOR: white;
+     FONT-FAMILY: arial, verdana;
+     COLOR: #173B0B;
+     FONT-SIZE: 11px;
+
+	border-top : 1px ridge #BDBDBD;
+	border-left : 1px ridge #BDBDBD;
+	border-bottom: 1px ridge #BDBDBD;
+	border-right: 1px ridge #BDBDBD;
+
+}
+
+
+.tablaestadosceldatitulowhite3
+{
+     BACKGROUND-COLOR: #BDBDBD;
+     FONT-FAMILY: arial, verdana;
+     COLOR: #2E2E2E;
+     FONT-SIZE: 11px;
+}
+
+
+.tablaestadosceldatitulowhite4
+{
+     BACKGROUND-COLOR: #0080FF;
+     FONT-FAMILY: arial, verdana;
+     COLOR: white;
+     FONT-SIZE: 12px;
+}
+
+.tablaestadosceldatitulowhite4R
+{
+     BACKGROUND-COLOR: #D8D8D8;
+     FONT-FAMILY: arial, verdana;
+     COLOR: red;
+     FONT-SIZE: 11px;
+}
+
+.tablaestadosceldatitulowhite4V
+{
+     BACKGROUND-COLOR: #D8D8D8;
+     FONT-FAMILY: arial, verdana;
+     COLOR: green;
+     FONT-SIZE: 11px;
+}
+
+
+.tablaestadosceldatitulowhite4Y
+{
+     BACKGROUND-COLOR: #D8D8D8;
+     FONT-FAMILY: arial, verdana;
+     COLOR: #8A4B08;
+     FONT-SIZE: 11px;
+}
+
+
+.tablaestadosceldatitulolitle
+{
+    BACKGROUND-COLOR: white;
+    TEXT-INDENT: 5px;
+    BACKGROUND-REPEAT: repeat-x;
+    FONT-FAMILY: arial, verdana;
+    COLOR: #424242;
+    FONT-SIZE: 11px;
+}
+
+IMG
+{
+    BORDER-BOTTOM: 0px;
+    BORDER-LEFT: 0px;
+    BORDER-TOP: 0px;
+    BORDER-RIGHT: 0px
+}
+A:link
+{
+    BORDER-BOTTOM: #395a82;
+    BORDER-LEFT: #395a82;
+    BACKGROUND-COLOR: transparent;
+    COLOR: #15314c;
+    BORDER-TOP: #395a82;
+    BORDER-RIGHT: #395a82;
+    TEXT-DECORATION: none
+}
+A:visited
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #15314c;
+    TEXT-DECORATION: none
+}
+A:active
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #008800;
+    TEXT-DECORATION: none
+}
+A:hover
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #0000ff;
+    TEXT-DECORATION: none
+}
+
+.invisible{VISIBILITY: hidden}
+
+.tablabordesGreenNo
+{
+	border-top : none;
+	border-left : 2px ridge #424242;
+	border-bottom: 1px ridge #424242;
+	border-right: 2px ridge #424242;
+}
+
+.tablaestadosceldatitulowhite1Big
+{
+     BACKGROUND-COLOR: #848484;
+     FONT-FAMILY: Times, arial, verdana;
+     COLOR: white;
+     FONT-SIZE: 16px;
+}
+
+.tablaestadosceldatitulowhite1SemiBig
+{
+    BACKGROUND-COLOR: white;
+    TEXT-INDENT: 5px;
+    BACKGROUND-REPEAT: repeat-x;
+    FONT-FAMILY: Times, arial, verdana;
+    COLOR: #424242;
+    FONT-SIZE: 14px;
+}
+
+
+.invisible2{DISPLAY: none;}
+
+
+.tablaestadosceldatitulowhite22
+{
+    BACKGROUND-COLOR: white;
+    FONT-FAMILY: arial, verdana;
+    COLOR: #084B8A;
+    FONT-SIZE: 11px;
+	border-top : 1px ridge #58ACFA;
+	border-left : 1px ridge #58ACFA;
+	border-bottom: 1px ridge #58ACFA;
+	border-right: 1px ridge #58ACFA;
+}

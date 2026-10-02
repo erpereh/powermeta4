@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file.FileUploadResult",function(d,a,c){c.exports=function b(g,e,f){this.bytesSent=g;this.responseCode=e;this.response=f}});

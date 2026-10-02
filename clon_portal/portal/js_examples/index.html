@@ -1,0 +1,236 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>meta4data basic</title>
+
+		<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+		
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+		
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!--eugeniom
+		##M4JSAuthorize(SRCO_PORTAL_PARAMS,SRCO_PORTAL_PARAMS,LOAD_PARAMS)##
+		##M4JSAuthorize(EXJSAPI_COMPONENT,EXJSAPI_TUTORIAL,LOAD_BLK)##
+		-->
+		<!--##M4JSFunctionalGroupId(SRTC_JSAPI_EXAMPLES)##-->
+		<script>
+			// the security token
+			var secToken = "##M4JSSecToken##";
+		</script>
+		<script>
+			
+			
+			
+			function checkSession(){			
+				return true;//Cookie.read('JSESSIONID')!=null;
+			}
+						
+			function getURLParameter(name) {
+				return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+			}
+			
+			var meta4= meta4 || {};
+			meta4.portal= meta4.portal || {};
+			
+			meta4.portal.IFrame = function() {
+
+			var _iframe = null;
+
+				function init(iframe) {
+					 _iframe = $(iframe);
+
+					 window.addEventListener("hashchange", function(hash) {
+							//that._iframe.src = hash.newURL;
+							navigateIframe(window.location.hash.substring(1, window.location.hash.length));
+					 }, false);
+
+					 window.addEvent('domready', function() {
+							$(document.body).addEvent('click:relay(.clickable)', function(e) {
+								   var href = this.get('href');
+								   document.title = this.outerText;
+								   e.preventDefault();
+								   window.location.hash = href;
+							});
+					 });					 
+				}
+
+			   function navigateIframe(url) {
+					var session = checkSession();
+					if(!session){
+						_iframe.src = "/js_examples/login.html";
+					}else{
+						_iframe.src = url;						
+						document.getElementById('showhidebutton').innerHTML = "Hide Console";
+						hidden = false;
+					}
+			   }
+			   
+			   return {
+					 init : init,
+					 navigateIframe : navigateIframe
+			   };
+			}();
+			
+			window.addEvent('domready', function() {				
+			
+				if(getURLParameter('showHidden')=='show'){
+					$$('h2.menuhidden').forEach(function(entry){
+						entry.removeClass("menuhidden");
+					});
+				}
+				
+				meta4.portal.IFrame.init('container');
+				var desturl = window.location.hash.substring(1, window.location.hash.length);
+				if(desturl==""){
+					meta4.portal.IFrame.navigateIframe('/js_examples/home.html');
+				}else{
+					meta4.portal.IFrame.navigateIframe(window.location.hash.substring(1, window.location.hash.length));
+				}
+				new Fx.Accordion($('accordion'), '#accordion h2', '#accordion .content',{
+						display: -1,
+						alwaysHide:true
+					});
+			});
+							
+			var meta4Iframe = null;
+			var hidden = false;
+			
+			//function which will show or hide the console when the "show/hide console" button is pressed
+			function hidebutton(){
+				
+				meta4Iframe = frames['container'].meta4 || frames['container'].contentWindow.meta4;
+				
+				if(meta4Iframe.widget.console){
+					if(hidden){
+						meta4Iframe.widget.console.showConsole();
+						document.getElementById('showhidebutton').innerHTML = "Hide Console";
+						hidden = false;
+					}else{
+						meta4Iframe.widget.console.hideConsole();
+						document.getElementById('showhidebutton').innerHTML = "Show Console";
+						hidden = true;
+					}
+				}
+			}
+			
+			//function which will verify if the loaded example has a console widget within it. If there is a console i will make
+			//"show/hide button" visible. If not, such button will be hidden.
+			function verifyConsole(){
+				//document.body.visibility="hidden";
+					
+					if(frames['container'].meta4){
+						meta4Iframe = frames['container'].meta4;
+					}else if(frames['container'].contentWindow){
+						meta4Iframe = frames['container'].meta4;
+					}else{
+						document.getElementById('showhidebutton').className="noconsole";
+						return;
+					}
+					
+					meta4Iframe = frames['container'].meta4 || frames['container'].contentWindow.meta4;
+					if(meta4Iframe){
+						if(meta4Iframe.widget.console){
+							document.getElementById('showhidebutton').className="";
+						
+						}else{
+							document.getElementById('showhidebutton').className="noconsole";				
+						}
+					}else{
+							document.getElementById('showhidebutton').className="noconsole";						
+					}
+			}
+			//function which will switch the left menu visibility when user wants to use it by pressing the button "menu"
+			function showmenu(){
+				if(document.getElementById('leftmenu').className=="deployed"){	
+					document.getElementById('leftmenu').className="";									
+				}else{
+					document.getElementById('leftmenu').className="deployed";
+				}					
+			}
+				
+				
+				
+			function initTranslation() {
+							
+				function loadlanguage(){
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_global'], loadlanguage);				
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+				
+					
+		</script>
+
+	</head>
+
+	<body>
+		<div id="examplesheader">
+				<button id="showmenu" type="button" onclick="showmenu();">menu</button>
+			<h2 class="clickable" href="/js_examples/home.html" data-m4trans="_m4jsapiIndexMainTitle"></h2>
+		</div>
+		<div id="examplesbody">
+			<div id="leftmenu">
+				<div id="accordion">	
+					<h2 href="/js_examples/home.html" class="clickable">Home</h2>
+						<div class="content">
+						</div>										
+					<h2>M4JSAPI</h2>
+						<div class="content">
+							<p class="clickable" href="/js_examples/m4jsapitutorial.html">Tutorial</p>
+							<p class="clickable" href="/js_examples/apidoc.html">API</p>
+							<p class="clickable" href="/js_examples/events.html">Events</p>
+						</div>
+					<h2 class="menuhidden">Data</h2>
+						<div class="content">
+							<p class="clickable" href="/js_examples/meta4data/basic.html">Basic</p>
+							<p class="clickable" href="/js_examples/meta4data/context.html">Context</p>
+							<p class="clickable" href="/js_examples/meta4data/session.html">Session</p>
+							<p class="clickable" href="/js_examples/meta4data/utils.html">Utils</p>
+						</div>
+					<h2 class="menuhidden">Widgets</h2>  
+						<div class="content">
+							<p class="clickable" href="/js_examples/meta4widgets/binding.html">Binding</p>
+							<p class="clickable" href="/js_examples/meta4widgets/blind.html">Blind</p>
+							<p class="clickable" href="/js_examples/meta4widgets/button.html">Button</p>
+							<p class="clickable" href="/js_examples/meta4widgets/console.html">Console</p>
+							<p class="clickable" href="/js_examples/meta4widgets/createelements.html">Create Elements</p>
+							<p class="clickable" href="/js_examples/meta4widgets/form.html">Form</p>
+							<p class="clickable" href="/js_examples/meta4widgets/loading.html">Loading</p>
+							<p class="clickable" href="/js_examples/meta4widgets/log.html">Log</p>
+							<p class="clickable" href="/js_examples/meta4widgets/progressbar.html">Progress Bar</p>
+							<p class="clickable" href="/js_examples/meta4widgets/radiobutton.html">Radio Button</p>
+							<p class="clickable" href="/js_examples/meta4widgets/select.html">Select</p>
+							<p class="clickable" href="/js_examples/meta4widgets/table.html">Table</p>
+							<p class="clickable" href="/js_examples/meta4widgets/titlebar.html">Title Bar</p>
+							<p class="clickable" href="/js_examples/meta4widgets/translate.html">Translate</p>
+							<p class="clickable" href="/js_examples/meta4widgets/uploadfile.html">Upload File</p>
+							<p class="clickable" href="/js_examples/meta4widgets/utils.html">Utils</p>
+						</div>
+				</div>
+				<button id="showhidebutton" type="button" onclick="hidebutton();">Hide Console</button>
+			</div>
+			<div id='exampleContainerFrame'>				
+				<iframe id="container" src="home.html" frameborder="0" onload="verifyConsole();"></iframe>
+			</div>
+			
+		</div>
+	</body>
+</html>

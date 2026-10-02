@@ -1,0 +1,274 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>meta4.widget.blind</title>
+
+		<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+					
+		<!-- syntax highlighter -->
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+		
+		
+		<!-- load example -->
+        <script type="text/javascript" src="/js_examples/resources/m4loadExample.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+		
+		<script>
+			SyntaxHighlighter.all();
+		</script>
+
+		<style type="text/css">
+			.option1 {
+				background-color: #8eb53e;
+				height: 70px;
+			}
+			.option2 {
+				background-color: #ce9f02;
+				height: 70px;
+			}
+			.option3 {
+				background-color: #f05044;
+				height: 70px;
+			}
+
+			.rect1 {
+				background-color: #8eb53e;
+				height: auto;
+				font-family: Helvetica;
+				color: #ffffff;
+				font-size: 12px;
+			}
+			.rect2 {
+				background-color: #ce9f02;
+				height: auto;
+				font-family: Helvetica;
+				color: #ffffff;  
+			}
+			.rect3 {
+				background-color: #f05044;
+				height: auto;
+				font-family: Helvetica;
+				color: #ffffff;
+			}
+			.customizebig {
+				color: white;
+				border-bottom: 1px solid #f6f6f6; 
+			}
+			.customizesmall {
+				color: white;
+				background: grey;
+				height: 50px;
+				border-bottom: 1px solid #f6f6f6; 
+			}
+		</style>
+
+		<script>
+		
+			//@ sourceURL=blindexample.html
+			
+			var channelId = 'EXJSAPI_COMPONENT';
+			var nodeId = 'EXJSAPI_WIDGET_FORM';
+			var nodeAuxId = 'EXJSAPI_WIDGET_FORM_AUX';
+			var blind;
+			var channel;
+
+			function loadAndCreateChannel() {
+				
+				initTranslation();
+				
+				
+				
+				/**
+				 *Function callback of load metadata
+				 */
+				function createChannel() {
+
+					channel = new meta4.M4Object(channelId);
+					var request = new meta4.M4Request(channel, nodeAuxId, 'LOAD_BLK', null);
+					meta4.data.execute(request, exampleExecute);
+
+				}
+
+				//load metadata
+				meta4.data.loadMetadata([channelId], createChannel);
+			}
+
+			function viewmessage1() {
+				alert('pulsado');
+			}
+			function viewmessage2() {
+				alert('Esto es una propiedad');
+			}
+			function viewmessage3() {
+				alert('Esto es un método');
+			}
+
+			function exampleExecute() {
+
+				var options = {
+					'panel' : 'rectcontainer',
+					'class': 'customizebig',
+					'onSort':function(object){
+						alert('lista reordenada');
+					},
+					'onChangeVisibility':function(object){
+						alert('visibilidad cambiada');
+					},
+					'floating': true,
+					'rows' : [{
+						'nodeId' : 'EXJSAPI_WIDGET_LIST1',
+						'icon' : '/iconos/evaluating.png',
+						'class' : 'option1',
+						'panel' : 'rect1',
+						'onclick' : viewmessage1,
+						'submenu' : {
+							'class': '',
+							'rows' : [{
+								'item' : 'EXJSAPI_WIDGET_LIST1_ITEM1',
+								'icon' : '/iconos/addcomment.png',
+								'class' : 'customizesmall',
+								'onclick' : viewmessage2
+								}, {
+								'item' : 'EXJSAPI_WIDGET_LIST1_ITEM2',
+								'icon' : '/iconos/plus.png',
+								'class' : 'customizesmall',
+								'onclick' : viewmessage3
+								}]
+						}
+					}, {
+						'nodeId' : 'EXJSAPI_WIDGET_LIST2',
+						'icon' : '/iconos/follow_up.png',
+						'class' : 'option2',
+						'onclick' : viewmessage1,
+						'panel' : 'rect2'
+					}, {
+						'nodeId' : 'EXJSAPI_WIDGET_LIST3',
+						'icon' : '/iconos/edit.png',
+						'class' : 'option3',
+						'onclick' : viewmessage1,
+						'panel' : 'rect3'
+					}]
+				};
+
+				blind = new meta4.widget.blind(channel, options);
+				blind.open();
+								
+			}
+			document.addEvent('meta4Ready', loadAndCreateChannel);
+			
+			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+			
+			
+		</script>
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+		<h1 data-m4trans="_WidgetsBlindTitle"></h1>
+		
+		<h2 data-m4trans="_WidgetsBlindSubtitle"></h2>
+		<p data-m4trans="_WidgetsBlindDescription"></p>
+		
+		<ul>
+			<li><b>panel: </b><span data-m4trans="_WidgetsBlindListElement1"> </span>
+			</li>
+			<li><b>class: </b><span data-m4trans="_WidgetsBlindListElement2"></span>
+			</li>
+			<li><b>floating: </b><span data-m4trans="_WidgetsBlindListElement3"></span>
+			</li>
+			<li><b>rows: </b><span data-m4trans="_WidgetsBlindListElement4"></span>
+				<ul>
+					<li><b>nodeId: </b><span data-m4trans="_WidgetsBlindListElement5"></span>
+					</li>
+					<li><b>icon: </b><span data-m4trans="_WidgetsBlindListElement6"></span>
+					</li>
+					<li><b>class: </b><span data-m4trans="_WidgetsBlindListElement7"></span>
+					</li>
+					<li><b>submenu: </b><span data-m4trans="_WidgetsBlindListElement8"></span>		
+					<ul>
+							<li><b>item: </b><span data-m4trans="_WidgetsBlindListElement9"></span>
+							</li>
+							<li><b>icon: </b><span data-m4trans="_WidgetsBlindListElement10"></span>
+							</li>
+							<li><b>onclick: </b><span data-m4trans="_WidgetsBlindListElement11"></span>
+							</li>
+							<li><b>class: </b><span data-m4trans="_WidgetsBlindListElement12"></span>
+							</li>
+						</ul>							
+					</li>
+					<li><b>panel: </b><span data-m4trans="_WidgetsBlindListElement13"></span>
+					</li>
+					<li><b>onclick: </b><span data-m4trans="_WidgetsBlindListElement14"></span>
+					</li>
+				</ul>			
+			</li>
+		</ul>
+
+		<h2 data-m4trans="_WidgetsBlindImportFiles"></h2>
+		<pre class="brush: js;">    
+		src="/libreria/mootools.js"
+		src="/libreria/meta4.data.js"    
+		src="/libreria/meta4.widget.js"
+		</pre>		
+		
+ 		<p class="subTitlePage" data-m4trans="_WidgetsBlindExample1"></p>
+
+		<div id='rectcontainer'>
+			<div id='rect1' class='rect1'  data-m4trans="_WidgetsBlindContactInformation">
+				
+			</div>
+			<div id='rect2' class='rect2'  data-m4trans="_WidgetsBlindBankAccounts">
+				
+			</div>
+			<div id='rect3' class='rect3'  data-m4trans="_WidgetsBlindEmergencyContacts">
+				
+			</div>
+		</div>		
+		
+		<p data-m4trans="_WidgetsBlindExecuteExampleText"></p>
+		<button onclick="blind.open();" data-m4trans="_WidgetsBlindExecuteExampleButton">			
+		</button>
+		
+		<p data-m4trans="_WidgetsBlindJSCode"></p>
+		<script>
+			m4loadExample('exampleExecute');
+		</script>        
+	</div>
+	</body>
+</html>

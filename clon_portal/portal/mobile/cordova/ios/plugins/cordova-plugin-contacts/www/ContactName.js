@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-contacts.ContactName",function(d,b,c){var a=function(f,e,g,h,i,j){this.formatted=f||null;this.familyName=e||null;this.givenName=g||null;this.middleName=h||null;this.honorificPrefix=i||null;this.honorificSuffix=j||null};c.exports=a});

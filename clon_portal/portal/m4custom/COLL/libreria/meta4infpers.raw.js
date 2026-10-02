@@ -1,0 +1,553 @@
+//-------------------------------------------------------------------------------------------------
+//Compact with e.g. http://fmarcia.info/jsmin/test.html
+//-------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+//Methods related to show personal data. 
+//Use with mootools.js, meta4ajax.js
+//-------------------------------------------------------------------------------------------------
+
+var meta4InfPers = {};
+
+meta4InfPers.Info = function () {
+
+  var l_sUrlPhoto = '../sse_generico/sgco_mn_photo.jsp';    //load and delete jsp page
+  var l_sUrlInfPers = '../sse_g0/ssco_engine_infpers.jsp';  //load jsp page
+  var l_sPathNoPhoto = '/iconos/lu_anonimus_128.png';       //no photo
+  var l_sPathImgClose = '/iconos/lu_close_1_24.png';        //img close
+  var l_dvBackCon = null;
+  var l_dvPanel = null;
+  var l_imgClose = null;
+  var l_imgPhoto = null;
+  var l_dvData = null;
+  var l_dvMoreData = null;
+  var l_imgCloseMore = null;
+  var l_dvDataName = null;
+  var l_spnName = null;
+  var l_dvDataPhone = null;
+  var l_spnPhone = null;
+  var l_dvDataEmail = null;
+  var l_spnEmail = null;
+  var l_dvDataJob = null;
+  var l_spnJob = null;
+  var l_dvDataWLoc = null;
+  var l_spnWLoc = null;
+  var l_dvDataWUnit = null;
+  var l_spnWUnit = null;
+  var l_dvDataResp = null;
+  var l_spnResp = null;
+
+  var l_sDataType = '';
+  var l_saPhone = new Array;
+  var l_saEmail = new Array;
+  var l_saResp = new Array;
+
+  var l_measure = 'px';
+  
+  function _init(options) {
+    var saParams = new Array;
+
+    if (options) {
+      saParams[0] = ['Action', 'Set'];
+      saParams[1] = ['Path', options.Path];
+      saParams[2] = ['PathURI', options.PathURI];
+      meta4Ajax.ajax.sendSyncJSON(l_sUrlPhoto, saParams);
+    }
+
+    l_dvBackCon = _createElement('div', 'divBackContentInfoPers', 300, null, null);
+
+    l_dvPanel = _createElement('div', 'divPanelInfoPers', 320, null, null);
+
+    l_imgClose = _createElement('img', 'imgPanelCloseInfoPers', 320, null, null);
+    l_imgClose.addEvent('click', function(e) {_hideInfoPers()});
+
+    l_dvMoreData = _createElement('div', 'divMoreDataInfoPers', 340, null, null);
+    l_dvMoreData.visible = false;
+
+    l_imgCloseMore = _createElement('img', 'imgPanelCloseMoreInfoPers', 360, null, null);
+    l_imgCloseMore.addEvent('click', function(e) {_hideMoreInfoPers()});
+    
+    l_imgPhoto = _createElement('img', 'imgInfoPers', 320, 'divPanelInfoPers', null);
+
+    l_dvData = _createElement('div', 'divDataInfoPers', 320, 'divPanelInfoPers', null);
+    l_dvDataName = _createElement('div', 'divDataNameInfoPers', 320, 'divDataInfoPers', null);
+    l_spnName = _createElement('span', 'spanDataNameInfoPers', 320, 'divDataNameInfoPers', null);
+
+    l_dvDataPhone = _createElement('div', 'divDataPhoneInfoPers', 320, 'divDataInfoPers', null);
+    l_spnPhone = _createElement('span', 'spanDataPhoneInfoPers', 320, 'divDataPhoneInfoPers', null);
+
+    l_dvDataEmail = _createElement('div', 'divDataEmailInfoPers', 320, 'divDataInfoPers', null);
+    l_spnEmail = _createElement('span', 'spanDataEmailInfoPers', 320, 'divDataEmailInfoPers', null);
+
+    l_dvDataJob = _createElement('div', 'divDataJobInfoPers', 320, 'divDataInfoPers', null);
+    l_spnJob = _createElement('span', 'spanDataJobInfoPers', 320, 'divDataJobInfoPers', null);
+
+    l_dvDataWLoc = _createElement('div', 'divDataWLocInfoPers', 320, 'divDataInfoPers', null);
+    l_spnWLoc = _createElement('span', 'spanDataWLocInfoPers', 320, 'divDataWLocInfoPers', null);
+
+    l_dvDataWLocA = _createElement('div', 'divDataWLocAInfoPers', 320, 'divDataInfoPers', null);
+    l_spnWLocA = _createElement('span', 'spanDataWLocAInfoPers', 320, 'divDataWLocAInfoPers', null);
+
+    l_dvDataWUnit = _createElement('div', 'divDataWUnitInfoPers', 320, 'divDataInfoPers', null);
+    l_spnWUnit = _createElement('span', 'spanDataWUnitInfoPers', 320, 'divDataWUnitInfoPers', null);
+
+    l_dvDataResp = _createElement('div', 'divDataRespInfoPers', 320, 'divDataInfoPers', null);
+    l_spnResp = _createElement('span', 'spanDataResptInfoPers', 320, 'divDataRespInfoPers', null);
+  }
+  
+  function _show(sIdHR) {
+    var objStyle = l_dvBackCon.style;
+
+    objStyle.position = 'absolute';
+    objStyle.width = '100%';
+    objStyle.height = '100%';
+    l_dvBackCon.Transition.start({
+     'backgroundColor': '#000',
+     'opacity': 0.4
+    }).chain(
+      function() {
+        var objStyle = l_dvPanel.style;
+        var lTop = (l_dvBackCon.offsetHeight/2) - 110;
+        if (lTop < 17) {lTop = 17;}
+        objStyle.position = 'absolute';
+        objStyle.border = '';
+        objStyle.top = _toSize(lTop);
+        objStyle.left = _toSize((l_dvBackCon.offsetWidth/2) - 210);
+        objStyle.height = _toSize(210);
+        objStyle.width = _toSize(410);
+        l_dvPanel.Transition.start({
+         'border': ['0px solid #000','5px solid #fff'],
+         'backgroundColor': '#f1f1f1',
+         'opacity': 1
+        }).chain(
+          function() {
+            _getData(sIdHR);
+          }
+        );
+      }
+    );
+  }
+  
+  function _getData(sIdHR) {
+    var saParams = new Array;
+    var sPath = l_sPathNoPhoto;
+    var sFormatLine = '';
+    var objResponse = null;
+    var sPlusData = '';
+
+    l_imgClose.style.position = 'absolute';
+    l_imgClose.style.width = _toSize(24);
+    l_imgClose.style.height = _toSize(24);
+    l_imgClose.style.cursor = 'pointer';
+    l_imgClose.style.top = _toSize(l_dvPanel.offsetTop - 10);
+    l_imgClose.style.left = _toSize(l_dvPanel.offsetLeft + l_dvPanel.offsetWidth - 15);
+    l_imgClose.src = l_sPathImgClose;
+    l_imgClose.setOpacity(1);
+    
+    l_saPhone.erase();
+    l_saEmail.erase();
+    l_saResp.erase();
+    saParams.erase();
+    saParams[0] = ['IdHR', sIdHR];
+    meta4Ajax.ajax.sendSyncJSON(l_sUrlInfPers, saParams);  //load Sync Personal Information using Ajax
+    objResponse = meta4Ajax.ajax.getResponseJSON();
+    
+    if (objResponse) {
+      l_dvDataName.style.width = _toSize(280);
+      l_dvDataName.style.height = _toSize(28);
+      l_dvDataName.setOpacity(1);
+
+      sFormatLine = "sLiteral <br><span title='sName' style='margin:0px 0px 0px 10px;font-size:12px;color:#235298'>sShortName</span>";
+      sFormatLine = sFormatLine.replace(/sLiteral/g,objResponse.sLabelName);
+      objNames = _shortName(objResponse.sName);
+      sFormatLine = sFormatLine.replace(/sShortName/g,objNames.ShortName);
+      sFormatLine = sFormatLine.replace(/sName/g,objNames.Name);
+      l_spnName.innerHTML = sFormatLine;
+      l_spnName.style.width = _toSize(280);
+      l_spnName.setOpacity(1);
+
+      l_dvDataPhone.style.width = _toSize(280);
+      l_dvDataPhone.style.height = _toSize(28);
+      l_dvDataPhone.setOpacity(1);
+
+      sFormatLine = "<div><div style='float:left'>sLiteral sPlusData<br>sLinePhone";
+      if (objResponse.saPhone.length > 1) {
+        sPlusData = "<span data='phone' titledata='sLiteral' onclick='meta4InfPers.Info.showMoreData(this)' title='sLabelMorePhone' style='cursor:pointer;color:#bb5298;font-weight:bold'>(+)</span>";
+        sPlusData = sPlusData.replace(/sLabelMorePhone/g,objResponse.sLabelMorePhone);
+      } else {
+        sPlusData = '';
+      }
+      sFormatLine = sFormatLine.replace(/sPlusData/g,sPlusData);
+      sFormatLine = sFormatLine.replace(/sLiteral/g,objResponse.sLabelPhone);
+      if (objResponse.saPhone.length > 0) {
+        sPlusPhone = "<img style='float:left;margin:0px 0px 0px 10px; width:20px; height:20px;' src='" + objResponse.saPhone[0][1] + "' title='" + objResponse.saPhone[0][2] + "'>" + "<span title='' style='display:inline-block;margin:3px 0px 0px 3px;font-size:12px;color:#235298'>sPhone</span></div>";
+        sFormatLine = sFormatLine.replace(/sLinePhone/g,sPlusPhone);
+        l_saPhone = $A(objResponse.saPhone);
+        sFormatLine = sFormatLine.replace(/sPhone/g,objResponse.saPhone[0][0]);
+      } else {
+        sFormatLine = sFormatLine.replace(/sLinePhone/g,'<span></span>');
+      }
+      l_spnPhone.innerHTML = sFormatLine + '</div>';
+      l_spnPhone.style.width = _toSize(280);
+      l_spnPhone.setOpacity(1);
+
+      l_dvDataEmail.style.width = _toSize(280);
+      l_dvDataEmail.style.height = _toSize(28);
+      l_dvDataEmail.style.clear = 'both';
+      l_dvDataEmail.setOpacity(1);
+
+      sFormatLine = "sLiteral sPlusData<br><a href='mailto:sToEmail' style='text-decoration:none;'><span title='sEmail' style='margin:0px 0px 0px 10px;font-size:12px;color:#235298'>sShortName</span></a>";
+      if (objResponse.saEmail.length > 1) {
+        sPlusData = "<span data='email' titledata='sLiteral' onclick='meta4InfPers.Info.showMoreData(this)' title='sLabelMoreEmail' style='cursor:pointer;color:#bb5298;font-weight:bold'>(+)</span>";
+        sPlusData = sPlusData.replace(/sLabelMoreEmail/g,objResponse.sLabelMoreEmail);
+      } else {
+        sPlusData = '';
+      }
+      sFormatLine = sFormatLine.replace(/sPlusData/g,sPlusData);
+      sFormatLine = sFormatLine.replace(/sLiteral/g,objResponse.sLabelEmail);
+      if (objResponse.saEmail.length > 0) {
+        l_saEmail = $A(objResponse.saEmail);
+        objNames = _shortName(objResponse.saEmail[0]);
+        sFormatLine = sFormatLine.replace(/sShortName/g,objNames.ShortName);
+        sFormatLine = sFormatLine.replace(/sEmail/g,objNames.Name);
+        sFormatLine = sFormatLine.replace(/sToEmail/g,objResponse.saEmail[0]);
+      } else {
+        sFormatLine = sFormatLine.replace(/sShortName/g,'');
+      }
+      l_spnEmail.innerHTML = sFormatLine;
+      l_spnEmail.style.width = _toSize(280);
+      l_spnEmail.setOpacity(1);
+
+      l_dvDataJob.style.width = _toSize(280);
+      l_dvDataJob.style.height = _toSize(28);
+      l_dvDataJob.setOpacity(1);
+
+      sFormatLine = "sLiteral <br><span title='sJob' style='margin:0px 0px 0px 10px;font-size:12px;color:#235298'>sShortName</span>";
+      sFormatLine = sFormatLine.replace(/sLiteral/g,objResponse.sLabelJob);
+      if (objResponse.saJob.length > 0) {
+        objNames = _shortName(objResponse.saJob[0]);
+        sFormatLine = sFormatLine.replace(/sShortName/g,objNames.ShortName);
+        sFormatLine = sFormatLine.replace(/sJob/g,objNames.Name);
+      }
+      else {sFormatLine = sFormatLine.replace(/sShortName/g,'');}
+      l_spnJob.innerHTML = sFormatLine;
+      l_spnJob.style.width = _toSize(280);
+      l_spnJob.setOpacity(1);
+
+      l_dvDataWLoc.style.width = _toSize(280);
+      l_dvDataWLoc.style.height = _toSize(28);
+      l_dvDataWLoc.setOpacity(1);
+
+      sFormatLine = "sLiteral <br><span title='sWLoc' style='margin:0px 0px 0px 10px;font-size:12px;color:#235298'>sShortName</span>";
+      sFormatLine = sFormatLine.replace(/sLiteral/g,objResponse.sLabelWLoc);
+      objNames = _shortName(objResponse.sWLoc);
+      sFormatLine = sFormatLine.replace(/sShortName/g,objNames.ShortName);
+      sFormatLine = sFormatLine.replace(/sWLoc/g,objNames.Name);
+      l_spnWLoc.innerHTML = sFormatLine;
+      l_spnWLoc.style.width = _toSize(280);
+      l_spnWLoc.setOpacity(1);
+
+      l_dvDataWUnit.style.width = _toSize(280);
+      l_dvDataWUnit.style.height = _toSize(28);
+      l_dvDataWUnit.setOpacity(1);
+
+      sFormatLine = "sLiteral <br><span title='sWUnit' style='margin:0px 0px 0px 10px;font-size:12px;color:#235298'>sShortName</span>";
+      sFormatLine = sFormatLine.replace(/sLiteral/g,objResponse.sLabelWUnit);
+      objNames = _shortName(objResponse.sWUnit);
+      sFormatLine = sFormatLine.replace(/sShortName/g,objNames.ShortName);
+      sFormatLine = sFormatLine.replace(/sWUnit/g,objNames.Name);
+      l_spnWUnit.innerHTML = sFormatLine;
+      l_spnWUnit.style.width = _toSize(280);
+      l_spnWUnit.setOpacity(1);
+
+      l_dvDataResp.style.width = _toSize(280);
+      l_dvDataResp.style.height = _toSize(28);
+      l_dvDataResp.setOpacity(1);
+
+      sFormatLine = "sLiteral sPlusData<br><span title='sResp' style='margin:0px 0px 0px 10px;font-size:12px;color:#235298'>sShortName</span>";
+      if (objResponse.saResp.length > 1) {
+        sPlusData = "<span data='responsible' titledata='sLiteral' onclick='meta4InfPers.Info.showMoreData(this)' title='sLabelMoreResp' style='cursor:pointer;color:#bb5298;font-weight:bold'>(+)</span>";
+        sPlusData = sPlusData.replace(/sLabelMoreResp/g,objResponse.sLabelMoreResp);
+      } else {
+        sPlusData = '';
+      }
+      sFormatLine = sFormatLine.replace(/sPlusData/g,sPlusData);
+      sFormatLine = sFormatLine.replace(/sLiteral/g,objResponse.sLabelResp);
+      if (objResponse.saResp.length > 1) {sFormatLine = sFormatLine.replace(/sMore/g,'(+)');}
+      else {sFormatLine = sFormatLine.replace(/sMore/g,'');}
+      if (objResponse.saResp.length > 0) {
+        l_saResp = $A(objResponse.saResp);
+        objNames = _shortName(objResponse.saResp[0]);
+        sFormatLine = sFormatLine.replace(/sShortName/g,objNames.ShortName);
+        sFormatLine = sFormatLine.replace(/sResp/g,objNames.Name);
+      } else {
+        sFormatLine = sFormatLine.replace(/sShortName/g,'');
+      }
+      l_spnResp.innerHTML = sFormatLine;
+      l_spnResp.style.width = _toSize(380);
+      l_spnResp.setOpacity(1);
+    }
+
+    _setFloatStyle(l_dvData.style, 'left');
+    l_dvData.style.fontFamily = 'Verdana,Arial,Helvetica,Sans-Serif';
+    l_dvData.style.fontSize = _toSize(10);
+    l_dvData.style.color = '#8d8f90';
+    l_dvData.style.padding = '2px 2px 2px 2px';
+    l_dvData.style.top = _toSize(5);
+    l_dvData.style.left = _toSize(10);
+    l_dvData.style.width = _toSize(280);
+    l_dvData.style.height = _toSize(194);
+    l_dvData.setOpacity(1);
+
+    saParams[0] = ['Action', 'Load'];
+    saParams[1] = ['IdHR', sIdHR];
+    meta4Ajax.ajax.sendSyncJSON(l_sUrlPhoto, saParams);  //load Sync Photo using Ajax
+    objResponse = meta4Ajax.ajax.getResponseJSON();
+
+    if (objResponse.sPathPhoto != "") {sPath = objResponse.sPathPhoto;}   //show photo into container
+    l_imgPhoto.src = sPath;
+    _setFloatStyle(l_imgPhoto.style, 'right');
+    l_imgPhoto.style.top = _toSize(5);
+    l_imgPhoto.style.margin = '0px 5px 0px 0px';
+    l_imgPhoto.style.width = _toSize(120);
+    l_imgPhoto.style.height = _toSize(120);
+    l_imgPhoto.fade('in');
+  }
+  
+  function _showMoreData(me) {
+    
+    var sInnerHTML = '';
+    var sType = me.getAttribute('data');
+    var sTitle = me.getAttribute('titledata');
+
+    l_sDataType = sType;
+
+    l_dvMoreData.visible = true;
+    l_dvMoreData.style.position = 'absolute';
+    l_dvMoreData.style.border = '1px solid #b1b1b1';
+    l_dvMoreData.style.fontFamily = 'Verdana,Arial,Helvetica,Sans-Serif';
+    l_dvMoreData.style.color = '#07346b';
+    l_dvMoreData.style.fontSize= '11px';
+    l_dvMoreData.style.top = _toSize((l_dvBackCon.offsetHeight/2) - 85);
+    l_dvMoreData.style.left = _toSize((l_dvBackCon.offsetWidth/2) - 140);
+    l_dvMoreData.style.height = _toSize(160);
+    l_dvMoreData.style.width = _toSize(270);
+    l_dvMoreData.Transition.start({
+      'border': ['0px solid #000','5px solid #fff'],
+      'backgroundColor': '#d1d1d1',
+      'opacity': 0.9
+    }).chain(
+      function() {
+        sInnerHTML = "<div style='width:270px;height:15px;background-color:#b7b7b7;text-align:center;vertical-align:middle;font-weight:bold;'><span>sTitle</span></div><div style='margin:5px 5px 2px;overflow:auto;height:130px;'>";
+        sInnerHTML = sInnerHTML.replace(/sTitle/g,sTitle);
+        switch(l_sDataType) {
+          case 'phone':
+            for (var i=0;i<l_saPhone.length;i++) {
+              sInnerHTML = sInnerHTML + "<img style='float:left;margin:0px 5px 0px 0px; width:20px; height:20px;' src='" + l_saPhone[i][1] + "' title='" + l_saPhone[i][2] + "'>" + "<div style='display:inline-block;float:left;margin:3px 0px;width:200px'><span>" + l_saPhone[i][0] + '</span></div>';
+              sInnerHTML = sInnerHTML + "<div style='clear:both'></div>";
+            }
+            break;
+          case 'email':
+            for (var i=0;i<l_saEmail.length;i++) {
+              sInnerHTML = sInnerHTML + "<div><a href='mailto:" + l_saEmail[i] + "' style='color:#07346b;text-decoration:none;'><span>" + l_saEmail[i] + '</span></div>';
+            }
+            break;
+          case 'responsible':
+            for (var i=0;i<l_saResp.length;i++) {
+              sInnerHTML = sInnerHTML + '<div><span>' + l_saResp[i] + '</span></div>';
+            }
+        }
+        l_dvMoreData.innerHTML = sInnerHTML + '</div>';
+
+        l_imgCloseMore.style.position = 'absolute';
+        l_imgCloseMore.style.width = _toSize(24);
+        l_imgCloseMore.style.height = _toSize(24);
+        l_imgCloseMore.style.cursor = 'pointer';
+        l_imgCloseMore.style.top = _toSize(l_dvMoreData.offsetTop - 10);
+        l_imgCloseMore.style.left = _toSize(l_dvMoreData.offsetLeft + l_dvMoreData.offsetWidth - 15);
+        l_imgCloseMore.src = l_sPathImgClose;
+        l_imgCloseMore.setOpacity(1);
+
+      }
+    );
+  }
+  
+  function _hideInfoPers() {
+    //hide info panel
+    
+    if (l_dvMoreData.visible) {
+      _hideMoreInfoPers();
+    }
+
+    l_imgClose.setOpacity(0);
+    l_imgClose.src = '';
+    _resetStyle(l_imgClose.style);
+
+    l_dvPanel.Transition.start({
+      'opacity': 0
+    }).chain(
+      function() {
+       l_imgPhoto.fade('out');
+       l_imgPhoto.src = '';
+       _resetStyle(l_imgPhoto.style);
+       
+       l_spnName.innerHTML = '';
+       l_spnName.setOpacity(0);
+       _resetStyle(l_spnName.style);
+       _resetStyle(l_dvDataName.style);
+
+       l_spnPhone.innerHTML = '';
+       l_spnPhone.setOpacity(0);
+       _resetStyle(l_spnPhone.style);
+       _resetStyle(l_dvDataPhone.style);
+       
+       l_spnEmail.innerHTML = '';
+       l_spnEmail.setOpacity(0);
+       _resetStyle(l_spnEmail.style);
+       _resetStyle(l_dvDataEmail.style);
+
+       l_spnJob.innerHTML = '';
+       l_spnJob.setOpacity(0);
+       _resetStyle(l_spnJob.style);
+       _resetStyle(l_dvDataJob.style);
+
+       l_spnWLoc.innerHTML = '';
+       l_spnWLoc.setOpacity(0);
+       _resetStyle(l_spnWLoc.style);
+       _resetStyle(l_dvDataWLoc.style);
+
+       l_spnWUnit.innerHTML = '';
+       l_spnWUnit.setOpacity(0);
+       _resetStyle(l_spnWUnit.style);
+       _resetStyle(l_dvDataWUnit.style);
+
+       l_spnResp.innerHTML = '';
+       l_spnResp.setOpacity(0);
+       _resetStyle(l_spnResp.style);
+       _resetStyle(l_dvDataResp.style);
+
+       _resetStyle(l_dvData.style);
+       l_dvData.setOpacity(0);
+       _resetStyle(l_dvPanel.style);
+       l_dvBackCon.Transition.start({
+         'opacity': 0
+       }).chain(
+         function() {
+           _resetStyle(l_dvBackCon.style);
+         }
+       );
+      }
+    );
+  }
+
+  function _hideMoreInfoPers() {
+    l_imgCloseMore.setOpacity(0);
+    l_imgCloseMore.src = '';
+    _resetStyle(l_imgCloseMore.style);
+
+    l_dvMoreData.Transition.start({
+      'opacity': 0
+    }).chain(
+      function() {
+        _resetStyle(l_dvMoreData.style);
+        l_dvMoreData.innerHTML = '';
+        l_dvMoreData.visible = false;
+      }
+    );
+  }
+  
+  function _resetStyle(objStyle) {
+    objStyle.top = _toSize(0);
+    objStyle.left = _toSize(0);
+    objStyle.width = _toSize(0);
+    objStyle.height = _toSize(0);
+  }
+  
+  function _setFloatStyle(objStyle, sValue) {
+    if ((typeof objStyle.cssFloat) != 'undefined') {objStyle.cssFloat = sValue;}
+    if ((typeof objStyle.styleFloat) != 'undefined') {objStyle.styleFloat = sValue;}
+  }
+  
+  function _shortName(sName) {
+
+    if (sName.length < 41) {return {'ShortName':sName, 'Name':''};}
+    
+    var sShortName = '';
+    var saName = sName.split(' ');
+    for (var i=0; i<saName.length; i++) {
+      if ((sShortName.length + saName[i].length + 1) < 41) { 
+       sShortName = sShortName + ' ' + saName[i];
+      } else {
+        i = saName.length;
+      }
+    }
+    
+    if (sShortName == '') {sShortName = sShortName.substring(0,37);}
+    sShortName = sShortName.trim() + ' ...'
+
+    return {'ShortName':sShortName, 'Name':sName};
+  }
+
+  function _createElement(sType, sName, iIndex, sParentName, thefntComplete) {     //create element with transition 
+    /* create div: asign classname and minimum properties style */
+    if ($(sName)) {
+      return $(sName);
+    }
+
+    var oEle = null;
+    if (sType == 'file') {
+      oEle = document.createElement('input');
+      oEle.type = 'file';
+    } else {
+      oEle = document.createElement(sType);
+    }
+
+    oEle.hide = true;
+    oEle.id = sName;
+    oEle.className = sName;
+    if (!sParentName) {
+      oEle.style.position = 'absolute';
+    } else {
+      oEle.style.position = 'relative';
+    }
+    oEle.style.top = _toSize(0);
+    oEle.style.left = _toSize(0)
+    oEle.style.width = _toSize(0);
+    oEle.style.height = _toSize(0)
+    oEle.style.zIndex = iIndex;
+    if (!sParentName) {
+      document.body.appendChild(oEle);
+    } else {
+      document.getElementById(sParentName).appendChild(oEle);
+    }
+
+    var oNewObj = $(sName);
+    oNewObj.setOpacity(0);
+    oNewObj.Transition = new Fx.Morph(oNewObj);
+    if (thefntComplete) {
+      oNewObj.Transition.addEvent('complete', thefntComplete);
+    }
+
+    return oNewObj;
+  }
+
+  function _toSize(lSize) {                  //convert any number to specific size with measure
+    return lSize + l_measure;
+  }
+
+  return {
+    
+    init: function(options) {
+      _init(options);
+    },
+    
+    show: function(sIdHR) {
+      _show(sIdHR);
+    },
+    
+    showMoreData: function(sType, sTitle) {
+      _showMoreData(sType, sTitle);
+    }
+
+  }
+} ()

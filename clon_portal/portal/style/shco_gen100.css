@@ -1,0 +1,2047 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: shco_gen100.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+BODY
+{
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff
+}
+IMG
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    BORDER-LEFT: medium none;
+    BORDER-BOTTOM: medium none
+}
+A:link
+{
+    FONT-WEIGHT: normal;
+    COLOR: #0879c6;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+A:visited
+{
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+A:active
+{
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+A:hover
+{
+    COLOR: #990000;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: underline
+}
+TABLE.menu
+{
+    BORDER-TOP: #526d8c 1px solid;
+    PADDING-LEFT: 3px;
+    FONT-SIZE: 70%;
+    PADDING-BOTTOM: 2px;
+    COLOR: #ffffff;
+    PADDING-TOP: 2px;
+    BORDER-BOTTOM: #000000 1px solid;
+    HEIGHT: 18px;
+    BACKGROUND-COLOR: #315173
+}
+.pob1
+{
+    PADDING-RIGHT: 4px;
+    PADDING-LEFT: 4px;
+    FONT-SIZE: 10px
+}
+.bghead
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #325274
+}
+.bghead2
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #1f3b59
+}
+.txthead
+{
+    FONT-SIZE: 75%;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: transparent
+}
+.userborder
+{
+    BORDER-RIGHT: #ffffff 1px solid;
+    BORDER-TOP: #ffffff 1px solid;
+    MARGIN-TOP: 1px;
+    MARGIN-BOTTOM: 1px;
+    BORDER-LEFT: #ffffff 1px solid;
+    BORDER-BOTTOM: #ffffff 1px solid
+}
+.usertxt
+{
+    FONT-SIZE: 75%;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: transparent
+}
+.pob
+{
+    FONT-SIZE: 75%;
+    COLOR: #ffcb08;
+    BACKGROUND-COLOR: transparent
+}
+.date
+{
+    FONT-SIZE: 200%;
+    COLOR: #31699c;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif
+}
+.disab
+{
+    FONT-SIZE: 75%;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: transparent
+}
+.dot
+{
+    FONT-SIZE: 1px
+}
+.path01
+{
+    FONT-SIZE: 75%;
+    COLOR: #738aa5;
+    BORDER-BOTTOM: #721a18 1px solid;
+    BACKGROUND-COLOR: transparent
+}
+.path02
+{
+    FONT-SIZE: 75%;
+    COLOR: #18385a;
+    BACKGROUND-COLOR: transparent
+}
+.disclaimer1
+{
+    BORDER-TOP: #731818 1px solid;
+    BACKGROUND-IMAGE: url(/images/disclaimer.gif);
+    BACKGROUND-REPEAT: no-repeat;
+    HEIGHT: 32px
+}
+.diclaimer2
+{
+    FONT-SIZE: 75%;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #721a18
+}
+.discltxt1
+{
+    FONT-SIZE: 9px;
+    COLOR: #c0c0c0;
+    BACKGROUND-COLOR: transparent
+}
+.discltxt2
+{
+    FONT-SIZE: 9px;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: transparent
+}
+.warning
+{
+    FONT-SIZE: 75%;
+    COLOR: #9c0000;
+    FONT-WEIGHT: bold;
+    VERTICAL-ALIGN: middle;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+}
+TD.actualizartitulo
+{
+    BACKGROUND-COLOR: transparent
+}
+TD.actualizartexto
+{
+    BACKGROUND-COLOR: transparent
+}
+TABLE.titulo
+{
+    FONT-SIZE: 75%;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.legend
+{
+    BORDER-RIGHT: #08516b 1px solid;
+    BORDER-TOP: #08516b 1px solid;
+    FONT-SIZE: 75%;
+    BORDER-LEFT: #08516b 1px solid;
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.legend TD.titulo
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 12px
+}
+TABLE.legend TD.legend
+{
+    FONT-SIZE: 10px
+}
+TABLE.forminfo
+{
+    FONT-SIZE: 75%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ebedee
+}
+TABLE.forminfo TD.campo
+{
+    FONT-WEIGHT: bolder
+}
+TABLE.forminfo TR.titulo
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 100%;
+    COLOR: #ffffff;
+    FONT-FAMILY: Verdana, Arial, 'MS Sans Serif';
+    BACKGROUND-COLOR: #778899;
+    TEXT-ALIGN: left
+}
+TABLE.forminfo INPUT.form
+{
+    FONT-SIZE: 75%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.form
+{
+    BORDER-RIGHT: #08516b 1px solid;
+    BORDER-TOP: #08516b 1px solid;
+    FONT-SIZE: 75%;
+    BORDER-LEFT: #08516b 1px solid;
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.form TR.titulo
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 100%;
+    COLOR: #08516b;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: left
+}
+TABLE.form TD.campo
+{
+    BACKGROUND-COLOR: transparent
+}
+TABLE.form INPUT.form
+{
+    FONT-SIZE: 75%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.form TEXTAREA.form
+{
+    WIDTH: 100%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.form TEXTAREA.disabled
+{
+    WIDTH: 98%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #d5d4d5
+}
+TABLE.form SELECT.selectform20
+{
+    FONT-SIZE: 100%;
+    WIDTH: 20%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.form SELECT.selectform30
+{
+    FONT-SIZE: 100%;
+    WIDTH: 30%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.form SELECT.selectform50
+{
+    FONT-SIZE: 100%;
+    WIDTH: 50%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.form SELECT.selectform75
+{
+    FONT-SIZE: 100%;
+    WIDTH: 75%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.form TR.formfiltro
+{
+    FONT-SIZE: 100%;
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: center
+}
+TABLE.form INPUT.formfiltro
+{
+    FONT-SIZE: 100%;
+    WIDTH: 40%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.form TD.fixedwidth35
+{
+    WIDTH: 35%;
+    TEXT-ALIGN: right
+}
+TABLE.form TD.fixedwidth65
+{
+    WIDTH: 65%;
+    TEXT-ALIGN: left
+}
+TABLE.form TD.td3
+{
+  WIDTH: 3%;
+}
+TABLE.form TD.td6
+{
+  WIDTH: 6%;
+}
+TABLE.form TD.td10
+{
+  WIDTH: 10%;
+}
+TABLE.form TD.td20
+{
+  WIDTH: 20%;
+}
+TABLE.form TD.td22
+{
+  WIDTH: 22%;
+}
+TABLE.form TD.td24
+{
+  WIDTH: 24%;
+}
+TABLE.form TD.td4
+{
+  WIDTH: 4%;
+}
+.fuentenodatos
+{
+    FONT-SIZE: 12px;
+    COLOR: #af7c38;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+TABLE.datos
+{
+    BORDER-RIGHT: #08515b 1px solid;
+    BORDER-TOP: #08515b 1px solid;
+    FONT-SIZE: 68%;
+    BORDER-LEFT: #08515b 1px solid;
+    COLOR: #000000;
+    BORDER-BOTTOM: medium none;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.datos TD.fuentenodatos
+{
+    PADDING-LEFT: 5px;
+    FONT-WEIGHT: bold;
+    VERTICAL-ALIGN: middle;
+    COLOR: #9c0000;
+    PADDING-TOP: 5px;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: left
+}
+TABLE.datos TR.titulo
+{
+    FONT-SIZE: 105%;
+    VERTICAL-ALIGN: middle;
+    COLOR: #ffffff;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    HEIGHT: 19px;
+    BACKGROUND-COLOR: #08516b;
+    TEXT-ALIGN: left
+}
+TABLE.datos TR.valor
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.datos TD.boton
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #dedfe7;
+    TEXT-ALIGN: center
+}
+TABLE.datos TD.boton2
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #efefef;
+    TEXT-ALIGN: center
+}
+TABLE.datos TD.botonx
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ddb619;
+    TEXT-ALIGN: center
+}
+TABLE.datos TD.boton2x
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ddb619;
+    TEXT-ALIGN: center
+}
+TABLE.datos TD.valor
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #dedfe7
+}
+TABLE.datos TD.valor2
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.datos TD.valorx
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ddb619
+}
+TABLE.datos TD.valor2x
+{
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ddb619
+}
+TABLE.datos TD.vdate
+{
+    WIDTH: 14%;
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #dedfe7
+}
+TABLE.datos TD.vdate2
+{
+    WIDTH: 14%;
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.navegacion
+{
+
+BORDER-RIGHT: #e9ebed thin solid;
+    BORDER-RIGHT: #08516b 1px solid;
+    PADDING-RIGHT: 0px;
+    BORDER-TOP: #08516b 1px solid;
+    PADDING-LEFT: 0px;
+    FONT-SIZE: 75%;
+    PADDING-BOTTOM: 0px;
+    BORDER-LEFT: #08516b 1px solid;
+    COLOR: #000000;
+    PADDING-TOP: 0px;
+    BORDER-BOTTOM: #08516b 1px solid;
+    BACKGROUND-COLOR: #dedfe7;
+    TEXT-ALIGN: left
+}
+TABLE.navegacion TD.navegacion
+{
+    PADDING-RIGHT: 0px;
+    PADDING-LEFT: 0px;
+    FONT-SIZE: 75%;
+    PADDING-BOTTOM: 0px;
+    COLOR: #000000;
+    PADDING-TOP: 0px;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    HEIGHT: 19px;
+    BACKGROUND-COLOR: #dedfe7;
+    TEXT-ALIGN: center
+}
+TABLE.navegacion TD.navegacion2
+{
+    PADDING-RIGHT: 0px;
+    PADDING-LEFT: 0px;
+    FONT-SIZE: 75%;
+    PADDING-BOTTOM: 0px;
+    COLOR: #ffffff;
+    PADDING-TOP: 0px;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    HEIGHT: 19px;
+    BACKGROUND-COLOR: #dedfe7;
+    TEXT-ALIGN: center
+}
+TABLE.navegacion TD.navegacion3
+{
+    BORDER-RIGHT: #1b4995 1px solid;
+    BORDER-TOP: #1b4995 1px solid;
+    FONT-WEIGHT: bolder;
+    BORDER-LEFT: #1b4995 1px solid;
+    COLOR: #990000;
+    BORDER-BOTTOM: #1b4995 1px solid;
+    BACKGROUND-COLOR: #dedfe7;
+    TEXT-ALIGN: center
+}
+TABLE.calendario
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 68%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: center
+}
+TABLE.calendario TR.calendario
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 100%;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #1b4995;
+    TEXT-ALIGN: center
+}
+TABLE.calendario TD.hoy
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #990000;
+    BACKGROUND-COLOR: #eff3ff
+}
+TABLE.calendario TD.selectedhoy
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #990000;
+    BACKGROUND-COLOR: #abbcf5
+}
+TABLE.calendario TD.actmonthday
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #eff3ff
+}
+TABLE.calendario TD.nextmonthday
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #f9dfbc
+}
+TABLE.calendario TD.previousmonthday
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #f9dfbb
+}
+TABLE.calendario TD.selectedday
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #abbcf5
+}
+TABLE.calendario A.button
+{
+    BORDER-RIGHT: #000000 1px solid;
+    BORDER-TOP: #000000 1px solid;
+    FONT-WEIGHT: bolder;
+    BORDER-LEFT: #000000 1px solid;
+    WIDTH: 80px;
+    COLOR: #000000;
+    BORDER-BOTTOM: #000000 1px solid;
+    BACKGROUND-COLOR: #eff3ff
+}
+TABLE.path
+{
+    FONT-SIZE: 75%;
+    COLOR: #738aa5;
+    BORDER-BOTTOM: #721a18 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.path TD.date
+{
+    FONT-SIZE: 75%;
+    COLOR: #18385a;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: right
+}
+TABLE.path TD.path
+{
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: left
+}
+TABLE.menusup
+{
+    FONT-SIZE: 68%;
+    COLOR: #ff1493;
+    BACKGROUND-COLOR: #fdcb8c
+}
+TABLE.menusup_prod
+{
+    FONT-SIZE: 68%;
+    COLOR: #738aa5;
+	BORDER-BOTTOM: #31699c 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.menusup_prod TD.menusup_prod
+{
+    TEXT-ALIGN: right
+}
+ 
+TABLE.disclaimer
+{
+    FONT-SIZE: 68%;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.disclaimer TD.disclaimer
+{
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: center
+}
+TABLE.filtro
+{
+    BORDER-RIGHT: #08516b 1px solid;
+    BORDER-TOP: #08516b 1px solid;
+    FONT-SIZE: 75%;
+    BORDER-LEFT: #08516b 1px solid;
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.filtro TR.titulo
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 100%;
+    COLOR: #08516b;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: left
+}
+TABLE.filtro SELECT.select50
+{
+    FONT-SIZE: 100%;
+    WIDTH: 50%;
+    COLOR: #56779a;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.filtro SELECT.select90
+{
+    FONT-SIZE: 100%;
+    WIDTH: 90%;
+    COLOR: #56779a;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.filtro SELECT.select20
+{
+    FONT-SIZE: 100%;
+    WIDTH: 20%;
+    COLOR: #56779a;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.filtro TR.filtro
+{
+    FONT-SIZE: 100%;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: center
+}
+TABLE.filtro INPUT.filtro
+{
+    FONT-SIZE: 100%;
+    WIDTH: 40%;
+    COLOR: #56779a;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.filtro TD.boton
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+TABLE.filtro INPUT.filtro2
+{
+    FONT-SIZE: 100%;
+    WIDTH: 40%;
+    COLOR: #56779a;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.calendario TR.boton
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.calendario TR.filtro
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+TD.menutd
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #1b4995;
+    BACKGROUND-COLOR: #fdcb8c
+}
+TD.menutd2
+{
+    COLOR: #990000;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.barraboton
+{
+    BORDER-RIGHT: #eff3ff thin;
+    BORDER-TOP: #eff3ff thin;
+    FONT-SIZE: 66%;
+    BORDER-LEFT: #eff3ff thin;
+    COLOR: #000000;
+    BORDER-BOTTOM: #eff3ff thin;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.barraboton .boton
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    BORDER-LEFT: medium none;
+    COLOR: #000000;
+    BORDER-BOTTOM: medium none;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+TABLE.form INPUT.disabled
+{
+    FONT-SIZE: 75%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #d5d4d5
+}
+TABLE.form SELECT.form
+{
+}
+TABLE.menu TD.menutitle
+{
+    FONT-WEIGHT: bold;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #315173
+}
+DIV.minuscula
+{
+    FONT-SIZE: 5px;
+    COLOR: #c0c0c0;
+    BACKGROUND-COLOR: transparent
+}
+DIV.capa
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(\images\manos_318_200_mouseover.gif);
+    COLOR: #000000;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.head01
+{    
+    BACKGROUND-IMAGE: url(\images\ic_headmiddle_100.gif);
+    COLOR: #000000;
+    BACKGROUND-COLOR: #304d6c
+}
+TABLE.head02
+{
+    FONT-SIZE: 68%;
+    BACKGROUND-IMAGE: url(\images\ic_headmiddle_100.gif);
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: right
+}
+TABLE.menu TD.menu2
+{
+    FONT-WEIGHT: normal;
+    COLOR: #0879c6;
+    BACKGROUND-COLOR: #ffffff
+}
+DIV#button
+{
+    BORDER-RIGHT: #000000 1px solid;
+    BORDER-TOP: #637d9d 1px solid;
+    BORDER-LEFT: #637d9d 1px solid;
+    WIDTH: 80px;
+    COLOR: #000000;
+    BORDER-BOTTOM: #000000 1px solid;
+    BACKGROUND-COLOR: #afc4db;
+    TEXT-ALIGN: center
+}
+A.button
+{
+    FONT-SIZE: 100%;
+    COLOR: #0879c6;
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: center
+}
+A.button2
+{
+    FONT-SIZE: 100%;
+    COLOR: #ff4500;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.form TD.boton
+{
+    BACKGROUND-COLOR: transparent;
+    TEXT-ALIGN: center
+}
+TABLE.timetable
+{
+    BORDER-RIGHT: #1b4995 1px solid;
+    BORDER-TOP: #1b4995 1px solid;
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 68%;
+    BORDER-LEFT: #1b4995 1px solid;
+    BORDER-BOTTOM: #1b4995 1px solid
+}
+TABLE.timetable TD.am
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #e6e6fa
+}
+TABLE.timetable TD.pm
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #b0c4de
+}
+TABLE.timetable TD.title
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #f0f8ff
+}
+TABLE.timetable TD.titleleft
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #f0f8ff
+}
+TABLE.ficha
+{
+    BORDER-RIGHT: #31699c 1px solid;
+    BORDER-TOP: #31699c 1px solid;
+    BORDER-LEFT: #31699c 1px solid;
+    COLOR: #000000;
+    BORDER-BOTTOM: #31699c 1px solid;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.ficha .inf
+{
+    FONT-STYLE: italic
+}
+TABLE.ficha .infwarning
+{
+    FONT-WEIGHT: normal;
+    FONT-SIZE: 80%;
+    COLOR: #d71111;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.ficha .inf2
+{
+    TEXT-TRANSFORM: capitalize
+}
+TABLE.ficha TD.titulo
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 120%;
+    BORDER-LEFT: medium none;
+    COLOR: #000000;
+    BORDER-BOTTOM: medium none;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif
+}
+TABLE.ficha .titulo2
+{
+    FONT-WEIGHT: lighter;
+    FONT-SIZE: 80%
+}
+TABLE.ficha .titulo3
+{
+    FONT-SIZE: 75%;
+    COLOR: #14304e;
+    FONT-STYLE: normal;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif
+}
+TABLE.ficha TD.report
+{
+    FONT-WEIGHT: lighter;
+    FONT-SIZE: 80%
+}
+TABLE.ficha TABLE.datos
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    FONT-WEIGHT: normal;
+    FONT-SIZE: 100%;
+    BORDER-LEFT: medium none;
+    COLOR: #000000;
+    BORDER-BOTTOM: medium none;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.ficha TABLE.datos TD.valor
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    BORDER-LEFT: medium none;
+    COLOR: #000000;
+    BORDER-BOTTOM: medium none;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.ficha TD.valor
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    FONT-SIZE: 75%;
+    BORDER-LEFT: medium none;
+    COLOR: #14304e;
+    BORDER-BOTTOM: medium none;
+    FONT-STYLE: normal;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif
+}
+TABLE.ficha TABLE.datos TD.valor2
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 75%;
+    BORDER-LEFT: medium none;
+    COLOR: #000000;
+    BORDER-BOTTOM: medium none
+}
+TABLE.ficha TABLE.datos TR.info
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 75%;
+    COLOR: #dc143c;
+    FONT-STYLE: normal;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.ficha TABLE.datos TR.titulo
+{
+    FONT-WEIGHT: bold;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.wizard
+{
+    BORDER-RIGHT: #31699c 1px solid;
+    BORDER-TOP: #31699c 1px solid;
+    BORDER-LEFT: #31699c 1px solid;
+    WIDTH: 95%;
+    COLOR: #000000;
+    BORDER-BOTTOM: #31699c 1px solid;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.wizard TD.titulo
+{
+    FONT-WEIGHT: normal;
+    FONT-SIZE: 80%;
+    COLOR: #ffffff;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    HEIGHT: 25px;
+    BACKGROUND-COLOR: #a52029;
+    TEXT-ALIGN: center
+}
+TABLE.wizard TABLE.subwizard
+{
+    COLOR: #195095;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.wizard TABLE.subwizard TD.wzactivado
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 70%;
+    COLOR: #a52029;
+    BACKGROUND-COLOR: #eff3ff
+}
+TABLE.wizard TABLE.subwizard TD.wzdesactivado
+{
+    FONT-SIZE: 70%;
+    COLOR: #3b5f91;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.wizard TABLE.subwizard TD.wzimage
+{
+    TEXT-ALIGN: center
+}
+TABLE.datos TD.valor3
+{
+    TEXT-ALIGN: right
+}
+TABLE.datos TD.valor4
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #dbe3fb;
+    TEXT-ALIGN: center
+}
+TABLE.datos TD.barra
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    BORDER-LEFT: medium none;
+    COLOR: #000000;
+    BORDER-BOTTOM: medium none;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.datos TD.datos
+{
+    COLOR: #000000;
+    FONT-STYLE: oblique;
+    BACKGROUND-COLOR: #dedfe7
+}
+TABLE.datos TD.label
+{
+    FONT-WEIGHT: bold;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #dadada
+}
+TABLE.datos TD.warning0
+{
+    BORDER-RIGHT: #d71111 1px solid;
+    BORDER-TOP: #d71111 1px solid;
+    FONT-WEIGHT: normal;
+    BORDER-LEFT: #d71111 1px solid;
+    COLOR: #d71111;
+    BORDER-BOTTOM: #d71111 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.datos TD.warning1
+{
+    BORDER-RIGHT: #409632 solid;
+    BORDER-TOP: #409632 solid;
+    FONT-WEIGHT: normal;
+    BORDER-LEFT: #409632 solid;
+    COLOR: #409632;
+    BORDER-BOTTOM: #409632 solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.datos TR.titulo2
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #1f6983
+}
+TABLE.infoficha
+{
+    BORDER-RIGHT: #31699c 1px solid;
+    BORDER-TOP: #31699c 1px solid;
+    FONT-SIZE: 68%;
+    BORDER-LEFT: #31699c 1px solid;
+    COLOR: #000000;
+    BORDER-BOTTOM: #31699c 1px solid;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.infoficha TR.titulo
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 98%;
+    COLOR: #ffffff;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #08516b
+}
+TABLE.infoficha TR.valor
+{
+    FONT-WEIGHT: normal;
+    FONT-SIZE: 98%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.infoficha TR.valor1
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 98%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #8da7c9
+}
+TABLE.datos TH.tituloleft
+{
+    PADDING-RIGHT: 5px;
+    BACKGROUND-IMAGE: url(/images/ic_pagtable_100.gif);
+    COLOR: #ffcb08;
+    BACKGROUND-REPEAT: no-repeat;
+    BACKGROUND-COLOR: #317994;
+    TEXT-ALIGN: right
+}
+H2
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 90%;
+    TEXT-TRANSFORM: uppercase;
+    COLOR: #1f3b59;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif
+}
+TABLE.titlewizard
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    BORDER-LEFT: medium none;
+    WIDTH: 100%;
+    BORDER-BOTTOM: #31699c 1px solid
+}
+TABLE.titlewizard TD.titlewizard
+{
+    FONT-WEIGHT: normal;
+    FONT-SIZE: 90%;
+    TEXT-TRANSFORM: uppercase;
+    COLOR: #31699c;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif
+}
+TABLE.titlewizard TD.infoperson
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 80%;
+    COLOR: #a52029;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif;
+    TEXT-ALIGN: left
+}
+TABLE.cabec
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    BORDER-LEFT: medium none;
+    WIDTH: 100%;
+    BORDER-BOTTOM: medium none
+}
+TABLE.cabec TD.title
+{
+    FONT-WEIGHT: normal;
+    FONT-SIZE: 90%;
+    TEXT-TRANSFORM: uppercase;
+    COLOR: #31699c;
+    PADDING-TOP: 4px;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif
+}
+TABLE.cabec TD.value
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 80%;
+    COLOR: #a52029;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif;
+    TEXT-ALIGN: left
+}
+TABLE.cabec TD.border
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: #31699c 1px solid;
+    BORDER-LEFT: medium none;
+    BORDER-BOTTOM: medium none
+}
+
+TABLE.cabec TD.title2
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 80%;
+    COLOR: #08516b;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: left
+	PADDING-TOP: 4px;
+}
+
+TABLE.cabec TD.description
+{
+    FONT-WEIGHT: normal;
+    FONT-SIZE: 90%;
+    COLOR: #31699c;
+    FONT-FAMILY: Arial,Verdana,Helvetica,Sans-Serif
+}
+TABLE.datos TR.selec
+{
+    FONT-WEIGHT: bolder;
+    BACKGROUND-COLOR: #faebd7
+}
+TABLE.summary
+{
+    BORDER-RIGHT: #08516b 1px solid;
+    BORDER-TOP: #08516b 1px solid;
+    BORDER-LEFT: #08516b 1px solid;
+    BORDER-BOTTOM: #08516b 1px solid;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.summary TR.summary
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 80%;
+    COLOR: #1f3b59;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    TEXT-ALIGN: left
+}
+TABLE.summary TD.titulo
+{
+    FONT-WEIGHT: normal;
+    FONT-SIZE: 75%;
+    COLOR: #1f3b59;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    TEXT-ALIGN: left
+}
+TABLE.otherpages
+{
+    FONT-SIZE: 75%
+}
+TABLE.otherpages LI
+{
+    COLOR: #1f3b59
+}
+TABLE.menu A
+{
+    COLOR: #ffffff
+}
+TABLE.menu A:visited
+{
+    COLOR: #ffffff
+}
+TABLE.menu A:hover
+{
+    COLOR: #ffffff
+}
+TABLE.form TD.camp2
+{
+    FONT-SIZE: 133%
+}
+TABLE.dual
+{
+    FONT-SIZE: 68%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.dual TR.valor
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 105%;
+    COLOR: #000000;
+    BORDER-BOTTOM: #08516b 1px solid;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+TABLE.dual TD.boton
+{
+    FONT-WEIGHT: bold;
+    WIDTH: 20%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+TABLE.dual TD.valor4
+{
+    COLOR: #000000;
+    FONT-FAMILY: Verdana, Arial, Helvetica, Sans-Serif;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+TABLE.dual TD.label
+{
+    FONT-WEIGHT: bold;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.dual TD.label2
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 120%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.dual TD.valor4 SELECT.duallist
+{
+    FONT-SIZE: 100%;
+    WIDTH: 100%;
+    COLOR: #56779a;
+    FONT-FAMILY: Verdana, Arial, Helvetica, Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.dual TD.label INPUT.valor
+{
+}
+TABLE.form TR.selec
+{
+    FONT-WEIGHT: bolder;
+    BACKGROUND-COLOR: #c0c0c0
+}
+TABLE.form TD.button
+{
+    TEXT-ALIGN: center
+}
+TABLE.form INPUT.button
+{
+    BORDER-RIGHT: #191970 thin solid;
+    BORDER-TOP: #191970 thin solid;
+    FONT-WEIGHT: bolder;
+    BORDER-LEFT: #191970 thin solid;
+    COLOR: #ffffff;
+    BORDER-BOTTOM: #191970 thin solid;
+    BACKGROUND-COLOR: #708090
+}
+TABLE.barraboton INPUT.button
+{
+    BORDER-RIGHT: #191970 thin solid;
+    BORDER-TOP: #191970 thin solid;
+    BORDER-LEFT: #191970 thin solid;
+    CURSOR: pointer;
+    COLOR: #ffffff;
+    BORDER-BOTTOM: #191970 thin solid;
+    BACKGROUND-COLOR: #708090
+}
+A
+{
+    COLOR: #2064b9
+}
+.fuentedescripcion
+{
+    FONT-SIZE: 13px;
+    COLOR: #195095;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.error
+{
+}
+TABLE.error TD.tit
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #08516b
+}
+TABLE.error TD.text
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 80%;
+    COLOR: #a52029
+}
+TABLE.error INPUT.boton
+{
+    BORDER-RIGHT: #191970 thin solid;
+    BORDER-TOP: #191970 thin solid;
+    FONT-WEIGHT: bolder;
+    BORDER-LEFT: #191970 thin solid;
+    COLOR: #ffffff;
+    BORDER-BOTTOM: #191970 thin solid;
+    BACKGROUND-COLOR: #708090;
+    TEXT-ALIGN: center
+}
+.fuentetitulomenu
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 14px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #ffffff
+}
+.barramenu
+{
+    COLOR: #4b0082;
+    BACKGROUND-COLOR: #f0ffff
+}
+LI.listaenlace
+{
+    COLOR: #ffffff
+}
+.enlacefuncional
+{
+    FONT-SIZE: 10px;
+    COLOR: #15314c;
+    BACKGROUND-COLOR: #ffffff
+}
+
+TABLE.visu
+{
+    FONT-SIZE: 68%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.visu TR.titulo
+{
+    FONT-SIZE: 105%;
+    COLOR: #ffffff;
+    HEIGHT: 19px;
+    BACKGROUND-COLOR: #08516b;
+    TEXT-ALIGN: left
+}
+TABLE.visu TR.valor
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.visu TD.label
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #dadada
+}
+TABLE.visu TD.dis
+{
+    COLOR: #808080;
+    FONT-STYLE: oblique;
+    BACKGROUND-COLOR: #efefef
+}
+TABLE.visu TD.boton
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #dedfe7;
+    TEXT-ALIGN: center
+}
+TABLE.visu TD.barra
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.visu TR.titulo2
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #1f6983
+}
+TABLE.portal
+{
+    FONT-SIZE: 11px;
+    COLOR: #315275;
+    TEXT-ALIGN: center
+}
+TABLE.portal TD.mosa1
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/a1_106_100.gif);
+    COLOR: #315275;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.portal TD.mosa2
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/a2_106_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosa3
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/a3_106_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosa4
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/a4_106_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosa5
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/a5_107_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosb1
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/b1_106_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosb5
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/b5_107_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosc1
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/c1_106_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosc5
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/c5_107_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosd1
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/d1_106_101.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosd2
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/d2_106_101.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosd3
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/d3_106_101.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosd4
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/d4_106_101.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosd5
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/d5_107_101.gif);
+    COLOR: #315275
+}
+TABLE.portal TR.altura
+{
+    HEIGHT: 100px
+}
+TABLE.portal A:hover
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: underline
+}
+TABLE.portal TD.mosb
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/manos_sup_318_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TD.mosc
+{
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/manos_inf_318_100.gif);
+    COLOR: #315275
+}
+TABLE.portal TR.altura1
+{
+    HEIGHT: 101px
+}
+TABLE.portal DIV
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    FONT-SIZE: 11px;
+    BACKGROUND-IMAGE: url(/images/manos_318_200_mouseover.gif);
+    BORDER-LEFT: medium none;
+    COLOR: #000000;
+    BORDER-BOTTOM: medium none;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #c0c0c0
+}
+
+.node
+{
+    WIDTH: 100%
+}
+.nodetext
+{
+    PADDING-RIGHT: 0px;
+    PADDING-LEFT: 0px;
+    FONT-SIZE: 11px;
+    PADDING-BOTTOM: 0px;
+    COLOR: #2f4f4f;
+    PADDING-TOP: 0px;
+    FONT-FAMILY: verdana
+}
+.leveltext
+{
+    PADDING-RIGHT: 0px;
+    PADDING-LEFT: 0px;
+    FONT-SIZE: 10px;
+    PADDING-BOTTOM: 0px;
+    COLOR: #325274;
+    PADDING-TOP: 0px;
+    FONT-FAMILY: Arial
+}
+.treecell_exp_buttons
+{
+    BORDER-TOP: gray 0px solid;
+    BORDER-LEFT: gray 0px solid;
+    COLOR: #a52029;
+    BORDER-BOTTOM: gray 0px solid;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #ffffff
+}
+.treecell_exp_sel
+{
+    BORDER-RIGHT: #000000 thin solid;
+    BORDER-TOP: #000000 thin solid;
+    BORDER-LEFT: #000000 thin solid;
+    COLOR: #ffffff;
+    BORDER-BOTTOM: #000000 thin solid;
+    BACKGROUND-COLOR: #31699c
+}
+.treecell_exp_on
+{
+    BORDER-RIGHT: gray 0px solid;
+    BORDER-TOP: gray 0px solid;
+    BORDER-LEFT: gray 0px solid;
+    COLOR: #a52029;
+    BORDER-BOTTOM: gray 0px solid
+}
+.treecell_exp_off
+{
+    BORDER-RIGHT: gray 0px solid;
+    BORDER-TOP: gray 0px solid;
+    BORDER-LEFT: gray 0px solid;
+    BORDER-BOTTOM: gray 0px solid;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.form DIV.capaform
+{
+    FONT-SIZE: 75%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.form DIV.capaform TABLE.capaform
+{
+}
+TABLE.form DIV.capaform TABLE.capaform TD.campo
+{
+    FONT-SIZE: 75%;
+    COLOR: #000000
+}
+.treecell_exp_on TABLE.node
+{
+}
+.treecell_exp_on TABLE.node TD.nodetext
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #a52029
+}
+.treecell_exp_off TABLE.node
+{
+}
+.treecell_exp_off TABLE.node TD.nodetext
+{
+    COLOR: #000000
+}
+.treecell_exp_buttons TABLE.node
+{
+}
+.treecell_exp_buttons TABLE.node TD.nodetext
+{
+}
+.treecell_exp_sel TABLE.node
+{
+}
+.treecell_exp_sel TABLE.node TD.nodetext
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #ffffff
+}
+.treecell_exp_sel TABLE.node A
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #ffffff
+}
+.treecell_exp_on TABLE.node A
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #a52029
+}
+TABLE.error TD.textw
+{
+    FONT-SIZE: 80%;
+    COLOR: #ffa500
+}
+TABLE.error TD.textinfo
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 80%;
+    COLOR: #2e8b57
+}
+TABLE.form TD.bot
+{
+    TEXT-ALIGN: center
+}
+TABLE.form INPUT.insert
+{
+    FONT-SIZE: 75%;
+    BACKGROUND-COLOR: #e0ffff
+}
+TABLE.cabectt
+{
+    BORDER-RIGHT: #ffffcc thin outset;
+    BORDER-TOP: #ffffcc thin outset;
+    BORDER-LEFT: #ffffcc thin outset;
+    COLOR: #000000;
+    BORDER-BOTTOM: #ffffcc thin outset;
+    BACKGROUND-COLOR: #ffffcc
+}
+TABLE.cabectt TH.titlett
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 75%;
+    COLOR: #000000
+}
+TABLE.cabectt TD.tdtt
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 70%;
+    COLOR: #000000
+}
+TABLE.cabectt TD.tdtt2
+{
+    FONT-SIZE: 70%;
+    COLOR: #000000
+}
+.numregtxt
+{
+    FONT-SIZE: 12px;
+    COLOR: #000000;
+    BACKGROUND-COLOR: transparent
+}
+.tablelist
+{
+    FONT-SIZE: 75%;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif
+}
+.tablerow
+{
+    CURSOR: pointer;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #ffffff
+}
+.tablerowhover
+{
+    CURSOR: pointer;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #eeeeff
+}
+.tablerowselected
+{
+    CURSOR: pointer;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #aaaaff
+}
+.tablerowselectedhover
+{
+    CURSOR: pointer;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #aaaaff
+}
+TABLE.filtro SELECT.select30
+{
+    FONT-SIZE: 100%;
+    WIDTH: 28%;
+    COLOR: #56779a
+}
+TABLE.filter
+{
+    FONT-SIZE: 100%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #fff
+}
+TABLE.filter SELECT.selectfilter
+{
+    FONT-SIZE: 100%;
+    WIDTH: 98%;
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.filter TD.td1
+{
+  WIDTH: 1%;
+}
+TABLE.filter TD.td6
+{
+  WIDTH: 6%;
+}
+TABLE.filter TD.td7
+{
+  WIDTH: 7%;
+}
+TABLE.filter TD.td10
+{
+  WIDTH: 10%;
+}
+TABLE.filter TD.td15
+{
+  WIDTH: 15%;
+}
+TABLE.filter TD.td20
+{
+  WIDTH: 20%;
+}
+TABLE.filter TD.td22
+{
+  WIDTH: 22%;
+}
+
+TABLE.filter INPUT.form
+{
+    FONT-SIZE: 75%;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.datos INPUT.disabled
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #d5d4d5
+}
+
+TABLE.datos SELECT.select60
+{
+    FONT-SIZE: 120%;
+    WIDTH: 60%;
+    COLOR: #56779a;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.datos SELECT.select30
+{
+    FONT-SIZE: 120%;
+    WIDTH: 30%;
+    COLOR: #56779a;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: transparent
+}
+
+DIV.tc_query_sel_fields {
+	WIDTH: 100%;
+	HEIGHT: 272px;
+}
+DIV.tc_query_add_remove_fields {
+	WIDTH: 100%;
+	HEIGHT: 250px;
+}
+#visible {
+	OVERFLOW: visible;
+}
+#hidden {
+	OVERFLOW: hidden;
+}
+#scroll {
+	OVERFLOW: scroll;
+}
+#auto {
+	OVERFLOW: auto;
+}
+TABLE.depuracion
+{
+    DISPLAY: none;
+    FONT-SIZE: x-small;
+    VISIBILITY: hidden;
+    COLOR: black;
+    BACKGROUND-COLOR: orange;
+    TEXT-ALIGN: center
+}
+/* Herramientas Idoia */
+TABLE.m4jspadvtools
+{
+    BORDER-LEFT: #08516b 1px solid;
+    BORDER-RIGHT: #08516b 1px solid;
+    BORDER-BOTTOM: #08516b 1px solid;
+
+    FONT-SIZE: 75%;
+    TEXT-ALIGN: left
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+
+TABLE.m4jspadvtools TD.m4jspadvtools
+{
+    COLOR: #738aa5;
+    BACKGROUND-COLOR: transparent
+}
+
+TABLE.m4jspadvtools TD.m4jspadvtools_error
+{
+
+    COLOR: #990000;
+    BACKGROUND-COLOR: transparent
+}
+/* End Herramientas Idoia */
+
+/* Begin Cambio de password */
+
+.descripcionfuncional
+{
+    FONT-SIZE: 12px;
+    COLOR: #195095
+}
+
+
+.titulofuncional
+{
+    FONT-SIZE: 16px;
+    COLOR: #0f66a0;
+    BACKGROUND-COLOR: #eff5f9
+}
+
+
+.tablaestadosceldatitulo
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 11px;
+    COLOR: #0c4f8a;
+    FONT-FAMILY: arial, verdana;
+    BACKGROUND-COLOR: #d3e1ec
+}
+
+
+.fuenteactualizar
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 14px;
+    COLOR: #15314c;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+.fuenteactualizar2
+{
+    FONT-SIZE: 12px;
+    COLOR: #195095;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+.fuentevalor
+{
+    FONT-SIZE: 10px;
+    COLOR: #15314c;
+    BACKGROUND-COLOR: #e9eef2;
+    TEXT-ALIGN: left
+}
+.fuentevalor2
+{
+    FONT-SIZE: 10px;
+    COLOR: #033b8a;
+    BACKGROUND-COLOR: #f1f8fc;
+    TEXT-ALIGN: left
+}
+
+/* End Cambio de password */
+
+/* Begin Include GestorDocumental */
+.fuenteformulario
+{
+BACKGROUND-COLOR: #ffffff;
+COLOR: #2064b9;
+FONT-SIZE: 10px;
+VERTICAL-ALIGN:middle
+}
+.fuentecalendario
+{
+FONT-WEIGHT: bold;
+FONT-SIZE: 12px;
+COLOR: #0f546b;
+BACKGROUND-COLOR: #dce5ec;
+TEXT-ALIGN: center
+}
+.fuentecampo
+{
+FONT-SIZE: 11px;
+BACKGROUND-COLOR: #fcf7ef;
+TEXT-ALIGN: left
+}
+.fuentebotondoc
+{
+FONT-SIZE:14px;
+COLOR:#ffffff;
+BACKGROUND-COLOR:#6495ed;
+BORDER:0px;
+WIDTH:120px;
+HEIGHT:19px
+}
+.fuentebotondoctable
+{
+BORDER: none transparent;
+VERTICAL-ALIGN: middle;
+BACKGROUND-COLOR: transparent;
+}
+.fuenteboton
+{
+COLOR: #ffffff;
+BACKGROUND-COLOR: #e9eef2;
+TEXT-ALIGN: center
+}
+table.table_warning
+{
+BACKGROUND-COLOR: #ffffff;
+TEXT-ALIGN: center
+}
+table.table_warning tr.fuenteactualizar
+{
+font-weight: bolder;
+FONT-SIZE:22px;
+COLOR: #15314c
+}
+table.table_warning tr.fuenteactualizar2
+{
+FONT-SIZE:18px;
+COLOR: #195095
+}
+.fuentevalor
+{
+FONT-SIZE: 10px;
+COLOR: #15314c;
+BACKGROUND-COLOR: #e9eef2;
+TEXT-ALIGN: left;
+BORDER: none
+}
+.fuentevalor2
+{
+FONT-SIZE: 10px;
+COLOR: #033b8a;
+BACKGROUND-COLOR: #f1f8fc;
+TEXT-ALIGN: left;
+BORDER: none
+}
+.fuentecamponombre
+{
+FONT-WEIGHT: bold;
+FONT-SIZE: 10px;
+COLOR: #15314c;
+BACKGROUND-COLOR: #e9eef2
+}
+.fuentecampofiltro
+{
+FONT-SIZE: 11px;
+COLOR: #15314c;
+BACKGROUND-COLOR: #e9eef2
+}
+.fuenteformulario200
+{
+    FONT-SIZE: 10px;
+    WIDTH: 200px;
+    COLOR: #175e9e;
+    BACKGROUND-COLOR: #ffffff
+}
+.invisible2
+{
+   DISPLAY: none
+}
+/* End Include GestorDocumental */

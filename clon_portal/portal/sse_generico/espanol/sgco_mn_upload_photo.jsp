@@ -1,0 +1,1 @@
+<%@ include file="../sgco_mn_upload_photo.jsp" %>

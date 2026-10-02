@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Prueba REST</title>
+
+	<script type="text/javascript">
+
+		function getData(){			
+			
+			var dom = document.getElementById('dom').value;
+			var serv = document.getElementById('serv').value;
+			var ser = 'https://'+dom+'/REST/'+serv
+
+			var user = document.getElementById('user').value;
+			var pass = document.getElementById('pass').value;
+			var token = b64EncodeUnicode(user.toUpperCase() + ":" + pass);
+
+			var met = document.getElementById('met').value;
+			var dat = document.getElementById('dat').value;			
+
+			getServ(met, ser, token, dat);
+		}
+
+		function getServ(met, serv, token, dat) {
+
+		    var xhr = new XMLHttpRequest();
+		    if(met=="GET") serv = serv+"?"+dat;
+
+		    document.getElementById('urlreq').textContent = serv;
+		    document.getElementById('meth').textContent = met;
+            document.getElementById('autho').textContent = token;
+            document.getElementById('argts').textContent = dat;
+            document.getElementById('responsetxt').textContent = "Waiting for data ...";
+
+		    xhr.open(met, serv, true);
+		    xhr.setRequestHeader("Authorization", "Basic " + token);
+		    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		    (met=="GET") ? xhr.send() : xhr.send(dat);
+		    xhr.onreadystatechange = function () {
+
+		        if (xhr.readyState === 4 && xhr.status === 200) {
+		            var respon = JSON.parse(xhr.responseText);	
+		            console.log("Data:");	            
+		            console.log(respon);
+		            
+		            document.getElementById('responsetxt').innerHTML = syntaxHighlight(xhr.responseText);		            
+
+		        } else if (xhr.status === 401) {
+		        	document.getElementById('responsetxt').textContent = "Incorrect username or password ["+xhr.status+"]";
+		        } else if (xhr.status === 403) {
+		            document.getElementById('responsetxt').textContent = "The user cannot run the service with any of their roles ["+xhr.status+"]";
+		        } else if (xhr.status === 404){
+		            document.getElementById('responsetxt').textContent = "The service does not exist ["+xhr.status+"]";
+		        } else if (xhr.status === 500) {
+		            document.getElementById('responsetxt').textContent = "There is an error with the server, notify your administrator ["+xhr.status+"]";
+		        } /*else {
+		            console.log("ERROR ["+xhr.status+"]");
+		        }*/
+
+		    }; 
+
+		}
+
+		function b64EncodeUnicode(str) {
+		    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+		        return String.fromCharCode('0x' + p1);
+		    }));
+		}
+
+		function syntaxHighlight(json) {
+		    if (typeof json != 'string') {
+		         json = JSON.stringify(json, undefined, 2);
+		    }
+		    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+		        var cls = 'number';
+		        if (/^"/.test(match)) {
+		            if (/:$/.test(match)) {
+		                cls = 'key';
+		            } else {
+		                cls = 'string';
+		            }
+		        } else if (/true|false/.test(match)) {
+		            cls = 'boolean';
+		        } else if (/null/.test(match)) {
+		            cls = 'null';
+		        }
+		        return '<span class="' + cls + '">' + match + '</span>';
+		    });
+		}
+
+		function toggleEl(eleid,clas) {
+		 	document.getElementById(eleid).classList.toggle(clas);
+		}
+
+	</script>
+
+	<style type="text/css">
+
+		table{
+			padding-top: 20px;
+			margin-left: auto;
+  			margin-right: auto;
+		}
+		
+		table th{
+			text-align: left;
+			width: 300px;
+			max-width: 300px;
+			border: 1px solid black;
+			padding-left: 5px;
+		}
+
+		table td{
+			width: 500px;
+			max-width: 500px;
+			border: 1px solid black;
+		}
+
+		table th[colspan="2"]{
+			text-align: center;
+			padding-top: 10px;
+			padding-bottom: 10px;
+		}
+
+		input{
+			width: 499px;
+			padding-left: 5px;
+		}
+		select{
+			width: 507px;
+		}
+
+		input[type="submit"]{
+			width: 100%;
+			height: 30px;
+			font-size: 17px;
+		}
+
+		.notbord{
+			border: none;
+		}
+
+		.pl5{
+			padding-left: 5px;
+		}
+
+		.headtext{
+			float: left;
+			margin-left: 26px;
+		}
+
+		.logo{
+			float: right;
+			margin-right: 20px;
+			margin-top: 7px;
+		}
+
+		#responsetxt{
+			overflow: scroll;
+			width: 811px;
+			height: 150px;	
+			border: 1px solid black;
+			margin: 0 auto;
+			padding-left: 5px;
+		}	
+
+		.bgBL{
+			background: #6dfff8;
+		}
+
+		.noshow{
+			display: none;
+		}
+
+		.hand{
+			cursor: pointer;
+		}.hand:hover{
+			background: #3dacb7;
+		}
+
+		.fs15{
+			font-size: 15px;
+		}
+
+	</style>
+
+</head>
+<body>
+	
+	<table>
+		<tr>
+			<th colspan="2"><h2 class="headtext">API REST Meta4</h2><img class="logo" id="Img1" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJgAAAA0CAYAAAB2HPG0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAABaWSURBVHhe7Z0JdFRVmsfrvapKZcMEYlgCYRGEsIioCG073SjquLS22Coy6ui0yKIjioobxKAgchgVRGVTwMHBDRrHVsetAUFt2w1strDJGiBAIJCE7FXvze+79SoSaq8AEk79z7m5y7v7/b/vfnd5Fc12nDB27NhEu93e3TCMzng7m6aZjZ2uaZoTdzV2EXYBYfnE25yXl7de0sVxeqNBBHvuuedSysvLB+D8V8xVmOYSHgkg22ZI93/Ynzz99NOfW8FxnGaIiWBIq7ZYIyHIv2OfqQIbhk2Y6ZBtFmSr8gbFcTogKoJBrASsPIj1GLZDBR5HyBRK3mOfeuqp162gOBo5IiYYkuVq9KsZEKCdFXTCANG+cDgcg5988sltVlAcjRQREQyJ8iTWOK/v5ACSVWMNgtjve0PiaIywW3ZQMC2+g9QaYXlPGijTgRl0ySWXVCxbtuwbKziORoaQBINc7zPIN1reXwtXQLIaSPa15Y+jESEowSDXAsj1J8sbE5jmysijDNvElgVCrLisX79+B5cvX/695Y+jkSCgDga5ciHEeMsbDWQqWwqfVtjt9nUej6cIf5XL5Uqprq5ujbsX+V7A8yuxu0iCaEC6fuhkX1reOBoB/AjGAP6OgYx2EP9b1/XJeXl5ayx/WEBi2Zx9FKJd5g2JCEeoW2Z8r6zxwI9gDPwBBj3D8obD9wz4CAY85qmL8m7HmkyZmd6QsHifVe0NljuOUxz1CMbAybSY6/WFxSvEPy6rywkTJmTW1NT8FZJdZAWFRHyqbDyoIxiSRA6mD1nekGCAJzLAoy3vcQOE/RvW5V5fSKwm7rmWO45TGLply77TWMsZDtNPBLkEkOYKrHyvLyR68kL0t9xxnMJQBGOwZAvhXnGHQT4k+E/LfUKAdLwUI7v4IcELMcZyxnEKwyfB/ogJu0/FwJ9w5RrpuB/yPGB5Q6E/L0aW5Y7jFIUiGAMaCXHeYPDlWs0JB1JyFmQOe9AdYb3j+BWhyfTIQB3EneoNCgyHw5GVm5tbaHlPOCDZn7Hmen2BAQkXQfqbLK8C7ZG7atKWDeJv1qyZs6SkpBNxWxqG8QPxSyX8WFjpzsJsTUhIqGRV29put2t5eXk/qQgBQJoeWEfIc7s3JDCI1xIrx+l0bkxKSjpMXxrFxcVddF13kf+P9L/pjemPn9qdm+70VF2j61qJx21f7XY6ypJqKh1uu0PqerZp0zads2vdD+vbdDnHpmsJ5Zkpqy9YscItaVnBBcyXQN8JjoHRiGdsS2uXvjerZeand1zlMQy9lV5jrKJdRyQS9e9MXzShrivEfzR4JjeZu3g8ngLiF1thzelDbcyYMfscPJRrziHJBb4+meQStGrVav6ePXum0vlNrCA/8Kyv5TwaPTEy5Rs8r2UgJf2ZuFfR6LW4AxIM5GDuwLSpra0tIn46nfYJ/qAEI47ogR9jQhKMPs6gj28m3w6YPaRzEZxC2Le8SDJoQQmm2c0Em0fraxi2lrrdyEwwago9dt2p2cwsGLQTu5ZoPxg2/T9M03Zn4r6KlfltcioJq16naTJDCc928+wgLgdUzllns3movMkDJyW71tlMw3aksor57Bu327GKR8OpYxp1kwWXzsuZRl/8jNuPYImJiUnV1dXXEL898fcQlEX8Jrygf8H9nk7CripmaHxk2ScNw4YNq6XSyy1vMLSRt8ty+/A9kuFd0g7DfR/2ndgLaPTU0aNH71cxAoCO+gHreUwnjEjF95A0C7FDYRDmt15ncNDHGyl/Cs7zqc9gbNlcfgOJ9iZvvUiRoOi1dfX+7rs2PKQbtidhoWxG3wo5boYsS0xTu69bwfpFa7t1S4Atd0CebYTLbFRIXDH7IFcJUk764SnNpuUSr0QR07TtoE67TZt5CH+r6iTXwDOLDtgdbve3FU2SX9IMQyT6Q5iRmK30xf9g+6Fjx46l9LeQ6QDmKfK8k7K+wr1anssU+QwBIVdkPL+ceEss70kDZcpR0iTLGxA8/yPxPrS8deBtehdrIOYvuG9WgRGAvO4izzmkqdsjDATiXUs8KXc7cTt4Q0ODeE9gPcsgvA6x7vKGRo41bXOu1U3tQ6RRdY9d6xOtYNvaNjl5VDYLIg63guoBiXavqWnTSLeNdDK1+mFtdtcP0w6Vzss+slvIokAbF9NGOcoLe3pC3MexcmlXvdlQRKgwNRTcsFex8WSDN2Oj5QwKppmAx1oMorzJgp2WHSlkCq1ZsGBByKtMdPzDlrP9uHHjItr0pU6KtKQtVwFRAnJZdTL3em0vyG9RpSdFpE1AIMHU2S1Tn0cFBIKmPVaSlPap5VOAVLIvuQszAHfQUxvI1Yw6TEQVuNgKqoMQrJnXGRh0yj6mFhF/vwYOW3ZQ0LAUy3ksfGnD5nEMRLEtLSwsDPrNAR0q0+JW+uZl8UPy+8UOB+rqG+CYDuvhp3d/UNPq6ZHdC9av6124osLy+sO01Vi26GsB0WNnfn6Ponyl1PtAfU1I83vL+xLtbm+564F4L9MXU1gErLKC6qDzUBTOoOB5uRRkeU82vB0TAjTMaTnrgTr7NmujHUzRiWrQyULpRg+R/6dMBz5iDaLzw34EQ119UjFsuwJB05VCj8pkihIfMUwUKuXQoi9Xvoug3mp6pM1+OjF9cDXPz8UOKEFFgoUrNNmyTz7ctnTLFQpqSX4saLTvbQ34PBiYloUENUOHDg2YDiLJt589XC6X+paTcuSKkvRRJGeoPhJGVScfDJtHvSxMecGnuoCwq6mZdFER0wfII99FvIJpy1RZp+zTFwm0/xX67B4ryA+yBA13wN2SjBr87eP67C5Zm1p2ivRKjkL5GQk6b1041BPrR0ENJu0Ln0N9SDp3CKktq6qdjz/+eInXq1aeAgmPFDFJMIdN9+pSZghdKiA8qi20KMp0v8DSwbZibsd9m4TRR7OwPoYfsmoMCJFg4ZRg6XDZUGwQDE3vVut07FmX3XUpq54Xse9Z26Zbn/ysnKB3z3p/v/LTsuSU9sUZ6TeVNk3LLU9NeavG6VxPb9W9ibphlFnOYxF2ygoE9KkkSBlKJbgW86LXqTBf/tDZV06cOLGpCgkC4nglyS/SNSp43LpFELW/FTFk1alsLfxHPqFAvUXpF8yHZOPxdwyl/AtEB1tnuUOht2XHjMrMZOZvTQb9UsqUs8bpCInv0Eq2Q7ZVa7NzZq/N7jZsTbvul25p3qGFpBm4cKHnhUce2fHSiJGLJj/w4ITnRj1y27NjxnQrS01teygj7dKSpmmjD7VqGnAjlDJUZ2JHqz+eESwNb+oAnmlMGbK5qoDboKPVVkp1dbVsi0SCkHtfwaA5o5bGClRZnTOTOKbFhQ+0VSTYKK/PlssCQPb0QoLpU1dHKqFABf9gOWNG7xUr5K39wus7Gprsm/TUbNpglNeZSKSllQmJO9a07frd5syOM3emZD1ckNKi/46k7LqD7cmjRh2YOuLBZVMeeHDii/c+JI32A4OulH/sqAaFtqaRJthUIteUdo0fP74DZGsvNqYjYepGL+mC6iIWfFI1Jh3MrI11saV7JZ5pxkTso0Eb51jOrawaN1vuoJCdfJFgwZe4XlxCh0b8wyYhIMcNYcFE4tJNW5+axIRhZc3Sni9t1mzJkYyUHRtanb1pS0aHdwpSWj+4J7nl1dvT2oba4PTdDonqayY6MAOS+fSrOkyaNKkJ4RfibO92u9/EfgP7bXETLhuoQs5z6Sc5cgoIH9mJFxNR7A4jtilO83hX2hSs7IbBt/CKSAXREXsiNiM5CnrGsmMGqxi/s6yIoWkOj8NxdlVy4i2lzc6YfCij6ccVTZK35rfusm5dds78tdldp61p27luo4++9G2/hDtnrQfSyUKk3kamoKKi4mmspegcXemz32J+j/mNGMKEeOrLd9KHk2KCmCSY22aqNpmaGd3K2FSqiQxATLrfMVDSkJclIrL7Ii9SvhCg44bItGB5Y4LuMY7riYDJC2nqejdqdxuv5r0IiLqLirRJLQSodysVECFI1w6z2/LWgXyuJ1x+QiEgXC6XT/G/j3ghJQXPY1rNoaOr4yHkX1RKvqFb8ekuZR8H0B8RSUNfRT+IpNHkGZaIoaCbxmZaeNwaWQfT3GJ3ezJ7Fmz80QoR+L4E9+1ER4rfYOpJdCSUSKVEpFXQnzB44oknZLtHnuvEv14F+kP1N/0Y0dvPC93rwRdeSLK8vKC1ys2LFdUKGf1WEZMxjipdIDgcDjV+5BW5BKPjqmj0DBUSGufTeXIrICbkFG6SIye5MnMcYRZ4dOeFVt5HQ14a2cLoxEBFdH+ftkkfuOmPemdy4FnMTK8zOCjPpwD7VlrHImLJQx0uQkTMPiM7u+7Fhx/WdB9aQvrB9P6GG4miSxcAPpLCl4gERV2DnU5npL+eM5IBi/mjD6r1D8vZYMjtAGet+4KeO9f4bRYzQG6W0f3ETWcsgTxygTEgZDXI8//FOdyXxgfykWOSdJ6H/dKduOqCJOVdjFv0smOh9hMZpKA/gUXfppL2RpvHs6ykWfrXTw8cWLcpa+qm+qwPlkR3Vdz0LnSgpfysaYPAolAtgGhDyCNGH+oxmk6U/ZxHvb6wmEx8342CiLEmO2ekbtNiloI+8Prsdrg9vQJIrnoYN27cOYZhvIpTpj7pGCF4PiSoxt0CW7YZ2uCWg9pbGVx1Z+wFpqaysjI5X1OLG57LFssHvIgLc3Nz/XQ0iNGTvGR/T13DIb4o1M8IMUEP6iDfm9btk/H8B+JLPqKwy4mKbNJ2Jkx+YsFWk+iyOSurmg6a+05yUkn54LL0JjmsrG+VZxY+w3zlMTwf9ty9yU+3/WeLnil2R3UfXdOvYJTVKlfBNBeaum0xitnSHrvyI1rVC+TbVVbMvalnHl5fX8q9u0/ok4/HjBkjPxPhh3oimwRyLyzYjc9j8RCdukwG0PJHBtNs8I//Us8dhsN+QThyCfLy8tYwyBeRpqvVPrl12QbTks6Rt3GuPINYl/vIJSgtLRUdo5Q4V+m6LhcFX8ek1NbWBrxhSxx5ozcQpw9uuVUrtzyLKFvjrdcoYwVGFgp/IPwmzNu4v5Nw4oru+DFhE7HvIOzPNa6EO6nPYVdZtbPijGQmJHMNq/DrIeqlhmlcZZrG34iH+h74R2VczuqzqMe/MWW0JN4IMpATiAHIlK28nZ10m6GIHClqamo6kM+/4FyMfQN1vQa3fKPRmfbJlfCA8JuTaZR8NrbU8kYE4k9japnBYIY9FdjS9Ky0ylRXEQUHvAURDkyLhe4EZy+56WkFxXEKI6DSh2R6Fob+IlYjhxyhLCPtt7w9OxGpJampqbU1xcWpBzMyPLIDL5HWt+68wtDt54s7OshvuNr6dtu54aR+HxBH7Ai4qkGKjUYq+V1DjgAiNv+LtF8iNrdDtIIjR44U1LpcO5OrKutO3BOqasMeMfjBNPeZut4nTq7GhYASzAck2eeQxHeC3iDIwrosJbUtUqygILX1E6VNz5Clf0QQhd5puvt22bXZT7luKIYOHSpL+G7oNtnoV4tSUlIc2FdKGG1f/Oqrr/7j7rvvHojb89prr6l9wCFDhtzJS7R39uzZnw0ePLgn0ro1ppSXSo7TnMStwr+XOE0w3Q8fPjwtAyDRLyG8O8/fmzVr1irKHo2CPGvatGkHhw8f3pz0gxISEt4Uv5Rz1113teP5heRxJuZnyl9MPFkw9MNvx/8SdZHnnamLHF9J3eSLqqrExMTllZWVog/K0U4hZZ5L+R/NmTNnn8Qh/GfykdWstOtz2vg73NIXorpU8Fw2quWfaLTArEUF6kWd1TYM6eXCwtn0zatSH/Jtj18WS6vJq955c8h9GSSZ/IbXB15fwyC7JkaCUn7lis1KFRgBSFZktxl9TgS5BHTeo/TTlwzQWwzuuQzyLXTSexjZlniEDjyPzpN+OvpEIIcB8G2AVpBHIub7pKSkJcS9xeFwrC0uLl4hpOV5Jkgi35soY8GhQ4cmED4eYsrXXMWQeduwYcNaz5w5U3TKIzxTB9KQrzf5jGJQF1G/maTfTNjt2Gfhn0Z5BxnoWdRTvqsci9u3jbKPutVUVVUNobyviCszkdSvo5DLG8XmIc0Bwtpgp0kA9VjTunXrD/FfBpn2u1yur6mK/E7uWeQjC5RhlDFP4uLej9kIKfsT50aef8QiYBZx/WaXkAQTsAqSXWnfpbqGwbCpT8xqncYmYU44iEJvevQLuhZslJXfCQGdspqB+wnTn05LwcjqUdWOzpuLEQkhg68+KrUgd+iUPslg1DCgRQxkLYSQrYnNDG7ZwoULZYNUBnElnX8xcdTFSMJlX+st/NcJcch/AHHm3HPPPbLqW0p91HkhYbLq2yJO8c+dO3cHVg7P1bVlBlUO2Q9S74GQTPq1BHcu7u8pbx15FVjt+hPlyKlG3eCTt6yOpRxZRav7dPPmzTuMQJGLljsgcfnLL78sx27yW3HSVlkJX4f9FSR7BSLKZ3giFS8ifIGkT05OzqJMv5OCsAQTQLJHyPAGydQKigkJtW61+di+ZN82u8cdkjT06gGP6ehzzp518v+NThjo/PmY82jbNXSQbBHU3brFLx0ug+Um/OjtG5k2lKThza/Erc5AkVpCBlRF78VASQcBhbAHIFIfCROQp5Byo5AKoizFfQfTzLvkM2D69Om+L4624D92+S/Tdt2BPs8PY7YjSTpArOdxF0GAVRTZHMn3V2kX0a6DZI9Rft3FTCm/oqKiknjycXK9C5vkUUmY796YkFCM/MZuZ8qYzfMle/bs2crUrX4elbqru4IQrQPGb2EYUgc7FnJlhYpNwCkfckaVVuB22v/5zJgnpdG2LRkd3q1KTgx8QQ/9BsnVt0dhfrSfnEUNBmQUnZTPACTRpMUE3UInnkeYOi6SgWKAZNEjU+I3hGvElc3R/ri/JLwJA/XDjBkztspAk4d8afQAg7GFvGUjuifuO3HLf0hJlwHCaKT9DFs+VJXp+TOeiw7zcFZW1v0iSXDLNCnfOcrPhu4mvgkJd2HLictH5FVFPdbyzCDsdlbrk6ZMmVJJPvfLM8w+qSfPHMSRS5nyfaNs5qqfx4J8n5K/6MEinWVBZpaXly9GEs0j/mTq/A3tGUL6XpQ7gTaOQDJOEklHGfLtaArT/fT09HRZ1H3B8xaU14l09UgWkQTz4bHHHiuj8fczFZxNpvIDJcGuKweE7jY6s3BQB6/O6uogZ5Jm8ckil4VdvHmptGU7nV5CR31C5+2XMBlAiYBfNhR/xlZ6F8rz37HkR44l3V4UaiXZSStv+nL6Rx3vMDiSRh3A80w+BJZf3U4mfDVlyZfr8jMCqg+FkOQ1p7CwsO7FxS8/yFdLfNHhDqNDyc77R4TLVH4QYm4ivehTe4uKitRYUuf5mL8Tv0riYe+grJ3EkU3dGp5JG9RPHRAmH6zsJjyR8NKmTZvacX9LXZW0plz51z4r0cdECu+ExGLLput7WD9aaoCQ3UW6UswyeX40opZCRwOyyKpDPrOXXWv5nYiwlxJL0tNvmjJy5KJdKVmDSpqlvW0Fe4Guo9vNvl13bAz5Ww9xNB40iGBHY+rUqS50EFlxiVIsU0UGtnwUKyuRWtwlGm/d4czMd18cMWJloatF++LmzX75iSb0Cch1XpxcpxeOG8FiwdrsrhuoQBdR6A3N3bfnzs0B79fH0XgRlQ52vKGZ3vPIOLlOX/yqBEN+zjU087o4uU5X2Gz/D5nTSfM216B8AAAAAElFTkSuQmCC"></th>
+		</tr>
+		<tr>
+			<th>Domain:</th>
+			<td class="notbord"><input type="text" id="dom" name="dom" value="meta4desasps"></td>
+		</tr>
+		<tr>
+			<th>Service:</th>
+			<td class="notbord"><input type="text" id="serv" name="serv" value="PROYECCIONES_API_V01"></td>
+		</tr>
+		<tr>
+			<th>User:</th>
+			<td class="notbord"><input type="text" id="user" ame="user"></td>
+		</tr>
+		<tr>
+			<th>Password:</th>
+			<td class="notbord"><input type="password" id="pass" name="pass"></td>
+		</tr>
+		<tr>
+			<th>Data:</th>
+			<td class="notbord"><input type="text" id="dat" name="dat" value="anio=2021"></td>
+		</tr>
+		<tr>
+			<th>Method:</th>
+			<td class="notbord">
+				<select id="met" name="met">
+					<option value="GET">GET</option>
+					<option value="POST">POST</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" class="notbord"><input type="submit" id="sub" name="sub" value="Submit" onclick="getData()"></td>
+		</tr>
+		<tr>
+			<th colspan="2">REQUEST</th>
+		</tr>
+		<tr>
+			<th>URL:</th>
+			<td id="urlreq" class="pl5"></td>
+		</tr>
+		<tr>
+			<th>Method:</th>
+			<td id="meth" class="pl5"></td>
+		</tr>
+		<tr>
+			<th>Arguments:</th>
+			<td id="argts" class="pl5"></td>
+		</tr>
+		<tr id="contfun" class="noshow">
+			<th class="bgBL">Token function:</th>
+			<td class="bgBL fs15">btoa(encodeURIComponent('UPPERUSER:passWorD').replace(/%([0-9A-F]{2})/g, function (match, p1) { return String.fromCharCode('0x' + p1); }))</td>
+		</tr>
+		<tr onclick="toggleEl('contfun','noshow')">
+			<th class="bgBL hand" >[Header] Authorization, Basic:</th>
+			<td id="autho" class="pl5 bgBL hand"></td>
+		</tr>
+		<tr>
+			<th>[Header] Content-Type:</th>
+			<td class="pl5">application/x-www-form-urlencoded</td>
+		</tr>		
+		<tr>
+			<th colspan="2">RESPONSE</th>
+		</tr>
+	</table>
+	<div id="responsetxt"></div>
+
+</body>
+</html>

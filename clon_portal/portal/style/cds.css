@@ -1,0 +1,442 @@
+/* CDS Styles */
+@font-face {
+  src: url("/style/fonts/Poppins/Poppins-Light.woff2") format("woff2");
+  font-family: "Poppins";
+  font-weight: 300;
+}
+
+@font-face {
+  src: url("/style/fonts/Poppins/Poppins-Regular.woff2") format("woff2");
+  font-family: "Poppins";
+  font-weight: 400;
+}
+
+@font-face {
+  src: url("/style/fonts/Poppins/Poppins-SemiBold.woff2") format("woff2");
+  font-family: "Poppins";
+  font-weight: 600;
+}
+
+@font-face {
+  src: url("/style/fonts/Roboto/Roboto-Regular.woff2") format("woff2");
+  font-family: "Roboto";
+  font-weight: 400;
+}
+
+@font-face {
+  src: url("/style/fonts/Roboto/Roboto-Medium.woff2") format("woff2");
+  font-family: "Roboto";
+  font-weight: 500;
+}
+
+#cds .v-application .text-h1 {
+  font-family: "Poppins" !important;
+  font-weight: 300;
+  font-size: 56px !important;
+  letter-spacing: -2px !important;
+  line-height: 80px !important;
+}
+
+#cds .v-application .text-h2 {
+  font-family: "Poppins" !important;
+  font-weight: 300;
+  font-size: 48px !important;
+  letter-spacing: -1px !important;
+  line-height: 64px !important;
+}
+
+#cds .v-application .text-h3 {
+  font-family: "Poppins" !important;
+  font-weight: 400;
+  font-size: 38px !important;
+  letter-spacing: -0.75px !important;
+  line-height: 54px !important;
+}
+
+#cds .v-application .text-h4 {
+  font-family: "Poppins" !important;
+  font-weight: 400;
+  font-size: 32px !important;
+  letter-spacing: -0.75px !important;
+  line-height: 44px !important;
+}
+
+#cds .v-application .text-h5 {
+  font-family: "Poppins" !important;
+  font-weight: 400;
+  font-size: 24px !important;
+  letter-spacing: -0.25px !important;
+  line-height: 34px !important;
+}
+
+#cds .v-application .text-h6 {
+  font-family: "Poppins" !important;
+  font-weight: 600;
+  font-size: 20px !important;
+  letter-spacing: -0.25px !important;
+  line-height: 28px !important;
+}
+
+#cds .v-application .text-body-1 {
+  font-family: "Roboto" !important;
+  font-weight: 400;
+  font-size: 16px !important;
+  letter-spacing: 0.5px !important;
+  line-height: 28px !important;
+}
+
+#cds .v-application .text-body-2 {
+  font-family: "Roboto" !important;
+  font-weight: 400;
+  font-size: 14px !important;
+  letter-spacing: 0.25px !important;
+  line-height: 20px !important;
+}
+
+#cds .v-application .text-subtitle-1 {
+  font-family: "Roboto" !important;
+  font-weight: 400;
+  font-size: 16px !important;
+  letter-spacing: 0.15px !important;
+  line-height: 21px !important;
+}
+
+#cds .v-application .text-subtitle-2 {
+  font-family: "Roboto" !important;
+  font-weight: 500;
+  font-size: 14px !important;
+  letter-spacing: 0.1px !important;
+  line-height: 22px !important;
+}
+
+#cds .v-application .text-caption {
+  font-family: "Roboto" !important;
+  font-weight: 400;
+  font-size: 12px !important;
+  letter-spacing: 0.4px !important;
+  line-height: 16px !important;
+}
+
+#cds .v-application .text-overline {
+  font-family: "Poppins" !important;
+  font-weight: 600;
+  font-size: 11px !important;
+  letter-spacing: 1.83px !important;
+  line-height: 16px !important;
+  text-transform: uppercase !important;
+}
+
+#cds .v-application .text-button {
+  font-family: "Poppins" !important;
+  font-weight: 600;
+  font-size: 14px !important;
+  letter-spacing: 0.5px !important;
+  line-height: 20px !important;
+  text-transform: none !important;
+}
+
+#cds .position-relative {
+  position: relative;
+}
+
+#cds .position-absolute {
+  position: absolute;
+}
+
+#cds .v-application * {
+  font-family: Poppins, sans-serif !important;
+}
+
+#cds .v-application.cds-bg {
+  height: 100vh;
+}
+
+#cds .v-application--wrap {
+  overflow-x: hidden;
+  min-height: 90vh;
+}
+
+html {
+  overflow-y: hidden;
+}
+
+#cds .text--primary {
+  color: rgba(0, 44, 82, 1) !important;
+}
+
+#cds .text--secondary {
+  color: rgba(63, 86, 112, 1) !important;
+}
+
+#cds .v-application .rounded-cds {
+  border-radius: 6px !important;
+}
+
+#cds a:not(.v-btn) {
+  color: #0046fe !important;
+  text-decoration: none;
+}
+
+#cds .text-h4,
+#cds .text-h5,
+#cds .text-h6,
+#cds .text-body-1,
+#cds .text-body-2,
+#cds .text-subtitle-1,
+#cds .text-caption {
+  color: rgba(63, 86, 112, 1); /* equivalente a #3F5670 con opacidad 1 */ 
+}
+
+#cds .primary {
+  background-color: #0046fe !important;
+  border-color: #0046fe !important;
+}
+
+#cds .primary--text {
+  color: #0046fe !important;
+  caret-color: #0046fe !important;
+}
+
+#cds .font-weight-semibold {
+  font-weight: 600 !important;
+}
+
+#cds .v-btn {
+  text-transform: none !important;
+}
+
+#cds .v-main {
+  z-index: 1;
+}
+
+/* Generic Styles */
+.cds-bg {
+  background-color: #eff6fe !important;
+}
+
+.cds-logo-title .logo-cegid {
+  position: relative;
+  top: 2px;
+}
+
+.cds-hidden {
+  display: none !important;
+}
+
+.cds-sheet {
+  height: calc(90vh - 64px);
+}
+
+.cds-container-iframe {
+  height: 100%;
+}
+
+.cds-inline-iframe {
+  border: none;
+}
+
+.cds-width-100 {
+  width: 100%;
+}
+
+.cds-100-vh {
+  height: 90vh;
+}
+
+.theme--light.v-text-field--outlined:not(.v-input--is-focused):not(.v-input--has-state) > .v-input__control > .v-input__slot fieldset {
+  border: 1px solid rgba(0, 44, 82, 0.32);
+}
+
+/* Login Page */
+.cds-bg-login {
+  background-image: url("/images/cegid/montgolfiere.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: 10% bottom !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 90vh;
+}
+
+@media (max-width: 960px) {
+  .cds-bg-login {
+      left: auto;
+      right: -178px;
+      background-position: right -136px !important;
+      width: calc(100% + 178px);
+      background-size: 313px;
+  }
+}
+/* 
+@media (min-width: 1264px) {
+  .container.solid {
+      min-width: 1185px;
+  }
+}
+
+@media (min-width: 1904px) {
+  .container.solid {
+      min-width: 1785px;
+  }
+} */
+
+.cds-border {
+  border: 1px solid rgba(0, 44, 82, 0.32);
+  border-radius: 6px;
+}
+
+.cds-box-login {
+  box-shadow: 0px 8px 10px 1px rgba(0, 44, 82, 0.14), 0px 3px 14px 2px rgba(0, 44, 82, 0.2), 0px 5px 5px -3px rgba(0, 44, 82, 0.2) !important;
+  border-radius: 32px !important;
+  margin: auto;
+  min-width: 496px;
+  max-width: 496px;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.cds-container-box-login {
+  display: flex;
+  flex-direction: column;
+}
+
+.cds-big-box {
+  margin: auto;
+  min-width: 896px;
+  max-width: 896px;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.cds-big-box .cds-text-center {
+  margin: auto 20%;
+}
+
+/* Error Page */
+.cds-bg-login-error {
+  background-image: url("/images/cegid/errormountains.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: right bottom !important;
+  background-size: 40% !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 90vh;
+}
+
+@media (max-width: 960px) {
+  .cds-bg-login-error {
+      left: auto;
+      right: 0;
+      background-position: right bottom !important;
+      background-size: 100% !important;
+  }
+}
+
+.cds-bg-login-error-ballon {
+  background-image: url("/images/cegid/ballonsandhouse.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: 64vw !important;
+  background-size: 45vw !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 90vh;
+}
+
+@media (max-width: 960px) {
+  .cds-bg-login-error-ballon {
+      left: auto;
+      right: -228px;
+      background-position: right -36px !important;
+      width: calc(100% + 228px);
+      background-size: 413px !important;
+  }
+}
+
+.cds-container-error {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  z-index: 999;
+}
+
+.cds-container-error h3 {
+  font-size: 80px;
+}
+
+.cds-bg-generic-error {
+  background-image: url("/images/cegid/errorgeneric.svg") !important;
+  background-repeat: no-repeat !important;
+  background-position: right bottom !important;
+  background-size: 24% !important;
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  width: 100%;
+  height: 90vh;
+}
+
+@media (max-width: 960px) {
+  .cds-bg-generic-error {
+      left: auto;
+      background-position: center bottom !important;
+      background-size: 40% !important;
+      top: -12px;
+  }
+}
+
+.cds-bg-flying {
+  background-image: url("/style/images/flying-stat.svg") !important;
+  background-repeat: no-repeat !important;
+  background-position: right bottom !important;
+  background-size: 24% !important;
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  width: 100%;
+  height: 100vh;
+}
+
+@media (max-width: 960px) {
+  .cds-bg-flying {
+      display: none;
+  }
+}
+
+/* Change Password Page */
+.cds-img-success {
+  margin: 0 28% !important;
+}
+
+.cds-footer-login {
+  width: 100%;
+}
+
+.v-main__wrap {
+  overflow: auto;
+  height: 90vh;
+  top: -3vh;
+}
+
+#cds .height-fill-available {
+  /* height: -webkit-fill-available; */
+  height: inherit;
+  /* Fix for firefox */
+}
+
+/* A11y Styles */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    white-space: nowrap; /* Evita el salto de línea */
+}

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - File: WEB-INF/classes/com/meta4/soapservices/services/rpc/SNTC_ADB_VIEW_ALERT/deploy.wsdd
+  - Description: Self generated deployment descriptor for SNTC_ADB_VIEW_ALERT Soap Service. 
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edificio Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+    xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+    <service name="SNTC_ADB_VIEW_ALERT" provider="java:RPC"> 
+
+
+        <namespace>http://schemas.meta4.com/</namespace>
+
+        <!-- 
+          - [SOAP] Service parameters
+          - <parameter name="scope" value="{request/session/application}"/>
+          -     "request" will get you a new object each request.
+          -     "application" uses a singleton (which should be thread-safe).  
+          -     "session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+          -->
+        <parameter name="scope" value="session"/>
+        <parameter name="className" value="com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Sntc_Adb_View_AlertService"/>
+        <parameter name="allowedMethods" value="*"/>
+
+        <!-- class for LogMessage object -->
+        <typeMapping 
+            qname="meta4:LogMessage" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.m4operations.LogMessage"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method CANCEL_ALERT -->
+        <typeMapping 
+            qname="meta4:Cancel_AlertOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Cancel_AlertOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method GENERATE_RSS -->
+        <typeMapping 
+            qname="meta4:Generate_RssOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Generate_RssOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method M4LoadObject -->
+        <typeMapping 
+            qname="meta4:M4LoadobjectOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.M4LoadobjectOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+		<!-- class for node SNTC_GADGET_ALERT -->
+		<typeMapping 
+			qname="meta4:Sntc_Gadget_AlertBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Sntc_Gadget_AlertBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Sntc_Gadget_AlertRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Sntc_Gadget_AlertRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNTC_ADB_VIEW_ALERT -->
+		<typeMapping 
+			qname="meta4:Sntc_Adb_View_AlertBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Sntc_Adb_View_AlertBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Sntc_Adb_View_AlertRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Sntc_Adb_View_AlertRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNTC_ADB_VIEW_ALERT_PROPS -->
+		<typeMapping 
+			qname="meta4:Sntc_Adb_View_Alert_PropsBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Sntc_Adb_View_Alert_PropsBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Sntc_Adb_View_Alert_PropsRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_adb_view_alert.Sntc_Adb_View_Alert_PropsRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+    </service>
+</deployment>
+
+

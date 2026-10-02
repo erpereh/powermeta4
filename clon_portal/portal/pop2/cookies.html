@@ -1,0 +1,36 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <title></title>
+        <script>
+            // future ./cookie-manifest.html
+            var url = "/ssco_menu/about.html?language=_en&type=3#cookies"
+
+            var urlParams = new URLSearchParams(window.location.search)
+
+            var language = urlParams.get("language")
+            if (!language) language = navigator.language.substring(0, 2)
+
+            if (language.indexOf("_") > -1) language = language.replace("_", "")
+
+            switch (language) {
+                case "fr":
+                    url = "/ssco_menu/about.html?language=_fr&type=3#cookies"
+                    break
+                case "pt":
+                    url = "/ssco_menu/about.html?language=_pt&type=3#cookies"
+                    break
+                case "es":
+                    url = "/ssco_menu/about.html?language=_es&type=3#cookies"
+                    break
+                default:
+                    break
+            }
+            window.location.assign(url)
+        </script>
+    </head>
+    <body>
+        <noscript><strong>We're sorry but HR Framework doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript>
+    </body>
+</html>

@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - File: WEB-INF/classes/com/meta4/soapservices/services/rpc/SNTC_AD_MANAGERS/deploy.wsdd
+  - Description: Self generated deployment descriptor for SNTC_AD_MANAGERS Soap Service. 
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edificio Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+    xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+    <service name="SNTC_AD_MANAGERS" provider="java:RPC"> 
+
+
+        <namespace>http://schemas.meta4.com/</namespace>
+
+        <!-- 
+          - [SOAP] Service parameters
+          - <parameter name="scope" value="{request/session/application}"/>
+          -     "request" will get you a new object each request.
+          -     "application" uses a singleton (which should be thread-safe).  
+          -     "session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+          -->
+        <parameter name="scope" value="session"/>
+        <parameter name="className" value="com.meta4.soapservices.services.rpc.sntc_ad_managers.Sntc_Ad_ManagersService"/>
+        <parameter name="allowedMethods" value="*"/>
+
+        <!-- class for LogMessage object -->
+        <typeMapping 
+            qname="meta4:LogMessage" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.m4operations.LogMessage"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method MOVETO_WU -->
+        <typeMapping 
+            qname="meta4:Moveto_WuOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Moveto_WuOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method LOAD_MANAGERS -->
+        <typeMapping 
+            qname="meta4:Load_ManagersOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Load_ManagersOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method M4LoadObject -->
+        <typeMapping 
+            qname="meta4:M4LoadobjectOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.M4LoadobjectOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+		<!-- class for node SNCO_AD_MANAGERS -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_ManagersBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_ManagersBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_ManagersRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_ManagersRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_INFO_PERSON -->
+		<typeMapping 
+			qname="meta4:Snco_Info_PersonBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Info_PersonBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Info_PersonRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Info_PersonRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_WU_BY_MANAGER -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Wu_By_ManagerBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Wu_By_ManagerBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Wu_By_ManagerRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Wu_By_ManagerRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_WU_OBJECTIVES -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Wu_ObjectivesBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Wu_ObjectivesBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Wu_ObjectivesRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Wu_ObjectivesRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_COUNT_EMPLOYEES -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Count_EmployeesBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Count_EmployeesBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Count_EmployeesRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Count_EmployeesRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_POP_CONST -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Pop_ConstBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Pop_ConstBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Pop_ConstRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Pop_ConstRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_INFO_PERSON -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Info_PersonBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Info_PersonBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Info_PersonRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Info_PersonRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_HIERARCHIC_WU -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Hierarchic_WuBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Hierarchic_WuBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Hierarchic_WuRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Hierarchic_WuRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_INFO_PERSON_PRIVATE -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Info_Person_PrivateBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Info_Person_PrivateBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Info_Person_PrivateRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Info_Person_PrivateRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_POP_MAX_SCALE_LEVEL -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Pop_Max_Scale_LevelBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Pop_Max_Scale_LevelBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Pop_Max_Scale_LevelRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.sntc_ad_managers.Snco_Ad_Pop_Max_Scale_LevelRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+    </service>
+</deployment>
+
+

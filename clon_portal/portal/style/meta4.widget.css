@@ -1,0 +1,1548 @@
+/* =========================================================
+	@(#) FileVersion: 821.004.019
+	@(#) FileDescription: meta4.widget.css
+	@(#) CompanyName: Cegid Spain, S.A.U.
+	@(#) LegalCopyright: (c) 2024
+	@(#) ProductName: Peoplenet
+========================================================= */
+
+
+
+/**************************** start meta4.widget.log *******************************************/
+#m4loadingMsg {
+	display: none;
+	position: absolute;
+	top: 1%;
+	left: 45%;
+	padding: 1px 3px 1px 3px;
+	color: #333;
+	z-index: 15000;
+	background: #E6EBF1;
+}
+
+.m4ErrorModalDiv pre {
+	font-family: "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+	font-size: 12px;
+	color: #333;
+	padding: 0px;
+	margin: 0px;
+	white-space: pre-line;
+	display: table-cell;
+}
+
+.m4ErrorModalDiv {
+	display: none;
+	position: absolute;
+	top: 10%; /* 100px;*/
+	left: 30%;
+	width: 40%;
+	padding: 15px;
+	color: #333;
+	z-index: 15000;
+	background: white;
+	border-width: 8px;
+	border-color: #E6EBF1;
+	border-style: solid;*/
+}
+
+#firstMessage {
+	margin: 20px 20px 20px 20px;
+}
+
+#firstMessage img {
+	margin: 0px 10px 0px 0px;
+	width: 20px;
+	height: 20px;
+	float: left;
+}
+
+#firstMessage li img {
+	vertical-align: middle;
+}
+
+#firstMessage .m4ErrorTitle {
+	font-weight: bold;
+	vertical-align: middle;
+}
+
+#containerDivErrorlog tr:hover {
+	background-color: #fbfbfb;
+}
+
+#containerDivErrorlog tr img {
+	margin: 0px 10px 0px 0px;
+	vertical-align: middle;
+}
+
+#containerDivErrorlog ul {
+	list-style-type: none;
+	padding: 0px;
+	margin: 0.25em;
+}
+
+#containerDivErrorlog ul li {
+	display: table;
+}
+
+#containerMessages {
+	text-align: left;
+	overflow: auto;
+	max-height: 220px;
+	/*height: 25%; ok with jQuery */
+	height: 200px; /* Ok with alternative framework */
+	border-style: solid;
+	border-width: 1px;
+	border-color: #93A8C3;
+	margin-top: 10px;
+}
+
+.m4expander {
+	text-align: center;
+	cursor: pointer;
+}
+
+#logImgDetails {
+	vertical-align: top;
+}
+
+#logCloseButton {
+	cursor: pointer;
+	position: absolute;
+	right: 12px;
+	text-align: center;
+	top: 10px;
+	width: 20px;
+	height: 20px;
+	background-image: url(../iconos/close_panel.png);
+	background-repeat: no-repeat;
+}
+
+.m4ErrorMessage {
+	/*font-style:oblique;*/
+}
+
+/**************************** end meta4.widget.log *******************************************/
+
+/**************************** start m4-titleBar **********************************************/
+.m4-titleBar {
+	/** width: 100%;
+	 background-color: #dadeea;
+	 border-bottom: 1px solid #babdc7;
+	 border-left: 1px solid #babdc7;
+	 height: 40px;
+	 border-top: 1px solid #fff;*/
+}
+
+.m4-titleBar-content {
+	/*height: 100%;*/
+	height: 40px;
+	display: table;
+	position: relative;
+}
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+	.m4-titleBar-content {
+		height: 30px;
+	}
+}
+
+.m4-titleBar-panelInfo {
+	display: none;
+	float: left;
+	width: 100%;
+	color: white;
+	background-color: #505070;
+	padding-right: 1px; /*BUG 260313*/
+}
+
+.m4-titleBar-panelInfo p {
+	-webkit-margin-before: 1px;
+	-webkit-margin-after: 0px;
+	-webkit-margin-end: 0em;
+}
+
+.m4-titleBar-closeInfo {
+	position: relative;
+	margin: 3px;
+	float: right;
+}
+
+.m4-titleBar-search {
+	width: 275px;
+	border-top: 1px solid #a3a3a3;
+	border-left: 1px solid #a3a3a3;
+	border-bottom: 1px solid #f6f6f6;
+	border-right: 1px solid #f6f6f6;
+	background: #fff;
+	color: #666;
+	margin: 0;
+	padding-left: 5px;
+	vertical-align: middle;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	height: 30px;
+}
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+	.m4-titleBar-search {
+		height: 22px;
+	}
+}
+
+/**************************** end m4-titleBar *******************************************/
+
+/**************************** start meta4.widget.table *******************************************/
+
+/** default class*/
+.m4-table {
+	width: 100%;
+	color: #6a6a6a;
+	background-color: #fafafa;
+	border-spacing: 0;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;
+	margin: 0px;
+	table-layout: fixed;
+	text-align: center;
+}
+
+.m4-table .m4-table {
+	background-position: center center !important;
+	background-repeat: no-repeat !important;
+	background-image: url('data:image/gif;base64,R0lGODlhFAAUAKEAAO7u7lpaWgAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQBCgACACwAAAAAFAAUAAACQZRvoIDtu1wLQUAlqKTVxqwhXIiBnDg6Y4eyx4lKW5XK7wrLeK3vbq8J2W4T4e1nMhpWrZCTt3xKZ8kgsggdJmUFACH5BAEKAAIALAcAAAALAAcAAAIUVB6ii7jajgCAuUmtovxtXnmdUAAAIfkEAQoAAgAsDQACAAcACwAAAhRUIpmHy/3gUVQAQO9NetuugCFWAAAh+QQBCgACACwNAAcABwALAAACE5QVcZjKbVo6ck2AF95m5/6BSwEAIfkEAQoAAgAsBwANAAsABwAAAhOUH3kr6QaAcSrGWe1VQl+mMUIBACH5BAEKAAIALAIADQALAAcAAAIUlICmh7ncTAgqijkruDiv7n2YUAAAIfkEAQoAAgAsAAAHAAcACwAAAhQUIGmHyedehIoqFXLKfPOAaZdWAAAh+QQFCgACACwAAAIABwALAAACFJQFcJiXb15zLYRl7cla8OtlGGgUADs=') !important;
+}
+
+.m4-table-no-data-available {
+	text-align: center;
+	color: #6982C7;
+}
+.m4-table thead th {
+
+	border-right: white 1px solid;
+	padding: 0;
+	text-align: center;
+	color: white;
+	background-color: #7B93AF;
+	border-collapse: collapse;
+	border-bottom: medium none;
+	padding: 0;
+}
+
+.m4-table thead th label {
+	font-weight: normal;
+	margin-left: 3px;
+	margin-right: 3px;
+}
+
+.m4-table tbody th {
+	color: white;
+	background-color: #c9b0f2;
+	text-align: center;
+}
+
+/* Use to icon*/
+.m4-table thead th.m4-table-th-icon {
+	width: 30px;
+	border-right: none;
+}
+
+.m4-table tbody td.m4-table-td-icon {
+	width: 30px;
+	text-align: center;
+	line-height: normal;
+}
+
+.m4-table tbody tr td, .m4-table tbody tr td label{
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.m4-table thead tr th label{
+	text-overflow: ellipsis;
+	display:block;	
+	overflow: hidden;
+}
+
+.m4-table td {
+	border-bottom: #d7d8e0 1px solid;
+	padding: 0px;
+}
+
+/** default class, to div header*/
+.m4-table-header {
+	color: #9685a5;
+	padding-bottom: 5px;
+	padding-top: 5px;
+	vertical-align: middle;
+	width: 100%;
+	display: table;
+	text-align: left;
+	height: 20px;
+	background-color: #fafafa;
+}
+
+.m4-table tr:hover, .m4-table.readOnlyTable tr:hover {
+	background-color: #d5eaf9;
+}
+
+.m4-table tr.m4-table-no-data-available:hover {
+	background-color: transparent;
+}
+
+.m4-table-header-divIcon {
+	width: 16px;
+}
+
+.m4-table-header-divLabel label, .m4-table-header-divIcon img {
+	vertical-align: middle;
+}
+
+.m4-table-header-divTitle {
+	display: table;
+}
+
+.m4-table-header-divLabel, .m4-table-header-divIcon {
+	display: table-cell;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.m4-table-td-disabled {
+	position: absolute;
+	top: 0px;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	z-index: 10000000;
+	background-color: #d1d2d7;
+	opacity: 0.5;
+}
+
+/** table group*/
+.m4-table-group {
+	background-color: #e5e6eb;/*#c0cbd8*/
+	text-align: left;
+	color: #445569;/*233b57*/
+}
+
+.m4-table-group label {
+	margin-right: 10px;
+}
+
+.m4-table-group label {
+	margin-left: 10px;
+}
+
+/** table search */
+
+.m4-table-search input {
+	width: 100%;/*99%*/
+	/*margin-bottom: 5px;*/
+
+	border-top: 1px solid #a3a3a3;
+	border-left: 0px solid #a3a3a3;
+	border-bottom: 1px solid #91a8c3;/*#745e88*/
+	border-right: 0px solid #91a8c3;/*#745e88*/
+	background: #fff;
+	/*-webkit-box-shadow: inset 0 1px 0 #d6d6d6;
+	 -moz-box-shadow: inset 0 1px 0 #d6d6d6;
+	 box-shadow: inset 0 1px 0 #d6d6d6;*/
+	color: #666;
+	font: normal 11px "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+	margin: 0;
+	padding-left: 5px;
+	vertical-align: middle;
+	height: 26px;
+	/*0256812*/
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box; /* Firefox */
+}
+.m4-table-search {
+	background-color: #e5e6eb;
+	text-align: center;
+}
+
+.m4-DivSearchTable {
+	width: 95%;
+}
+
+.m4-table-marginLeft {
+	margin-left: 18px;
+}
+
+table.m4-table tr.m4-table-addRegister, table.m4-table.readOnlyTable tr.m4-table-addRegister {
+	background-color: #ebedf0;
+}
+
+/* start reading table*/
+table.m4-table.readOnlyTable {
+	text-align: left;
+}
+
+/*table.m4-table.readingTable tr.m4-table-addRegister{
+ }*/
+table.m4-table.readOnlyTable tr {
+	background-color: transparent;/*#fafafa*/
+}
+
+/* end reading table*/
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+	.m4-table-search input {
+		font-size: 100%;
+	}
+}
+
+/* row add register */
+.m4-table-addRegister {
+
+}
+
+/*Delete register*/
+
+.m4-table-thDeleteRow {
+	width: 30px;
+}
+
+.m4-table-delete-register {
+	background-color: #aaaaaa;
+	text-decoration: line-through;
+}
+
+.m4-table-delete-register td {
+	color: #535353;
+	opacity: 0.5;
+}
+
+.m4-table-delete-register button {
+	opacity: 0.5;
+}
+
+.m4-table-delete-register img {
+	opacity: 0.5;
+}
+
+.m4-table-delete-register input {
+	background-color: rgba(255,255,255,0.5);
+	color: rgba(0,0,0,0.5);
+}
+
+.m4-table-delete-register select {
+	background-color: rgba(255,255,255,0.5);
+	color: rgba(0,0,0,0.5);
+}
+
+/* drag and drop*/
+.m4-drag-helper {
+
+	border-width: 1px;
+	border-style: solid;
+	border-color: #7B93AF;
+	padding: 2px;
+}
+
+.m4-div-drag {
+	background-color: #FFF;
+	border: solid 2px #CFD1DA;
+	height: 15px !important;
+	width: 180px !important;
+	color: #6A6A6A;
+	font-family: sans-serif;
+	font-size: 11px;
+	padding: 3px;
+}
+
+/** Accordion table*/
+.m4-accordion-expanded {
+	background-image: url(../iconos/arrow_up.png);
+}
+
+.m4-accordion-collapsed {
+	background-image: url(../iconos/arrow_down.png);
+}
+
+/* m4selected is used when select row*/
+.m4Selected {
+	background-color: #5abbe6;
+}
+
+.m4Selected label {
+	color: white;
+}
+
+.m4Selected:hover label {
+	color: #758199;
+}
+
+.m4-table tr-selected {
+	background-color: #5abbe6;
+}
+
+/*img inside table */
+.m4-table-imgAction {
+	cursor: pointer;
+	-moz-opacity: 1.0;
+	opacity: 1.0;
+	-khtml-opacity: 1.0;
+}
+
+.m4-table-imgAction:hover {
+	background-color: #d5eaf9;/*d8e9ed*/
+}
+
+.m4-table select {
+	font-family: "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+	font-size: 100%;
+	max-width: 200px;
+	min-width: 50px;
+	margin-left: 1px;
+	max-height: 18px;
+	border: 1px solid #7f9db9;
+}
+
+.m4-table input {
+	font-family: "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+	font-size: 100%;
+	max-width: 70px;
+	text-align: center;
+	max-height: 18px;
+	width: 50px;
+	border: 1px solid #7f9db9;
+}
+
+/** textarea inside table*/
+.m4-table textarea {
+	font-family: "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+	font-size: 95%;
+	color: #333;/*#EAE7FA*/
+}
+
+.m4-table textarea[disabled] {
+	color: #4f5875;/* #bdb9d1 rgb(84, 84, 84)*/
+	background-color: #bdc4db;/*#85869b*/
+	/*border-top:0px solid #64657a;*/
+	border: 0px;
+	padding-top: 2px
+}
+
+/* Table sortable*/
+.m4-table .sortable {
+	background-image: url('/tcorgchart/css/images/sortable.gif');
+	background-repeat: no-repeat;
+	background-position: center right;
+}
+.m4-table .ascending {
+	background-image: url('/iconos/col_order_asc_16.png');
+}
+.m4-table .descending {
+	background-image: url('/iconos/col_order_desc_16.png');
+}
+
+.m4-table td input[type="text"], .m4-table td select {
+	width: 90%;
+	text-align: left;
+}
+
+.m4-table input.meta4calendar, .m4-table select.meta4calendar {
+	height: 20px;
+	font-size: 100%;
+	width: 67px;
+	text-align: center;
+	border: 1px solid #7f9db9;
+	float: left;
+	padding-left: 0px; /*Ponemos esto porque en IE el valor por defeto es otro*/
+	padding-right: 0px; /*Ponemos esto porque en IE el valor por defeto es otro*/
+	margin-left: 2px;
+}
+
+.m4-table-subHedaer, .m4-table-footer {
+	width: 100%;
+	clear: both;
+}
+
+.m4-table {
+	font: 100%/170% "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+}
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+
+	.m4-table {
+		font: 100%/160% "Microsoft Sans Serif", Verdana, "Segoe UI", Arial, sans-serif;
+	}
+	.m4-table input.meta4calendar, .m4-table select.meta4calendar {
+		width: 62px;
+		margin-left: 3px;
+	}
+}
+
+/**************************** end meta4.widget.table *******************************************/
+
+/**************************** start meta4.widget.blind *******************************************/
+
+.m4-blind-box {
+	background: white;
+	border: 10px solid #bdc4db;
+	width: 20%;
+	min-width: 350px;
+	max-height: 50%;
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 100;
+	overflow: hidden;
+}
+.m4-blind-ul {
+	/*font-family: Helvetica;*/
+	color: #333;
+	-webkit-padding-start: 0px;
+	-webkit-margin-before: 0px;
+	-webkit-margin-after: 0px;
+	list-style: none;
+	background-color: #e5e6eb;
+	margin: 0px; /*IE & FF*/
+	padding: 0px; /*IE & FF*/
+}
+
+
+.m4-blind-li {
+	display: table;
+	cursor: pointer;
+	height: 50px;
+	width: 100%;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;	
+	position: relative;
+}
+
+.m4-blind-div1 {
+	cursor: pointer;
+	width: 10%;
+	display: table-cell;
+	vertical-align: middle;
+	padding-left: 5px;
+}
+.m4-blind-div2 {
+	cursor: pointer;
+	width: 90%;
+	display: table-cell;
+	vertical-align: middle;
+}
+.m4-blind-img {
+	height: 16px;
+	width: 16px;
+}
+.m4-blind-lbl {
+	cursor: pointer;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+.m4-blind-divclose {
+	width: 100%;
+	/*height: 25px;*/
+	text-align: center;
+	margin-top: 2px;
+}
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+	.m4-blind-box {
+		width: 30%;
+		min-width: 300px;
+	}
+}
+/**************************** end meta4.widget.blind *******************************************/
+
+/**************************** start meta4.widget.tooltip *******************************************/
+
+.m4tooltip {
+	cursor: help;
+}
+.m4tooltip .tip-top {
+}
+.m4tooltip .tip {
+	background: #fafafa;
+	border-right: 3px solid #4E647E;
+	border-left: 3px solid #4E647E;
+	border-top: 6px solid #4E647E;
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+}
+.m4tooltip .tip-title {
+	border-right: 3px solid #4E647E;
+	border-left: 3px solid #4E647E;
+	padding: 2px 5px 2px 5px;
+}
+.m4tooltip .tip-text {
+	border-right: 3px solid #4E647E;
+	border-left: 3px solid #4E647E;
+	padding: 2px 5px 2px 5px;
+}
+.m4tooltip .tip-bottom {
+	border: 3px solid #4E647E;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+}
+.tip {
+	background-color: #E5E6EB;
+	z-index: 13000;
+	border: solid 1px #fff;
+}
+.tip-title {
+	margin: 0px;
+	color: #4F5070;
+	padding: 10px;
+}
+.tip-text {
+	padding: 4px 8px 8px;
+}
+
+/**************************** end meta4.widget.tooltip *******************************************/
+
+/**************************** start meta4.widget.elect *******************************************/
+
+/* The following rules set style for the <select> replacement
+ * Select is replaced by an inline <div class="meta4-widget-select"> */
+
+.meta4-widget-select {
+
+	border-left: 10px solid #dadeea;
+	border-bottom: 10px solid #dadeea;
+	border-right: 10px solid #dadeea;
+	z-index: 9999;
+}
+
+div.meta4-widget-select {
+	display: inline-block; /* Needed to behave like a select element */
+	*display: inline; /* IE7 fix */
+	*zoom: 1; /* IE7 fix */
+	vertical-align: middle;
+	margin: 0;
+	overflow: hidden; /* For float clearing */
+	cursor: pointer;
+	padding: 1px;
+	color: #333;
+	background-color: #f1f1f1;
+	border-top: 1px solid #a3a3a3;
+	border-left: 1px solid #a3a3a3;
+	border-right: 1px solid #f6f6f6;
+	border-bottom: 1px solid #f6f6f6;
+	/*font-weight: bold;*/
+	height: 26px;
+	margin-left: 7px;
+	margin-right: 10px;
+}
+
+/* This is the arrow on the right side. The triangle is
+ * rendered using a base64 encoded PNG :)
+ * See the magic here: http://ptrn.it/x0Hdzg */
+
+div.meta4-widget-select .arrow {
+	display: block;
+	float: right;
+	height: 16px;
+	width: 16px;
+	margin: 8px;
+	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAANElEQVQImXXLwQkAIAxD0b9TFnSnDKgXCyXWDz2U8AAM7OEMoM8obqlNK7WIPKnUj6pWfw5v3BfTx+n+2AAAAABJRU5ErkJggg==');
+	background-position: 5px 2px;
+	background-repeat: no-repeat;
+}
+
+/* The following rule set style for the dropdown list,
+ * which is a <ul class="meta4-widget-select"> */
+
+ul.meta4-widget-select {
+	margin: 0; /* Reccomended! */
+	padding: 0;
+	overflow: auto;
+	max-height: 90%;
+	min-width: 305px;
+	/* Use the folliwing if you want to set a fixed height
+	 * on the dropdown and let user "scroll" options...
+	 width: 150px;
+	 height: 200px;
+	 overflow: auto;
+	 *overflow-x: hidden;
+	 *overflow-y: auto; */
+
+}
+
+ul.meta4-widget-select li {
+	margin: 0;
+	padding: 1px;
+	list-style-type: none; /* We do not need bullets */
+	border: 1px solid #dddddd;
+	background-color: white; /*#eeeeee;*/
+	overflow: hidden; /* For float clearing */
+	border-top: none; /* Avoid double-borders */
+	cursor: pointer;
+	*width: 150px; /* IE7 fix, we HAVE TO se fixed with :( */
+	*margin-bottom: -3px; /* IE7 fix */
+	/*height: 70px;*/
+}
+
+ul.meta4-widget-select li:hover {
+	background-color: #f6f6f6;
+}
+
+/* This is for the currently selected option */
+
+ul.meta4-widget-select li.selected {
+	background-color: #ddeeff;
+	/*font-weight: bold;*/
+}
+
+/* This is for the disabled options */
+
+ul.meta4-widget-select li.disabled {
+	background-color: #dddddd;
+	color: #666666;
+	cursor: default;
+}
+
+/* The following rules set style for inner content of the <select>
+ * replacement and the dropdown list. Just an image and a text left-floated */
+
+.meta4-widget-select .image {
+	display: block;
+	float: left;
+	width: 16px;
+	height: 16px;
+	margin-left: 5px;
+	padding-right: 10px;
+}
+
+.meta4-widget-select .text {
+	display: block;
+	float: left;
+	height: 32px;
+	width: 250px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	line-height: 28px;
+	padding: 0 10px;
+	font-family: 'Segoe UI', Arial, sans-serif;
+	font-size: 130%;
+}
+
+.meta4-widget-select .title {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	display: block;
+	float: left;
+	height: 32px;
+	line-height: 32px;
+	padding: 0 10px;
+	font-family: 'Segoe UI', Arial, sans-serif;
+	font-size: 120%;
+	margin-left: 5px;
+}
+.meta4-widget-select .detail-text {
+	display: block;
+	height: 32px;
+	padding: 10px 10px 0px 10px;
+	clear: both;
+}
+
+/* Some rules to have bigger images for "meta4-widget-select-big" class */
+
+ul.meta4-widget-select-big li .image {
+	display: block;
+	float: left;
+	width: 64px;
+	height: 64px;
+}
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+	div.meta4-widget-select {
+		height: 18px;
+	}
+	.meta4-widget-select .text {
+		line-height: 19px;/*16px*/
+	}
+	div.meta4-widget-select .arrow {
+		margin: 5px;
+	}
+}
+
+/**************************** end meta4.widget.select *******************************************/
+
+/**************************** start m4-placeHolder *******************************************/
+
+.m4-placeHolder {
+	font-style: italic;
+	color: gray;background = '#FFFFFF url(../iconos/search.png) right no-repeat';
+}
+
+.m4-placeHolder-icon {
+	padding-right: 17px;
+}
+
+/**************************** end m4-placeHolder *******************************************/
+
+/**************************** start m4-confirm *******************************************/
+
+.div-m4confirm {
+	position: relative;
+	width: 50%;
+	top: 20%;
+	left: 20%;
+	color: #333;
+	z-index: 15000;
+	background: white;
+	border-width: 8px;
+	border-color: #E6EBF1;
+	border-style: solid;
+}
+
+.div-m4confirm-title {
+	color: #6982c7;
+	padding-left: 30px;
+	padding-right: 30px;
+	padding-top: 10px;
+	font-family: 'Segoe UI';
+	font-weight: normal;
+}
+
+.div-m4confirm-msg {
+	min-height: 100px;
+	padding-left: 30px;
+	padding-right: 30px;
+	padding-top: 15px;
+}
+
+.div-m4confirm-button {
+	text-align: right;
+	margin-bottom: 17px;
+	margin-top: 10px;
+}
+
+.div-m4confirm-button button {
+	border: 1px solid #354a67;
+	margin-right: 17px;
+	background-image: url(../iconos/buton_background.png);
+	color: #FFF;
+	cursor: pointer;
+}
+
+.div-m4confirm-button button:hover {
+	border: 1px solid #354a67;
+	height: 22px;
+	background-color: #819bcb;
+	background-image: url(../iconos/buton_hover_background.png);
+	cursor: pointer;
+}
+
+.m4-resizablePanel-left {
+	border-left: 1px solid #93a8c3;
+	border-right: 1px solid #93a8c3;
+	background-color: #d3d7db;
+}
+
+.m4-resizablePanel-right {
+	border-right: 1px solid #93a8c3;
+	border-left: 1px solid #93a8c3;
+	background-color: #d3d7db;
+}
+
+/**************************** end m4-confirm *******************************************/
+
+/**************************** start m4-form *******************************************/
+
+.m4-form {
+	float: left;
+	/*width: 50%; Bug 264212*/
+	min-width: 50%;
+	background: white;
+	top: 20%;
+	left: 20%;
+	z-index: 101;
+	border: 10px solid #bdc4db;
+}
+
+.m4-form.m4-form-without-popUp {
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box; /* Firefox, other Gecko */
+	box-sizing: border-box; /* Opera/IE 8+ */
+	width: 100%;
+	top: 0;
+	left: 0;
+	border: none;
+}
+
+.m4-table .m4-form-without-popUp {
+	border: 1px solid black;
+}
+
+.m4-form-multipleItem input {
+	margin-right: 2px;
+	border: 1px solid #7f9db9;
+}
+
+.m4-form-table textarea {
+	width: 300px;
+	min-width: 300px;
+	max-width: 300px;
+}
+
+.m4-form-div {
+	float: left;
+	width: 100%;
+}
+
+.m4-form-table {
+	/*font-family: 'Segoe UI', Arial, sans-serif;*/
+	margin-left: 25px;
+	margin-top: 20px;
+	margin-right: 20px;
+}
+
+/* AL USAR EL TAG html EN EL <!DOCTYPE html> DE LA PAGINA ESTO YA NO ES NECESARIO
+.m4-form-table label {
+	font-size: 75%;  
+}
+*/
+
+.m4-form-table tr td:nth-child(1) {
+	vertical-align: top;
+}
+
+.m4-form-table tr td:nth-child(1) label {
+	float: right;
+	text-align: right;
+	vertical-align: top;
+}
+
+.m4-form-title {
+	float: left;
+	color: #6982c7;
+	font-family: 'Segoe UI', Arial, sans-serif;
+	font-weight: normal;
+	margin-left: 17px;
+	margin-right: 17px;
+	margin-top: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    -ms-text-overflow: ellipsis;
+	width: -moz-calc(100% - 65px);
+	width: -webkit-calc(100% - 65px);
+	width: -o-calc(100% - 65px);
+	width: calc(100% - 65px);
+}
+
+.m4-form-description {
+	margin-top: 17px;
+	/*float: left;   Para solucionar el bug 264212 sobra */
+    overflow:hidden;
+    white-space: nowrap;
+    -ms-text-overflow:ellipsis;
+    text-overflow:ellipsis;
+    display:block;
+    margin-top: 54px;
+	clear: both;
+	margin-left: 17px;
+	margin-right: 20px;
+}
+
+.m4-form-labelBold {
+	font-weight: bold;
+}
+
+.m4-form .m4-form-labelIput5 {
+	width: 45px;
+	max-width: 45px;
+	border: 1px solid #7f9db9;
+}
+.m4-form .m4-form-labelIput10 {
+	width: 90px;
+	max-width: 90px;
+	border: 1px solid #7f9db9;
+}
+.m4-form .m4-form-labelIput25 {
+	width: 200px;
+	max-width: 200px;
+	border: 1px solid #7f9db9;
+}
+.m4-form .m4-form-labelIput100 {
+	width: 300px;
+	max-width: 300px;
+	border: 1px solid #7f9db9;
+}
+
+.invalidValue {
+	background-color: #FBBCBC;
+	border-color: #FF0000;
+}
+
+@media screen and (max-device-height: 768px),
+ screen and (max-height: 768px) {
+ 	/* AL USAR EL TAG html EN EL <!DOCTYPE html> DE LA PAGINA ESTO YA NO ES NECESARIO
+	.m4-form-table label {
+		font-size: 70%;
+	}*/
+}
+
+/**************************** end m4-form *******************************************/
+
+/**************************** start m4-loading *******************************************/
+
+.div-loading {
+	z-index: 9999999;
+	display: none;
+	textAlign: center;
+	background: 'url(../iconos/spinner.gif) no-repeat center 10px #F3F3F6';
+}
+
+.divPopUp-Loading {
+	textAlign: center;
+}
+
+.divPopUp-Loading label {
+	opacity: 0.85;
+	font-family: "MS Sans Serif";
+	border: 1px solid #f0c36d;
+	background-color: #f9edbe;
+	padding-right: 10px;
+	padding-left: 10px;
+	padding-bottom: 4px;
+	padding-top: 4px;
+}
+
+/**************************** end m4-loading *******************************************/
+
+/**************************** start m4-slider *******************************************/
+.slider {
+	background: url(../iconos/back_vertical_sep.png);
+	background-repeat: repeat-x;
+	background-position: 50% 50%;
+	height: 16px;
+	width: 80px;
+	margin: auto;
+	margin-top: 3px;
+}
+.slider .knob {
+	background: #7b93af;/* #7f9db9 #1D83BD*/
+	width: 8px;
+	height: 16px;
+	border: 1px solid #5D7394;/*#7f9db9*/
+	border-top: 0px;
+	border-left: 0px;
+	top: -1px;
+}
+
+.labelSlider {
+	float: left;
+	margin-left: 5px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	color: #333;
+	max-width: 60px;
+}
+
+.knob {
+	cursor: pointer;
+}
+
+/**************************** end m4-slider *******************************************/
+
+/**************************** start m4-progressBar *******************************************/
+
+.m4ProgressBar-container {
+	display: table;
+	width: 100%;
+}
+
+.m4ProgressBar-container .m4progressBar {
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	min-height: 7px;
+	overflow: hidden;
+	background-color: #dfdfdf;
+}
+
+.m4ProgressBar-container-align {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.m4ProgressBar-container .m4progressBar-stepBar {
+	width: 0%;
+	height: 100%;
+	min-height: 7px;
+	background: #1DABD8;
+}
+.m4ProgressBar-container .m4ProgressBar-text {
+	margin-left: 5px;
+}
+
+.m4ProgressBar-container .m4ProgressBar-input {
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	width: 35px;
+	text-align: center;
+	margin: 0px;
+	margin-left: 1%;
+}
+
+/**************************** end m4-progressBar *******************************************/
+
+/**************************** start m4-widgetButton *******************************************/
+.m4-widgetButton {
+	display: table;
+	float: left;
+	height: 24px;
+	line-height: normal;
+	margin-right: 5px; /*Al apilar botones se añade esta separación a la derecha*/
+}
+
+/*START solo aplica cuando el boton no tiene texto */ 
+.m4-widgetButton.m4-widgetButton-only-img {
+	height: 16px;
+	padding: 0px;
+}
+
+.m4-widgetButton.m4-widgetButton-only-img img{	
+	padding: 3px;
+}
+
+.m4-widgetButton.m4-widgetButton-only-img .m4-widgetButton-text, .m4-widgetButton.m4-widgetButton-only-img .m4-widgetButton-img {
+	padding-left: 0px;
+}
+
+/*end solo aplica cuando el boton no tiene texto */
+
+.m4-widgetButton-text, .m4-widgetButton-img {
+	display: table-cell;
+	vertical-align: middle;
+	height: 100%;
+	padding-left: 5px;
+}
+
+.m4-widgetButton-img img {
+	vertical-align: middle;
+	display: table-cell;
+}
+
+.m4-widgetButton-text label {
+	cursor: pointer;
+	line-height: 7px;
+	color: black;
+}
+
+.m4-widgetButton-text label, .m4-widgetButton-text h3, .m4-widgetButton-text h2 {
+	cursor: pointer;
+}
+
+.m4-widgetButton-pressed {
+	background-image: url(/iconos/pressed_button_background.png) !important;
+	background-size: 6px;
+	background-repeat: repeat-x;
+}
+
+/**************************** end m4-widgetButton *******************************************/
+
+/**************************** end m4-widget split *******************************************/
+.m4-resizablePanel {
+	height: 100%;
+	width: 13px;
+	z-index: 1;
+	cursor: e-resize;
+	position: absolute;
+	top: 0px;
+	/*background-color:white;*/
+}
+
+.imgPlegar {
+	position: absolute;
+	top: 40%;
+	margin-left: 0px;
+	cursor: pointer;
+}
+
+/**************************** end m4-widget split *******************************************/
+
+/**************************** start m4-table-person-list  *******************************************/
+
+.m4-table-listPerson-div {
+	position: relative;
+	float: left;
+	width: 100%;
+}
+
+.m4-table-listPerson-divImg {
+	position: absolute;
+	bottom: 0;
+	top: 0;
+	margin: auto;
+	/**display: table*/ /*Alinear al centro*/
+}
+
+.m4-table-listPerson-divData {
+	float: left;
+	width: 100%;
+	display: table-cell;
+	vertical-align: middle;
+	color: #758199;
+	text-align: left;
+	min-height: 60px;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	padding-left: 60px;
+}
+
+.m4-table-listPerson-divData .titlePerson {
+	color: #333333;
+}
+
+.m4Selected .m4-table-listPerson-divData .titlePerson {
+	color: white;
+}
+
+.m4Selected:hover .m4-table-listPerson-divData .titlePerson {
+	color: #333333;
+}
+
+.m4-table-listPerson-divImg img {
+	width: 60px;
+	height: 60px;
+	vertical-align: bottom;
+}
+
+.m4-table-listPerson-divData label {
+	width: 100%;
+	clear: both;
+	float: left;
+	padding-left: 10px;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	font-size: 100%;/*10px*/
+	line-height: 130%;/*13px*/
+}
+
+.titlePerson.margin-label-titlePerson {
+	font-weight: bold;
+	/*color:#333;*/
+}
+
+/*.m4Selected .titlePerson.margin-label-titlePerson{
+ color:#fff;
+ }
+
+ .m4Selected:hover .titlePerson.margin-label-titlePerson{
+ color: #6a6a6a;
+ }
+ */
+
+.m4-table-listPerson-divData .divNote label {
+	padding-left: 0px;
+}
+
+.m4-table-listPerson-divData .m4-table-listPerson-first {
+	font-weight: bold;
+}
+
+/**************************** end m4-table-person-list *******************************************/
+
+/**************************** start  widget.utils.getScoreColor(level, levelsNumber) *******************************************/
+
+.startColor {
+	/*hex color is needed*/
+	background-color: #f05044;
+}
+.endColor {
+	/*hex color is needed*/
+	background-color: #8EB53E;
+}
+
+/**************************** end  widget.utils.getScoreColor(level, levelsNumber) *******************************************/
+
+/**************************** start  m4RadioButton svg *******************************************/
+.m4RadioButton svg {
+	width: 12px;
+	height: 12px;
+}
+
+.m4RadioButton svg path {
+	stroke: #466381;
+	stroke-width: 10px;
+	fill: transparent;
+	cursor: pointer;
+}
+
+.m4RadioButton svg rect, .m4RadioButton svg circle {
+	fill: transparent;
+	stroke: #333;
+	stroke-width: 10px;
+	cursor: pointer;
+}
+
+.m4RadioButton svg rect:hover, .m4RadioButton svg circle:hover {
+	stroke: #333;
+}
+
+.m4RadioButtonDiv div {
+	float: left;
+	display: table;
+	margin-right: 7px;
+}
+
+.m4RadioButtonDiv label {
+	margin-left: 5px;
+}
+
+/** start disabled */
+.m4RadioButton .m4RadioButton-disabled svg path {
+	stroke: #9a9ea1;
+	cursor: default;
+}
+
+.m4RadioButton .m4RadioButton-disabled svg rect, .m4RadioButton .m4RadioButton-disabled svg circle {
+	stroke: #5c5c5c;
+	cursor: default;
+}
+
+.m4RadioButton .m4RadioButton-disabled svg rect:hover, .m4RadioButton .m4RadioButton-disabled svg circle:hover {
+	stroke: #5c5c5c;
+	cursor: default;
+}
+
+.m4RadioButton-label {
+	cursor: pointer;
+}
+
+.m4-form-table .m4RadioButton-label {
+	display: none;
+}
+
+/** end disabled */
+
+/**************************** end  m4RadioButton svg *******************************************/
+
+/**************************** start uploadFile *******************************************/
+.m4UploadFile-container-progress {
+	width: 200px;
+	float: right;
+	border: 1px solid #666;
+}
+
+.m4UploadFile-container-input {
+	position: relative;
+	float: left;
+	width: 95%;
+	padding-left: 20px;
+}
+
+.m4UploadFile-container-input img {
+	cursor: pointer;
+}
+
+.m4UploadFile-container-input input {
+	position: absolute;
+	margin: 0;
+	opacity: 0;
+	filter: alpha(opacity=0);
+	width: 20px;
+	height: 20px;
+	overflow: auto;
+	cursor: pointer;
+	top: 0px;
+	left: 0px;
+}
+
+.m4UploadFile-droppable {
+	border: #ccc 1px solid;
+	border-radius: 8px;
+	background: #eee;
+	color: #666;
+	padding: 20px;
+	margin: 10px;
+	clear: both;
+	text-align: center;
+}
+
+.m4UploadFile-drag-hover {
+	background: #ddd;
+	border: 3px dashed #ff9999;
+}
+
+.m4UploadFile-uploadList {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.m4UploadFile-uploadItem {
+	overflow: hidden;
+	border-bottom: #BCBCBC 1px solid;
+	margin: 0 20px;
+	padding: 3px;
+}
+
+.m4UploadFile-uploadItem span {
+	overflow: hidden;
+	width: -moz-calc(100% - 230px);
+	width: -webkit-calc(100% - 230px);
+	width: -o-calc(100% - 230px);
+	width: calc(100% - 230px);
+	float: left;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 10px;
+}
+
+a.m4UploadFile-addInputRow, a.m4UploadFile-delInputRow, .m4UploadFile-uploadItem a {
+	display: inline-block;
+	background: url(add.png) no-repeat;
+	height: 16px;
+	width: 16px;
+	text-indent: -999px;
+	margin-left: 5px;
+}
+
+.m4UploadFile-uploadItem a {
+	float: right;
+	background-image: url("/iconos/del.png");
+}
+
+a.m4UploadFile-delInputRow {
+	background-image: url("/iconos/del.png");
+}
+
+.m4UploadFile-progress {
+	height: 15px;
+	border-radius: 3px;
+	background: #6C86D8;
+}
+/**************************** end uploadFile *******************************************/
+
+/**************************** start m4DocManage *******************************************/
+.m4-docmanage-img {
+	padding-left: 6px;
+	padding-right: 6px;
+}
+/**************************** end m4DocManage *******************************************/

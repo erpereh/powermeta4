@@ -47,7 +47,7 @@ Incluye todos los directorios y archivos de primer nivel, sin listar nombres de 
 | m4jsapi            | 10                  | Ayuda, administración o SDK; P07 si expuesto al usuario             |
 | m4jsapi_node       | 3                   | Ayuda, administración o SDK; P07 si expuesto al usuario             |
 | m4jsevents         | 9                   | Recurso de presentación/soporte; dependencias cuando referenciado   |
-| m4trans            | 5975                | Runtime/configuración o generación; no nuevas pantallas por archivo |
+| m4trans            | 5976                | Runtime/configuración o generación; no nuevas pantallas por archivo |
 | mobile             | 241                 | P07: generación o ámbito adicional; véase otros recursos            |
 | mobile_func        | 6                   | P07: generación o ámbito adicional; véase otros recursos            |
 | mss_g1             | 290                 | Fichas principales; incluir variantes m4custom                      |

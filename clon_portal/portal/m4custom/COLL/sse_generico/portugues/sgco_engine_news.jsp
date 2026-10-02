@@ -1,0 +1,1 @@
+<%@ include file="../sgco_engine_news.jsp" %>

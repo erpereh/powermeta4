@@ -1,0 +1,1 @@
+<%response.sendRedirect("/servlet/CheckSecurity/JSP/sse_generico/sgco_subportal.jsp?bESS=0&sMenuId=SMCO_G1");%>

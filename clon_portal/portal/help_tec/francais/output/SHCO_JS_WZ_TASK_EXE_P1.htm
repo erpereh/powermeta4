@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/31/05 10:11:56" />
+    <title>Comment consulter l&#39;état des exécutions</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp590582"> </a><h2 class="pTitle">
+Comment consulter l&#39;état des exécutions
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_JS_WZ_TASK_EXE_P1-->
+<p class="bodytex"> Objet</p>
+<a name="wp590588"> </a><p class="pBody">
+Cette section vous explique la manière de prendre connaissance des tâches planifiées, de consulter l&#39;état des exécutions, d&#39;éditer les exécutions et même de les annuler ou de les interrompre. Il existe deux façons de consulter l&#39;évolution d&#39;une tâche planifiée :
+</p>
+<ul class="item">
+<li>Dans <b class="cBold">Outils | Planificateur de tâches</b>, cliquez sur le lien <b class="cBold">Exécutions</b> qui vous permet de consulter l&#39;état actuel de l&#39;exécution d&#39;une tâche planifiée.</li>
+<li>Dans <b class="cBold">Outils | Gérer les exécutions</b>, vous pouvez consulter la file d&#39;attente d&#39;exécutions filtrée en fonction des critères de votre choix. De cette façon vous prenez rapidement connaissance des tâches planifiées et de leur état.</li>
+</ul>
+<p class="bodytex"> Démarche à suivre</p>
+<a name="wp590596"> </a><p class="pBody">
+Procédez comme suit :
+</p>
+<ol>
+<li class="numero">Pour filtrer en fonction des états qui vous intéressent, cochez la ou les cases correspondantes, puis cliquez sur le bouton <img src="images/ic_search_36_36_0.gif" id="wp1312339" border="0" hspace="0" vspace="0"/>. Les états possibles sont : </li>
+<ul class="item">
+<li><b class="cBold">Exécuté</b> : toutes les exécutions des tâches du groupe sont terminées.</li>
+<li><b class="cBold">En attente</b> : l&#39;exécution du groupe de tâches n&#39;a pas encore commencé.</li>
+<li><b class="cBold">Exécution en cours&#160;:</b> le groupe de tâches se trouve en cours d&#39;exécution, c&#39;est-à-dire que l&#39;exécution de la première tâche du groupe au moins a commencé tandis que d&#39;autres tâches sont encore en attente.</li>
+<li><b class="cBold">Annulation en cours</b>&#160;: il s&#39;agit de l&#39;état précédant l&#39;état <b class="cBold">Annulée</b>. En effet, lorsque vous annulez un groupe de tâches, l&#39;annulation ne se produit pas immédiatement, mais seulement après que l&#39;exécution de la tâche en cours s&#39;est achevée. Aussi cet état est celui affecté au groupe tant que l&#39;annulation se produit.</li>
+<li><b class="cBold">Expiré</b>&#160;: lorsque l&#39;exécution d&#39;un groupe accumule un retard qui dépasse le délai d&#39;expiration défini pour le groupe, celui-ci n&#39;est plus exécuté et son état passe à Expiré.</li>
+<li><b class="cBold">Interrompu</b>&#160;: l&#39;exécution du groupe a été interrompue pour des raisons indépendantes de l&#39;utilisateur (arrêt du serveur par exemple). L&#39;état du groupe de tâches demeurera comme <b class="cBold">Exécution en cours</b> jusqu&#39;à ce que le serveur redémarre. À ce moment-là seulement, l&#39;état du groupe passera à <b class="cBold">Interrompue</b>).</li>
+<li><b class="cBold">Annulé</b> : l&#39;exécution du groupe a été annulée. Annuler une exécution revient à annuler l&#39;exécution du groupe de tâches auquel elle appartient : la tâche en cours se poursuit et s&#39;achève normalement tandis que les tâches suivantes du groupe en attente ne seront pas exécutées.</li>
+<li><b class="cBold">Abandon en cours</b>&#160;: il s&#39;agit de l&#39;état précédant l&#39;état <b class="cBold">Abandonné</b>. L&#39;abandon de l&#39;exécution d&#39;un groupe de tâches ne se fait pas de façon immédiate. Aussi, pendant que dure ce processus, l&#39;état du groupe est <b class="cBold">Abandon en cours</b>.</li>
+<li><b class="cBold">Abandonné</b>&#160;: l&#39;exécution du groupe a été abandonnée. Cette opération implique l&#39;annulation pure et simple de l&#39;exécution du groupe de tâches. Aussi, lorsque vous décidez d&#39;abandonner l&#39;exécution d&#39;un groupe, l&#39;exécution des tâches qui composent celui-ci est interrompue de façon soudaine et drastique, y compris la tâche en cours.</li>
+</ul>
+<li class="numero">Sélectionnez l&#39;exécution que vous souhaitez consulter. La page <b class="cBold">Détail de l&#39;exécution</b> apparaît. </li>
+<li class="numero">Les données du groupe sont présentées, correspondant à la planification et aux tâches. Les informations fournies sont à caractère général. Il s&#39;agit du code d&#39;identification de la tâche dans le groupe, de son libellé, des dates de début et de fin d&#39;exécution, etc. </li>
+<li class="numero">Vous pouvez <b class="cBold">Abandonner</b> ou <b class="cBold">Annuler</b> les exécutions actives (en attente, en cours d&#39;exécution, etc.) de votre choix. Abandonner revient à arrêter une exécution en cours ; annuler revient à arrêter une exécution non encore traitée. Ces actions modifient automatiquement l&#39;état de l&#39;exécution. </li>
+<li class="numero">Cliquez sur les liens disponibles ou utilisez les boutons de navigation afin de continuer la configuration. Vous accédez aux formulaires : </li>
+<ul class="item">
+<li><b class="cBold">Paramètres d&#39;exécution</b>. Pour en savoir plus, reportez-vous à <a href="javascript:WWHClickedPopup('TECH_HELP_FRA', 'SHCO_JS_WZ_TASK_EXE_P2.htm');" onMouseOver="WWHShowPopup('TECH_HELP_FRA', 'SHCO_JS_WZ_TASK_EXE_P2.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Paramètres d&#39;exécution</a>.</li>
+<li><b class="cBold">Exécutions des tâches</b>. Pour en savoir plus, reportez-vous à <a href="javascript:WWHClickedPopup('TECH_HELP_FRA', 'SHCO_JS_WZ_TASK_EXE_P3.htm');" onMouseOver="WWHShowPopup('TECH_HELP_FRA', 'SHCO_JS_WZ_TASK_EXE_P3.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Exécutions des tâches</a>.</li>
+<li><b class="cBold">Documents générés</b>. Pour en savoir plus, reportez-vous à <a href="javascript:WWHClickedPopup('TECH_HELP_FRA', 'SHCO_JS_WZ_TASK_EXE_P4.htm');" onMouseOver="WWHShowPopup('TECH_HELP_FRA', 'SHCO_JS_WZ_TASK_EXE_P4.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Documents générés</a>.</li>
+</ul>
+</ol>
+<p class="bodytex"> À consulter également</p>
+<ul class="triangulo">
+<li><a href="javascript:WWHClickedPopup('TECH_HELP_FRA', 'SHCO_JS_WZ_SCHED_TASKS_P1.htm');" onMouseOver="WWHShowPopup('TECH_HELP_FRA', 'SHCO_JS_WZ_SCHED_TASKS_P1.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Planificateur de tâches</a></li>
+</ul>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

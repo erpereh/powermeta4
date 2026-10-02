@@ -1,0 +1,213 @@
+/**	
+	@(#)FileVersion: 812.000.045
+	@(#)FileDescription:Style to accordion menu
+	@(#)CompanyName: Meta4 Spain, S.A.
+	@(#)LegalCopyright: (c)2014
+	@(#)ProductName: PeopleNet KSystem
+	@(#)ProductVersion: 8.1SP1
+	@(#)InternalName: accordion.css
+	@(#)Date: 10/04/2015
+*/
+
+#menu li ul {
+	display: block;
+}
+
+#menu ul li {
+	padding-top: 17px;
+}
+
+ul {
+	display: block;
+	margin: 0px;
+	padding: 0px;
+	list-style: none;
+}
+
+li {
+	margin: 0px;
+	padding: 0px;
+}
+
+#menu ul {
+	background-color: #f2f2f2;
+}
+
+.TabsMenu {
+	background-color: #7b93b0;
+	width: 100%;
+	font-size: 8pt;
+	font-family: Microsoft Sans Serif;
+	color: #e0e5ec;
+	overflow: hidden;
+	position: relative;
+	min-height: 35px;
+}
+
+.TabsSubMenu {	
+	text-align: left;
+	font-size: 16pt;
+	color: black;
+	font-family: Segoe UI;
+	min-height: 33px;
+	overflow: hidden;
+}
+
+.tabsSubMenu{
+
+}
+
+.TabsSubMenu ul{
+	padding: 12px;
+}
+
+.TabsSubMenu div.m4-widgetButton[nodename='h3']{
+	padding: 0 17px;
+}
+
+.titleSubTab {
+	padding-left: 15px;
+}
+
+.titleSubTab:hover {
+	color: #9dd6ed;
+}
+
+.titleTab {
+	height: 33px;
+	line-height: 33px;
+	padding-left: 10px;
+	left: 32px;
+	position: absolute;
+}
+
+
+.titleTab:hover {
+	color: #9dd6ed;
+}
+
+.readSave {
+	color: #6e6e6e;
+}
+
+.contentTab {	
+	font-size: 8pt;
+	color: black;
+	font-family: Microsoft Sans Serif;
+	padding: 17px;	
+	position: relative;
+}
+
+.boxRow{
+	display: table-row;
+	vertical-align: middle;
+}
+
+.boxRow input, .boxRow label{
+	vertical-align: middle;
+	padding: 0 6px;
+}
+
+.contentTab #max-levels, .levelSelection{
+	position: relative;
+}
+
+.contentTab #max-levels input, #numberPerson{
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 50px;
+	text-align: center;
+}
+#m4-colorOptions input[type="text"]{
+	width: 22px;
+	height: 22px;
+}
+
+#m4-colorOptions input[type="radio"]{
+	padding: 12px;
+}
+
+#m4-colorOptions select{
+	width: 100%;	
+}
+.titleContent, .typeEditStyle, .levelSelection{
+	display: block;
+	padding-bottom: 12px;
+	padding-top: 3px;
+}
+.colorPickerBox, .colorPickerFont, 
+.colorPickerLine, .ColorlineDependency, 
+.TypelineDependency, .colorPickerDependency{
+	text-align: right;
+	padding-top: 12px;
+}
+
+.sliderRange{
+	padding-top: 12px;
+}
+
+#rangeSizeX, #rangeSizeY{
+	height: 10px;
+	width: 100%;
+}
+
+.tablePersonIndex {
+	padding: 12px;
+}
+
+.leftSide{
+	width: 85%;
+	display: inline-block;
+	height: 25px;
+}
+
+.rightSide{
+	width: 15%;
+	display: inline-block;
+	vertical-align: middle;
+	height: 25px;
+	text-align: right;
+}
+
+.rightSideBold, .rightSideItalic{
+	display: inline-block;
+	width: 50%;
+	text-align: center;
+}
+
+.rightSideBold{
+	text-align: right;
+}
+
+
+.imgMenu {
+	position: absolute;
+	top: calc(50% - 8px);
+	left: 0;
+	margin: 0 10px;
+}
+
+.tree {
+	color: #000000;
+	font-size: 8pt;
+	font-family: Microsoft Sans Serif;	
+	padding: 1px 6px;
+}
+
+
+.tree:hover {
+	color: #9dd6ed;	
+}
+.imgWU{
+	position: relative;
+	top: 2px;	
+	width:16px;
+	height:16px;
+}
+
+.imgWU:hover{	
+		background-image: url(iconmenu/TREE_HOVER.png);
+		background-repeat: no-repeat;
+}
+

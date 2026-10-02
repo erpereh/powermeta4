@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-contacts.Contact-iOS",function(e,c,d){var b=e("cordova/exec"),a=e("./ContactError");d.exports={display:function(f,h){if(this.id===null){if(typeof f==="function"){var g=new a(a.UNKNOWN_ERROR);f(g)}}else{b(null,f,"Contacts","displayContact",[this.id,h])}}}});

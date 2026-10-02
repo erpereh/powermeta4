@@ -1,0 +1,249 @@
+hr 
+{color:#bc8213;
+with: 80%}
+
+H1
+{ 
+    FONT-FAMILY: Verdana; color: #3669AA;
+    FONT-SIZE: 20px;
+    TEXT-ALIGN: left;
+    LINE-HEIGHT: 60px;
+}
+H2
+{
+    FONT-FAMILY: Verdana; color: #3669AA;
+    FONT-SIZE: 20px;
+    TEXT-ALIGN: left
+}
+H3
+{
+    FONT-FAMILY: Verdana; color: #3669AA;
+    FONT-SIZE: 15px;
+    TEXT-ALIGN: left
+}
+.bodytex
+{
+    FONT-FAMILY: Verdana; color: #3669AA;
+    FONT-SIZE: 15px;
+    TEXT-ALIGN: left; 
+FONT-WEIGHT: bold;
+}
+H4
+{
+    FONT-FAMILY: Verdana; color: #3669AA;
+    FONT-SIZE:12px;
+    TEXT-ALIGN: left
+}
+H5
+{
+    FONT-FAMILY: Verdana; color: #3669AA;
+    FONT-SIZE: 11px;
+    TEXT-ALIGN: left
+}
+H6
+{
+    FONT-FAMILY: Verdana; color: #3669AA;
+    FONT-SIZE: 20px;
+    TEXT-ALIGN: left
+}
+BODY
+{
+background-color:#EFEFEF;
+    FONT-FAMILY: Verdana;
+    FONT-SIZE: 11px;
+    LINE-HEIGHT: 18px;
+    TEXT-ALIGN: left;
+	
+   
+}
+P
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+       TEXT-DECORATION: none;
+ LINE-HEIGHT: 18px;
+    MARGIN-BOTTOM: 6px;
+    MARGIN-TOP: 6px;
+    TOP: 400pt
+}
+.cellbody
+{
+    FONT-FAMILY: Verdana;
+    FONT-SIZE: 11px;
+    TEXT-ALIGN: left;
+	LINE-HEIGHT: 20 px;
+	padding-left: 20 px;
+	padding-right: 20 px
+}
+
+
+
+.Title
+{
+LINE-HEIGHT: 23 px; }
+.cellheading 
+{ 
+border:0 px #86a7b6;
+ background-color: #C5CDD0;
+    FONT-FAMILY: Verdana; color: #3669AA;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bold;
+    TEXT-ALIGN: center
+}
+.code
+{FONT-FAMILY: Verdana;
+ LINE-HEIGHT: 18px;
+    FONT-SIZE: 13px;
+    TEXT-DECORATION: none
+    FONT-FAMILY: Comic Sans MS;
+    FONT-SIZE: 11px;
+    MARGIN-BOTTOM: 0px;
+    MARGIN-TOP: 0px
+}
+.note
+{
+FONT-FAMILY: Verdana;
+    LINE-HEIGHT: 18px;
+    TEXT-DECORATION: none
+    FONT-SIZE: 8pt;
+    LIST-STYLE: none;
+    PADDING-BOTTOM: 6px;
+    PADDING-LEFT: 6px;
+    PADDING-RIGHT: 6px;
+    PADDING-TOP: 6px
+}
+
+.warning
+
+{
+ LINE-HEIGHT: 18px;   
+FONT-FAMILY: Verdana;
+        COLOR: #3669AA;
+    TEXT-DECORATION: none;
+ FONT-SIZE: 8pt;
+    LIST-STYLE: none;
+    PADDING-BOTTOM: 6px;
+    PADDING-LEFT: 6px;
+    PADDING-RIGHT: 6px;
+    PADDING-TOP: 6px
+}
+.figure
+{
+    COLOR: navy;
+    FONT-FAMILY: Verdana, Arial;
+    FONT-SIZE: 11px;
+    TEXT-ALIGN: left
+}
+.numero
+{FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+      TEXT-DECORATION: none;
+ LINE-HEIGHT: 18px;
+      MARGIN-BOTTOM: 0px;
+    MARGIN-TOP: 0px
+}
+.cont{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+      TEXT-DECORATION: none;
+ LINE-HEIGHT: 18px;
+    LIST-STYLE: none;
+    MARGIN-BOTTOM: 0px;
+    MARGIN-TOP: 0px
+}
+UL.letter
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+    TEXT-DECORATION: none;
+ LINE-HEIGHT: 18px;
+    LIST-STYLE: lower-alpha
+}
+UL.lettercaps
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+    TEXT-DECORATION: none;
+ LINE-HEIGHT: 18px;
+    LIST-STYLE: upper-alpha
+}
+UL.dash
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 13px;
+    TEXT-DECORATION: none;
+ LINE-HEIGHT: 18px;
+    LIST-STYLE: disc url(images/dash.gif);
+    MARGIN-BOTTOM: 0px;
+    MARGIN-TOP: 0px
+}
+UL.field
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 13px;
+     TEXT-DECORATION: none;
+ LINE-HEIGHT: 18px;
+    LIST-STYLE: disc;
+    MARGIN-BOTTOM: 0px;
+    MARGIN-TOP: 0px
+}
+UL.item
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 13px;
+ LINE-HEIGHT: 18px;
+    TEXT-DECORATION: none;
+    LIST-STYLE: square;
+    M+ARGIN-BOTTOM: 0px;
+    MARGIN-TOP: 0px
+}
+UL.triangulo
+{	FONT-FAMILY: Verdana;
+    FONT-SIZE: 13px;
+
+    TEXT-DECORATION: none;	
+    LIST-STYLE: url(images/triangulo1.gif);
+    MARGIN-BOTTOM: 0px;
+    MARGIN-TOP: 0px
+}
+BLOCKQUOTE
+{
+    MARGIN-BOTTOM: 0px;
+    MARGIN-TOP: 0px
+}
+
+A:hover
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+    COLOR:#3669AA;
+    FONT-WEIGHT: bold;
+    TEXT-DECORATION: none
+}
+A:visited
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+    COLOR: #bc8213;
+    TEXT-DECORATION: none
+}
+A:active
+{
+FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+    COLOR: #0E86A4;
+    TEXT-DECORATION: none
+}
+A:link
+{
+  FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+    COLOR: #3669AA;
+    TEXT-DECORATION: none
+}
+.step
+{
+    FONT-FAMILY: Verdana;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bold
+}

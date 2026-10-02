@@ -2,7 +2,11 @@
 
 ## Copia original
 
-Raíz: [clon_portal/portal](../../../clon_portal/portal/). La carpeta está ignorada por Git. Los enlaces a esta copia permiten volver al código en este workspace; las fichas incorporan identificadores, contratos y localizadores para que la especificación sea útil cuando la copia no esté distribuida.
+Raíz: [clon_portal/portal](../../../clon_portal/portal/). La carpeta se versiona completa como archivo de referencia, por petición expresa del usuario. Git conserva los bytes originales mediante `.gitattributes`; TypeScript, lint y formateo la excluyen de sus recorridos. Los enlaces permiten volver al código tanto en el workspace como en el repositorio; las fichas incorporan identificadores, contratos y localizadores para consultar la especificación de forma independiente.
+
+La copia incluye los recursos y archivos del despliegue original, también las fotografías de empleados. Su publicación íntegra en el repositorio público fue confirmada expresamente. Esta decisión no convierte sus JSP, bibliotecas o recursos en código ejecutable de powermeta4 y no amplía permisos ni operaciones ERP.
+
+La incorporación a Git comprobó **33.518 archivos y 528.948.252 bytes**, sin omisiones ni diferencias de contenido respecto de la carpeta local. El recuento incluye un archivo de caché con una ruta que supera el límite habitual de Windows. Para recuperar la copia en Windows, habilitar `git config --local core.longpaths true` antes del checkout, o clonar con `git -c core.longpaths=true clone <URL>`. Las huellas y localizadores de la documentación funcional se mantienen.
 
 | Fuente                                                                                             | Uso                                                                    |
 | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |

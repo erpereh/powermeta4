@@ -1,0 +1,416 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>Create element</title>
+		
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		<link type="text/css" rel="stylesheet" href="/css/meta4calendar.css" />
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+
+		<style>
+			#divContenedor {
+				width: 100%;
+				height: 100px;
+			}
+
+			#div1, #div2 {
+				float: left;
+				width: 50%;
+				height: 100%;
+			}
+
+			#div1 {
+				background-color: rgb(125, 154, 206);
+			}
+			#div2 {
+				background-color: blue;
+			}
+
+			body {
+				margin-left: 15px;
+			}
+			
+			body{				
+			}
+
+			#example9 {
+				float: left;
+			}
+
+		</style>
+
+		<script>
+			var _channel = null;
+
+			var examples = {
+				example0 : function() {
+
+					$('example01').empty();
+					$('example02').empty();
+					meta4.widget.element.createWithBind({
+						nodeName : 'label'
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'GENERICO', $('example01'));
+
+					meta4.widget.element.createWithBind({
+						nodeName : 'input'
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'INPUT', $('example02'));
+				},
+				example1 : function() {
+
+					$('example1').empty();
+
+					meta4.widget.element.createWithBind({
+						nodeName : meta4.widget.TypeElement.inputPlaceHolder
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'INPUT_PLACEHOLDER', $('example1'));
+				},
+				example2 : function() {
+
+					$('example2').empty();
+
+					meta4.widget.element.createWithBind({
+						nodeName : meta4.widget.TypeElement.textAreaPlaceHolder
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'TEXTAREA_PLACEHOLDER', $('example2'));
+				},
+				example3 : function() {
+
+					$('example3').empty();
+
+					meta4.widget.element.createWithBind({
+						nodeName : meta4.widget.TypeElement.image
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'IMAGE', $('example3'));
+				},
+				example4 : function() {
+
+					$('example4').empty();
+
+					meta4.widget.element.createWithBind({
+						nodeName : meta4.widget.TypeElement.m4RadioButton,
+						mode : 'vertical',
+						onChangeRadio : function(object) {
+							console.log('elemento modificado: ' + object.item);
+						},
+						itemTypes : {
+							'RADIOBUTTON' : {
+								type : 'radio',
+							},
+							'RADIOBUTTON_2' : {
+								type : 'radio'
+							}
+						}
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'RADIOBUTTON', $('example4'));
+				},
+				example5 : function() {
+
+					$('example5').empty();
+
+					meta4.widget.element.createWithBind({
+						nodeName : meta4.widget.TypeElement.m4RadioButton,
+						mode : 'vertical',
+						onChangeRadio : function(object) {
+							console.log('elemento modificado: ' + object.item);
+						},
+						itemTypes : {
+							'CHECKBOX' : {
+								type : 'checkBox'
+							}
+						}
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'CHECKBOX', $('example5'));
+				},
+				example7 : function() {
+
+					$('example7').empty();
+
+					meta4.widget.element.createWithBind({
+						nodeName : meta4.widget.TypeElement.m4ProgressBar,
+						maximun : 100,
+						step : 10,
+						editable : true
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'PROGRESS_BAR', $('example7'));
+				},
+				example8 : function() {
+
+					$('example8').empty();
+
+					meta4.widget.element.createWithBind({
+						nodeName : meta4.widget.TypeElement.m4Select,
+						'idNodeAux' : 'EXJSAPI_WIDGET_FORM_AUX',
+						'idItemNameAux' : 'N_COUNTRY',
+						'idItemValueAux' : 'N_COUNTRY'
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'SELECT', $('example8'));
+				},
+				example9 : function() {
+
+					$('example9').empty();
+
+					meta4.widget.element.createWithBind({
+						nodeName : meta4.widget.TypeElement.m4Slider,
+						'idNodeAux' : 'EXJSAPI_WIDGET_FORM_AUX',
+						'idItemNameAux' : 'N_COUNTRY',
+						'idItemValueAux' : 'N_COUNTRY'
+					}, _channel, 'EXJSAPI_CREATE_ELEMENT', 'SELECT', $('example9'));
+				}
+			};
+
+			function initExample() {'use strict';
+
+				_channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+
+				function executeExamples(request) {
+					examples.example0();
+					examples.example1();
+					examples.example2();
+					examples.example3();
+					examples.example4();
+					examples.example5();					
+					examples.example7();
+					examples.example8();
+					examples.example9();					
+				}
+
+				var request = new meta4.M4Request(_channel, 'EXJSAPI_CREATE_ELEMENT', 'INITIALIZE', null);
+				meta4.data.execute(request, executeExamples);
+			}
+			
+			function initCreateElements() {
+				initExample();			
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+
+			//event to inicialice program
+			document.addEvent('meta4Ready', initCreateElements);
+
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+
+		<div id="page">
+			<div  data-m4context="contexto1" data-m4t3="EXJSAPI_COMPONENT"></div>
+
+			<h1 data-m4trans="_WidgetsCreateTitle"></h1>
+
+			<h2 data-m4trans="_WidgetsCreateSubtitle"></h2>
+
+			<p data-m4trans="_WidgetsCreateDescription"> </p>
+			<ul>
+				<li data-m4trans="_WidgetsCreateList1Element">					
+				</li>
+				<li data-m4trans="_WidgetsCreateList1Element2">					
+				</li>
+			</ul>
+			<p data-m4trans="_WidgetsCreateDescription2"></p>
+			<ul>
+				<li>
+					<span class="bold">properties: </span><span data-m4trans="_WidgetsCreateListElement"></span>
+				</li>
+				<li>
+					<span class="bold">channel: </span><span data-m4trans="_WidgetsCreateListElement2"></span>
+				</li>
+				<li>
+					<span class="bold" data-m4trans="_WidgetsCreateListElement3a"></span><span data-m4trans="_WidgetsCreateListElement3b"></span>
+				</li>
+				<li>
+					<span class="bold" data-m4trans="_WidgetsCreateListElement4a"></span><span data-m4trans="_WidgetsCreateListElement4b"></span>
+				</li>
+				<li>
+					<span class="bold" data-m4trans="_WidgetsCreateListElement5a"></span><span data-m4trans="_WidgetsCreateListElement5b"></span>
+				</li>
+			</ul>
+			<br>
+			<br>
+			<p data-m4trans="_WidgetsCreateDescription3"></p>
+			<ul>
+				<li>
+					<span data-m4trans="_WidgetsCreateListElement6"></span>
+				</li>
+				<li>
+					meta4.widget.TypeElement.inputPlaceHolder
+				</li>
+				<li>
+					meta4.widget.TypeElement.textAreaPlaceHolder
+				</li>
+				<li>
+					meta4.widget.TypeElement.image
+				</li>
+				<li>
+					meta4.widget.TypeElement.m4RadioButton
+				</li>				
+				<li>
+					meta4.widget.TypeElement.m4ProgressBar
+				</li>
+				<li>
+					meta4.widget.TypeElement.m4Select
+				</li>
+				<li>
+					meta4.widget.TypeElement.m4Slider
+				</li>
+				
+			</ul>
+
+			<br>
+			<h2 data-m4trans="_WidgetsCreateSubtitleGeneric"></h2>
+			<br>
+
+			<script>
+				m4loadExample('examples.example0');
+			</script>
+			<br>
+
+			<div id="example0">
+				<div id="example01"></div>
+				<div id="example02"></div>
+			</div>
+			<br>
+
+			<button onclick="examples.example0()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+
+			<br>
+			<br>
+			<h2 data-m4trans="_WidgetsCreateSubtitleInputPlaceholder"></h2>
+			<br>
+
+			<script>
+				m4loadExample('examples.example1');
+			</script>
+			<br>
+
+			<div id="example1"></div>
+			<br>
+
+			<button onclick="examples.example1()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+
+			<br>
+
+			<br>
+			<h2 data-m4trans="_WidgetsCreateSubtitleTextareaPlaceholder"></h2>
+			<br>
+
+			<script>
+				m4loadExample('examples.example2');
+			</script>
+			<br>
+
+			<div id="example2"></div>
+			<br>
+
+			<button onclick="examples.example2()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+
+			<br>
+				<h2 data-m4trans="_WidgetsCreateSubtitleImagen"></h2>
+			<br>
+
+			<script>
+				m4loadExample('examples.example3');
+			</script>
+			<br>
+
+			<div id="example3"></div>
+			<br>
+
+			<button onclick="examples.example3()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+
+			<br>
+
+			<br>
+			<h2 data-m4trans="_WidgetsCreateSubtitleRadioButton"></h2>
+			<br>
+
+			<script>
+				m4loadExample('examples.example4');
+			</script>
+			<br>
+
+			<div id="example4"></div>
+			<br>
+
+			<button onclick="examples.example4()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+
+			<br>
+
+			<br>
+			<h2 data-m4trans="_WidgetsCreateSubtitleCheckBox"></h2>
+			<br>
+
+			<script>
+				m4loadExample('examples.example5');
+			</script>
+			<br>
+
+			<div id="example5"></div>
+			<br>
+
+			<button onclick="examples.example5()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+			<h2 data-m4trans="_WidgetsCreateSubtitleProgressBar"></h2>
+
+
+			<script>
+				m4loadExample('examples.example7');
+			</script>
+			<br>
+
+			<div id="example7"></div>
+			<br>
+
+			<button onclick="examples.example7()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+			<h2 data-m4trans="_WidgetsCreateSubtitlem4select"></h2>
+
+			<script>
+				m4loadExample('examples.example8');
+			</script>
+			<br>
+
+			<div id="example8"></div>
+			<br>
+
+			<button onclick="examples.example8()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+			<h2 data-m4trans="_WidgetsCreateSubtitlem4slider"></h2>
+			<br>
+
+			<script>
+				m4loadExample('examples.example9');
+			</script>
+			<br>
+
+			<div id="example9"></div>
+			<br>
+			<div>
+				<button onclick="examples.example9()" data-m4trans="_WidgetsCreateButtonChangeExample"></button>
+			</div>
+
+		</div>
+	</div>
+	</body>
+</html>
+

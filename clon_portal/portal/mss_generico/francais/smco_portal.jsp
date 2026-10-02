@@ -1,0 +1,1 @@
+<%@ include file="../smco_portal.jsp"%>

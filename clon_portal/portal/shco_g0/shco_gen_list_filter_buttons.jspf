@@ -1,0 +1,19 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: shco_gen_list_filter_buttons.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+
+    <tr><td colspan="<%=zCol%>" class="boton">
+        <%if (znw.equals("0")==true){%>
+            <a title="<m4:label m4name="<%=zSHCOLBNEW%>" htmlsafe="true"/>" tabindex="7" href="/servlet/CheckSecurity/JSP/<%=znew%>"><img alt="<m4:label m4name="<%=zSHCOLBNEW%>" htmlsafe="true"/>" <%@include file="../files_gif/ic_new.jsp" %>  /></a>
+        <%}%>
+
+        <a title="<m4:label m4name="<%=zSHCOLBFILT%>" htmlsafe="true"/>" href="javascript:m4filtrar();" tabindex="8"><img alt="<m4:label m4name="<%=zSHCOLBFILT%>" htmlsafe="true"/>"  <%@include file="../files_gif/ic_env.jsp" %>  /></a>
+        <%if ((zpag=="0")||(zpag.equals("0"))){%>
+            <a title="<m4:label m4name="<%=zSHCOLBCLOSE%>" htmlsafe="true"/>" tabindex="9"href="javascript:window.close();"><img alt="<m4:label m4name="<%=zSHCOLBCLOSE%>" htmlsafe="true"/>" <%@include file="../files_gif/ic_cer.jsp" %>  /></a>
+        <%}%>
+    </td></tr>

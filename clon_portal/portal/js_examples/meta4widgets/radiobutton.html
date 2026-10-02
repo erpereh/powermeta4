@@ -1,0 +1,162 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>meta4.widget.m4radioButton</title>
+		
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		<style>			
+		</style>
+
+		<script>
+			var examples = {
+
+				optionsDefault : function(){
+					options = {
+						//allow clear the selected option
+						allowUnChecked : false,
+						//type of representation
+						mode : 'horizontal',
+						//svg or native
+						svg : true,
+						//event when change input,object{element,item,node}
+						onChange : function(object) {
+
+						},
+						//animation radioBox
+						radioBox : 'fill',
+						//animation checkBox
+						checkBox : 'checkmark'
+					};		
+				},
+				example1 : function() {
+					var div = $('example1');
+					div.empty();
+
+					var channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+
+					var node = channel.getNode('EXJSAPI_M4RADIOBUTTON');
+					node.addRecord();
+
+					var optionsRadioButton = {
+						nodeName : meta4.widget.TypeElement.m4RadioButton,
+						mode : 'vertical',
+						onChangeRadio : function(object) {
+							console.log('elemento modificado: ' + object.item);
+						},
+						itemTypes : {
+							'OPCION1' : {
+								type : 'radio',
+							},
+							'OPCION2' : {
+								type : 'radio'
+							},
+							'OPCION3' : {
+								type : 'checkBox'
+							}
+						}
+					};
+
+					var divRadioButton = meta4.widget.element.createWithBind(optionsRadioButton, channel, 'EXJSAPI_M4RADIOBUTTON', 'OPCION1', div);
+				}
+			};
+			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+			
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+
+		<div data-m4context="exampleForm" data-m4t3="EXJSAPI_COMPONENT"></div>
+
+		<h1 data-m4trans="_WidgetsRadioButonTitle"></h1>
+		<p data-m4trans="_WidgetsRadioButonDescription">  </p>
+		<ul>
+			<li data-m4trans="_WidgetsRadioButonListElement1">				
+			</li>
+			<li data-m4trans="_WidgetsRadioButonListElement2">				
+			</li>
+			<li data-m4trans="_WidgetsRadioButonListElement3">				
+			</li>
+			<li data-m4trans="_WidgetsRadioButonListElement4">				
+			</li>
+			<li><span data-m4trans="_WidgetsRadioButonListElement5"></span>
+				<ul>
+					<li data-m4trans="_WidgetsRadioButonSubListElementCross">						
+					</li>
+					<li data-m4trans="_WidgetsRadioButonSubListElementFill">						
+					</li>
+					<li data-m4trans="_WidgetsRadioButonSubListElementCheckMark">						
+					</li>
+					<li data-m4trans="_WidgetsRadioButonSubListElementCircle">						
+					</li>
+					<li data-m4trans="_WidgetsRadioButonSubListElementBoxfill">						
+					</li>
+					<li data-m4trans="_WidgetsRadioButonSubListElementSwirl">						
+					</li>
+					<li data-m4trans="_WidgetsRadioButonSubListElementDiagonal">						
+					</li>
+					<li data-m4trans="_WidgetsRadioButonSubListElementList">						
+					</li>
+				</ul>
+			</li>
+
+		</ul>
+		<h3 data-m4trans="_WidgetsRadioButonImportant"></h3>		
+		<h3 data-m4trans="_WidgetsRadioButonDefault"></h3>
+		<br>
+		<script>
+			m4loadExample('examples.optionsDefault');
+		</script>
+		<br>
+		<h3 data-m4trans="_WidgetsRadioButonExample"></h3>
+		<br>
+		<script>
+			m4loadExample('examples.example1');
+		</script><div id ="example1"></div>
+		<br>
+		<button onclick="examples.example1()" data-m4trans="_WidgetsRadioButonExecuteExample">			
+		</button>
+	</div>
+	</body>
+</html>
+

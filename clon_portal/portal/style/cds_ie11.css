@@ -1,0 +1,365 @@
+@font-face {
+  src: url("/style/fonts/Poppins/Poppins-Light.ttf") format("truetype");
+  font-family: "Poppins";
+  font-weight: 300;
+}
+
+@font-face {
+  src: url("/style/fonts/Poppins/Poppins-Regular.ttf") format("truetype");
+  font-family: "Poppins";
+  font-weight: 400;
+}
+
+@font-face {
+  src: url("/style/fonts/Poppins/Poppins-SemiBold.ttf") format("truetype");
+  font-family: "Poppins";
+  font-weight: 600;
+}
+
+* {
+  font-family: Poppins, sans-serif !important;
+}
+
+#loginBox {
+  width: 100%;
+  height: auto;
+  min-height: 320px;
+  padding: 32px;
+  position: relative;
+  background-color: #ffffff;
+  box-shadow: 1px 1px 7px 1px rgba(0, 0, 0, 0.2);
+  border-radius: 32px;
+}
+
+#ad {
+  width: 100%;
+  height: calc(100% - 56px);
+  position: relative;
+  background: url(/images/cegid/montgolfiere.png);
+  background-repeat: no-repeat !important;
+  background-position: 10% bottom !important;
+}
+
+#outerDiv {
+  width: 100%;
+  height: 100%;
+  background: #eff6fe;
+}
+
+.box {
+  width: 496px;
+  top: calc(50% - 240px);
+  left: calc(50% - 248px);
+  position: absolute;
+  z-index: 10;
+}
+
+#loginBox a {
+  color: #0046fe;
+}
+
+#logoPeopleNetCloud {
+  margin-bottom: 48px !important;
+}
+
+#logoPeopleNetCloud img {
+  width: 59px;
+  height: 24px;
+}
+
+#imgLogo {
+  position: relative;
+  top: 6px;
+}
+
+.loginRow {
+  display: block;
+  padding: 8px 0;
+  position: relative;
+}
+
+.loginRow input,
+.loginRow select {
+  width: 100%;
+  height: 40px;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.loginRow .placeholder {
+  display: none;
+  position: absolute;
+  top: 20px;
+  padding-left: 12px;
+  color: #abaeae;
+  cursor: text;
+}
+
+.buttonForm-link {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.buttonForm-primary {
+  background-color: #0046fe;
+  color: #fff;
+  box-shadow: 0px 1px 1px 0px rgba(0, 44, 82, 0.14),
+    0px 2px 1px -1px rgba(0, 44, 82, 0.2), 0px 1px 3px 0px rgba(0, 44, 82, 0.2);
+  border-radius: 6px;
+}
+
+html:not(.touchDevice) .buttonForm-primary:hover {
+  cursor: pointer;
+  background-color: #0a5cf8;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.eyePassword {
+  position: absolute;
+  top: 20px;
+  right: 16px;
+  cursor: pointer;
+}
+
+/* META4 CALENDAR CSS (usar !important si es necesario) solo afecta a FL
+ --------------------------------------------------- */
+
+div.meta4calendar table {
+  width: 224px !important;
+}
+
+div.meta4calendar * {
+  font-size: 13px !important;
+  border-spacing: 0px !important;
+}
+
+div.meta4calendar caption {
+  color: #333 !important;
+  padding: 4px !important;
+  background-color: #bdc4db;
+}
+
+div.meta4calendar caption span.month,
+div.meta4calendar caption span.year {
+  display: flex;
+  align-items: center;
+  width: auto !important;
+}
+
+div.meta4calendar caption span.month {
+  width: 130px !important;
+}
+
+div.meta4calendar caption span.year {
+  margin-left: auto;
+}
+
+div.meta4calendar caption span span {
+  margin: 0 4px;
+  flex-grow: 1;
+}
+
+div.meta4calendar caption a.prev,
+div.meta4calendar caption a.next {
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  padding: 4px !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-image: url(/iconos/arrow_right_mini.svg) !important;
+}
+
+html:not(.touchDevice) div.meta4calendar caption a.prev:hover,
+html:not(.touchDevice) div.meta4calendar caption a.next:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+div.meta4calendar caption a.prev {
+  transform: rotate(180deg);
+}
+
+div.meta4calendar thead {
+  background-color: #3e4753 !important;
+}
+
+div.meta4calendar th {
+  color: #dadaea !important;
+  font-weight: normal !important;
+}
+
+div.meta4calendar td,
+div.meta4calendar th {
+  height: 32px !important;
+  vertical-align: middle;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+div.meta4calendar td {
+  border-radius: 50%;
+}
+
+div.meta4calendar td.hover,
+div.meta4calendar td.valid.today.hover {
+  color: #fff !important;
+  background-color: #0a5cf8 !important;
+}
+
+div.meta4calendar td.active {
+  background-color: #0a5cf8 !important;
+}
+
+div.meta4calendar td.valid.today {
+  background-color: #d3d7db !important;
+  color: #000 !important;
+}
+
+button.meta4calendardisabled {
+  opacity: 0.5 !important;
+}
+
+.touchDevice button.meta4calendar,
+.touchDevice button.meta4calendardisabled {
+  padding: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0px !important;
+}
+
+input.meta4calendar[nodename="m4Calendar"],
+select.meta4calendar {
+  float: none;
+  display: inline-block;
+  vertical-align: middle;
+  padding: 0;
+  font-size: 13px;
+  border: 1px solid #7f9db9;
+  min-height: 24px;
+  width: 84px;
+  text-align: center;
+}
+
+.touchDevice input.meta4calendar[nodename="m4Calendar"],
+.touchDevice select.meta4calendar {
+  min-height: 32px !important;
+  float: none !important;
+}
+
+div.meta4calendar {
+  margin-top: 0 !important;
+  margin-left: 8px !important;
+  background: #f4f4f4 !important;
+  border: 0px solid #bdc4db !important;
+  border-radius: 0 !important;
+  height: auto !important;
+  padding: 0px !important;
+  box-shadow: 1px 1px 7px 1px rgba(128, 128, 128, 0.2);
+}
+
+div.meta4calendar div {
+  height: auto !important;
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.meta4calendar table caption a {
+  overflow: hidden;
+  text-indent: -100px;
+}
+
+button.meta4calendar,
+input.meta4calendar {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+input.meta4calendar {
+  width: calc(100% - 40px);
+}
+
+button.meta4calendar {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  background-color: #0a5cf8;
+  background-image: url("/style/images/calendar.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+button.meta4calendar:hover {
+  opacity: 0.75;
+}
+
+.meta4calendar table caption .month {
+  float: left;
+}
+
+.meta4calendar table caption .year {
+  float: right;
+}
+
+.meta4calendar table td {
+  text-align: center;
+  font-size: 12px;
+  line-height: 32px;
+  padding: 0 9px;
+  color: #9a9ea1;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+.meta4calendar table td.valid,
+.meta4calendar table td.active {
+  cursor: pointer;
+}
+
+.meta4calendar table td.active {
+  color: #fff;
+}
+
+/* // Calendar especial tc_portal */
+
+/* CDS */
+.text-h4,
+.text-h5,
+.text-h6,
+.text-body-1,
+.text-body-2,
+.text-subtitle-1,
+.text-caption {
+  color: rgba(0, 44, 82, 0.64);
+}
+
+.text-h4 {
+  font-size: 24px !important;
+}
+
+.text-h5 {
+  font-size: 20px !important;
+  margin-bottom: 16px !important;
+  font-weight: bold;
+  display: block;
+  line-height: 24px;
+}
+
+input,
+textarea,
+select,
+.m4RadioButton svg[typebox="checkBox"] {
+  border: 1px solid rgba(0, 44, 82, 0.64);
+}
+
+input,
+textarea {
+  line-height: 16px;
+  min-height: 24px;
+  padding: 0 4px;
+}

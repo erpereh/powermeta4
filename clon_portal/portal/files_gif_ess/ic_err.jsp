@@ -1,0 +1,1 @@
+src= "/iconos/error.gif"height ="28" width= "28"onmouseover ="m4luztotal(this,255,255,255,8,8,200,255,255,255)" onmouseout="m4oscuridad(this)" 

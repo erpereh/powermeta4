@@ -1,0 +1,854 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: tc_portal_fastlane.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+/* TC Styles */
+
+
+/* m4reset.css */
+
+
+/* Reset meta4 css for browsers
+---------------------------------------------------- */
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: 'Open Sans', Verdana, Arial, sans-serif;
+    font-size: 13px;
+    font-weight: normal;
+    line-height: 16px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+@media screen and (max-width: 1024px) {
+    * {
+        font-size: 11px;
+    }
+}
+
+*,
+*:before,
+*:after {
+    -webkit-box-sizing: inherit;
+    -moz-box-sizing: inherit;
+    box-sizing: inherit;
+}
+
+/**:focus {
+    outline-style: solid;
+    outline-width: 1px;
+}*/ /* Se deja comentado por bugs en IE11: 0308551 - 0308553 */
+
+html {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    font-size: 100%;
+}
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    vertical-align: baseline;
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+    display: block;
+}
+
+body {
+    line-height: 1;
+    background-color: #fafafa;
+}
+
+ol,
+ul {
+    list-style: none;
+}
+
+blockquote,
+q {
+    quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+table {
+    /*    border-collapse: collapse;*/
+    /* Error tablas con border-box en ie9 */
+    border-spacing: 0;
+}
+
+a {
+    text-decoration: none;
+    border: none;
+    /* Border add by explorer */
+    color: rgba(0, 96, 201, 1);
+    cursor: pointer;
+}
+
+html:not(.touchDevice) a:hover {
+    color: rgba(0, 96, 201, 0.6);
+}
+
+input::-ms-clear {
+    display: none;
+}
+
+input,
+textarea {
+    -webkit-touch-callout: auto;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+img {
+    -ms-interpolation-mode: bicubic;
+}
+
+
+/* END m4reset.css */
+
+
+/* portal_fastlane.css */
+
+
+/* FONTS
+ --------------------------------------------------- */
+
+
+/* REGULAR 400 */
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('/style/fonts/OpenSans/OpenSans-Regular.eot');
+    src: url('/style/fonts/OpenSans/OpenSans-Regular.eot?#iefix') format('embedded-opentype'), url('/style/fonts/OpenSans/OpenSans-Regular.woff2') format('woff2'), url('/style/fonts/OpenSans/OpenSans-Regular.woff') format('woff'), url('/style/fonts/OpenSans/OpenSans-Regular.ttf') format('truetype'), url('/style/fonts/OpenSans/OpenSans-Regular.svg#OpenSans') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+/* BOLD 500 */
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('/style/fonts/OpenSans/OpenSans-Bold.eot');
+    src: url('/style/fonts/OpenSans/OpenSans-Bold.eot?#iefix') format('embedded-opentype'), url('/style/fonts/OpenSans/OpenSans-Bold.woff2') format('woff2'), url('/style/fonts/OpenSans/OpenSans-Bold.svg#OpenSans') format('svg'), url('/style/fonts/OpenSans/OpenSans-Bold.woff') format('woff'), url('/style/fonts/OpenSans/OpenSans-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+
+/* ITALIC 400 */
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('/style/fonts/OpenSans/OpenSans-Italic.eot');
+    src: url('/style/fonts/OpenSans/OpenSans-Italic.eot?#iefix') format('embedded-opentype'), url('/style/fonts/OpenSans/OpenSans-Italic.woff2') format('woff2'), url('/style/fonts/OpenSans/OpenSans-Italic.woff') format('woff'), url('/style/fonts/OpenSans/OpenSans-Italic.ttf') format('truetype'), url('/style/fonts/OpenSans/OpenSans-Italic.svg#OpenSans') format('svg');
+    font-weight: normal;
+    font-style: italic;
+}
+
+
+/* COMMON
+ --------------------------------------------------- */
+
+html {
+    color: #333333
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Open Sans', Arial, sans-serif;
+    font-weight: normal;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Open Sans', Arial, sans-serif;
+    font-weight: normal;
+}
+
+h2,
+*.h2,
+*[nodename='h2'] {
+    /* USADOS EN TITLE-BAR */
+    font-size: 20px;
+    font-family: 'Open SansCond', Arial, sans-serif;
+    color: #6982c7;
+    text-transform: uppercase;
+    line-height: 24px;
+}
+
+h3,
+*.h3,
+*[nodename='h3'] {
+    /* USADOS COMO TÍTULOS EN CONTENIDO DE PÁGINAS */
+    font-size: 16px;
+    color: #6982c7;
+    fill: #6982c7;
+    line-height: 24px;
+}
+
+h4,
+*.h4,
+*[nodename='h4'] {
+    /* USADOS COMO SUBTÍTULOS EN CONTENIDO DE PÁGINAS */
+    font-size: 14px;
+    color: #0ba3ea;
+    fill: #0ba3ea;
+}
+
+h5,
+*.h5,
+*[nodename='h5'] {
+    /* USADOS COMO SUBTÍTULOS EN CONTENIDO DE PÁGINAS */
+    font-size: 13px;
+    font-weight: bold;
+    color: #6241b2;
+}
+
+h6,
+*.h6,
+*[nodename='h6'] {
+    /* USADOS COMO SUBTÍTULOS EN CONTENIDO DE PÁGINAS */
+    font-size: 11px;
+    text-decoration: underline;
+}
+
+@media screen and (max-width: 1024px) {
+    h2,
+    *.h2,
+    *[nodename='h2'] {
+        /* USADOS EN TITLE-BAR */
+        font-size: 21px;
+    }
+    h3,
+    *.h3,
+    *[nodename='h3'] {
+        /* USADOS COMO TÃTULOS EN CONTENIDO DE PÃGINAS */
+        font-size: 15px;
+    }
+    h4,
+    *.h4,
+    *[nodename='h4'] {
+        /* USADOS COMO SUBTÃTULOS EN CONTENIDO DE PÃGINAS */
+        font-size: 13px;
+    }
+    h5,
+    *.h5,
+    *[nodename='h5'] {
+        /* USADOS COMO SUBTÃTULOS EN CONTENIDO DE PÃGINAS */
+        font-size: 12px;
+    }
+    h6,
+    *.h6,
+    *[nodename='h6'] {
+        /* USADOS COMO SUBTÃTULOS EN CONTENIDO DE PÃGINAS */
+        font-size: 11px;
+    }
+}
+
+input {
+    padding: 0 8px;
+    line-height: normal;
+}
+
+textarea {
+    padding: 3px 8px;
+    /* 4px - 1px borders = 3px */
+}
+
+input,
+textarea,
+select,
+.m4RadioButton svg[typebox="checkBox"] {
+    border: 1px solid #7f9db9;
+}
+
+input,
+textarea {
+    line-height: 16px;
+    min-height: 24px;
+}
+
+.touchDevice input,
+.touchDevice textarea {
+    min-height: 32px;
+}
+
+a,
+.m4-link,
+.m4-link .m4-widgetButton-text label {
+    text-decoration: none;
+    border: none;
+    /* Border add by explorer */
+    color: rgba(0, 96, 201, 1);
+}
+
+html:not(.touchDevice) a:hover,
+html:not(.touchDevice) .m4-link:hover,
+html:not(.touchDevice) .m4-link:hover .m4-widgetButton-text label {
+    text-decoration: underline;
+    cursor: pointer;
+    color: rgba(0, 96, 201, 0.6);
+}
+
+.m4-textCenter {
+    text-align: center;
+}
+
+.m4-shadow {
+    box-shadow: 1px 1px 7px 1px rgba(128, 128, 128, 0.2);
+}
+
+.m4-shadow-in {
+    box-shadow: 1px 1px 7px 1px rgba(128, 128, 128, 0.2) inset;
+}
+
+.m4-click {
+    cursor: pointer;
+}
+
+.m4-help {
+    cursor: help;
+}
+
+.m4-default {
+    cursor: default;
+}
+
+.m4-drag {
+    cursor: move;
+    cursor: -webkit-grab;
+}
+
+.m4-uppercase {
+    text-transform: uppercase;
+}
+
+.m4-fullWidth,
+.m4-fullWidth.expand,
+.m4-fullWidth-child>* {
+    width: 100%!important;
+}
+
+.m4-fullHeight {
+    height: 100%;
+}
+
+
+/* END portal_fastlane.css */
+
+
+/* common login */
+
+#outerDiv {
+    width: 100%;
+    height: 100%;
+}
+
+#ad {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-image: url(/style/images/worldmap-meta4-gray.svg);
+    background-position: 50% -100px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    transition: opacity 0.4s ease-in;
+    -webkit-transition: opacity 0.4s ease-in;
+    -moz-transition: opacity 0.4s ease-in;
+    -o-transition: opacity 0.4s ease-in;
+}
+
+.box {
+    width: 320px;
+    top: 10%;
+    left: calc(50% - 160px);
+    position: absolute;
+    z-index: 10;
+}
+
+#loginBox {
+    width: 100%;
+    height: auto;
+    padding: 8px 16px;
+    background-color: #f4f4f4;
+}
+
+.loginRow {
+    display: block;
+    padding: 8px 0;
+    position: relative;
+}
+
+.loginRow p {
+    color: #333;
+}
+
+.loginRow input,
+.loginRow select {
+    width: 100%;
+    height: 40px;
+    font-size: 15px;
+}
+
+.loginRow.labelCont {
+    padding-bottom: 0;
+}
+
+.loginRow.labelCont p {
+    margin-bottom: 0;
+}
+
+@media all and (max-width: 480px) {
+    #outerDiv {
+        background-color: #196988;
+    }
+    #ad {
+        display: none;
+    }
+    .box {
+        width: 100%;
+        height: auto;
+        position: static;
+    }
+    #loginBox,
+    #maintenanceBox {
+        width: 100%;
+        position: static;
+    }
+    #loginBox.m4-shadow,
+    #maintenanceBox.m4-shadow {
+        box-shadow: none;
+    }
+    #logoPeopleNetCloud {
+        height: 60px
+    }
+    #maintenanceBox {
+        margin-top: 0;
+    }
+    #footer .appIcons {
+        padding: 8px 12px;
+    }
+}
+
+@media all and (min-width: 1445px) {
+    #ad {
+        background-size: contain;
+    }
+}
+
+
+/* END common login */
+
+
+/* forgot password */
+
+.buttonForm {
+    border: 0px;
+    background-color: #196988;
+    color: #fff;
+    cursor: pointer;
+}
+
+.buttonForm:hover {
+    opacity: 0.75;
+}
+
+
+/* END forgot password */
+
+
+/* META4 CALENDAR CSS (usar !important si es necesario) solo afecta a FL
+ --------------------------------------------------- */
+
+div.meta4calendar table {
+    width: 224px!important;
+}
+
+div.meta4calendar * {
+    font-size: 13px!important;
+    border-spacing: 0px!important;
+}
+
+div.meta4calendar caption {
+    color: #333!important;
+    padding: 4px!important;
+    background-color: #bdc4db;
+}
+
+div.meta4calendar caption span.month,
+div.meta4calendar caption span.year {
+    display: flex;
+    align-items: center;
+    width: auto!important;
+}
+
+div.meta4calendar caption span.month {
+    width: 130px!important;
+}
+
+div.meta4calendar caption span.year {
+    margin-left: auto;
+}
+
+div.meta4calendar caption span span {
+    margin: 0 4px;
+    flex-grow: 1;
+}
+
+div.meta4calendar caption a.prev,
+div.meta4calendar caption a.next {
+    position: relative!important;
+    top: 0!important;
+    left: 0!important;
+    width: 24px!important;
+    height: 24px!important;
+    min-width: 24px!important;
+    padding: 4px!important;
+    background-repeat: no-repeat!important;
+    background-position: center center!important;
+    background-image: url(/iconos/arrow_right_mini.svg)!important;
+}
+
+html:not(.touchDevice) div.meta4calendar caption a.prev:hover,
+html:not(.touchDevice) div.meta4calendar caption a.next:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+div.meta4calendar caption a.prev {
+    transform: rotate(180deg);
+}
+
+div.meta4calendar thead {
+    background-color: #3E4753!important;
+}
+
+div.meta4calendar th {
+    color: #DADAEA!important;
+    font-weight: normal!important;
+}
+
+div.meta4calendar td,
+div.meta4calendar th {
+    height: 32px!important;
+    vertical-align: middle;
+    border: none!important;
+    background-color: transparent!important;
+}
+
+div.meta4calendar td {
+    border-radius: 50%;
+}
+
+div.meta4calendar td.hover,
+div.meta4calendar td.valid.today.hover {
+    color: #fff!important;
+    background-color: #3A96DD!important;
+}
+
+div.meta4calendar td.active {
+    background-color: #389dc8!important;
+}
+
+div.meta4calendar td.valid.today {
+    background-color: #D3D7DB!important;
+    color: #000!important;
+}
+
+
+/*button.meta4calendar,
+button.meta4calendardisabled {
+    position: relative;
+    top: 0px;
+    float: none!important;
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: 0;
+    background: url(/iconos/calendar.svg)!important;
+    padding: 4px!important;
+    width: 24px!important;
+    height: 24px!important;
+    margin: 0px!important;
+    background-repeat: no-repeat!important;
+    background-position: center!important;
+    -ms-background-position-y: center!important;
+    -ms-background-position-x: center!important;
+}*/
+
+
+/*html:not(.touchDevice) button.meta4calendar:hover {
+    background-color: rgba(213, 234, 249, 1)!important;
+}*/
+
+button.meta4calendardisabled {
+    opacity: 0.5!important;
+}
+
+.touchDevice button.meta4calendar,
+.touchDevice button.meta4calendardisabled {
+    padding: 8px!important;
+    width: 32px!important;
+    height: 32px!important;
+    margin: 0px!important;
+}
+
+input.meta4calendar[nodename="m4Calendar"],
+select.meta4calendar {
+    float: none;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0;
+    font-size: 13px;
+    border: 1px solid #7f9db9;
+    min-height: 24px;
+    width: 84px;
+    text-align: center;
+}
+
+.touchDevice input.meta4calendar[nodename="m4Calendar"],
+.touchDevice select.meta4calendar {
+    min-height: 32px!important;
+    float: none!important;
+}
+
+div.meta4calendar {
+    margin-top: 0!important;
+    margin-left: 8px!important;
+    background: #f4f4f4!important;
+    border: 0px solid #bdc4db!important;
+    border-radius: 0!important;
+    height: auto!important;
+    padding: 0px!important;
+    box-shadow: 1px 1px 7px 1px rgba(128, 128, 128, 0.2);
+}
+
+div.meta4calendar div {
+    height: auto!important;
+    margin: 0!important;
+    width: auto!important;
+}
+
+
+/* Calendar especial tc_portal */
+
+.meta4calendar table caption a {
+    overflow: hidden;
+    text-indent: -100px;
+}
+
+button.meta4calendar,
+input.meta4calendar {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+input.meta4calendar {
+    width: calc(100% - 40px);
+}
+
+html[dir="ltr"] input.meta4calendar {
+    padding-right: 0;
+}
+
+html[dir="rtl"] input.meta4calendar {
+    padding-left: 0;
+}
+
+button.meta4calendar {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    background-color: #196988;
+    background-image: url('/style/images/calendar.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+button.meta4calendar:hover {
+    opacity: 0.75;
+}
+
+.meta4calendar table caption .month {
+    float: left;
+}
+
+.meta4calendar table caption .year {
+    float: right;
+}
+
+.meta4calendar table td {
+    text-align: center;
+    font-size: 12px;
+    line-height: 32px;
+    padding: 0 9px;
+    color: #9A9EA1;
+    border: 2px solid transparent;
+    border-radius: 50%;
+}
+
+.meta4calendar table td.valid,
+.meta4calendar table td.active {
+    cursor: pointer;
+}
+
+.meta4calendar table td.active {
+    color: #fff;
+}
+
+
+/* END Calendar especial tc_portal */
+
+
+/* Chrome */
+
+input::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+input::-webkit-inner-spin-button {
+    height: 100%;
+}
+
+
+/* END M4 Calendar */
+body {
+	color: #333333 !important;
+}
+
+/*Change pwd eye*/
+#M4_CURRENT_PASSWORD, #M4_NEW_PASSWORD, #M4_RETYPE_PASSWORD {
+    padding-right: 44px;
+    text-overflow: ellipsis;
+}
+#showPasswordCurrent, #showPasswordNew, #showPasswordRetype {
+    position: absolute;
+    top: 20px;
+    right: 16px;
+    cursor: pointer
+}
+.ui-mobile #showPasswordCurrent, .ui-mobile #showPasswordNew, .ui-mobile #showPasswordRetype {
+    display: none
+}

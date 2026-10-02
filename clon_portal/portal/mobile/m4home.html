@@ -1,0 +1,70 @@
+<!-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: m4home.html
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= -->
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" />    
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+        
+    <title>Home</title>
+   
+    <link rel="stylesheet" href="/mobile/css/mobile.generic.css" />
+
+    <link rel="stylesheet" href="/mobile/css/mobile.home.css" />
+
+    <script type="application/javascript" src="/library/jquery.js"></script>  
+
+    <script type="application/javascript" src="/mobile/js/meta4.mobile.js"></script>
+
+    <script type="application/javascript" src="/library/jquery.mobile.js"></script>
+    
+    <script type="application/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+   
+    <script type="application/javascript" src="/mobile/js/meta4.mobile.home.js"></script>
+
+    <!--<script src="/mobile/js/meta4.mobile.who_is_who_home.js"></script>-->
+
+</head>  
+
+
+<body>
+    <div id="deprecatedVersion" style="display: none;">
+        <img src="/mobile/icons/meta4_logo_w.svg">
+        <div id="deprecatedContent">
+            <p id="deprecatedText"></p>
+            <a id="deprecatedLink" href=""></a>
+        </div>
+    </div>
+    <div id="spinnerContainer" >
+        <div class="spinner-header"></div>
+        <div class="spinner">
+            <img src="/mobile/icons/m4-loading.gif">
+        </div>
+    </div>
+    <div data-role="page" id="listPage" style="visibility: hidden;">
+
+        <div data-role="header" data-position="fixed"  data-tap-toggle="false" class="m4-mobileHeaderHome">
+            <a id="settingsButton" href=""><img id="logout-icon" src="/mobile/icons/settings.svg"></a>
+            <div class="contentInfoPerson">
+                <div id="photoPerson"><img src="/mobile/icons/unknownHome.png"></div>
+                <div id="divName"><h2 class="loginName"></h2></div>
+            </div>
+        </div>
+
+        <div id="contentRoot" data-role="content">
+            <ul data-role="listview" id="listContainer">
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+</html>

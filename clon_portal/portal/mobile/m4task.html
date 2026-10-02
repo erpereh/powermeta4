@@ -1,0 +1,69 @@
+﻿<!-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: m4task.html
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= -->
+
+<!--
+@(#)FileVersion: 813.001.080
+@(#)FileDescription: Html file to show the pending task of a user
+@(#)CompanyName: Meta4 Spain, S.A.
+@(#)LegalCopyright: (c)2015
+@(#)ProductName: PeopleNet KSystem
+@(#)ProductVersion: 8.1SP3Q2
+@(#)InternalName: m4task.html
+@(#)Date: 01/02/2013 
+-->
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>My Tasks</title>
+		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" name="viewport">
+		<meta content="yes" name="apple-mobile-web-app-capable">
+		<script src="/m4jsapi/m4jsapi.nocache.js" type="text/javascript"></script>
+		<script src="/library/jquery.js"></script>
+		<script src="js/meta4.mobile.js"></script>
+		<script src="/library/jquery.mobile.js"></script>
+		<link href="css/mobile.generic.css" rel="stylesheet">
+		<link href="css/mobile.task.css" rel="stylesheet">
+		<script src="js/meta4.mobile.task.js"></script>
+	</head>
+	<body>
+		<div id="spinnerContainer">
+			<div class="spinner-header"></div>
+			<div class="spinner"><img src="/mobile/icons/m4-loading.gif"></div>
+		</div>
+
+		<!--INITIAL PAGE-->
+		<div data-role="page" id="page_task">
+			<div class="m4-mobileHeader" data-position="fixed" data-role="header" data-tap-toggle="false">
+				<a class="ui-btn-right backbutton" href="m4home.html" id="goHome"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+				<h2 data-m4trans="_task_title_toolbar"></h2>
+			</div>
+			<div data-role="content">
+				<div class="content-primary">
+					<ul data-role="listview" id="ul_tasklist"></ul>
+				</div>
+			</div>
+		</div>
+
+		<!-- DENY COMMENTS PAGE -->
+		<div class="hiddenCommentArea" data-role="page" id="page_text_Area">
+			<div class="contentTextArea" data-role="content">
+				<textarea data-m4placeholder="_writeComment" id="textarea_comments" name="textarea"></textarea>
+			</div>
+			<div data-position="fixed" data-role="footer" data-tap-toggle="false">
+				<div id="div_buttonsTextArea">
+					<div id="sendComment" class="ui-disabled" disabled="true">
+						<a data-m4trans="_send_comment" data-role="button" id="a_sendComment"></a>
+					</div>
+					<div id="cancelComment">
+						<a data-m4trans="_cancel_comment" data-role="button" id="a_cancelComment"></a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

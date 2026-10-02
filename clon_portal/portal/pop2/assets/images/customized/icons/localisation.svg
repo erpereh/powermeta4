@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M72,24 C45.4084507,24 24,45.4084507 24,72 C24,98.5915493 45.4084507,120 72,120 C98.5915493,120 120,98.5915493 120,72 C120,45.4084507 98.5915493,24 72,24 Z" id="localisation-path-1"></path>
+        <path d="M105.352113,52.8450704 L91.1549296,52.8450704 C89.5774648,46.7605634 87.3239437,40.9014085 84.3943662,35.7183099 C93.4084507,38.6478873 100.619718,44.7323944 105.352113,52.8450704 Z" id="localisation-path-2"></path>
+        <path d="M72,33.6901408 C76.056338,39.5492958 79.2112676,45.8591549 81.2394366,52.8450704 L62.7605634,52.8450704 C64.7887324,45.8591549 67.943662,39.5492958 72,33.6901408 Z" id="localisation-path-3"></path>
+        <path d="M34.8169014,81.6901408 C33.915493,78.5352113 33.4647887,75.3802817 33.4647887,72 C33.4647887,68.6197183 33.915493,65.4647887 34.8169014,62.3098592 L51.0422535,62.3098592 C50.5915493,65.4647887 50.3661972,68.6197183 50.3661972,72 C50.3661972,75.3802817 50.5915493,78.5352113 51.0422535,81.6901408 L34.8169014,81.6901408 Z" id="localisation-path-4"></path>
+        <path d="M38.6478873,91.1549296 L52.8450704,91.1549296 C54.4225352,97.2394366 56.6760563,103.098592 59.6056338,108.28169 C50.5915493,105.352113 43.3802817,99.2676056 38.6478873,91.1549296 Z" id="localisation-path-5"></path>
+        <path d="M52.8450704,52.8450704 L38.6478873,52.8450704 C43.3802817,44.7323944 50.5915493,38.6478873 59.6056338,35.7183099 C56.6760563,40.9014085 54.4225352,46.7605634 52.8450704,52.8450704 Z" id="localisation-path-6"></path>
+        <path d="M72,110.309859 C67.943662,104.450704 64.7887324,98.1408451 62.7605634,91.1549296 L81.2394366,91.1549296 C79.2112676,98.1408451 76.056338,104.450704 72,110.309859 Z" id="localisation-path-7"></path>
+        <path d="M83.2676056,81.6901408 L60.7323944,81.6901408 C60.2816901,78.5352113 60.056338,75.3802817 60.056338,72 C60.056338,68.6197183 60.2816901,65.4647887 60.7323944,62.3098592 L83.2676056,62.3098592 C83.7183099,65.4647887 83.943662,68.6197183 83.943662,72 C83.943662,75.3802817 83.7183099,78.5352113 83.2676056,81.6901408 Z" id="localisation-path-8"></path>
+        <path d="M84.3943662,108.28169 C87.3239437,103.098592 89.5774648,97.2394366 91.1549296,91.1549296 L105.352113,91.1549296 C100.619718,99.2676056 93.4084507,105.352113 84.3943662,108.28169 Z" id="localisation-path-9"></path>
+        <path d="M92.9577465,81.6901408 C93.4084507,78.5352113 93.6338028,75.3802817 93.6338028,72 C93.6338028,68.6197183 93.4084507,65.4647887 92.9577465,62.3098592 L109.183099,62.3098592 C110.084507,65.4647887 110.535211,68.6197183 110.535211,72 C110.535211,75.3802817 110.084507,78.5352113 109.183099,81.6901408 L92.9577465,81.6901408 Z" id="localisation-path-10"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Localisation">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#localisation-path-1"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#localisation-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#localisation-path-2"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#localisation-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#localisation-path-3"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#localisation-path-3"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#localisation-path-4"></use>
+                <use fill-opacity="0.95" fill="#FFFFFF" xlink:href="#localisation-path-4"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#localisation-path-5"></use>
+                <use fill-opacity="0.95" fill="#FFFFFF" xlink:href="#localisation-path-5"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#localisation-path-6"></use>
+                <use fill-opacity="0.95" fill="#FFFFFF" xlink:href="#localisation-path-6"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#localisation-path-7"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#localisation-path-7"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#localisation-path-8"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#localisation-path-8"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#localisation-path-9"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#localisation-path-9"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#localisation-path-10"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#localisation-path-10"></use>
+            </g>
+        </g>
+    </g>
+</svg>

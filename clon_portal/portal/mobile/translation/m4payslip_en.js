@@ -1,0 +1,1 @@
+﻿var _emptyPayslipList="There are no payslips to display";var _metadataError="The payslips cannot be displayed";var _methodError="The payslips cannot be displayed";var _payslip_title_toolbar="Most-Recent Payslips";

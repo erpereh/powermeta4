@@ -1,0 +1,512 @@
+﻿/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: mobile.login.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+html{
+    background-image: url(/mobile/icons/background.jpg) !important;
+    background-repeat: no-repeat;
+    background-size: cover !important;
+    background-position: 75% 50%;
+    overflow: hidden !important;
+    height: 100%;
+    position: absolute;
+    top: 0 !important;
+}
+body{
+    background-image: url(/mobile/icons/background.jpg) !important;
+    background-repeat: no-repeat;
+    background-size: cover !important;
+    background-position: 75% 50%;
+    overflow: hidden !important;
+    height: 100%;
+    position: absolute;
+    top: 0 !important;
+}
+.ui-page-active{
+    background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.40), rgba(0, 0, 0, 0.50),rgba(0, 0, 0, 0.60),rgba(0, 0, 0, 0.60));
+    height: 100% !important;
+    width: 100% !important;
+    position: absolute;
+    top: 0;
+}
+html *,
+input:focus,
+select:focus,
+textarea:focus,
+button:focus,
+.ui-focus {
+    outline: none;
+    box-shadow: none !important;
+}
+#footer {
+    display: none;
+
+}
+.loginLoading {
+    position: absolute;
+	top: 0px !important;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	z-index: 9999999;
+	text-align: center;
+	opacity: 1;
+    background: url(/mobile/icons/m4-loading.gif) no-repeat center center #ffffff !important;
+    background-size: 100px !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#selectlang-button span {
+    display: none;
+}
+.ui-btn.ui-input-btn.ui-btn-a.ui-corner-all.ui-shadow {
+    font-size: 0px;
+}
+#outerDiv{
+    width: 100%;
+    height: 100%;
+    background-color: rgba(244, 244, 244, 0) !important;
+}
+.ui-loader.ui-corner-all.ui-body-a.ui-loader-default {
+    visibility: hidden;
+}
+.confTheme[data-theme="a"] {
+    background: none !important;
+    background-color: transparent !important;
+}
+.box{
+    width: 320px;
+    top: calc(50% - 240px);
+    left: 5%;
+    position: absolute;
+    z-index: 10;
+}
+.box2{
+    width: 516px;
+    top: calc(50% - 240px);
+    left: 5%;
+    position: absolute;
+    z-index: 10;
+    min-height: 320px;
+}
+#loginBox{
+    width: 100%;
+    height: auto;
+    min-height: 320px;
+    padding: 16px;  
+    position: relative;
+    background-color: rgba(244, 244, 244, 0) !important;
+}
+#logoPeopleNetCloud{
+    width: 100%;
+    height: 60px;
+    text-align: center; 
+}
+#logoPeopleNetCloud img{
+    width: 150px;
+    height: 43px;
+}
+.loginRow{
+    display: block;
+    padding: 4px 0;
+    position: relative;
+    text-align: center;
+}
+.loginRow input,
+.loginRow select{
+    width: 100%;    
+    height: 40px;
+    font-size: 15px;
+}
+.loginRow .placeholder{
+    display: none;
+    position: absolute;
+    top: 20px;
+    padding-left: 12px; 
+    color: #abaeae;
+    cursor: text;
+}
+#divCaptcha,
+#divRequireCaptcha,
+#divRetypeCaptcha{
+    display: none;
+}
+#divCaptcha > div{
+    height: auto!important;
+}
+#divRequireCaptcha > label,
+#divRequireCaptcha > img
+#divRequireCaptcha > div{
+    display: block;
+}
+#labelRequireCaptcha {
+    color: #ffffff;
+}
+#divRequireCaptcha img {
+    width: 50%;
+}
+#kaptcha {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none; 
+    border-radius: 6px;
+    padding-left: 8px !important;
+    line-height: 20px !important;
+    border: 1px solid rgba(119, 119, 119, 0.2);
+    background: rgba(255, 255, 255, 0.50);
+}
+.divError {
+    color: rgb(253, 152, 162) !important;
+    text-align: left;
+    padding-left: 8px;
+}
+#buttonenter{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 120, 215, 0.82) !important;
+    background-color: rgba(0, 120, 215, 0.80) !important;
+    color: #fff;
+}
+html:not(.touchDevice) #buttonenter:hover{
+    cursor: pointer;
+    background-color: #3A96DD;
+    border: 1px solid #003966;
+}
+.forgotPwd,.changePlatform {
+    text-align: left !important;
+}
+.forgotPwd img,.forgotPwd a, 
+.changePlatform img,.changePlatform a{
+    display: inline-block !important;
+    vertical-align: middle !important; 
+}
+.forgotPwd a, .changePlatform a{
+    max-width: calc(100% - 32px) !important;
+    font-size: 12px !important;
+}
+.loginRow input, .loginRow select {
+    height: 50px !important;
+}
+#maintenanceBox{
+    width: 100%;
+    height: auto;
+    min-height: 175px;  
+    position: relative;
+    display: none;
+    background-color: #f4f4f4;
+}
+.warningBox{
+    padding: 12px;
+    text-align: center;
+    background-color: #ee4642;  
+}
+.warningBox > img{
+    width: 32px;
+    height: 32px;
+}
+#lnklost, #selectPlatform {
+    color: #ffffff;
+}
+.messageBox{
+    padding: 17px;
+    text-align: center;
+}
+.messageBox p{
+    line-height: 1.75;
+}
+.messageBox p.date{
+    font-weight: bold;
+    font-size: 12px;
+}
+#tablePrivacy > div{
+    display: inline-block;
+}
+#tablePrivacy .sep:before,
+#tablePrivacy .sep:after{
+    content: "-";
+    padding: 0 6px; 
+    color: #f2f2f2;
+    opacity: 0.8;   
+}
+#selectBox {
+    background: #f4f4f4;
+    box-shadow: 1px 1px 7px 1px rgba(128, 128, 128, 0.2);
+    padding: 16px;
+    min-height: 320px;
+}
+#logoPeopleNetCloud2 {
+    width: 100%;
+    height: 60px;
+    text-align: center;
+}
+#logoPeopleNetCloud2 img {
+    width: 150px;
+    height: 43px;
+    margin-bottom: 16px;
+}
+.minWidthEntity {
+    min-width: 150px;
+}
+.rightEntityDate{
+    width: 100%;
+    text-align: right;
+}
+#entitiesContainer {
+    max-height: 200px;
+    overflow: auto;
+}
+#showpwdcontainer {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none; 
+    display: flex;
+    align-items: center;
+    height: 28px;
+    margin-bottom: 8px;
+    margin-top: 12px;
+}
+.forgotPwd, .changePlatform{
+    padding-left: 4px !important;
+}
+.ui-checkbox {
+    width: 16px;
+    margin-right: 8px;
+}
+#pwdstatus {
+    margin-top: 4px;
+}
+#showpwdtextlabel {
+    font-size: 13px;
+    color: #ffffff !important;
+}
+.checkmarkText {
+    font-size: 13px;
+    line-height: 25px;
+}
+.mobileApps {
+    display: none;
+}
+
+#tablePrivacy {
+    display: none;
+}
+#selectlang {
+    -webkit-appearance: button;
+    -webkit-border-radius: 0px;
+    -webkit-user-select: none;
+    background-image: url(../icons/selectArrow.svg);
+    background-position: 97% center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    border: 1px solid rgba(119, 119, 119, 0.2);
+    border-radius: 6px;
+    color: #333;
+    overflow: hidden;
+    padding: 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.50);
+    line-height: 20px;
+}
+.loginRow.forgotPwd {
+    margin-top: 16px;
+}
+#userlogin, #pwdlogin{
+   -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none; 
+    border-radius: 6px;
+    padding-left: 8px !important;
+    line-height: 20px !important;
+    border: 1px solid rgba(119, 119, 119, 0.2);
+    background: rgba(255, 255, 255, 0.50);
+}
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #333333;
+    opacity: 1; /* Firefox */
+}
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: #333333;
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+    color: #333333;
+}
+#showpwdcontainer div {
+    background: none !important;
+    background-color: transparent !important;
+}
+#logoPeopleNetCloud {
+    margin-bottom: 32px;
+}
+/* Media Querys */
+@media all and (max-height: 645px){
+    #loginBox {
+        margin-top: 16px !important;
+    }
+    #logoPeopleNetCloud {
+        margin-bottom: 20px;
+    }
+    .loginRow input, .loginRow select {
+        height: 40px !important;
+    }
+}
+@media all and (max-width: 768px){
+    body{
+        min-width: 100%;
+    }
+}
+@media all and (max-width: 480px){
+
+    body{
+        background-color: #f4f4f4 !important;
+        background-image: none;
+    }
+    #loginBox {
+        margin-top: 32px;
+    }
+    .box{
+        width: 100%;
+        height: auto;
+        position: static;
+    }
+    .box2{
+        width: 100%;
+        height: auto;
+        position: static;
+    }
+    #loginBox,
+    #maintenanceBox{
+        width: 100%;
+        position: static;       
+    }   
+    #loginBox.m4-shadow,
+    #maintenanceBox.m4-shadow{
+        box-shadow: none;
+    }
+    #logoPeopleNetCloud{
+        height: 60px
+    }
+    #maintenanceBox{
+        margin-top: 0;
+    }
+}
+@media all and (max-height: 530px) and (max-width: 480px){
+    #logoPeopleNetCloud {
+        margin-bottom: 10px;
+    }
+}
+@media all and (max-height: 490px) and (min-width: 480px){
+    .mobileApps {
+        display: none;
+    }
+    #tablePrivacy {
+        display: none;
+    }
+}
+@media screen and (max-width: 1024px) {
+    #selectBox p, #selectBox a {
+        font-size: 13px;
+    }
+    #selectBox h3 {
+        font-size: 16px;
+    }
+}
+@media all and (max-width: 480px) and (max-height: 320px){
+    #loginBox{
+        margin-top: 24px !important;
+        padding-top: 0px !important;
+    }
+}
+
+#pwdstatus{
+    display: none;
+}
+/* The container */
+.ui-checkbox {
+    width: 100%;
+}
+#showpwdtextlabel {
+    display: flex;
+    position: relative;
+    margin-bottom: 12px;
+    padding-left: 30px;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 25px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+#showpwdtextlabel input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+    position: absolute;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-image: url(/mobile/icons/checkbox_off.svg);
+}
+.ui-checkbox-on .checkmark{
+    background-image: url(/mobile/icons/checkbox_on.svg) !important;
+}
+
+/* When the checkbox is checked, add a blue background */
+#showpwdtextlabel input:checked ~ .checkmark {
+    background-color: #2196F3;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the checkmark when checked */
+#showpwdtextlabel input:checked ~ .checkmark:after {
+    display: block;
+}
+
+/* Style the checkmark/indicator */
+#showpwdtextlabel .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+#divRequireCaptcha {
+    display: flex !important;
+    flex-wrap:  wrap;
+    justify-content: center;
+    align-items: center;
+}
+#divRequireCaptcha img {
+    width: 40%;
+    margin-right: 16px;
+}
+#divRequireCaptcha .loginRow {
+    width: 50%;
+}

@@ -1,0 +1,153 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+        <title>meta4.widget.binding</title>
+		
+		<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+					
+		<!-- syntax highlighter -->
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+		
+		
+		<!-- load example -->
+        <script type="text/javascript" src="/js_examples/resources/m4loadExample.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+        <script>
+            SyntaxHighlighter.all();
+        </script>
+
+        <script src="binding.js"></script>
+        <script>
+            function paintColor(element, meta4Object, nodeId, itemId) {
+                var node = meta4Object.getNode(nodeId);
+                var itemValue = node.getValue(itemId);
+                element.style.backgroundColor = itemValue;
+            }
+			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+			
+        </script>
+    </head>
+
+    
+	<body>
+	    <div id = 'maincontainer'>
+        <h1 data-m4trans="_WidgetsBindingTitle"></h1>
+        <br>
+        <h2 data-m4trans="_WidgetsBindingSubtitle"></h2>
+        <p data-m4trans="_WidgetsBindingDescription">            
+        </p>
+            <p data-m4trans="_WidgetsBindingFunctionsDescription"></p>
+		<ul>
+            <li><b>update(idElement): </b><span data-m4trans="_WidgetsBindingListElement1"></span>
+			</li>
+            <li><b>converterPhoto(element, meta4Object, nodeId, itemId): </b><span data-m4trans="_WidgetsBindingListElement2"></span>
+			</li>
+            <li><b>onBinding(): </b><span data-m4trans="_WidgetsBindingListElement3"></span>
+			</li>
+            <li><b>offBinding(): </b><span data-m4trans="_WidgetsBindingListElement4"></span>
+			</li>
+		</ul>
+        <br><br>	
+        <h2 data-m4trans="_WidgetsBindingSubtitleImports"></h2>
+        <pre class="brush: js;">    
+			&ltscript type="text/javascript" src="../libreria/mootools.js"&lt&lt/script&gt
+			&ltscript type="text/javascript" src="../libreria/meta4.data.js"&gt&lt/script&gt    
+			&ltscript type="text/javascript" src="../libreria/meta4.widget.js"&gt&lt/script&gt
+        </pre>
+
+        <h2 data-m4trans="_WidgetsBindingSubtitleExample1"></h2>
+        <br><br>
+
+        <p data-m4trans="_WidgetsBindingHTMLCode"></p>
+        <pre class="brush: js;"> 
+			&ltdiv data-m4context="contextId" data-m4t3="EXJSAPI_COMPONENT"&gt
+				&ltdiv data-m4node="EXJSAPI_WIDGET_BINDING"&gt
+			
+					&ltimg id="first" src="../../iconos/lu_dis_first_24.png"&gt&lt/img&gt	
+					&ltimg id="previous" src="../../iconos/lu_dis_rew_24.png"&gt&lt/img&gt
+					
+					&ltlabel data-m4item="VALUE_NAME"&gt&lt/label&gt
+					
+					&ltimg id="next" src="../../iconos/lu_dis_for_24.png"&gt&lt/img&gt
+					&ltimg id="last" src="../../iconos/lu_dis_last_24.png"&gt&lt/img&gt	
+				
+					&ltdiv data-m4item="VALUE_COLOR" data-m4converter="paintColor"&gt&ltlabel data-m4item="VALUE_COLOR"&gt&lt/label&gt&lt/div&gt
+					
+					&ltdiv id="binding"&gtBINDING: OFF&lt/div&gt
+					
+				&lt/div&gt
+			&lt/div&gt
+        </pre>
+
+        <p data-m4trans="_WidgetsBindingJSCode"></p>
+        <script>
+            m4loadExample('paintColor');
+        </script>
+
+        <p data-m4trans="_WidgetsBindingExample2Descripion1"></p>	
+		
+        <p data-m4trans="_WidgetsBindingExample2Descripion2"></p>
+		
+        <div data-m4context="contextId" data-m4t3="EXJSAPI_COMPONENT" style="min-width:600px;text-align:center;padding:10px;margin:20px;width:auto;border:1px solid">
+
+            <div data-m4node="EXJSAPI_WIDGET_BINDING" >
+
+                <img id="first" src="../../iconos/lu_dis_first_24.png" style="cursor: pointer;"></img>	
+                <img id="previous" src="../../iconos/lu_dis_rew_24.png" style="cursor: pointer;"></img>
+
+                <label data-m4item="VALUE_NAME" style="width:160px;border:#808080 1px solid;display: inline-block;text-align:center;"></label>
+
+                <img id="next" src="../../iconos/lu_dis_for_24.png" style="cursor: pointer;"></img>
+                <img id="last" src="../../iconos/lu_dis_last_24.png" style="cursor: pointer;"></img>	
+
+                <div data-m4item="VALUE_COLOR" data-m4converter="paintColor" style="border:#808080 1px solid;display: inline-block;width:160px;"><label data-m4item="VALUE_COLOR"></label></div>
+
+                <div id="binding" style="border:#808080 1px solid;display: inline-block;width:160px;background-color:#006400;cursor: pointer;text-align:center;">BINDING: OFF</div>
+
+            </div>
+
+        </div>
+        
+        <button onclick="initExample()" data-m4trans="_WidgetsBindingExecuteExample"></button>
+       </div>
+    </body>
+</html>

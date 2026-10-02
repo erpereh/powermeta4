@@ -1,0 +1,1 @@
+cordova.define("com.meta4.localpreferencesplugin.meta4localpreferencesplugin",function(f,c,e){var a=f("cordova/argscheck"),g=f("cordova/utils"),b=f("cordova/exec");var d={load:function(j,i,h){cordova.exec(j,i,"LocalPreferencesPlugin","load",[h])},save:function(k,j,h,i){cordova.exec(k,j,"LocalPreferencesPlugin","save",[h,i])}};e.exports=d});

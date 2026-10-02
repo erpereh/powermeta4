@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-10-02 - Incorporación íntegra de clon_portal a Git
+
+- Se incorpora la copia original completa del portal por petición expresa,
+  también sus fotografías, en el repositorio público y la rama `davidev`.
+  Los originales no se editan, mueven ni renombran.
+- Los 33.518 archivos y 528.948.252 bytes coinciden con el índice Git, sin
+  omisiones ni cambios de bytes. `.gitattributes` conserva saltos de línea y
+  espacios; se habilitan rutas largas en este checkout y se documenta cómo
+  recuperarlas en Windows. El recuento anterior omitía un HTML de caché cuya
+  ruta superaba el límite habitual; no cambia la cobertura funcional.
+- La copia queda excluida de TypeScript, oxlint y oxfmt. README y documentación
+  del portal enlazan ahora las fuentes versionadas; no se crea `/portal` ni se
+  añaden permisos, APIs u operaciones ERP.
+- Verificación: typecheck, tests (109 archivos; 603 correctas y 2 omitidas),
+  build y `git diff --check` correctos; estado Git revisado. Lint mantiene los
+  siete avisos y 362 archivos con formato pendiente previos. Formato dirigido
+  de los archivos modificados que antes pasaban, correcto.
+
 ## 2026-10-02 - Documentación para clonar el portal corporativo
 
 - Nueva especificación `docs/portal/` para CYC, IBER y COLL, empleado y

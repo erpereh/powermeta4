@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<WebWorksHelpSettings version="4.0.0">
+ <Common>
+  <Cookies enable="true" daystoexpire="30" id="LLEHRGIP" />
+
+  <!-- Accessible values are "true", "false", "ask" -->
+  <Accessible value="false" />
+
+  <!-- See Also links (Associative links) -->
+  <SeeAlso showbook="false">
+   <Size width="250" />
+   <Indent value="17" />
+   <Title>
+    <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 10pt" />
+    <Colors foreground="#FFFFFF" background="#999999" />
+   </Title>
+   <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 8pt" />
+   <Colors foreground="#003399" background="#FFFFFF" border="#666666" />
+  </SeeAlso>
+
+  <NavigationBar>
+   <SyncContents enable="true" />
+
+   <Previous enable="true" />
+
+   <Next enable="true" />
+
+   <RelatedTopics enableicon="false" enableinline="false">
+    <Title>
+     <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 10pt" />
+     <Colors foreground="#FFFFFF" background="#999999" />
+    </Title>
+    <Inline>
+     <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 10pt" />
+     <Colors foreground="#003366" />
+    </Inline>
+    <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 8pt" />
+    <Colors foreground="#003399" background="#FFFFFF" border="#666666" />
+    <Size width="250" />
+   </RelatedTopics>
+
+   <Email enable="true" address="meta4@meta4.com" />
+
+   <Print enable="true" />
+
+   <Bookmark enable="false" />
+  </NavigationBar>
+
+  <Tabs>
+   <!-- border color not used by Java applet -->
+   <DefaultColors foreground="#FFFFFF" background="#699ACE" border="" />
+   <SelectedColors foreground="#ECD23F" background="#31659C" border="" />
+  </Tabs>
+
+  <Panels>
+   <HoverText enable="true">
+    <!-- <Font> option not used by Java applet -->
+    <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 8pt" />
+    <Colors foreground="#000000" background="#FFFFCC" border="#999999" />
+    <Size width="150" />
+   </HoverText>
+
+   <Contents enable="true" />
+
+   <Index enable="true" />
+
+   <Search enable="true">
+    <Results showrank="true" />
+    <Highlighting enable="true">
+     <Colors foreground="#FFFFFF" background="#333399" />
+    </Highlighting>
+   </Search>
+
+   <!-- Favorites not supported in JavaScript -->
+   <Favorites enable="true" />
+  </Panels>
+
+  <Popups>
+   <Colors foreground="#000000" background="#FFFFCC" border="#999999" />
+   <Size width="200" />
+  </Popups>
+ </Common>
+
+ <Implementations forcejavascript="false">
+  <Java>
+   <Font family="sans-serif" size="12" />
+   <FrameColors background="#999999" />
+   <Colors foreground="#000000" background="#CCCCCC" />
+
+   <Panels>
+    <Contents>
+     <Colors background="#FFFFFF" />
+    </Contents>
+
+    <Index>
+     <Font allowitalics="true" />
+    </Index>
+   </Panels>
+  </Java>
+
+  <JavaScript>
+   <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 8pt" />
+   <Indent value="17" />
+   <AnchorColors highlight="#CCCCCC" enabled="#315585" disabled="black" />
+
+   <Tabs>
+    <!-- <Font> overrides can be specified here -->
+    <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 8pt" />
+   </Tabs>
+
+   <Panels>
+    <Contents>
+     <!-- <Font>, <Indent>, and <AnchorColors> overrides can be specified here -->
+    </Contents>
+
+    <Index>
+     <!-- <Font>, <Indent>, and <AnchorColors> overrides can be specified here -->
+
+     <SectionNavigation threshold="500" separator=" - ">
+      <Font style="font-family: Verdana, Arial, Helvetica, sans-serif ; font-size: 7pt ; font-weight: bold" />
+      <CurrentColor value="black" />
+      <AnchorColors highlight="#CCCCCC" enabled="#315585" disabled="#999999" />
+     </SectionNavigation>
+    </Index>
+
+    <Search resultsbybook="true">
+     <!-- <Font>, <Indent>, and <AnchorColors> overrides can be specified here -->
+    </Search>
+   </Panels>
+  </JavaScript>
+ </Implementations>
+
+</WebWorksHelpSettings>

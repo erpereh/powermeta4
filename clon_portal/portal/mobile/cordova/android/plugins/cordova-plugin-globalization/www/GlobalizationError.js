@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-globalization.GlobalizationError",function(d,a,c){var b=function(e,f){this.code=e||null;this.message=f||""};b.UNKNOWN_ERROR=0;b.FORMATTING_ERROR=1;b.PARSING_ERROR=2;b.PATTERN_ERROR=3;c.exports=b});

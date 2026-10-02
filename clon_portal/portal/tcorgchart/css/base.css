@@ -1,0 +1,844 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: base.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+
+
+
+html,body {
+	margin: 0;
+	padding: 0;
+	text-align: center;
+	width: 100%;
+	height: 100%;	
+	font-size: 8pt;
+	font-family: Microsoft Sans Serif;
+	overflow-x: hidden;
+	overflow-y: hidden;
+}
+
+#container {
+	width: 100%;
+	height: 100%;
+	max-height: 100%;
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+#left-container,#center-container {
+	position: absolute;
+	top: 0;
+	max-width: 100%;
+
+}
+
+#center-container {
+	left: 0%; /*Before 20%;*/
+	width: 100%; /*Before 80%;*/
+	height: 100%;
+	background-color: #fafafa;
+	border-left: 1px solid #bcc3d3;
+	z-index:10000;
+	border-left-style:none; /*It doesn't exist before*/;
+}
+
+#left-container {
+	text-align: left;
+	width: 17%; /*Before 20%;*/
+	display: block; /*It doesn't exist before*/
+	height: 100%;
+	left: 0;
+	background-color: #f2f2f2;
+	border-bottom: 1px solid #bcc3d3;
+	top: 40px;
+	z-index: 100;
+}
+#moveNodes {
+    margin-left: 24px;
+}
+#toolbar {
+	position: absolute;
+	top: 0%;
+	left: 0px;
+	width: 100%;
+	height: 44px;
+	background-color: #d9deea;
+	text-align: right;
+	border-bottom: 1px solid #bcc3d3;
+	border-left: 1px solid #bcc3d3;
+	align: center;	
+}
+#pageTitle {
+    padding-left: 8px;
+}
+#contextMenu {
+	background-color: #f0f0f0;
+	text-align: left;
+	border: 1px solid #7b93af;
+	padding: 6px;
+	z-index: 9999;
+}
+
+#contextMenu #tableContextMenu tr:hover{
+	background-color: rgba(213,234,249,0.8);	
+	cursor: pointer;
+}
+
+#contextMenu #tableContextMenu tr:first-child:hover{
+	background-color: transparent;
+}
+
+#contextMenu #tableContextMenu tr td{
+	vertical-align: middle;
+}
+
+#contextMenu #tableContextMenu tr td:first-child{
+	text-align: center;
+}
+
+#TitleContextMenu{
+	padding: 12px;
+}
+
+#toolbarNode {
+	top: 100% !important;
+}
+
+.columPerson1 {
+	width: 90%;
+	max-width: 90%;
+}
+
+.columPerson2 {
+	width: 10%;
+	max-width: 10%;
+}
+
+#PrintMenu {
+	width: 100%;
+}
+
+/* Container for table employee an departament*/
+#container-center-button {
+	/*position: absolute;*/
+	display: none;
+	height: 30%;
+	width: 100%;
+	left: 0;
+}
+
+#container-center-button td input, #container-center-button td label{
+	vertical-align: middle;
+}
+
+/* table for title of tables employee and departament*/
+#TableTitle {
+	width: 100%;
+	overflow: hidden;
+	height: 15%;
+	text-align: left;
+	border: 1px solid #000000;
+	border-radius: 3px;
+}
+
+#infovis {
+	margin: auto;
+	overflow: hidden;
+	left:0%;
+	width:100%;
+	float:right;
+}
+
+#infovis-label{
+text-align:left;	
+	
+}
+
+/*TOOLTIPS*/
+.tip {
+	color: #000000;
+	background-color: white;
+	border: 1px solid #ccc;
+	-moz-box-shadow: #555 2px 2px 8px;
+	-webkit-box-shadow: #555 2px 2px 8px;
+	-o-box-shadow: #555 2px 2px 8px;
+	box-shadow: #555 2px 2px 8px;
+	opacity: 0.9;
+	filter: alpha(opacity =       90);
+	font-size: 10pt;
+	font-family: Microsoft Sans Serif;
+	padding: 7px;
+	text-align: left;
+}
+
+.box { /*Deshabilitar selección de texto*/
+	-moz-user-select: none; /* Mozilla */
+	-khtml-user-select: none; /* Chrome */
+	-o-user-select: none; /* Opera */
+	-ms-user-select: none;
+	user-select: none;
+}
+
+#shadow{
+display: none;
+top:31px;
+}
+
+.tip img {
+	text-align: center;
+	align: center;
+	width: 50px;
+	height: 50px;
+	margin-left: 40%;
+}
+
+.tip_hide {
+	display: none;
+}
+
+#dateLabel {
+    margin-left: 24px;
+    width: 80px;
+}
+/*
+#dateLabel2 {
+	font-size: 10pt;
+	font-family: Microsoft Sans Serif;
+	font-weight: bold;
+	color: #6c87a6;	
+	width: 100px;
+	height: 22px;
+	border: none;
+	position:absolute;	
+	left:1%;  /* before 20%;*/
+/*
+	margin-top: 18px;
+	z-index:1300005;
+}
+*/
+
+.buttonToolbar {
+	width: 22px;
+	height: 22px;
+	border: none;
+	margin-left: 10px;
+	margin-right: 10px;
+	position: relative;
+	top: 11px;
+}
+
+.buttonToolbar:hover {
+	background-image: url(iconmenu/state_over.png);
+	background-size: 22px 22px;
+}
+
+.buttonToolbarNode {
+	width: 28px;
+	height: 28px;
+	border: none;	
+}
+
+.buttonToolbarNodeReduced {
+	width: 21px;
+	height: 21px;
+	border: none;
+}
+
+.buttonToolbarNode:hover, .buttonToolbarNodeReduced:hover {
+	cursor: pointer;
+	background-color: rgba(213,234,249,0.8);
+}
+
+.buttonToolbarNodeReduced:hover {
+	cursor: pointer;
+	background-color: rgba(213,234,249,0.8);
+}
+
+.buttonContextMenu {
+	padding: 3px;
+}
+
+.buttonControlPanelLeft:hover {
+	background-image: url(iconmenu/state_over.png);
+	background-size: 22px 22px;
+}
+.buttonControlPanelLeft2:hover {
+	background-image: url(iconmenu/state_over.png);
+	background-size: 22px 22px;
+}
+
+.buttonControlPanelLeft {
+	width: 22px;
+	height: 22px;
+	border: none;
+	position:absolute;
+	left:103%;
+	z-index:13001;
+}
+
+.buttonControlPanelLeft2 {
+	width: 22px;
+	height: 22px;
+	border: none;
+	position:absolute;	
+	left:20.5%;
+	z-index:13001;
+}
+
+/*
+#buttonShowMap {
+	top:70px;
+	background-color:'';
+}
+
+
+#buttonShowMap2 {
+	top:70px;
+	left:1%; 
+}
+
+#buttonShowConfig {
+	top:100px;
+}
+
+
+#buttonShowConfig2 {
+	top:100px;
+	left:1%; 
+	background-color:''; 
+}
+*/
+#hidePanelLeftButton {
+    height: 96px;
+    background-color: #e6e8eb!important;
+    top: calc(50% - 96px);
+    position: relative;
+}
+#buttonHidePanelLeft {	
+	display: block;
+	position: absolute;
+	top: calc(50% - 8px);
+	right: 0px;
+}
+#buttonHidePanelRight {
+	display: block;
+	position: absolute;
+	top: calc(50% - 8px);
+	right: 3px;
+}
+
+#contentTreeWU {
+	width: 100%;	
+	background-color: #f2f2f2;
+	overflow: hidden;
+	text-align: left; 	 
+}
+
+#controlPanelLeft{
+	display:'';
+}
+
+#controlPanelLeft2{
+	display: block;
+}
+
+#divScroll{
+		width: 100%;	
+	background-color: #f2f2f2;
+	overflow: hidden;
+	text-align: left;
+	 overflow-y:auto;
+	 overflow-x: hidden;	 
+	 height:200px;
+}
+
+.lockHover:hover {
+	background-image: url(iconmenu/state_over.png);
+	background-size: 22px 22px;
+}
+
+.overlay {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: #000;
+	z-index: 14000;
+	opacity: .75;
+	-moz-opacity: 0.75;
+	filter: alpha(opacity = 75);
+}
+
+.modal {
+	display: none;
+	position: absolute;	
+	height: auto;
+	max-height: 80%;
+	padding: 16px;
+	background: #fff;
+	color: #333;
+	z-index: 15000;
+	overflow: auto;
+	background-color: #f2f2f2;
+	border: 1px solid #bdc4db;
+}
+#saveMenu{
+	width: auto;
+	max-width: 40%;
+	left: 40%;
+	top: 15%;	
+}
+
+#printMenu{
+	width: 50%;
+	left: 25%;
+	top: 10%;
+}
+
+#printMenu,#saveMenu {
+	text-align: left;
+	text-align: left center;
+	font-size: 12pt;
+	font-family: Segoe UI;
+	position: absolute;
+}
+
+.printPanelLeft {
+	width: 40%;
+	display: inline-block;
+}
+
+.printPanelRight {	
+	width: 58%;
+	display: inline-block;
+}
+
+.ffoxWarning {	
+	margin-left: 5px; 
+	width: calc(100% - 240px);
+	padding-bottom: 6px;
+	display: inline-block;
+}
+
+.ffoxWarning > img {
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.ffoxWarning > h5{
+	width: calc(100% - 20px);
+	padding-left: 6px;
+	padding-right: 6px;
+	display: inline-block;
+	color: #333;
+	vertical-align: top;
+}
+
+.buttonGroup{
+	padding-top: 20px;
+}
+
+.subMenu, .subMenu.boxRow div{
+	padding: 0 17px;
+}
+
+.subMenu .subMenuTitle{
+	display: inline-block;
+	width: 47%;
+}
+
+.subMenu .subMenuValue{
+	display: inline-block;
+	width: 50%;
+}
+
+.subMenu .subMenuValue select, .subMenu .subMenuValue input{
+	width: 100%;
+}
+.subTitleMenu{
+	padding: 12px 0;
+}
+
+.separatorHor {
+	background-image: url(iconmenu/separador_horizontal.png);
+	background-repeat: repeat-x;
+}
+
+.titleMenu {
+	text-align: center;
+	font-size: 18pt;
+	color: black;
+	font-family: Segoe UI;
+	min-height: 33px;	
+}
+
+.tableSave{
+	width:500px;
+}
+
+.subTitleMenu {
+	text-align: left;
+	font-size: 13pt;
+	color: black;
+	font-family: Segoe UI;
+	min-height: 25px;
+}
+
+.buttonMenus {
+    /* width: 80px; */
+    /* height: 25px; */
+    /* text-align: center; */
+    /* margin: auto; */
+    padding-left: 16px;
+    padding-right: 16px;
+    color: #fff;
+}
+
+.labelContextMenu:hover {
+	cursor: pointer;
+	color: #7b93b0;
+}
+
+#mini_map {	
+	margin: auto;
+	overflow: hidden;
+	cursor: default;
+	z-index: 1;	
+	position:relative;
+}
+
+#contentMap {
+	position:relative;
+	height: 250px;
+	overflow-x:auto;
+	overflow-y:auto;
+	z-index:0;
+}
+
+#canvas_Rectangle {	
+	left: 0px;	
+	position: absolute;
+	top:0px;	
+	margin: 0px;
+	overflow: hidden;
+	cursor: default;
+	z-index: 4;
+}
+
+#controlMaps {
+	z-index: 13001;
+	background-color: #f2f2f2;
+	min-height: 100%;
+	/*border-right: 3px solid #bcc3d3;	*/
+}
+
+#controlTabsMenu {
+	z-index: 13001;
+	background-color: #f2f2f2;
+	min-height: 100%;
+	border-right: 3px solid #bcc3d3;
+	display: none;  /*It doesn't exist before*/
+}
+
+#containerTablesNodes{
+	overflow: auto;
+}
+
+#divImgPreview{
+	text-align: center;
+}
+
+#imgPreview{
+	width:300px;
+	height:280px;
+}
+
+.m4-titleBar-content{
+	text-align: left;
+}
+#buttonShowConfig{
+	position: absolute;
+	right: 16px;
+	cursor: pointer;
+	padding: 4px;
+	height: 24px;
+	min-width: 100px;
+	width: auto;
+}
+.disableText{
+	color: #bebebe !important;
+}
+#m4-colorOptionsArrow, #m4-boxTypeArrow, #m4-boxSizeArrow, #m4-personalArrow,#m4-lienzoArrow {
+    margin-top: 4px;
+    margin-right: 4px;
+}
+#buttonShowConfig label{
+	color: #ffffff;
+	cursor: pointer;
+	margin-left: 0px;
+	font-size: 13px;
+}
+#btnDeshacer {
+    padding: 0 4px 0 4px;
+    height: 24px;
+    color: white;
+}
+.m4-panelLeftOpen {
+	position: absolute;
+	top: 0;
+	left: 100%;
+	width: 16px;
+	height: 100%;
+	background-color: #d3d7db;	
+	cursor: pointer;
+	z-index: 13001;	
+}
+.m4-panelRightOpen{
+	position: absolute;
+	top: 0;
+	right: 100%;
+	width: 22px;
+	height: 100%;
+	background-color: #d3d7db;	
+	cursor: pointer;
+	z-index: 13001;	
+}
+#left-container.m4-closePanelLeft{
+	width: 0;
+}
+#expanderLeftButton {
+    height: 96px;
+    background: #e6e8eb;
+    position: relative;
+    top: calc(50% - 96px);
+}
+#expanderLeftButton:hover{
+	background: #e0e2e4;
+}
+.expandDown{
+	position: absolute;
+	top: calc(50% - 8px);
+	right: 16px;
+}
+#menuConfig{
+	max-width: 20%;
+	height: calc(100% - 40px);
+}
+#menuConfig, #menuConfig > div{
+	background: #f4f4f4;	
+	min-width: 350px;
+	position: fixed;
+	top: 39px;
+	right: 0;
+	z-index: 1000;  /*bug 0282616 */
+	overflow-x: hidden;
+	overflow-y: auto;
+	display: block;
+}
+#menuConfig > div{
+	border: 1px solid #bdc4db;
+	position: relative;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	padding: 12px 0;
+}
+.m4-widgetButton-text h3 {
+    color: #758199!important;
+    font-size: 13px;
+}
+#menuConfig.m4-closePanelRight{
+	height: 0;
+}
+
+#menuConfig .configMenuOption{
+	max-height: 600px;
+	padding: 8px;
+	margin-left: 24px;
+}
+
+#menuConfig .m4-expandOptions{
+	max-height: 0;
+	display:none;
+}
+
+#menuConfig table tr td{
+	vertical-align: middle;	
+}
+
+#menuConfig table tr td.columPerson1{
+	padding-bottom: 5px;
+}
+#menuConfig table tr td.columPerson1 label, #menuConfig #Asistentestable tr td label{
+	padding: 0 6px;
+}
+option {
+    font-size: 13px !important;
+}
+#selectStyleId, #selectStyleIdInfo {
+    font-size: 13px;
+}
+img.rotate90{
+	transform: rotate(90deg);
+	-ms-transform: rotate(90deg);
+	-webkit-transform: rotate(90deg);
+	transition: all 0.4s ease-in;
+	-webkit-transition: all 0.4s ease-in;
+	-moz-transition: all 0.4s ease-in;
+	-o-transition: all 0.4s ease-in;
+}
+select#selectStyleIdInfo {
+    width: 100%;
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+    border: 2px solid #7984bf !important;
+    background: #7984bf !important;
+    font-weight: normal
+    color: #555555;
+    border-radius: 100% !important;
+}
+.ui-slider-horizontal .ui-slider-handle{
+	top: -0.5em !important;
+}
+.ui-widget-content {
+    border: 1px solid #ccc !important;
+}
+.ui-slider .ui-slider-handle {
+    width: 1em !important;
+    height: 1em !important;
+}
+#shadow .output{
+	width: auto;
+	max-width: 100%;
+	padding: 12px;
+	z-index: 101;
+}
+
+#m4-colorOptions{
+	height: auto;	
+}
+.nameDepTable{
+	text-align: center;
+}
+.m4-titleBar .m4-titleBar-search {
+    border: 1px solid #7f9db9;
+    margin: 0 6px;
+    padding: 3px;
+    background-image: url(iconmenu/search2.svg);
+    background-color: rgb(255, 255, 255);
+    background-position: 97% 50%;
+    -ms-background-position-y: center;
+    -ms-background-position-x: right;
+    background-repeat: no-repeat;
+    max-width: 150px;
+}
+#saveStyle {
+    margin: 4px;
+}
+
+/**
+*  RTL Styles
+*/
+html[dir="RTL"] .m4-titleBar-content-title, 
+html[dir="RTL"] .m4-titleBar-content-elements,
+html[dir="RTL"] .TabsSubMenu > .m4-widgetButton{
+	float: right;
+}
+html[dir="RTL"] #infovis, 
+html[dir="RTL"] button, 
+html[dir="RTL"] .buttonMenus,
+html[dir="RTL"] button:hover, 
+html[dir="RTL"] .buttonMenus:hover, 
+html[dir="RTL"] #containerTablesNodes {
+	float: left;
+}
+html[dir="RTL"] #buttonShowConfig, 
+html[dir="RTL"] .expandDown{
+	left: 16px;
+	right: auto;
+}
+html[dir="RTL"] #left-container, 
+html[dir="RTL"] .imgMenu{
+	right: 0;
+}
+html[dir="RTL"] .titleTab{
+	right: 32px;
+	left: auto;
+}
+html[dir="RTL"] #menuConfig, 
+html[dir="RTL"] .contentTab #max-levels input,
+html[dir="RTL"] #numberPerson{
+	left: 0;
+	right: auto;
+}
+html[dir="RTL"] .titleSubTab{
+	padding: 0 15px;
+}
+html[dir="RTL"] #tableTitle tr td{
+	text-align: center;
+}
+html[dir="RTL"] #divTreeWU{
+	padding: 0 21px;
+	text-align: right;
+}
+html[dir="RTL"] .colorPickerBox, 
+html[dir="RTL"] .colorPickerFont,
+html[dir="RTL"] .colorPickerLine, 
+html[dir="RTL"] .ColorlineDependency,
+html[dir="RTL"] .TypelineDependency, 
+html[dir="RTL"] .colorPickerDependency{
+	text-align: left;
+}
+html[dir="RTL"] #printMenu, 
+html[dir="RTL"] #saveMenu,
+html[dir="RTL"] .rightSideItalic,
+html[dir="RTL"] #contextMenu, 
+html[dir="RTL"] .TabsSubMenu,
+html[dir="RTL"] .output, 
+html[dir="RTL"] #contextMenu, 
+html[dir="RTL"] tbody tr td {
+	text-align: right;
+}
+html[dir="RTL"] .m4-titleBar-search{
+	background: url(iconmenu/search2.svg) 1% 50% / 16px no-repeat rgb(255, 255, 255);
+	-ms-background-position-y: center;
+	-ms-background-position-x: left;
+	padding: 3px 3px 3px 17px;
+}
+html[dir="RTL"] .imgIcon,
+html[dir="RTL"] #menuConfig .TabsSubMenu .m4-widgetButton-img img,
+html[dir="RTL"] .imgWU{
+	-moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    filter: FlipH;
+    -ms-filter: "FlipH";
+}
+html[dir="RTL"] .imgIcon.rotate{
+	-moz-transform: scaleX(1);
+    -o-transform: scaleX(1);
+    -webkit-transform: scaleX(1);
+    transform: scaleX(1);
+}
+html[dir="RTL"] #menuConfig .TabsSubMenu .m4-widgetButton-img img.rotate90{
+	transform: rotate(90deg);
+	-ms-transform: rotate(90deg);
+	-webkit-transform: rotate(90deg);
+	transition: all 0.4s ease-in;
+	-webkit-transition: all 0.4s ease-in;
+	-moz-transition: all 0.4s ease-in;
+	-o-transition: all 0.4s ease-in;
+}
+
+
+

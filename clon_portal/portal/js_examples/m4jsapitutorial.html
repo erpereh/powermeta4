@@ -1,0 +1,420 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>Tutorial m4jsapi</title>
+
+		<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+    
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/console.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+        <!-- syntax highlighter -->
+        <script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+        <script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+        
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		<!--
+		##M4JSAuthorize(SRCO_PORTAL_PARAMS,SRCO_PORTAL_PARAMS,LOAD_PARAMS)##
+		##M4JSAuthorize(EXJSAPI_COMPONENT,EXJSAPI_TUTORIAL,LOAD_PRG)##
+		##M4JSAuthorize(EXJSAPI_COMPONENT,EXJSAPI_CHANNEL_FRIEND,CALL_FRIEND)##
+		##M4JSAuthorize(EXJSAPI_COMPONENT,EXJSAPI_SYNC,SYNC)##
+		-->
+
+		<!--##M4JSFunctionalGroupId(SRTC_JSAPI_EXAMPLES)##-->
+		<script>
+            SyntaxHighlighter.all();
+			// the security token
+			var secToken = "##M4JSSecToken##";
+		</script>
+
+		<script>
+			var m4Object = null;
+			var example = {
+				example1 : function() { 
+
+					function onMetadataSuccess(request) {
+						m4Object = new meta4.M4Object('EXJSAPI_COMPONENT');
+						console.log('M4object created and loaded successfully');
+					}
+
+					function onMetadataFail(request) {
+						console.log('Error in Meta4Object load metadata');
+					}
+
+					var ids = [];
+					ids.push("EXJSAPI_COMPONENT");
+
+					var executor = new meta4.M4Executor();
+					executor.loadMetadata(ids, onMetadataSuccess, onMetadataFail);
+
+				},
+				example2 : function() {
+
+					/**
+					 *Function callback of success method
+					 */
+					function successMethod(request) {
+						console.log('method successfully executed');
+					}
+					/**
+					 *Function callback of fail method
+					 */
+					function failMethod(request) {
+						console.log('method failed');
+					}
+
+					var request = new meta4.M4Request(m4Object, 'EXJSAPI_TUTORIAL', 'LOAD_PRG', null);
+					
+					var executor = new meta4.M4Executor();
+					//execute request
+					executor.execute(request, successMethod, failMethod);
+
+				},
+				example3 : function() {
+
+					var i;
+					var node = m4Object.getNode('EXJSAPI_TUTORIAL');
+					
+					if (node.count() === 0) {
+						console.log('Charge method must be executed');
+					}
+					
+					for ( i = 0; i < node.count(); i++) {
+						m4Object.getNode('EXJSAPI_TUTORIAL').moveTo(i);
+						
+						var number = node.getValue('EX_NUMBER');
+
+						console.log('Number: ' + number);
+
+						//cadena
+						var strg = node.getValue('EX_STRING');
+
+						console.log('String: ' + strg);
+
+					}
+				},
+				example4 : function() {
+				    
+                    var i;
+                    var node = m4Object.getNode('EXJSAPI_TUTORIAL');
+                    if (node.count() === 0) {
+                        console.log('Charge method must be executed');
+                        return 0;
+                    }
+                    
+                    function onNodeCurrentChanged(context) {
+                        console.log('Register is in position: ' + context.getNode().getCurrent());
+                        //console.log('Register is in position: ' + context.getNode().getValue('EX_STRING'));
+                    }
+                    
+                    node.register(meta4.M4EventTypes.getNodeCurrentChanged(), onNodeCurrentChanged, null);
+                    
+                    for ( i = 0; i < m4Object.getNode('EXJSAPI_TUTORIAL').count(); i++) {
+                        m4Object.getNode('EXJSAPI_TUTORIAL').moveTo(i);
+                    }
+				},
+				
+				
+				example5 : function() {
+
+                    var m4ObjectFriend;
+                    var ids = [];
+                    ids.push("EXJSAPI_COMPONENT_FRIEND");
+                    
+                    function onMetadataFail(request) {
+                        console.log('Error in Meta4Object load metadata');
+                    }
+                    
+                    function onMetadataSuccess(request) {
+                    	
+                        //Function callback of success method
+                    	function successCallFriend(request) {
+                    		var nodeFriend = m4ObjectFriend.getNode('EXJSAPI_COMPONENT_FRIEND');
+                    		var i;
+                    		for ( i = 0; i < nodeFriend.count(); i++) {							
+                    			nodeFriend.moveTo(i);
+                    			var friendItemValue = nodeFriend.getValue('ITEM_CHANNEL_FRIEND');
+                    			console.log("Item value from friend Meta4Object is: " + friendItemValue );
+                    		}
+                    	}
+                    
+                        //Function callback of fail method
+                        function failMethod(request) {
+                        }
+                        
+                    	//create m4Object friend
+                    	m4ObjectFriend = new meta4.M4Object('EXJSAPI_COMPONENT_FRIEND');
+                    
+                    	//create request
+                    	var request = new meta4.M4Request(m4Object, 'EXJSAPI_CHANNEL_FRIEND', 'CALL_FRIEND', null);
+                    
+                    	//add reference, same ALIAS in LN4¡¡¡¡
+                    	request.addReference("EXJSAPI_COMPONENT_FRIEND", m4ObjectFriend);
+                    
+                    	var executor = new meta4.M4Executor();
+                    	//execute request
+                    	executor.execute(request, successCallFriend, failMethod);
+                    }
+                    
+                    var executor = new meta4.M4Executor();
+                    executor.loadMetadata(ids, onMetadataSuccess, onMetadataFail);		
+
+				},
+				example6 : function() {
+
+                    var firstM4Object = null;
+                    
+					function onFirstSuccess(request) {
+
+						function onSecondSuccess(request) {
+
+							function onThirdSuccess(request) {
+								var node = request.getObject().getNode('EXJSAPI_SYNC');
+								var value = node.getValue('ITEM_SYNC');
+								console.log("third Meta4Object " + value);
+							}
+
+							var node = request.getObject().getNode('EXJSAPI_SYNC');
+							var value = node.getValue('ITEM_SYNC');
+							console.log("second Meta4Object " + value);
+
+							var thirdm4Object = new meta4.M4Object('EXJSAPI_COMPONENT', 'EXJSAPI_COMPONENT', true);
+							var node = thirdm4Object.getNode('EXJSAPI_SYNC');
+							//node.setValue('ITEM_SYNC', 'third set value');
+
+							var request = new meta4.M4Request(thirdm4Object, 'EXJSAPI_SYNC', 'SYNC', null);	
+							
+							var executor = new meta4.M4Executor();
+							//execute request
+							executor.execute(request, onThirdSuccess, null);
+
+						}
+
+						var node = request.getObject().getNode('EXJSAPI_SYNC');;
+						var value = node.getValue('ITEM_SYNC');
+						console.log("first Meta4Object: " + value);
+
+						var secondm4Object = new meta4.M4Object('EXJSAPI_COMPONENT', 'EXJSAPI_COMPONENT', false);
+						
+						var node = secondm4Object.getNode('EXJSAPI_SYNC');
+                        
+                        //This is an error
+                        //node.setValue('ITEM_SYNC', 'second set value');
+                        //var value = node.getValue('ITEM_SYNC');
+                        
+						var request = new meta4.M4Request(secondm4Object, 'EXJSAPI_SYNC', 'SYNC', null);
+						
+						var executor = new meta4.M4Executor();
+						//execute request
+						executor.execute(request, onSecondSuccess, null);
+					}
+
+					//create m4Object with alias EXJSAPI_COMPONENT
+					firstM4Object = new meta4.M4Object('EXJSAPI_COMPONENT', 'EXJSAPI_COMPONENT', true);
+					var node = firstM4Object.getNode('EXJSAPI_SYNC');
+					var value = node.getValue('ITEM_SYNC');
+					//Default Value
+					console.log("first Meta4Object: " + value);
+
+					node.setValue('ITEM_SYNC', 'first set value');
+					var request = new meta4.M4Request(firstM4Object, 'EXJSAPI_SYNC', 'SYNC', null);
+					
+					var executor = new meta4.M4Executor();
+					//execute request
+					executor.execute(request, onFirstSuccess, null);
+				}
+			};
+
+			function exampleExecutor(action) {
+				if (m4Object != null) {
+					action();
+				} else {
+					console.log('Metadata Meta4Object must be firstly loaded');
+				}
+			}
+
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_global'], loadlanguage);
+				
+				document.getElementById("codeNoNonce").innerHTML = document.getElementById("codeNoNonce").innerHTML.replace(/#tokenavoidnonce#/g,"");
+				
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+			
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+
+    <div id='exampleContainer'>
+		<h1 data-m4trans="_m4jsapiTutorialTitle"></h1>
+		
+		<p data-m4trans="_m4jsapiTutorialTextLibraries"> </p>
+
+		
+		<pre class="brush: js;" id="codeNoNonce">
+		&lt;script src="/m4jsapi/m4jsapi.nocache#tokenavoidnonce#.js"&gt;&lt;/script&gt;								
+		</pre>    
+				
+		<h2 data-m4trans="_m4jsapiTutorialUsageTitle"></h2>
+		
+		<!--
+		<h2 data-m4trans="_m4jsapiTutorialUsageTitle2"></h2>
+		<p data-m4trans="_m4jsapiTutorialUsageDescription"></p>
+		<pre class="brush: js;">
+				//event to inicialice program
+				document.addEvent('meta4Ready', initCode);
+		</pre>																
+		-->
+		
+		<pre class="brush: js;" id="codeNoNonce">
+        function meta4OnLoad() {
+            //jsapi fire this function when is loaded
+            //wait this function to start your code.    
+            
+        }
+        </pre>
+        
+		<h2 data-m4trans="_m4jsapiTutorialChargeTitle"></h2>
+		<p data-m4trans="_m4jsapiTutorialChargeDescription"></p>
+
+		<script>
+			m4loadExample('example.example1');
+		</script>
+
+		<p data-m4trans="_m4jsapiTutorialExample1Description"></p>
+		<button onclick="example.example1()" data-m4trans="_m4jsapiTutorialExample1ButtonText">			
+		</button>
+
+		<h2 data-m4trans="_m4jsapiTutorialExecutionTitle"></h2>
+
+		<p data-m4trans="_m4jsapiTutorialExecutionDescription"></p>
+			<ul>
+				<li data-m4trans="_m4jsapiTutorialExecutionList1">					
+				</li>
+				<li data-m4trans="_m4jsapiTutorialExecutionList2">					
+				</li>
+				<li data-m4trans="_m4jsapiTutorialExecutionList3">					
+				</li>
+				<li data-m4trans="_m4jsapiTutorialExecutionList4">					
+				</li>
+			</ul> 
+			<p data-m4trans="_m4jsapiTutorialExecutionDescription2"></p>
+			
+			<p data-m4trans="_m4jsapiTutorialExecutionDescription3"></p>
+			<p data-m4trans="_m4jsapiTutorialExecutionDescription4"></p>
+
+		<script>
+			m4loadExample('example.example2');
+		</script>
+
+		<p data-m4trans="_m4jsapiTutorialExample2Description"></p>
+
+		<button onclick="exampleExecutor(example.example2)" data-m4trans="_m4jsapiTutorialExample2ButtonText">			
+		</button>
+
+
+		<h2 data-m4trans="_m4jsapiTutorialResgistersManagementTitle"></h2>
+
+		<p data-m4trans="_m4jsapiTutorialResgistersManagementDescription"></p>
+
+		<script>
+			m4loadExample('example.example3');
+		</script>
+
+		<p data-m4trans="_m4jsapiTutorialExample3Text"></p>
+
+		<button onclick="exampleExecutor(example.example3)" data-m4trans="_m4jsapiTutorialExample3ButtonText">			
+		</button>
+
+		<h2 data-m4trans="_m4jsapiTutorialEventsTitle"></h2>
+	
+		<p data-m4trans="_m4jsapiTutorialEventsDescription">
+			<ul>
+				<li data-m4trans="_m4jsapiTutorialEventsList1">					
+				</li>
+				<li data-m4trans="_m4jsapiTutorialEventsList2">					
+				</li>
+				<li data-m4trans="_m4jsapiTutorialEventsList3">					
+				</li>
+			</ul> 
+		</p>
+
+		<script>
+			m4loadExample('example.example4');
+		</script>
+
+		<p data-m4trans="_m4jsapiTutorialExample4Text"></p>
+
+		<button onclick="exampleExecutor(example.example4)" data-m4trans="_m4jsapiTutorialExample4ButtonText">			
+		</button>
+
+
+		<h2 data-m4trans="_m4jsapiTutorialChannelsTitle"></h2>
+	
+		<p data-m4trans="_m4jsapiTutorialChannelsDescription">		 
+		</p>
+
+		<script>
+			m4loadExample('example.example5');
+		</script>
+
+		<p data-m4trans="_m4jsapiTutorialExample5Text"></p>
+
+		<button onclick="exampleExecutor(example.example5)" data-m4trans="_m4jsapiTutorialExample5ButtonText">			
+		</button>
+
+		<h2 data-m4trans="_m4jsapiTutorialSynchronizeTitle"></h2>
+
+		<p data-m4trans="_m4jsapiTutorialSynchronizeDescription">
+			<ul>
+				<li data-m4trans="_m4jsapiTutorialSynchronizeList1">					
+				</li>
+				<li data-m4trans="_m4jsapiTutorialSynchronizeList2">					
+				</li>
+				<li data-m4trans="_m4jsapiTutorialSynchronizeList3">					
+				</li>
+			</ul> 
+		</p>
+		<p data-m4trans="m4jsapiTutorialSynchronizeList1Description2">	
+			
+		</p>
+
+		<script>
+			m4loadExample('example.example6');
+		</script>
+
+		<p data-m4trans="_m4jsapiTutorialExample6Text"></p>
+
+		<button onclick="exampleExecutor(example.example6)" data-m4trans="_m4jsapiTutorialExample6ButtonText">			
+		</button>
+    </div>
+   </div>
+	</body>
+</html>

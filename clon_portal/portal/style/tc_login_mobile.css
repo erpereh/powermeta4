@@ -1,0 +1,86 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: tc_login_mobile.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+
+
+body{
+	font-family: segoe ui;
+	text-align: center;
+}
+
+[data-theme="a"] table, [data-theme="a"] tr,[data-theme="a"] div {
+	background-color: black !important;	
+}
+
+
+[data-theme="b"] table, [data-theme="b"] tr{
+	background-color: white  !important;	
+}
+
+#capa_cuerpo{
+	display: none;
+}
+
+tbody tr:last-child{
+	height: 40%
+}
+ tbody tr:first-child{
+ 	height: 10px;
+}
+
+tbody tr:nth-child(2){
+	height: 10px;
+}
+tbody tr:nth-child(3){
+	height: 10px;
+}
+
+tbody tr:nth-child(4){
+	vertical-align: top;
+}
+
+
+table{
+	height: 100%;
+	width: 100%;
+}
+
+#capa_cuerpo2{
+	
+	width: 100% !important;
+	position: absolute !important;
+	left:0 !important;
+	right: 0 !important;
+	top:0 !important;
+	bottom: 0 !important;
+}
+
+.titulofuncional
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 18px;
+    COLOR: #b90000 !important;    
+}
+
+.fuentedescripcion
+{	
+    FONT-SIZE: 13px;    
+    margin-left: 10%;
+    margin-right: 10%;    
+}
+
+
+[data-theme="a"] .fuentedescripcion
+{	
+    color: white;
+}
+
+[data-theme="b"] .fuentedescripcion
+{	
+    color: black;
+}

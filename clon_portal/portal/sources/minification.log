@@ -1,0 +1,186 @@
+83 files found
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.js
+y:/build.008/win32/m4website/m4webservices/tcpages/sources/mobile/js/meta4.mobile.js:821: WARNING - Suspicious code. Is there a missing '+' on the previous line?
+    'use strict'; 
+    ^
+
+0 error(s), 1 warning(s)
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_pl.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_pl.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_fr.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_fr.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.login.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.login.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_en.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_en.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.home.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.home.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_pt.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_pt.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_it.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_it.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_pl.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_pl.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_it.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_it.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.chgpass.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.chgpass.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.who_is_who.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.who_is_who.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_pt.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_pt.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_en.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_en.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_pt.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_pt.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_it.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_it.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_en.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_en.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_en.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_en.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.news.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.news.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.calendar.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.calendar.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_en.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_en.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_de.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_de.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_fr.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_fr.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_fr.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_fr.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.task.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.task.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.select_platform.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.select_platform.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.payslip.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.payslip.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_es.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_es.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.who_is_who.js
+y:/build.008/win32/m4website/m4webservices/tcpages/sources/mobile/js/meta4.mobile.who_is_who.js:144: WARNING - Suspicious code. The result of the 'getprop' operator is not being used.
+		this.parentNode.firstChild.nodeName;
+		^
+
+y:/build.008/win32/m4website/m4webservices/tcpages/sources/mobile/js/meta4.mobile.who_is_who.js:199: WARNING - unreachable code
+		for ( j = 0; j < arrayInput.length; j++) {
+		                                    ^
+
+0 error(s), 2 warning(s)
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.who_is_who.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_it.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_it.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_es.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_es.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_de.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_de.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_fr.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_fr.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_it.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_it.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_it.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_it.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_en.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_en.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_de.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_de.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_de.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_de.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.login.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.login.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.task.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.task.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.news.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.news.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.javaserverpages.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.javaserverpages.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.ui.translate.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.ui.translate.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.forgetpass.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.forgetpass.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_fr.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_fr.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_pl.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_pl.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_fr.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_fr.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_pl.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_pl.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_de.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_de.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_pt.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_pt.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.payslip.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.payslip.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_en.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_en.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_pt.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_pt.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.home.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.home.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.m4select_platform.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.m4select_platform.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.forgetpass.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.forgetpass.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_es.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_es.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_de.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4task_de.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_de.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_de.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.my_profile.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.my_profile.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_fr.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_fr.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_fr.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4home_fr.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_de.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_de.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_pl.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_pl.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.my_profile.js
+y:/build.008/win32/m4website/m4webservices/tcpages/sources/mobile/js/meta4.mobile.my_profile.js:275: WARNING - Suspicious code. This code lacks side-effects. Is there a bug?
+	if(deviceReady && domReady){
+	^
+
+0 error(s), 1 warning(s)
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.my_profile.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.generic.css
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/css/mobile.generic.css
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_pt.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4payslip_pt.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_pt.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_pt.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_es.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_es.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_en.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_en.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.who_is_who_home.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.who_is_who_home.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_es.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_es.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.ui.log.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.ui.log.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_es.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4news_es.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_it.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_it.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_it.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/select_platform_it.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_pl.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_pl.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_es.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_es.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_pl.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4my_profile_pl.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.calendar.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/js/meta4.mobile.calendar.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_pt.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_pt.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_es.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4mobile_es.js
+Processing file y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_pl.js
+Ok y:/build.008/win32/m4website/m4webservices/tcpages/mobile/translation/m4who_is_who_pl.js

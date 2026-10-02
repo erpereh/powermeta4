@@ -1,0 +1,268 @@
+{
+	"projection_data" : {
+		"n_real_pays" : 1,                                      // CSP_REAL
+		"n_cols_tot" : 16,                                      // CSP_COUNT_COL
+		"id_hr" : "0000",                                       // STD_ID_HR
+		"nm_first_name" : "Name",                               // STD_N_FIRST_NAME
+		"nm_family_name" : "Surnames",                          // STD_N_FAMILY_NAME_1
+		"nm_category" : "Category 1",                           // SSP_NM_CATEGORIA
+		"nm_work_location" : "Madrid - Paseo de la Castellana", // SCO_N_WORK_LOCATION
+		"nm_pay" : ["nm_pay_01", "nm_pay_02", "nm_pay_03", "nm_pay_04", "nm_pay_05", "nm_pay_06", "nm_pay_07", "nm_pay_08", "nm_pay_09", "nm_pay_10", "nm_pay_11", "nm_pay_12", "nm_pay_13", "nm_pay_14", "nm_pay_15", "nm_pay_16"] // 20 PAY MAX
+	},
+	// Direct remuneration
+	"direct_remuneration" : {
+		"fixed_remuneration" : { // 00_RET_FIJA
+			"data" : {
+				"salario_convenio" : { // 01_SALARIO_CONVENIO
+					"title" : "SALARIO CONVENIO",
+					"data" : [
+						// One or many
+						{
+							"concept" : "Concept Text",
+							"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+							"tot_pays" : 4000.12000022
+						}
+					]
+				},
+				"comp_org" : { // 02_COMP_ORG
+					"title" : "COMPLEMENTOS COMPAÑÍA",
+					"data" : [
+						// One or many
+						{
+							"concept" : "Concept Text",
+							"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+							"tot_pays" : 4000.12000022
+						}
+					]
+				},
+				"comp_funcional" : { // 03_COMP_FUNCIONAL
+					"title" : "COMPLEMENTO FUNCIONAL",
+					"data" : [
+						// One or many
+						{
+							"concept" : "Concept Text",
+							"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+							"tot_pays" : 4000.12000022
+						}
+					]
+				}
+			},
+			"tot" : { // 04_TOTAL_RET_FIJA
+				"concept" : "Total Retribución fija",
+				"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays" : 4000.12000022
+			}
+		},
+		"variable_remuneration" : { // 05_RET_VAR
+			"title" : "RETRIBUCIÓN VARIABLE",
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+					"tot_pays" : 4000.12000022
+				}
+			],
+			"tot" : { // 06_TOT_RET_VAR
+				"concept" : "Total Retribución variable",
+				"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+				"tot_pays" : 4000.12000022
+			}
+		},
+		"base_ret_var" : { // 07_BASE_RET_VAR
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pay" : 1700.44000011
+				}
+			]
+		},
+		"seg_soc" : { // 08_SEG_SOC
+			"title" : "SEGURIDAD SOCIAL",
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+					"tot_pays" : 4000.12000022
+				}
+			]
+		}
+	},		
+	// Indirect Retribution
+	"indirect_retribution" : {
+		"val_especie" : { // 09_VAL_ESPECIE
+			"title" : "RETRIBUCIÓN EN ESPECIE",
+			"isreal" : true,
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pay" : 1700.44000011,
+					"tot_pay" : 4000.12000022,
+				}
+			],
+			"tot" : {
+				"concept" : "Total",
+				"pay" : 1700.44000011,
+				"tot_pay" : 4000.12000022,
+			}
+		},
+		"contrato_seguros" : { // 10_CONTRATO_SEGUROS
+			"title" : "VALORACIÓN R. ESPECIE",
+			"isreal" : true,
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pay" : 1700.44000011,
+					"tot_pays" : 4000.12000022
+				}
+			],
+			"tot" : {
+				"concept" : "Total",
+				"pay" : 1700.44000011,
+				"tot_pay" : 4000.12000022,
+			}
+		},
+		"ayudas" :  { // 11_AYUDAS
+			"title" : "AYUDAS",
+			"isreal" : true,
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pay" : 1700.44000011,
+					"tot_pays" : 4000.12000022
+				}
+			],
+			"tot" : {
+				"concept" : "Total",
+				"pay" : 1700.44000011,
+				"tot_pay" : 4000.12000022,
+			}
+		},
+		"comidas" : { // 12_COMIDAS
+			"title" : "MANUTENCIÓN POR JORNADA PARTIDA",
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+					"tot_pays" : 4000.12000022
+				}
+			]
+		},
+		"diet_km" : { // 13_DIET_KM
+			"title" : "DIETAS Y KILOMETRAJES",
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+					"tot_pays" : 4000.12000022
+				}
+			]
+		},
+		"ret_flex" : { // 14_RET_FLEX
+			"title" : "RETRIBUCIÓN FLEXIBLE",
+			"data" : [
+				// One or many
+				{
+					"concept" : "Concept Text",
+					"pays" : [1700.44000011, 1700.44000011], // 20 PAY MAX
+					"tot_pays" : 4000.12000022
+				}
+			]
+		}
+	},
+	// Other Retribution
+	"other_retribution" : {
+		"compro_jub" : { // 15_COMPRO_JUB
+			"title" : "COMPROMISO A LA JUBILACIÓN",
+			"isreal" : true,
+			"data" : {
+				"concept" : "Concept Text",
+				"pay" : 1700.44000011
+			}
+		},
+		"plan_prev_emp" : { // 16_PLAN_PREV_EMP
+			"title" : "PPSE",
+			"data" : {
+				"last_year" : {
+					"concept" : "Aportación último año",
+					"ord" : 1700.44000011,
+					"ext" : 1700.44000011,
+					"tot" : 4000.12000022
+				},
+				"accumulated" : {
+					"concept" : "Aportación Acumulada",
+					"ord" : 1700.44000011,
+					"ext" : 1700.44000011,
+					"tot" : 4000.12000022
+				}
+			},
+			"tot" : {
+				"concept" : "Total",
+				"ord" : 1700.44000011,
+				"ext" : 1700.44000011,
+				"tot" : 4000.12000022
+			}
+		},
+		"rp_aportacion_definida" : { // 17_RP_APORTACION_DEFINIDA
+			"title" : "SEGURO APORTACIÓN DEFINIDA CONVENIO COLECTIVO",
+			"data" : {
+				"last_year" : {
+					"concept" : "Aportación último año",
+					"ord" : 1700.44000011,
+					"ext" : 1700.44000011,
+					"tot" : 4000.12000022
+				},
+				"accumulated" : {
+					"concept" : "Aportación Acumulada",
+					"ord" : 1700.44000011,
+					"ext" : 1700.44000011,
+					"tot" : 4000.12000022
+				}
+			},
+			"tot" : {
+				"concept" : "Total",
+				"pay" : 1700.44000011
+			}
+		},
+		"inv_formacion" : { // 18_INV_FORMACION
+			"title" : "INVERSIÓN INDIVIDUAL EN FORMACIÓN",
+			"data" : {
+				"last_year" : {
+					"concept" : "Aportación último año",
+					"ord" : 1700.44000011,
+					"ext" : 1700.44000011,
+					"tot" : 4000.12000022
+				},
+				"accumulated" : {
+					"concept" : "Aportación Acumulada",
+					"ord" : 1700.44000011,
+					"ext" : 1700.44000011,
+					"tot" : 4000.12000022
+				}
+			},
+			"tot" : {
+				"concept" : "Total",
+				"pay" : 1700.44000011
+			}
+		}
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+

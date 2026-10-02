@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-contacts.ContactField",function(d,b,c){var a=function(f,g,e){this.id=null;this.type=(f&&f.toString())||null;this.value=(g&&g.toString())||null;this.pref=(typeof e!="undefined"?e:false)};c.exports=a});

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M114,18 L30,18 C23.4,18 18,23.4 18,30 L18,114 C18,120.6 23.4,126 30,126 L114,126 C120.6,126 126,120.6 126,114 L126,30 C126,23.4 120.6,18 114,18 Z" id="calc-path-1"></path>
+        <path d="M81.36,39.18 L81.36,39.18 C83.1,37.44 85.98,37.44 87.72,39.18 L93,44.46 L98.28,39.18 C100.02,37.44 102.9,37.44 104.64,39.18 L104.64,39.18 C106.38,40.92 106.38,43.8 104.64,45.54 L99.36,50.82 L104.64,56.1 C106.38,57.84 106.38,60.72 104.64,62.46 L104.64,62.46 C102.9,64.2 100.02,64.2 98.28,62.46 L93,57.24 L87.72,62.52 C85.98,64.26 83.1,64.26 81.36,62.52 L81.36,62.52 C79.62,60.78 79.62,57.9 81.36,56.16 L86.64,50.88 L81.36,45.6 C79.56,43.8 79.56,40.92 81.36,39.18 Z" id="calc-path-2"></path>
+        <path d="M42,46.32 L63,46.32 C65.46,46.32 67.5,48.36 67.5,50.82 L67.5,50.82 C67.5,53.28 65.46,55.32 63,55.32 L42,55.32 C39.54,55.32 37.5,53.28 37.5,50.82 L37.5,50.82 C37.5,48.36 39.54,46.32 42,46.32 Z" id="calc-path-3"></path>
+        <path d="M64.5,96 L57,96 L57,103.5 C57,105.96 54.96,108 52.5,108 L52.5,108 C50.04,108 48,105.96 48,103.5 L48,96 L40.5,96 C38.04,96 36,93.96 36,91.5 L36,91.5 C36,89.04 38.04,87 40.5,87 L48,87 L48,79.5 C48,77.04 50.04,75 52.5,75 L52.5,75 C54.96,75 57,77.04 57,79.5 L57,87 L64.5,87 C66.96,87 69,89.04 69,91.5 L69,91.5 C69,93.96 66.96,96 64.5,96 Z" id="calc-path-4"></path>
+        <path d="M103.5,103.5 L82.5,103.5 C80.04,103.5 78,101.46 78,99 L78,99 C78,96.54 80.04,94.5 82.5,94.5 L103.5,94.5 C105.96,94.5 108,96.54 108,99 L108,99 C108,101.46 105.96,103.5 103.5,103.5 Z" id="calc-path-5"></path>
+        <path d="M103.5,88.5 L82.5,88.5 C80.04,88.5 78,86.46 78,84 L78,84 C78,81.54 80.04,79.5 82.5,79.5 L103.5,79.5 C105.96,79.5 108,81.54 108,84 L108,84 C108,86.46 105.96,88.5 103.5,88.5 Z" id="calc-path-6"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Calc">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#calc-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#calc-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#calc-path-2"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#calc-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#calc-path-3"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#calc-path-3"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#calc-path-4"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#calc-path-4"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#calc-path-5"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#calc-path-5"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#calc-path-6"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#calc-path-6"></use>
+            </g>
+        </g>
+    </g>
+</svg>

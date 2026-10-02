@@ -1,0 +1,1386 @@
+BODY
+{
+    BACKGROUND-COLOR: #ffffff;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #000000
+}
+IMG
+{
+    BORDER-BOTTOM: 0px;
+    BORDER-LEFT: 0px;
+    BORDER-TOP: 0px;
+    BORDER-RIGHT: 0px
+}
+A:link
+{
+    BORDER-BOTTOM: #395a82;
+    BORDER-LEFT: #395a82;
+    BACKGROUND-COLOR: transparent;
+    COLOR: #15314c;
+    BORDER-TOP: #395a82;
+    BORDER-RIGHT: #395a82;
+    TEXT-DECORATION: none
+}
+A:visited
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #15314c;
+    TEXT-DECORATION: none
+}
+A:active
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #008800;
+    TEXT-DECORATION: none
+}
+A:hover
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #0000ff;
+    TEXT-DECORATION: none
+}
+TEXTAREA
+{
+    COLOR: #175e9e;
+    FONT-SIZE: 12px
+}
+TEXTAREA.backgroundextarea
+{
+    BACKGROUND-COLOR: #e7e8ec
+}
+TABLE.tabladatos
+{
+    BACKGROUND-COLOR: #0550c9;
+    COLOR: #000000
+}
+.tablaestadosceldatitulo
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    BACKGROUND-COLOR: #365a7c;
+    TEXT-INDENT: 5px;
+    BACKGROUND-REPEAT: repeat-x;
+    FONT-FAMILY: arial, verdana;
+    COLOR: #ffffff;
+    FONT-SIZE: 11px
+}
+.tablaestadosceldatitulo .fuenteboton
+{
+    BACKGROUND-IMAGE: none
+}
+.tablaestadosceldatitulo .fuentecampo
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    BACKGROUND-COLOR: #365a7c;
+    BACKGROUND-REPEAT: repeat-x;
+    COLOR: #ffffff
+}
+.titulofuncional
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_task.png);
+    BACKGROUND-COLOR: #fff;
+    TEXT-INDENT: 10px;
+    BACKGROUND-REPEAT: repeat-x;
+    HEIGHT: 20px;
+    COLOR: #ffffff;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bolder
+}
+.descripcionfuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #235298;
+    FONT-SIZE: 10px
+}
+.enlacefuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #15314c;
+    FONT-SIZE: 10px
+}
+.calendario
+{
+    BORDER-BOTTOM: #5a789e 0px;
+    BORDER-LEFT: #5a789e 0px;
+    BACKGROUND-COLOR: #5a789e;
+    WIDTH: 30%;
+    COLOR: #00316d;
+    BORDER-TOP: #5a789e 0px;
+    BORDER-RIGHT: #5a789e 0px
+}
+.colortabla
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #000000
+}
+.today
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #cb250a;
+    FONT-WEIGHT: bolder
+}
+.days
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc.png);
+    BACKGROUND-REPEAT: repeat-x;
+    HEIGHT: 20px;
+    COLOR: #ffffff
+}
+.days .enlacefuncional
+{
+    BACKGROUND-COLOR: #5a789e;
+    COLOR: #ffffff
+}
+.fuentecampo
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #235298;
+    FONT-SIZE: 10px
+}
+INPUT.fuentecampo
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #d5d4d5;
+    COLOR: #000000;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+.fuentecampo2
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+TR.tablaestadosceldatitulo .fuentevalor
+{
+    BACKGROUND-IMAGE: none
+}
+.fuentevalor
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #2a82aa;
+    FONT-SIZE: 10px
+}
+.fuentevalornegrita
+{
+    FONT-WEIGHT: bold
+}
+.fuentevalor1
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+.fuentevalor .tablamenuright
+{
+    BACKGROUND-IMAGE: none;
+    TEXT-ALIGN: right
+}
+.fuentevalor3
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #2a82aa;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: lighter
+}
+.fuentebarranombre
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #aa5211;
+    FONT-SIZE: 10px
+}
+.fuentelinktitulo
+{
+    BACKGROUND-COLOR: #dce5ec;
+    COLOR: #15314c;
+    FONT-SIZE: 10px
+}
+.fuentelinkcampo
+{
+    BACKGROUND-COLOR: #f2f5f7;
+    COLOR: #666666;
+    FONT-SIZE: 9px
+}
+.tablalink
+{
+    BACKGROUND-COLOR: #dce5ec;
+    COLOR: #ffffff
+}
+.fuentedescripcion
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #0f6b89;
+    FONT-SIZE: 10px
+}
+.fuentetitulomenu
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #f21f03;
+    FONT-SIZE: 12px
+}
+.fuentedisclaimer
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #15314c;
+    FONT-SIZE: 9px
+}
+TABLE.tablacabecera
+{
+    BACKGROUND-COLOR: #b8d3e8;
+    COLOR: #d3e8f8
+}
+.separador
+{
+    BACKGROUND-COLOR: #a2cca5;
+    COLOR: #ffffff
+}
+DIV.capamenu
+{
+    BACKGROUND-COLOR: #ffc0cb;
+    COLOR: #ffffff
+}
+TABLE.tablamenu
+{
+    BACKGROUND-COLOR: #b8d3e8;
+    COLOR: #ffffff
+}
+DIV.capalinks
+{
+    BACKGROUND-COLOR: #008000;
+    COLOR: #ffffff
+}
+DIV.capacuerpo
+{
+    BACKGROUND-COLOR: #ffe4c4;
+    COLOR: #ffffff
+}
+DIV.capadisclaimer
+{
+    BACKGROUND-COLOR: #0000ff;
+    COLOR: #ffffff
+}
+.fuentecapamenu
+{
+    BACKGROUND-COLOR: transparent;
+    COLOR: #000080;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+TABLE.tablamenusuperior
+{
+    BACKGROUND-COLOR: #52a2c8;
+    COLOR: #ffffff
+}
+.fuentemenusuperior
+{
+    BACKGROUND-COLOR: #52a2c8;
+    COLOR: #ffffff;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+.fuentemenu
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #737a7e;
+    FONT-SIZE: 9px
+}
+.fuentemenu1
+{
+    BACKGROUND-COLOR: #0373cc;
+    COLOR: #ffffff;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+HR.barramenu
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #e6eaed
+}
+UL.listaenlace
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #5faae4
+}
+.fuentecalendario1
+{
+    BACKGROUND-COLOR: #ffebcd;
+    COLOR: #6495ed
+}
+.fuentecalendario2
+{
+    BACKGROUND-COLOR: #add8e6;
+    COLOR: #6495ed
+}
+.fuentecalendario3
+{
+    BACKGROUND-COLOR: #d3e8c5;
+    COLOR: #6495ed
+}
+.fuentecalendario4
+{
+    BACKGROUND-COLOR: #dc143c;
+    COLOR: #6495ed
+}
+.fuentecalendariotittle
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    TEXT-ALIGN: center;
+    BACKGROUND-REPEAT: repeat-x;
+    COLOR: #ffffff;
+    FONT-SIZE: 11px
+}
+.fuentecalendario
+{
+    TEXT-ALIGN: center;
+    COLOR: #00316d;
+    FONT-SIZE: 11px
+}
+.separadorlinea
+{
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #ffffff
+}
+.fuentecamponombre
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #15314c;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bold
+}
+.fuentecampoaccion
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #15314c;
+    FONT-SIZE: 10px
+}
+.fuentecampoaccion2
+{
+    BACKGROUND-COLOR: #fafdff;
+    COLOR: #15314c;
+    FONT-SIZE: 10px
+}
+.fuentecampofiltro
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #235298;
+    FONT-SIZE: 11px
+}
+SELECT.fuenteapartados
+{
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+A
+{
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+.fuentebarraregistros
+{
+    BORDER-BOTTOM: #e9ebed 1px solid;
+    TEXT-ALIGN: center;
+    BORDER-LEFT: #e9ebed 1px solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder;
+    BORDER-RIGHT: #e9ebed 1px solid
+}
+.fuentebarraregistrosanulado
+{
+    BORDER-BOTTOM: #e9ebed 1px solid;
+    TEXT-ALIGN: center;
+    BORDER-LEFT: #e9ebed 1px solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #5a9cce;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #e9ebed 1px solid;
+    FONT-WEIGHT: lighter;
+    BORDER-RIGHT: #e9ebed 1px solid
+}
+.tablacapamenu
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+.fuentemenuprincipal
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #c0c0c0;
+    FONT-SIZE: 10px
+}
+.acep
+{
+    BACKGROUND-COLOR: #ffffff;
+    LIST-STYLE-TYPE: square;
+    COLOR: #4169e1
+}
+.cance
+{
+    BACKGROUND-COLOR: #ffffff;
+    LIST-STYLE-TYPE: square;
+    COLOR: #e9967a
+}
+.fest
+{
+    BACKGROUND-COLOR: #ffffff;
+    LIST-STYLE-TYPE: square;
+    COLOR: #ffd700
+}
+.pend
+{
+    BACKGROUND-COLOR: #ffffff;
+    LIST-STYLE-TYPE: square;
+    COLOR: #dc143c
+}
+.tablanavegacion
+{
+    BORDER-BOTTOM: #e9ebed thin solid;
+    BORDER-LEFT: #e9ebed thin solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #ffffff;
+    BORDER-TOP: #e9ebed thin solid;
+    BORDER-RIGHT: #e9ebed thin solid
+}
+.fuenteformulario
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+SELECT.fuenteformulario
+{
+    COLOR: #175e9e
+}
+SELECT.fuenteformulario
+{
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+INPUT.fuenteformulario
+{
+    COLOR: #175e9e
+}
+TEXTAREA.fuenteformulario
+{
+    COLOR: #175e9e;
+    FONT-SIZE: 12px
+}
+.fuentetextarea
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #175e9e;
+    FONT-SIZE: 12px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+.fuenteboton
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #ffffff
+}
+.fuentebotondoc
+{
+    BORDER-BOTTOM: 0px;
+    BORDER-LEFT: 0px;
+    BACKGROUND-COLOR: #ccc;
+    COLOR: #666666;
+    FONT-SIZE: 14px;
+    BORDER-TOP: 0px;
+    FONT-WEIGHT: bold;
+    BORDER-RIGHT: 0px;
+    TEXT-DECORATION: none
+}
+.fuentebotondoctable
+{
+    BORDER-BOTTOM: transparent;
+    BORDER-LEFT: transparent;
+    BACKGROUND-COLOR: transparent;
+    VERTICAL-ALIGN: middle;
+    BORDER-TOP: transparent;
+    BORDER-RIGHT: transparent
+}
+TABLE.table_warning
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.table_warning TR.fuenteactualizar
+{
+    COLOR: #15314c;
+    FONT-SIZE: 22px;
+    FONT-WEIGHT: bolder
+}
+TABLE.table_warning TR.fuenteactualizar2
+{
+    COLOR: #195095;
+    FONT-SIZE: 18px
+}
+.fuentetitulomapa
+{
+    BACKGROUND-COLOR: #d3e1ec;
+    COLOR: #0c4f8a;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bolder
+}
+.fuentemapa
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #3b5f91;
+    FONT-SIZE: 10px
+}
+.tablamapa
+{
+    BORDER-BOTTOM: #dce5ec 2px solid;
+    BORDER-LEFT: #dce5ec 2px solid;
+    BACKGROUND-COLOR: #fff8eb;
+    COLOR: #dce5ec;
+    BORDER-TOP: #dce5ec 2px solid;
+    BORDER-RIGHT: #dce5ec 2px solid
+}
+.tablaplan
+{
+    BORDER-BOTTOM: #dce5ec 2px solid;
+    BORDER-LEFT: #dce5ec 2px solid;
+    BACKGROUND-COLOR: #fff8eb;
+    COLOR: #dce5ec;
+    BORDER-TOP: #dce5ec 2px solid;
+    BORDER-RIGHT: #dce5ec 2px solid
+}
+.fuentenodatos
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #af7c38;
+    FONT-SIZE: 12px
+}
+.fuenteformulario100
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 100px;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+SELECT.fuenteformulario100
+{
+    COLOR: #175e9e
+}
+.fuenteformulario150
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 150px;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+SELECT.fuenteformulario150
+{
+    COLOR: #175e9e
+}
+.fuenteformulario200
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 200px;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+SELECT.fuenteformulario200
+{
+    COLOR: #175e9e
+}
+.tablamenuright
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    TEXT-ALIGN: right;
+    BACKGROUND-REPEAT: repeat-x
+}
+.tablamenuleft
+{
+    TEXT-ALIGN: left
+}
+.fuentevalor2
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #fafdff;
+    COLOR: #033b8a;
+    FONT-SIZE: 10px
+}
+.fuentevalor2 .tablamenuright
+{
+    BACKGROUND-IMAGE: none;
+    TEXT-ALIGN: right
+}
+.fuentebotonright
+{
+    TEXT-ALIGN: right;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #ffffff
+}
+.fuentebotonright .tablamenuright
+{
+    BACKGROUND-IMAGE: none;
+    TEXT-ALIGN: right
+}
+.fuentebotonright2
+{
+    TEXT-ALIGN: right;
+    BACKGROUND-COLOR: #fafdff;
+    COLOR: #ffffff
+}
+.fuentebotonright2 .tablamenuright
+{
+    BACKGROUND-IMAGE: none;
+    TEXT-ALIGN: right
+}
+.tablaestadosceldatituloflecha
+{
+    TEXT-ALIGN: right;
+    BACKGROUND-COLOR: #d3e1ec;
+    COLOR: #ffffff
+}
+.fuenteactualizar
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #15314c;
+    FONT-SIZE: 14px;
+    FONT-WEIGHT: bolder
+}
+.fuenteactualizar2
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #195095;
+    FONT-SIZE: 12px
+}
+.enlacenofuncional
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+.password1
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #15314c;
+    FONT-SIZE: 0%;
+    FONT-WEIGHT: bolder
+}
+.password2
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #195095
+}
+.campo
+{
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+.campoe
+{
+    TEXT-ALIGN: right;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+.haberes
+{
+    TEXT-ALIGN: center;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+.importante
+{
+    TEXT-ALIGN: right;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bold
+}
+.titulo1
+{
+    TEXT-ALIGN: center;
+    FONT-SIZE: 18px;
+    FONT-WEIGHT: bold
+}
+.titulo2
+{
+    FONT-SIZE: 14px;
+    FONT-WEIGHT: bold
+}
+.titulo3
+{
+    FONT-SIZE: 14px
+}
+.valor
+{
+    BORDER-BOTTOM: #d40000;
+    TEXT-ALIGN: right;
+    BORDER-LEFT: #d40000;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #d40000;
+    BORDER-RIGHT: #d40000;
+    BORDER-STYLE: solid;
+    BORDER-WIDTH: 1px
+}
+.valori
+{
+    BORDER-BOTTOM: #d40000;
+    TEXT-ALIGN: left;
+    BORDER-LEFT: #d40000;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #d40000;
+    BORDER-RIGHT: #d40000;
+    BORDER-STYLE: solid;
+    BORDER-WIDTH: 1px
+}
+.fuenteleyenda_big
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #15314c;
+    FONT-SIZE: 15px;
+    FONT-WEIGHT: bold
+}
+.tablasubtitulo
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #235298;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bold
+}
+.fuentevalor4
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #191970;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder
+}
+TABLE.form
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #000000;
+    FONT-SIZE: 10px
+}
+TABLE.form TR.titulo
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    TEXT-ALIGN: left;
+    BACKGROUND-REPEAT: repeat-x;
+    FONT-FAMILY: Arial, Verdana;
+    COLOR: #ffffff;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bold
+}
+TABLE.form TD.campo
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #15314c;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: lighter
+}
+TABLE.form TD.form
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #000000;
+    FONT-SIZE: 10px
+}
+TABLE.datos
+{
+    BORDER-BOTTOM: medium none;
+    BORDER-LEFT: medium none;
+    BACKGROUND-COLOR: #dae2e9;
+    COLOR: #000000;
+    FONT-SIZE: 68%;
+    BORDER-TOP: medium none;
+    BORDER-RIGHT: medium none
+}
+TABLE.datos TD.fuentenodatos
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #dae2e9;
+    PADDING-LEFT: 5px;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #000080;
+    VERTICAL-ALIGN: middle;
+    FONT-WEIGHT: bold;
+    PADDING-TOP: 5px
+}
+TABLE.datos TR.titulo
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #d3e1ec;
+    FONT-FAMILY: Verdana, Arial;
+    HEIGHT: 19px;
+    COLOR: #0c4f8a;
+    FONT-SIZE: 11px;
+    VERTICAL-ALIGN: middle;
+    FONT-WEIGHT: bolder
+}
+TABLE.datos TR.valor
+{
+    BACKGROUND-COLOR: #ffffff;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #000080
+}
+TABLE.datos TD.boton
+{
+    TEXT-ALIGN: right;
+    BACKGROUND-COLOR: #f3f6f8;
+    PADDING-RIGHT: 5px;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #000080
+}
+TABLE.datos TD.boton2
+{
+    TEXT-ALIGN: right;
+    BACKGROUND-COLOR: #e7e8ec;
+    PADDING-RIGHT: 5px;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #000080
+}
+TABLE.datos TD.valor
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #f3f6f8;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #000080
+}
+TABLE.datos TD.valor2
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #e7e8ec;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #15314c;
+    FONT-SIZE: 10px
+}
+TABLE.datos TD.vdate
+{
+    BACKGROUND-COLOR: #f3f6f8;
+    WIDTH: 14%;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #000080
+}
+TABLE.datos TD.vdate2
+{
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 14%;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    COLOR: #000080
+}
+TABLE.datos TH.tituloleft
+{
+    TEXT-ALIGN: right;
+    PADDING-RIGHT: 5px
+}
+TABLE.navegacion
+{
+    BORDER-BOTTOM: #e9ebed thin solid;
+    BORDER-LEFT: #e9ebed thin solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #ffffff;
+    BORDER-TOP: #e9ebed thin solid;
+    BORDER-RIGHT: #e9ebed thin solid
+}
+TABLE.navegacion TD.navegacion
+{
+    BORDER-BOTTOM: #e9ebed 1px solid;
+    TEXT-ALIGN: center;
+    BORDER-LEFT: #e9ebed 1px solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #0550c9;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #e9ebed 1px solid;
+    FONT-WEIGHT: lighter;
+    BORDER-RIGHT: #e9ebed 1px solid
+}
+TABLE.navegacion TD.navegacion2
+{
+    BORDER-BOTTOM: #e9ebed 1px solid;
+    TEXT-ALIGN: center;
+    BORDER-LEFT: #e9ebed 1px solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder;
+    BORDER-RIGHT: #e9ebed 1px solid
+}
+TABLE.navegacion TD.navegacion3
+{
+    BORDER-BOTTOM: #e9ebed 1px solid;
+    TEXT-ALIGN: center;
+    BORDER-LEFT: #e9ebed 1px solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bolder;
+    BORDER-RIGHT: #e9ebed 1px solid
+}
+TABLE.form INPUT.form
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+TABLE.form INPUT.insert
+{
+    BACKGROUND-COLOR: #e0ffff;
+    FONT-SIZE: 70%
+}
+TABLE.filtro
+{
+    BORDER-BOTTOM: #000000;
+    BORDER-LEFT: #000000;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #15314c;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #000000;
+    BORDER-RIGHT: #000000
+}
+TABLE.filtro TR.filtro
+{
+    BORDER-BOTTOM: medium none;
+    BORDER-LEFT: medium none;
+    BORDER-TOP: medium none;
+    BORDER-RIGHT: medium none
+}
+TABLE.filtro SELECT.select30
+{
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+TABLE.filtro INPUT.filtro
+{
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+TABLE.filtro TD.fuentecampo
+{
+}
+TABLE.filtro TD.boton
+{
+    TEXT-ALIGN: center
+}
+H2
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_task.png);
+    BACKGROUND-COLOR: #eff5f9;
+    TEXT-INDENT: 10px;
+    BACKGROUND-REPEAT: repeat-x;
+    HEIGHT: 20px;
+    COLOR: #0f66a0;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bolder
+}
+TABLE.cabec
+{
+}
+TABLE.cabec TD.title
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_task.png);
+    BACKGROUND-COLOR: #610000;
+    BACKGROUND-REPEAT: repeat-x;
+    HEIGHT: 20px;
+    COLOR: #ffffff;
+    FONT-SIZE: 16px;
+    FONT-WEIGHT: bolder
+}
+TABLE.cabec TD.value
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_task.png);
+    BACKGROUND-COLOR: #eff5f9;
+    BACKGROUND-REPEAT: repeat-x;
+    HEIGHT: 20px;
+    COLOR: #ffffff;
+    FONT-SIZE: 16px;
+    FONT-WEIGHT: bolder
+}
+TABLE.filtro THEAD.titulo
+{
+    COLOR: #0f66a0
+}
+TABLE.form SELECT.selectform75
+{
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 75%;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+.fuenteformulariodisabled
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #d5d4d5;
+    COLOR: #000000;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+TABLE.table_gen
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #2a82aa;
+    FONT-SIZE: 10px
+}
+TABLE.table_gen TR.tit
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    BACKGROUND-REPEAT: repeat-x;
+    COLOR: #ffffff;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bold
+}
+TABLE.table_gen TD.lin
+{
+}
+TABLE.table_gen INPUT.i_normal
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+TABLE.table_gen INPUT.i_read_only
+{
+    BACKGROUND-COLOR: #dcdcdc;
+    FONT-SIZE: 10px
+}
+TABLE.table_gen TD.boton
+{
+    TEXT-ALIGN: center
+}
+TABLE.table_gen TR.dat_tit
+{
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #d3e1ec;
+    COLOR: #0c4f8a;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bold
+}
+TABLE.table_error
+{
+    FONT-SIZE: 17px;
+    FONT-WEIGHT: bolder
+}
+TABLE.table_error TR.dat_tit
+{
+}
+TABLE.table_error TR.err
+{
+    COLOR: #ff4500;
+    FONT-SIZE: 9px
+}
+TABLE.table_error TR.warning
+{
+    COLOR: gold
+}
+TABLE.table_error TR.info
+{
+    COLOR: #adff2f
+}
+TABLE.eval_q
+{
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #000000
+}
+TABLE.eval_q TR.title
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    BACKGROUND-COLOR: #365a7c;
+    BACKGROUND-REPEAT: repeat-x;
+    COLOR: #ffffff;
+    FONT-SIZE: 11px
+}
+TABLE.eval_form
+{
+    BACKGROUND-COLOR: #e7e8ec
+}
+TABLE.eval_form TD.labeli
+{
+    BACKGROUND-IMAGE: none;
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #235298;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bold
+}
+TABLE.eval_form TD.val
+{
+}
+TABLE.eval_form TR.title
+{
+    BACKGROUND-IMAGE: url(/iconos/back_title_doc_little.png);
+    BACKGROUND-COLOR: #365a7c;
+    BACKGROUND-REPEAT: repeat-x;
+    COLOR: #ffffff;
+    FONT-SIZE: 10px
+}
+TABLE.eval_form SELECT.fvselect
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px
+}
+TABLE.eval_form INPUT.finput
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    TEXT-ALIGN: left;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    COLOR: #175e9e;
+    FONT-SIZE: 11px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+TABLE.eval_form TD.labelc
+{
+    FONT-WEIGHT: bold
+}
+TABLE.eval_form TD.label
+{
+    COLOR: #235298;
+    FONT-SIZE: 11px
+}
+TABLE.eval_form TD.i_r
+{
+    BACKGROUND-IMAGE: none;
+    TEXT-ALIGN: left;
+    BACKGROUND-COLOR: #e7e8ec
+}
+TABLE.eval_form INPUT.finputa
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    TEXT-ALIGN: left;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #175e9e;
+    FONT-SIZE: 11px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+TABLE.eval_form TR.bbto
+{
+    TEXT-ALIGN: center
+}
+TABLE.filtro DIV.capa_vis
+{
+    VISIBILITY: visible
+}
+DIV.no_vis
+{
+    BORDER-BOTTOM: #0c4f8a 1px solid;
+    POSITION: absolute;
+    BORDER-LEFT: #0c4f8a 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    DISPLAY: none;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #0c4f8a 1px solid;
+    FONT-WEIGHT: normal;
+    BORDER-RIGHT: #0c4f8a 1px solid
+}
+TABLE.eval_form A.labelc
+{
+    BACKGROUND-IMAGE: url(/iconos/helpyou_b.gif);
+    BACKGROUND-COLOR: transparent;
+    COLOR: #32cd32;
+    FONT-WEIGHT: bold
+}
+TABLE.eval_form TD.label_div
+{
+    TEXT-DECORATION: underline
+}
+TABLE.eval_div
+{
+    BORDER-BOTTOM: thin;
+    BORDER-LEFT: thin;
+    BACKGROUND-COLOR: #ffffff;
+    BORDER-TOP: thin;
+    BORDER-RIGHT: thin
+}
+TABLE.eval_div TR.title
+{
+    BACKGROUND-COLOR: #fdf5e6;
+    COLOR: #000000;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bold
+}
+TABLE.eval_div TR.tr_div
+{
+    COLOR: #a30c0b;
+    FONT-SIZE: 11px
+}
+TABLE.eval_form TD.label_b
+{
+    COLOR: #235298;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: bold
+}
+.titulosendpass
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #b90000;
+    FONT-SIZE: 18px;
+    FONT-WEIGHT: bold
+}
+.descripcionsendpass
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #195095;
+    FONT-SIZE: 12px
+}
+.tablasendpass
+{
+    BACKGROUND-COLOR: #264365
+}
+TD.disusupass
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #264365;
+    COLOR: #ffffff;
+    FONT-SIZE: 12px
+}
+A.disusupass:visited
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #264365;
+    COLOR: #ffffff;
+    FONT-SIZE: 12px
+}
+A.disusupass:hover
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #264365;
+    COLOR: #d40000;
+    FONT-SIZE: 12px;
+    TEXT-DECORATION: underline
+}
+A.disusupass:link
+{
+    TEXT-ALIGN: center;
+    BACKGROUND-COLOR: #264365;
+    COLOR: #ffffff;
+    FONT-SIZE: 12px
+}
+A.titulofuncional:link
+{
+    COLOR: #cccccc
+}
+UL.scoDynamicList
+{
+    BORDER-BOTTOM: 1px solid;
+    POSITION: absolute;
+    BORDER-LEFT: 1px solid;
+    PADDING-BOTTOM: 0px;
+    LIST-STYLE-TYPE: none;
+    MARGIN: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    DISPLAY: none;
+    OVERFLOW: auto;
+    BORDER-TOP: 1px solid;
+    BORDER-RIGHT: 1px solid;
+    PADDING-TOP: 0px
+}
+UL.scoDynamicList LI
+{
+    PADDING-BOTTOM: 1px;
+    MARGIN: 0px;
+    PADDING-LEFT: 2px;
+    PADDING-RIGHT: 2px;
+    DISPLAY: block;
+    PADDING-TOP: 1px
+}
+UL.scoDynamicList LI.hover
+{
+    CURSOR: default
+}
+INPUT.scoDynamicListFilter
+{
+    COLOR: #aa5211
+}
+.fuentecampor
+{
+    TEXT-ALIGN: right;
+    BACKGROUND-COLOR: #e7e8ec;
+    COLOR: #235298;
+    FONT-SIZE: 10px
+}
+.invisible
+{
+    VISIBILITY: hidden
+}
+.invisible2
+{
+    DISPLAY: none
+}
+
+.fuenteformulario350
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 350px;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+SELECT.fuenteformulario350
+{
+    COLOR: #175e9e
+}
+
+.fuenteformulario250
+{
+    BORDER-BOTTOM: #a6c3d7 1px solid;
+    BORDER-LEFT: #a6c3d7 1px solid;
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 250px;
+    COLOR: #175e9e;
+    FONT-SIZE: 10px;
+    BORDER-TOP: #a6c3d7 1px solid;
+    BORDER-RIGHT: #a6c3d7 1px solid
+}
+SELECT.fuenteformulario250
+{
+    COLOR: #175e9e
+}
+.descripcionfuncionalRojo
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #610B0B;
+    FONT-SIZE: 11px;
+    VERTICAL-ALIGN: middle;
+}
+
+.descripcionfuncionalVerde
+{
+    BACKGROUND-COLOR: #ffffff;
+    COLOR: #173B0B;
+    FONT-SIZE: 11px;
+    VERTICAL-ALIGN: middle;
+}

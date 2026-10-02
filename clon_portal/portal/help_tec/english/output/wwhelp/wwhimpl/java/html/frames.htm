@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Frameset//EN" "http://www.w3.org/TR/REC-html40/frameset.dtd">
+<html>
+ <!-- Copyright (c) 2000-2003 Quadralay Corporation.  All rights reserved. -->
+
+ <head>
+  <meta http-equiv="content-type" content="text/html">
+  <meta http-equiv="charset"      content="UTF-8">
+</head>
+
+
+
+<script type="text/javascript">
+
+function loadFrame() { 
+      var  Parameters;
+      var  Parts;
+       var theUrl = "wwhelp.htm";
+
+      // Process URL parameters
+      Parameters = "";
+      if (location.href.indexOf("?") != -1)
+      {
+        Parts = location.href.split("?");
+        Parameters = "?" + Parts[1];
+      }
+
+       window.contenthelp.location = theUrl +Parameters ; 
+} 
+
+
+
+</script> 
+
+
+<frameset rows="74,*" border="0" frameborder="0" framespacing="0" marginwidth="0" marginheight="0" onload="loadFrame()"> 
+  <frame id="WWImg" name="WWImg" src="..\..\common\html\cab.htm" scrolling="no" border="0" marginwidth="0" marginheight="0">
+  <frame id="contenthelp" name="contenthelp" src="javascript:''"scrolling="auto">
+  <noframes>
+   <body>
+    <p>This page uses frames, but your browser doesn't support them.</p>
+   </body>
+  </noframes>
+ </frameset>
+
+</html>
+
+<script
+

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>9B0EC6DF-4BFE-4FB4-A9DF-45D5249596E1@0.14x</title>
+    <defs>
+        <path d="M114,18 L30,18 C23.4,18 18,23.4 18,30 L18,114 C18,120.6 23.4,126 30,126 L114,126 C120.6,126 126,120.6 126,114 L126,30 C126,23.4 120.6,18 114,18 Z" id="accent-icons-bar-chart-path-1"></path>
+        <path d="M101.215634,114.743968 L107.053595,114.743968 C111.635656,114.743968 115.384615,111.124403 115.384615,106.70049 L115.384615,79.3586967 C115.384615,74.9347836 111.635656,71.3152174 107.053595,71.3152174 L101.215634,71.3152174 C96.633574,71.3152174 92.8846154,74.9347836 92.8846154,79.3586967 L92.8846154,106.70049 C92.8846154,111.124403 96.633574,114.743968 101.215634,114.743968 Z" id="accent-icons-bar-chart-path-2"></path>
+        <path d="M69.7156347,114.75 L75.5535969,114.75 C80.1356575,114.75 83.8846154,111.130435 83.8846154,106.706522 L83.8846154,39.5434783 C83.8846154,35.1195652 80.1356575,31.5 75.5535969,31.5 L69.7156347,31.5 C65.1335741,31.5 61.3846154,35.1195652 61.3846154,39.5434783 L61.3846154,106.706522 C61.3846154,111.130435 65.1335741,114.75 69.7156347,114.75 Z" id="accent-icons-bar-chart-path-3"></path>
+        <path d="M38.2156347,114.743967 L44.0535969,114.743967 C48.6356575,114.743967 52.3846154,111.124402 52.3846154,106.700489 L52.3846154,61.2608688 C52.3846154,56.8369557 48.6356575,53.2173913 44.0535969,53.2173913 L38.2156347,53.2173913 C33.6335741,53.2173913 29.8846154,56.8369557 29.8846154,61.2608688 L29.8846154,106.700489 C29.8846154,111.124402 33.6335741,114.743967 38.2156347,114.743967 Z" id="accent-icons-bar-chart-path-4"></path>
+        <path d="M114,18 L30,18 C23.4,18 18,23.4 18,30 L18,114 C18,120.6 23.4,126 30,126 L114,126 C120.6,126 126,120.6 126,114 L126,30 C126,23.4 120.6,18 114,18 Z" id="accent-icons-bar-chart-path-5"></path>
+        <path d="M101.215634,114.743968 L107.053595,114.743968 C111.635656,114.743968 115.384615,111.124403 115.384615,106.70049 L115.384615,79.3586967 C115.384615,74.9347836 111.635656,71.3152174 107.053595,71.3152174 L101.215634,71.3152174 C96.633574,71.3152174 92.8846154,74.9347836 92.8846154,79.3586967 L92.8846154,106.70049 C92.8846154,111.124403 96.633574,114.743968 101.215634,114.743968 Z" id="accent-icons-bar-chart-path-6"></path>
+        <path d="M69.7156347,114.75 L75.5535969,114.75 C80.1356575,114.75 83.8846154,111.130435 83.8846154,106.706522 L83.8846154,39.5434783 C83.8846154,35.1195652 80.1356575,31.5 75.5535969,31.5 L69.7156347,31.5 C65.1335741,31.5 61.3846154,35.1195652 61.3846154,39.5434783 L61.3846154,106.706522 C61.3846154,111.130435 65.1335741,114.75 69.7156347,114.75 Z" id="accent-icons-bar-chart-path-7"></path>
+        <path d="M38.2156347,114.743967 L44.0535969,114.743967 C48.6356575,114.743967 52.3846154,111.124402 52.3846154,106.700489 L52.3846154,61.2608688 C52.3846154,56.8369557 48.6356575,53.2173913 44.0535969,53.2173913 L38.2156347,53.2173913 C33.6335741,53.2173913 29.8846154,56.8369557 29.8846154,61.2608688 L29.8846154,106.700489 C29.8846154,111.124402 33.6335741,114.743967 38.2156347,114.743967 Z" id="accent-icons-bar-chart-path-8"></path>
+    </defs>
+    <g id="accent-icons-bar-chart-Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="accent-icons-bar-chart-Group">
+            <rect id="accent-icons-bar-chart-Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="accent-icons-bar-chart-Path">
+                <use fill="#0046FE" xlink:href="#accent-icons-bar-chart-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#accent-icons-bar-chart-path-1"></use>
+            </g>
+            <g id="accent-icons-bar-chart-Path">
+                <use fill="#0046FE" xlink:href="#accent-icons-bar-chart-path-2"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#accent-icons-bar-chart-path-2"></use>
+            </g>
+            <g id="accent-icons-bar-chart-Path">
+                <use fill="#FF5C35" xlink:href="#accent-icons-bar-chart-path-3"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#accent-icons-bar-chart-path-3"></use>
+            </g>
+            <g id="accent-icons-bar-chart-Path">
+                <use fill="#0046FE" xlink:href="#accent-icons-bar-chart-path-4"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#accent-icons-bar-chart-path-4"></use>
+            </g>
+        </g>
+        <g id="Accent-Icons-/-Bar_Chart">
+            <rect id="accent-icons-bar-chart-Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="accent-icons-bar-chart-Path">
+                <use fill="#0046FE" xlink:href="#accent-icons-bar-chart-path-5"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#accent-icons-bar-chart-path-5"></use>
+            </g>
+            <g id="accent-icons-bar-chart-Path">
+                <use fill="#0046FE" xlink:href="#accent-icons-bar-chart-path-6"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#accent-icons-bar-chart-path-6"></use>
+            </g>
+            <g id="accent-icons-bar-chart-Path">
+                <use fill="#FF5C35" xlink:href="#accent-icons-bar-chart-path-7"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#accent-icons-bar-chart-path-7"></use>
+            </g>
+            <g id="accent-icons-bar-chart-Path">
+                <use fill="#0046FE" xlink:href="#accent-icons-bar-chart-path-8"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#accent-icons-bar-chart-path-8"></use>
+            </g>
+        </g>
+    </g>
+</svg>

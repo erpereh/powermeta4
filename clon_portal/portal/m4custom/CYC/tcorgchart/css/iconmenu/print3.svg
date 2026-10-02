@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<?xml-stylesheet type="text/css" href="../css/m4svg.css" ?>
+<svg width="16" height="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#4e647e" class="icon" id="print3"><path d="M 448.00,288.00L 448.00,416.00L 64.00,416.00L 64.00,288.00L0.00,288.00L0.00,480.00L 512.00,480.00L 512.00,288.00 zM 416.00,32.00L 96.00,32.00 l0.00,352.00 l 320.00,0.00 L 416.00,32.00 z M 352.00,320.00L 160.00,320.00 l0.00-32.00 l 192.00,0.00 L 352.00,320.00 z M 352.00,224.00L 160.00,224.00 l0.00-32.00 l 192.00,0.00 L 352.00,224.00 z M 352.00,128.00L 160.00,128.00 L 160.00,96.00 l 192.00,0.00 L 352.00,128.00 z" ></path></svg>

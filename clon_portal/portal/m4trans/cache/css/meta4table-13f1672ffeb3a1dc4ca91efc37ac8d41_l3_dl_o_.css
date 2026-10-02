@@ -1,0 +1,123 @@
+.m4table caption {
+  text-align: left;
+  color: #000;
+  border-top: 1px solid #f1f1f1;
+  border-left: 1px solid #f1f1f1;
+  border-right: 1px solid #f1f1f1;
+}
+
+.m4table {
+  width: 100%;
+  border: 1px solid #f1f1f1;
+  color: #000;
+}
+
+.m4table a {
+  text-decoration: none;
+}
+
+.m4tableHead {
+  background-image: url(/iconos/back_title_doc_little_renhash_bda0137287ca444e1773ca63ed265a3b_l3_dl_o_v1.png);
+  background-repeat: repeat-x;
+  background-color: #365a7c;
+  color: #fff; 
+  text-align:left;
+  font-weight:normal;
+}
+
+.m4tableFoot {
+  background-color:#d1d3d3;
+  text-align:right;
+}
+
+.m4tableFoot input {
+  color: #07346b;
+  background-color: #fff;
+  border: 1px solid #a1a1a1;
+  width: 25px;
+  text-align: center;
+}
+
+.m4tablebodytrodd {
+  background-color:#e7e8ec;
+  color:#2a82aa;
+}
+
+.m4tablebodytrodd a span {
+  color:#2a82aa;
+}
+
+.m4tablebodytrodd a span:hover {
+  color:#0000ff;
+}
+
+.m4tablebodytreven {
+  background-color: #fafdff; 
+  color:#033b8a;
+}
+
+.m4tablebodytreven a span {
+  color:#033b8a;
+}
+
+.m4tablebodytreven a span:hover {
+  color:#0000ff;
+}
+
+.m4tableOrderAsc {
+  cursor: pointer;
+  background-image: url(/iconos/col_order_asc_16_renhash_7ec7cb6d7472c64b4d49eb8e79d705a2_l3_dl_o_v1.png);
+  background-repeat: no-repeat;
+  background-position: right center;
+}
+
+.m4tableOrderAsc:hover {
+  font-weight: bold;
+  background-image: url(/iconos/col_order_asc_hot_16_renhash_8e9211442c7a1dadc8229aa6da851987_l3_dl_o_v1.png);
+}
+
+.m4tableOrderDesc {
+  cursor: pointer;
+  background-image: url(/iconos/col_order_desc_16_renhash_5a585dba133d64f02dd033af8f3eff12_l3_dl_o_v1.png);
+  background-repeat: no-repeat;
+  background-position: right center;
+}
+
+.m4tableOrderDesc:hover {
+  font-weight: bold;
+  background-image: url(/iconos/col_order_desc_hot_16_renhash_fd5c56bb2dd01f1de9306e5e780e7bb0_l3_dl_o_v1.png);
+}
+
+.m4tableNoOrder {
+  cursor: pointer;
+}
+
+.m4tableNoOrder:hover {
+  font-weight: bold;
+}
+
+.m4tableFootPage {
+  float: left;
+  position: relative;
+  top: 3px;
+  left: 5px;
+  color: #07346b
+}
+
+.m4tableFootPage .spanPage {
+  font-weight: bold
+}
+
+.m4tableFootGoto img {
+  cursor: pointer; 
+  position: relative;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+}
+
+.m4tableImg {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}

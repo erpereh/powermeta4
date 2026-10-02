@@ -1,0 +1,265 @@
+<%-- =========================================================
+	@(#) FileVersion: 821.002.003
+	@(#) FileDescription: shco_gen_portal_code_begin.jspf
+	@(#) CompanyName: Cegid Spain, S.A.U.
+	@(#) LegalCopyright: (c) 2024
+	@(#) ProductName: Peoplenet
+========================================================= --%>
+
+<%--  [++++++++++++++++++++++++++ begin: do not modify this section +++++++++++++++++++++++++++] --%>
+<%@ taglib uri="M4Tags" prefix="m4" %>
+<%@ page import="com.meta4.m4operations.*" %>
+<%@ page import="com.meta4.common.utils.logsystem.M4Logger" %>
+<%@ page import="org.apache.log4j.Category" %>
+<%response.setHeader("Content-Type", "text/html");
+String sStyleSheet= CheckConfig.getStyleSheet();%>
+<%--  (A) We read first a special attribute of the session set only when the login servlet
+          was passed the M4_ORGANIZATION but not the M4_ROLE parameter, and there is more 
+          than one role for the organization. The attributes contains a Hashtable with the roles.  --%>
+
+<%   M4Logger m_log = M4Logger.getLogger("com.meta4.jsp");
+	String stChangeRoleForOrganization = "false";
+	Vector vRolesForOrganization= (Vector)session.getAttribute("M4_ROLES_FOR_ORGANIZATION");
+	if (vRolesForOrganization!=null){
+	int vsize = vRolesForOrganization.size(); 
+	stChangeRoleForOrganization = "true"; 
+	m_log.trace("More than one role found for selected organization");
+	int index = 0;
+           while (index < vsize){
+		   m_log.trace("<br>... nxt: "+vRolesForOrganization.elementAt(index));
+		   index++;
+		   }
+	}
+%>
+<%--	 (B) We read the rest of session attributes, set through the login form. If attribute does not exist, 
+	 it is because the form box was not checked - the value is set to 0. If it exists, its value is
+	 set to 1. Then, depending on the attributes that are set, handle the m4session object 
+--%>
+<%
+	String stChangePassword= (String) session.getAttribute("M4_CHANGE_ROLE");
+	String stChangeRole= (String) session.getAttribute("M4_CHANGE_ORGANIZATION");
+	String stChangeCurrency= (String) session.getAttribute("M4_CHANGE_CURRENCY");
+	String zDate = request.getParameter("filterdates");
+%> 
+<%-- Las únicas partes que se tocan de la página es la inclusión de los fichero de traducción 
+y de la hoja de estilos genérica.
+La parte del fichero de traduccion se hace directamente ya que el portal todavia no esta cargado y no estan declaradas
+las variables necesarias. No las podemos tampoco declarar ya que se duplicarian --%>
+<%
+	String zlangusercode = request.getParameter("lang");
+    M4SessionManager l_zsessionmanager = M4Context.getSession(request);
+    int l_iLang = 2;
+    if (l_zsessionmanager != null) {
+    	l_iLang = l_zsessionmanager.getLanguageID(); // 2, 3, 4.... 8
+
+	} 
+   	if ((zlangusercode==null)||(zlangusercode.equals(""))){    	
+    	if (l_zsessionmanager != null) {
+
+    	   // valid for dynamic languages
+  	   zlangusercode = CheckConfig.checkLocale(l_iLang); // en, es, fr, de.... 9, 10, 11
+    	   
+    	   }
+    	else
+    	{ zlangusercode = "en";
+    	}
+	}		
+	com.meta4.redirect.M4PropertiesRedirect Tran_shco_portal_code = new com.meta4.redirect.M4PropertiesRedirect();
+	Tran_shco_portal_code.load(pageContext,"/translations/shco_portal_code_" + zlangusercode + ".properties");
+	
+	String zsLoginURL =  CheckConfig.setBadLoginLink(l_iLang, CheckConfig.THCL);
+	String g_zsErrorPageURL = CheckConfig.checkErrorPage (l_iLang, CheckConfig.THCL);
+%>
+<%--	(0) Handle the first possible role change  --%> 
+<%
+	if (stChangeRoleForOrganization=="true"){
+		m_log.trace("Entering the role/org code");
+		stChangePassword = "false"; session.removeAttribute("M4_CHANGE_ROLE");
+		stChangeRole = "false"; session.removeAttribute("M4_CHANGE_ORGANIZATION");
+%>
+	<script language="JavaScript">
+		msgwindow = window.open('/servlet/CheckSecurity/JSP/shco_so/shco_so_lu_roles_for_organization.jsp?lang='+ '<%=zlangusercode%>' + '&css=' + '<%=sStyleSheet%>' ,'Lookup_Roles_For_Organization', 
+					"width=371,height=307, resizable=0,menubar=0,toolbar=0,directories=0,location=0,scrollbars=0,status=0");
+		msgwindow.opener = this;
+    </script>
+	<html>
+	<head>
+		<link href="/style/<%=sStyleSheet%>" type="text/css" rel="stylesheet" />
+		<title><%=Tran_shco_portal_code.getProperty("portal.AdvancedOptions")%></title>
+	</head>	
+	<body>
+		<table  class="tablalink" cellspacing="2" border="0" align="center">
+			<tr><td class="texto2" align="center"></td></tr>
+			<tr><td class="texto2" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeRole")%></td></tr>
+			<tr><td class="texto2" align="center"></td></tr>
+			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+			<tr><td class="texto1" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeRoleSelect")%></td></tr>
+			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+		</table>	
+	</body>
+	</html>
+<%
+} else if (stChangePassword=="true"){
+	session.removeAttribute("M4_CHANGE_ROLE");
+%>
+<!--	(1) Handle the second possible role change...  --> 
+	<script language="JavaScript">
+		msgwindow = window.open('/servlet/CheckSecurity/JSP/shco_so/shco_so_lu_roles.jsp?lang='+ '<%=zlangusercode%>' + '&css=' + '<%=sStyleSheet%>', 'Lookup_Roles', 
+					"width=371,height=307, resizable=0,menubar=0,toolbar=0,directories=0,location=0,scrollbars=0,status=0");
+		msgwindow.opener = this;				
+	</script>
+	<html>
+	<head>
+		<link href="/style/<%=sStyleSheet%>" type="text/css" rel="stylesheet" />
+		<title><%=Tran_shco_portal_code.getProperty("portal.AdvancedOptions")%></title>
+	</head>	
+	<body>
+		<table  class="tablalink" cellspacing="2" border="0" align="center">
+			<tr><td class="texto2" align="center"></td></tr>
+			<tr><td class="texto2" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeRole")%></td></tr>
+			<tr><td class="texto2" align="center"></td></tr>
+			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+			<tr><td class="texto1" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeRoleSelect")%></td></tr>
+			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+		</table>	
+	</body>
+	</html>
+<!--	(2) Handle the organization change...  --> 
+<%} else if (stChangeRole=="true"){
+	session.removeAttribute("M4_CHANGE_ORGANIZATION");%>
+	<script language="JavaScript">
+		msgwindow = window.open('/servlet/CheckSecurity/JSP/shco_so/shco_so_lu_organizations.jsp?lang='+ '<%=zlangusercode%>' + '&css=' + '<%=sStyleSheet%>', 'Lookup_Sociedades', 
+					"width=371,height=307, resizable=0,menubar=0,toolbar=0,directories=0,location=0,scrollbars=0,status=0");
+		msgwindow.opener = this;					
+	</script>
+	<html>
+	<head>
+		<link href="/style/<%=sStyleSheet%>" type="text/css" rel="stylesheet" />
+		<title><%=Tran_shco_portal_code.getProperty("portal.AdvancedOptions")%></title>
+	</head>	
+	<body>
+		<table  class="tablalink" cellspacing="2" border="0" align="center">
+			<tr><td class="texto2" align="center"></td></tr>
+			<tr><td class="texto2" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeSoc")%></td></tr>
+			<tr><td class="texto2" align="center"></td></tr>
+			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+			<tr><td class="texto1" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeSocSelect")%></td></tr>
+			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+		</table>	
+	</body>
+	</html>
+<!--	(3) Handle the currency change...  --> 
+<%} else if (stChangeCurrency=="true"){
+	session.removeAttribute("M4_CHANGE_CURRENCY");
+%>
+	<%--  (first check) for the case where we have an organization that does not match a role upon user choice            --%>
+	<%try {
+	int iCheckResult = 0;	
+	M4Operations m=new M4Operations(request);
+	iCheckResult = m.checkRoleOrganization();
+	if (iCheckResult!=0) {%>		
+		<script language="JavaScript">
+			location.href = "<%=zsLoginURL%>"; 
+			msgwindow = window.open( "<%=g_zsErrorPageURL%>" + "?_LANGCODE=" + "<%=zlangusercode%>" + "&error=" +"<%=Tran_shco_portal_code.getProperty("portal.LOGIN_CHANGE_SESSION_ROLE_ORGANIZATION")%>" + "&zopenmode=1", 'report_error', 
+				"width=471,height=407, resizable=0,menubar=0,toolbar=0,directories=0,location=0,scrollbars=0,status=0");	
+		</script>
+		<m4:logout/>		
+	<%} else {%>
+		<script language="JavaScript">
+			msgwindow = window.open('/servlet/CheckSecurity/JSP/shco_so/shco_so_session_currency.jsp?lang='+ '<%=zlangusercode%>'+ '&css=' + '<%=sStyleSheet%>', 'Lookup_session_currency', 
+					"width=471,height=407, resizable=0,menubar=0,toolbar=0,directories=0,location=0,scrollbars=0,status=0");
+			msgwindow.opener = this;					
+		</script>
+	<html>
+	<head>
+		<link href="/style/<%=sStyleSheet%>" type="text/css" rel="stylesheet" />
+		<title><%=Tran_shco_portal_code.getProperty("portal.AdvancedOptions")%></title>
+	</head>	
+	<body>
+		<table  class="tablalink" cellspacing="2" border="0" align="center">
+			<tr><td class="texto2" align="center"></td></tr>
+			<tr><td class="texto2" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeCurrency")%></td></tr>
+			<tr><td class="texto2" align="center"></td></tr>
+			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+			<tr><td class="texto1" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeCurrencySelect")%></td></tr>
+			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+		</table>	
+	</body>
+	</html>
+<%		} // else ends
+	} catch (Exception e) {
+		// this happens because no-session
+		m_log.trace("Exc: " +e);
+	}
+} else if (zDate!=null){%>
+       	<script language="JavaScript">
+      		msgwindow = window.open('/servlet/CheckSecurity/JSP/shco_so/shco_so_lu_dates.jsp?lang='+ '<%=zlangusercode%>'+ '&css=' + '<%=sStyleSheet%>','Lookup_Roles_For_Organization', 
+      					"width=371,height=307, resizable=0,menubar=0,toolbar=0,directories=0,location=0,scrollbars=0,status=0");
+      		msgwindow.opener = this;
+      	</script>
+	<html>
+	<head>
+		<link href="/style/<%=sStyleSheet%>" type="text/css" rel="stylesheet" />
+		<title><%=Tran_shco_portal_code.getProperty("portal.AdvancedOptions")%></title>
+	</head>	
+	<body>
+		<table  class="tablalink" cellspacing="2" border="0" align="center">
+      			<tr><td class="texto2" align="center"></td></tr>
+      			<tr><td class="texto2" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeDates")%></td></tr>
+      			<tr><td class="texto2" align="center"></td></tr>
+      			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+      			<tr><td class="texto1" align="center"><%=Tran_shco_portal_code.getProperty("portal.ChangeDatesSelect")%></td></tr>
+      			<tr><td class="texto1" align="center">&nbsp;</td></tr>
+      	</table>	
+	</body>
+	</html>
+<%} else {%>
+	<%--  (second check) for the case where we have an organization that does not match a role upon user choice  --%>
+	<%	try {
+	int iCheckResult = 0; 
+	M4Operations m=new M4Operations(request);
+	iCheckResult = m.checkRoleOrganization();
+	if (iCheckResult!=0) {%>		
+		<script language="JavaScript">
+			location.href = "<%=zsLoginURL%>";  
+			msgwindow = window.open( "<%=g_zsErrorPageURL%>" + "?_LANGCODE=" + "<%=zlangusercode%>" + "&error=" +"<%=Tran_shco_portal_code.getProperty("portal.LOGIN_CHANGE_SESSION_ROLE_ORGANIZATION")%>" + "&zopenmode=1", 'report_error', 
+					"width=471,height=407, resizable=0,menubar=0,toolbar=0,directories=0,location=0,scrollbars=0,status=0");
+		</script>
+	    <m4:logout/>
+<%	}
+	} catch (Exception e) {
+		m_log.trace("Exc: " +e);
+	}
+%> 
+	<%--(C) Check if there is a message from login servlet..
+		The message is included in the request parameter LOGIN_ERROR.
+		Possible values are:
+		PASSWORD_ABOUT_TO_EXPIRE
+	--%> 
+	<%  String sMessage = "";
+		String sLoginError = request.getParameter("M4_LOGIN_ERROR");
+		if (sLoginError != null){
+		   if (sLoginError.equals("PASSWORD_ABOUT_TO_EXPIRE")) {
+				String sExpiresIn = request.getParameter("M4_EXPIRES_IN");
+				if (sExpiresIn == null){
+					sExpiresIn = "0";
+		        }
+				sMessage = Tran_shco_portal_code.getProperty("portal.PASSWORDEXPIRED");  
+	      }else {
+		        sMessage = sLoginError;
+		  }%>
+	      <script type="text/javascript">	
+				msgwindow = window.open("<%=g_zsErrorPageURL%>"+ "?_LANGCODE=" + "<%=zlangusercode%>" + "&error=" + "<%=sMessage%>" + "&zopenmode=1", 'report_error', 
+					"width=471,height=407, resizable=0,menubar=0,toolbar=0,directories=0,location=0,scrollbars=0,status=0");
+		 </script>
+	<%}%>
+<%--  (d) We read the M4URL request parameter because we want to be able to evaluate the portal page conditionally --%>
+	<%String sComingFromPage = request.getParameter("M4URL");
+		if (sComingFromPage != null){%>
+		<script language="JavaScript">
+			var pagetogo;
+			pagetogo = "<%=sComingFromPage%>";
+			this.location = pagetogo;
+		</script>
+	<%}%>		
+<%--  [++++++++++++++++++++++++  end: do not modify this section  ++++++++++++++++++++++++++] --%>

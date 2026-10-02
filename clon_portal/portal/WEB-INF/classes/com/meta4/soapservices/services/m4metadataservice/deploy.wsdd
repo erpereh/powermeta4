@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- [=======================================================] -->
+<!-- @(#) FileVersion: 815.002.001                             -->
+<!-- @(#) FileDescription: M4MetadataService deploy descr.     -->
+<!-- @(#) CompanyName: Meta4 Spain, S.A.                       -->
+<!-- @(#) LegalCopyright: (c) 2018                             -->
+<!-- @(#) ProductName: PeopleNet                               -->
+<!-- [=======================================================] -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+	xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+	xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+
+	<service name="M4MetadataService" provider="java:RPC" > 
+		<namespace>http://schemas.meta4.com/</namespace>
+
+		<!--	begin comments
+		<parameter name="scope" value="{request/session/application}"/>
+			"request" will get you a new object each request.
+			"application" uses a singleton (which should be thread-safe).  
+			"session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+		end comments -->
+
+		<parameter name="scope" value="session"/>
+		<parameter name="className" value="com.meta4.soapservices.services.m4metadataservice.M4MetadataService"/>
+		<parameter name="allowedMethods" value="*" />
+
+		<!-- login output -->
+		<typeMapping 
+			qname="meta4:M4MetaXMLOutput" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.m4metadataservice.M4MetadataXMLOutput"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+	</service>
+</deployment>

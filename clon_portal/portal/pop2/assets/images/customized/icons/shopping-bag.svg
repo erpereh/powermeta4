@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M48,36 L42,36 C35.4,36 30.6317949,41.4537664 30,48 L24,120 C24,126.6 29.4,132 36,132 L108,132 C114.6,132 120,126.6 120,120 L114,48 C113.392113,41.2557928 108.6,36 102,36 L96,36 L48,36 Z" id="shopping-bag-path-1"></path>
+        <path d="M71.9929402,12 C84.8897843,12 95.4279789,22.7905916 96,35.9989273 L96,35.9989273 L83.9964707,35.9973376 C83.9964703,35.9982156 83.9964701,35.999103 83.9964701,36 L59.9894104,36 L59.989,35.998 L83.9964707,35.9973376 C83.9965026,35.9205111 83.9979139,35.9157293 83.997556,35.8747263 L83.9964701,35.8167545 C83.8327928,29.1507872 78.4926682,24.430091 71.9929402,24.430091 C65.3909988,24.430091 59.9894104,29.16345 59.9894104,36 L59.989,35.998 L48,35.9989273 C48.4335436,22.7962354 58.7970318,12.2135248 71.6041068,12.0031909 Z" id="shopping-bag-path-2"></path>
+        <path d="M60,60 C60,63.3 57.3,66 54,66 C50.7,66 48,63.3 48,60 L48,48 L60,48 L60,60 Z" id="shopping-bag-path-3"></path>
+        <path d="M96,60 C96,63.3 93.3,66 90,66 C86.7,66 84,63.3 84,60 L84,48 L96,48 L96,60 Z" id="shopping-bag-path-4"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Shopping_Bag">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#shopping-bag-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#shopping-bag-path-1"></use>
+            </g>
+            <g id="Combined-Shape">
+                <use class="secondary--fill" xlink:href="#shopping-bag-path-2"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#shopping-bag-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#shopping-bag-path-3"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#shopping-bag-path-3"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#shopping-bag-path-4"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#shopping-bag-path-4"></use>
+            </g>
+        </g>
+    </g>
+</svg>

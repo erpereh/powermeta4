@@ -11,6 +11,15 @@ implementar por funcionalidades el portal de empleado y responsable de
 CYC, IBER y COLL bajo `/portal`, con integración, variantes, referencias
 y pendientes del servidor. La entrega actual es documental.
 
+La copia original se conserva en [clon_portal/portal](clon_portal/portal/) como
+archivo de referencia completo. Sus fuentes y recursos se versionan sin
+normalizar bytes ni formato y quedan fuera de TypeScript, lint y formateo;
+no forman parte de las rutas de la aplicación.
+
+En Windows, la copia contiene rutas largas: antes de recuperarla en otro
+checkout, activar `git config --local core.longpaths true` o clonar con
+`git -c core.longpaths=true clone <URL>`.
+
 ## Requisitos y puesta en marcha
 
 La persistencia usa directamente `node:sqlite`, `DatabaseSync` y `backup()`.

@@ -1,0 +1,85 @@
+@page { 
+  size: A4 landscape;
+  /*margin: 2%;*/
+}
+@media print {
+  html, body {
+    height: 210mm;
+    width: 350mm;
+  }
+}
+.boxshadow {
+  page-break-inside: avoid;
+}
+
+.container {
+  font-size: 7px;
+  width: 100% !important;
+  margin: 30px;
+}
+#charts {
+  /*display: block;*/
+  margin-top: 20px;
+  width: 100%;
+  text-align: center;
+  margin: auto;
+}
+.m10 {
+  position: relative;
+  text-align: center;
+}
+.m10 svg {
+  position: relative !important;
+  zoom: .8;
+}
+
+.ct-chart-1 svg {
+  /*position: absolute;*/
+  transform: translate(-140px, 0);
+}
+.ct-chart-2 svg {
+  /*position: absolute;*/
+  transform: translate(-140px, 0);
+}
+.ct-legend.ct-legend-inside {
+  position: absolute;
+  top: 0;
+  right: unset;
+  left: 60%;
+}
+.boxshadow.col-xs-12 {
+  border: 1px solid #aaa;
+}
+
+
+.flota-btn-rv{
+  display: none;
+}
+
+
+
+#graff .col-md-6{
+  width: 50%;
+  float: left;
+}
+
+#graff .col-md-4{
+  width: 33.33333333%;
+  float: left;
+}
+
+
+td[real=false] {
+  color: #c0504d !important;
+}
+td[real=true] {
+  color: #0c7811 !important;
+}
+/*.dgraf03{
+  /*margin-left: -30px;*/
+  /*width: 50% !important;
+}*/
+
+/*#graf03{
+ width: 700px;
+}*/

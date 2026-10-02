@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- [=======================================================] -->
+<!-- @(#) FileVersion: 815.002.001                             -->
+<!-- @(#) FileDescription:                                     -->
+<!-- @(#) CompanyName: Meta4 Spain, S.A.                       -->
+<!-- @(#) LegalCopyright: (c) 2018                             -->
+<!-- @(#) ProductName: PeopleNet                               -->
+<!-- [=======================================================] -->
+<!DOCTYPE m4ConnectTransactions [
+	<!ENTITY connect_data SYSTEM "connect.log">
+]>
+
+<m4ConnectTransactions>
+&connect_data;
+</m4ConnectTransactions>

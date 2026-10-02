@@ -1,0 +1,93 @@
+.divTotal {
+  width: 100%;
+  min-width: 650px;
+  font-family: Verdana,Arial,Helvetica,Sans-Serif;
+  font-size: 11px;
+}
+
+.divTitle
+{
+  font-weight: bolder;
+  color: #fff;
+  text-indent: 10px;
+  background-color:#610000;
+  background-image: url(/iconos/back_title_task.png);
+  background-repeat: repeat-x;
+  height: 20px;
+}
+
+.divTitle span {
+  position: relative;
+  top: 2px;
+}
+
+.divLeftPhoto {
+  float: left;
+  max-width: 640px;
+  min-height: 110px;
+}
+
+.divLeftPhoto img {
+  float: left;
+  width: 100px;
+  height: 100px;
+  margin: 5px;
+}
+
+.divDesc {
+  margin: 20px 0px 0px 120px;
+}
+
+.divDesc span {
+  color: #235298;
+}
+
+.divSubtitle {
+  margin: 5px 0px 1px 0px;
+}
+
+.divSubtitle .unsortedlist {
+  color: #5faae4;
+  font-weight: normal;
+}
+
+.divSubtitle .unsortedlist .aLink {
+  color: #000;
+  text-decoration: none;
+}
+
+.divSubtitle .unsortedlist .aLink:hover {
+  color: #0000ff;
+}
+
+.divPhoto {
+  float: right;
+  margin: 10px 30px 1px 0px;
+  width: 80px;
+  height: 80px;
+}
+
+.divPhoto .photo {
+  width: 80px;
+  height: 80px;
+}
+
+.divPhoto .nophoto {
+  width: 0px;
+  height: 0px;
+}
+
+.divSep {
+  clear: both;
+}
+
+.spanPhone {
+  float: left;
+  margin: 2px 0px;
+}
+
+.imgPhone {
+  float: right;
+  width: 18px;
+  height: 18px;
+}

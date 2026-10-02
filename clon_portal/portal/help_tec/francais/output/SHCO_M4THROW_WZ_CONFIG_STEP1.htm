@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/31/05 10:12:00" />
+    <title>Comment configurer la sortie d&#39;un état</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp282804"> </a><h2 class="pTitle">
+Comment configurer la sortie d&#39;un état
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_M4THROW_WZ_CONFIG_STEP1-->
+<p class="bodytex"> Objet</p>
+<a name="wp282810"> </a><p class="pBody">
+Ce formulaire décrit les étapes à suivre pour configurer l&#39;exécution et la planification d&#39;un état.
+</p>
+<p class="bodytex"> Actions</p>
+<a name="wp282814"> </a><p class="pBody">
+Cette option offre deux possibilités :
+</p>
+<ul class="item">
+<li>Exécuter directement l&#39;état : vous sélectionnez les options voulues et l&#39;état est généré.</li>
+<li>Planifier l&#39;exécution de l&#39;état : vous déterminez le moment où vous voulez que l&#39;état soit généré.</li>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+Pour consulter les résultats de la planification de l&#39;exécution d&#39;un état, reportez-vous à l&#39;option <b class="cBold">Exécutions</b> dans le <b class="cBold">Planificateur de tâches</b>. Pour en savoir plus, reportez-vous à la section intitulée Comment consulter l&#39;état d&#39;une exécution.
+</p></td></tr>
+</table><br/></ul>
+<a name="wp282822"> </a><p class="pBody">
+Afin de vous faciliter la saisie des paramètres, l&#39;application vous propose une fenêtre recueillant la plupart des options de configuration. Cette fenêtre est divisée en trois étapes.
+</p>
+<a name="wp282824"> </a><p class="pBody">
+Lors de la première étape, <b class="cBold">Type et format de sortie</b>, procédez comme suit :
+</p>
+<ol>
+<li class="numero">Sélectionnez le type d&#39;exécution souhaité. </li>
+<li class="numero">Sélectionnez le type de sortie souhaité. Vous avez le choix entre : </li>
+<ul class="item">
+<li><b class="cBold">Affichage</b> : l&#39;état sera affiché directement dans votre navigateur.</li>
+<li><b class="cBold">Fichier dans machine client </b>: le résultat de l&#39;exécution sera conservé dans le client.</li>
+<p class="cont">Le système vous présente alors une boîte de dialogue vous 
+permettant d&#39;indiquer le chemin d&#39;accès et le nom du fichier 
+dans le disque local.
+</p>
+<li><b class="cBold">Fichier dans serveur </b>: le fichier résultant de l&#39;exécution sera conservé dans le système de fichiers du serveur.</li>
+<p class="cont">Pour cela, vous devrez indiquer le <b class="cBold">Chemin d&#39;accès relatif 
+au répertoire temporaire d&#39;états</b> où l&#39;état sera enregistré 
+dans le serveur.
+</p>
+<li><b class="cBold">Imprimante dans machine client </b>: l&#39;état sera imprimé à l&#39;aide d&#39;une imprimante du client.</li>
+<p class="cont">Le système affiche une liste combinée pour vous permettre 
+de sélectionner l&#39;imprimante.
+</p>
+<li><b class="cBold">Imprimante dans serveur </b>: l&#39;état sera imprimé à l&#39;aide d&#39;une imprimante du serveur.</li>
+<p class="cont">Si vous avez choisi <b class="cBold">Imprimante dans serveur</b>, le système 
+vous montre la liste des imprimantes disponibles, puis, une 
+fois sélectionnée l&#39;imprimante désirée, il établit la langue par 
+défaut associée à cette dernière.
+</p>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+Dans le cas de la planification des états, seuls sont permis les types de sortie<b class="cBold"> Fichier dans serveur </b>et <b class="cBold">Impression dans serveur</b>. Les autres options sont alors désactivées.
+</p></td></tr>
+</table><br/></ul>
+<li class="numero">Sélectionnez le format de sortie souhaité. Les formats disponibles dépendent du type de sortie sélectionné dans l&#39;étape antérieure : </li>
+<ul class="dash">
+<li><b class="cBold">HTML </b>: autorisé pour l&#39;affichage et l&#39;archivage dans le serveur.</li>
+<li><b class="cBold">PDF</b> : autorisé pour l&#39;affichage et l&#39;archivage dans le serveur et dans le client.</li>
+<li><b class="cBold">Texte</b> : toujours disponible.</li>
+<li><b class="cBold">PCL</b> : toutes sorties hormis affichage.</li>
+<li><b class="cBold">ESCP</b> : toutes sorties hormis affichage.</li>
+<li><b class="cBold">PostScript</b>&#160;: toutes sorties hormis affichage.</li>
+</ul>
+<li class="numero">Cliquez sur les liens disponibles ou utilisez les boutons de navigation afin de continuer la configuration. Vous accédez aux formulaires : </li>
+<ul class="item">
+<li><span style="font-weight: bold">Options de dispositif</span>. Pour en savoir plus, reportez-vous à : <a href="javascript:WWHClickedPopup('TECH_HELP_FRA', 'SHCO_M4THROW_WZ_CONFIG_STEP2.htm');" onMouseOver="WWHShowPopup('TECH_HELP_FRA', 'SHCO_M4THROW_WZ_CONFIG_STEP2.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Comment établir les options de dispositif</a></li>
+<li><span style="font-weight: bold">Options avancées</span>. Pour en savoir plus, reportez-vous à : <a href="javascript:WWHClickedPopup('TECH_HELP_FRA', 'SHCO_M4THROW_WZ_CONFIG_STEP3.htm');" onMouseOver="WWHShowPopup('TECH_HELP_FRA', 'SHCO_M4THROW_WZ_CONFIG_STEP3.htm', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Comment établir les options avancées</a></li>
+</ul>
+</ol>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

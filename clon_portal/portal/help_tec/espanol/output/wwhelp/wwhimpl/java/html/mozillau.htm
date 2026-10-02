@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/1998/REC-html40-19980424/loose.dtd">
+<html>
+ <!-- Copyright (c) 2000-2003 Quadralay Corporation.  All rights reserved. -->
+
+ <head>
+  <meta http-equiv="content-type" content="text/html">
+  <meta http-equiv="charset"      content="UTF-8">
+
+  <title>mozilla.htm</title>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = eval("parent");
+    var  WWHResizeTimeoutID = null;
+
+
+    function  WWHNavigationFrame_AppletLoaded()
+    {
+      var  VarInfo;
+
+
+      VarInfo = ",";
+      VarInfo += (WWHFrame.WWHJava.fCookiesEnabled() ? 1 : 0);
+      VarInfo += ",";
+      VarInfo += WWHFrame.WWHJava.fGetPlatform();
+      VarInfo += ",";
+      VarInfo += WWHFrame.WWHJava.fGetBrowser();
+      VarInfo += ",";
+
+      WWHFrame.WWHJava.fAppletLoaded();
+
+      return VarInfo;
+    }
+
+    function  WWHNavigationFrame_SetDocumentHREF(ParamURL)
+    {
+      var  HREF = "";
+
+
+      HREF += ParamURL;
+      WWHFrame.WWHHelp.fSetDocumentHREF(HREF, false);
+    }
+
+    function  WWHSetSearchWords(ParamSearchWords)
+    {
+      WWHFrame.WWHHighlightWords.fSetWordList(ParamSearchWords);
+    }
+
+    function  WWHNavigationFrame_InitSize()
+    {
+      var  VarNavigationFrame;
+
+
+      VarNavigationFrame = eval(WWHFrame.WWHHelp.fGetFrameReference("WWHNavigationFrame"));
+      VarNavigationFrame.WWHNavigationFrame_HandleResize(null);
+    }
+
+    function  WWHNavigationFrame_HandleResize(ParamEvent)
+    {
+      if (WWHFrame.WWHHandler.mbInitialized)
+      {
+        if (WWHResizeTimeoutID != null)
+        {
+          clearTimeout(WWHResizeTimeoutID);
+        }
+
+        WWHResizeTimeoutID = setTimeout(WWHFrame.WWHHelp.fGetFrameReference("WWHNavigationFrame") + ".WWHNavigationFrame_ResizeApplet();", 50);
+      }
+
+      return 0;
+    }
+
+    function  WWHNavigationFrame_ResizeApplet()
+    {
+      var  VarNavigationFrame;
+      var  VarWidth;
+      var  VarHeight;
+
+
+      // Reset timeout ID
+      //
+      WWHResizeTimeoutID = null;
+
+      // Determine frame size
+      //
+      VarNavigationFrame = eval(WWHFrame.WWHHelp.fGetFrameReference("WWHNavigationFrame"));
+      VarWidth  = VarNavigationFrame.innerWidth;
+      VarHeight = VarNavigationFrame.innerHeight;
+
+      // Resize the applet
+      //
+      VarNavigationFrame.document.applets[0].setSize(VarWidth, VarHeight);
+    }
+
+    function WWHNavigationFrame_SetDocument(ParamBookIndex,
+                                            ParamFileIndex,
+                                            ParamAnchor)
+    {
+      return WWHFrame.WWHJava.fSetDocument(ParamBookIndex, ParamFileIndex, ParamAnchor);
+    }
+ 
+    function  WWHNavigationFrame_SetFavorites(ParamFavorites)
+    {
+      WWHFrame.WWHJava.fSetFavorites(ParamFavorites);
+    }
+
+    function  WWHNavigationFrame_GetFavorites()
+    {
+      return WWHFrame.WWHJava.fGetFavorites();
+    }
+   // -->
+  </script>
+ </head>
+
+ <body onUnload="WWHFrame.WWHJava.fAppletUnloaded();" onResize="WWHNavigationFrame_HandleResize(event);">
+  <applet codebase="../../../.." code="com.webworks.wwhelp4.WWHelp" width="1600" height="1200" name="WWHelp" archive="wwhelp4.jar" mayscript>
+  </applet>
+ </body>
+</html>

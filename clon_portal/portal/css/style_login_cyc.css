@@ -1,0 +1,294 @@
+body {
+  background-color: #FFFFFFFF;
+  background-image: url(/iconos/background.png);
+  background-position: bottom left;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-size: 13px;
+  font-family:  Arial, Helvetica, sans-serif;
+  height: 100%;
+ }
+
+.loginheaderleft {
+  /*float: left;*/
+   position: absolute;
+    top: 0px;
+    left: 0px;
+  background-image: url(/iconos/logo_cyc.jpg);
+  background-repeat: no-repeat;
+  width: 280px;
+  height: 75px;
+  z-index: 0;
+}
+
+.logintittle {
+  font-family: 'Gill Sans MT', 'Lucida Grande', sans-serif;
+  color: white;
+  margin: 20px 0px 0px 120px;
+  font-size: 28px;
+  font-style: italic;
+  line-height: 70%;
+  z-index: 2;
+}
+
+.logintittle #employeetittle {
+  font-size: 23px;
+}
+
+.logintittle #employeesubtittle {
+  float: left;
+  margin: 0 60px;
+  color: #ace4f5;
+  font-size: 18px;
+  font-style: normal;
+  width: 100%;
+  z-index: 1;
+}
+
+.loginheadercenter {
+  float:right;
+  margin: 0 0 0 100px;
+  /*background-image: url(/iconos/logo_iber.gif);*/
+  background-repeat: no-repeat;
+  background-position: right center;  
+  height: 82px;
+   width: 384px;
+}
+
+.loginheaderight {
+  /*float: right;*/
+  position: absolute;
+    top: 10px;
+    right: 0px;
+  background-image: url(/iconos/logo_iber.jpg);
+  background-repeat: no-repeat;
+  width: 210px;
+  height: 57px;
+  z-index: 0;
+}
+
+.loginseparator {
+  position: absolute;   
+  top: 80px;
+  background-color: transparent;
+  background-image: url(/iconos/barra_login_1.png);
+  /*background-repeat: no-repeat;*/
+  /*margin: 80px 0px 0px 0px;*/
+  width: 100%;
+  height: 8px;
+}
+
+.loginmain {
+  margin: 0px 2% 0px 2%;
+}
+
+.loginintro {
+  background-color: transparent;
+  color: #404040;
+  margin: 110px 10% 0px 10%;
+}
+
+.loginintrobold {
+  font-weight: bold;
+  color: #DC0028;
+}
+
+.loginintro p {
+  margin: 5px auto;
+}
+
+.body-content {
+  width: 100%;
+  /*min-width: 750px;*/
+  margin: auto;
+}
+button.aceptar {
+  background-image: url("../imagen/aceptar.png");
+}
+.allbody {
+  background-color: transparent;
+  /*background-image: url(/iconos/main_login.png);*/
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  height: 385px;
+  min-width: 750px;
+  width: 80%;
+  margin: 0 0 5px 0;
+}
+
+.frmlogin {
+  background-color: transparent;
+  /*background-image: url(/iconos/frm_login.png);*/
+  background-repeat: no-repeat;
+  color: #DC0028;
+  width: 325px;
+  height: 200px;
+  margin: 30px 0 0 25%;
+}
+
+.frmlogin .loginhead {
+  font-weight: bold;
+  width: 91%;
+  padding: 10px 0 5px 30px;
+}
+
+#frmlogin legend {
+  margin: 0 0 0 5px;
+  font-size: 14px;
+  color: #07346b;
+  padding: 2px 6px;
+}  
+
+#frmlogin label {
+  color: #b4b4b4;
+  font-size: 11px;
+  float: left;
+  text-align: left;
+  display: block;
+  width: 110px;
+  margin: 3px 5px 0 30px;
+}
+
+#frmlogin .labelfocus {
+  color: #07346b;
+}
+
+#frmlogin .labelnofocus {
+  font-weight: bold;
+  color: #404040;
+}
+
+#frmlogin input {
+  font-size: 12px;
+  width: 150px;
+}
+
+#frmlogin .inputnofocus {
+  font-size: 13px;
+  border: 1px solid #d1d1d1;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  color: #404040;
+  padding: 5px 12px;
+}
+
+#frmlogin .inputfocus {
+  color: #000;
+  border: 1px solid #07346b;
+}
+
+#frmlogin select {
+  width: 155px;
+  margin: 2px 0 0 0;
+  font-size: 12px;
+}
+
+#frmlogin .selectnofocus {
+  color: #781351;
+  background-color: #f5f5f5;
+}
+
+#frmlogin .selectfocus {
+ 
+  background-color: #ffffff;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  padding-top: 2px;
+  padding-left: 9px;
+}
+
+.datadiv {
+  margin: 5px 0 0 0;
+  width: 100%;
+}
+
+.langdiv {
+  margin: 2px;
+}
+
+#langdiv span {
+  float: left;
+  color: #b4b4b4;
+  margin: 2px 5px 0 5px;
+  font-size: 11px;
+  cursor: pointer;
+  width: 50px;
+  text-align: center;
+  border: 2px solid #e8e8d0;
+  background-color: white;
+}
+
+.forgetdiv {
+  background-color: transparent;
+  background-image: url(/iconos/frm_key.png);
+  background-repeat: no-repeat;
+  height: 28px;
+  margin: 5px 0px 0px 30px; 
+  padding: 5px 0px 0px 0px;
+}
+
+.forgetdiv a {
+  text-decoration: none;
+  color: #dc0028;
+  margin: 0px 0px 0px 55px;
+  display: block;
+}
+
+#enterdiv .enterlogin {
+  width: 88px;
+  height: 23.5px;
+  cursor: pointer;
+  text-align: center;
+  margin: 5px 0px 10px 210px;
+  font-size: 11px;
+  color: #dc0028;
+}
+
+#enterlogin button{
+	background-image: url("/iconos/aceptar.png");
+}
+
+.frmloginbottom {
+  background-color: transparent;
+  background-image: url(/iconos/frm_login_bottom.png);
+  background-repeat: no-repeat;
+  width: 325px;
+  margin: 0px 25% 0px 25%;
+  height: 9px;
+}
+
+.body-clearfloat {
+  clear: both;
+  height: 0;
+  font-size: 1px;
+  line-height: 0px;
+}   
+
+.footer-disclaimer {
+  min-width: 750px;
+  text-align: center;
+  font-size: 9px;
+  color: #0e033f;
+  width: 100%;
+}
+
+.footer-disclaimer a {
+  text-decoration: none;
+  color: #07346b;
+}
+
+.divrigth {
+  font-size: 9px;
+  display: block;
+  margin: 0px 0 0px 120px;
+  width: 180px;
+  padding: 1px;
+  height: 0px;
+}
+
+.divwrong {
+  height: 12px;
+  color: #c51022;
+}

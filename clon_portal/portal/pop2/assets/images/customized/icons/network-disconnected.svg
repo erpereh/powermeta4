@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M72.5671976,28.3643446 C52.6418039,28.3643446 34.4772589,36.3014706 20.6221595,49.3977284 C18.583282,51.3324029 18.4442676,54.6560744 20.3441308,56.6899629 L69.2771907,109.174208 C71.0843776,111.108883 74.0036795,111.108883 75.8572045,109.174208 L124.790264,56.6899629 C126.690128,54.6560744 126.551113,51.3324029 124.512236,49.3977284 C110.657136,36.3014706 92.4925913,28.3643446 72.5671976,28.3643446 Z" id="network-disconnected-path-1"></path>
+        <path d="M64.0842501,89.1503634 L69.4923464,94.2968254 C70.9271475,95.6622133 73.244903,95.6622133 74.6797041,94.2968254 L80.0878004,89.1503634 C81.8169196,87.5048959 81.4490219,84.6690903 79.2416356,83.583782 C74.7532836,81.3781554 69.3819771,81.3781554 64.8568353,83.583782 C62.7598184,84.6690903 62.3551309,87.5048959 64.0842501,89.1503634 Z" id="network-disconnected-path-2"></path>
+        <path d="M47.468735,76.5128825 C49.3908009,78.4331662 52.4111902,78.6291135 54.6470628,77.0223455 C64.2181665,70.2425682 77.0842403,70.2425682 86.6553439,77.0223455 C88.8912165,78.5899241 91.9116058,78.4331662 93.8336717,76.5128825 L93.8728975,76.473693 C96.2264476,74.1223252 96.0695443,70.1249999 93.3629617,68.2047161 C79.8692745,58.4465396 61.472358,58.4465396 47.939445,68.2047161 C45.2328624,70.1641893 45.0759591,74.1223252 47.468735,76.5128825 Z" id="network-disconnected-path-3"></path>
+        <path d="M33.0277769,62.1030638 C34.9577185,64.1294509 38.0229197,64.3281163 40.1042292,62.5003946 C57.776439,47.2428917 83.4333088,47.2428917 101.143361,62.4606615 C103.262512,64.2883832 106.365555,64.1294509 108.295497,62.1030638 C110.528174,59.7588121 110.376806,55.8649702 107.917077,53.7591169 C86.3093001,35.2037683 55.0518156,35.2037683 33.4061968,53.7591169 C30.9464674,55.8252371 30.7572575,59.719079 33.0277769,62.1030638 Z" id="network-disconnected-path-4"></path>
+        <path d="M29.0528582,23.754655 C30.7989478,22.1817326 33.470027,22.2670959 35.1118893,23.9145794 L35.2500543,24.0596157 L103.953369,99.5059255 C105.580008,101.292214 105.442732,104.051823 103.646754,105.669686 C101.900665,107.242609 99.2295856,107.157245 97.5877232,105.509762 L97.4495583,105.364726 L28.7462433,29.9184159 C27.1196043,28.1321278 27.2568804,25.372518 29.0528582,23.754655 Z" id="network-disconnected-path-5"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Network_Disconnected">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#network-disconnected-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#network-disconnected-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#network-disconnected-path-2"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#network-disconnected-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#network-disconnected-path-3"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#network-disconnected-path-3"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#network-disconnected-path-4"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#network-disconnected-path-4"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#network-disconnected-path-5"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#network-disconnected-path-5"></use>
+            </g>
+        </g>
+    </g>
+</svg>

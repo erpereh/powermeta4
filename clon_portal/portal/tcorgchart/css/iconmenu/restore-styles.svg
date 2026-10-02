@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<?xml-stylesheet type="text/css" href="../css/m4svg.css" ?>
+<svg width="16" height="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#4e647e" class="icon" id="restore-styles">
+<path d="M256,128v160h128v-32h-96V128H256z M288,32C164.3,32,64,132.3,64,256H0l80,96l80-96H96c0-106,86-192,192-192s192,86,192,192
+	s-86,192-192,192c-10.9,0-21.6-0.9-32-2.7v32.4c10.5,1.5,21.1,2.3,32,2.3c123.7,0,224-100.3,224-224S411.7,32,288,32z"/>
+<circle fill="#EC008C" cx="32" cy="384" r="32"/>
+<circle fill="#00AEEF" cx="128" cy="384" r="32"/>
+<circle fill="#FFF100" cx="32" cy="480" r="32"/>
+<circle fill="#231F20" cx="128" cy="480" r="32"/>
+</svg>

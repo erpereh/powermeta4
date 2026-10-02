@@ -1,0 +1,2 @@
+serviceClass: com.meta4.js.client.M4Service
+path: A2AAC9433BE0A9EAA69F7AD0D806780E.gwt.rpc

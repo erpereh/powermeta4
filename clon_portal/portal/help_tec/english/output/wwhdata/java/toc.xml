@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<WebWorksHelpTOC version="4.0">
+ <i t="Getting Started" l="0">
+  <i t="Tools" l="1">
+   <i t="To Do List" l="2" />
+   <i t="Edit personal tasks" l="3">
+    <i t="Modifying and existing personal task" l="4" />
+    <i t="Defining a new personal task" l="5" />
+   </i>
+   <i t="Change the login password" l="6" />
+   <i t="Personalise the options of the work session" l="7" />
+   <i t="Job Scheduler" l="8">
+    <i t="Defining the advanced options" l="9" />
+    <i t="Setting the schedule parameters" l="10" />
+   </i>
+   <i t="Viewing the status of the executions" l="11">
+    <i t="Query execution parameters" l="12" />
+    <i t="Task Executions" l="13" />
+    <i t="Documents Generated" l="14" />
+   </i>
+   <i t="How to..." l="15" />
+  </i>
+  <i t="Query" l="16">
+   <i t="Creating simple queries" l="17">
+    <i t="Selecting the fields" l="18" />
+    <i t="Sorting the fields" l="19" />
+    <i t="Filtering data" l="20" />
+    <i t="Sorting data" l="21" />
+    <i t="Grouping the results by field" l="22" />
+    <i t="Setting totals" l="23" />
+    <i t="Defining the output format for the query" l="24" />
+   </i>
+   <i t="Running a query" l="25">
+    <i t="Configuring the report output" l="26" />
+    <i t="Registering the device options" l="27" />
+    <i t="Registering the advanced options" l="28" />
+   </i>
+  </i>
+ </i>
+</WebWorksHelpTOC>

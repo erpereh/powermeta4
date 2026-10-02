@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - File: WEB-INF/classes/com/meta4/soapservices/services/rpc/SNCO_AD_IC_KNWLD_LV_TRANSLATOR/deploy.wsdd
+  - Description: Self generated deployment descriptor for SNCO_AD_IC_KNWLD_LV_TRANSLATOR Soap Service. 
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edificio Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+    xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance">
+
+    <service name="SNCO_AD_IC_KNWLD_LV_TRANSLATOR" provider="java:RPC"> 
+
+
+        <namespace>http://schemas.meta4.com/</namespace>
+
+        <!-- 
+          - [SOAP] Service parameters
+          - <parameter name="scope" value="{request/session/application}"/>
+          -     "request" will get you a new object each request.
+          -     "application" uses a singleton (which should be thread-safe).  
+          -     "session" uses either HTTP sessions or SOAP headers to get an object per connection with timeouts. 
+          -->
+        <parameter name="scope" value="session"/>
+        <parameter name="className" value="com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Knwld_Lv_TranslatorService"/>
+        <parameter name="allowedMethods" value="*"/>
+
+        <!-- class for LogMessage object -->
+        <typeMapping 
+            qname="meta4:LogMessage" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.m4operations.LogMessage"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method AD_IC_ADB_INTERFACE -->
+        <typeMapping 
+            qname="meta4:Ad_Ic_Adb_InterfaceOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Ad_Ic_Adb_InterfaceOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method AD_IC_WHOLE_TRANSLTIN_FROM_ADB -->
+        <typeMapping 
+            qname="meta4:Ad_Ic_Whole_Transltin_From_AdbOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Ad_Ic_Whole_Transltin_From_AdbOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+        <!-- output class for method M4LoadObject -->
+        <typeMapping 
+            qname="meta4:M4LoadobjectOutput" 
+            xmlns:meta4="http://schemas.meta4.com/types"
+            languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.M4LoadobjectOutput"
+            serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+            deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+            encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        />
+
+		<!-- class for node SNCO_AD_IC_KNOLEDGE_LEVEL -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Knoledge_LevelBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Knoledge_LevelBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Knoledge_LevelRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Knoledge_LevelRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_IC_KNOW_MAP_CONFIG -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Know_Map_ConfigBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Know_Map_ConfigBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Know_Map_ConfigRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Know_Map_ConfigRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_IC_EXTRACTION_DATES -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Extraction_DatesBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Extraction_DatesBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Extraction_DatesRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Extraction_DatesRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_IC_WHOLE_TRANSLATION -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Whole_TranslationBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Whole_TranslationBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Whole_TranslationRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Whole_TranslationRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+		<!-- class for node SNCO_AD_IC_KNWLD_LV_TRANSLATOR -->
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Knwld_Lv_TranslatorBlock" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Knwld_Lv_TranslatorBlock"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+		/>
+
+		<typeMapping 
+			qname="meta4:Snco_Ad_Ic_Knwld_Lv_TranslatorRecord" 
+			xmlns:meta4="http://schemas.meta4.com/types"
+			languageSpecificType="java:com.meta4.soapservices.services.rpc.snco_ad_ic_knwld_lv_translator.Snco_Ad_Ic_Knwld_Lv_TranslatorRecord"
+			serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+			deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+			encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"			            
+		/>
+
+    </service>
+</deployment>
+
+

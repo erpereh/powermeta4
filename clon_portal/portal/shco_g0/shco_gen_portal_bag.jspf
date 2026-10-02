@@ -1,0 +1,91 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: shco_gen_portal_bag.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+<%// Particular del Portal
+String zSHCO_CSS = "";
+String zSHCO_FILTER = "";
+String zSHCO_ID_APP_ROLE = "";
+String zSHCO_ID_CURRENCY = "";
+String zSHCO_NM_CURRENCY = "";
+String zSHCO_EX_TYPE = "";
+String zSHCO_DEC_NB = "";
+String zSHCO_ZUR_CURR = "";
+String zSHCO_ORGANIZATION ="";
+
+// Para compatibilidad hacia atrás con portal PeopleNet
+String zSHCO_STANDAR = "";
+String zSHCO_JOB_POST = "";
+String zSHCO_POP = "";
+String zSHCO_PERSON = "";
+String zSHCO_ACTIVE_PAY = "";
+try {
+		M4Operations Introduccion2 = new M4Operations(request);
+		zSHCO_CSS = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_CSS");
+		zSHCO_FILTER = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_FILTER");
+		zSHCO_ID_APP_ROLE = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_ID_APP_ROLE");
+		zSHCO_ID_CURRENCY = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_ID_CURRENCY");
+		zSHCO_NM_CURRENCY = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_NM_CURRENCY");
+		zSHCO_EX_TYPE = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_EX_TYPE");
+		zSHCO_DEC_NB = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_DEC_NB");
+		zSHCO_ZUR_CURR = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_ZUR_CURR");
+		zSHCO_ORGANIZATION = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_ORGANIZATION");
+		// Para compatibilidad hacia atrás con portal PeopleNet
+		zSHCO_STANDAR = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_STANDAR");
+		zSHCO_JOB_POST = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_JOB_POST");
+		zSHCO_POP = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_POP");
+		zSHCO_PERSON = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_PERSON");
+		zSHCO_ACTIVE_PAY = Introduccion2.getItem(znodo,zm4object,znodo,"","SHCO_ACTIVE_PAY");
+} catch(Exception e) {}
+
+M4SessionCl zsesion2 = M4Context.getM4SessionCl(request);
+zsesion2.putBagEntries("SHCO_CSS",zSHCO_CSS);
+zsesion2.putBagEntries("SHCO_FILTER",zSHCO_FILTER);
+zsesion2.putBagEntries("SHCO_ROLE",zSHCO_ID_APP_ROLE);
+zsesion2.putBagEntries("SHCO_ID_CURRENCY",zSHCO_ID_CURRENCY);
+zsesion2.putBagEntries("SHCO_NM_CURRENCY",zSHCO_NM_CURRENCY);
+zsesion2.putBagEntries("SHCO_EX_TYPE",zSHCO_EX_TYPE);
+zsesion2.putBagEntries("SHCO_DEC_NB",zSHCO_DEC_NB);
+zsesion2.putBagEntries("SHCO_ZUR_CURR",zSHCO_ZUR_CURR);
+zsesion2.putBagEntries("SHCO_ORGANIZATION",zSHCO_ORGANIZATION);
+zsesion2.putBagEntries("LOGIN_URL",zsLoginURL); // see shco_gen_portal_code_begin.jspf
+// Para compatibilidad hacia atrás con portal PeopleNet
+zsesion2.putBagEntries("SHCO_STANDAR",zSHCO_STANDAR);
+zsesion2.putBagEntries("SHCO_JOB_POST",zSHCO_JOB_POST);
+zsesion2.putBagEntries("SHCO_POP",zSHCO_POP);
+zsesion2.putBagEntries("SHCO_PERSON",zSHCO_PERSON);
+zsesion2.putBagEntries("SHCO_ACTIVE_PAY",zSHCO_ACTIVE_PAY);
+String zp_QueryString = request.getQueryString();
+String zp_RequestURI = request.getRequestURI();
+M4SessionManager zp_sessionmanager = M4Context.getSession(request);
+int zp_iLang = zp_sessionmanager.getLanguageID();
+String zp_LangFolder= CheckConfig.checkFolderLanguage(new Long(zp_iLang).intValue(), CheckConfig.THCL);
+int zp_iPos = zp_RequestURI.indexOf(zp_LangFolder);
+zp_RequestURI = zp_RequestURI.substring(1,zp_iPos) + zp_RequestURI.substring(zp_iPos + zp_LangFolder.length()+1,zp_RequestURI.length());
+String zp_PortalURI = request.getContextPath() +  zp_RequestURI;
+//if (zp_QueryString !="" && zp_QueryString != null){zp_PortalURI = zp_PortalURI + "?" + zp_QueryString;}
+zsesion2.putBagEntries("PORTAL_URL",zp_PortalURI); 
+SavParamsInterface lp_oSavParams = zp_sessionmanager.getSavParamsInstance();
+String lp_zappprod = zp_sessionmanager.getProductID().toLowerCase();
+
+// Localized by product
+if (!lp_zappprod.equals("")){
+   request.setAttribute("zNODE",znodo);
+   request.setAttribute("zM4OBJECT",zm4object);
+   pageContext.setAttribute("zProducPortalBag","/shco_g0_"+ lp_zappprod + "/shco_gen_portal_bag.jsp" );
+   if (M4FileURIChecker.exists((String)pageContext.getAttribute("zProducPortalBag"),pageContext)== true){%> 
+     <jsp:include page='<%=(String)pageContext.getAttribute("zProducPortalBag")%>' flush="false" />
+   <%}%>   
+<%}%>
+<%@ include file="/shco_g0/shco_gen_bag.jsp"%>
+<%if ((zlanguser==null)||(zlanguser.equals(""))){zlanguser = "en";}
+  // la  variable Tran_shco_g0 se define en shco_gen_bag.jsp  
+  // Tran_shco_g0.load(application.getResourceAsStream(zTranslationsPath + "shco_g0_" +zlanguser + ".properties"));
+  Tran_shco_g0.load(pageContext,zTranslationsPath + "shco_g0_" +zlanguser + ".properties");
+  session.setAttribute("Tran_shco_g0",Tran_shco_g0);
+  session.setAttribute ("zcssuser",zSHCO_CSS);
+%>

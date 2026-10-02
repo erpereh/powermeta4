@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M17.9993779,66.1605351 L17.9993779,113.959866 C17.9993779,120.58194 23.4,126 30,126 L114,126 C120.6,126 126,120.58194 126,113.959866 L126,66.1605351 C126,66.1605351 17.7,65.7993311 17.9993779,66.1605351 Z" id="store-path-1"></path>
+        <path d="M131.4,47.34 L125.1,27.12 C123.78,21.72 119.1,18 113.64,18 L30.3,18 C24.9,18 20.16,21.78 18.9,27.12 L12.6,47.34 C9.84,59.16 17.7,66 18,66.36 L126,66.36 C132.72,59.64 132.54,51.9 131.4,47.34 Z" id="store-path-2"></path>
+        <path d="M78,30 L89.76,30 L93,51.12 C93.54,55.38 90.66,60 85.32,60 C81.3,60 78,56.46 78,52.14 L78,30 Z" id="store-path-3"></path>
+        <path d="M38.64,53.16 C38.16,57.06 35.04,60 31.38,60 C25.8,60 23.28,54.18 24.24,50.16 L30.3,30 L42.12,30 L38.64,53.16 Z" id="store-path-4"></path>
+        <path d="M66,52.14 C66,56.46 62.7,60 58.26,60 C53.76,60 50.46,55.8 50.94,51.12 L54.24,30 L66,30 L66,52.14 Z" id="store-path-5"></path>
+        <path d="M112.62,60 C108.96,60 105.78,57.06 105.36,53.16 L101.88,30 L113.46,29.94 L119.76,50.16 C120.72,54.18 118.26,60 112.62,60 Z" id="store-path-6"></path>
+        <path d="M46.5,81 L37.5,81 C33.375,81 30,85.2030033 30,88.5066741 L30,126 C30,126 53.88,126 54,126 L54,88.5066741 C54,85.2030033 50.625,81 46.5,81 Z" id="store-path-7"></path>
+        <path d="M114,105.420944 C114,109.196568 110.625,114 106.5,114 L73.5,114 C69.375,114 66,109.196568 66,105.420944 L66,88.5066741 C66,85.2030033 69.375,81 73.5,81 L73.5,81 L106.5,81 C110.625,81 114,85.2030033 114,88.5066741 L114,88.5066741 L114,105.420944 Z" id="store-path-8"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Store">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#store-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#store-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#store-path-2"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#store-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#store-path-3"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#store-path-3"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#store-path-4"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#store-path-4"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#store-path-5"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#store-path-5"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#store-path-6"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#store-path-6"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#store-path-7"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#store-path-7"></use>
+            </g>
+            <g id="Combined-Shape">
+                <use class="primary--fill" xlink:href="#store-path-8"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#store-path-8"></use>
+            </g>
+        </g>
+    </g>
+</svg>

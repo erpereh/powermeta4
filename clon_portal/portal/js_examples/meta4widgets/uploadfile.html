@@ -1,0 +1,151 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>Meta4 upload file</title>
+		
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+		<script type="text/javascript" src="/js/widget/upload_file.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		<script>
+			var _channel = null;
+			var form;
+			var example = function() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+						
+				var div = $('exampleUpload');
+				var properties = {
+					'onComplete' : function(object) {
+						alert('Subido correctamente con UUID: ' + object.UUID);
+					}
+				};
+
+				form = meta4.widget.element.createUploadFile(properties, div);
+				
+				function successCount(request) {
+					alert('numero de registros: ' + request.getResult());
+				}
+				
+				//SI NO LLAMAMOS A UN MÉTODO DEL CANAL TECH PARA QUE LO LEVANTE NO FUNCIONA.
+				var channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+				var request = new meta4.M4Request(channel, 'UPLOAD_FILE', 'COUNT_UPLOAD_FILE', null);
+				meta4.data.execute(request, successCount);
+				
+			};
+
+			var executeMethod1 = function() {
+
+				function successCount(request) {
+					alert('numero de registros: ' + request.getResult());
+				}
+
+				var channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+				var request = new meta4.M4Request(channel, 'UPLOAD_FILE', 'COUNT_UPLOAD_FILE', null);
+				meta4.data.execute(request, successCount);
+
+			};
+
+			var executeMethod2 = function() {
+
+				function successCount(request) {
+					var uuid = meta4.data.utils.getValue(request.getObject().getNode('UPLOAD_FILE'), 'UUID');
+					var blob = meta4.data.utils.getValue(request.getObject().getNode('UPLOAD_FILE'), 'ITEM_BLOB');
+					alert('UUID: '+uuid+ ' fichero blob: '+blob);
+				}
+
+				var indexFile = ['0'];
+				var channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+				var request = new meta4.M4Request(channel, 'UPLOAD_FILE', 'GET_INFO_FILE', indexFile);
+				meta4.data.execute(request, successCount);
+
+			};
+			
+			
+
+
+			//event to inicialice program
+			document.addEvent('meta4Ready', example);
+
+		</script>
+
+		<style>
+			#exampleUpload {
+				width: 500px;
+			}
+
+		</style>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+		<div  id = "exampleContainer" data-m4context="contexto1" data-m4t3="EXJSAPI_COMPONENT">
+
+			<h1 data-m4trans="_WidgetsUploadFileTitle"></h1>
+			<h2 data-m4trans="_WidgetsUploadFileSubtitle"></h2>
+
+			<p data-m4trans="_WidgetsUploadFileDescription">				
+			</p>
+
+			<p data-m4trans="_WidgetsUploadFileExample1"></p>
+			<script>
+				m4loadExample('example');
+			</script>
+
+			<div id="exampleUpload"></div>
+
+			<p data-m4trans="_WidgetsUploadFileExampleSentFiles"></p>
+			<script>
+				m4loadExample('executeMethod1');
+			</script>
+			<br>
+
+			<button onclick="executeMethod1()" data-m4trans="_WidgetsUploadFileButtonGetRegisters">				
+			</button>
+<br>
+<br>
+			<p data-m4trans="_WidgetsUploadFileExampleServerFileInfo"></p>
+			<script>
+				m4loadExample('executeMethod2');
+			</script>
+			<br>
+
+			<button onclick="executeMethod2()" data-m4trans="_WidgetsUploadFileButtonGetServerFileInfo">				
+			</button>
+
+		</div>
+		</div>
+	</body>
+</html>
+

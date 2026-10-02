@@ -1,0 +1,226 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>meta4.widget.log</title>
+		
+		<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+					
+		<!-- syntax highlighter -->
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+		
+		
+		<!-- load example -->
+        <script type="text/javascript" src="/js_examples/resources/m4loadExample.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+
+		
+        <script>	
+		 
+            var channel = null;
+            var logNode = 'EXJSAPI_LOG';
+            
+            function unmanageError() {
+                //unmanaged js Error
+                 var a = pepe;          
+            }       
+            function showErrors(){
+                
+                meta4.data.log.addErrorMessage("more, more details...");
+                meta4.data.log.addErrorMessage("Here, we can add some details.");
+                meta4.data.log.addErrorMessage("This is the first and main error.");
+                meta4.widget.log.showErrors(meta4.data.log);
+            }
+            
+            function unmanagejsapiError(){
+                
+                function onLoad(request) {
+                    request.functionNotDefinde();
+                }
+                    
+                var request = new meta4.M4Request(channel, logNode, 'LOAD_BLK', null);
+                meta4.data.execute(request, onLoad);
+                    
+            }
+            //m4 stack warning
+            function setWarning(){
+                
+                function onSuccess(request) {
+                }
+                    
+                var request = new meta4.M4Request(channel, logNode, 'SET_ONE_WARNING', null);    
+                meta4.data.execute(request, onSuccess);
+            }
+            
+            //m4 stack error
+            function setLog(){
+                
+                function onSuccess(request) {
+                }
+                    
+                var request = new meta4.M4Request(channel, logNode, 'SET_ONE_ERROR', null);
+                meta4.data.execute(request, onSuccess);
+            }
+            function setLog10(){
+                
+                function onSuccess(request) {
+                }
+                    
+                var request = new meta4.M4Request(channel, logNode, 'SET_10_ERRORS', null);
+                meta4.data.execute(request, onSuccess);
+            }
+            
+            //m4 java error
+            function javaError(){
+                
+                function onSuccess(request) {
+                }
+
+                var request = new meta4.M4Request(channel, logNode, 'METHOD_NOT_EXIST', null);
+                meta4.data.execute(request, onSuccess);
+ 
+            }
+			
+			function initExample(){
+				initTranslation();
+                function createChannel(){
+                                        
+                    channel = new meta4.M4Object('EXJSAPI_COMPONENT');
+                            
+                }       
+                //load metadata
+                var meta4ObjectIds = [];
+                meta4ObjectIds.push('EXJSAPI_COMPONENT');
+                meta4.data.loadMetadata(meta4ObjectIds, createChannel);
+			}
+			//event to inicialice program
+            document.addEvent('meta4Ready', initExample);
+			
+			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+			
+		</script>
+		
+
+	</head>
+		
+	<body>
+	    <div id = 'maincontainer'>
+		<h1 data-m4trans="_WidgetsLogTitle"></h1>
+		<p data-m4trans="_WidgetsLogDescription">
+			
+		</p>	
+		<h2 data-m4trans="_WidgetsLogSubtitle"></h2>
+		<pre class="brush: js;">    
+		  src="../libreria/mootools.js"
+		  src="../libreria/data/data.js"    
+		  src="../libreria/widget/widget.js"
+		</pre>
+		
+		
+		<!--Mostrar pila de errores definida en cliente-->
+        <h2 data-m4trans="_WidgetsLogShowErrorsSubtitle"></h2>
+        
+        <p data-m4trans="_WidgetsLogShowErrorsCode"></p>
+        <script>
+            m4loadExample('showErrors');
+        </script>
+           
+        <p data-m4trans="_WidgetsLogShowErrorsExecuteText"></p>
+        <button onclick="showErrors()" data-m4trans="_WidgetsLogShowErrorsExecuteButton"></button>
+        
+		<!--Error no controlado de javascript-->
+		<h2 data-m4trans="_WidgetsLogUnmanageErrorsSubtitle"></h2>
+        
+        <p data-m4trans="_WidgetsLogUnmanageErrorsDescription"></p>  
+        <script>
+            m4loadExample('unmanageError');
+        </script>
+          
+        <p data-m4trans="_WidgetsLogUnmanageErrorsExecutionText"></p>
+        <button onclick="unmanageError()" data-m4trans="_WidgetsLogUnmanageErrorsExecutionButton"></button>
+        
+		<!--unmanaged js Error on jsapi callback-->
+        <h2 data-m4trans="_WidgetsLogUnmanagejsapiSubtitle"></h2>
+        
+        <p data-m4trans="_WidgetsLogUnmanagejsapiDescription"></p>  
+        <script>
+            m4loadExample('unmanagejsapiError');
+        </script>
+         
+        <p data-m4trans="_WidgetsLogUnmanagejsapiExecutionText"></p>
+        <button onclick="unmanagejsapiError()" data-m4trans="_WidgetsLogUnmanagejsapiExecutionButton"></button>
+        
+        <!-- set Warning -->
+        <h2 data-m4trans="_WidgetsLogSetWarningSubtitle"></h2>
+
+        <p data-m4trans="_WidgetsLogSetWarningDescription"></p>
+        <script>
+            m4loadExample('setWarning');
+        </script>
+        
+        <p data-m4trans="_WidgetsLogSetWarningExecutionText"></p>
+        <button onclick="setWarning()" data-m4trans="_WidgetsLogSetWarningExecutionButton"></button>
+                
+        <!-- set log -->
+        <h2 data-m4trans="_WidgetsLogSetLogSubtitle"></h2>
+        
+        <p data-m4trans="_WidgetsLogSetLogDescription"></p>  
+        <script>
+            m4loadExample('setLog');
+        </script>
+          
+        <p data-m4trans="_WidgetsLogSetLogExecutionText1"></p>
+        <button onclick="setLog()" data-m4trans="_WidgetsLogSetLogExecutionButton1"></button>
+        <script>
+            m4loadExample('setLog10');
+        </script>
+        <p data-m4trans="_WidgetsLogSetLogExecutionText10"></p>
+        <button onclick="setLog10()" data-m4trans="_WidgetsLogSetLogExecutionButton10"></button>
+        
+        <!-- java Error -->
+        <h2 data-m4trans="_WidgetsLogJavaErrorSubtitle"></h2>
+        
+        <p data-m4trans="_WidgetsLogJavaErrorDescription"></p>  
+        <script>
+            m4loadExample('javaError');
+        </script>
+		
+        <p data-m4trans="_WidgetsLogJavaErrorExecutionText"></p>
+        <button onclick="javaError()" data-m4trans="_WidgetsLogJavaErrorExecutonButton"></button>
+       </div>
+	</body>
+</html>

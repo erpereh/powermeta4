@@ -1,0 +1,1 @@
+var _emptyPayslipList="N\u00e3o h\u00e1 recibos para mostrar",_metadataError="N\u00e3o se podem mostrar os recibos",_methodError="N\u00e3o se podem mostrar os recibos",_payslip_title_toolbar="\u00daltimos recibos";

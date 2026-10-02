@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<?xml-stylesheet type="text/css" href="../css/m4svg.css" ?>
+<svg width="16" height="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#ffffff" class="icon" id="tree-horizontal">
+<path d="M96,224v-64h8c13.2,0,24-10.8,24-24V56c0-13.2-10.8-24-24-24H24C10.8,32,0,42.8,0,56v80c0,13.2,10.8,24,24,24h8v64 M32,128
+	V64h64v64H32z M224,224H96c0,0-55,0-64,0c-0.1,13.267,0,21.25,0,32c0,16,16,32,32,32c40,0,160,0,160,0v136c0,30.878,25.122,56,56,56
+	h104v8c0,13.2,10.8,24,24,24h80c13.199,0,24-10.8,24-24v-80c0-13.2-10.801-24-24-24h-80c-13.2,0-24,10.8-24,24v8h-96V288h96v8
+	c0,13.2,10.8,24,24,24h80c13.199,0,24-10.8,24-24v-80c0-13.2-10.801-24-24-24h-80c-13.2,0-24,10.8-24,24v8 M480,416v64h-64v-64H480z
+	 M480,224v64h-64v-64H480z"/>
+</svg>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<title>meta4.widget.table</title>
+			
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+        
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools-1.4.5.meta4v1.0.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+		
+		<!-- syntax highlighter -->
+        <script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+        <script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+	
+		<script>
+		function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);			
+		</script>
+
+		<script src="/js_examples/resources/table.js"></script>
+		 
+	</head>
+	
+	
+	<body>
+	    <div id = 'maincontainer'>
+		<h1 data-m4trans="_WidgetsTableTitle"></h1>
+		<p data-m4trans="_WidgetsTableDescription">			
+		</p>
+
+		<h2 data-m4trans="_WidgetsTableImportFiles"></h2>
+		<pre class="brush: js;">    
+			src="/js/mootools-1.4.5.meta4v1.0.js"
+			src="/js/data/data.js"
+			src="/js/widget/widget.js"
+		</pre>
+		
+		<!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
+		<noscript>
+			<div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+			<p data-m4trans="_WidgetsTableJSEnabled">
+			</p>
+			</div>
+		</noscript>		
+		
+		<script>
+			 SyntaxHighlighter.all();
+		</script>
+
+		
+		
+		<h2 data-m4trans="_WidgetsTableColumsExample10Title"></h2>
+        <p data-m4trans="_WidgetsTableColumsExample10Description">			
+		</p>
+		
+		<p data-m4trans="_WidgetsTableExample10HTMLCode">			
+		</p>	
+		<pre class="brush: js;">
+            //load metadatada by context  
+			<div id="example10"  data-m4context="example10" data-m4t3="EXJSAPI_COMPONENT"></div>
+        </pre>	
+					
+		<p data-m4trans="_WidgetsTableExample10JSCode">			
+		</p>	
+		<script>
+			m4loadExample('examplesTable.example10');
+		</script>
+
+		<div id="example10" data-m4context="example10" data-m4t3="EXJSAPI_COMPONENT" style="height:250px;overflow:auto;"></div>
+		
+		<button onclick="examplesTable.example10()" data-m4trans="_WidgetsTableColumsExample10Draw">Pintar tabla</button>
+		
+		
+		
+	<h2 data-m4trans="_WidgetsTableExample20Title"></h2>
+        <p data-m4trans="_WidgetsTableColumsExample20Description">			
+		</p>
+		
+		<p data-m4trans="_WidgetsTableExample20HTMLCode">			
+		</p>	
+		<pre class="brush: js;">
+            //load metadatada by context  
+			<div id="example20"  data-m4context="example20" data-m4t3="EXJSAPI_COMPONENT"></div>
+        </pre>	
+					
+		<p data-m4trans="_WidgetsTableExample20JSCode">			
+		</p>	
+		<script>
+			m4loadExample('examplesTable.example20');
+		</script>
+
+		<div id="example20" data-m4context="example20" data-m4t3="EXJSAPI_COMPONENT" style="height:300px;overflow:auto;"></div>
+		
+		<button onclick="examplesTable.example20()" data-m4trans="_WidgetsTableExample20Draw"></button>
+		
+		
+		
+		
+		
+		
+
+		<h2 data-m4trans="_WidgetsTableExample30Title"></h2>
+			
+		<p data-m4trans="_WidgetsTableExample30HTMLCode">
+			Código HTML
+		</p>	
+		<pre class="brush: js;">
+            //load metadatada by context  
+			<div id="example30" data-m4context="example30" data-m4t3="EXJSAPI_COMPONENT"></div>
+        </pre>	
+					
+		<p data-m4trans="_WidgetsTableExample30JSCode">			
+		</p>	
+		<script>
+			m4loadExample('examplesTable.example30');
+		</script>
+
+		<div id="example30" data-m4context="example30" data-m4t3="EXJSAPI_COMPONENT" style="height:200px;overflow:auto;"></div>
+		
+		<button onclick="examplesTable.example30()" data-m4trans="_WidgetsTableExample30Draw"></button>
+		
+		
+		
+		
+		
+		
+
+		<h2 data-m4trans="_WidgetsTableExample40Title"></h2>
+		
+		<p data-m4trans="_WidgetsTableExample40HTMLCode">			
+		</p>	
+		<pre class="brush: js;">
+            //load metadatada by context  
+			<div id="example40" data-m4context="example40" data-m4t3="EXJSAPI_COMPONENT"></div>
+        </pre>	
+					
+		<p data-m4trans="_WidgetsTableExample40JSCode">			
+		</p>	
+		<script>
+			m4loadExample('examplesTable.example40');
+		</script>
+		
+		<div id="example40" data-m4context="example40" data-m4t3="EXJSAPI_COMPONENT" style="height:250px;overflow:auto"></div>		
+		
+		<button onclick="examplesTable.example40()" data-m4trans="_WidgetsTableExample40Draw"></button>
+		
+		
+		
+		
+		
+		
+		<p data-m4trans="_WidgetsTableExample50HTMLCode">			
+		</p>	
+		<pre class="brush: js;">
+            //load metadatada by context  
+			<div id="example50"></div>
+        </pre>	
+					
+		<p data-m4trans="_WidgetsTableExample50JSCode">			
+		</p>	
+		<script>
+			m4loadExample('examplesTable.example50');
+		</script>
+		
+		<div id="example50" style="height:250px;overflow:auto"></div>		
+		
+		<button onclick="examplesTable.example50()" data-m4trans="_WidgetsTableExample50Draw"></button>		
+		
+		
+		
+		
+		
+		
+		
+		<h2 data-m4trans="_WidgetsTableExample60HTMLTitle">
+		</h2>	
+							
+		<p data-m4trans="_WidgetsTableExample60JSCode">			
+		</p>	
+		<script>
+			m4loadExample('examplesTable.example60');
+		</script>
+		
+		<div id="example60" style="height:250px;overflow:auto"></div>		
+		
+		<button onclick="examplesTable.example60()" data-m4trans="_WidgetsTableExample60Daw"></button>
+	</div>
+	</body>
+</html>
+

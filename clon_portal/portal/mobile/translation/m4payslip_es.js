@@ -1,0 +1,1 @@
+﻿var _emptyPayslipList="No hay recibos para mostrar";var _metadataError="No se pueden mostrar los recibos";var _methodError="No se pueden mostrar los recibos";var _payslip_title_toolbar="Últimos recibos";

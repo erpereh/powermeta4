@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M120,79.5 C126.52,79.5 132.28,81.2828571 136.96,83.6142857 C141.28,85.8085714 144,90.7457143 144,96.0942857 L144,98.9285714 C144,101.442857 142.2,103.5 140,103.5 L100,103.5 C97.8,103.5 96,101.442857 96,98.9285714 L96,96.14 C96,90.7457143 98.72,85.8085714 103.04,83.66 C107.72,81.2828571 113.48,79.5 120,79.5 Z" id="groups-path-1"></path>
+        <path d="M120,73.5 C126.6,73.5 132,68.1 132,61.5 C132,54.9 126.6,49.5 120,49.5 C113.4,49.5 108,54.9 108,61.5 C108,68.1 113.4,73.5 120,73.5 Z" id="groups-path-2"></path>
+        <path d="M24,79.5 C30.52,79.5 36.28,81.2828571 40.96,83.6142857 C45.28,85.8085714 48,90.7457143 48,96.0942857 L48,98.9285714 C48,101.442857 46.2,103.5 44,103.5 L4,103.5 C1.8,103.5 0,101.442857 0,98.9285714 L0,96.14 C0,90.7457143 2.72,85.8085714 7.04,83.66 C11.72,81.2828571 17.48,79.5 24,79.5 Z" id="groups-path-3"></path>
+        <path d="M24,73.5 C30.6,73.5 36,68.1 36,61.5 C36,54.9 30.6,49.5 24,49.5 C17.4,49.5 12,54.9 12,61.5 C12,68.1 17.4,73.5 24,73.5 Z" id="groups-path-4"></path>
+        <path d="M72,76.5 C81.78,76.5 90.42,78.84 97.44,81.9 C103.92,84.78 108,91.26 108,98.28 L108,102 C108,105.3 105.3,108 102,108 L42,108 C38.7,108 36,105.3 36,102 L36,98.34 C36,91.26 40.08,84.78 46.56,81.96 C53.58,78.84 62.22,76.5 72,76.5 Z" id="groups-path-5"></path>
+        <path d="M72,36 C81.96,36 90,44.04 90,54 C90,63.96 81.96,72 72,72 C62.04,72 54,63.96 54,54 C54,44.04 62.04,36 72,36 Z" id="groups-path-6"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Groups">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#groups-path-1"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#groups-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#groups-path-2"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#groups-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#groups-path-3"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#groups-path-3"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#groups-path-4"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#groups-path-4"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#groups-path-5"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#groups-path-5"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#groups-path-6"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#groups-path-6"></use>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,86 @@
+<!-- =========================================================
+	@(#) FileVersion: 821.001.006
+	@(#) FileDescription: cegidid.html
+	@(#) CompanyName: Cegid Spain, S.A.U.
+	@(#) LegalCopyright: (c) 2023
+	@(#) ProductName: Peoplenet
+========================================================= -->
+
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Pragma" content="no-cache" />
+	<meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+	<meta http-equiv="Expires" content="-1" />
+	<title>Cegid ID Sign In</title>
+
+	<script type="text/javascript">
+		try {
+			if (typeof (Storage) !== "undefined") {
+				sessionStorage.setItem("m4jseventsLoginEventTime", Date.now());
+			}
+		}
+		catch (err) { }
+
+		function moveTopWindow() {
+			try {
+				if (window.top && window.top != window) {
+					top.location = window.document.location;
+				}
+			}
+			catch (err) {
+				console.error("Error accessing window.parent: ", err);
+			}
+		}
+
+		function getParameter(paramId) {
+			const queryString = window.location.search;
+			const urlParams = new URLSearchParams(queryString);
+			return urlParams.get(paramId);
+		}
+
+		function HTMLloaded() {
+			moveTopWindow();
+
+			try {
+				const code = getParameter('code');
+				if (!code) {
+					throw "code param is empty.";
+				}
+				
+				const state = getParameter('state');
+				if (!state) {
+					throw "state param is empty.";
+				}
+				const stateJson = JSON.parse(atob(state));
+
+				let loginForm = document.loginForm;
+				loginForm._CODE.value = code;
+				loginForm._STATEID.value = stateJson.stateID;
+				loginForm._SOURCEURL.value = stateJson.sourceUrl;
+				loginForm._LOGINTYPE.value = stateJson.loginType;
+
+				loginForm.action = stateJson.callbackUrl;
+				
+				loginForm.submit();
+			}
+			catch (err) {
+				console.error("Error generating login post form: ", err);
+				console.log("On url: ", location.href);
+			}
+		}
+	</script>
+
+</head>
+
+<body onload="javascript:HTMLloaded()">
+	<form method="post" name="loginForm" action="">
+		<input type="hidden" name="_CODE" value="" />
+		<input type="hidden" name="_STATEID" value="" />
+		<input type="hidden" name="_SOURCEURL" value="" />
+		<input type="hidden" name="_LOGINTYPE" value="" />
+	</form>
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+﻿<!-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: m4my_profile.html
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= -->
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>My Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" />    
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+
+    <script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+    
+    <script src="/library/jquery.js"></script>    
+    <script src="js/meta4.mobile.js"></script>
+
+    <script src="/library/jquery.mobile.js"></script>
+
+     <link rel="stylesheet" href="/style/jquery.mobile.structure.css" />
+
+    <link rel="stylesheet" href="css/mobile.generic.css" />
+
+    <link rel="stylesheet" href="css/mobile.my_profile.css" />
+
+    <script src="js/meta4.ui.log.js"></script>
+    <script src="js/meta4.mobile.my_profile.js"></script>
+
+</head>
+<body>
+    <div id="spinnerContainer" >
+        <div class="spinner-header"></div>
+        <div class="spinner">
+            <img src="/mobile/icons/m4-loading.gif">
+        </div>
+    </div>
+    <!--INITIAL PAGE-->
+    <div data-role="page" id="page_profile" style="visibility: hidden;">
+        <div data-role="header" data-position="fixed"  data-tap-toggle="false" class="m4-mobileHeader">
+            <h2 data-m4trans="_titlePage"></h2>            
+            <a id="goHome" href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+        </div>
+
+        <div data-role="content" id="contentMyProfile">
+            <ul data-role="listview" id="listContainer">
+                <!--maintenain session-->
+                <li id="switchSesstionLi">
+                    <div class="switchSessionDiv">
+                        <h4 data-m4trans="_maintain_session" class="switchSesstionTittle"></h4>
+                    </div>
+
+                    <div class="switchSessionSelect">
+                        <select data-role="slider" id="mantainSession">
+                            <option value="false">Off</option>
+                            <option value="true" selected>On</option>
+                        </select>
+                    </div>
+                </li>
+                <!--change language-->
+                <li>
+                    <h4 data-m4trans="_change_language"></h4>
+                    
+                    <select id="languageSelect"> 
+                        <option value="2">English</option>   
+                        <option value="3">Español</option>
+                        <option value="4">Français</option>
+                        <option value="5">Português</option>
+                        <option value="6">Deutsch</option>
+                        <option value="7">Italiano</option>
+                        <option value="8">Polski</option>
+                    </select>                    
+                </li>
+                <!--change client id--> 
+                <li id="deleteDefaultserver">
+                    <div class="switchSessionDiv">
+                         <button id="deletedefault" data-m4trans="_changeClientID"><a id="logoutList" href="javascript:meta4.mobile.logout.open();" data-icon="m4logoff" data-rel="popup" data-position-to="window" data-iconpos="notext" data-m4title="_home_logout"></a></button>
+                    </div>
+                </li>
+                <!--server info-->              
+                <li>
+                    <h4 data-m4trans="_serverInfo"></h4>      
+                     <p id="labelServerInfo" style="text-align: center;font-size: 14px;font-weight: normal;margin-top: .6em;"></p>            
+                </li>  
+                <!--logout-->
+                <li id="logoutButton">
+                    <a id="logoutList" href="javascript:meta4.mobile.logout.open();" data-icon="m4logoff" data-rel="popup" data-position-to="window" data-iconpos="notext" data-m4title="_home_logout" data-m4trans="_home_logout"></a>
+                </li>               
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

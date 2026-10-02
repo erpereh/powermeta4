@@ -1,0 +1,114 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: jsstyle.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+
+/* Job Scheduler Tech Style */
+
+body {
+	background-image: url(/images/fondo.gif);
+	background-color: #fcedda;
+	color: #000000;
+	font-family: Verdana,Arial,Helvetica,Sans-Serif
+}
+
+img {
+	border-bottom: 0px;
+	border-left: 0px;
+	border-right: 0px;
+	border-top: 0px
+}
+
+a {
+	background-color: transparent;
+	COLOR: #0000d4;
+	TEXT-DECORATION: none
+}
+
+a:hover {
+	background-color: transparent;
+	COLOR: #d40000;
+	TEXT-DECORATION: underline;
+}
+
+table {
+	background-color: #b0b0b0;
+}
+
+.titleheader {
+	COLOR: #200000;
+	FONT-SIZE: 18px;
+	FONT-WEIGHT: bold;
+	font-family: Verdana,Arial,Helvetica,Sans-Serif;
+}
+
+.sectionheader {
+	background-color: #b0b0b0;
+	COLOR: #ffffff;
+	FONT-SIZE: 14px;
+	FONT-WEIGHT: bold;
+}
+
+.fieldedit {
+	COLOR: #200000;
+	FONT-SIZE: 10px;
+	FONT-WEIGHT: normal;
+	font-family: Verdana,Arial,Helvetica,Sans-Serif;
+}
+
+.camponombre {
+	COLOR: #200000;
+	FONT-SIZE: 10px;
+	FONT-WEIGHT: bold
+}
+
+.tablaheader {
+	background-color: #d0d0d0;
+	COLOR: #2064b9;
+	FONT-SIZE: 10px;
+	FONT-WEIGHT: bold;
+	TEXT-ALIGN: center
+}
+
+.tablaheaderrow {
+	background-color: #d0d0d0;
+	COLOR: #2064b9;
+	FONT-SIZE: 10px;
+	FONT-WEIGHT: bold;
+	TEXT-ALIGN: left
+}
+
+.tabladato {
+	background-color: #ffffff;
+	COLOR: #2064b9;
+	FONT-SIZE: 10px;
+	FONT-WEIGHT: bold;
+	TEXT-ALIGN: center
+}
+
+.tabladatotext {
+	background-color: #ffffff;
+	COLOR: #2064b9;
+	FONT-SIZE: 10px;
+	FONT-WEIGHT: bold;
+	TEXT-ALIGN: left
+}
+
+.tabladatotraza {
+	background-color: #ffffff;
+	COLOR: #2064b9;
+	FONT-SIZE: 10px;
+	TEXT-ALIGN: left
+}
+
+.tablalink {
+	background-color: #ffffff;
+	COLOR: #d40000;
+	FONT-SIZE: 10px;
+	FONT-WEIGHT: bold;
+	TEXT-ALIGN: center
+}

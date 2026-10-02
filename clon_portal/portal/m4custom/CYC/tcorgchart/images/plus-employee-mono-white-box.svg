@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<?xml-stylesheet type="text/css" href="../css/m4svg.css" ?>
+<svg width="28" height="28" viewBox="0 0 896 896" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#4e647e" class="icon" id="plus-employee-mono-white-box">
+<g id="Layer_3">
+	<rect fill="#3E4753" width="896" height="896"/>
+</g>
+<g id="Layer_1">
+	<rect x="416" y="576" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="384" y="576" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="352" y="576" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="320" y="576" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="448" y="576" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="480" y="576" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="512" y="576" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="416" y="544" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="416" y="512" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="416" y="480" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="416" y="608" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="416" y="640" fill="#FFFFFF" width="32" height="32"/>
+	<rect x="416" y="672" fill="#FFFFFF" width="32" height="32"/>
+</g>
+<g id="Layer_5">
+	<path fill="#FFFFFF" d="M355.199,268.801c0,42.414,34.385,76.799,76.8,76.799s76.8-34.385,76.8-76.799
+		C508.8,226.385,474.415,192,432,192S355.199,226.385,355.199,268.801z M483.199,345.6H380.8c-42.239,0-76.8,23.039-76.8,51.201V448
+		h256v-51.199C560,368.639,525.44,345.6,483.199,345.6z"/>
+</g>
+<g id="Guias">
+</g>
+</svg>

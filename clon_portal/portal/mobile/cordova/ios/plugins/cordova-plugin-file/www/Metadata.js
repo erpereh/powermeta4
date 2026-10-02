@@ -1,0 +1,1 @@
+cordova.define("cordova-plugin-file.Metadata",function(d,a,c){var b=function(e){if(typeof e==="object"){this.modificationTime=new Date(e.modificationTime);this.size=e.size||0}else{if(typeof e==="undefined"){this.modificationTime=null;this.size=0}else{this.modificationTime=new Date(e)}}};c.exports=b});

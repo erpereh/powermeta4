@@ -1,0 +1,714 @@
+/* =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: tc_login.css
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= */
+
+BODY
+{
+    COLOR: #000000;
+    FONT-FAMILY: Verdana,Arial,Helvetica,Sans-Serif;
+    BACKGROUND-COLOR: #ffffff
+}
+IMG
+{
+    BORDER-RIGHT: 0px;
+    BORDER-TOP: 0px;
+    BORDER-LEFT: 0px;
+    BORDER-BOTTOM: 0px
+}
+A:link
+{
+    BORDER-RIGHT: #e0ffff;
+    BORDER-TOP: #e0ffff;
+    BORDER-LEFT: #e0ffff;
+    COLOR: #2064b9;
+    BORDER-BOTTOM: #e0ffff;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+A:visited
+{
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+A:active
+{
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+A:hover
+{
+    COLOR: #d40000;
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: underline
+}
+TABLE.tabladatos
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ff4500
+}
+.tablaestadosceldatitulo
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 12px;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #41608b
+}
+.titulofuncional
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 18px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #ffffff
+}
+}
+.titulosendpass
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 18px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #ffffff
+}
+.descripcionsendpass
+{
+    FONT-SIZE: 12px;
+    COLOR: #195095;
+    BACKGROUND-COLOR: #ffffff
+}
+.descripcionfuncional
+{
+    FONT-SIZE: 12px;
+    COLOR: #195095;
+    BACKGROUND-COLOR: #ffffff
+}
+.enlacefuncional
+{
+    FONT-SIZE: 10px;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #ffffff
+}
+.calendario
+{
+    BORDER-RIGHT: 1px;
+    BORDER-TOP: 1px;
+    BORDER-LEFT: 1px;
+    WIDTH: 35%;
+    COLOR: #000000;
+    BORDER-BOTTOM: 1px;
+    BACKGROUND-COLOR: #808cbf
+}
+.colortabla
+{
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+.today
+{
+    FONT-WEIGHT: bolder;
+    COLOR: #ff0000;
+    BACKGROUND-COLOR: transparent
+}
+.days
+{
+    FONT-WEIGHT: bold;
+    COLOR: #000080;
+    BACKGROUND-COLOR: #ffffff
+}
+.fuentecampo
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 12px;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #eaf2ff;
+    TEXT-ALIGN: left
+}
+.fuentecampo2
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 12px;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #f1f8fc;
+    TEXT-ALIGN: left
+}
+.fuentevalor
+{
+    FONT-SIZE: 10px;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #eaf2ff;
+    TEXT-ALIGN: left
+}
+.fuentevalor3
+{
+    FONT-SIZE: 10px;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #c2d7ed;
+    TEXT-ALIGN: left
+}
+.fuentebarranombre
+{
+    FONT-SIZE: 10px;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+.fuentelinktitulo
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 12px;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #41608b
+}
+.fuentelinkcampo
+{
+    FONT-SIZE: 12px;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #264365
+}
+.tablalink
+{
+    BORDER-RIGHT: #ffffff thin;
+    BORDER-TOP: #ffffff thin;
+    BORDER-LEFT: #ffffff thin;
+    COLOR: #ffffff;
+    BORDER-BOTTOM: #ffffff thin;
+    BACKGROUND-COLOR: #ffffff
+}
+.tablasendpass
+{
+    BACKGROUND-COLOR: #264365
+}
+.fuentedescripcion
+{
+    FONT-SIZE: 13px;
+    COLOR: #195095;
+    BACKGROUND-COLOR: #ffffff
+}
+.fuentetitulomenu
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 14px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #ffffff
+}
+.fuentedisclaimer
+{
+    FONT-SIZE: 10px;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.tablacabecera
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #c2d7ed
+}
+.separador
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #c60008
+}
+DIV.capamenu
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #ffc0cb
+}
+TABLE.tablamenu
+{
+    COLOR: #395a82;
+    BACKGROUND-COLOR: #f8dba5
+}
+DIV.capalinks
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #008000
+}
+DIV.capacuerpo
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #ffe4c4
+}
+DIV.capadisclaimer
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #0000ff
+}
+.fuentecapamenu
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 10px;
+    COLOR: navy;
+    BACKGROUND-COLOR: transparent
+}
+TABLE.tablamenusuperior
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #52a2c8
+}
+.fuentemenusuperior
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 10px;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #52a2c8
+}
+.fuentemenu
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 10px;
+    COLOR: #395a82;
+    BACKGROUND-COLOR: #f8dba5
+}
+.fuentemenu1
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 10px;
+    COLOR: white;
+    BACKGROUND-COLOR: #395a82
+}
+HR.barramenu
+{
+    COLOR: #eebe8b;
+    BACKGROUND-COLOR: #ffffff
+}
+UL.listaenlace
+{
+    COLOR: #fdbb58;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: left
+}
+.fuentecalendario1
+{
+    COLOR: #6495ed;
+    BACKGROUND-COLOR: #ffebcd
+}
+.fuentecalendario2
+{
+    COLOR: #6495ed;
+    BACKGROUND-COLOR: #add8e6
+}
+.fuentecalendario3
+{
+    COLOR: #6495ed;
+    BACKGROUND-COLOR: #ffdead
+}
+.fuentecalendario4
+{
+    COLOR: #6495ed;
+    BACKGROUND-COLOR: #dc143c
+}
+.fuentecalendario
+{
+    FONT-SIZE: 12px;
+    COLOR: #f0ffff;
+    BACKGROUND-COLOR: #808cbf;
+    TEXT-ALIGN: center
+}
+.separadorlinea
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #f1f8fc
+}
+.fuentecamponombre
+{
+    FONT-WEIGHT: bold;
+    FONT-SIZE: 10px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #eaf2ff
+}
+.fuentecampoaccion
+{
+    FONT-SIZE: 12px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #eaf2ff
+}
+.fuentecampoaccion2
+{
+    FONT-SIZE: 12px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #f1f8fc
+}
+.fuentecampofiltro
+{
+    FONT-SIZE: 12px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #eaf2ff
+}
+A
+{
+    BACKGROUND-COLOR: transparent;
+    TEXT-DECORATION: none
+}
+.fuentebarraregistros
+{
+    BORDER-RIGHT: #087aa8 1px solid;
+    BORDER-TOP: #087aa8 1px solid;
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 10px;
+    BORDER-LEFT: #087aa8 1px solid;
+    COLOR: #2064b9;
+    BORDER-BOTTOM: #087aa8 1px solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    TEXT-ALIGN: center
+}
+.fuentebarraregistrosanulado
+{
+    BORDER-RIGHT: #087aa8 1px solid;
+    BORDER-TOP: #087aa8 1px solid;
+    FONT-WEIGHT: lighter;
+    FONT-SIZE: 10px;
+    BORDER-LEFT: #087aa8 1px solid;
+    COLOR: #ff4500;
+    BORDER-BOTTOM: #087aa8 1px solid;
+    BACKGROUND-COLOR: #f1f8fc;
+    TEXT-ALIGN: center
+}
+.tablacapamenu
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #f8dba5
+}
+.fuentemenuprincipal
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 10px;
+    COLOR: #395a82;
+    BACKGROUND-COLOR: #c2d7ed
+}
+.acep
+{
+    COLOR: #4169e1;
+    LIST-STYLE-TYPE: square;
+    BACKGROUND-COLOR: #ffffff
+}
+.cance
+{
+    COLOR: #e9967a;
+    LIST-STYLE-TYPE: square;
+    BACKGROUND-COLOR: #ffffff
+}
+.fest
+{
+    COLOR: #ffd700;
+    LIST-STYLE-TYPE: square;
+    BACKGROUND-COLOR: #ffffff
+}
+.pend
+{
+    COLOR: #dc143c;
+    LIST-STYLE-TYPE: square;
+    BACKGROUND-COLOR: #ffffff
+}
+.tablanavegacion
+{
+    BORDER-RIGHT: #087aa8 thin solid;
+    BORDER-TOP: #087aa8 thin solid;
+    BORDER-LEFT: #087aa8 thin solid;
+    COLOR: #ffffff;
+    BORDER-BOTTOM: #087aa8 thin solid;
+    BACKGROUND-COLOR: #f1f8fc
+}
+.fuenteformulario
+{
+    FONT-SIZE: 10px;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #ffffff
+}
+.fuenteboton
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #eaf2ff;
+    TEXT-ALIGN: center
+}
+.fuentetitulomapa
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 12px;
+    COLOR: #3b5f91;
+    BACKGROUND-COLOR: #fff8eb
+}
+.fuentemapa
+{
+    FONT-SIZE: 10px;
+    COLOR: #3b5f91;
+    BACKGROUND-COLOR: #eaf2ff
+}
+.tablamapa
+{
+    BORDER-RIGHT: #3b5f91 2px solid;
+    BORDER-TOP: #3b5f91 2px solid;
+    BORDER-LEFT: #3b5f91 2px solid;
+    COLOR: #3b5f91;
+    BORDER-BOTTOM: #3b5f91 2px solid;
+    BACKGROUND-COLOR: #fff8eb
+}
+.tablaplan
+{
+    BORDER-RIGHT: #3b5f91 2px solid;
+    BORDER-TOP: #3b5f91 2px solid;
+    BORDER-LEFT: #3b5f91 2px solid;
+    COLOR: #3b5f91;
+    BORDER-BOTTOM: #3b5f91 2px solid;
+    BACKGROUND-COLOR: #fff8eb
+}
+.fuentenodatos
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 12px;
+    COLOR: #a04107;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+.fuenteformulario100
+{
+    FONT-SIZE: 10px;
+    WIDTH: 100px;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #ffffff
+}
+.fuenteformulario150
+{
+    FONT-SIZE: 10px;
+    WIDTH: 150px;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #ffffff
+}
+.fuenteformulario200
+{
+    FONT-SIZE: 10px;
+    WIDTH: 200px;
+    COLOR: #2064b9;
+    BACKGROUND-COLOR: #ffffff
+}
+.tablamenuright
+{
+    TEXT-ALIGN: right
+}
+.tablamenuleft
+{
+    TEXT-ALIGN: left
+}
+.fuentevalor2
+{
+    FONT-SIZE: 10px;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #f1f8fc;
+    TEXT-ALIGN: left
+}
+.fuentebotonright
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #eaf2ff;
+    TEXT-ALIGN: right
+}
+.fuentebotonright2
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #f1f8fc;
+    TEXT-ALIGN: right
+}
+.tablaestadosceldatituloflecha
+{
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #41608b;
+    TEXT-ALIGN: right
+}
+.fuenteactualizar
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 14px;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+.fuenteactualizar2
+{
+    FONT-SIZE: 12px;
+    COLOR: #195095;
+    BACKGROUND-COLOR: #ffffff;
+    TEXT-ALIGN: center
+}
+.enlacenofuncional
+{
+    FONT-SIZE: 10px;
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff
+}
+.password1
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 0%;
+    COLOR: #b90000;
+    BACKGROUND-COLOR: #ffffff
+}
+.password2
+{
+    COLOR: #195095;
+    BACKGROUND-COLOR: #ffffff
+}
+TABLE.path
+{
+    FONT-SIZE: 11px;
+    COLOR: #738aa5
+}
+TABLE.path TD.path
+{
+    TEXT-ALIGN: left
+}
+TABLE.path TD.date
+{
+    FONT-SIZE: 11px;
+    COLOR: #18385a;
+    TEXT-ALIGN: right
+}
+TABLE.disclaimer
+{
+    FONT-SIZE: 68%;
+    TEXT-ALIGN: center
+}
+TABLE.disclaimer TD.disclaimer
+{
+}
+TD.mblue
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    FONT-SIZE: 12pt;
+    BORDER-LEFT: medium none;
+    COLOR: #ffffff;
+    BORDER-BOTTOM: medium none;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #315275
+}
+TD.manos
+{
+    BACKGROUND-IMAGE: url(/images/ic_manos_422_279.gif)
+}
+TD.texto1
+{
+    FONT-SIZE: 12px;
+    COLOR: #325274;
+    FONT-FAMILY: Verdana
+}
+TD.texto2
+{
+    FONT-SIZE: 12px;
+    COLOR: #ffffff;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #315275
+}
+TD.dis
+{
+    FONT-SIZE: 10px;
+    COLOR: #ffffff;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #315275;
+    TEXT-ALIGN: center
+}
+TD.linear
+{
+    COLOR: #d40000;
+    BACKGROUND-COLOR: #d40000
+}
+
+TD.disusupass
+{
+    FONT-SIZE: 12px;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #264365;
+    TEXT-ALIGN: center
+}
+
+A.disusupass:visited
+{
+    FONT-SIZE: 12px;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #264365;
+    TEXT-ALIGN: center
+}
+A.disusupass:hover
+{
+    FONT-SIZE: 12px;
+    COLOR: #d40000;
+    BACKGROUND-COLOR: #264365;
+    TEXT-ALIGN: center;
+    TEXT-DECORATION: underline
+}
+
+A.disusupass:link
+{
+    FONT-SIZE: 12px;
+    COLOR: #ffffff;
+    BACKGROUND-COLOR: #264365;
+    TEXT-ALIGN: center
+}
+
+
+A.lang
+{
+    FONT-SIZE: 12px;
+    COLOR: #325274;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #ffffff
+}
+.mwhite
+{
+    BACKGROUND-COLOR: #ffffff
+}
+.selectform75
+{
+    WIDTH: 75%;
+    BACKGROUND-COLOR: transparent
+}
+A.dis:visited
+{
+    FONT-SIZE: 10px;
+    COLOR: #ffffff;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #315275;
+    TEXT-ALIGN: center
+}
+A.dis:hover
+{
+    FONT-SIZE: 10px;
+    COLOR: #d40000;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #315275;
+    TEXT-ALIGN: center;
+    TEXT-DECORATION: underline
+}
+
+A.dis:link
+{
+    FONT-SIZE: 10px;
+    COLOR: #ffffff;
+    FONT-FAMILY: Verdana;
+    BACKGROUND-COLOR: #315275;
+    TEXT-ALIGN: center
+}
+.tablelist {
+    font-family: Verdana,Arial,Helvetica,Sans-Serif;
+    font-size: 75%;
+}
+.tablerow {
+    cursor: pointer;
+    color: #2064b9;
+    background-color: #ffffff;
+}
+.tablerowhover {
+    cursor: pointer;
+    color: #2064b9;
+    background-color: #eeeeff;
+}
+.tablerowselected {
+    color: #ffffff;
+    cursor: pointer;
+    background-color: #aaaaff;
+}
+.tablerowselectedhover {
+    color: #ffffff;
+    cursor: pointer;
+    background-color: #aaaaff;
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  - file: WEB-INF/classes/com/meta4/soapservices/services/rpc/CYC_VAL_FASE_I/undeploy.wsdd
+  - description: Self generated undeploy descriptor for CYC_VAL_FASE_I Soap Service
+  -
+  - Copyright Meta4 Spain S.A.
+  - Centro Europa Empresarial - Edf. Roma
+  - C/ Rozabella, 8
+  - 28230 Las Rozas - Madrid
+  - Spain
+  -->
+
+<undeployment xmlns="http://xml.apache.org/axis/wsdd/">
+    <service name="CYC_VAL_FASE_I"/> 
+</undeployment>

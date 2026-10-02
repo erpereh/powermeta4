@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M98.75,93.24836 L77.25,71.99836 L77.25,54.99836 C84.5,52.49836 89.5,44.99836 87.75,36.49836 C86.25,30.24836 81,25.24836 74.75,24.24836 C64.75,22.49836 56,30.24836 56,39.99836 C56,46.99836 60.5,52.74836 66.75,54.99836 L66.75,71.99836 L45.25,93.24836 L50.75,103.74836 L72,81.24836 L93.25,103.74836 L98.75,93.24836 Z" id="device-hub-path-1"></path>
+        <rect id="device-hub-path-2" x="24" y="93" width="27" height="27" rx="6"></rect>
+        <rect id="device-hub-path-3" x="93" y="93" width="27" height="27" rx="6"></rect>
+        <circle id="device-hub-path-4" cx="72" cy="40" r="16"></circle>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Device_Hub">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#device-hub-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#device-hub-path-1"></use>
+            </g>
+            <g id="Rectangle">
+                <use class="primary--fill" xlink:href="#device-hub-path-2"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#device-hub-path-2"></use>
+            </g>
+            <g id="Rectangle">
+                <use class="primary--fill" xlink:href="#device-hub-path-3"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#device-hub-path-3"></use>
+            </g>
+            <g id="Oval">
+                <use class="secondary--fill" xlink:href="#device-hub-path-4"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#device-hub-path-4"></use>
+            </g>
+        </g>
+    </g>
+</svg>

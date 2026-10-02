@@ -1,0 +1,31 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <title></title>
+        <script>
+            var urlParams = new URLSearchParams(window.location.search)
+            var language = urlParams.get("lang")
+            if (!language) language = navigator.language.substring(0, 2)
+            var url = "https://www.cegid.com/global/"
+            switch (language) {
+                case "fr":
+                    url = "https://www.cegid.com/fr/"
+                    break
+                case "pt":
+                    url = "https://www.cegid.com/ib/pt"
+                    break
+                case "es":
+                    url = "https://www.cegid.com/ib/es/"
+                    break
+                default:
+                    break
+            }
+            window.location.assign(url)
+        </script>
+    </head>
+
+    <body>
+        <noscript><strong>We're sorry but pop2 doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript>
+    </body>
+</html>

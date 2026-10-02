@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M13.7082822,106.177239 C8.86113076,114.549592 14.9043326,125.062245 24.5986356,125.062245 L119.401364,125.062245 C129.095667,125.062245 135.138869,114.549592 130.291718,106.177239 L82.8903533,24.2792644 C78.0432018,15.9069119 65.9567982,15.9069119 61.1096467,24.2792644 L13.7082822,106.177239 Z" id="warning-path-1"></path>
+        <polyline id="warning-path-2" points="72 30.5742663 119.401364 112.472241 24.5986356 112.472241 72 30.5742663"></polyline>
+        <path d="M65.7049981,62.1122259 L65.7049981,80.7022298 C65.7049981,84.1644808 68.5377489,86.9972317 72,86.9972317 C75.4622511,86.9972317 78.2950019,84.1644808 78.2950019,80.7022298 L78.2950019,62.1122259 C78.2950019,58.6499749 75.4622511,55.817224 72,55.817224 C68.5377489,55.817224 65.7049981,58.6499749 65.7049981,62.1122259 Z" id="warning-path-3"></path>
+        <circle id="warning-path-4" cx="72" cy="100.5" r="6"></circle>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Warning">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#warning-path-1"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#warning-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#warning-path-2"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#warning-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#warning-path-3"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#warning-path-3"></use>
+            </g>
+            <g id="Oval">
+                <use class="secondary--fill" xlink:href="#warning-path-4"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#warning-path-4"></use>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,44 @@
+<html>
+<head>
+<title>PeopleNet Ksystem</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+<script type="text/javascript">
+  function callHelpTec(){  	 
+     var sParentURL = window.parent.contenthelp.m4URLFrameswithLocale;
+	 var sHelpURL = "";
+	 if (typeof(sParentURL) != "undefined"){
+	    var sHelpFolder = "/help/"; 
+		var sHelpTecFolder = "/help_tec/";
+	    var iHelpIndex = sParentURL.indexOf(sHelpFolder)
+		if(iHelpIndex >0){ 		 
+	  	   sHelpURL =  sParentURL.substr(0,iHelpIndex) + sHelpTecFolder + sParentURL.substring(iHelpIndex + sHelpFolder.length,sParentURL.length)
+		}else{
+		   iHelpIndex = sParentURL.indexOf(sHelpTecFolder)
+  	 	   sHelpURL =  sParentURL.substr(0,iHelpIndex) + sHelpFolder + sParentURL.substring(iHelpIndex + sHelpTecFolder.length,sParentURL.length)
+		}		 
+		if (sHelpURL!=""){
+     	   window.open(sHelpURL,'helpPress','width=765,height=500,resizable=no,toolbar=no,scrollbars=yes,copyhistory=no,directories=no,status=yes');
+		}   
+	}
+  }
+</script>
+
+<body topmargin="0" leftmargin="0">
+<table border="0" cellpadding="0" cellspacing="0">
+<tr><td width="1" height="74" rowspan="2"><img src="../images/helpol1.gif" width="1" height="74"></td>
+<td width="99" height="22"><img src="../images/helpol2.gif" width="99" height="22"></td>
+<td width="493" height="22" bgcolor="#000000">&nbsp;</td>
+<td width="159" height="22" bgcolor="#000000">&nbsp;</td>
+<td width="13" height="22"><img src="../images/helpol3.gif" width="13" height="22"></td></tr>
+<tr><td width="52" height="52" bgcolor="#31659C">
+ <a href="" onclick="callHelpTec();return false;"><img src="../images/helpplus.gif" alt="Informations concernant les modules fonctionnels"
+border="0" /></a></td>
+
+<td width="536" height="52" bgcolor="#31659C">&nbsp;</td>
+<td width="159" height="52"><img src="../images/helpol4.gif" width="159" height="52"></td>
+<td width="13" height="52"><img src="../images/helpol5.gif" width="13" height="52"></td></tr>
+</table>
+</body>
+</html>
+

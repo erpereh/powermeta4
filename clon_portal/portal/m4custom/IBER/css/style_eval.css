@@ -1,0 +1,128 @@
+.dvHeaderEval {
+  background-color: #f1f1f1; 
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 13px;
+  padding: 0px 0px 0px 5px; 
+  border-top: #fff 8px solid; 
+  border-right: #fff 8px solid; 
+  border-left: #fff 8px solid;
+  z-index: 250;
+  position: absolute;
+  width: 280px;
+  left: 50px;
+}
+
+.spnHDTitleEval {
+  color: #575757;
+}
+
+.dvBodyEval {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px;
+  background-color: #f1f1f1; 
+  border: #fff 8px solid; 
+  padding: 5px 10px 5px 10px;
+  z-index: 250;
+  position: absolute;
+  width: 600px;
+  left: 50px;
+}
+
+.imgEnabled {
+  cursor: pointer;
+  z-index: 300;
+  position: absolute;
+  left: 670px;
+  width: 24px;
+  height: 24px;
+}
+
+.dvBdTitle {
+  clear: both;
+  padding: 5px 0px 5px 0px;
+}
+
+.spnBdTitleEval {
+  color: #737373;
+  font-size: 11px;
+  padding: 2px 10px 0px 0px;
+  float: left; 
+}
+
+.spnBdTitleEvalTxt {
+  color: #ed833d; 
+  font-style: italic; 
+  font-size: 14px;
+}
+
+.dvBdSubTitle {
+  padding: 0px 0px 10px 0px;
+}
+
+.dvtblEval {
+  clear: both;
+  margin: 0px 0px 10px 10px;
+}
+
+.tblEval {
+  font-size: 12px;
+  text-align: left;
+  font-weight: normal;
+}
+
+.tblEval thead {
+  text-align: left; 
+  background-color: #e7e7e7;
+  color: #575757;
+}
+
+.tblEval thead tr {
+}
+
+.tblEval thead tr td {
+  padding: 5px 5px 5px 5px;
+}
+
+.tblEval thead tr .tdthead1 {
+  text-align: center; 
+  width: 80px;
+}
+
+.tblEval thead tr .tdthead2 {
+  width: 470px;
+}
+
+.tblEval tbody tr td {
+  padding: 5px 5px 5px 5px;
+}
+
+.tblEval tbody tr .tdtbody1 {
+  text-align: center; 
+}
+
+.tblEval tbody tr .tdtbody2 {
+}
+
+.tblEval tbody .trodd {
+  background-color: #fff;
+  color: #054fa0;
+}
+
+.tblEval tbody .treven {
+  background-color: #f9f9f9; 
+  color: #3d89de;
+}
+
+.trchoose {
+  background-color:#747474; 
+  color:#fff;
+}
+
+.dvBdDesc {
+  color: #054fa0; 
+  font-size: 12px;
+  margin: 5px 0px 0px 20px;
+}
+
+.dvBdDesc span {
+}

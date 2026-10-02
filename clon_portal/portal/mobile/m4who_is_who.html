@@ -1,0 +1,176 @@
+<!-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: m4who_is_who.html
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Who is Who</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" />
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<!--                                           -->
+		<!-- This script loads your compiled module.   -->
+		<!-- If you add any GWT meta tags, they must   -->
+		<!-- be added before this line.                -->
+		<!--                                           -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<link rel="stylesheet" href="/mobile/css/mobile.who_is_who.css" />
+		<link rel="stylesheet" href="/mobile/css/mobile.generic.css" />
+    	
+
+		<script src="/library/jquery.js"></script>
+		<script src="js/meta4.mobile.js"></script>
+
+		<script src="/library/jquery.mobile.js"></script>
+
+		<script src="js/meta4.ui.log.js"></script>
+		<script src="js/meta4.mobile.who_is_who.js"></script>
+		<script src="js/meta4.ui.translate.js"></script>
+
+	</head>
+	<body>
+		<div id="spinnerContainer" >
+	        <div class="spinner-header"></div>
+	        <div class="spinner">
+	            <img src="/mobile/icons/m4-loading.gif">
+	        </div>
+	    </div>
+		<!--WHO IS WHO SEARCH PAGE-->
+		<div data-role="page" id="page_whoIsWho" style="visibility: hidden;">
+			<!--header-->
+			<div data-role="header" data-position="fixed"  data-tap-toggle="false" class="m4-mobileHeader">
+				<h2 id="mainTitle" data-m4trans="_task_title_who_is_who"></h2>	
+				<a id="goHome" href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+			</div>
+			<div class="tabs">
+				<ul data-role="listview" id="whoTabs" data-theme="a" class="ui-listview ui-group-theme-a">
+					<li id="searchTab" class=" divToolPerson borderBottomActive ui-li-has-count ui-first-child ui-last-child" onclick="showSearch()"><a><h1 data-m4trans="_home_search"></h1></a></li>
+					<li id="favouritesTab" class="divToolFavories borderBottomNonActive ui-li-has-count ui-first-child ui-last-child" onclick="showFavorites()"><a><h1 data-m4trans="_label_footer_favorites"></h1></a></li>
+				</ul>
+			</div>
+			<!--content-->
+			<div data-role="content" class="contentWhoisWho" >
+
+				<div class="divSearchPerson" id="divSearchPerson">
+					<input id="searchPerson" type="search" name="search" data-m4placeholder="_home_search" value="" />
+				</div>
+
+				<div id="contentSearchRoot" class="contentSearch">
+					<ul data-role="listview" id="contentListEmployees">
+						<!-- Dynamic content of result of employees -->
+					</ul>
+				</div>
+			</div>
+			<div data-role="footer" class="footer-WhoIsWho" data-position="fixed"  data-tap-toggle="false">
+				<div class="divToolPerson m4ButtonTextClass2">
+					<div class="selectDivFooter"></div>
+					<span/><!-- aquí va laimagen who_is_who_person.png -->
+				</div>
+				<div class="divToolFavories m4ButtonTextClass2" >
+					<span/><!-- aquí va laimagen who_is_who_favourites.png -->
+				</div>
+			</div>
+		</div>		
+		<!--WHO IS WHO FAVORITES PAGE -->
+		<div data-role="page" id="pageFavorites" style="visibility: hidden;">
+			<div data-role="header" data-position="fixed"  data-tap-toggle="false" class="m4-mobileHeader">
+				<h2 id="mainTitle" data-m4trans="_task_title_who_is_who" class="ui-title"></h2>	
+				<a id="goHome" href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+			</div>
+			<div class="tabs">
+				<ul data-role="listview" id="whoTabs" data-theme="a" class="ui-listview ui-group-theme-a">
+					<li id="searchTab" class="divToolPerson borderBottomNonActive ui-li-has-count ui-first-child ui-last-child" onclick="showSearch()"><a><h1 data-m4trans="_home_search"></h1></a></li>
+					<li id="favouritesTab" class="divToolFavories borderBottomActive ui-li-has-count ui-first-child ui-last-child" onclick="showFavorites()"><a><h1 data-m4trans="_label_footer_favorites"></h1></a></li>
+				</ul>
+			</div>
+			<div data-role="content" class="contentWhoisWho" >
+
+				
+				<div class="contentFavorites" id="contentFavorites">
+					<ul data-role="listview" id="ulContentFavorites" data-filter="true" data-filter-theme = "">
+						<!-- Dynamic content of result of employees -->
+					</ul>
+				</div>
+			</div>
+			<div data-role="footer" class="footer-WhoIsWho" data-position="fixed"  data-tap-toggle="false">
+				<div class="divToolPerson m4ButtonTextClass2">
+					<span/><!-- aquí va laimagen who_is_who_person.png -->
+				</div>
+				<div class="divToolFavories m4ButtonTextClass2">
+					<div class="selectDivFooter"></div>
+					<span/><!-- aquí va laimagen who_is_who_favourites.png -->
+				</div>
+			</div>
+		</div>
+		<!-- MY PERSO INFORMATION PAGE -->
+		<div data-role="page" id="pageInformation" style="visibility: hidden;">
+		
+		  <div data-role="popup" id="popupContactInfo" data-transition="pop" data-overlay-theme="b" data-theme="b" class="ui-content">
+				<form method="submit">
+					<div>
+					  <h3 data-m4trans="_contact_add_popup"></h3>
+						<label for="displayname" class="ui-hidden-accessible" data-m4trans="_contact_display_name"></label>
+						<input type="text" name="displayname" id="displayname" placeholder="Display Name">					
+						<label for="usrname" class="ui-hidden-accessible" data-m4trans="_contact_name"></label>
+						<input type="text" name="usrname" id="usrname" placeholder="Name">					
+						<label for="nickname" class="ui-hidden-accessible" data-m4trans="_contact_nickname"></label>
+						<input type="text" name="nickname" id="nickname" placeholder="Nickname">					
+						<label for="phonenumber" class="ui-hidden-accessible" data-m4trans="_contact_phone_number"></label>
+						<input type="text" name="phonenumber" id="phonenumber" placeholder="Phone Number">					
+						<label for="email" class="ui-hidden-accessible" data-m4trans="_contact_email">Email:</label>
+						<input type="text" name="email" id="email" placeholder="Email">					
+						<fieldset>				
+							<div class="ui-block-a"><a data-role="button" id="buttonAddContact" data-inline="true" data-m4trans="_confirm_add_contact"></a></div>
+							<div class="ui-block-b"><a data-role="button" id="buttoCancelAdd" data-inline="true" data-m4trans="_cancel_add_contact"></a></div>
+						</fieldset>
+					</div>
+				</form> 
+			</div>
+
+			<div data-role="header" data-position="fixed" data-tap-toggle="false" class="m4-mobileHeader whoHeader">			
+				<h2 id="mainTitle" data-m4trans="_task_title_who_is_who"></h2>	
+				<a id="goHome"  onclick="backToPage()" data-ajax="false"  data-iconpos="notext" data-direction="reverse" class="ui-btn-right backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+				<a href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="homeButton"><img id="logout-icon" src="/mobile/icons/home.svg"></a>
+			</div>
+			<div data-role="header" data-position="fixed" data-tap-toggle="false" class="m4-mobileHeader personHeader">			
+				<h2 id="mainTitle" data-m4trans="_InfoPerson"></h2>	
+				<a id="goHome" href="m4home.html" data-ajax="false" data-icon="m4home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right backbutton"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+			</div>
+
+			<div data-role="header" data-position="fixed"  data-tap-toggle="false" class="m4-mobileHeaderHome">
+	            <a id="settingsButton" href="m4home.html"><img id="logout-icon" src="/mobile/icons/back.svg"></a>
+	            <div id="contentInfoPersonRoot" class="contentInfoPerson">
+	                <div id="photoPerson" ></div>
+	                <div id="divName"></div>
+	                <div id="employeePosition" class="employeeInfo"></div>
+	                <div id="employeeWL" class="employeeInfo"></div>
+	            </div>
+	        </div>
+			<!-- /header -->
+
+			<div data-role="content">
+
+				<div class="contentInfoPerson">
+
+					<div id="employeeData" >
+					</div>
+				</div>
+				<div id="employeeManager"></div>
+				<div class="divContact">
+					<div id="phoneInfo"></div>
+					<div id="emailInfo"></div>
+					<div id="otherContactInfo"></div>
+				</div>
+				<div id="addContact">
+					<a data-rel="popup" data-role="button" id="showAddConctactPopup" data-m4trans="_add_contact"></a>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

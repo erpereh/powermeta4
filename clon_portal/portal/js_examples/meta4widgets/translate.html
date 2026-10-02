@@ -1,0 +1,155 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title>Meta4 data translate</title>
+
+    
+    	<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+    
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+
+		<!-- syntax highlighter -->
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+		
+		<script>
+			SyntaxHighlighter.all();
+		</script>
+
+		<script>
+			var example = {
+				example1 : function() {
+
+					function loadLanguageExample() {
+						alert('fichero de idiomas cargado');
+					}
+
+
+					meta4.widget.translate.loadLanguageFile(['pmco_process_executions'], loadLanguageExample);
+				},
+				example2 : function() {
+
+					var valueLiteral = meta4.widget.translate.getTranslate(('_g3_save'));
+					alert(valueLiteral);
+				}
+			};
+
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_widgets_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);
+
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+        
+        <div id='exampleContainer'>
+		<h1 data-m4trans="_WidgetsTranslateTitle"></h1>
+
+		<h2 data-m4trans="_WidgetsTranslateSubtitle"></h2>
+
+		<p data-m4trans="_WidgetsTranslateDescription"></p>
+		
+		<p data-m4trans="_WidgetsTranslateDescription2"></p>
+
+		<ul>
+			<li>
+				<label class="bold">data-m4placeholder: </label><span data-m4trans="_WidgetsTranslateListElementm4placeholder"><span>
+			</li>
+			<li>
+				<label class="bold">data-m4trans: </label><span data-m4trans="_WidgetsTranslateListElementm4trans"><span>
+			</li>
+			<li>
+				<label class="bold">data-m4title: </label><span data-m4trans="_WidgetsTranslateListElementm4title"><span>
+			</li>
+			<li>
+				<label class="bold">data-m4trans-item: </label><span data-m4trans="_WidgetsTranslateListElementm4transitem"><span>
+			</li>
+			<li>
+				<label class="bold">data-m4title-item: </label><span data-m4trans="_WidgetsTranslateListElementm4titleitem"><span>
+			</li>			
+		</ul>
+		<p data-m4trans="_WidgetsTranslateDescription3"></p>
+		<h2 data-m4trans="_WidgetsTranslateTagExample"></h2>
+		
+		<pre  class="brush: js;">
+			<input type="text" placeholder="First name"><br>
+		</pre>
+		<input type="text" placeholder="First name"><br>
+		
+		<pre  class="brush: js;">
+			<h2 data-m4trans="_titlePage"></h2>
+			<img id="pageHelp" class='m4tooltip' src="/iconos/info.png" data-m4title="_title_history">
+			
+			<span id='m4colors' data-m4trans-item='PLSS_LBL_LEYEND'></span>
+			<img class='m4imgaction' src='/iconos/icono_aceptar_todas_36_36.png' data-m4title-item='PLSS_LBL_VAL_OK_ALL'>
+		</pre>		
+
+		<p data-m4trans="_WidgetsTranslateLoadFile">
+			<ul>
+				<li data-m4trans="_WidgetsTranslateLoadFileList1">
+					
+				</li>
+				<li data-m4trans="_WidgetsTranslateLoadFileList2">
+					
+				</li>
+			</ul> 
+        </p>
+		
+		<h2 data-m4trans="_WidgetsTranslateLoadFileExample"></h2>
+		<script>
+			m4loadExample('example.example1');
+		</script>
+
+		<p data-m4trans="_WidgetsTranslateLoadFileButtonDescription"></p>
+		<button onclick="example.example1()" data-m4trans="_WidgetsTranslateLoadFileButton">			
+		</button>
+		<p data-m4trans="_WidgetsTranslateLoadFileDescription"></p>
+
+		<h2 data-m4trans="_WidgetsTranslateLoadFileDinamicallyExample"></h2>
+		<script>
+			m4loadExample('example.example2');
+		</script>
+
+		<p data-m4trans="_WidgetsTranslateLoadFileDinamicallyDescription"></p>
+		<button onclick="example.example2()" data-m4trans="_WidgetsTranslateLoadFileDinamicallyButton">			
+		</button>
+    </div>
+   </div>
+	</body>
+</html>
+

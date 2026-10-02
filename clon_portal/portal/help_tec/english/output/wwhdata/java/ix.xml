@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<WebWorksHelpIX version="4.0">
+ <g t="A" o="002">
+  <i t="Advanced queries">
+   <j l="16#wp1316382" />
+  </i>
+  <i t="Assigned tasks">
+   <j l="2#wp644702" />
+  </i>
+ </g>
+ <g t="H" o="002">
+  <i t="History Filter">
+   <j l="20#wp1316515" />
+  </i>
+ </g>
+ <g t="P" o="002">
+  <i t="Personal Tasks">
+   <j l="2#wp644711" />
+   <j l="3#wp644729" />
+   <j l="4#wp644773" />
+  </i>
+  <i t="Published graphs">
+   <j l="25#wp1316644" />
+  </i>
+  <i t="Published Queries">
+   <j l="17#wp1316404" />
+  </i>
+ </g>
+ <g t="Q" o="002">
+  <i t="Queries">
+   <i t="data filters">
+    <j l="20#wp1316505" />
+   </i>
+   <i t="Duplicate">
+    <j l="17#wp1316414" />
+   </i>
+   <i t="execution">
+    <j l="25#wp1316633" />
+   </i>
+   <i t="Field Selection">
+    <j l="18#wp1316456" />
+   </i>
+   <i t="FROM">
+    <j l="18#wp1316459" />
+   </i>
+   <i t="grouping data">
+    <j l="22#wp1316559" />
+   </i>
+   <i t="Output formats">
+    <j l="24#wp1316605" />
+   </i>
+   <i t="security">
+    <j l="24#wp1316611" />
+   </i>
+   <i t="SELECT">
+    <j l="18#wp1316459" />
+   </i>
+   <i t="Sort fields">
+    <j l="19#wp1316482" />
+   </i>
+   <i t="sorting data">
+    <j l="21#wp1316536" />
+   </i>
+   <i t="totalling data">
+    <j l="23#wp1316582" />
+   </i>
+  </i>
+ </g>
+ <g t="R" o="002">
+  <i t="Runtime">
+   <j l="24#wp1316613" />
+  </i>
+  <i t="Runtime Filter">
+   <j l="20#wp1316513" />
+  </i>
+ </g>
+ <g t="S" o="002">
+  <i t="Scenarios">
+   <j l="16#wp1316384" />
+   <j l="17#wp1316407" />
+  </i>
+  <i t="Simple queries">
+   <j l="16#wp1316379" />
+   <i t="Creation">
+    <j l="17#wp1316399" />
+   </i>
+  </i>
+ </g>
+ <g t="W" o="002">
+  <i t="Work Sessions">
+   <j l="7#wp644851" />
+  </i>
+ </g>
+</WebWorksHelpIX>

@@ -1,0 +1,127 @@
+<!-- =========================================================
+	@(#) FileVersion: 823.001.029
+	@(#) FileDescription: visionDashboard.html
+	@(#) CompanyName: Cegid Spain, S.A.U.
+	@(#) LegalCopyright: (c) 2026
+	@(#) ProductName: Peoplenet
+========================================================= -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="cache-control" content="max-age=0">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <meta http-equiv="pragma" content="no-cache">
+
+    <script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+    <script>
+        function meta4OnLoad() {
+            let m4Obj;
+            let node;
+            let visionURL;
+
+            const executor = new meta4.M4Executor();
+            executor.loadMetadata(["CSP_VISION_DASHBOARD"], onLoadMetadata, onError);
+
+            function onError(request) {
+                self.close();
+            }
+
+            function onLoadMetadata() {
+                const params = new URLSearchParams(window.location.search);
+                const dashboardTemplateKey = params.get('dashboardTemplateKey');
+                let custom = params.get('custom');
+                if (!custom) {
+                    custom = "yes";
+                }
+                let mode = params.get('mode');
+                if (!mode) {
+                    mode = "view";
+                }
+
+                m4Obj = new meta4.M4Object("CSP_VISION_DASHBOARD");
+                var request = new window.meta4.M4Request(m4Obj, "M4_VISION_DASHBOARD", 'CONNECT', [dashboardTemplateKey, custom, mode]);
+
+                document.title = m4Obj.getObjectMetadata().getProperty("Name");
+                executor.execute(request, onLoadData, onError);
+            }
+
+            function onLoadData(request) {
+                if (request.getResult() == -1) {
+                    self.close();
+                }
+                node = m4Obj.getNode("M4_VISION_DASHBOARD");
+                visionURL = node.getValue("VISIONURL");
+
+                let script = document.createElement('script');
+                if (!visionURL.endsWith('/')) {
+                    visionURL += '/';
+                }
+                script.src = visionURL + "assets/scripts/sdk/vision-sdk-es2015-v2.js";
+
+                script.onload = onSDKLoaded;
+                document.head.appendChild(script);
+            }
+
+            function onSDKLoaded() {
+                const tenant = node.getValue("TENANT");
+                const dashboardId = node.getValue("DASHBOARDID");
+                const culture = node.getValue("CULTURE");
+                const mode = node.getValue("MODE");
+
+                const sdk = new VisionSDK({
+                    baseUrl: visionURL,
+                    pathUrl: '/',
+                    tenant: tenant,
+                    lang: culture,
+                    mode: mode
+                });
+
+                const app = sdk.createApp({
+                    appId: dashboardId
+                });
+
+                const accessToken = node.getValue("ACCESSTOKEN");
+                sdk.setTokens({ t: accessToken });
+                app.render(document.getElementById('visionApp'));
+            }
+        }
+    </script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        #visionApp {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+
+    <title>Dashboard BI</title>
+</head>
+
+<body>
+    <div id="visionApp"></div>
+</body>
+
+</html>

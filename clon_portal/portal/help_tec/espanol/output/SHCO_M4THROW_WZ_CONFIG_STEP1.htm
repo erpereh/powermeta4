@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="GENERATOR" content="Quadralay WebWorks Publisher 2003 for FrameMaker 8.0.0.1194" />
+    <meta name="TEMPLATEBASE" content="ultima" />
+    <meta name="LASTUPDATED" content="03/11/05 16:13:35" />
+    <title>Cómo configurar la salida de un informe</title>
+    <link rel="StyleSheet" href="document.css" type="text/css" />
+   
+<script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/context.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/towwhdir.js"></script>
+  <script type="text/javascript" language="JavaScript1.2" src="wwhdata/common/wwhpagef.js"></script>
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Set reference to top level help frame
+    //
+    var  WWHFrame = WWHGetWWHFrame("");
+   // -->
+  </script>
+
+    <script type="text/javascript" language="JavaScript1.2" src="scripts/expand.js"></script>
+  </head>
+
+  <body onLoad="WWHUpdate();" onUnload="WWHUnload();" onKeyDown="WWHHandleKeyDown((document.all||document.getElementById||document.layers)?event:null);" onKeyPress="WWHHandleKeyPress((document.all||document.getElementById||document.layers)?event:null);" onKeyUp="WWHHandleKeyUp((document.all||document.getElementById||document.layers)?event:null);">
+
+   
+    
+    <blockquote>
+<a name="wp1311682"> </a><h2 class="pTitle">
+Cómo configurar la salida de un informe
+</h2>
+<hr />
+<!--ID_PRESENTATION: SHCO_M4THROW_WZ_CONFIG_STEP1-->
+<p class="bodytex"> Finalidad</p>
+<a name="wp1311254"> </a><p class="pBody">
+En este formulario se describen los pasos que se tienen que seguir para configurar la ejecución o planificación de un informe.
+</p>
+<p class="bodytex"> Acciones</p>
+<a name="wp1311178"> </a><p class="pBody">
+Desde esta opción tienes dos posibilidades:
+</p>
+<ul class="item">
+<li>Ejecutar un informe directamente. Para ello se seleccionan las opciones necesarias y  se ejecuta el informe.</li>
+<li>Planificar la ejecución del informe. Determinar el momento en que se ejecutará el informe.</li>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+Para ver los resultados de la planificación de la ejecución de un informe debe consultar la opción <b class="cBold">Ejecuciones</b> del <b class="cBold">Planificador de tareas</b>. Más información, Cómo consultar el estado de una ejecución.
+</p></td></tr>
+</table><br/></ul>
+<a name="wp1311657"> </a><p class="pBody">
+Para facilitar la introducción de parámetros, el sistema te permite  visualizar una ventana con la mayoría de las opciones de configuración. Esta ventana de configuración está dividida en 3 pasos.
+</p>
+<a name="wp1311405"> </a><p class="pBody">
+En el primer paso, <b class="cBold">Tipo y formato de salida,</b> el procedimiento que debes seguir es el siguiente:
+</p>
+<ol>
+<li class="numero">Selecciona el tipo de ejecución. </li>
+<li class="numero">Selecciona el tipo de salida. Las posibilidades son las siguientes: </li>
+<ul class="item">
+<li><b class="cBold">Visualización</b>: permite la visualización del informe en el navegador.</li>
+<li><b class="cBold">Archivo en máquina cliente</b>: el resultado de la ejecución se guarda en la máquina cliente.</li>
+<p class="cont">El sistema presentará un caja de diálogo que permitirá 
+guardar el archivo en la ubicación deseada del disco local.
+</p>
+<li><b class="cBold">Archivo en servidor</b>: el archivo resultado de la ejecución se almacena en el sistema de archivos del servidor.</li>
+<p class="cont">Para ello, debes introducir la <b class="cBold">Ruta relativa al directorio 
+temporal de informes</b> del servidor donde se guardará el 
+informe.
+</p>
+<li><b class="cBold">Impresora en máquina cliente</b>: impresión del informe a través de una impresora de la máquina cliente.</li>
+<p class="cont">El sistema mostrará una lista combinada para que 
+seleccionas la impresora.
+</p>
+<li><b class="cBold">Impresora en servidor</b>: impresión a través de una impresora del servidor.</li>
+<p class="cont">Si el tipo de salida elegido es <b class="cBold">Impresora en servidor</b>, el 
+sistema muestra la lista de impresoras disponibles y, una 
+vez seleccionada una, establece el idioma por defecto 
+asociado a la impresora elegida.
+</p>
+<table border="1" align="center"><br/><tr bgcolor="#C5CDD0"><td>
+<p class="note">
+<img src="images/notadefi.gif"/>
+En el caso de la planificación de informes los únicos tipos de salida permitidos son<b class="cBold"> Archivo en servidor </b>e <b class="cBold">Impresión en servidor</b>. El resto de opciones estarán deshabilitadas.
+</p></td></tr>
+</table><br/></ul>
+<li class="numero">Selecciona el formato de salida. Los formatos permitidos varían en función del tipo de salida seleccionado en el paso anterior: </li>
+<ul class="dash">
+<li><b class="cBold">HTML</b>: permitidos para la visualización y el archivo en servidor.</li>
+<li><b class="cBold">PDF</b>: permitido para las opciones de visualización y archivo tanto en máquina cliente como en servidor.</li>
+<li><b class="cBold">Texto</b>: este formato se puede utilizar en cualquier caso.</li>
+<li><b class="cBold">PCL</b>: permitido en cualquier tipo de salida excepto visualización.</li>
+<li><b class="cBold">ESCP</b>: permitido en cualquier tipo de salida excepto visualización.</li>
+<li><b class="cBold">PostScript</b>: permitido en cualquier tipo de salida excepto visualización.</li>
+</ul>
+<li class="numero">Haz clic en los enlaces o utiliza los botones de navegación de esta página para completar la configuración. Así podrás introducir información relativa a: </li>
+<ul class="item">
+<li><span style="font-weight: bold">Opciones de dispositivo</span>. Más información: <a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_M4THROW_WZ_CONFIG_STEP2.htm#wp1181217');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_M4THROW_WZ_CONFIG_STEP2.htm#wp1181217', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Cómo registrar las opciones de dispositivo</a></li>
+<li><span style="font-weight: bold">Opciones avanzadas</span>. Más información: <a href="javascript:WWHClickedPopup('TECH_HELP_SPA', 'SHCO_M4THROW_WZ_CONFIG_STEP3.htm#wp1311453');" onMouseOver="WWHShowPopup('TECH_HELP_SPA', 'SHCO_M4THROW_WZ_CONFIG_STEP3.htm#wp1311453', (document.all||document.getElementById||document.layers)?event:null);" onMouseOut="WWHHidePopup();">Cómo registrar las opciones avanzadas</a></li>
+</ul>
+</ol>
+
+
+
+  <script type="text/javascript" language="JavaScript1.2">
+   <!--
+    // Clear related topics
+    //
+    WWHClearRelatedTopics();
+
+   // -->
+  </script>
+    </blockquote>
+
+<br>
+</br>
+<hr />
+
+    <table align="center" border="0" cellspacing="0" cellpadding="0" width="93%">
+  <tr>
+	
+ <td align="right">
+	        <span style="font-size: 10px" align="right">
+        <a href="http://www.meta4.com">
+          <img src="images/logo_trans.gif" width="100" height="30" border="0" /></a><br/>
+        </span>
+        </td>
+      </tr>
+    </table>
+
+
+<script type="text/javascript" language="JavaScript1.2">
+   <!--
+    document.write(WWHRelatedTopicsDivTag() + WWHPopupDivTag() + WWHALinksDivTag());
+   // -->
+  </script>
+
+  </body>
+</html>
+

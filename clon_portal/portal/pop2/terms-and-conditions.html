@@ -1,0 +1,41 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <title></title>
+        <script>
+            var url = "https://www.cegid.com/global/terms-and-conditions/"
+
+            var urlParams = new URLSearchParams(window.location.search)
+
+            var language = urlParams.get("language")
+            if (!language) language = navigator.language.substring(0, 2)
+
+            if (language.indexOf("_") > -1) language = language.replace("_", "")
+
+            var productId = urlParams.get("productId")
+            if (productId) {
+                url = "/" + productId + "/" + "about.html" + "?type=" + "terms-and-conditions" + "&language=_" + language
+            } else {
+                switch (language) {
+                    case "fr":
+                        url = "https://www.cegid.com/fr/cgv/"
+                        break
+                    case "es":
+                        url = "https://www.cegid.com/ib/es/terminos-y-condiciones-generales/"
+                        break
+                    case "pt":
+                        url = "https://www.cegid.com/ib/pt/condicoes-contratuais/"
+                        break
+                    default:
+                        break
+                }
+            }
+            window.location.assign(url)
+        </script>
+    </head>
+
+    <body>
+        <noscript><strong>We're sorry but HR Framework doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript>
+    </body>
+</html>

@@ -75,7 +75,7 @@ Cada dominio tiene `README.md` como índice de todas sus piezas. Una ficha técn
 - Reutilizar los servicios de consulta y componentes existentes cuando sus contratos y permisos sean compatibles. No reutilizar sin más una herramienta administrativa para dar acceso de autoservicio a nóminas o datos personales.
 - Las escrituras originales se documentan como capacidades a resolver. Los límites actuales de AGENTS.md solo autorizan la escritura ERP del alta de personas ya implementada. Las nuevas solicitudes, aprobaciones, delegaciones y modificaciones requieren contrato y alcance aprobados antes de ejecutarse; PeopleNet permanece con consultas `SELECT`.
 - No traducir `m4:exec`, objetos o métodos internos a endpoints SOAP imaginarios. No convertir tablas temporales Meta4 en tablas SQLite sin una decisión específica.
-- Conservar las fuentes originales y los cambios existentes. `clon_portal/` está ignorado por Git; por eso las fichas incorporan evidencia textual y hashes, además de enlaces locales. No copiar fotos, nóminas, datos personales, hosts privados, contraseñas o claves a esta documentación.
+- Conservar las fuentes originales y los cambios existentes. `clon_portal/` se versiona como archivo de referencia completo, preservando sus bytes; queda fuera de TypeScript, lint y formateo. Las fichas incorporan evidencia textual y hashes, además de enlaces a las fuentes. No copiar fotos, nóminas, datos personales, hosts privados, contraseñas o claves a esta documentación.
 
 ## Plantilla para pedir una implementación
 

@@ -1,0 +1,1 @@
+﻿var _emptyPayslipList="Non ci sono ricevute da mostrare";var _metadataError="Non si possono mostrare le ricevute";var _methodError="Non si possono mostrare le ricevute";var _payslip_title_toolbar="Ultime ricevute";

@@ -1,0 +1,657 @@
+#======================================================================
+# @(#) FileVersion: 819.005.016
+# @(#) FileDescription: Configuration file for java log system.
+# @(#) CompanyName: Meta4 Spain, S.A.
+# @(#) LegalCopyright: (c) 2022
+# @(#) ProductName: PeopleNet
+#======================================================================
+
+status = error
+dest = err
+name = m4logsystem.cfg
+
+#======================================================================
+# Properties
+#======================================================================
+
+property.m4tracelevel = warn
+property.m4directory = ${sys:user.home}/meta4/logs/m4webservices
+
+property.m4filepattern = %i.log.gz
+property.m4layoutpattern = %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %5p: %m%n
+property.m4policiessize = 10MB
+property.m4strategymax = 5
+
+#======================================================================
+# Root
+#======================================================================
+
+rootLogger.level = ${m4tracelevel}
+rootLogger.appenderRef.m4default.ref = m4default
+
+#======================================================================
+# m4default
+#======================================================================
+
+appender.m4default.type = RollingFile
+appender.m4default.name = m4default
+appender.m4default.fileName = ${m4directory}/webservices.log
+appender.m4default.filePattern = ${m4directory}/webservices-${m4filepattern}
+appender.m4default.createOnDemand = true
+appender.m4default.layout.type = PatternLayout
+appender.m4default.layout.pattern = ${m4layoutpattern}
+appender.m4default.policies.type = Policies
+appender.m4default.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4default.policies.size.size = ${m4policiessize}
+appender.m4default.strategy.type = DefaultRolloverStrategy
+appender.m4default.strategy.max = ${m4strategymax}
+appender.m4default.strategy.fileIndex = min
+
+logger.m4default.name = com.meta4
+logger.m4default.level = ${m4tracelevel}
+logger.m4default.additivity = false
+logger.m4default.appenderRef.m4default.ref = m4default
+
+#======================================================================
+# m43rdparty
+#======================================================================
+
+appender.m43rdparty.type = RollingFile
+appender.m43rdparty.name = m43rdparty
+appender.m43rdparty.fileName = ${m4directory}/3rdparty.log
+appender.m43rdparty.filePattern = ${m4directory}/3rdparty-${m4filepattern}
+appender.m43rdparty.createOnDemand = true
+appender.m43rdparty.layout.type = PatternLayout
+appender.m43rdparty.layout.pattern = ${m4layoutpattern}
+appender.m43rdparty.policies.type = Policies
+appender.m43rdparty.policies.size.type = SizeBasedTriggeringPolicy
+appender.m43rdparty.policies.size.size = ${m4policiessize}
+appender.m43rdparty.strategy.type = DefaultRolloverStrategy
+appender.m43rdparty.strategy.max = ${m4strategymax}
+appender.m43rdparty.strategy.fileIndex = min
+
+logger.m43rdparty.name = org.apache
+logger.m43rdparty.level = ${m4tracelevel}
+logger.m43rdparty.additivity = false
+logger.m43rdparty.appenderRef.m43rdparty.ref = m43rdparty
+
+#======================================================================
+# m4bench
+#======================================================================
+
+appender.m4bench.type = RollingFile
+appender.m4bench.name = m4bench
+appender.m4bench.fileName = ${m4directory}/bench.log
+appender.m4bench.filePattern = ${m4directory}/bench-${m4filepattern}
+appender.m4bench.createOnDemand = true
+appender.m4bench.layout.type = PatternLayout
+appender.m4bench.layout.pattern = ${m4layoutpattern}
+appender.m4bench.policies.type = Policies
+appender.m4bench.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4bench.policies.size.size = ${m4policiessize}
+appender.m4bench.strategy.type = DefaultRolloverStrategy
+appender.m4bench.strategy.max = ${m4strategymax}
+appender.m4bench.strategy.fileIndex = min
+
+logger.m4bench.name = com.meta4.bench
+logger.m4bench.level = ${m4tracelevel}
+logger.m4bench.additivity = false
+logger.m4bench.appenderRef.m4bench.ref = m4bench
+
+#======================================================================
+# m4centralsession
+#======================================================================
+
+appender.m4centralsession.type = RollingFile
+appender.m4centralsession.name = m4centralsession
+appender.m4centralsession.fileName = ${m4directory}/centralsession.log
+appender.m4centralsession.filePattern = ${m4directory}/centralsession-${m4filepattern}
+appender.m4centralsession.createOnDemand = true
+appender.m4centralsession.layout.type = PatternLayout
+appender.m4centralsession.layout.pattern = ${m4layoutpattern}
+appender.m4centralsession.policies.type = Policies
+appender.m4centralsession.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4centralsession.policies.size.size = ${m4policiessize}
+appender.m4centralsession.strategy.type = DefaultRolloverStrategy
+appender.m4centralsession.strategy.max = ${m4strategymax}
+appender.m4centralsession.strategy.fileIndex = min
+
+logger.m4centralsession.name = com.meta4.session.M4SessionStatistics
+logger.m4centralsession.level = warn
+logger.m4centralsession.additivity = false
+logger.m4centralsession.appenderRef.m4centralsession.ref = m4centralsession
+
+#======================================================================
+# m4communication
+#======================================================================
+
+appender.m4communication.type = RollingFile
+appender.m4communication.name = m4communication
+appender.m4communication.fileName = ${m4directory}/communication.log
+appender.m4communication.filePattern = ${m4directory}/communication-${m4filepattern}
+appender.m4communication.createOnDemand = true
+appender.m4communication.layout.type = PatternLayout
+appender.m4communication.layout.pattern = ${m4layoutpattern}
+appender.m4communication.policies.type = Policies
+appender.m4communication.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4communication.policies.size.size = ${m4policiessize}
+appender.m4communication.strategy.type = DefaultRolloverStrategy
+appender.m4communication.strategy.max = ${m4strategymax}
+appender.m4communication.strategy.fileIndex = min
+
+logger.m4communication.name = com.meta4.appclient
+logger.m4communication.level = ${m4tracelevel}
+logger.m4communication.additivity = false
+logger.m4communication.appenderRef.m4communication.ref = m4communication
+
+#======================================================================
+# m4connect
+#======================================================================
+
+appender.m4connect.type = RollingFile
+appender.m4connect.name = m4connect
+appender.m4connect.fileName = ${m4directory}/connect.log
+appender.m4connect.filePattern = ${m4directory}/connect-${m4filepattern}
+appender.m4connect.createOnDemand = true
+appender.m4connect.layout.type = PatternLayout
+appender.m4connect.layout.pattern = ${m4layoutpattern}
+appender.m4connect.policies.type = Policies
+appender.m4connect.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4connect.policies.size.size = ${m4policiessize}
+appender.m4connect.strategy.type = DefaultRolloverStrategy
+appender.m4connect.strategy.max = ${m4strategymax}
+appender.m4connect.strategy.fileIndex = min
+
+logger.m4connect.name = com.meta4.m4xml
+logger.m4connect.level = ${m4tracelevel}
+logger.m4connect.additivity = false
+logger.m4connect.appenderRef.m4connect.ref = m4connect
+
+#======================================================================
+# m4digitalsignature
+#======================================================================
+
+appender.m4digitalsignature.type = RollingFile
+appender.m4digitalsignature.name = m4digitalsignature
+appender.m4digitalsignature.fileName = ${m4directory}/digitalsignature.log
+appender.m4digitalsignature.filePattern = ${m4directory}/digitalsignature-${m4filepattern}
+appender.m4digitalsignature.createOnDemand = true
+appender.m4digitalsignature.layout.type = PatternLayout
+appender.m4digitalsignature.layout.pattern = ${m4layoutpattern}
+appender.m4digitalsignature.policies.type = Policies
+appender.m4digitalsignature.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4digitalsignature.policies.size.size = ${m4policiessize}
+appender.m4digitalsignature.strategy.type = DefaultRolloverStrategy
+appender.m4digitalsignature.strategy.max = ${m4strategymax}
+appender.m4digitalsignature.strategy.fileIndex = min
+
+logger.m4digitalsignature.name = com.meta4.signature
+logger.m4digitalsignature.level = ${m4tracelevel}
+logger.m4digitalsignature.additivity = false
+logger.m4digitalsignature.appenderRef.m4digitalsignature.ref = m4digitalsignature
+
+#======================================================================
+# m4filedownload
+#======================================================================
+
+appender.m4filedownload.type = RollingFile
+appender.m4filedownload.name = m4filedownload
+appender.m4filedownload.fileName = ${m4directory}/filedownload.log
+appender.m4filedownload.filePattern = ${m4directory}/filedownload-${m4filepattern}
+appender.m4filedownload.createOnDemand = true
+appender.m4filedownload.layout.type = PatternLayout
+appender.m4filedownload.layout.pattern = ${m4layoutpattern}
+appender.m4filedownload.policies.type = Policies
+appender.m4filedownload.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4filedownload.policies.size.size = ${m4policiessize}
+appender.m4filedownload.strategy.type = DefaultRolloverStrategy
+appender.m4filedownload.strategy.max = ${m4strategymax}
+appender.m4filedownload.strategy.fileIndex = min
+
+logger.m4filedownload.name = com.meta4.appclient.filedownload
+logger.m4filedownload.level = ${m4tracelevel}
+logger.m4filedownload.additivity = false
+logger.m4filedownload.appenderRef.m4filedownload.ref = m4filedownload
+
+#======================================================================
+# m4filters
+#======================================================================
+
+appender.m4filters.type = RollingFile
+appender.m4filters.name = m4filters
+appender.m4filters.fileName = ${m4directory}/filters.log
+appender.m4filters.filePattern = ${m4directory}/filters-${m4filepattern}
+appender.m4filters.createOnDemand = true
+appender.m4filters.layout.type = PatternLayout
+appender.m4filters.layout.pattern = ${m4layoutpattern}
+appender.m4filters.policies.type = Policies
+appender.m4filters.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4filters.policies.size.size = ${m4policiessize}
+appender.m4filters.strategy.type = DefaultRolloverStrategy
+appender.m4filters.strategy.max = ${m4strategymax}
+appender.m4filters.strategy.fileIndex = min
+
+logger.m4filters.name = com.meta4.filters
+logger.m4filters.level = ${m4tracelevel}
+logger.m4filters.additivity = false
+logger.m4filters.appenderRef.m4filters.ref = m4filters
+
+#======================================================================
+# m4javamail
+#======================================================================
+
+appender.m4javamail.type = RollingFile
+appender.m4javamail.name = m4javamail
+appender.m4javamail.fileName = ${m4directory}/javamail.log
+appender.m4javamail.filePattern = ${m4directory}/javamail-${m4filepattern}
+appender.m4javamail.createOnDemand = true
+appender.m4javamail.layout.type = PatternLayout
+appender.m4javamail.layout.pattern = ${m4layoutpattern}
+appender.m4javamail.policies.type = Policies
+appender.m4javamail.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4javamail.policies.size.size = ${m4policiessize}
+appender.m4javamail.strategy.type = DefaultRolloverStrategy
+appender.m4javamail.strategy.max = ${m4strategymax}
+appender.m4javamail.strategy.fileIndex = min
+
+logger.m4javamail.name = com.meta4.mail
+logger.m4javamail.level = ${m4tracelevel}
+logger.m4javamail.additivity = false
+logger.m4javamail.appenderRef.m4javamail.ref = m4javamail
+
+#======================================================================
+# m4javaservice
+#======================================================================
+
+appender.m4javaservice.type = RollingFile
+appender.m4javaservice.name = m4javaservice
+appender.m4javaservice.fileName = ${m4directory}/javaservice.log
+appender.m4javaservice.filePattern = ${m4directory}/javaservice-${m4filepattern}
+appender.m4javaservice.createOnDemand = true
+appender.m4javaservice.layout.type = PatternLayout
+appender.m4javaservice.layout.pattern = ${m4layoutpattern}
+appender.m4javaservice.policies.type = Policies
+appender.m4javaservice.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4javaservice.policies.size.size = ${m4policiessize}
+appender.m4javaservice.strategy.type = DefaultRolloverStrategy
+appender.m4javaservice.strategy.max = ${m4strategymax}
+appender.m4javaservice.strategy.fileIndex = min
+
+logger.m4javaservice.name = com.meta4.javaservice
+logger.m4javaservice.level = ${m4tracelevel}
+logger.m4javaservice.additivity = false
+logger.m4javaservice.appenderRef.m4javaservice.ref = m4javaservice
+
+#======================================================================
+# m4jsapi
+#======================================================================
+
+appender.m4jsapi.type = RollingFile
+appender.m4jsapi.name = m4jsapi
+appender.m4jsapi.fileName = ${m4directory}/m4jsapi.log
+appender.m4jsapi.filePattern = ${m4directory}/m4jsapi-${m4filepattern}
+appender.m4jsapi.createOnDemand = true
+appender.m4jsapi.layout.type = PatternLayout
+appender.m4jsapi.layout.pattern = ${m4layoutpattern}
+appender.m4jsapi.policies.type = Policies
+appender.m4jsapi.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4jsapi.policies.size.size = ${m4policiessize}
+appender.m4jsapi.strategy.type = DefaultRolloverStrategy
+appender.m4jsapi.strategy.max = ${m4strategymax}
+appender.m4jsapi.strategy.fileIndex = min
+
+logger.m4jsapi.name = com.meta4.js
+logger.m4jsapi.level = ${m4tracelevel}
+logger.m4jsapi.additivity = false
+logger.m4jsapi.appenderRef.m4jsapi.ref = m4jsapi
+
+#======================================================================
+# m4jscryptfile
+#======================================================================
+
+appender.m4jscryptfile.type = RollingFile
+appender.m4jscryptfile.name = m4jscryptfile
+appender.m4jscryptfile.fileName = ${m4directory}/jscryptfile.log
+appender.m4jscryptfile.filePattern = ${m4directory}/jscryptfile-${m4filepattern}
+appender.m4jscryptfile.createOnDemand = true
+appender.m4jscryptfile.layout.type = PatternLayout
+appender.m4jscryptfile.layout.pattern = ${m4layoutpattern}
+appender.m4jscryptfile.policies.type = Policies
+appender.m4jscryptfile.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4jscryptfile.policies.size.size = ${m4policiessize}
+appender.m4jscryptfile.strategy.type = DefaultRolloverStrategy
+appender.m4jscryptfile.strategy.max = ${m4strategymax}
+appender.m4jscryptfile.strategy.fileIndex = min
+
+logger.m4jscryptfile.name = com.meta4.jscryptfile
+logger.m4jscryptfile.level = ${m4tracelevel}
+logger.m4jscryptfile.additivity = false
+logger.m4jscryptfile.appenderRef.m4jscryptfile.ref = m4jscryptfile
+
+#======================================================================
+# m4jsp
+#======================================================================
+
+appender.m4jsp.type = RollingFile
+appender.m4jsp.name = m4jsp
+appender.m4jsp.fileName = ${m4directory}/jsp.log
+appender.m4jsp.filePattern = ${m4directory}/jsp-${m4filepattern}
+appender.m4jsp.createOnDemand = true
+appender.m4jsp.layout.type = PatternLayout
+appender.m4jsp.layout.pattern = ${m4layoutpattern}
+appender.m4jsp.policies.type = Policies
+appender.m4jsp.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4jsp.policies.size.size = ${m4policiessize}
+appender.m4jsp.strategy.type = DefaultRolloverStrategy
+appender.m4jsp.strategy.max = ${m4strategymax}
+appender.m4jsp.strategy.fileIndex = min
+
+logger.m4jsp.name = com.meta4.jsp
+logger.m4jsp.level = ${m4tracelevel}
+logger.m4jsp.additivity = false
+logger.m4jsp.appenderRef.m4jsp.ref = m4jsp
+
+#======================================================================
+# m4jsservice
+#======================================================================
+
+appender.m4jsservice.type = RollingFile
+appender.m4jsservice.name = m4jsservice
+appender.m4jsservice.fileName = ${m4directory}/jsservice.log
+appender.m4jsservice.filePattern = ${m4directory}/jsservice-${m4filepattern}
+appender.m4jsservice.createOnDemand = true
+appender.m4jsservice.layout.type = PatternLayout
+appender.m4jsservice.layout.pattern = ${m4layoutpattern}
+appender.m4jsservice.policies.type = Policies
+appender.m4jsservice.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4jsservice.policies.size.size = ${m4policiessize}
+appender.m4jsservice.strategy.type = DefaultRolloverStrategy
+appender.m4jsservice.strategy.max = ${m4strategymax}
+appender.m4jsservice.strategy.fileIndex = min
+
+logger.m4jsservice.name = com.meta4.jsservice
+logger.m4jsservice.level = ${m4tracelevel}
+logger.m4jsservice.additivity = false
+logger.m4jsservice.appenderRef.m4jsservice.ref = m4jsservice
+
+#======================================================================
+# m4jobscheduler
+#======================================================================
+
+appender.m4jobscheduler.type = RollingFile
+appender.m4jobscheduler.name = m4jobscheduler
+appender.m4jobscheduler.fileName = ${m4directory}/jobscheduler.log
+appender.m4jobscheduler.filePattern = ${m4directory}/jobscheduler-${m4filepattern}
+appender.m4jobscheduler.createOnDemand = true
+appender.m4jobscheduler.layout.type = PatternLayout
+appender.m4jobscheduler.layout.pattern = ${m4layoutpattern}
+appender.m4jobscheduler.policies.type = Policies
+appender.m4jobscheduler.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4jobscheduler.policies.size.size = ${m4policiessize}
+appender.m4jobscheduler.strategy.type = DefaultRolloverStrategy
+appender.m4jobscheduler.strategy.max = ${m4strategymax}
+appender.m4jobscheduler.strategy.fileIndex = min
+
+logger.m4jobscheduler.name = com.meta4.jobscheduler
+logger.m4jobscheduler.level = ${m4tracelevel}
+logger.m4jobscheduler.additivity = false
+logger.m4jobscheduler.appenderRef.m4jobscheduler.ref = m4jobscheduler
+
+#======================================================================
+# m4languages
+#======================================================================
+
+appender.m4languages.type = RollingFile
+appender.m4languages.name = m4languages
+appender.m4languages.fileName = ${m4directory}/languages.log
+appender.m4languages.filePattern = ${m4directory}/languages-${m4filepattern}
+appender.m4languages.createOnDemand = true
+appender.m4languages.layout.type = PatternLayout
+appender.m4languages.layout.pattern = ${m4layoutpattern}
+appender.m4languages.policies.type = Policies
+appender.m4languages.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4languages.policies.size.size = ${m4policiessize}
+appender.m4languages.strategy.type = DefaultRolloverStrategy
+appender.m4languages.strategy.max = ${m4strategymax}
+appender.m4languages.strategy.fileIndex = min
+
+logger.m4languages.name = com.meta4.languages
+logger.m4languages.level = ${m4tracelevel}
+logger.m4languages.additivity = false
+logger.m4languages.appenderRef.m4languages.ref = m4languages
+
+#======================================================================
+# m4mdconnect
+#======================================================================
+
+appender.m4mdconnect.type = RollingFile
+appender.m4mdconnect.name = m4mdconnect
+appender.m4mdconnect.fileName = ${m4directory}/mdconnect.log
+appender.m4mdconnect.filePattern = ${m4directory}/mdconnect-${m4filepattern}
+appender.m4mdconnect.createOnDemand = true
+appender.m4mdconnect.layout.type = PatternLayout
+appender.m4mdconnect.layout.pattern = ${m4layoutpattern}
+appender.m4mdconnect.policies.type = Policies
+appender.m4mdconnect.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4mdconnect.policies.size.size = ${m4policiessize}
+appender.m4mdconnect.strategy.type = DefaultRolloverStrategy
+appender.m4mdconnect.strategy.max = ${m4strategymax}
+appender.m4mdconnect.strategy.fileIndex = min
+
+logger.m4mdconnect.name = com.meta4.m4mdxml
+logger.m4mdconnect.level = ${m4tracelevel}
+logger.m4mdconnect.additivity = false
+logger.m4mdconnect.appenderRef.m4mdconnect.ref = m4mdconnect
+
+#======================================================================
+# m4memory
+#======================================================================
+
+appender.m4memory.type = RollingFile
+appender.m4memory.name = m4memory
+appender.m4memory.fileName = ${m4directory}/memory.log
+appender.m4memory.filePattern = ${m4directory}/memory-${m4filepattern}
+appender.m4memory.createOnDemand = true
+appender.m4memory.layout.type = PatternLayout
+appender.m4memory.layout.pattern = ${m4layoutpattern}
+appender.m4memory.policies.type = Policies
+appender.m4memory.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4memory.policies.size.size = ${m4policiessize}
+appender.m4memory.strategy.type = DefaultRolloverStrategy
+appender.m4memory.strategy.max = ${m4strategymax}
+appender.m4memory.strategy.fileIndex = min
+
+logger.m4memory.name = com.meta4.utilities.Dump
+logger.m4memory.level = ${m4tracelevel}
+logger.m4memory.additivity = false
+logger.m4memory.appenderRef.m4memory.ref = m4memory
+
+#======================================================================
+# m4qcontrol
+#======================================================================
+
+appender.m4qcontrol.type = RollingFile
+appender.m4qcontrol.name = m4qcontrol
+appender.m4qcontrol.fileName = ${m4directory}/qcontrol.log
+appender.m4qcontrol.filePattern = ${m4directory}/qcontrol-${m4filepattern}
+appender.m4qcontrol.createOnDemand = true
+appender.m4qcontrol.layout.type = PatternLayout
+appender.m4qcontrol.layout.pattern = ${m4layoutpattern}
+appender.m4qcontrol.policies.type = Policies
+appender.m4qcontrol.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4qcontrol.policies.size.size = ${m4policiessize}
+appender.m4qcontrol.strategy.type = DefaultRolloverStrategy
+appender.m4qcontrol.strategy.max = ${m4strategymax}
+appender.m4qcontrol.strategy.fileIndex = min
+
+logger.m4qcontrol.name = com.meta4.appclient.gateway.inactivity
+logger.m4qcontrol.level = ${m4tracelevel}
+logger.m4qcontrol.additivity = false
+logger.m4qcontrol.appenderRef.m4qcontrol.ref = m4qcontrol
+
+#======================================================================
+# m4sessions
+#======================================================================
+
+appender.m4sessions.type = RollingFile
+appender.m4sessions.name = m4sessions
+appender.m4sessions.fileName = ${m4directory}/sessions.log
+appender.m4sessions.filePattern = ${m4directory}/sessions-${m4filepattern}
+appender.m4sessions.createOnDemand = true
+appender.m4sessions.layout.type = PatternLayout
+appender.m4sessions.layout.pattern = ${m4layoutpattern}
+appender.m4sessions.policies.type = Policies
+appender.m4sessions.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4sessions.policies.size.size = ${m4policiessize}
+appender.m4sessions.strategy.type = DefaultRolloverStrategy
+appender.m4sessions.strategy.max = ${m4strategymax}
+appender.m4sessions.strategy.fileIndex = min
+
+logger.m4sessions.name = com.meta4.session.SessionCacheDump
+logger.m4sessions.level = ${m4tracelevel}
+logger.m4sessions.additivity = false
+logger.m4sessions.appenderRef.m4sessions.ref = m4sessions
+
+#======================================================================
+# m4sitewatcher
+#======================================================================
+
+appender.m4sitewatcher.type = RollingFile
+appender.m4sitewatcher.name = m4sitewatcher
+appender.m4sitewatcher.fileName = ${m4directory}/sitewatcher.log
+appender.m4sitewatcher.filePattern = ${m4directory}/sitewatcher-${m4filepattern}
+appender.m4sitewatcher.createOnDemand = true
+appender.m4sitewatcher.layout.type = PatternLayout
+appender.m4sitewatcher.layout.pattern = ${m4layoutpattern}
+appender.m4sitewatcher.policies.type = Policies
+appender.m4sitewatcher.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4sitewatcher.policies.size.size = ${m4policiessize}
+appender.m4sitewatcher.strategy.type = DefaultRolloverStrategy
+appender.m4sitewatcher.strategy.max = ${m4strategymax}
+appender.m4sitewatcher.strategy.fileIndex = min
+
+logger.m4sitewatcher.name = com.meta4.sitewatcher
+logger.m4sitewatcher.level = ${m4tracelevel}
+logger.m4sitewatcher.additivity = false
+logger.m4sitewatcher.appenderRef.m4sitewatcher.ref = m4sitewatcher
+
+#======================================================================
+# m4soapclient
+#======================================================================
+
+appender.m4soapclient.type = RollingFile
+appender.m4soapclient.name = m4soapclient
+appender.m4soapclient.fileName = ${m4directory}/soapclient.log
+appender.m4soapclient.filePattern = ${m4directory}/soapclient-${m4filepattern}
+appender.m4soapclient.createOnDemand = true
+appender.m4soapclient.layout.type = PatternLayout
+appender.m4soapclient.layout.pattern = ${m4layoutpattern}
+appender.m4soapclient.policies.type = Policies
+appender.m4soapclient.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4soapclient.policies.size.size = ${m4policiessize}
+appender.m4soapclient.strategy.type = DefaultRolloverStrategy
+appender.m4soapclient.strategy.max = ${m4strategymax}
+appender.m4soapclient.strategy.fileIndex = min
+
+logger.m4soapclient.name = com.meta4.soapclient
+logger.m4soapclient.level = ${m4tracelevel}
+logger.m4soapclient.additivity = false
+logger.m4soapclient.appenderRef.m4soapclient.ref = m4soapclient
+
+#======================================================================
+# m4timers
+#======================================================================
+
+appender.m4timers.type = RollingFile
+appender.m4timers.name = m4timers
+appender.m4timers.fileName = ${m4directory}/timers.log
+appender.m4timers.filePattern = ${m4directory}/timers-${m4filepattern}
+appender.m4timers.createOnDemand = true
+appender.m4timers.layout.type = PatternLayout
+appender.m4timers.layout.pattern = ${m4layoutpattern}
+appender.m4timers.policies.type = Policies
+appender.m4timers.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4timers.policies.size.size = ${m4policiessize}
+appender.m4timers.strategy.type = DefaultRolloverStrategy
+appender.m4timers.strategy.max = ${m4strategymax}
+appender.m4timers.strategy.fileIndex = min
+
+logger.m4timers.name = com.meta4.common.bench.Bench.timers
+logger.m4timers.level = warn
+logger.m4timers.additivity = false
+logger.m4timers.appenderRef.m4timers.ref = m4timers
+
+#======================================================================
+# m4transport
+#======================================================================
+
+appender.m4transport.type = RollingFile
+appender.m4transport.name = m4transport
+appender.m4transport.fileName = ${m4directory}/transport.log
+appender.m4transport.filePattern = ${m4directory}/transport-${m4filepattern}
+appender.m4transport.createOnDemand = true
+appender.m4transport.layout.type = PatternLayout
+appender.m4transport.layout.pattern = ${m4layoutpattern}
+appender.m4transport.policies.type = Policies
+appender.m4transport.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4transport.policies.size.size = ${m4policiessize}
+appender.m4transport.strategy.type = DefaultRolloverStrategy
+appender.m4transport.strategy.max = ${m4strategymax}
+appender.m4transport.strategy.fileIndex = min
+
+logger.m4transport.name = com.meta4.appclient.datastream
+logger.m4transport.level = warn
+logger.m4transport.additivity = false
+logger.m4transport.appenderRef.m4transport.ref = m4transport
+
+#======================================================================
+# m4usprovider
+#======================================================================
+
+appender.m4usprovider.type = RollingFile
+appender.m4usprovider.name = m4usprovider
+appender.m4usprovider.fileName = ${m4directory}/usprovider.log
+appender.m4usprovider.filePattern = ${m4directory}/usprovider-${m4filepattern}
+appender.m4usprovider.createOnDemand = true
+appender.m4usprovider.layout.type = PatternLayout
+appender.m4usprovider.layout.pattern = ${m4layoutpattern}
+appender.m4usprovider.policies.type = Policies
+appender.m4usprovider.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4usprovider.policies.size.size = ${m4policiessize}
+appender.m4usprovider.strategy.type = DefaultRolloverStrategy
+appender.m4usprovider.strategy.max = ${m4strategymax}
+appender.m4usprovider.strategy.fileIndex = min
+
+logger.m4usprovider.name = com.meta4.install.usprovider
+logger.m4usprovider.level = ${m4tracelevel}
+logger.m4usprovider.additivity = false
+logger.m4usprovider.appenderRef.m4usprovider.ref = m4usprovider
+
+#======================================================================
+# m4websso
+#======================================================================
+
+appender.m4websso.type = RollingFile
+appender.m4websso.name = m4websso
+appender.m4websso.fileName = ${m4directory}/websso.log
+appender.m4websso.filePattern = ${m4directory}/websso-${m4filepattern}
+appender.m4websso.createOnDemand = true
+appender.m4websso.layout.type = PatternLayout
+appender.m4websso.layout.pattern = ${m4layoutpattern}
+appender.m4websso.policies.type = Policies
+appender.m4websso.policies.size.type = SizeBasedTriggeringPolicy
+appender.m4websso.policies.size.size = ${m4policiessize}
+appender.m4websso.strategy.type = DefaultRolloverStrategy
+appender.m4websso.strategy.max = ${m4strategymax}
+appender.m4websso.strategy.fileIndex = min
+
+logger.m4websso.name = com.meta4.websso
+logger.m4websso.level = ${m4tracelevel}
+logger.m4websso.additivity = false
+logger.m4websso.appenderRef.m4websso.ref = m4websso
+
+logger.m4cred.name = com.meta4.common.m4cred
+logger.m4cred.level = ${m4tracelevel}
+logger.m4cred.additivity = false
+logger.m4cred.appenderRef.m4cred.ref = m4websso
+

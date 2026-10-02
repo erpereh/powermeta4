@@ -1,0 +1,26 @@
+<%-- =========================================================
+	@(#) FileVersion: 818.005.001
+	@(#) FileDescription: _translation_declaration.jspf
+	@(#) CompanyName: Meta4 Spain, S.A.
+	@(#) LegalCopyright: (c) 2021
+	@(#) ProductName: PeopleNet
+========================================================= --%>
+
+
+<%-- ******************** Mapeamos a ficheros donde se encuentran etiquetas traducidas   ******************** --%>
+
+<%
+	
+	com.meta4.redirect.M4PropertiesRedirect gTranslateAdmin = new com.meta4.redirect.M4PropertiesRedirect();
+	
+	M4SessionManager m4session = M4Context.getSession(request);
+	int iLanguageId = m4session.getLanguageID();
+	String sLanguage = "es";
+
+	sLanguage = CheckConfig.checkLocale(iLanguageId);
+		
+	String sFileName = "/translations/tcadmin_soapservices_" + sLanguage + ".properties";
+	
+	gTranslateAdmin.load(pageContext,sFileName);
+	
+%>

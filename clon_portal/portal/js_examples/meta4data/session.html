@@ -1,0 +1,148 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+		<title data-m4trans="_ComponentSessionMainTitle"></title>
+
+		<link rel="stylesheet" type="text/css" href="/js_examples/css/js_examples.css" />
+		<link type="text/css" rel="stylesheet" href="/js_examples/resources/syntax_highlighter/shCoreDefault.css" />
+		
+
+		<!-- mootools -->
+		<script type="text/javascript" src="/js/mootools.js"></script>
+
+		<!-- m4jsapi -->
+		<script type="text/javascript" src="/m4jsapi/m4jsapi.nocache.js"></script>
+
+		
+		<!-- meta4 -->
+		<script type="text/javascript" src="/js/data/data.js"></script>
+		<script type="text/javascript" src="/js/widget/console.js"></script>
+		<script type="text/javascript" src="/js/widget/widget.js"></script>
+					
+		<!-- syntax highlighter -->
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shCore.js"></script>
+		<script type="text/javascript" src="/js_examples/resources/syntax_highlighter/shBrushJScript.js"></script>
+		
+		
+		<!-- load example -->
+        <script type="text/javascript" src="/js_examples/resources/m4loadExample.js"></script>
+
+		<!-- load example -->
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ace.js"></script>
+		<script src="/js_examples/resources/ace_master/src-min-noconflict/ext-language_tools.js"></script>
+
+		<!-- load example -->
+		<script type="text/javascript" src="/js_examples/resources/m4loadExampleAce.js"></script>
+		
+		<script>
+			
+						
+			var example = {
+				example1:function(){
+					//event to inicialice program
+					document.addEvent('meta4Ready', example.example2);														
+				},
+				example2:function(){
+					var formatDate = meta4.session.paramApp.getDate();				
+					var formatHour = meta4.session.paramApp.getHour();
+					
+					var codeLanguage = meta4.session.language.getCodeLanguage();
+					
+					//resultado de la función
+					console.log("El formato de fecha es: "+formatDate);
+					console.log("El formato de hora es: "+ formatHour);
+					console.log("El código de lenguaje es: "+codeLanguage);					
+										
+				}
+			};
+			
+			function initTranslation() {
+								
+				function loadlanguage(){
+					document.getElementById("maincontainer").style.visibility="visible";
+				}
+				
+				meta4.widget.translate.loadLanguageFile(['examples_data_m4jsapi'], loadlanguage);
+			}
+						
+			//event to inicialice program
+			document.addEvent('meta4Ready', initTranslation);					
+			
+		</script>
+
+	</head>
+
+	
+	<body>
+	    <div id = 'maincontainer'>
+		
+        <div id='exampleContainer'>
+		<h1 data-m4trans="_ComponentSessionTitle"></h1>
+		
+		<h2 data-m4trans="_ComponentSessionSubTitle"></h2>
+		
+		<p data-m4trans="_ComponentSessionDescription"></p>
+		
+		<p data-m4trans="_ComponentSessionDescription2"></p>
+			
+		
+		<p data-m4trans="_ComponentSessionDescription3"> </p>
+
+		<p data-m4trans="_ComponentSessionListDescription"> </p> 
+			
+			<p><span class="bold" data-m4trans="_ComponentSessionListTitle1"></span></p>
+				<ul>
+					<li><b>getCodeLanguage(): </b><span data-m4trans="_ComponentSessionListelement"></span>						
+					</li>
+					<li><b>getPrefixLanguage(): </b><span data-m4trans="_ComponentSessionListelement2"></span>						
+					</li>
+				</ul>
+			<p><span class="bold" data-m4trans="_ComponentSessionListTitle2"></span></p>
+							
+				<ul>
+					<li><b>getDate(): </b><span data-m4trans="_ComponentSessionListelement3"></span>						
+					</li>
+					<li><b>getDateSeparator(): </b><span data-m4trans="_ComponentSessionListelement4"></span>						
+					</li>
+					<li><b>getDateText(): </b><span data-m4trans="_ComponentSessionListelement5"></span>						
+					</li>
+					<li><b>getHour(): </b><span data-m4trans="_ComponentSessionListelement6"></span>						
+					</li>
+					<li><b>getNumber(): </b><span data-m4trans="_ComponentSessionListelement7"></span>						
+					</li>
+					<li><b>getDayOffSet(): </b><span data-m4trans="_ComponentSessionListelement8"></span>					
+					</li>					
+				</ul>
+			
+			<h2>meta4.session.ready</h2>
+			
+		<p data-m4trans="_ComponentSessionReadyDescription"> </p>
+			
+						
+			<script>
+				m4loadExample('example.example1');
+			</script>
+							
+			<br>
+			<h2 data-m4trans="_ComponentSessionExampleTittle"></h2>
+			
+			<p data-m4trans="_ComponentSessionExampleLabel"></p>
+			
+			<script>
+				m4loadExample('example.example2');
+			</script>
+			<br>
+			<button onclick="example.example2()" data-m4trans="_ComponentSessionaButtonExecuteExample2">
+			</button>
+			</div>
+			</div>															
+	</body>
+</html>
+

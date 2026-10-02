@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <defs>
+        <path d="M87.54,15.54 C85.26,13.26 82.2,12 79.02,12 L36,12 C29.4,12 24,17.4 24,24 L24,120 C24,126.6 29.34,132 35.94,132 L108,132 C114.6,132 120,126.6 120,120 L120,52.98 C120,49.8 118.74,46.74 116.46,44.52 L87.54,15.54 Z" id="page-broken-path-1"></path>
+        <path d="M78,48 L78,21 L111,54 L84,54 C80.7,54 78,51.3 78,48 Z" id="page-broken-path-2"></path>
+        <path d="M88.6318172,106.624428 L88.6318172,106.624428 C86.7998187,108.458524 83.8404366,108.458524 82.0084381,106.624428 L72.002908,96.6074461 L62.0443522,106.5774 C60.2123538,108.411496 57.2529716,108.411496 55.4209732,106.5774 L55.4209732,106.5774 C53.5889747,104.743305 53.5889747,101.780536 55.4209732,99.9464402 L65.3795289,89.976486 L55.3739989,80.0065317 C53.5420004,78.1724363 53.5420004,75.2096669 55.3739989,73.3755715 L55.3739989,73.3755715 C57.2059973,71.5414762 60.1653795,71.5414762 61.9973779,73.3755715 L72.002908,83.3455258 L81.9614638,73.3755715 C83.7934623,71.5414762 86.7528444,71.5414762 88.5848429,73.3755715 L88.5848429,73.3755715 C90.4168413,75.2096669 90.4168413,78.1724363 88.5848429,80.0065317 L78.6262871,89.976486 L88.5848429,99.9464402 C90.4638157,101.780536 90.4638157,104.790333 88.6318172,106.624428 Z" id="page-broken-path-3"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Accent-Icons-/-Page_broken">
+            <rect id="Base" x="0" y="0" width="144" height="144"></rect>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#page-broken-path-1"></use>
+                <use fill-opacity="0.8" fill="#FFFFFF" xlink:href="#page-broken-path-1"></use>
+            </g>
+            <g id="Path">
+                <use class="primary--fill" xlink:href="#page-broken-path-2"></use>
+                <use fill-opacity="0.6" fill="#FFFFFF" xlink:href="#page-broken-path-2"></use>
+            </g>
+            <g id="Path">
+                <use class="secondary--fill" xlink:href="#page-broken-path-3"></use>
+                <use fill-opacity="0.4" fill="#FFFFFF" xlink:href="#page-broken-path-3"></use>
+            </g>
+        </g>
+    </g>
+</svg>
