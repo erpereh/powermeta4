@@ -1,0 +1,116 @@
+# _change_password_form
+
+Identificador: `sse_g0/_change_password_form.jsp`. Perfil: **empleado**. Dominio: **organizacion**.
+
+[Índice general](../../README.md) · [Guía funcional del dominio](README.md) · [Convenciones](../../referencias/metodologia.md).
+
+## Alcance y estado de evidencia
+
+Ficha de evidencia estática de todas las versiones españolas y compartidas de esta ruta en la copia local. La existencia del archivo no confirma su publicación en el menú activo ni los permisos efectivos. Las secciones siguientes separan versiones por SHA-256; no mezclan sus controles ni contratos.
+
+## Fuentes y variantes
+
+| Sociedad / ámbito | Archivo                                                                                                             | SHA-256                                                            | Líneas |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -----: |
+| BASE / español    | [sse_g0/espanol/_change_password_form.jsp](../../../../clon_portal/portal/sse_g0/espanol/_change_password_form.jsp) | `e3acdb5bb2d040f27b38238868d69b76f4964e0d633567f376f2d7287d457106` |    107 |
+
+Las filas con el mismo hash son copias binarias idénticas. Un hash distinto puede corresponder a una traducción envolvente, un cuerpo compartido o una personalización; no implica por sí solo un cambio funcional.
+
+## Versión 1: BASE ES
+
+Fuente de los localizadores `L`: [sse_g0/espanol/_change_password_form.jsp](../../../../clon_portal/portal/sse_g0/espanol/_change_password_form.jsp). Líneas físicas, contando desde 1.
+
+### Apartados, etiquetas y enlaces visibles
+
+| L   | Texto literal / etiqueta                                                   |
+| --- | -------------------------------------------------------------------------- |
+| 88  | Cambia tu contraseña                                                       |
+| 89  | Introduce tu contraseña actual, la nueva contraseña y confírmala de nuevo. |
+| 95  | [valor dinámico] :                                                         |
+| 97  | [valor dinámico] :                                                         |
+| 99  | [valor dinámico] :                                                         |
+| 101 | [valor dinámico] :                                                         |
+
+### Controles, formularios y opciones
+
+Atributos literales del original: `type`, `name/id`, `value`, `maxlength`, `size`, `readonly/disabled`, eventos y bindings. Un valor dinámico conserva su expresión; no equivale a un valor de negocio confirmado. La obligatoriedad no se deduce del nombre ni del asterisco: consultar las reglas y el controlador.
+
+| L   | Control | Atributos                                                                                                                                                                       |
+| --- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 92  | form    | method=post; name=ChangePasswordForm; action=&lt;%=com.meta4.taglib.util.M4PresentationUtilTaglib.cookHTML(sChangePasswordUrl)%&gt;                                             |
+| 98  | input   | class=fuenteformulario; type=password; id=M4_CURRENT_PASSWORD; name=M4_CURRENT_PASSWORD; size=14; maxlength=10; title=&lt;%=sCurrentPasswdTooltip%&gt;; tabindex=1              |
+| 100 | input   | class=fuenteformulario; type=password; id=M4_NEW_PASSWORD; name=M4_NEW_PASSWORD; size=14; maxlength=10; title=&lt;%=sNewPasswdTooltip%&gt;; tabindex=2                          |
+| 102 | input   | class=fuenteformulario; type=password; id=M4_RETYPE_PASSWORD; name=M4_RETYPE_PASSWORD; size=14; maxlength=10; title=&lt;%=sReNewPasswdTooltip%&gt;; tabindex=3                  |
+| 103 | a       | title=&lt;%=sSendButton%&gt;; href=javascript:CheckAndSubmit();; tabindex=4                                                                                                     |
+| 104 | img     | alt=Enviar; id=enviar; src=/iconos/icono_enviar_ess_36_36.gif; width=36; height=36; onmouseover=m4luztotal(this,245,245,245,50,40,40,100,100,100); onmouseout=m4oscuridad(this) |
+
+### Contexto, entradas y valores construidos
+
+No se encontró lectura literal de parámetros o claves de sesión en este archivo.
+
+Sin inicializadores estáticos identificados. Las expresiones con `{variable}` necesitan contexto de ejecución.
+
+### Objetos, métodos, nodos y salidas Meta4
+
+Estas llamadas son del runtime JSP/Meta4. No son un catálogo de endpoints SOAP. La resolución que conserva variables o condiciones es parcial. `setItem` puede preparar argumentos y no prueba por sí solo una escritura persistente.
+
+Sin tags de contrato en esta versión.
+
+Sin accesos directos identificados; consultar el cuerpo incluido o el script enlazado.
+
+### Funciones, condiciones y mensajes
+
+Las condiciones son evidencia del código activo tras retirar comentarios HTML/JSP y bloques de comentario. Conservar su contexto: una condición aislada no permite afirmar un permiso ni una regla global. Las reglas compartidas de JavaScript se localizan más abajo.
+
+| L   | Función        | Argumentos |
+| --- | -------------- | ---------- |
+| 24  | CheckAndSubmit |            |
+
+| L   | Condición / acción / mensaje literal                                                          |
+| --- | --------------------------------------------------------------------------------------------- |
+| 29  | if (ChangePasswordForm.M4_CURRENT_PASSWORD.value == "")                                       |
+| 35  | if (ChangePasswordForm.M4_NEW_PASSWORD.value == "")                                           |
+| 41  | if (ChangePasswordForm.M4_RETYPE_PASSWORD.value == "")                                        |
+| 47  | if (ChangePasswordForm.M4_NEW_PASSWORD.value != ChangePasswordForm.M4_RETYPE_PASSWORD.value)  |
+| 53  | if (ChangePasswordForm.M4_NEW_PASSWORD.value == ChangePasswordForm.M4_CURRENT_PASSWORD.value) |
+| 59  | if (bIsError == true)                                                                         |
+| 61  | alert(sErrorMessage);                                                                         |
+| 64  | else                                                                                          |
+| 73  | if (sErrorMessage != null)                                                                    |
+
+### Includes, navegación y dependencias
+
+No hay includes declarados.
+
+| L   | Destino / recurso                                                                      |
+| --- | -------------------------------------------------------------------------------------- |
+| 92  | &lt;%=com.meta4.taglib.util.M4PresentationUtilTaglib.cookHTML(sChangePasswordUrl)%&gt; |
+| 103 | javascript:CheckAndSubmit();                                                           |
+| 104 | /iconos/icono_enviar_ess_36_36.gif                                                     |
+
+## Resolución de dependencias
+
+«Física» identifica un archivo local. «Contextual» enumera candidatos sin asegurar la preferencia del runtime. Una dependencia dinámica o ausente requiere P06 para esta ruta y línea.
+
+| Ámbito | L   | Referencia                                                                             | Resolución | Ficha / candidato |
+| ------ | --- | -------------------------------------------------------------------------------------- | ---------- | ----------------- |
+| BASE   | 92  | &lt;%=com.meta4.taglib.util.M4PresentationUtilTaglib.cookHTML(sChangePasswordUrl)%&gt; | dinámica   | P06               |
+| BASE   | 103 | javascript:CheckAndSubmit();                                                           | dinámica   | P06               |
+
+## Adaptación y aceptación
+
+Consultar el [mapa de destino](../../implementacion/mapa-destino.md) y la [integración](../../implementacion/integracion-powermeta4.md). La ruta técnica identifica la ficha; no obliga a crear una página pública para cada fragmento, actualización o wrapper. Agruparlos en el flujo funcional del índice del dominio.
+
+- Reproducir los apartados y controles de la variante aplicable, con sus catálogos y dependencias; contrastar especialmente las diferencias CYC frente a IBER/COLL.
+- Probar entradas válidas/inválidas, filtros vacíos, recarga, paginación, selección, cancelación y respuestas de error cuando esas acciones aparezcan en el original.
+- Resolver identidad, sociedad y alcance del responsable en servidor; un parámetro de empleado del JSP no constituye autorización.
+- Mantener resultados y escrituras pendientes cuando no exista contrato real verificado. Las operaciones ERP distintas del alta siguen sujetas a los límites de AGENTS.md.
+
+## Pendientes concretos
+
+- Confirmar exposición y permisos de `sse_g0/_change_password_form.jsp` en el menú Meta4 efectivo: **P01/P03**.
+- Confirmar catálogos, reglas internas, retorno de métodos y persistencia real identificados en las tablas: **P02/P04**.
+- Verificar estados y disposición en ejecución; esta ficha registra fuente, no una revisión del portal real: **P05**.
+- Resolver cada dependencia ausente o construida dinámicamente antes de implementar su flujo: **P06**.
+
+[Registro de pendientes](../../implementacion/pendientes.md).

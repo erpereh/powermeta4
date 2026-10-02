@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Especificación del portal para clonación - 2026-10-02
+
+- [x] Entrada única `docs/portal/README.md`, orden de lectura y plantilla de
+      implementación para `/portal`, empleado/responsable y CYC/IBER/COLL.
+- [x] Guías funcionales, fichas por ruta/variante, campos, controles, contratos,
+      validaciones visibles, dependencias, hashes y literales españoles.
+- [x] Inventario de fuentes, duplicados comprobados y otras generaciones;
+      manuales con páginas físicas y límites de exposición/reglas del servidor.
+- [x] Integración documentada con sesión, sociedad server-side, componentes
+      existentes y servicios reutilizables sin ampliar permisos/escrituras ERP.
+- [x] Verificación: 1.114 fichas técnicas, 40 diccionarios españoles y guías
+      por dominio; 37.218 enlaces locales comprobados, sin enlaces/anclas
+      inválidos ni fuentes funcionales sin evidencia. SHA-256 de los 2.090
+      originales funcionales conservado. Otras generaciones con límites P07.
+- [x] `npm run typecheck`, `npm test` (109 archivos; 603 correctas, 2 omitidas),
+      `npm run build`, `git diff --check` y `git status --short` ejecutados.
+      Formato dirigido de `docs/portal` correcto. `npm run lint` falla por
+      los 362 archivos con formato pendiente y siete avisos previos; los
+      problemas de formato de todo/changelog también existen en HEAD.
+- [ ] Implementación del portal en tareas posteriores; confirmar publicación,
+      NAE/sociedad, empleado propio, alcance responsable y contratos reales
+      P01–P09 por funcionalidad antes de activar operaciones.
+
 ## Alta de personas: Proyecto vacío, validaciones y rechazos controlados - 2026-09-30
 
 - [x] Diagnóstico del alta de las 15:34 y su log: «Proyecto» vacío en

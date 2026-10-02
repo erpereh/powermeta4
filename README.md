@@ -6,6 +6,11 @@ fuente persistente; Zustand conserva únicamente el snapshot temporal para
 renderizar la interfaz. No se guardan datos funcionales en `localStorage`,
 `sessionStorage` ni en servicios remotos.
 
+La [especificación del portal](docs/portal/README.md) es la entrada para
+implementar por funcionalidades el portal de empleado y responsable de
+CYC, IBER y COLL bajo `/portal`, con integración, variantes, referencias
+y pendientes del servidor. La entrega actual es documental.
+
 ## Requisitos y puesta en marcha
 
 La persistencia usa directamente `node:sqlite`, `DatabaseSync` y `backup()`.

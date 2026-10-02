@@ -1,0 +1,58 @@
+# Organización y directorio
+
+[Índice general](../../README.md) · [Guía funcional](../../empleado/flujos.md) · [Recorrido del dominio](guia.md) · [Matriz](../../inventario/empleado-organizacion.md).
+
+Las fichas siguientes conservan las versiones por sociedad y sus localizadores. La clasificación es una inferencia estática; no confirma el menú efectivo.
+
+| Ruta y ficha                                                                               | Título de fuente                       | Tipo de pieza                               | Fuentes por ámbito                |
+| ------------------------------------------------------------------------------------------ | -------------------------------------- | ------------------------------------------- | --------------------------------- |
+| [sse_g0/_change_password.jsp](sse_g0--_change_password.md)                                 | sse_g0/_change_password.jsp            | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/_change_password_action.jsp](sse_g0--_change_password_action.md)                   | sse_g0/_change_password_action.jsp     | controlador / acción candidata              | BASE: 1                           |
+| [sse_g0/_change_password_form.jsp](sse_g0--_change_password_form.md)                       | sse_g0/_change_password_form.jsp       | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/change_password.jsp](sse_g0--change_password.md)                                   | Cambio de contraseña                   | wrapper / include                           | BASE: 2                           |
+| [sse_g0/change_password_action.jsp](sse_g0--change_password_action.md)                     | Cambio de contraseña                   | controlador / acción candidata              | BASE: 1                           |
+| [sse_g0/organigrama-portal-QOrg.jsp](sse_g0--organigrama-portal-qorg.md)                   | Organigrama                            | pantalla / pieza funcional candidata        | CYC: 2                            |
+| [sse_g0/sgco_ek_job_hr.jsp](sse_g0--sgco_ek_job_hr.md)                                     | sse_g0/sgco_ek_job_hr.jsp              | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/sgco_gen_trans.jsp](sse_g0--sgco_gen_trans.md)                                     | sse_g0/sgco_gen_trans.jsp              | fragmento / recurso compartido              | BASE: 1                           |
+| [sse_g0/sgco_job_map.jsp](sse_g0--sgco_job_map.md)                                         | sse_g0/sgco_job_map.jsp                | pantalla / pieza funcional candidata        | BASE: 2                           |
+| [sse_g0/ssco_change_password.jsp](sse_g0--ssco_change_password.md)                         | Cambio de contraseña                   | wrapper / include                           | BASE: 1                           |
+| [sse_g0/ssco_dyn_infoperson.jsp](sse_g0--ssco_dyn_infoperson.md)                           | Info person                            | pantalla / pieza funcional candidata        | BASE: 2                           |
+| [sse_g0/ssco_dyn_save_type_orgchart.jsp](sse_g0--ssco_dyn_save_type_orgchart.md)           | sse_g0/ssco_dyn_save_type_orgchart.jsp | pantalla / pieza funcional candidata        | BASE: 2                           |
+| [sse_g0/ssco_dynamic_orgchart.jsp](sse_g0--ssco_dynamic_orgchart.md)                       | sse_g0/ssco_dynamic_orgchart.jsp       | pantalla / pieza funcional candidata        | BASE: 2; CYC: 2; IBER: 2; COLL: 2 |
+| [sse_g0/ssco_easy_task_comments.jsp](sse_g0--ssco_easy_task_comments.md)                   | sse_g0/ssco_easy_task_comments.jsp     | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/ssco_easy_task_historic.jsp](sse_g0--ssco_easy_task_historic.md)                   | sse_g0/ssco_easy_task_historic.jsp     | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/ssco_easy_task_list.jsp](sse_g0--ssco_easy_task_list.md)                           | sse_g0/ssco_easy_task_list.jsp         | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/ssco_engine_infpers.jsp](sse_g0--ssco_engine_infpers.md)                           | sse_g0/ssco_engine_infpers.jsp         | fragmento / recurso compartido              | BASE: 2                           |
+| [sse_g0/ssco_engine_org_chart.jsp](sse_g0--ssco_engine_org_chart.md)                       | sse_g0/ssco_engine_org_chart.jsp       | fragmento / recurso compartido              | BASE: 2                           |
+| [sse_g0/ssco_engine_org_chart_dyn.jsp](sse_g0--ssco_engine_org_chart_dyn.md)               | sse_g0/ssco_engine_org_chart_dyn.jsp   | fragmento / recurso compartido              | BASE: 2; IBER: 1; COLL: 1         |
+| [sse_g0/ssco_engine_who.jsp](sse_g0--ssco_engine_who.md)                                   | Quién es Quién - Datos Empleado        | fragmento / recurso compartido              | BASE: 2; CYC: 2; IBER: 2; COLL: 2 |
+| [sse_g0/ssco_etask_trans.jsp](sse_g0--ssco_etask_trans.md)                                 | sse_g0/ssco_etask_trans.jsp            | fragmento / recurso compartido              | BASE: 1                           |
+| [sse_g0/ssco_g0_contact.jsp](sse_g0--ssco_g0_contact.md)                                   | sse_g0/ssco_g0_contact.jsp             | pantalla / pieza funcional candidata        | BASE: 2                           |
+| [sse_g0/ssco_g0_inf_emp.jsp](sse_g0--ssco_g0_inf_emp.md)                                   | sse_g0/ssco_g0_inf_emp.jsp             | pantalla / pieza funcional candidata        | BASE: 2                           |
+| [sse_g0/ssco_g0_org_chart.jsp](sse_g0--ssco_g0_org_chart.md)                               | sse_g0/ssco_g0_org_chart.jsp           | pantalla / pieza funcional candidata        | BASE: 2                           |
+| [sse_g0/ssco_g0_org_chart_dyn.jsp](sse_g0--ssco_g0_org_chart_dyn.md)                       | sse_g0/ssco_g0_org_chart_dyn.jsp       | pantalla / pieza funcional candidata        | BASE: 2; IBER: 1; COLL: 1         |
+| [sse_g0/ssco_g0_who_is_who.jsp](sse_g0--ssco_g0_who_is_who.md)                             | Quién es Quién                         | pantalla / pieza funcional candidata        | BASE: 2; CYC: 2; IBER: 2; COLL: 2 |
+| [sse_g0/ssco_g0_who_is_who_23032015.jsp](sse_g0--ssco_g0_who_is_who_23032015.md)           | Quién es Quién                         | pantalla / pieza funcional candidata        | CYC: 1; IBER: 1; COLL: 1          |
+| [sse_g0/ssco_g0_who_is_who_bckp_20032015.jsp](sse_g0--ssco_g0_who_is_who_bckp_20032015.md) | Quién es Quién                         | copia con indicio histórico; exposición P01 | CYC: 1; IBER: 1; COLL: 1          |
+| [sse_g0/ssco_g0_who_is_who_empl.jsp](sse_g0--ssco_g0_who_is_who_empl.md)                   | Quién es Quién - Datos Empleado        | pantalla / pieza funcional candidata        | CYC: 1; IBER: 1; COLL: 1          |
+| [sse_g0/ssco_g0_who_is_who_old.jsp](sse_g0--ssco_g0_who_is_who_old.md)                     | Quién es Quién                         | copia con indicio histórico; exposición P01 | CYC: 1; IBER: 1; COLL: 1          |
+| [sse_g0/ssco_list_responsibles.jsp](sse_g0--ssco_list_responsibles.md)                     | sse_g0/ssco_list_responsibles.jsp      | pantalla / pieza funcional candidata        | BASE: 2                           |
+| [sse_g0/ssco_mn_contact.jsp](sse_g0--ssco_mn_contact.md)                                   | sse_g0/ssco_mn_contact.jsp             | pantalla / pieza funcional candidata        | BASE: 2                           |
+| [sse_g0/ssco_mod_document.jsp](sse_g0--ssco_mod_document.md)                               | sse_g0/ssco_mod_document.jsp           | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/ssco_view_document.jsp](sse_g0--ssco_view_document.md)                             | " + zTitle + "                         | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/sse_g0_actualizar_g0_p1.jsp](sse_g0--sse_g0_actualizar_g0_p1.md)                   | Eliminar favoritos                     | controlador / acción candidata              | BASE: 1                           |
+| [sse_g0/sse_g0_actualizar_g0_p1_insertar.jsp](sse_g0--sse_g0_actualizar_g0_p1_insertar.md) | Eliminar favoritos                     | controlador / acción candidata              | BASE: 1                           |
+| [sse_g0/sse_g0_actualizar_links.jsp](sse_g0--sse_g0_actualizar_links.md)                   | Añadir a favoritos                     | controlador / acción candidata              | BASE: 1                           |
+| [sse_g0/sse_g0_actualizar_password.jsp](sse_g0--sse_g0_actualizar_password.md)             | Mise à jour                            | controlador / acción candidata              | BASE: 1                           |
+| [sse_g0/sse_g0_buscar_contactos.jsp](sse_g0--sse_g0_buscar_contactos.md)                   | Quién es quién                         | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/sse_g0_detalle_empleado.jsp](sse_g0--sse_g0_detalle_empleado.md)                   | Ficha del empleado                     | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/sse_g0_editar_links.jsp](sse_g0--sse_g0_editar_links.md)                           | Editar favoritos                       | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/sse_g0_eliminar_links.jsp](sse_g0--sse_g0_eliminar_links.md)                       | Eliminar favoritos                     | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/sse_g0_organigrama.jsp](sse_g0--sse_g0_organigrama.md)                             | Organigrama                            | pantalla / pieza funcional candidata        | CYC: 2; IBER: 2; COLL: 2          |
+| [sse_g0/sse_g0_organigrama_OLD.jsp](sse_g0--sse_g0_organigrama_old.md)                     | Organigrama                            | copia con indicio histórico; exposición P01 | CYC: 1                            |
+| [sse_g0/sse_g0_organigramas.jsp](sse_g0--sse_g0_organigramas.md)                           | Organigramas                           | pantalla / pieza funcional candidata        | CYC: 2; IBER: 2; COLL: 2          |
+| [sse_g0/sse_g0_organigramas_old.jsp](sse_g0--sse_g0_organigramas_old.md)                   | Organigramas                           | copia con indicio histórico; exposición P01 | CYC: 1; IBER: 1; COLL: 1          |
+| [sse_g0/sse_g0_organigramas_old_old.jsp](sse_g0--sse_g0_organigramas_old_old.md)           | Organigramas                           | copia con indicio histórico; exposición P01 | IBER: 1; COLL: 1                  |
+| [sse_g0/sse_g0_p1.jsp](sse_g0--sse_g0_p1.md)                                               | Mis contactos                          | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/sse_gen_informacion_usuario.jsp](sse_g0--sse_gen_informacion_usuario.md)           | Errores                                | pantalla / pieza funcional candidata        | BASE: 1                           |
+| [sse_g0/sse_hr_period.jsp](sse_g0--sse_hr_period.md)                                       | sse_g0/sse_hr_period.jsp               | pantalla / pieza funcional candidata        | BASE: 2                           |

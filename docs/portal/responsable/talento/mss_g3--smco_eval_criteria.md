@@ -1,0 +1,230 @@
+# smco_eval_criteria
+
+Identificador: `mss_g3/smco_eval_criteria.jsp`. Perfil: **responsable**. Dominio: **talento**.
+
+[Índice general](../../README.md) · [Guía funcional del dominio](README.md) · [Convenciones](../../referencias/metodologia.md).
+
+## Alcance y estado de evidencia
+
+Ficha de evidencia estática de todas las versiones españolas y compartidas de esta ruta en la copia local. La existencia del archivo no confirma su publicación en el menú activo ni los permisos efectivos. Las secciones siguientes separan versiones por SHA-256; no mezclan sus controles ni contratos.
+
+## Literales de interfaz identificados
+
+Las coincidencias conservan todas las definiciones españolas de la clave; comprobar su `load` e herencia.
+
+| Clave                 | Texto                                            | Ámbito | Diccionario                                                                                  |
+| --------------------- | ------------------------------------------------ | ------ | -------------------------------------------------------------------------------------------- |
+| Button.Ok             | Aceptar                                          | COLL   | [translations/ess_mss_gen_es.properties:L72](../../referencias/literales/ess_mss_gen_es.md)  |
+| Button.Ok             | Aceptar                                          | CYC    | [translations/ess_mss_gen_es.properties:L72](../../referencias/literales/ess_mss_gen_es.md)  |
+| Button.Ok             | Aceptar                                          | IBER   | [translations/ess_mss_gen_es.properties:L72](../../referencias/literales/ess_mss_gen_es.md)  |
+| Button.Ok             | Aceptar                                          | BASE   | [translations/ess_mss_gen_es.properties:L72](../../referencias/literales/ess_mss_gen_es.md)  |
+| Button.Ok             | Aceptar                                          | BASE   | [translations/shco_g0_es.properties:L28](../../referencias/literales/shco_g0_es.md)          |
+| Title.ssco_act        | Actualización                                    | COLL   | [translations/ess_mss_gen_es.properties:L198](../../referencias/literales/ess_mss_gen_es.md) |
+| Title.ssco_act        | Actualización                                    | CYC    | [translations/ess_mss_gen_es.properties:L198](../../referencias/literales/ess_mss_gen_es.md) |
+| Title.ssco_act        | Actualización                                    | IBER   | [translations/ess_mss_gen_es.properties:L198](../../referencias/literales/ess_mss_gen_es.md) |
+| Title.ssco_act        | Actualización                                    | BASE   | [translations/ess_mss_gen_es.properties:L197](../../referencias/literales/ess_mss_gen_es.md) |
+| ev_mss.LblCri         | Modifica los porcentajes para el empleado        | BASE   | [translations/mss_ev_es.properties:L198](../../referencias/literales/mss_ev_es.md)           |
+| ev_mss.LblCri1        | en el proceso                                    | BASE   | [translations/mss_ev_es.properties:L199](../../referencias/literales/mss_ev_es.md)           |
+| ev_mss.TCriCapab      | Cambio de porcentajes de conocimientos           | BASE   | [translations/mss_ev_es.properties:L197](../../referencias/literales/mss_ev_es.md)           |
+| ev_mss.TCriObj        | Cambio de porcentajes de objetivos cualitativos  | BASE   | [translations/mss_ev_es.properties:L202](../../referencias/literales/mss_ev_es.md)           |
+| ev_mss.TCriObj0       | Cambio de porcentajes de objetivos cuantitativos | BASE   | [translations/mss_ev_es.properties:L203](../../referencias/literales/mss_ev_es.md)           |
+| ev_mss.zlabelOrg      | Organizativo                                     | BASE   | [translations/mss_ev_es.properties:L187](../../referencias/literales/mss_ev_es.md)           |
+| ev_mss.zlabelPersonal | Personal                                         | BASE   | [translations/mss_ev_es.properties:L186](../../referencias/literales/mss_ev_es.md)           |
+
+## Fuentes y variantes
+
+| Sociedad / ámbito | Archivo                                                                                                       | SHA-256                                                            | Líneas |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -----: |
+| BASE / español    | [mss_g3/espanol/smco_eval_criteria.jsp](../../../../clon_portal/portal/mss_g3/espanol/smco_eval_criteria.jsp) | `5a5c8e61b68e934070d85468d27e28fb237c5ee3137a44debd5a88c34ecbabb7` |    133 |
+
+Las filas con el mismo hash son copias binarias idénticas. Un hash distinto puede corresponder a una traducción envolvente, un cuerpo compartido o una personalización; no implica por sí solo un cambio funcional.
+
+## Versión 1: BASE ES
+
+Fuente de los localizadores `L`: [mss_g3/espanol/smco_eval_criteria.jsp](../../../../clon_portal/portal/mss_g3/espanol/smco_eval_criteria.jsp). Líneas físicas, contando desde 1.
+
+### Apartados, etiquetas y enlaces visibles
+
+| L   | Texto literal / etiqueta          |
+| --- | --------------------------------- |
+| 111 | [valor dinámico] [valor dinámico] |
+
+### Controles, formularios y opciones
+
+Atributos literales del original: `type`, `name/id`, `value`, `maxlength`, `size`, `readonly/disabled`, eventos y bindings. Un valor dinámico conserva su expresión; no equivale a un valor de negocio confirmado. La obligatoriedad no se deduce del nombre ni del asterisco: consultar las reglas y el controlador.
+
+| L   | Control | Atributos                                                                                                                                             |
+| --- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 105 | form    | id=NombreFormulario; name=NombreFormulario; action=/servlet/CheckSecurity/JSP/mss_g3/smco_eval_criteria.jsp                                           |
+| 106 | input   | id=idType; name=idType; type=hidden; value=&lt;%=zidType%&gt;                                                                                         |
+| 107 | input   | id=ACC; name=ACC; type=hidden; value=LOAD                                                                                                             |
+| 112 | input   | class=fuenteformulario; type=text; id=SMCO_ORG; name=SMCO_ORG; size=5; maxlength=5; tabindex=1; title=JSP_EXPR_TranMss.getProperty(; value=           |
+| 113 | input   | class=fuenteformulario; type=text; id=SMCO_PERSONAL; name=SMCO_PERSONAL; size=5; maxlength=5; tabindex=2; title=JSP_EXPR_TranMss.getProperty(; value= |
+| 114 | a       | onclick=javascript:m4_con();                                                                                                                          |
+| 114 | img     | alt=JSP_EXPR_Tran.getProperty(; src=/iconos/icono_enviar_ess_36_36.gif; height=36; width=36                                                           |
+
+### Contexto, entradas y valores construidos
+
+| L   | Entrada / clave | Acceso literal                        |
+| --- | --------------- | ------------------------------------- |
+| 55  | zid             | getParameter(request,"zid")           |
+| 56  | zor             | getParameter(request,"zor")           |
+| 57  | zdt             | getParameter(request,"zdt")           |
+| 58  | zValues         | getParameter(request,"zValues")       |
+| 59  | idType          | getParameter(request,"idType")        |
+| 61  | ACC             | getParameter(request,"ACC")           |
+| 63  | SMCO_ORG        | getParameter(request,"SMCO_ORG")      |
+| 64  | SMCO_PERSONAL   | getParameter(request,"SMCO_PERSONAL") |
+
+| L   | Variable     | Expresión fuente                                                          | Resolución estática parcial                                               |
+| --- | ------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 55  | zIdHr        | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zid")           | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zid")           |
+| 56  | zOrRole      | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zor")           | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zor")           |
+| 57  | zDtStart     | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zdt")           | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zdt")           |
+| 58  | zValues      | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zValues")       | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zValues")       |
+| 59  | zidType      | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"idType")        | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"idType")        |
+| 61  | ACC          | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"ACC")           | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"ACC")           |
+| 63  | zOrg         | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"SMCO_ORG")      | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"SMCO_ORG")      |
+| 64  | zPersonal    | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"SMCO_PERSONAL") | com.meta4.taglib.util.M4SafeRequest.getParameter(request,"SMCO_PERSONAL") |
+| 68  | zsubsesion   | "SMCO_EVAL_CRITERIA"                                                      | SMCO_EVAL_CRITERIA                                                        |
+| 69  | zmeta4object | zsubsesion                                                                | SMCO_EVAL_CRITERIA                                                        |
+| 70  | znodo        | "SMCO_EVAL_CRITERIA_E"                                                    | SMCO_EVAL_CRITERIA_E                                                      |
+| 71  | zoutputdef   | zsubsesion + "!" + znodo + "[*]"                                          | SMCO_EVAL_CRITERIA{"!"}SMCO_EVAL_CRITERIA_E{"[*]"}                        |
+| 73  | zmetodo      | zsubsesion + "!" + znodo + ".SMCO_LOAD"                                   | SMCO_EVAL_CRITERIA{"!"}SMCO_EVAL_CRITERIA_E{".SMCO_LOAD"}                 |
+| 74  | zmetodo2     | zsubsesion + "!" + znodo + ".SMCO_CHANGE_CAPAB"                           | SMCO_EVAL_CRITERIA{"!"}SMCO_EVAL_CRITERIA_E{".SMCO_CHANGE_CAPAB"}         |
+| 75  | zliteral     | TranMss.getProperty("ev_mss.TCriCapab")                                   | TranMss.getProperty("ev_mss.TCriCapab")                                   |
+
+### Objetos, métodos, nodos y salidas Meta4
+
+Estas llamadas son del runtime JSP/Meta4. No son un catálogo de endpoints SOAP. La resolución que conserva variables o condiciones es parcial. `setItem` puede preparar argumentos y no prueba por sí solo una escritura persistente.
+
+| L   | Tag          | Contrato declarado                                                                                 |
+| --- | ------------ | -------------------------------------------------------------------------------------------------- |
+| 85  | m4:startpage | m4task=SMCO_EVAL_CRITERIA                                                                          |
+| 85  | m4:beginjob  |                                                                                                    |
+| 86  | m4:datadef   | m4o=SMCO_EVAL_CRITERIA; m4name=SMCO_EVAL_CRITERIA                                                  |
+| 88  | m4:exec      | m4method=SMCO_EVAL_CRITERIA{"!"}SMCO_EVAL_CRITERIA_E{".SMCO_LOAD"}                                 |
+| 89  | m4:param     | name=ARG_ID_HR; value=com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zid")              |
+| 90  | m4:param     | name=ARG_OR_ROLE; value=com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zor")            |
+| 91  | m4:param     | name=ARG_DT_START; value=com.meta4.taglib.util.M4SafeRequest.getParameter(request,"zdt")           |
+| 94  | m4:exec      | m4method=SMCO_EVAL_CRITERIA{"!"}SMCO_EVAL_CRITERIA_E{".SMCO_CHANGE_CAPAB"}                         |
+| 95  | m4:param     | name=ARG_PERSONAL; value=com.meta4.taglib.util.M4SafeRequest.getParameter(request,"SMCO_PERSONAL") |
+| 96  | m4:param     | name=ARG_ORG; value=com.meta4.taglib.util.M4SafeRequest.getParameter(request,"SMCO_ORG")           |
+| 97  | m4:param     | name=ARG_TYPE; value=com.meta4.taglib.util.M4SafeRequest.getParameter(request,"idType")            |
+| 100 | m4:outputdef | m4alias=SMCO_EVAL_CRITERIA_E                                                                       |
+| 100 | m4:param     | name=m4name0; value=SMCO_EVAL_CRITERIA{"!"}SMCO_EVAL_CRITERIA_E{"[*]"}                             |
+| 101 | m4:endjob    |                                                                                                    |
+| 111 | m4:item      | item=SCO_GB_NAME; htmlsafe=true; outputdef=SMCO_EVAL_CRITERIA_E                                    |
+| 111 | m4:item      | item=SCO_NM_EVAL_PROC; htmlsafe=true; outputdef=SMCO_EVAL_CRITERIA_E                               |
+| 131 | m4:endpage   |                                                                                                    |
+
+Sin accesos directos identificados; consultar el cuerpo incluido o el script enlazado.
+
+### Funciones, condiciones y mensajes
+
+Las condiciones son evidencia del código activo tras retirar comentarios HTML/JSP y bloques de comentario. Conservar su contexto: una condición aislada no permite afirmar un permiso ni una regla global. Las reglas compartidas de JavaScript se localizan más abajo.
+
+| L   | Función | Argumentos |
+| --- | ------- | ---------- |
+| 17  | m4_con  |            |
+
+| L   | Condición / acción / mensaje literal                                                                    |
+| --- | ------------------------------------------------------------------------------------------------------- |
+| 21  | var Org_c = new m4objvalidacion('_decimal2','2','','','',false);                                        |
+| 22  | if (Org==''){m4valor("NombreFormulario","SMCO_ORG",0,"set");Org=0;}                                     |
+| 24  | if (Org!=0){                                                                                            |
+| 25  | if (Org_c.resultado == false){                                                                          |
+| 31  | if (personal==''){m4valor("NombreFormulario","SMCO_PERSONAL","0","set");personal=0;}                    |
+| 32  | var personal_c = new m4objvalidacion('_decimal2','2','','','',false);                                   |
+| 34  | if (personal!=0){                                                                                       |
+| 35  | if (personal_c.resultado == false){                                                                     |
+| 40  | if ( error ==1){                                                                                        |
+| 41  | alert(texto);                                                                                           |
+| 45  | if (total ==parseFloat(100) ){                                                                          |
+| 47  | }else{                                                                                                  |
+| 49  | alert(texto);                                                                                           |
+| 62  | if ((ACC==null)&#124;&#124;(ACC.equals(""))){ACC="LOAD";}                                               |
+| 65  | if ((zOrg==null)&#124;&#124;(zOrg.equals(""))){zOrg="0";}                                               |
+| 66  | if ((zPersonal==null)&#124;&#124;(zPersonal.equals(""))){zPersonal="0";}                                |
+| 76  | if (zidType.equals("0")){                                                                               |
+| 79  | }else if (zidType.equals("1")){                                                                         |
+| 87  | &lt;%if (ACC=="LOAD"){%&gt;                                                                             |
+| 93  | &lt;%}else{%&gt;                                                                                        |
+| 102 | &lt;%if (ACC=="LOAD"){%&gt;                                                                             |
+| 117 | &lt;%}else{%&gt;                                                                                        |
+| 26  | expresión de cálculo/transformación: texto = texto + "\n" + m4getmessage("_sl_co_mss_crit_1");          |
+| 36  | expresión de cálculo/transformación: texto = texto + "\n" + m4getmessage("_sl_co_mss_crit_2");          |
+| 44  | expresión de cálculo/transformación: var total =parseFloat(Org)+parseFloat(personal);                   |
+| 48  | expresión de cálculo/transformación: texto = texto + "\n" + m4getmessage("_sl_co_mss_crit_3");          |
+| 71  | expresión de cálculo/transformación: String zoutputdef = zsubsesion + "!" + znodo + "[*]";              |
+| 73  | expresión de cálculo/transformación: String zmetodo = zsubsesion + "!" + znodo + ".SMCO_LOAD";          |
+| 74  | expresión de cálculo/transformación: String zmetodo2 = zsubsesion + "!" + znodo + ".SMCO_CHANGE_CAPAB"; |
+| 77  | expresión de cálculo/transformación: zmetodo2 = zsubsesion + "!" + znodo + ".SMCO_CHANGE_O";            |
+| 80  | expresión de cálculo/transformación: zmetodo2 = zsubsesion + "!" + znodo + ".SMCO_CHANGE_OC";           |
+
+### Includes, navegación y dependencias
+
+| L   | Include                                      |
+| --- | -------------------------------------------- |
+| 1   | ../../sse_generico/sse_generico_taglib.jsp   |
+| 6   | ../../sse_generico/sse_generico_taglib_2.jsp |
+| 7   | ../../sse_generico/sgco_gen_inc.jsp          |
+| 9   | /mss_generico/mss_generico_trans.jsp         |
+| 10  | /mss_g3/mss_ev_trans.jsp                     |
+
+| L   | Destino / recurso                                        |
+| --- | -------------------------------------------------------- |
+| 8   | /css/estilo_mss.css                                      |
+| 11  | /libreria/funciones_filter.js                            |
+| 12  | /libreria/funciones_sse_val.js                           |
+| 13  | /libreria/func_eval.js                                   |
+| 14  | /libreria/funciones_sse.js                               |
+| 15  | /libreria/clase_val_entradas.js                          |
+| 105 | /servlet/CheckSecurity/JSP/mss_g3/smco_eval_criteria.jsp |
+| 114 | /iconos/icono_enviar_ess_36_36.gif                       |
+| 1   | ../../sse_generico/sse_generico_taglib.jsp               |
+| 6   | ../../sse_generico/sse_generico_taglib_2.jsp             |
+| 7   | ../../sse_generico/sgco_gen_inc.jsp                      |
+| 9   | /mss_generico/mss_generico_trans.jsp                     |
+| 10  | /mss_g3/mss_ev_trans.jsp                                 |
+
+## Resolución de dependencias
+
+«Física» identifica un archivo local. «Contextual» enumera candidatos sin asegurar la preferencia del runtime. Una dependencia dinámica o ausente requiere P06 para esta ruta y línea.
+
+| Ámbito | L   | Referencia                                               | Resolución | Ficha / candidato                                                                                             |
+| ------ | --- | -------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| BASE   | 1   | ../../sse_generico/sse_generico_taglib.jsp               | física     | [sse_generico/sse_generico_taglib.jsp](../../transversal/navegacion/sse_generico--sse_generico_taglib.md)     |
+| BASE   | 6   | ../../sse_generico/sse_generico_taglib_2.jsp             | física     | [sse_generico/sse_generico_taglib_2.jsp](../../transversal/navegacion/sse_generico--sse_generico_taglib_2.md) |
+| BASE   | 7   | ../../sse_generico/sgco_gen_inc.jsp                      | física     | [sse_generico/sgco_gen_inc.jsp](../../transversal/navegacion/sse_generico--sgco_gen_inc.md)                   |
+| BASE   | 9   | /mss_generico/mss_generico_trans.jsp                     | contextual | [mss_generico/mss_generico_trans.jsp](../tareas/mss_generico--mss_generico_trans.md)                          |
+| BASE   | 10  | /mss_g3/mss_ev_trans.jsp                                 | contextual | [mss_g3/mss_ev_trans.jsp](mss_g3--mss_ev_trans.md)                                                            |
+| BASE   | 11  | /libreria/funciones_filter.js                            | contextual | [libreria/funciones_filter.js](../../transversal/dependencias/libreria--funciones_filter.md)                  |
+| BASE   | 12  | /libreria/funciones_sse_val.js                           | contextual | [libreria/funciones_sse_val.js](../../transversal/dependencias/libreria--funciones_sse_val.md)                |
+| BASE   | 13  | /libreria/func_eval.js                                   | contextual | [libreria/func_eval.js](../../transversal/dependencias/libreria--func_eval.md)                                |
+| BASE   | 14  | /libreria/funciones_sse.js                               | contextual | [libreria/funciones_sse.js](../../transversal/dependencias/libreria--funciones_sse.md)                        |
+| BASE   | 15  | /libreria/clase_val_entradas.js                          | contextual | [libreria/clase_val_entradas.js](../../transversal/dependencias/libreria--clase_val_entradas.md)              |
+| BASE   | 105 | /servlet/CheckSecurity/JSP/mss_g3/smco_eval_criteria.jsp | ausente    | P06                                                                                                           |
+| BASE   | 1   | ../../sse_generico/sse_generico_taglib.jsp               | física     | [sse_generico/sse_generico_taglib.jsp](../../transversal/navegacion/sse_generico--sse_generico_taglib.md)     |
+| BASE   | 6   | ../../sse_generico/sse_generico_taglib_2.jsp             | física     | [sse_generico/sse_generico_taglib_2.jsp](../../transversal/navegacion/sse_generico--sse_generico_taglib_2.md) |
+| BASE   | 7   | ../../sse_generico/sgco_gen_inc.jsp                      | física     | [sse_generico/sgco_gen_inc.jsp](../../transversal/navegacion/sse_generico--sgco_gen_inc.md)                   |
+| BASE   | 9   | /mss_generico/mss_generico_trans.jsp                     | contextual | [mss_generico/mss_generico_trans.jsp](../tareas/mss_generico--mss_generico_trans.md)                          |
+| BASE   | 10  | /mss_g3/mss_ev_trans.jsp                                 | contextual | [mss_g3/mss_ev_trans.jsp](mss_g3--mss_ev_trans.md)                                                            |
+
+## Adaptación y aceptación
+
+Consultar el [mapa de destino](../../implementacion/mapa-destino.md) y la [integración](../../implementacion/integracion-powermeta4.md). La ruta técnica identifica la ficha; no obliga a crear una página pública para cada fragmento, actualización o wrapper. Agruparlos en el flujo funcional del índice del dominio.
+
+- Reproducir los apartados y controles de la variante aplicable, con sus catálogos y dependencias; contrastar especialmente las diferencias CYC frente a IBER/COLL.
+- Probar entradas válidas/inválidas, filtros vacíos, recarga, paginación, selección, cancelación y respuestas de error cuando esas acciones aparezcan en el original.
+- Resolver identidad, sociedad y alcance del responsable en servidor; un parámetro de empleado del JSP no constituye autorización.
+- Mantener resultados y escrituras pendientes cuando no exista contrato real verificado. Las operaciones ERP distintas del alta siguen sujetas a los límites de AGENTS.md.
+
+## Pendientes concretos
+
+- Confirmar exposición y permisos de `mss_g3/smco_eval_criteria.jsp` en el menú Meta4 efectivo: **P01/P03**.
+- Confirmar catálogos, reglas internas, retorno de métodos y persistencia real identificados en las tablas: **P02/P04**.
+- Verificar estados y disposición en ejecución; esta ficha registra fuente, no una revisión del portal real: **P05**.
+- Resolver cada dependencia ausente o construida dinámicamente antes de implementar su flujo: **P06**.
+
+[Registro de pendientes](../../implementacion/pendientes.md).

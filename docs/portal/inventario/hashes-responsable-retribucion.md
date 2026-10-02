@@ -1,0 +1,53 @@
+# Huellas: responsable / retribucion
+
+Los hashes SHA-256 corresponden a bytes originales y permiten detectar cambios futuros sin comparar fechas.
+
+| Archivo                                | SHA-256                                                          | Líneas | Ficha                                                                                       |
+| -------------------------------------- | ---------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| mss_g2/mss_bft_trans.jsp               | a5b2b3d3dbcdbfb3f65984a18de0be2cf6a522d7348c2e025ae63aaee0af917b | 15     | [mss_g2/mss_bft_trans.jsp](../responsable/retribucion/mss_g2--mss_bft_trans.md)             |
+| mss_g2/espanol/mss_g2_dosier.jsp       | f3dc990e118b1b73924d31a0b1b84a2c64d7f88d5de48abcfcb67d6aac60ebe4 | 114    | [mss_g2/mss_g2_dosier.jsp](../responsable/retribucion/mss_g2--mss_g2_dosier.md)             |
+| mss_g2/espanol/mss_g2_menu.jsp         | ccf85b1f38dd8d02e47ebdf023c9e1bd6f0eb9cadb27040eee6c3fbc4efcb216 | 1      | [mss_g2/mss_g2_menu.jsp](../responsable/retribucion/mss_g2--mss_g2_menu.md)                 |
+| mss_g2/espanol/mss_g2_menu_comp.jsp    | 0a796588bbf2300ea503715139a0e47c411bda3abf5b257f28b65c4554535b01 | 1      | [mss_g2/mss_g2_menu_comp.jsp](../responsable/retribucion/mss_g2--mss_g2_menu_comp.md)       |
+| mss_g2/espanol/mss_g2_p0.jsp           | ca6fa7b10b9bb1cab9f921f24ae9771dd9271a1d276c407863be304cf700b1d3 | 124    | [mss_g2/mss_g2_p0.jsp](../responsable/retribucion/mss_g2--mss_g2_p0.md)                     |
+| mss_g2/espanol/mss_g2_p0_wu.jsp        | 0927e1c0dc3d14fa76df94b18979487c24db2a99997aaa1116ea533ac3e2ec07 | 253    | [mss_g2/mss_g2_p0_wu.jsp](../responsable/retribucion/mss_g2--mss_g2_p0_wu.md)               |
+| mss_g2/espanol/mss_g2_p0_wu_mail.jsp   | dfb4f1e2dbabb80b0812d4d15660d231f4b2393c4a2ea2609d3c7f0067bc5994 | 146    | [mss_g2/mss_g2_p0_wu_mail.jsp](../responsable/retribucion/mss_g2--mss_g2_p0_wu_mail.md)     |
+| mss_g2/espanol/mss_g2_p0_wu_mail_p.jsp | fa7ec12a50844662c78949fa1d3c95fd4ca5ff575de962e56cfa101e1f06fdb7 | 41     | [mss_g2/mss_g2_p0_wu_mail_p.jsp](../responsable/retribucion/mss_g2--mss_g2_p0_wu_mail_p.md) |
+| mss_g2/espanol/mss_g2_p0_wu_p.jsp      | d476a2da045250d862dd0906038824c0d42285aa021c764a012e4d3d7ed34bdc | 59     | [mss_g2/mss_g2_p0_wu_p.jsp](../responsable/retribucion/mss_g2--mss_g2_p0_wu_p.md)           |
+| mss_g2/espanol/mss_g2_p1.jsp           | a00823b51ce388aa9f8a64214a3cc38d69b705a08c8c61f95ca173ac33c8b6fc | 105    | [mss_g2/mss_g2_p1.jsp](../responsable/retribucion/mss_g2--mss_g2_p1.md)                     |
+| mss_g2/espanol/mss_g2_p10.jsp          | c2b88e7de2fbb086a4c013f2bbcc46e986fc6083cd94040b926450f683e24c09 | 156    | [mss_g2/mss_g2_p10.jsp](../responsable/retribucion/mss_g2--mss_g2_p10.md)                   |
+| mss_g2/espanol/mss_g2_p1_val.jsp       | 9222e11e89a671661c47d767df94c9635f0bfd8304f9416ef0d88fa484eaeadb | 297    | [mss_g2/mss_g2_p1_val.jsp](../responsable/retribucion/mss_g2--mss_g2_p1_val.md)             |
+| mss_g2/espanol/mss_g2_p2.jsp           | cf90f0970c53a318a370c1cce0738b95498d5eb3dcf16f67ad67274761513c14 | 264    | [mss_g2/mss_g2_p2.jsp](../responsable/retribucion/mss_g2--mss_g2_p2.md)                     |
+| mss_g2/espanol/mss_g2_p2_ht.jsp        | 925e35fd20b5854af70a12f013329026ec9256128aeba9309159b4bcac7d1508 | 110    | [mss_g2/mss_g2_p2_ht.jsp](../responsable/retribucion/mss_g2--mss_g2_p2_ht.md)               |
+| mss_g2/espanol/mss_g2_p2_info.jsp      | ec8a0890e96f6a00df98b464ce0a2be9d061420499ad9e3939399547213556f4 | 40     | [mss_g2/mss_g2_p2_info.jsp](../responsable/retribucion/mss_g2--mss_g2_p2_info.md)           |
+| mss_g2/espanol/mss_g2_p2_me.jsp        | 01edec91563d35001973d55c199710a311bf193e1275b9de67bff0174c225aa2 | 272    | [mss_g2/mss_g2_p2_me.jsp](../responsable/retribucion/mss_g2--mss_g2_p2_me.md)               |
+| mss_g2/espanol/mss_g2_p2_p.jsp         | a88d97a982ba900ac9ab181752ced5076a2c9090147216fd4b8929f07c1ebffd | 28     | [mss_g2/mss_g2_p2_p.jsp](../responsable/retribucion/mss_g2--mss_g2_p2_p.md)                 |
+| mss_g2/espanol/mss_g2_p2_val.jsp       | d8e2da9e0e68b73552bb4ae31f48962a09686d9247b812c21766610b3606f115 | 335    | [mss_g2/mss_g2_p2_val.jsp](../responsable/retribucion/mss_g2--mss_g2_p2_val.md)             |
+| mss_g2/espanol/mss_g2_p3.jsp           | 86b2def33302719fb7d402554050e70961b15d5c68179c85384b07d2e92b2a34 | 726    | [mss_g2/mss_g2_p3.jsp](../responsable/retribucion/mss_g2--mss_g2_p3.md)                     |
+| mss_g2/espanol/mss_g2_p3_comment.jsp   | 6b5e177795f425e913dde85b9c180c894413b4a1c187e87460f05dc5b64349a1 | 137    | [mss_g2/mss_g2_p3_comment.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_comment.md)     |
+| mss_g2/espanol/mss_g2_p3_comment_p.jsp | 0a3546cc29052653612dd89480d81aef96ce6ef3ae6d11d9941727390cd9cf46 | 55     | [mss_g2/mss_g2_p3_comment_p.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_comment_p.md) |
+| mss_g2/espanol/mss_g2_p3_grade.jsp     | eeb696e4dbf5b955f280f340dd59ee23d9f8a872143c2af9db447811d9c0f1be | 78     | [mss_g2/mss_g2_p3_grade.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_grade.md)         |
+| mss_g2/espanol/mss_g2_p3_me.jsp        | 4164458dd4811f6233ecdb849607d6c606c622763e9985cb4ba0eb3c1eb74b79 | 670    | [mss_g2/mss_g2_p3_me.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_me.md)               |
+| mss_g2/espanol/mss_g2_p3_mensaje.jsp   | 50dd6a21a8db431484970c2c846bca6b04b02a973f1ae2f8bb28d6b2b843ddda | 98     | [mss_g2/mss_g2_p3_mensaje.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_mensaje.md)     |
+| mss_g2/espanol/mss_g2_p3_mi.jsp        | e09a07f8142f31e6ea50eafced0f2af632f42d9e27f80be6e43098806120ca0a | 587    | [mss_g2/mss_g2_p3_mi.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_mi.md)               |
+| mss_g2/espanol/mss_g2_p3_p.jsp         | f09d82741508917b934c3d9d0dead7c3674b83d61912e96dd6b78b758bc03319 | 39     | [mss_g2/mss_g2_p3_p.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_p.md)                 |
+| mss_g2/espanol/mss_g2_p3_pending.jsp   | 0e064aa2668101e29feb42d5e8a43b83cf1ec1b77ec1a572bb31da75a0d347f5 | 84     | [mss_g2/mss_g2_p3_pending.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_pending.md)     |
+| mss_g2/espanol/mss_g2_p3_sal.jsp       | 228d9ebb1fccbc66e1b26b80bf452b6d702491a6e0039350353e65e9d472f7dc | 49     | [mss_g2/mss_g2_p3_sal.jsp](../responsable/retribucion/mss_g2--mss_g2_p3_sal.md)             |
+| mss_g2/espanol/mss_g2_p4.jsp           | da36f784d13515153fffadd58727c53ea7db594f739f31a0f3ccb5769e47f6ce | 1622   | [mss_g2/mss_g2_p4.jsp](../responsable/retribucion/mss_g2--mss_g2_p4.md)                     |
+| mss_g2/espanol/mss_g2_p4_mi.jsp        | f680b7eedc3e0825b62e57c7f036222cae2af4cf3025e9eb3eb9115401e574af | 90     | [mss_g2/mss_g2_p4_mi.jsp](../responsable/retribucion/mss_g2--mss_g2_p4_mi.md)               |
+| mss_g2/espanol/mss_g2_p4_p.jsp         | 81e684185e2df9fbc7185836e5ba0968ff46b584436ee91b06b136a4764b30f0 | 59     | [mss_g2/mss_g2_p4_p.jsp](../responsable/retribucion/mss_g2--mss_g2_p4_p.md)                 |
+| mss_g2/espanol/mss_g2_p4_rset.jsp      | 1e0ef9b3666c538ffeba8ce55bde383140baaf8f4dc7d3e3846b776ac9ccefa4 | 23     | [mss_g2/mss_g2_p4_rset.jsp](../responsable/retribucion/mss_g2--mss_g2_p4_rset.md)           |
+| mss_g2/espanol/mss_g2_p4_salto.jsp     | 8e1684aa7c4b17518f5bed0340a2dbbcf8b00064b86f5c27b0d5980dcd6a8f4c | 73     | [mss_g2/mss_g2_p4_salto.jsp](../responsable/retribucion/mss_g2--mss_g2_p4_salto.md)         |
+| mss_g2/espanol/mss_g2_p5.jsp           | 1bada766390e7278716533f33fb73d491b64ff58e12086a5e02c2b908d71faca | 313    | [mss_g2/mss_g2_p5.jsp](../responsable/retribucion/mss_g2--mss_g2_p5.md)                     |
+| mss_g2/espanol/mss_g2_p5_p.jsp         | d6be848c1bb9c25cbee4cd1b3044d9277adc2158cc08a3c302c06849c55919f5 | 34     | [mss_g2/mss_g2_p5_p.jsp](../responsable/retribucion/mss_g2--mss_g2_p5_p.md)                 |
+| mss_g2/espanol/mss_g2_p5_val.jsp       | 4aff3bcb9742a57176585bd9baa6292bea5e829a286e5b7489697c6862a1849b | 260    | [mss_g2/mss_g2_p5_val.jsp](../responsable/retribucion/mss_g2--mss_g2_p5_val.md)             |
+| mss_g2/espanol/mss_g2_p6.jsp           | 50b81e9d6b161e642cbf1b86e8b19d9d38f31a85f0aecb97934d8e84e6553dfd | 226    | [mss_g2/mss_g2_p6.jsp](../responsable/retribucion/mss_g2--mss_g2_p6.md)                     |
+| mss_g2/espanol/mss_g2_p6_comment.jsp   | bfd70193568571f496237315319a54a77b3be495b5fa72c2515e78743f51b979 | 88     | [mss_g2/mss_g2_p6_comment.jsp](../responsable/retribucion/mss_g2--mss_g2_p6_comment.md)     |
+| mss_g2/espanol/mss_g2_p7_det.jsp       | 790ba16e9606e68ab0ee2bf25262c1c3c794212b056c06e92d80125a34019ee5 | 301    | [mss_g2/mss_g2_p7_det.jsp](../responsable/retribucion/mss_g2--mss_g2_p7_det.md)             |
+| mss_g2/espanol/mss_g2_p7_help.jsp      | 3fb71620113826280c58842b12e6189575a85385926549a8c165175b59761317 | 477    | [mss_g2/mss_g2_p7_help.jsp](../responsable/retribucion/mss_g2--mss_g2_p7_help.md)           |
+| mss_g2/espanol/mss_g2_p7_val.jsp       | d2947ac4858b231f0208ff8b809c972f9dfbd2c63730e294b54ecd51777d81b3 | 315    | [mss_g2/mss_g2_p7_val.jsp](../responsable/retribucion/mss_g2--mss_g2_p7_val.md)             |
+| mss_g2/espanol/mss_g2_p8.jsp           | 7d486a4b786513b14a902b6418316608f73a5c5fe594c6ae4f08e980a0725d92 | 142    | [mss_g2/mss_g2_p8.jsp](../responsable/retribucion/mss_g2--mss_g2_p8.md)                     |
+| mss_g2/espanol/mss_g2_p8_p.jsp         | 4dd032a13c115f0a1047d617fdda204a9a06b11d06476e4ccee0bea304d04a2d | 185    | [mss_g2/mss_g2_p8_p.jsp](../responsable/retribucion/mss_g2--mss_g2_p8_p.md)                 |
+| mss_g2/espanol/mss_g2_p8_val.jsp       | f7656935cc062c5e0be95dadd6621202478ff508ccb3d768fa56fb5f3b2db60d | 287    | [mss_g2/mss_g2_p8_val.jsp](../responsable/retribucion/mss_g2--mss_g2_p8_val.md)             |
+| mss_g2/espanol/mss_g2_p9_val.jsp       | b38d918d1ba36986878a71ddd6df7fa03cadc220ad11503c08f63feb624d5985 | 284    | [mss_g2/mss_g2_p9_val.jsp](../responsable/retribucion/mss_g2--mss_g2_p9_val.md)             |
+| mss_g2/espanol/smco_g2_p11.jsp         | e41242ec695ed35e57889e5dfcc0ada04da5adca64b667ba781297f9aebd42f2 | 115    | [mss_g2/smco_g2_p11.jsp](../responsable/retribucion/mss_g2--smco_g2_p11.md)                 |
+| mss_g2/smco_g2_trans.jsp               | ba769e6845c82c486bc54891f72bb24f55631866eb9e58ca95681b6778289498 | 6      | [mss_g2/smco_g2_trans.jsp](../responsable/retribucion/mss_g2--smco_g2_trans.md)             |

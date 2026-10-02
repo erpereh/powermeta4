@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-10-02 - Documentación para clonar el portal corporativo
+
+- Nueva especificación `docs/portal/` para CYC, IBER y COLL, empleado y
+  responsable, con entrada para IA, guías de recorrido y fichas técnicas por
+  ruta y contenido de variante. Se propone una sección futura `/portal`
+  integrada en la sesión y sociedad operativa del servidor.
+- Inventario y matrices relacionan fuentes, hashes, duplicados, dependencias
+  y cobertura estática. Los manuales se referencian por página física;
+  publicación, permisos, reglas y contratos del servidor quedan trazables.
+- Documentadas reutilización de servicios/componentes, secuencia y criterios
+  de aceptación. Los originales se conservan; no se añaden rutas de aplicación,
+  APIs, persistencia ni escrituras ERP. README enlaza la entrada documental.
+- Cobertura: 771 rutas principales y 343 dependencias adicionales en 1.114
+  fichas técnicas, 40 diccionarios españoles y guías por dominio. Verificados
+  37.218 enlaces locales, sin enlaces/anclas inválidos ni fuentes funcionales
+  sin evidencia; hashes de los 2.090 originales funcionales conservados.
+- Verificación: typecheck, tests (109 archivos, 603 correctas y 2 omitidas),
+  build y `git diff --check` correctos; status conserva `davidev` y solo los
+  cambios documentales. Formato de `docs/portal` correcto. Lint global falla
+  por 362 archivos con formato pendiente y siete avisos previos, incluidos
+  problemas de formato ya presentes en HEAD de todo/changelog.
+
 ## 2026-09-30 - Proyecto del alta, validaciones por campo y rechazos de PeopleNet
 
 - El alta fallaba por «Proyecto» vacío: CZ debe llevar el valor de lista

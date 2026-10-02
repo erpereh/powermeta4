@@ -1,0 +1,143 @@
+# meta4list
+
+Identificador: `libreria/meta4list.js`. Perfil: **transversal**. Dominio: **dependencias**.
+
+[Índice general](../../README.md) · [Guía funcional del dominio](README.md) · [Convenciones](../../referencias/metodologia.md).
+
+## Alcance y estado de evidencia
+
+Ficha de evidencia estática de todas las versiones locales de este recurso auxiliar en la copia local. La existencia del archivo no confirma su publicación en el menú activo ni los permisos efectivos. Las secciones siguientes separan versiones por SHA-256; no mezclan sus controles ni contratos.
+
+## Diferencias por sociedad frente a BASE
+
+Comparación de identificadores declarados en contratos `m4:` para la misma ubicación española/compartida. No cubre todos los cambios de UI, condiciones o includes: esos detalles permanecen separados en las versiones de la ficha. Un identificador presente solo en una versión no prueba disponibilidad en servidor.
+
+| Ámbito | Ubicación | Hash     | Solo en variante                        | Solo en BASE                            |
+| ------ | --------- | -------- | --------------------------------------- | --------------------------------------- |
+| COLL   | shared    | idéntica | sin diferencia en estos identificadores | sin diferencia en estos identificadores |
+| IBER   | shared    | idéntica | sin diferencia en estos identificadores | sin diferencia en estos identificadores |
+
+## Fuentes y variantes
+
+| Sociedad / ámbito | Archivo                                                                                                   | SHA-256                                                            | Líneas |
+| ----------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -----: |
+| COLL / compartido | [m4custom/COLL/libreria/meta4list.js](../../../../clon_portal/portal/m4custom/COLL/libreria/meta4list.js) | `3685d1076b14490e111367d32f2a8380a1938cfb7ccbc474611b8030a539695e` |     29 |
+| BASE / compartido | [libreria/meta4list.js](../../../../clon_portal/portal/libreria/meta4list.js)                             | `3685d1076b14490e111367d32f2a8380a1938cfb7ccbc474611b8030a539695e` |     29 |
+| IBER / compartido | [m4custom/IBER/libreria/meta4list.js](../../../../clon_portal/portal/m4custom/IBER/libreria/meta4list.js) | `3685d1076b14490e111367d32f2a8380a1938cfb7ccbc474611b8030a539695e` |     29 |
+
+Las filas con el mismo hash son copias binarias idénticas. Un hash distinto puede corresponder a una traducción envolvente, un cuerpo compartido o una personalización; no implica por sí solo un cambio funcional.
+
+## Versión 1: COLL compartida, BASE compartida, IBER compartida
+
+Fuente de los localizadores `L`: [m4custom/COLL/libreria/meta4list.js](../../../../clon_portal/portal/m4custom/COLL/libreria/meta4list.js). Líneas físicas, contando desde 1.
+
+### Apartados, etiquetas y enlaces visibles
+
+No hay etiquetas estáticas en este archivo; seguir sus includes y traducciones.
+
+### Controles, formularios y opciones
+
+Atributos literales del original: `type`, `name/id`, `value`, `maxlength`, `size`, `readonly/disabled`, eventos y bindings. Un valor dinámico conserva su expresión; no equivale a un valor de negocio confirmado. La obligatoriedad no se deduce del nombre ni del asterisco: consultar las reglas y el controlador.
+
+| L   | Control | Atributos                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4   | a       | sfiltervalue=b.get("text")}}function; f=object; k=$clear(k):(d.set("html",""),l(b,d,a,a.labelLoading),m(d,b));k=function(){meta4Ajax.ajax.sendAsyncJSON(C,c,a.processResult)}.delay(F)}a.sFilterValue=b.get("value")}else; s=/[%,_]/,q=b.get("FilterValue").toLowerCase(),w=q.match(s);k=$clear(k);if(a)if(d.set("html",""),0===a.result.length)l(b,d,c,c.labelNoMatch);else{for(e=0;e&lt;a.result.length;e++){p=a.result[e][c.saResultItems[0]];g=l(b,d,c,p,d.id+".li"+e);p=g.get("text");w&amp;&amp;(q=q.replace(/^[%_]\*/,""),q=q.replace(/[%_]*$/,""),w=q.match(s));w&#124;&#124;(f=p.toLowerCase().indexOf(q),p=p.substr(0,f)+'&lt;span; style=font-weight:bold;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 9   | img     | id=#PREX#.btnFirst; src=/iconos/lu_dis_first_24.png; style=cursor:pointer;height:16px;width:16px                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 9   | img     | id=#PREX#.btnPrev; src=/iconos/lu_dis_rew_24.png; style=cursor:pointer;height:16px;width:16px;margin-left:3px;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 9   | img     | id=#PREX#.btnNext; src=/iconos/lu_nor_for_24.png; style=cursor:pointer;height:16px;width:16px;margin-left:3px;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 9   | img     | id=#PREX#.btnLast; src=/iconos/lu_nor_last_24.png; style=cursor:pointer;height:16px;width:16px;margin-left:3px;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 14  | a       | bloadinterrupted=!0;d.sFilterValue=void; c=f,d=e,g=a;if(b){var; f=300,y="m4parentlistchanged",r="m4",n="_m4listindex",C="/servlet/CheckSecurity/JSP/sse_generico/sgco_list.jsp";sUrlListNext="/servlet/CheckSecurity/JSP/sse_generico/sgco_list_next.jsp";; a={sFilterValue:void; j=void; h=0,k=0,k=0,l="",j="",m=g.saParametersNext[0][1];reWildcard=/[%,_]/;sAuxFilter=c.get("FilterValue").toLowerCase();bContainsWildcard=sAuxFilter.match(reWildcard);g.saParametersNext[6][1]=b.range;for(h=0;h&lt;d.getChildren().length-1;h++)if(j=d.getChildren()[h],0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 23  | a       | ballsecfilterelementsstatic=!1,d=a.oaSecondaryFilterElements[c].split(".."),a.oaSecondaryFilterElements[c]=; iindexsecfilterelements=g.length;if(a.bAllSecFilterElementsStatic){g[a.iIndexSecFilterElements]=["ListMethodValues",a.oaSecondaryFilterElements[0]];for(c=1;c&lt;a.oaSecondaryFilterElements.length;c++)g[a.iIndexSecFilterElements][1]+=","+a.oaSecondaryFilterElements[c]}else; color=f.getStyle("color");a.bgcolor=f.getStyle("background-color");a.iIndexMainFilter=g.length;g[a.iIndexMainFilter]=[f.id,f.get("value")];a.saResultItems=b.resultItems.split(",");for(c=0;c&lt;a.saResultItems.length;c++)a.saResultItems[c]=a.saResultItems[c].replace(/^\s+&#124;\s+$/g,""),f.set(r+a.saResultItems[c],"");t(f,a.sEventAttributesChanged);e=new; sfiltervalue=f.get("value"),v(f,e,g,a),a.initValue=!1);u(e);f.addEvent("keyup",function(){a.sFilterValue!==f.get("value")&amp;&amp;(this.set("FilterValue",this.get("value")),E(f,a),v(f,e,g,a))});f.addEvent("keydown",function(b){var; c=!1,d=0,g,j=0,h;this.set("FilterValue",this.get("value"));if(x(e)){if("enter"===b.key){if(g=e.get(n))b=e.getChildren("li"),h=b.length,h |
+
+### Contexto, entradas y valores construidos
+
+No se encontró lectura literal de parámetros o claves de sesión en este archivo.
+
+Sin inicializadores estáticos identificados. Las expresiones con `{variable}` necesitan contexto de ejecución.
+
+### Objetos, métodos, nodos y salidas Meta4
+
+Estas llamadas son del runtime JSP/Meta4. No son un catálogo de endpoints SOAP. La resolución que conserva variables o condiciones es parcial. `setItem` puede preparar argumentos y no prueba por sí solo una escritura persistente.
+
+Sin tags de contrato en esta versión.
+
+Sin accesos directos identificados; consultar el cuerpo incluido o el script enlazado.
+
+### Funciones, condiciones y mensajes
+
+Las condiciones son evidencia del código activo tras retirar comentarios HTML/JSP y bloques de comentario. Conservar su contexto: una condición aislada no permite afirmar un permiso ni una regla global. Las reglas compartidas de JavaScript se localizan más abajo.
+
+| L   | Función | Argumentos |
+| --- | ------- | ---------- |
+| 4   | l       | b,d,c,a,e  |
+| 4   | z       | b,d,c      |
+| 4   | A       | b,d,c      |
+| 4   | B       | b,d,c,a    |
+| 5   | v       | b,d,c,a    |
+| 7   | D       | b,d,c,a    |
+| 14  | x       | b          |
+| 14  | m       | b,d        |
+| 14  | u       | b          |
+| 15  | t       | b,d        |
+| 15  | E       | b,d        |
+
+| L   | Condición / acción / mensaje literal                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4   | var M4List=new Class(function(){function l(b,d,c,a,e){return(new Element("li",{id:e,html:a,styles:{"font-size":b.getStyle("font-size"),color:c.color}})).inject(d)}function z(b,d,c){b&amp;&amp;(b.addClass("hover"),b.set("styles",{"background-color":c.color,color:c.bgcolor}),d.set(n,b.get(n)))}function A(b,d,c){b&amp;&amp;(b.removeClass("hover"),b.set("styles",{"background-color":c.bgcolor,color:c.color}),b.get(n)===d.get(n)&amp;&amp;d.set(n,""))}function B(b,d,c,a){var e;if(b){d.set("value",b.get("text"));for(e=0;e&lt;a.saResultItems.length;e++)d.set(r+               |
+| 5   | a.saResultItems[e],b.get(r+a.saResultItems[e]));t(d,a.sEventAttributesChanged);u(c);d.removeClass("scoDynamicListFilter");a.sFilterValue=b.get("text")}}function v(b,d,c,a){var e,f="";if(a.sFilterValue!==b.get("value")){if(""===b.get("value"))k=$clear(k),d.set("html",""),l(b,d,a,a.labelHelp),m(d,b);else{c[a.iIndexMainFilter][1]=b.get("value");a.hasOwnProperty("oAppStart")&amp;&amp;(c[a.iIndexAppStart][1]=a.oAppStart.get("value"));a.hasOwnProperty("oAppEnd")&amp;&amp;(c[a.iIndexAppEnd][1]=a.oAppEnd.get("value"));if(!a.bAllSecFilterElementsStatic){for(e=                |
+| 6   | 0;e&lt;a.oaSecondaryFilterElements.length;e++)0!==e&amp;&amp;(f+=","),f="object"===typeof a.oaSecondaryFilterElements[e]?f+a.oaSecondaryFilterElements[e].getAttribute(a.saSecondaryFilterAttributes[e]):f+a.oaSecondaryFilterElements[e];c[a.iIndexSecFilterElements][1]=f}k?k=$clear(k):(d.set("html",""),l(b,d,a,a.labelLoading),m(d,b));k=function(){meta4Ajax.ajax.sendAsyncJSON(C,c,a.processResult)}.delay(F)}a.sFilterValue=b.get("value")}else a.initValue&amp;&amp;(meta4Ajax.ajax.sendSyncJSON(C,c),D(b,d,a,meta4Ajax.ajax.getResponseJSON()))}                                   |
+| 7   | function D(b,d,c,a){var e,f,g,p,s=/[%,_]/,q=b.get("FilterValue").toLowerCase(),w=q.match(s);k=$clear(k);if(a)if(d.set("html",""),0===a.result.length)l(b,d,c,c.labelNoMatch);else{for(e=0;e&lt;a.result.length;e++){p=a.result[e][c.saResultItems[0]];g=l(b,d,c,p,d.id+".li"+e);p=g.get("text");w&amp;&amp;(q=q.replace(/^[%_]*/,""),q=q.replace(/[%_]*$/,""),w=q.match(s));w&#124;&#124;(f=p.toLowerCase().indexOf(q),p=p.substr(0,f)+'&lt;span style="font-weight:bold;"&gt;'+p.substr(f,q.length)+"&lt;/span&gt;"+p.substr(f+q.length),g.set("html",                                      |
+| 17  | e,a,b)},processResultNext:function(b){var c=f,d=e,g=a;if(b){var j=void 0,h=0,k=0,k=0,l="",j="",m=g.saParametersNext[0][1];reWildcard=/[%,_]/;sAuxFilter=c.get("FilterValue").toLowerCase();bContainsWildcard=sAuxFilter.match(reWildcard);g.saParametersNext[6][1]=b.range;for(h=0;h&lt;d.getChildren().length-1;h++)if(j=d.getChildren()[h],0&gt;=-b.result.length+h+1){j.setStyle("display","block");d.getChildren()[h].set(n,b.range[0]+1+h);for(k=0;k&lt;g.saResultItems.length;k++)j.set(r+g.saResultItems[k],b.result[h][g.saResultItems[k]]);                                         |
+| 18  | l=b.result[h][g.saResultItems[0]];bContainsWildcard&amp;&amp;(sAuxFilter=sAuxFilter.replace(/^[%_]\*/,""),sAuxFilter=sAuxFilter.replace(/[%_]*$/,""),bContainsWildcard=sAuxFilter.match(reWildcard));bContainsWildcard&#124;&#124;(k=l.toLowerCase().indexOf(sAuxFilter),l=l.substr(0,k)+'&lt;span style="font-weight:bold;"&gt;'+l.substr(k,sAuxFilter.length)+"&lt;/span&gt;"+l.substr(k+sAuxFilter.length));j.set("html",l)}else j.set("html",""),j.setStyle("display","none");c=$(m+".btnFirst");d=$(m+".btnPrev");j=$(m+".btnNext");h=$(m+".btnLast");                                  |
+| 20  | ""),h.set("src","/iconos/lu_dis_last_24.png"));b.bFirstRec&amp;&amp;(c.set("disabled",!0),c.setStyle("cursor",""),c.set("src","/iconos/lu_dis_first_24.png"),d.set("disabled",!0),d.setStyle("cursor",""),d.set("src","/iconos/lu_dis_rew_24.png"));j=b.range[0]+1+".."+(b.range[1]+1)+" ("+g.saParametersNext[4][1]+")";$(m+".spnCount").set("text",j)}}},e,f,g;if(window.meta4Ajax)if(window.MooTools){g=[["Meta4Object",b.meta4Object],["NodeQBF",b.nodeQBF],["NodeTR",b.nodeTR],["ListMethod",b.listMethod],["SecondaryTI",                                                              |
+| 22  | d=void 0):"object"===typeof b.appStart&amp;&amp;(a.oAppStart=$(b.appStart.id),a.iIndexAppStart=g.length,d=void 0),g[g.length]=["AppStart",d]);b.hasOwnProperty("appEnd")&amp;&amp;(d=b.appEnd,"undefined"===typeof b.appEnd?(b.appEnd="",d=b.appEnd):"string"===typeof b.appEnd?$(b.appEnd)&amp;&amp;(a.oAppEnd=$(b.appEnd),a.iIndexAppEnd=g.length,d=void 0):"object"===typeof b.appEnd&amp;&amp;(a.oAppEnd=$(b.appEnd.id),a.iIndexAppEnd=g.length,d=void 0),g[g.length]=["AppEnd",d]);if("string"===typeof b.mainFilterElement)f=$(b.mainFilterElement);                                   |
+| 23  | else if("object"===typeof b.mainFilterElement)f=$(b.mainFilterElement.id);else{alert("Error: mainFilterElement should be of type string or object: "+b.mainFilterElement);return}if(f){f.set("FilterValue",f.get("value"));if(b.secondaryFilterElements){a.oaSecondaryFilterElements=b.secondaryFilterElements.split(",");for(c=0;c&lt;a.oaSecondaryFilterElements.length;c++)if(a.oaSecondaryFilterElements[c].match(/[..]/))if(a.bAllSecFilterElementsStatic=!1,d=a.oaSecondaryFilterElements[c].split(".."),a.oaSecondaryFilterElements[c]=                                               |
+| 24  | $(d[0]),a.oaSecondaryFilterElements[c])a.saSecondaryFilterAttributes[c]=d[1],a.oaSecondaryFilterElements[c].addEvent(y,function(){E(f,a)});else{alert('Error: element "'+d[0]+'" does not refer to an object!');return}a.iIndexSecFilterElements=g.length;if(a.bAllSecFilterElementsStatic){g[a.iIndexSecFilterElements]=["ListMethodValues",a.oaSecondaryFilterElements[0]];for(c=1;c&lt;a.oaSecondaryFilterElements.length;c++)g[a.iIndexSecFilterElements][1]+=","+a.oaSecondaryFilterElements[c]}else g[a.iIndexSecFilterElements]=                                                      |
+| 26  | e.inject(f,"after");l(f,e,a,b.labelHelp);a.initValue&amp;&amp;(a.sFilterValue=f.get("value"),v(f,e,g,a),a.initValue=!1);u(e);f.addEvent("keyup",function(){a.sFilterValue!==f.get("value")&amp;&amp;(this.set("FilterValue",this.get("value")),E(f,a),v(f,e,g,a))});f.addEvent("keydown",function(b){var c=!1,d=0,g,j=0,h;this.set("FilterValue",this.get("value"));if(x(e)){if("enter"===b.key){if(g=e.get(n))b=e.getChildren("li"),h=b.length,h&gt;+g&amp;&amp;B(b[+g],f,e,a)}else"down"===b.key?(d=1,c=!0):"up"===b.key&amp;&amp;(d=-1,c=!0);if(c&amp;&amp;0!==                           |
+| 27  | d&amp;&amp;(b=e.getChildren("li"),h=b.length,0&lt;h)){b[h-1].get(n)&#124;&#124;(h-=1);if(g=e.get(n))j=+g+d,A(b[+g],e,a);0&gt;j?j=h-1:j&gt;=h&amp;&amp;(j=0);z(b[j],e,a)}}else m(e,f)});f.addEvent("focus",function(){f.select();f.hasClass("scoInvalidValue")&amp;&amp;(f.removeClass("scoInvalidValue"),f.set("value",a.sFilterValue));f.addClass("scoDynamicListFilter");m(e,f);a.bLoadInterrupted&amp;&amp;(a.bLoadInterrupted=!1,v(f,e,g,a))});f.addEvent("click",function(){m(e,f)});f.addEvent("dblclick",function(){m(e,f);f.get("value")?a.sFilterValue="":f.set("value",            |
+| 28  | "%");this.set("FilterValue",this.get("value"));f.fireEvent("keyup")});f.addEvent("blur",function(b){this.get("m4listnav")?(b.preventDefault(),this.focus()):(k?(k=$clear(k),a.sFilterValue="",e.set("html",""),l(f,e,a,a.labelHelp),a.bLoadInterrupted=!0):f.get(r+a.saResultItems[0])?f.removeClass("scoDynamicListFilter"):(d=e.getChildren("li"),1===d.length&amp;&amp;d[0].get("_m4valid")&amp;&amp;d[0].fireEvent("mousedown",{target:{id:d[0].id,parentNode:{id:d[0].parentNode.id}}})),function(){u(e)}.delay(150))})}else alert("Error: mainFilterElement does not exist in page: "+ |
+| 29  | b.mainFilterElement)}else alert("Error: Library mootools.js missing!");else alert("Error: Library meta4ajax.js missing!")}}}());                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+### Includes, navegación y dependencias
+
+No hay includes declarados.
+
+| L   | Destino / recurso                                          |
+| --- | ---------------------------------------------------------- |
+| 9   | /iconos/lu_dis_first_24.png                                |
+| 9   | /iconos/lu_dis_rew_24.png                                  |
+| 9   | /iconos/lu_nor_for_24.png                                  |
+| 9   | /iconos/lu_nor_last_24.png                                 |
+| 15  | /servlet/CheckSecurity/JSP/sse_generico/sgco_list.jsp      |
+| 15  | /servlet/CheckSecurity/JSP/sse_generico/sgco_list_next.jsp |
+
+## Resolución de dependencias
+
+«Física» identifica un archivo local. «Contextual» enumera candidatos sin asegurar la preferencia del runtime. Una dependencia dinámica o ausente requiere P06 para esta ruta y línea.
+
+| Ámbito | L   | Referencia                                                 | Resolución | Ficha / candidato                                                                                                                                                  |
+| ------ | --- | ---------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| COLL   | 15  | /servlet/CheckSecurity/JSP/sse_generico/sgco_list.jsp      | contextual | [sse_generico/sgco_list.jsp](../navegacion/sse_generico--sgco_list.md); [sse_generico/sgco_list.jsp](../navegacion/sse_generico--sgco_list.md)                     |
+| COLL   | 15  | /servlet/CheckSecurity/JSP/sse_generico/sgco_list_next.jsp | contextual | [sse_generico/sgco_list_next.jsp](../navegacion/sse_generico--sgco_list_next.md); [sse_generico/sgco_list_next.jsp](../navegacion/sse_generico--sgco_list_next.md) |
+| BASE   | 15  | /servlet/CheckSecurity/JSP/sse_generico/sgco_list.jsp      | contextual | [sse_generico/sgco_list.jsp](../navegacion/sse_generico--sgco_list.md)                                                                                             |
+| BASE   | 15  | /servlet/CheckSecurity/JSP/sse_generico/sgco_list_next.jsp | contextual | [sse_generico/sgco_list_next.jsp](../navegacion/sse_generico--sgco_list_next.md)                                                                                   |
+| IBER   | 15  | /servlet/CheckSecurity/JSP/sse_generico/sgco_list.jsp      | contextual | [sse_generico/sgco_list.jsp](../navegacion/sse_generico--sgco_list.md); [sse_generico/sgco_list.jsp](../navegacion/sse_generico--sgco_list.md)                     |
+| IBER   | 15  | /servlet/CheckSecurity/JSP/sse_generico/sgco_list_next.jsp | contextual | [sse_generico/sgco_list_next.jsp](../navegacion/sse_generico--sgco_list_next.md); [sse_generico/sgco_list_next.jsp](../navegacion/sse_generico--sgco_list_next.md) |
+
+## Adaptación y aceptación
+
+Consultar el [mapa de destino](../../implementacion/mapa-destino.md) y la [integración](../../implementacion/integracion-powermeta4.md). La ruta técnica identifica la ficha; no obliga a crear una página pública para cada fragmento, actualización o wrapper. Agruparlos en el flujo funcional del índice del dominio.
+
+- Reproducir los apartados y controles de la variante aplicable, con sus catálogos y dependencias; contrastar especialmente las diferencias CYC frente a IBER/COLL.
+- Probar entradas válidas/inválidas, filtros vacíos, recarga, paginación, selección, cancelación y respuestas de error cuando esas acciones aparezcan en el original.
+- Resolver identidad, sociedad y alcance del responsable en servidor; un parámetro de empleado del JSP no constituye autorización.
+- Mantener resultados y escrituras pendientes cuando no exista contrato real verificado. Las operaciones ERP distintas del alta siguen sujetas a los límites de AGENTS.md.
+
+## Pendientes concretos
+
+- Confirmar exposición y permisos de `libreria/meta4list.js` en el menú Meta4 efectivo: **P01/P03**.
+- Confirmar catálogos, reglas internas, retorno de métodos y persistencia real identificados en las tablas: **P02/P04**.
+- Verificar estados y disposición en ejecución; esta ficha registra fuente, no una revisión del portal real: **P05**.
+- Resolver cada dependencia ausente o construida dinámicamente antes de implementar su flujo: **P06**.
+
+[Registro de pendientes](../../implementacion/pendientes.md).

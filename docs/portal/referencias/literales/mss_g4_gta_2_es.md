@@ -1,0 +1,45 @@
+# Literales: mss_g4_gta_2_es
+
+Texto español de las propiedades estáticas. Los nombres de ítems/nodos resueltos por Meta4 requieren metadatos del servidor (P02).
+
+## BASE
+
+Fuente: [translations/mss_g4_gta_2_es.properties](../../../../clon_portal/portal/translations/mss_g4_gta_2_es.properties). SHA-256: `0b8bc37c178e79700a86acc72158ef0d8c3563129048faac61a397a23adab106`.
+
+| L   | Clave                    | Valor                                                                                                                                                                                                |
+| --- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3   | list.Loading             | Cargando...                                                                                                                                                                                          |
+| 4   | list.HelpEmpl            | Indica el nombre del empleado o haz doble clic para obtener la lista completa.                                                                                                                       |
+| 5   | list.NoMatchEmpl         | Ningún empleado encontrado.                                                                                                                                                                          |
+| 6   | list.HelpAlert           | Indica el nombre de la anomalía o haz doble clic para obtener la lista completa.                                                                                                                     |
+| 7   | list.NoMatchAlert        | Ninguna anomalía encontrada.                                                                                                                                                                         |
+| 8   | list.HelpAlertClassif    | Indica el nombre de la clasificación o haz doble clic para obtener la lista completa.                                                                                                                |
+| 9   | list.NoMatchAlertClassif | Ninguna clasificación encontrada.                                                                                                                                                                    |
+| 15  | desc.line1               | Visualiza y resuelve las anomalías de tus empleados. Recuerda que la población disponible en esta página se limita a los empleados de las unidades organizativas de las que eres responsable de tipo |
+| 16  | desc.line2               | , definidas como visibles desde Mis herramientas &#124; Visibilidad por unidad organizativa.                                                                                                         |
+| 17  | desc.noWU                | No hay ninguna unidad organizativa visible para este tipo de responsable.                                                                                                                            |
+| 19  | bt.selected              | &lt;b&gt;XX&lt;/b&gt; registros &lt;/br&gt; de &lt;b&gt;YY&lt;/b&gt;                                                                                                                                 |
+| 20  | bt.copyAll               | Aplicar el teórico para todos los registros seleccionados                                                                                                                                            |
+| 21  | bt.copyAllFiltered       | Aplicar el teórico para todos los registros cumpliendo el filtro                                                                                                                                     |
+| 22  | bt.saveAlert             | Guardar/Ocultar los comentarios de los cambios para todos los registros                                                                                                                              |
+| 23  | bt.conf                  | Configuración                                                                                                                                                                                        |
+| 24  | bt.returnToFilter        | Volver al filtro                                                                                                                                                                                     |
+| 25  | bt.details               | Más detalles                                                                                                                                                                                         |
+| 26  | bt.theo                  | Modificar el teórico                                                                                                                                                                                 |
+| 27  | bt.clock                 | Modificar los fichajes/declaraciones                                                                                                                                                                 |
+| 28  | bt.copyTheo              | Aplicar el teórico                                                                                                                                                                                   |
+| 29  | bt.createInc             | Registrar una incidencia                                                                                                                                                                             |
+| 30  | bt.cancelAbs             | Eliminar incidencia                                                                                                                                                                                  |
+| 31  | bt.cancelPres            | Eliminar incidencia                                                                                                                                                                                  |
+| 32  | bt.reqAbs                | Mostrar la petición de incidencia                                                                                                                                                                    |
+| 33  | bt.reqPres               | Mostrar la petición de incidencia                                                                                                                                                                    |
+| 34  | bt.selectAll             | Seleccionar todos los registros                                                                                                                                                                      |
+| 35  | bt.unSelectAll           | Deseleccionar todos los registros                                                                                                                                                                    |
+| 37  | conf.desc                | Puedes cambiar la configuración de la pantalla                                                                                                                                                       |
+| 38  | conf.close               | Cerrar y utilizar la configuración                                                                                                                                                                   |
+| 39  | conf.saveAndClose        | Cerrar y guardar la configuración                                                                                                                                                                    |
+| 45  | ts.desc.line1            | Visualiza las hojas de presencia de tus empleados. Recuerda que la población disponible en esta página se limita a los empleados de las unidades organizativas de las que eres responsable de tipo   |
+| 46  | ts.desc.line2            | , definidas como visibles desde Mis herramientas &#124; Visibilidad por unidad organizativa.                                                                                                         |
+| 48  | ts.bt.senEmailAll        | Enviar un e-mail a todos los empleados seleccionados                                                                                                                                                 |
+| 49  | ts.bt.timesheet          | Hojas de presencia                                                                                                                                                                                   |
+| 50  | ts.bt.sendEmail          | Enviar un e-mail a este empleado                                                                                                                                                                     |
