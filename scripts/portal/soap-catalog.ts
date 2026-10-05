@@ -35,7 +35,13 @@ const USED_SERVICES = [
 ] as const;
 
 type ArgKind = "string" | "date" | "number" | "block";
-type ServiceArg = { name: string; kind: ArgKind; node?: string };
+type ServiceArg = {
+  name: string;
+  kind: ArgKind;
+  node?: string;
+  xmlType: string;
+  nullable: boolean;
+};
 type OutputBlock = {
   field: string;
   node: string;
@@ -54,6 +60,12 @@ type ServiceContract = {
   service: string;
   m4Object: string;
   deployedInWsdd: boolean;
+  serialization: {
+    style: "rpc" | "wrapped";
+    use: "encoded" | "literal";
+    namespace: string;
+    encodingStyle: string;
+  };
   operations: ServiceOperation[];
 };
 
@@ -97,13 +109,26 @@ const parseArgs = (raw: string, dir: string): ServiceArg[] =>
     .filter(Boolean)
     .map((part) => {
       const [type, name] = part.split(" ");
-      if (type === "String") return { name, kind: "string" };
-      if (type === "Calendar") return { name, kind: "date" };
+      if (type === "String") return { name, kind: "string", xmlType: "xsd:string", nullable: true };
+      if (type === "Calendar")
+        return { name, kind: "date", xmlType: "xsd:dateTime", nullable: true };
       if (type === "double" || type === "Double" || type === "int" || type === "BigDecimal") {
-        return { name, kind: "number" };
+        return {
+          name,
+          kind: "number",
+          xmlType:
+            type === "int" ? "xsd:int" : type === "BigDecimal" ? "xsd:decimal" : "xsd:double",
+          nullable: type !== "int" && type !== "double",
+        };
       }
       const info = blockInfo(dir, type);
-      return { name, kind: "block", node: info?.node ?? name };
+      return {
+        name,
+        kind: "block",
+        node: info?.node ?? name,
+        xmlType: `m4:${type}`,
+        nullable: true,
+      };
     });
 
 const parseOutputBlocks = (dir: string, outputClass: string): OutputBlock[] => {
@@ -134,6 +159,18 @@ const parseService = (dir: string, deployed: Set<string>): ServiceContract | nul
   const source = read(path.join(dir, serviceFile));
   const m4Object = /M4OBJECT_NAME = "([^"]+)"/.exec(source)?.[1] ?? "";
   const service = path.basename(dir).toUpperCase();
+  const descriptor = read(path.join(dir, "deploy.wsdd"));
+  if (!/<service\b[^>]*provider="java:RPC"/.test(descriptor))
+    throw new Error(`Formato SOAP no reconocido: ${service}`);
+  const namespace = /<namespace>([^<]+)<\/namespace>/.exec(descriptor)?.[1];
+  const literal = /<service\b[^>]*style="wrapped"[^>]*use="literal"/.test(descriptor);
+  const encodingStyle = /encodingStyle="([^"]*)"/.exec(descriptor)?.[1];
+  if (
+    !namespace ||
+    encodingStyle === undefined ||
+    (!literal && encodingStyle !== "http://schemas.xmlsoap.org/soap/encoding/")
+  )
+    throw new Error(`Serialización incompleta: ${service}`);
   const operations: ServiceOperation[] = [];
   const pattern =
     /public\s+(\w+)\s+(\w+)\s*\(([\s\S]*?)\)\s*throws M4SoapException[\s\S]*?METHOD_NODE = "([^"]+)";\s*final String METHOD_NAME = "([^"]+)"/g;
@@ -147,7 +184,18 @@ const parseService = (dir: string, deployed: Set<string>): ServiceContract | nul
       blocks: parseOutputBlocks(dir, outputClass),
     });
   }
-  return { service, m4Object, deployedInWsdd: deployed.has(service), operations };
+  return {
+    service,
+    m4Object,
+    deployedInWsdd: deployed.has(service),
+    serialization: {
+      style: literal ? "wrapped" : "rpc",
+      use: literal ? "literal" : "encoded",
+      namespace,
+      encodingStyle,
+    },
+    operations,
+  };
 };
 
 const main = () => {
@@ -177,8 +225,10 @@ const main = () => {
     "ejecuta el método con la sesión Meta4 de quien llama. La copia puede no coincidir con",
     "el servidor vivo: powermeta4 comprueba la disponibilidad en cada llamada.",
     "",
-    "| Servicio | Objeto | wsdd | Operación → método (argumentos) | Nodos de salida (ítems) |",
-    "| --- | --- | --- | --- | --- |",
+    "El formato, namespace, tipos y nulabilidad se generan del descriptor deploy.wsdd y de los argumentos Java. Los bloques de entrada solo se envían como null, sin registros ni escrituras.",
+    "",
+    "| Servicio | Objeto | wsdd | Serialización | Operación → método (argumentos) | Nodos de salida (ítems) |",
+    "| --- | --- | --- | --- | --- | --- |",
     ...services.flatMap((service) =>
       service.operations
         .filter(
@@ -187,7 +237,7 @@ const main = () => {
         )
         .map(
           (operation) =>
-            `| ${service.service} | ${service.m4Object} | ${service.deployedInWsdd ? "sí" : "no"} | ${operation.operation} → ${operation.methodNode}.${operation.methodName} (${operation.args.map((arg) => (arg.kind === "block" ? `${arg.name}: bloque` : arg.name)).join(", ") || "—"}) | ${describeBlocks(operation.blocks) || "—"} |`,
+            `| ${service.service} | ${service.m4Object} | ${service.deployedInWsdd ? "sí" : "no"} | ${service.serialization.style}/${service.serialization.use} | ${operation.operation} → ${operation.methodNode}.${operation.methodName} (${operation.args.map((arg) => (arg.kind === "block" ? `${arg.name}: bloque` : arg.name)).join(", ") || "—"}) | ${describeBlocks(operation.blocks) || "—"} |`,
         ),
     ),
     "",

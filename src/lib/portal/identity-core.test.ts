@@ -5,6 +5,47 @@ import { crossCheckIdentity, evaluateProfileIdentity } from "./identity-core";
 const record = (fields: Record<string, string>) => ({ fields });
 
 describe("identidad propia del portal", () => {
+  it("acepta duplicados equivalentes y bloquea usuarios contradictorios sin perder ceros", () => {
+    const profile = record({ clave_Self: "U", id_Empleado: "001471" });
+    expect(evaluateProfileIdentity([profile, profile], "u")).toMatchObject({
+      status: "resolved",
+      person: { employeeId: "001471" },
+    });
+    expect(
+      evaluateProfileIdentity([profile, record({ clave_Self: "otra", id_Empleado: "001471" })], "u")
+        .status,
+    ).toBe("unresolved");
+    expect(
+      crossCheckIdentity(
+        [
+          { employeeId: "001471", selfKey: "u" },
+          { employeeId: "001471", selfKey: "U " },
+        ],
+        "001471",
+        "u",
+      ),
+    ).toBe(true);
+    expect(
+      crossCheckIdentity(
+        [
+          { employeeId: "001471", selfKey: "u" },
+          { employeeId: "1471", selfKey: "u" },
+        ],
+        "001471",
+        "u",
+      ),
+    ).toBe(false);
+    expect(
+      crossCheckIdentity(
+        [
+          { employeeId: "001471", selfKey: "u" },
+          { employeeId: "001471", selfKey: null },
+        ],
+        "001471",
+        "u",
+      ),
+    ).toBe(false);
+  });
   it("exige clave_Self igual al usuario y nunca usa el primer registro por defecto", () => {
     const sets = [
       record({ clave_Self: "otra", id_Empleado: "1" }),

@@ -108,7 +108,24 @@ export const getPortalContext = async (
     username: context.username,
     variant: resolvePortalVariant(context.society),
   };
-  const profile = await (deps.loadProfile ?? loadStoredProfile)(context.society);
+  let profile;
+  try {
+    profile = await (deps.loadProfile ?? loadStoredProfile)(context.society);
+  } catch (error) {
+    console.error("[portal] identity read failed", {
+      operation: "identity",
+      stage: "profile",
+      code: "READ_FAILED",
+      name: error instanceof Error ? error.name : "unknown",
+    });
+    return {
+      ...base,
+      identity: {
+        status: "unresolved",
+        message: "No se ha podido leer tu perfil Meta4. Vuelve a iniciar sesión.",
+      },
+    };
+  }
   const evaluation = evaluateProfileIdentity(profile?.recordSets ?? [], context.username);
   if (evaluation.status === "unresolved") {
     return {
@@ -140,11 +157,18 @@ export const getPortalContext = async (
       };
     }
     console.error("[portal] identity cross-check failed", {
+      operation: "identity",
+      stage: "peoplenet",
+      code: "READ_FAILED",
       name: error instanceof Error ? error.name : "unknown",
     });
     return {
       ...base,
-      identity: { status: "resolved", person: evaluation.person, crossChecked: false },
+      identity: {
+        status: "unresolved",
+        message:
+          "No se ha podido comprobar tu identidad en PeopleNet. Vuelve a intentarlo cuando la conexión esté disponible.",
+      },
     };
   }
 };

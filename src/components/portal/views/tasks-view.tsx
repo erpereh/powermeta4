@@ -3,7 +3,7 @@ import { CalendarClock, ChevronRight } from "lucide-react";
 
 import { EmptyState, Surface } from "@/components/system";
 import type { PortalContext } from "@/lib/portal/context";
-import { loadPortalTasks } from "@/lib/portal/data/tasks";
+import { loadPortalTaskGroup } from "@/lib/portal/data/tasks";
 import type { PortalTaskLine } from "@/lib/portal/data/tasks-core";
 import { getPortalFeatureBySource } from "@/lib/portal/registry";
 import { readPortal } from "@/lib/portal/server";
@@ -86,19 +86,14 @@ export async function TasksView({
   context: PortalContext;
   compact?: boolean;
 }) {
-  const result = await readPortal(context, () => loadPortalTasks(), "tus tareas");
-  if (result.status === "unavailable") {
-    return (
-      <DependencyState
-        message={result.message}
-        pending={result.pending}
-        meta4={["PGCO_ES_WS_VALIDATIONS"]}
-      />
-    );
-  }
-  if (result.status === "error") return <PortalError message={result.message} />;
-  const lines = result.data.lines;
-  if (lines.length === 0) {
+  // El objeto Axis vive en sesión: las operaciones se leen en orden, sin carreras.
+  const groups = [];
+  for (const group of GROUPS)
+    groups.push({
+      group,
+      result: await readPortal(context, () => loadPortalTaskGroup(group.kind), group.title),
+    });
+  if (groups.every(({ result }) => result.status === "ok" && result.data.length === 0)) {
     return (
       <EmptyState
         title="No tienes tareas pendientes"
@@ -108,9 +103,7 @@ export async function TasksView({
   }
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      {GROUPS.map((group) => {
-        const groupLines = lines.filter((line) => line.kind === group.kind);
-        if (groupLines.length === 0) return null;
+      {groups.map(({ group, result }) => {
         return (
           <Surface
             key={group.kind}
@@ -118,11 +111,29 @@ export async function TasksView({
             description={compact ? undefined : group.description}
             flush
           >
-            <ul className="flex min-w-0 flex-col divide-y divide-border border-t border-border">
-              {groupLines.map((line, index) => (
-                <TaskLine key={`${line.title}-${index}`} line={line} />
-              ))}
-            </ul>
+            {result.status === "error" ? (
+              <div className="p-4">
+                <PortalError message={result.message} />
+              </div>
+            ) : result.status === "unavailable" ? (
+              <div className="p-4">
+                <DependencyState
+                  message={result.message}
+                  pending={result.pending}
+                  meta4={["PGCO_ES_WS_VALIDATIONS"]}
+                />
+              </div>
+            ) : result.data.length === 0 ? (
+              <p className="p-4 text-sm text-muted-foreground">
+                No hay registros para este apartado.
+              </p>
+            ) : (
+              <ul className="flex min-w-0 flex-col divide-y divide-border border-t border-border">
+                {result.data.map((line, index) => (
+                  <TaskLine key={`${line.title}-${index}`} line={line} />
+                ))}
+              </ul>
+            )}
           </Surface>
         );
       })}

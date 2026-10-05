@@ -42,16 +42,44 @@ export const EMPLEADO_DATOS: readonly PortalFeature[] = [
         "dossier-cyc",
         "Datos de pago y cuentas",
         "CSP_QUIEN_ES_QUIEN!CSP_DATOS_PAGO_EMPLEADO",
-        "record",
+        "list",
         [
-          ["CSP_CUENTA_BANCARIA_EMPLEADO", "Cuenta bancaria"],
-          ["CSP_CUENTA_BENEFICIARIO", "Cuenta del beneficiario"],
+          ["SCO_GB_IBAN", "IBAN"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_OR_HR_PERIOD", "Periodo de contrato"],
         ],
+        "Cuentas de cobro vigentes en PeopleNet; pueden existir varias asignaciones. La equivalencia con el dossier se contrasta en la VM.",
+        "own-payment-accounts",
       ),
-      consult("dossier-irpf", "IRPF y familia", "CSP_QUIEN_ES_QUIEN!CSP_FAM_IRPF", "record", [
-        ["CSP_FAM_IRPF", "Situación familiar IRPF"],
-        ["CSP_GRUPO_NIVEL", "Grupo y nivel"],
+      consult(
+        "beneficiario",
+        "Cuenta del beneficiario",
+        "CSP_QUIEN_ES_QUIEN!CSP_CUENTA_BENEFICIARIO",
+        "list",
+        [["SCO_GB_IBAN", "IBAN"]],
+      ),
+      consult("dossier-irpf", "IRPF y familia", "CSP_QUIEN_ES_QUIEN!CSP_FAM_IRPF", "list", [
+        ["NOMBRECOMPLETO", "Nombre"],
+        ["STD_DT_BIRTH", "Fecha de nacimiento"],
+        ["STD_N_ACT_DEP_TYPE", "Parentesco"],
       ]),
+      consult("grupo-nivel", "Grupo y nivel", "CSP_QUIEN_ES_QUIEN!CSP_GRUPO_NIVEL", "record", [
+        ["SSP_NM_CATEGORIA", "Grupo y nivel"],
+      ]),
+      consult(
+        "correos",
+        "Correos electrónicos",
+        "STD_EMAIL",
+        "list",
+        [
+          ["STD_EMAIL", "Correo"],
+          ["STD_DT_START", "Inicio"],
+          ["STD_DT_END", "Fin"],
+          ["STD_ID_LOCAT_TYPE", "Tipo de lugar"],
+        ],
+        undefined,
+        "own-emails",
+      ),
     ],
   },
   {
@@ -118,6 +146,20 @@ export const EMPLEADO_DATOS: readonly PortalFeature[] = [
     read: { kind: "sql", tables: ["STD_EMAIL"], verified: true },
     view: "generic",
     sections: [
+      consult(
+        "correos",
+        "Correos electrónicos",
+        "STD_EMAIL",
+        "list",
+        [
+          ["STD_EMAIL", "Correo"],
+          ["STD_DT_START", "Inicio"],
+          ["STD_DT_END", "Fin"],
+          ["STD_ID_LOCAT_TYPE", "Tipo de lugar"],
+        ],
+        undefined,
+        "own-emails",
+      ),
       form({
         id: "correo",
         title: "Nuevo correo personal",
@@ -308,6 +350,15 @@ export const EMPLEADO_DATOS: readonly PortalFeature[] = [
     read: pendingRead(["SSE_HT_MAR_STAT!SSE_PRINCIPAL.CARGA_CV"]),
     view: "generic",
     sections: [
+      consult(
+        "actual-oro",
+        "Estado civil en la ficha actual",
+        "M4ORO_EMPLEADOS",
+        "record",
+        [["ID_ESTADO_CIVIL", "Código de estado civil"]],
+        "Código registrado en ORO. El historial del objeto original requiere su propio contrato.",
+        "own-oro-status",
+      ),
       consult("historico", "Estado civil", "SSE_HT_MAR_STAT", "list", [
         ["STD_DT_START", "Fecha de inicio"],
         [null, "Estado civil"],

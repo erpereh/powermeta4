@@ -57,7 +57,10 @@ export const mapResponsibilityUnits = (
 
 export const mapPopulationIds = (records: readonly SoapRecord[]): string[] => [
   ...new Set(
-    records.flatMap((record) => (text(record.SCO_ID_HR) ? [text(record.SCO_ID_HR) as string] : [])),
+    records.flatMap((record) => {
+      const id = text(record.SCO_ID_HR);
+      return id ? [id] : [];
+    }),
   ),
 ];
 
@@ -83,10 +86,7 @@ export const loadManagerScope = async (deps: CallPortalServiceDeps = {}): Promis
       structure.nodes.SNCO_AD_H_HR_RESP ?? [],
       structure.nodes.SNCO_AD_HIERARCHIC_WU ?? [],
     ),
-    employeeIds: mapPopulationIds([
-      ...(persons.nodes.SNCO_AD_PERSON_LIST ?? []),
-      ...(persons.nodes.SNCO_INFO_PERSON ?? []),
-    ]),
+    employeeIds: mapPopulationIds([...(persons.nodes.SNCO_INFO_PERSON ?? [])]),
     verified: MANAGER_SCOPE_VERIFIED,
   };
 };

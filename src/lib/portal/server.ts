@@ -16,7 +16,8 @@ import {
   SoapServiceFaultError,
   SoapServiceUnavailableError,
 } from "./soap/envelope";
-import { PortalSqlGuardError } from "./peoplenet/query";
+import { PortalSqlContractError, PortalSqlGuardError } from "./peoplenet/query";
+import { PortalDataAmbiguousError } from "./data/errors";
 
 /** Contexto del portal resuelto una vez por petición (layout y página). */
 export const getRequestPortalContext = cache(async (): Promise<PortalContext> => {
@@ -56,19 +57,43 @@ export const readPortal = async <T>(
       );
     }
     if (error instanceof SessionExpiredError || error instanceof Meta4SessionRequiredError) {
-      return portalError(error.message);
+      return portalError(
+        "La sesión Meta4 ha caducado. Vuelve a iniciar sesión.",
+        "SESSION_EXPIRED",
+      );
+    }
+    if (error instanceof PortalDataAmbiguousError) return portalError(error.message, "AMBIGUOUS");
+    if (error instanceof SoapServiceFaultError) {
+      console.warn("[portal] read rejected", {
+        operation: label,
+        stage: "soap",
+        code: "SOAP_FAULT",
+        service: error.service,
+      });
+      return portalError(`Meta4 rechazó la consulta de ${label}.`, "SOAP_FAULT");
+    }
+    if (
+      error instanceof SoapContractError ||
+      error instanceof PortalSqlGuardError ||
+      error instanceof PortalSqlContractError
+    ) {
+      console.warn("[portal] contract incompatible", {
+        operation: label,
+        stage: "contract",
+        code: "CONTRACT_INCOMPATIBLE",
+      });
+      return portalError(
+        `La respuesta de ${label} no cumple el contrato esperado.`,
+        "CONTRACT_INCOMPATIBLE",
+      );
     }
     console.error("[portal] read failed", {
-      label,
+      operation: label,
+      stage: "read",
+      code: "READ_FAILED",
       name: error instanceof Error ? error.name : "unknown",
-      ...(error instanceof SoapServiceFaultError ? { service: error.service } : {}),
       ...(error instanceof Meta4HttpError ? { status: error.status } : {}),
     });
-    if (error instanceof SoapServiceFaultError)
-      return portalError(`Meta4 rechazó la consulta de ${label}.`);
-    if (error instanceof SoapContractError || error instanceof PortalSqlGuardError) {
-      return portalError(`La respuesta de ${label} no cumple el contrato esperado.`);
-    }
-    return portalError(`No se ha podido cargar ${label}.`);
+    return portalError(`No se ha podido cargar ${label}.`, "READ_FAILED");
   }
 };

@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-10-05 - Correcciones y lecturas disponibles del portal
+
+- Directorio y organigrama agrupan sociedad/matrícula, conservan asignaciones
+  distintas y cuentan personas únicas. Búsquedas descartan respuestas obsoletas
+  y resultados de otra sociedad, con errores y cargas explícitos.
+- Identidad admite duplicados equivalentes y conserva ceros iniciales; usuarios
+  contradictorios o fallo de comprobación configurada impiden datos personales.
+  Mi ficha muestra ambigüedad ante fichas distintas y carga correos por separado.
+- SOAP usa metadatos Java/WSDD para RPC/encoded y wrapped/literal, argumentos,
+  namespaces, tipos y nulos; interpreta arrays y referencias Axis id/href.
+  Mantiene la sesión autenticada, clasifica faults y contratos incompatibles,
+  y conserva los errores inesperados con diagnósticos sin valores personales.
+- Apartados con lectores tipados y estados reales: correos, cuentas vigentes
+  reutilizando el contrato de recibos y estado civil actual ORO. Los campos sin
+  valor indican «No informado». Tareas separadas por grupo; población distingue
+  la lectura SOAP de la carga SQL. Beneficiario, IRPF, grupo/nivel y consultas
+  sin contrato suficiente conservan dependencias explícitas.
+- Documentación regenerada: 76 pantallas, contraste estático de variantes e
+  inventario por apartado. Verificador ampliado con columnas SQL, duplicación
+  agregada y serialización/argumentos WSDL; checklist en
+  `docs/portal/implementacion/prueba-vm.md`. Integración real pendiente de VM.
+- Typecheck, build y `git diff --check` correctos; estado Git revisado.
+  `npm test -- --maxWorkers=4 --reporter=verbose`: 128 archivos, 670 pruebas
+  correctas y 2 omitidas, incluido Excel COM real. La primera ejecución se
+  interrumpió sin resultado; la segunda terminó correctamente. Lint ejecutado
+  con los siete avisos y 360 archivos con formato pendiente previos.
+  Navegador debug: mi ficha a 375/800/1440 px y cuenta a 375 px sin overflow,
+  con escritura ERP deshabilitada. Se conserva `davidev` y el alcance sensible
+  del responsable cerrado.
+
 ## 2026-10-02 - Portal del empleado y del responsable en /portal
 
 - Nueva sección `/portal` para CYC, IBER y COLL, empleado y responsable,

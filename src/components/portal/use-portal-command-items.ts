@@ -7,7 +7,7 @@ import { searchPortalDirectoryAction } from "@/app/actions/portal";
 import type { CommandItem } from "@/components/system";
 import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
 import { getPortalDomain, PORTAL_FEATURES } from "@/lib/portal/registry";
-import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
 
 import { PORTAL_ICONS } from "./portal-icons";
 
@@ -28,9 +28,17 @@ export function usePortalCommandItems({ navigate }: { navigate: (href: string) =
   useEffect(
     () => () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      requestRef.current++;
     },
     [],
   );
+
+  useEffect(() => {
+    requestRef.current++;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setPeople([]);
+    setStatus(undefined);
+  }, [society]);
 
   const onQueryChange = useCallback(
     (query: string) => {
@@ -48,18 +56,29 @@ export function usePortalCommandItems({ navigate }: { navigate: (href: string) =
         return;
       }
       setStatus("Buscando personas…");
+      setPeople([]);
       timerRef.current = setTimeout(() => {
-        void searchPortalDirectoryAction(text).then((result) => {
-          if (request !== requestRef.current) return;
-          if (result.status === "ok") {
-            if (society && result.society !== society) return;
-            setPeople(result.data);
-            setStatus(result.data.length === 0 ? "Ninguna persona coincide." : undefined);
-          } else {
+        void searchPortalDirectoryAction(text)
+          .then((result) => {
+            if (request !== requestRef.current) return;
+            if (result.status === "ok") {
+              if (result.society !== (workspaceStore.getState().auth?.societyCode ?? null)) {
+                setPeople([]);
+                setStatus("La sociedad ha cambiado. Repite la búsqueda.");
+                return;
+              }
+              setPeople(result.data);
+              setStatus(result.data.length === 0 ? "Ninguna persona coincide." : undefined);
+            } else {
+              setPeople([]);
+              setStatus(result.message);
+            }
+          })
+          .catch(() => {
+            if (request !== requestRef.current) return;
             setPeople([]);
-            setStatus(result.message);
-          }
-        });
+            setStatus("No se ha podido completar la búsqueda. Vuelve a intentarlo.");
+          });
       }, DEBOUNCE_MS);
     },
     [society],
@@ -76,7 +95,7 @@ export function usePortalCommandItems({ navigate }: { navigate: (href: string) =
       onSelect: () => navigate(feature.route),
     }));
     const persons = people.map((person) => ({
-      id: `persona:${person.employeeId}`,
+      id: `persona:${person.key}`,
       label: person.fullName,
       group: "Personas",
       hint: person.job ?? undefined,

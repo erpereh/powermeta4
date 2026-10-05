@@ -66,6 +66,15 @@ export const evaluateProfileIdentity = (
   if (ids.size === 0) return { status: "unresolved", reason: "no-coherent-record" };
   if (ids.size > 1) return { status: "unresolved", reason: "ambiguous" };
   const [{ employeeId, fields }] = coherent;
+  if (
+    recordSets.some(
+      (set) =>
+        profileField(set.fields, "id_Empleado") === employeeId &&
+        profileField(set.fields, "clave_Self", "CVE_SELF")?.toLowerCase() !== expected,
+    )
+  ) {
+    return { status: "unresolved", reason: "ambiguous" };
+  }
   return {
     status: "resolved",
     person: {
@@ -96,7 +105,14 @@ export const crossCheckIdentity = (
   rows: readonly OroIdentityRow[],
   employeeId: string,
   username: string,
-): boolean =>
-  rows.length === 1 &&
-  rows[0].employeeId === employeeId &&
-  (rows[0].selfKey ?? "").trim().toLowerCase() === username.trim().toLowerCase();
+): boolean => {
+  const identities = new Set(
+    rows.map((row) =>
+      JSON.stringify([row.employeeId.trim(), (row.selfKey ?? "").trim().toLowerCase()]),
+    ),
+  );
+  return (
+    identities.size === 1 &&
+    identities.has(JSON.stringify([employeeId.trim(), username.trim().toLowerCase()]))
+  );
+};

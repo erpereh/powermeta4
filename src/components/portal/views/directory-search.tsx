@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { searchPortalDirectoryAction } from "@/app/actions/portal";
 import { EmptyState, Input, Skeleton } from "@/components/system";
 import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
-import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
 
 type SearchState =
   | { kind: "idle" }
@@ -38,18 +38,36 @@ export function DirectorySearch() {
     }
     setState({ kind: "loading" });
     const timer = setTimeout(() => {
-      void searchPortalDirectoryAction(text).then((result) => {
-        if (request !== requestRef.current) return;
-        if (result.status === "ok") {
-          // Una respuesta de otra sociedad (cambio de workspace en curso) se descarta.
-          if (society && result.society !== society) return;
-          setState({ kind: "ready", entries: result.data });
-        } else {
-          setState({ kind: "unavailable", message: result.message });
-        }
-      });
+      void searchPortalDirectoryAction(text)
+        .then((result) => {
+          if (request !== requestRef.current) return;
+          if (result.status === "ok") {
+            // Una respuesta de otra sociedad (cambio de workspace en curso) se descarta.
+            const currentSociety = workspaceStore.getState().auth?.societyCode ?? null;
+            if (result.society !== currentSociety) {
+              setState({
+                kind: "unavailable",
+                message: "La sociedad ha cambiado. Repite la búsqueda.",
+              });
+              return;
+            }
+            setState({ kind: "ready", entries: result.data });
+          } else {
+            setState({ kind: "unavailable", message: result.message });
+          }
+        })
+        .catch(() => {
+          if (request === requestRef.current)
+            setState({
+              kind: "unavailable",
+              message: "No se ha podido completar la búsqueda. Vuelve a intentarlo.",
+            });
+        });
     }, DEBOUNCE_MS);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      requestRef.current++;
+    };
   }, [query, society]);
 
   return (
@@ -104,7 +122,7 @@ export function DirectorySearch() {
               </p>
               <ul className="flex min-w-0 flex-col divide-y divide-border rounded-xl border border-border bg-card">
                 {state.entries.map((entry) => (
-                  <li key={entry.employeeId} className="min-w-0">
+                  <li key={entry.key} className="min-w-0">
                     <Link
                       href={`/portal/organizacion/personas/${encodeURIComponent(entry.employeeId)}`}
                       className="flex min-w-0 items-center gap-3 px-4 py-3 outline-none transition-colors hover:bg-elevated focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"

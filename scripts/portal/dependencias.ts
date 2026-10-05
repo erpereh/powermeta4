@@ -3,7 +3,7 @@
  * desde el registro tipado del portal (`npm run portal:docs`). Sin red ni
  * base de datos: el registro es la única fuente.
  */
-import { writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { collectMeta4References } from "../../src/lib/portal/meta4-refs";
@@ -109,7 +109,9 @@ const status = (): string => {
     "",
     "> Generado por `npm run portal:docs` desde `src/lib/portal/registry`. No editar a mano.",
     "",
-    `Pantallas: ${total}. Con lectura real (SOAP o SQL): ${connected}. Con dependencia explícita: ${total - connected}.`,
+    `Pantallas: ${total}. Con lector principal implementado (SOAP o SQL): ${connected}. Con dependencia principal explícita: ${total - connected}.`,
+    "",
+    "Implementado describe código respaldado por fuentes, no una integración viva comprobada. Las nuevas lecturas y el transporte SOAP requieren pruebas en la VM. Una pantalla conectada puede tener apartados pendientes; el inventario siguiente los separa.",
     "",
   ];
   for (const domain of PORTAL_DOMAINS) {
@@ -126,12 +128,109 @@ const status = (): string => {
       "",
     );
   }
+  lines.push(
+    "## Inventario por apartado",
+    "",
+    "| Pantalla / apartado | Lector | Contrato | Estado | Fuente original |",
+    "| --- | --- | --- | --- | --- |",
+  );
+  for (const feature of PORTAL_FEATURES) {
+    for (const section of feature.sections ?? []) {
+      if (section.kind !== "consult") continue;
+      const query = section.consult;
+      lines.push(
+        `| ${cell(`${feature.title} / ${query.title}`)} | \`${query.reader}\` | ${cell(readLabel(query.read))} | ${query.reader === "dependency" ? "Falta contrato de tablas/filtros/reglas o servicio publicado; P02/P05" : "Implementado; pendiente de prueba VM"} | \`${cell(query.meta4)}\` |`,
+      );
+    }
+  }
+  lines.push("");
+  return lines.join("\n");
+};
+
+/** Contraste reproducible de las 76 fichas y sus JSP, por variante. No usa red. */
+const sourceAudit = (): string => {
+  const original = path.resolve("clon_portal/portal");
+  const names = new Set(
+    PORTAL_FEATURES.flatMap((feature) =>
+      feature.sources.map((source) => path.basename(source).toLowerCase()),
+    ),
+  );
+  const candidates: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (names.has(entry.name.toLowerCase())) candidates.push(full);
+    }
+  };
+  walk(original);
+  const lines = [
+    "# Contraste de fuentes del portal",
+    "",
+    "> Generado por `npm run portal:docs`. Inventario estático de fuentes y contratos; no equivale a una prueba en la VM.",
+    "",
+    "Se contrastan todas las pantallas registradas con su ficha y la presencia de JSP BASE, CYC, IBER y COLL. La búsqueda textual de ítems señala dónde falta correspondencia; los JSP no contienen por sí solos tablas ni reglas SQL suficientes. No se activan servicios por semejanza de nombres.",
+    "",
+    "| Pantalla | Ficha | Fuentes BASE / CYC / IBER / COLL | Apartados implementados / pendientes | Ítems pendientes de correspondencia con JSP |",
+    "| --- | --- | --- | --- | --- |",
+  ];
+  for (const feature of PORTAL_FEATURES) {
+    const files = candidates.filter((file) =>
+      feature.sources.some((source) => {
+        const segments = source.toLowerCase().split("/");
+        const relative = path.relative(original, file).replaceAll("\\", "/").toLowerCase();
+        return (
+          path.basename(file).toLowerCase() === segments.at(-1) &&
+          relative.split("/").includes(segments[0])
+        );
+      }),
+    );
+    const variants = ["BASE", "CYC", "IBER", "COLL"].map(
+      (variant) =>
+        files.filter((file) => {
+          const relative = path.relative(original, file).replaceAll("\\", "/");
+          return variant === "BASE"
+            ? !relative.toLowerCase().startsWith("m4custom/")
+            : relative.toLowerCase().startsWith(`m4custom/${variant.toLowerCase()}/`);
+        }).length,
+    );
+    const source = files
+      .map((file) => readFileSync(file, "latin1"))
+      .join("\n")
+      .toUpperCase();
+    const queries = (feature.sections ?? []).flatMap((section) =>
+      section.kind === "consult" ? [section.consult] : [],
+    );
+    const unknown = [
+      ...new Set(
+        queries.flatMap((query) =>
+          query.fields.flatMap((field) =>
+            field.item && !source.includes(field.item.toUpperCase()) ? [field.item] : [],
+          ),
+        ),
+      ),
+    ];
+    const implemented = queries.filter((query) => query.reader !== "dependency").length;
+    lines.push(
+      `| \`${feature.id}\` | ${existsSync(path.resolve("docs/portal", feature.ficha)) ? "presente" : "AUSENTE"} | ${variants.join(" / ")} | ${implemented} / ${queries.length - implemented} | ${cell(unknown.join(", ") || "—")} |`,
+    );
+  }
+  lines.push(
+    "",
+    "Los campos SQL reutilizados pueden no aparecer en el JSP con su nombre físico. Deben contrastarse con la consulta implementada y el diccionario en la VM. Los apartados de beneficiario, familia IRPF, grupo/nivel, direcciones, teléfonos y los demás dominios pendientes no tienen filtros y correspondencia de tablas suficientes en esta copia. `portal:discover` reúne metadatos para completarlos.",
+    "",
+  );
   return lines.join("\n");
 };
 
 writeFileSync(path.join(OUT, "dependencias-servidor.md"), dependencies());
 writeFileSync(path.join(OUT, "estado.md"), status());
-formatGenerated([path.join(OUT, "dependencias-servidor.md"), path.join(OUT, "estado.md")]);
+writeFileSync(path.join(OUT, "auditoria-fuentes.md"), sourceAudit());
+formatGenerated([
+  path.join(OUT, "dependencias-servidor.md"),
+  path.join(OUT, "estado.md"),
+  path.join(OUT, "auditoria-fuentes.md"),
+]);
 console.log(
   `Generados dependencias-servidor.md y estado.md (${PORTAL_FEATURES.length} pantallas).`,
 );

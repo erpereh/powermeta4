@@ -1,10 +1,59 @@
 import { Info } from "lucide-react";
 
 import { Surface } from "@/components/system";
-import type { ConsultSpec, PortalFeature } from "@/lib/portal/types";
+import type { ConsultData, ConsultSpec, PortalFeature } from "@/lib/portal/types";
+import type { ConsultResults } from "@/lib/portal/data/consults";
+import type { PortalResult } from "@/lib/portal/result";
 
 import { PortalForm, type CatalogAvailability } from "./portal-form";
-import { DependencyState, WriteBlockedNotice } from "./portal-states";
+import { DependencyState, PortalError, WriteBlockedNotice } from "./portal-states";
+
+export function ConsultContent({
+  consult,
+  result,
+}: {
+  consult: ConsultSpec;
+  result?: PortalResult<ConsultData>;
+}) {
+  if (result?.status === "error") return <PortalError message={result.message} />;
+  if (result?.status === "ok") {
+    if (result.data.rows.length === 0)
+      return <p className="text-sm text-muted-foreground">No hay registros para este apartado.</p>;
+    return (
+      <ul className="flex min-w-0 flex-col gap-4" aria-label={consult.title}>
+        {result.data.rows.map((fields, index) => (
+          <li key={index} className="min-w-0 rounded-lg border border-border p-3">
+            <dl className="grid min-w-0 gap-3 sm:grid-cols-2">
+              {fields.map((field) => (
+                <div key={field.label} className="min-w-0 space-y-1">
+                  <dt className="text-xs text-muted-foreground">{field.label}</dt>
+                  <dd className="min-w-0 break-words text-sm text-foreground [overflow-wrap:anywhere]">
+                    {field.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  const pending = consult.read.kind === "pending" ? consult.read : null;
+  return (
+    <DependencyState
+      title="Consulta pendiente de conexión"
+      message={
+        result?.message ?? pending?.detail ?? "Este apartado necesita un contrato de lectura."
+      }
+      pending={
+        result?.status === "unavailable" ? result.pending : (pending?.pending ?? ["P02", "P05"])
+      }
+      meta4={[consult.meta4]}
+    >
+      <ConsultStructure consult={consult} />
+    </DependencyState>
+  );
+}
 
 function ConsultStructure({ consult }: { consult: ConsultSpec }) {
   return (
@@ -35,13 +84,14 @@ export function FeatureSections({
   feature,
   catalogs,
   hireDate,
+  results,
 }: {
   feature: PortalFeature;
   catalogs: CatalogAvailability;
   hireDate?: string | null;
+  results?: ConsultResults;
 }) {
   const sections = feature.sections ?? [];
-  const pendingRead = feature.read.kind === "pending" ? feature.read : null;
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {sections.map((section) => {
@@ -66,17 +116,7 @@ export function FeatureSections({
               title={section.consult.title}
               description={section.consult.description}
             >
-              <DependencyState
-                title="Consulta pendiente de conexión"
-                message={
-                  pendingRead?.detail ??
-                  "Este bloque del original no tiene todavía un contrato de lectura verificado en powermeta4."
-                }
-                pending={pendingRead?.pending ?? ["P02", "P05"]}
-                meta4={[section.consult.meta4]}
-              >
-                <ConsultStructure consult={section.consult} />
-              </DependencyState>
+              <ConsultContent consult={section.consult} result={results?.[section.consult.id]} />
             </Surface>
           );
         }

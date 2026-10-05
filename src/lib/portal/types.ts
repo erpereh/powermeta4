@@ -218,6 +218,19 @@ export type ConsultSpec = {
   readonly layout: "record" | "list";
   readonly meta4: string;
   readonly fields: readonly ConsultField[];
+  readonly reader: PortalReaderId;
+  readonly read: ReadContract;
+};
+
+export type PortalReaderId =
+  | "dependency"
+  | "own-emails"
+  | "own-payment-accounts"
+  | "own-oro-status";
+
+/** Solo campos declarados, sin objetos de BD ni información ajena a la sección. */
+export type ConsultData = {
+  readonly rows: readonly (readonly { readonly label: string; readonly value: string }[])[];
 };
 
 export type FeatureSection =

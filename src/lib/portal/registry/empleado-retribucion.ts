@@ -1,4 +1,5 @@
 import type { PortalFeature } from "../types";
+import { PORTAL_READERS } from "./readers";
 import {
   consult,
   date,
@@ -114,7 +115,7 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
     ficha: `${RET}/sse_g2--sse_g2_p1.md`,
     keywords: ["banco", "iban", "cuenta", "domiciliación"],
     sensitive: true,
-    read: pendingRead(["SSE_PAYMENT_DATA!SSE_PRINCIPAL.CARGA_CV"]),
+    read: PORTAL_READERS["own-payment-accounts"],
     view: "generic",
     variants: {
       BASE: "El cambio es efectivo a partir del día 1 del próximo mes.",
@@ -122,12 +123,24 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
       COLL: "La fecha efectiva del cambio se calcula en función de los procesos de nómina calculados (formularios «_n»).",
     },
     sections: [
-      consult("cuenta", "Cuenta bancaria principal", "SSE_PAYMENT_DATA", "list", [
-        [null, "Inicio"],
-        [null, "Número de cuenta"],
-        [null, "Moneda"],
-        [null, "IBAN"],
-      ]),
+      consult(
+        "cuenta",
+        "Cuentas de cobro vigentes",
+        "SSE_PAYMENT_DATA",
+        "list",
+        [
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_DT_END", "Fin"],
+          ["SCO_GB_IBAN", "IBAN"],
+          ["SCO_OR_HR_PERIOD", "Periodo de contrato"],
+        ],
+        "Lectura de PAYMENT_DATA y PERSON_BANK usada en los recibos. Las reglas de selección de cuenta principal del JSP requieren contraste en la VM.",
+        "own-payment-accounts",
+      ),
+      note(
+        "Campos pendientes del original",
+        "La moneda y el número de cuenta desglosado necesitan su correspondencia de columnas verificada. Las cuentas de beneficiarios se documentan por separado y no se deducen de estas cuentas de cobro.",
+      ),
       form({
         id: "cuenta-principal",
         title: "Modificar cuenta bancaria principal",

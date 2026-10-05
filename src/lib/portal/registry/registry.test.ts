@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { SOAP_CATALOG } from "../soap/catalog.generated";
+import { PORTAL_READER_FIELDS } from "./readers";
 import {
   getDomainForRoute,
   getPortalFeatureByRoute,
@@ -38,6 +39,26 @@ const documentedRoutes = (): Set<string> => {
 };
 
 describe("registro del portal", () => {
+  it("cada apartado tiene lector, contrato y campos conectados respaldados", () => {
+    for (const feature of PORTAL_FEATURES) {
+      const queries = (feature.sections ?? []).flatMap((section) =>
+        section.kind === "consult" ? [section.consult] : [],
+      );
+      expect(new Set(queries.map((query) => query.id)).size, feature.id).toBe(queries.length);
+      for (const query of queries) {
+        expect(query.read).toBeDefined();
+        if (query.reader === "dependency") expect(query.read.kind).toBe("pending");
+        else {
+          const fields: readonly string[] = PORTAL_READER_FIELDS[query.reader];
+          for (const field of query.fields)
+            expect(
+              fields.includes(field.item ?? ""),
+              `${feature.id}/${query.id}/${field.label}`,
+            ).toBe(true);
+        }
+      }
+    }
+  });
   it("tiene identificadores y rutas únicas bajo /portal", () => {
     const ids = PORTAL_FEATURES.map((feature) => feature.id);
     const routes = PORTAL_FEATURES.map((feature) => feature.route);

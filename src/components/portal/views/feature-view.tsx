@@ -2,6 +2,7 @@ import { requireAuthContext } from "@/lib/auth/session";
 import type { PortalContext } from "@/lib/portal/context";
 import { featureCatalogs, loadPortalCatalogs } from "@/lib/portal/data/catalogs";
 import { getOwnFile } from "@/lib/portal/data/organization";
+import { loadFeatureConsults } from "@/lib/portal/data/consults";
 import { isFeatureAvailable } from "@/lib/portal/registry";
 import { readPortal } from "@/lib/portal/server";
 import type { PortalFeature } from "@/lib/portal/types";
@@ -9,7 +10,7 @@ import type { PortalFeature } from "@/lib/portal/types";
 import { FeatureHeader } from "../feature-header";
 import { FeatureSections } from "../feature-sections";
 import { DependencyState, PortalError } from "../portal-states";
-import { EmailList, FileSections } from "./person-file";
+import { FileSections } from "./person-file";
 
 type Meta4Context = Extract<PortalContext, { mode: "meta4" }>;
 
@@ -24,7 +25,7 @@ async function FeatureData({
   feature: PortalFeature;
   context: PortalContext;
 }) {
-  if (feature.id !== "empleado.datos.correo" && feature.view !== "my-file") return null;
+  if (feature.view !== "my-file") return null;
   if (context.mode !== "meta4") return null;
   const employeeId = ownId(context);
   if (!employeeId) {
@@ -60,11 +61,9 @@ async function FeatureData({
       />
     );
   }
-  if (feature.id === "empleado.datos.correo") return <EmailList emails={result.data.emails} />;
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <FileSections sections={result.data.sections} />
-      <EmailList emails={result.data.emails} />
     </div>
   );
 }
@@ -99,6 +98,7 @@ export async function FeatureView({
     context.mode === "meta4" && context.identity.status === "resolved"
       ? context.identity.person.hireDate
       : null;
+  const results = await loadFeatureConsults(feature, context);
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <FeatureHeader feature={feature} variant={variant} />
@@ -111,7 +111,12 @@ export async function FeatureView({
           meta4={feature.read.meta4}
         />
       ) : null}
-      <FeatureSections feature={feature} catalogs={catalogs} hireDate={hireDate} />
+      <FeatureSections
+        feature={feature}
+        catalogs={catalogs}
+        hireDate={hireDate}
+        results={results}
+      />
     </div>
   );
 }

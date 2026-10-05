@@ -55,11 +55,11 @@ export function DependencyState({
         </span>
         <div className="min-w-0 space-y-1">
           <p className="text-sm font-medium text-foreground">{title}</p>
-          <p className="text-sm text-muted-foreground">{message}</p>
+          <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{message}</p>
         </div>
       </div>
       {meta4.length > 0 ? (
-        <p className="min-w-0 break-words text-xs text-muted-foreground">
+        <p className="min-w-0 break-words text-xs text-muted-foreground [overflow-wrap:anywhere]">
           <span className="font-medium text-foreground">Lectura original: </span>
           <code className="font-mono">{meta4.join(" · ")}</code>
         </p>
@@ -86,7 +86,7 @@ export function WriteBlockedNotice({
       className="flex min-w-0 items-start gap-2.5 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground"
     >
       <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-      <p className="min-w-0 break-words">
+      <p className="min-w-0 break-words [overflow-wrap:anywhere]">
         <span className="font-medium text-foreground">
           {mode === "query" ? "Consulta no disponible." : "Envío no disponible."}
         </span>{" "}

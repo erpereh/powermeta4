@@ -10,7 +10,14 @@ export type PortalResult<T> =
       readonly pending: readonly PendingId[];
       readonly message: string;
     }
-  | { readonly status: "error"; readonly message: string };
+  | { readonly status: "error"; readonly message: string; readonly code?: PortalErrorCode };
+
+export type PortalErrorCode =
+  | "SESSION_EXPIRED"
+  | "CONTRACT_INCOMPATIBLE"
+  | "AMBIGUOUS"
+  | "SOAP_FAULT"
+  | "READ_FAILED";
 
 export const portalOk = <T>(society: Meta4Society, data: T): PortalResult<T> => ({
   status: "ok",
@@ -23,4 +30,8 @@ export const portalUnavailable = <T>(
   message: string,
 ): PortalResult<T> => ({ status: "unavailable", pending, message });
 
-export const portalError = <T>(message: string): PortalResult<T> => ({ status: "error", message });
+export const portalError = <T>(message: string, code?: PortalErrorCode): PortalResult<T> => ({
+  status: "error",
+  message,
+  code,
+});

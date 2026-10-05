@@ -41,7 +41,6 @@ servicio publicado y una aprobación de escritura (AGENTS.md solo aprueba el alt
 | Life events                       | `/portal/empleado/datos/eventos`                   | —                                                                                                                                                                                                                                                                                                                                                                                      | P01, P05   |
 | Aplicaciones internas             | `/portal/empleado/datos/aplicaciones`              | —                                                                                                                                                                                                                                                                                                                                                                                      | P01, P07   |
 | Recibos por año                   | `/portal/empleado/retribucion/recibos-por-ano`     | `SSE_LAST_HR_PAY_DOCS!SSE_LAST_HR_PAY_DOCS.CARGA`                                                                                                                                                                                                                                                                                                                                      | P02, P08   |
-| Cuenta bancaria principal         | `/portal/empleado/retribucion/cuenta-principal`    | `SSE_PAYMENT_DATA!SSE_PRINCIPAL.CARGA_CV`                                                                                                                                                                                                                                                                                                                                              | P02, P05   |
 | Otras cuentas bancarias           | `/portal/empleado/retribucion/otras-cuentas`       | `SSE_OTHER_PDATA!SSE_PRINCIPAL.CARGA_CV`                                                                                                                                                                                                                                                                                                                                               | P02, P05   |
 | Certificados de retenciones       | `/portal/empleado/retribucion/certificados`        | `CSP_CERTIFICADO_HAB_ANIOS!CSP_CERTIFICADO_HAB_ANIOS.CARGA`, `CSP_CERT_DOC!CSP_CERT_DOC.CARGA`                                                                                                                                                                                                                                                                                         | P08        |
 | Informes de proyecciones          | `/portal/empleado/retribucion/proyecciones`        | `CSP_RP_PROYECCIONES!CSP_RP_PROYECCIONES.CSP_CARGA_ANIOS`, `CSP_PROYECCIONES_JSON`                                                                                                                                                                                                                                                                                                     | P02, P05   |
@@ -218,7 +217,7 @@ servicio publicado y una aprobación de escritura (AGENTS.md solo aprueba el alt
 | Planificación y alertas           | Gestionar alertas                             | Escritura | `SCO_GTA_VIEW_ALERTS (mss_g4_gta_view_alerts_actions_json.jsp)`                     | —                                                                                    | P04        |
 | Planificación y alertas           | Modificar hoja de tiempos                     | Escritura | `SCO_GTA_EMPLOYEE_PRESENCE_REPR (mss_g4_gta_timesheet_json_actions.jsp)`            | —                                                                                    | P04        |
 
-## Objetos Meta4 referenciados (114)
+## Objetos Meta4 referenciados (116)
 
 Entrada de `npm run portal:discover` en la VM.
 
@@ -231,7 +230,7 @@ Entrada de `npm run portal:discover` en la VM.
 | `CSP_MNG_VALORA_EFICA`           | —                                                                                      | read, write          | 1         |
 | `CSP_PROYECCIONES_JSON`          | —                                                                                      | read                 | 1         |
 | `CSP_PUBLICACIONES_ESS`          | CSP_PUBLICACIONES_ESS                                                                  | read                 | 1         |
-| `CSP_QUIEN_ES_QUIEN`             | CSP_DATOS_PAGO_EMPLEADO, CSP_FAM_IRPF                                                  | read                 | 1         |
+| `CSP_QUIEN_ES_QUIEN`             | CSP_CUENTA_BENEFICIARIO, CSP_DATOS_PAGO_EMPLEADO, CSP_FAM_IRPF, CSP_GRUPO_NIVEL        | read                 | 1         |
 | `CSP_RP_CV`                      | —                                                                                      | read                 | 2         |
 | `CSP_RP_JOB_DESCR`               | STD_JOB                                                                                | read                 | 1         |
 | `CSP_RP_ORO_MSS`                 | CSP_CONSULTA_AREAS, CSP_CONSULTA_DIRECCION, CSP_CONSULTA_PUESTO, CSP_RP_ORO_MSS        | catalog, read, write | 1         |
@@ -239,6 +238,7 @@ Entrada de `npm run portal:discover` en la VM.
 | `CSP_SSE_TRAINING_REQUEST`       | SCO_COURSE, SCO_LANGUAGE, SSE_PRINCIPAL                                                | catalog, read, write | 2         |
 | `CSP_SSM_TRAINING_REQUEST`       | —                                                                                      | read                 | 1         |
 | `CSP_TRAINING_EVAL`              | SSE_EVEN_EVAL_SHEET                                                                    | read, write          | 1         |
+| `M4ORO_EMPLEADOS`                | —                                                                                      | read                 | 1         |
 | `M4T_EVAL_OBJECT`                | —                                                                                      | write                | 1         |
 | `MSS_DELEGATION`                 | MSS_DELEGATION_ROOT, SCO_PROCESS                                                       | catalog, read, write | 1         |
 | `SCO_CLOCK_INOUT_API`            | —                                                                                      | write                | 1         |
@@ -337,4 +337,5 @@ Entrada de `npm run portal:discover` en la VM.
 | `SSM_TRAINING_REQUEST`           | SCO_PRODUCT, SCO_TRAINING_TYPE                                                         | catalog, read, write | 1         |
 | `SSM_VACANT`                     | SCO_JOB, SCO_MOBILITY, SCO_WORK_LOCATION                                               | catalog, read, write | 1         |
 | `SSP_RP_ANEXO_BNFT`              | —                                                                                      | write                | 1         |
+| `STD_EMAIL`                      | —                                                                                      | read                 | 2         |
 | `TIPO_CARGA`                     | —                                                                                      | read                 | 1         |

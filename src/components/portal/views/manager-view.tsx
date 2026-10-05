@@ -17,15 +17,7 @@ const SCOPE_MESSAGE =
 
 /** Población del responsable según Meta4, con datos de directorio de ORO. */
 export async function PopulationPanel({ context }: { context: PortalContext }) {
-  const result = await readPortal(
-    context,
-    async (meta4) => {
-      const scope = await loadManagerScope();
-      const people = await getDirectoryEntries(meta4.society, scope.employeeIds);
-      return { scope, people };
-    },
-    "tu población",
-  );
+  const result = await readPortal(context, () => loadManagerScope(), "tu población");
   if (result.status === "unavailable") {
     return (
       <DependencyState
@@ -36,7 +28,13 @@ export async function PopulationPanel({ context }: { context: PortalContext }) {
     );
   }
   if (result.status === "error") return <PortalError message={result.message} />;
-  const { scope, people } = result.data;
+  const scope = result.data;
+  const peopleResult = await readPortal(
+    context,
+    (meta4) => getDirectoryEntries(meta4.society, scope.employeeIds),
+    "las personas de tu población",
+  );
+  const people = peopleResult.status === "ok" ? peopleResult.data : [];
   return (
     <div className="flex min-w-0 flex-col gap-4">
       {!scope.verified ? <SensitiveLocked message={SCOPE_MESSAGE} /> : null}
@@ -66,10 +64,26 @@ export async function PopulationPanel({ context }: { context: PortalContext }) {
       </Surface>
       <Surface
         title="Tu equipo"
-        description={`${people.length} ${people.length === 1 ? "persona" : "personas"} en tu población.`}
+        description={
+          peopleResult.status === "ok"
+            ? `${people.length} ${people.length === 1 ? "persona" : "personas"} en tu población.`
+            : "Las unidades se han cargado; los datos de directorio se consultan por separado."
+        }
         flush
       >
-        {people.length === 0 ? (
+        {peopleResult.status === "error" ? (
+          <div className="p-4">
+            <PortalError message={peopleResult.message} />
+          </div>
+        ) : peopleResult.status === "unavailable" ? (
+          <div className="p-4">
+            <DependencyState
+              message={peopleResult.message}
+              pending={peopleResult.pending}
+              meta4={["M4ORO_EMPLEADOS"]}
+            />
+          </div>
+        ) : people.length === 0 ? (
           <div className="p-4">
             <EmptyState
               icon={<Users />}
@@ -80,7 +94,7 @@ export async function PopulationPanel({ context }: { context: PortalContext }) {
         ) : (
           <ul className="flex min-w-0 flex-col divide-y divide-border border-t border-border">
             {people.map((person) => (
-              <li key={person.employeeId} className="min-w-0">
+              <li key={person.key} className="min-w-0">
                 <Link
                   href={`/portal/organizacion/personas/${encodeURIComponent(person.employeeId)}`}
                   className="flex min-w-0 items-center gap-3 px-4 py-3 outline-none hover:bg-elevated focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"

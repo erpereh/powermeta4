@@ -81,7 +81,7 @@ function OrgBranch({
           {node.people.length > 0 ? (
             <ul className="flex min-w-0 flex-col py-1" aria-label={`Personas de ${node.name}`}>
               {node.people.map((person) => (
-                <li key={person.employeeId} className="min-w-0">
+                <li key={person.key} className="min-w-0">
                   <Link
                     href={`/portal/organizacion/personas/${encodeURIComponent(person.employeeId)}`}
                     className="flex min-w-0 items-baseline gap-2 rounded-md px-2 py-1 text-sm outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/60"

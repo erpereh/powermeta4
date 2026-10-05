@@ -4,6 +4,8 @@ import { buildFullName } from "../identity-core";
 export type OroRow = Readonly<Record<string, string | number | boolean | Date | null>>;
 
 export type DirectoryEntry = {
+  readonly key: string;
+  readonly society: string | null;
   readonly employeeId: string;
   readonly fullName: string;
   readonly job: string | null;
@@ -41,6 +43,8 @@ export const toDirectoryEntry = (row: OroRow): DirectoryEntry | null => {
   const employeeId = oroText(row.ID_EMPLEADO);
   if (!employeeId) return null;
   return {
+    key: JSON.stringify([oroText(row.ID_ORGANIZATION), employeeId]),
+    society: oroText(row.ID_ORGANIZATION),
     employeeId,
     fullName:
       buildFullName([oroText(row.NOMBRE), oroText(row.APELLIDO_1), oroText(row.APELLIDO_2)]) ||
@@ -50,6 +54,51 @@ export const toDirectoryEntry = (row: OroRow): DirectoryEntry | null => {
     workCenter: oroText(row.N_CENTRO_TRABAJO),
     email: oroText(row.CORREO),
   };
+};
+
+/** Agrupa personas, conservando los distintos puestos y destinos de ORO. */
+export const groupDirectoryEntries = (rows: readonly OroRow[]): DirectoryEntry[] => {
+  const groups = new Map<string, DirectoryEntry[]>();
+  for (const row of rows) {
+    const entry = toDirectoryEntry(row);
+    if (entry) groups.set(entry.key, [...(groups.get(entry.key) ?? []), entry]);
+  }
+  const values = (
+    entries: readonly DirectoryEntry[],
+    field: keyof DirectoryEntry,
+  ): string | null => {
+    const unique = [...new Set(entries.flatMap((entry) => (entry[field] ? [entry[field]] : [])))];
+    return unique.sort((a, b) => a.localeCompare(b, "es")).join(" / ") || null;
+  };
+  return [...groups.values()]
+    .map((entries) => ({
+      key: entries[0].key,
+      society: entries[0].society,
+      employeeId: entries[0].employeeId,
+      fullName: values(entries, "fullName") ?? entries[0].employeeId,
+      job: values(entries, "job"),
+      unit: values(entries, "unit"),
+      workCenter: values(entries, "workCenter"),
+      email: values(entries, "email"),
+    }))
+    .sort(
+      (a, b) =>
+        a.fullName.localeCompare(b.fullName, "es") || a.employeeId.localeCompare(b.employeeId),
+    );
+};
+
+/** Solo colapsa fichas equivalentes; nunca elige entre fichas contradictorias. */
+export const distinctFileRows = (rows: readonly OroRow[]): OroRow[] => {
+  const unique = new Map<string, OroRow>();
+  for (const row of rows) {
+    const key = JSON.stringify(
+      Object.keys(row)
+        .sort()
+        .map((column) => [column, oroText(row[column])]),
+    );
+    unique.set(key, row);
+  }
+  return [...unique.values()];
 };
 
 type FieldSpec = readonly [column: string, label: string, kind?: "date"];
@@ -62,10 +111,9 @@ const section = (
 ): FileSection => ({
   id,
   title,
-  fields: specs.flatMap(([column, label, kind]) => {
+  fields: specs.map(([column, label, kind]) => {
     const value = oroText(row[column]);
-    if (!value) return [];
-    return [{ label, value: kind === "date" ? formatDate(value) : value }];
+    return { label, value: value ? (kind === "date" ? formatDate(value) : value) : "No informado" };
   }),
 });
 
@@ -146,7 +194,21 @@ const freeze = (node: MutableNode): OrgNode => {
   const children = [...node.children.values()]
     .map(freeze)
     .sort((a, b) => a.name.localeCompare(b.name, "es"));
-  const people = [...node.people].sort((a, b) => a.fullName.localeCompare(b.fullName, "es"));
+  const people = groupDirectoryEntries(
+    node.people.map((person) => ({
+      ID_ORGANIZATION: person.society,
+      ID_EMPLEADO: person.employeeId,
+      NOMBRE: person.fullName,
+      N_PUESTO: person.job,
+      N_UNIDAD: person.unit,
+      N_CENTRO_TRABAJO: person.workCenter,
+      CORREO: person.email,
+    })),
+  );
+  const descendantIds = (entry: OrgNode): string[] => [
+    ...entry.people.map((person) => person.key),
+    ...entry.children.flatMap(descendantIds),
+  ];
   return {
     key: node.key,
     id: node.id,
@@ -155,7 +217,8 @@ const freeze = (node: MutableNode): OrgNode => {
     levelLabel: node.levelLabel,
     people,
     children,
-    total: people.length + children.reduce((sum, child) => sum + child.total, 0),
+    total: new Set([...people.map((person) => person.key), ...children.flatMap(descendantIds)])
+      .size,
   };
 };
 
@@ -170,7 +233,7 @@ export const buildOrgTree = (rows: readonly OroRow[]): OrgNode[] => {
     if (!entry) continue;
     let siblings = roots;
     let current: MutableNode | null = null;
-    let path = "";
+    let path = entry.society ?? "";
     for (const level of ORG_LEVELS) {
       const id = oroText(row[level.idColumn]);
       if (!id) continue;

@@ -5,6 +5,8 @@ export type SoapServiceArg = {
   readonly name: string;
   readonly kind: SoapArgKind;
   readonly node?: string;
+  readonly xmlType?: string;
+  readonly nullable?: boolean;
 };
 
 export type SoapOutputBlock = {
@@ -32,6 +34,12 @@ export type SoapServiceContract = {
   readonly service: string;
   readonly m4Object: string;
   readonly deployedInWsdd: boolean;
+  readonly serialization?: {
+    readonly style: "rpc" | "wrapped";
+    readonly use: "encoded" | "literal";
+    readonly namespace: string;
+    readonly encodingStyle: string;
+  };
   readonly operations: readonly SoapServiceOperation[];
 };
 

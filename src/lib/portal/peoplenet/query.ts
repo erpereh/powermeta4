@@ -20,6 +20,13 @@ export class PortalSqlGuardError extends Error {
   }
 }
 
+export class PortalSqlContractError extends Error {
+  constructor(readonly code: 207 | 208) {
+    super("El contrato SQL necesita columnas o tablas que no están disponibles.");
+    this.name = "PortalSqlContractError";
+  }
+}
+
 const READ_ONLY = /^\s*(?:SELECT|WITH)\b/i;
 const FORBIDDEN =
   /\b(?:INSERT|UPDATE|DELETE|MERGE|DROP|ALTER|CREATE|EXEC|EXECUTE|TRUNCATE|GRANT|REVOKE)\b/i;
@@ -56,8 +63,14 @@ export const runPortalSelect = async <Row extends PortalSqlRow>(
   const pool = await getPeopleNetPool();
   const request = pool.request();
   for (const [name, param] of Object.entries(params)) bind(request, name, param);
-  const result = await request.query<Row>(statement);
-  return result.recordset;
+  try {
+    const result = await request.query<Row>(statement);
+    return result.recordset;
+  } catch (error) {
+    if (error instanceof sql.RequestError && (error.number === 207 || error.number === 208))
+      throw new PortalSqlContractError(error.number);
+    throw error;
+  }
 };
 
 export const organizationParam = (society: string): PortalSqlParam => ({

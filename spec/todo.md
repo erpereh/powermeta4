@@ -1,5 +1,43 @@
 # powermeta4 - estado de tareas
 
+## Correcciones y lecturas del portal - 2026-10-05
+
+- [x] Directorio y organigrama agrupan por sociedad y matrícula antes de
+      límites y contadores; conservan destinos distintos y claves estables.
+      Búsquedas con respuestas obsoletas, rechazos y cambio de sociedad cubiertas.
+- [x] Identidad lógica única con duplicados equivalentes y matrículas textuales;
+      usuarios contradictorios y fallos de PeopleNet configurado bloquean los
+      datos propios. Mi ficha rechaza fichas distintas sin elegir una.
+- [x] Contratos SOAP regenerados desde Java y WSDD: RPC/encoded y wrapped/literal,
+      argumentos ordenados, tipos, nulos, arrays y referencias Axis id/href.
+      Se conserva el cliente autenticado. Tareas cargadas por grupo.
+- [x] Lectores y resultados tipados por apartado: ficha, correos independientes,
+      cuentas de cobro del contrato existente de nómina y estado civil ORO.
+      Campos ausentes como «No informado»; estados vacío, dependencia y error.
+- [x] Errores clasificados y diagnósticos saneados con operación, etapa y código;
+      los fallos inesperados conservan su registro sin valores personales.
+- [x] Inventario estático de las 76 pantallas y sus fuentes BASE/CYC/IBER/COLL,
+      documentación regenerada e inventario por apartado. `portal:verify`
+      comprueba columnas, duplicación agregada y metadatos WSDL sin emitir fichas.
+- [x] Regresiones de identidad, aislamiento, duplicación, resultados parciales,
+      búsqueda y SOAP con fixtures sintéticas. Navegador en modo debug: mi ficha
+      a 375/800/1440 px y cuenta a 375 px sin overflow; envío ERP deshabilitado.
+- [x] `npm run typecheck` y `npm run build` correctos. `npm run lint` ejecutado:
+      mantiene siete avisos y 360 archivos con formato pendiente preexistentes.
+      Los archivos del portal modificados pasan el formato dirigido.
+- [x] `npm test -- --maxWorkers=4 --reporter=verbose`: 128 archivos,
+      670 pruebas correctas y 2 omitidas; incluye Excel COM real. La primera
+      ejecución se interrumpió sin resultado; la segunda terminó correctamente.
+      `git diff --check` correcto y `git status --short` revisado en `davidev`.
+- [ ] Prueba real en VM: seguir `docs/portal/implementacion/prueba-vm.md` y
+      ejecutar `npm run portal:verify -- todo`; no ejecutado contra Meta4/PeopleNet
+      aquí. Contrastar cuentas vigentes con la selección principal del original.
+- [ ] Beneficiario, familia IRPF, grupo/nivel, direcciones, teléfonos y demás
+      consultas sin tablas/filtros/reglas suficientes: dependencias documentadas;
+      completar desde `portal:discover` y contratos publicados en la VM.
+- [ ] Contrastar población con SSM. `MANAGER_SCOPE_VERIFIED` continúa en `false`;
+      escrituras ERP del portal deshabilitadas. Datos aislados del chat y SQLite.
+
 ## Portal del empleado y del responsable en /portal - 2026-10-02
 
 - [x] Registro tipado único (`src/lib/portal/registry`): 76 pantallas de

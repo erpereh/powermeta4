@@ -6,9 +6,11 @@ import type {
   FormFieldSpec,
   FormSpec,
   PendingId,
+  PortalReaderId,
   ReadContract,
   WriteOperation,
 } from "../types";
+import { PORTAL_READERS } from "./readers";
 
 /** Escritura del controlador genérico `generico_actualizar.jsp`. */
 export const genericWrite = (
@@ -57,6 +59,7 @@ export const consult = (
   layout: ConsultSpec["layout"],
   fields: readonly (readonly [item: string | null, label: string])[],
   description?: string,
+  reader: PortalReaderId = "dependency",
 ): FeatureSection => ({
   kind: "consult",
   consult: {
@@ -64,6 +67,8 @@ export const consult = (
     title,
     meta4,
     layout,
+    reader,
+    read: reader === "dependency" ? pendingRead([meta4]) : PORTAL_READERS[reader],
     fields: fields.map(([item, label]): ConsultField => (item ? { item, label } : { label })),
     ...(description ? { description } : {}),
   },

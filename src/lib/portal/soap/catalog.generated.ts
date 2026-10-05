@@ -6,6 +6,12 @@ export const SOAP_CATALOG = {
     service: "CSP_CONSULTA_LIST_EMPL",
     m4Object: "CSP_CONSULTA_LIST_EMPL",
     deployedInWsdd: true,
+    serialization: {
+      style: "wrapped",
+      use: "literal",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "",
+    },
     operations: [
       {
         operation: "CSP_CONSULTA_LIST_EMPL",
@@ -15,10 +21,14 @@ export const SOAP_CATALOG = {
           {
             name: "ARG_SOCIEDAD",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "ARG_LISTA_UNIDAD",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
         ],
         blocks: [
@@ -40,6 +50,8 @@ export const SOAP_CATALOG = {
             name: "CSP_CONSULTA_LIST_EMPL",
             kind: "block",
             node: "CSP_CONSULTA_LIST_EMPL",
+            xmlType: "m4:Csp_Consulta_List_EmplBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -58,6 +70,12 @@ export const SOAP_CATALOG = {
     service: "CSP_CONSULTA_ORO_INTRAN_WU",
     m4Object: "CSP_CONSULTA_ORO_INTRAN_WU",
     deployedInWsdd: true,
+    serialization: {
+      style: "wrapped",
+      use: "literal",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "",
+    },
     operations: [
       {
         operation: "CSP_CONSULTA_ORO_INTRAN_WU",
@@ -67,22 +85,32 @@ export const SOAP_CATALOG = {
           {
             name: "ARG_SOCIEDAD",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "ARG_ID_UNIDAD",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "ARG_TIPO_NODO",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "ARG_RAIZ",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "ARG_PADRE",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
         ],
         blocks: [
@@ -120,11 +148,15 @@ export const SOAP_CATALOG = {
             name: "CSP_BUSQUEDA_RECURSIVA",
             kind: "block",
             node: "CSP_BUSQUEDA_RECURSIVA",
+            xmlType: "m4:Csp_Busqueda_RecursivaBlock",
+            nullable: true,
           },
           {
             name: "CSP_CONSULTA_ORO_INTRAN_WU",
             kind: "block",
             node: "CSP_CONSULTA_ORO_INTRAN_WU",
+            xmlType: "m4:Csp_Consulta_Oro_Intran_WuBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -182,6 +214,12 @@ export const SOAP_CATALOG = {
     service: "CSP_CONSULTA_ORO_NEW",
     m4Object: "CSP_CONSULTA_ORO_NEW",
     deployedInWsdd: true,
+    serialization: {
+      style: "wrapped",
+      use: "literal",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "",
+    },
     operations: [
       {
         operation: "CSP_CONSULTA_ORO_NEW",
@@ -191,14 +229,20 @@ export const SOAP_CATALOG = {
           {
             name: "ARG_SOCIEDAD",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "ARG_EMPLEADO",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "ARG_COMPUTA",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
         ],
         blocks: [
@@ -277,6 +321,8 @@ export const SOAP_CATALOG = {
             name: "CSP_CONSULTA_ORO",
             kind: "block",
             node: "CSP_CONSULTA_ORO",
+            xmlType: "m4:Csp_Consulta_OroBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -352,6 +398,12 @@ export const SOAP_CATALOG = {
     service: "CSP_CONSULTA_WORK_UNIT",
     m4Object: "CSP_CONSULTA_WORK_UNIT",
     deployedInWsdd: true,
+    serialization: {
+      style: "wrapped",
+      use: "literal",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "",
+    },
     operations: [
       {
         operation: "CSP_CONSULTA_WORK_UNIT",
@@ -361,6 +413,8 @@ export const SOAP_CATALOG = {
           {
             name: "ARG_UNIDAD",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
         ],
         blocks: [
@@ -382,6 +436,8 @@ export const SOAP_CATALOG = {
             name: "CSP_CONSULTA_7",
             kind: "block",
             node: "CSP_CONSULTA_7",
+            xmlType: "m4:Csp_Consulta_7Block",
+            nullable: true,
           },
         ],
         blocks: [
@@ -400,6 +456,12 @@ export const SOAP_CATALOG = {
     service: "CSP_SERVICIO_CV",
     m4Object: "CSP_SERVICIO_CV",
     deployedInWsdd: true,
+    serialization: {
+      style: "wrapped",
+      use: "literal",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "",
+    },
     operations: [
       {
         operation: "CSP_SERVICIO_CV",
@@ -409,6 +471,8 @@ export const SOAP_CATALOG = {
           {
             name: "ARG_ID_EMPLEADO",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
         ],
         blocks: [
@@ -430,21 +494,29 @@ export const SOAP_CATALOG = {
             name: "CSP_CV",
             kind: "block",
             node: "CSP_CV",
+            xmlType: "m4:Csp_CvBlock",
+            nullable: true,
           },
           {
             name: "CSP_SERVICIO_CV",
             kind: "block",
             node: "CSP_SERVICIO_CV",
+            xmlType: "m4:Csp_Servicio_CvBlock",
+            nullable: true,
           },
           {
             name: "CSP_PARAM_GLOBAL",
             kind: "block",
             node: "CSP_PARAM_GLOBAL",
+            xmlType: "m4:Csp_Param_GlobalBlock",
+            nullable: true,
           },
           {
             name: "T_AUX_FILE_MANAGER",
             kind: "block",
             node: "T_AUX_FILE_MANAGER",
+            xmlType: "m4:T_Aux_File_ManagerBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -610,6 +682,12 @@ export const SOAP_CATALOG = {
     service: "M4_PNET_INITIAL_DATA",
     m4Object: "M4_PNET_INITIAL_DATA",
     deployedInWsdd: true,
+    serialization: {
+      style: "wrapped",
+      use: "literal",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "",
+    },
     operations: [
       {
         operation: "LOAD_DATA",
@@ -619,14 +697,20 @@ export const SOAP_CATALOG = {
           {
             name: "APPLICATIONS",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "LOAD_ANALYTICAL",
             kind: "number",
+            xmlType: "xsd:double",
+            nullable: true,
           },
           {
             name: "LOAD_WORKLIST",
             kind: "number",
+            xmlType: "xsd:double",
+            nullable: true,
           },
         ],
         blocks: [],
@@ -640,6 +724,8 @@ export const SOAP_CATALOG = {
             name: "M4_PNET_INITIAL_DATA",
             kind: "block",
             node: "M4_PNET_INITIAL_DATA",
+            xmlType: "m4:M4_Pnet_Initial_DataBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -658,6 +744,12 @@ export const SOAP_CATALOG = {
     service: "PGCO_ES_WS_VALIDATIONS",
     m4Object: "PGCO_ES_WS_VALIDATIONS",
     deployedInWsdd: true,
+    serialization: {
+      style: "wrapped",
+      use: "literal",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "",
+    },
     operations: [
       {
         operation: "PGCO_TASKS",
@@ -767,6 +859,8 @@ export const SOAP_CATALOG = {
             name: "PGCO_ES_WS_VALIDATIONS",
             kind: "block",
             node: "PGCO_ES_WS_VALIDATIONS",
+            xmlType: "m4:Pgco_Es_Ws_ValidationsBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -803,6 +897,12 @@ export const SOAP_CATALOG = {
     service: "SNTC_AD_MANAGERS",
     m4Object: "SNTC_AD_MANAGERS",
     deployedInWsdd: true,
+    serialization: {
+      style: "rpc",
+      use: "encoded",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+    },
     operations: [
       {
         operation: "MOVETO_WU",
@@ -812,11 +912,15 @@ export const SOAP_CATALOG = {
           {
             name: "AI_SID_WU",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "SNCO_AD_MANAGERS",
             kind: "block",
             node: "SNCO_AD_MANAGERS",
+            xmlType: "m4:Snco_Ad_ManagersBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -891,23 +995,33 @@ export const SOAP_CATALOG = {
           {
             name: "AI_ID_WU",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_ID_TYPE_RESP",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_DFILTER_DATE",
             kind: "date",
+            xmlType: "xsd:dateTime",
+            nullable: true,
           },
           {
             name: "AI_BONLY_FIRST_LEVEL",
             kind: "number",
+            xmlType: "xsd:double",
+            nullable: true,
           },
           {
             name: "SNCO_AD_MANAGERS",
             kind: "block",
             node: "SNCO_AD_MANAGERS",
+            xmlType: "m4:Snco_Ad_ManagersBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -983,31 +1097,43 @@ export const SOAP_CATALOG = {
             name: "SNCO_AD_MANAGERS",
             kind: "block",
             node: "SNCO_AD_MANAGERS",
+            xmlType: "m4:Snco_Ad_ManagersBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_POP_CONST",
             kind: "block",
             node: "SNCO_AD_POP_CONST",
+            xmlType: "m4:Snco_Ad_Pop_ConstBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_INFO_PERSON",
             kind: "block",
             node: "SNCO_AD_INFO_PERSON",
+            xmlType: "m4:Snco_Ad_Info_PersonBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_HIERARCHIC_WU",
             kind: "block",
             node: "SNCO_AD_HIERARCHIC_WU",
+            xmlType: "m4:Snco_Ad_Hierarchic_WuBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_INFO_PERSON_PRIVATE",
             kind: "block",
             node: "SNCO_AD_INFO_PERSON_PRIVATE",
+            xmlType: "m4:Snco_Ad_Info_Person_PrivateBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_POP_MAX_SCALE_LEVEL",
             kind: "block",
             node: "SNCO_AD_POP_MAX_SCALE_LEVEL",
+            xmlType: "m4:Snco_Ad_Pop_Max_Scale_LevelBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -1131,6 +1257,12 @@ export const SOAP_CATALOG = {
     service: "SNTC_AD_POPULATION",
     m4Object: "SNTC_AD_POPULATION",
     deployedInWsdd: true,
+    serialization: {
+      style: "rpc",
+      use: "encoded",
+      namespace: "http://schemas.meta4.com/",
+      encodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+    },
     operations: [
       {
         operation: "LOAD_PERSONS",
@@ -1140,43 +1272,63 @@ export const SOAP_CATALOG = {
           {
             name: "AI_ID_HR",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_GB_NAME",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_WORK_UNIT",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_WORK_LOCATION",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_JOB_CODE",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_PHONE",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_FILTER_DATE",
             kind: "date",
+            xmlType: "xsd:dateTime",
+            nullable: true,
           },
           {
             name: "AI_TYPE_POP",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "AI_ONLY_ONE_EMPLOYEE",
             kind: "string",
+            xmlType: "xsd:string",
+            nullable: true,
           },
           {
             name: "SNCO_AD_POPULATION",
             kind: "block",
             node: "SNCO_AD_POPULATION",
+            xmlType: "m4:Snco_Ad_PopulationBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -1273,27 +1425,39 @@ export const SOAP_CATALOG = {
           {
             name: "AI_DFILTER_DATE",
             kind: "date",
+            xmlType: "xsd:dateTime",
+            nullable: true,
           },
           {
             name: "AI_BHIERARCHIC",
             kind: "number",
+            xmlType: "xsd:double",
+            nullable: true,
           },
           {
             name: "AI_BWITH_FILTERS",
             kind: "number",
+            xmlType: "xsd:double",
+            nullable: true,
           },
           {
             name: "AI_BONLY_FIRST_LEVEL",
             kind: "number",
+            xmlType: "xsd:double",
+            nullable: true,
           },
           {
             name: "DELETE_FILTER",
             kind: "number",
+            xmlType: "xsd:double",
+            nullable: true,
           },
           {
             name: "SNCO_AD_POPULATION",
             kind: "block",
             node: "SNCO_AD_POPULATION",
+            xmlType: "m4:Snco_Ad_PopulationBlock",
+            nullable: true,
           },
         ],
         blocks: [
@@ -1391,46 +1555,64 @@ export const SOAP_CATALOG = {
             name: "SNCO_AD_H_HR_RESP",
             kind: "block",
             node: "SNCO_AD_H_HR_RESP",
+            xmlType: "m4:Snco_Ad_H_Hr_RespBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_POP_CONST",
             kind: "block",
             node: "SNCO_AD_POP_CONST",
+            xmlType: "m4:Snco_Ad_Pop_ConstBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_POPULATION",
             kind: "block",
             node: "SNCO_AD_POPULATION",
+            xmlType: "m4:Snco_Ad_PopulationBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_PERSON_LIST",
             kind: "block",
             node: "SNCO_AD_PERSON_LIST",
+            xmlType: "m4:Snco_Ad_Person_ListBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_HIERARCHIC_WU",
             kind: "block",
             node: "SNCO_AD_HIERARCHIC_WU",
+            xmlType: "m4:Snco_Ad_Hierarchic_WuBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_CRITERIA_NAMES",
             kind: "block",
             node: "SNCO_AD_CRITERIA_NAMES",
+            xmlType: "m4:Snco_Ad_Criteria_NamesBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_GR_HIERARCHIC_INFO",
             kind: "block",
             node: "SNCO_AD_GR_HIERARCHIC_INFO",
+            xmlType: "m4:Snco_Ad_Gr_Hierarchic_InfoBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_CRITERIA_POPULATION",
             kind: "block",
             node: "SNCO_AD_CRITERIA_POPULATION",
+            xmlType: "m4:Snco_Ad_Criteria_PopulationBlock",
+            nullable: true,
           },
           {
             name: "SNCO_AD_POP_MAX_SCALE_LEVEL",
             kind: "block",
             node: "SNCO_AD_POP_MAX_SCALE_LEVEL",
+            xmlType: "m4:Snco_Ad_Pop_Max_Scale_LevelBlock",
+            nullable: true,
           },
         ],
         blocks: [
