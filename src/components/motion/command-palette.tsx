@@ -41,6 +41,10 @@ export interface CommandPaletteProps {
   emptyMessage?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Notifica cada cambio de texto (búsquedas remotas). */
+  onQueryChange?: (query: string) => void;
+  /** Mensaje de estado bajo la lista (p. ej. «Buscando personas…»). */
+  status?: string;
 }
 
 // Opened via a keyboard shortcut many times a day — entrance must read as
@@ -59,6 +63,8 @@ export function CommandPalette({
   emptyMessage = "No results found.",
   open: controlledOpen,
   onOpenChange,
+  onQueryChange,
+  status,
 }: CommandPaletteProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const controlled = controlledOpen !== undefined;
@@ -142,6 +148,7 @@ export function CommandPalette({
   // changed; `moveTo(null)` covers reopening on an already-empty query.
   useOnOpen(open, () => {
     setQuery("");
+    onQueryChange?.("");
     moveTo(null);
   });
 
@@ -244,7 +251,10 @@ export function CommandPalette({
                   <input
                     ref={inputRef}
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      onQueryChange?.(e.target.value);
+                    }}
                     placeholder={placeholder}
                     role="combobox"
                     // The field only exists while the palette is open.
@@ -272,9 +282,14 @@ export function CommandPalette({
                   ref={listRef}
                   id={`${uid}-list`}
                   role="listbox"
-                  aria-label="Commands"
+                  aria-label="Resultados"
                   className="max-h-[60vh] overflow-y-auto overscroll-contain p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 >
+                  {status ? (
+                    <p role="status" className="px-2 py-1.5 text-xs text-muted-foreground">
+                      {status}
+                    </p>
+                  ) : null}
                   {rows.length === 0 ? (
                     <div className="p-8 text-center text-sm text-muted-foreground">
                       {emptyMessage}

@@ -188,5 +188,18 @@ del proyecto jamás puedan compilar código nativo.
   Registro Retributivo y los recibos en local; `/tools/users/list` consulta
   usuarios Meta4 por sociedad.
 
+- `/portal/...`: portal del empleado y del responsable de CYC, IBER y COLL
+  (inicio, tareas, organización, mis datos, retribución, tiempo, talento,
+  conocimiento y equipo). Las pantallas sin contrato real muestran su
+  dependencia; los envíos del portal están bloqueados con su método Meta4.
+  Estado y dependencias: `docs/portal/implementacion/estado.md` y
+  `dependencias-servidor.md`.
+
+Scripts del portal: `npm run portal:docs` (regenera estado y dependencias),
+`npm run portal:soap-catalog` (contratos SOAP desde `clon_portal`) y, en la VM
+con acceso a PeopleNet/Meta4, `npm run portal:discover` (diccionario Meta4 a
+`data/portal-discovery/`) y `npm run portal:verify -- [todo|sql|soap]`
+(columnas, recuentos y WSDL, sin valores personales).
+
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.

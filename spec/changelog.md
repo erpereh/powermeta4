@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-10-02 - Portal del empleado y del responsable en /portal
+
+- Nueva sección `/portal` para CYC, IBER y COLL, empleado y responsable,
+  generada desde un registro tipado único de 76 pantallas que enlaza cada una
+  con sus fichas de `docs/portal`, su JSP de origen y su contrato.
+- Sociedad, variante e identidad se resuelven en servidor; la identidad exige
+  `clave_Self` coherente y una única ficha ORO. Lecturas reales: directorio,
+  ficha, organigrama, mi ficha, mis recibos, tareas PGCO y población
+  SNTC (datos sensibles del equipo cerrados hasta verificar el alcance).
+- Formularios del portal completos con las validaciones del original y el
+  envío bloqueado mostrando el método Meta4 y su pendiente; las lecturas sin
+  contrato muestran su dependencia. Sin escrituras ERP nuevas.
+- Contratos SOAP generados desde `clon_portal`, guardia `SELECT` para
+  PeopleNet y scripts `portal:docs`, `portal:soap-catalog`,
+  `portal:discover` y `portal:verify` (los dos últimos, para la VM).
+- Shell con `SectionNav`, breadcrumb y conmutador de perfil; grupo «Portal» en
+  la sidebar y modo «portal» de Ctrl+K.
+- Verificación: `npm run typecheck`, `npm test` (120 archivos; 635 correctas y
+  2 omitidas), `npm run build`, `git diff --check` y `git status --short`
+  correctos. `npm run lint` mantiene los siete avisos y archivos con
+  formato pendiente previos (360); los archivos nuevos y los modificados
+  que antes pasaban, formateados y sin avisos.
+
 ## 2026-10-02 - Incorporación íntegra de clon_portal a Git
 
 - Se incorpora la copia original completa del portal por petición expresa,

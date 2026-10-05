@@ -320,6 +320,26 @@ Un rango de pagas nunca apila recibos: se ve uno cada vez, el más reciente al
 entrar, con Tabs `underline` (una por paga, con desbordamiento) y botones
 anterior/siguiente con nombre accesible, más un resumen del rango.
 
+## Portal
+
+- Raíz `/portal` con cabecera propia: breadcrumb y búsqueda (Ctrl+K abre el
+  palette en modo «portal»: pantallas y personas desde dos caracteres),
+  persona y sociedad, conmutador Empleado/Responsable con enlaces reales y
+  `SectionNav` de dominios (enlaces con `aria-current`, flechas, Inicio y Fin,
+  desplazamiento horizontal interno en móvil).
+- La sidebar añade el grupo colapsable «Portal» con las mismas reglas que
+  Herramientas: la fila no navega, los hijos sí.
+- Cada pantalla muestra título, resumen, origen (JSP de la ficha) y estado del
+  dato. Estados honestos: `DependencyState` (objeto Meta4 y pendientes),
+  `SensitiveLocked`, `PortalError` y `WriteBlockedNotice` (método Meta4 y
+  pendiente; el botón de envío queda `disabled` y descrito por el aviso).
+- `PortalForm` reproduce las validaciones visibles del original (obligatorios,
+  longitudes, CP, fechas reales, orden de fechas, fecha de alta, campos
+  condicionales); el foco va al primer campo con error y el resumen se anuncia
+  en una región `aria-live`. Los catálogos pendientes se muestran como
+  controles deshabilitados con su motivo, nunca con opciones inventadas.
+- Las leyendas de estado combinan texto e icono, no solo color.
+
 ## Responsive y accesibilidad
 
 Revisar 1440 px, 1024 px, 768 px y 390 px. Evitar overflow horizontal,

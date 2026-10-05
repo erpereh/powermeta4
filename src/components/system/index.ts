@@ -210,3 +210,13 @@ export { NumberTicker } from "./number-ticker";
 export type { NumberTickerProps } from "./number-ticker";
 export { ActionSwapButton } from "./action-swap";
 export type { ActionSwapButtonProps, ActionSwapItem } from "./action-swap";
+export { SectionNav } from "./section-nav";
+export type { SectionNavItem, SectionNavProps } from "./section-nav";
+export {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";

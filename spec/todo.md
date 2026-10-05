@@ -1,5 +1,49 @@
 # powermeta4 - estado de tareas
 
+## Portal del empleado y del responsable en /portal - 2026-10-02
+
+- [x] Registro tipado único (`src/lib/portal/registry`): 76 pantallas de
+      empleado, responsable y transversales con ruta, fichas y JSP de origen,
+      contrato de lectura, escrituras del original, variantes y búsqueda.
+      `npm run portal:docs` genera `docs/portal/implementacion/estado.md` y
+      `dependencias-servidor.md`.
+- [x] Contexto en servidor: sociedad activa, variante `m4custom` homónima
+      (P09 cerrada por el usuario), identidad con `clave_Self` estricto y
+      verificación cruzada en `M4ORO_EMPLEADOS`; modo debug sin datos.
+- [x] Lecturas reales: directorio «Quién es quién», ficha de persona,
+      organigrama y mi ficha (`M4ORO_EMPLEADOS`, `STD_EMAIL`), mis recibos
+      (servicio de nómina existente con la matrícula del servidor), tareas
+      (`PGCO_ES_WS_VALIDATIONS`) y población del responsable
+      (`SNTC_AD_POPULATION`), con contratos SOAP generados de las fuentes
+      Java de `clon_portal` (`npm run portal:soap-catalog`, 9 servicios).
+- [x] Resto de pantallas con formularios completos y validación del original;
+      envío deshabilitado con método Meta4 y pendiente (P04). Lecturas sin
+      contrato muestran objeto Meta4 y pendientes; nada se simula.
+- [x] Shell `/portal` (cabecera, conmutador de perfil, `SectionNav`,
+      breadcrumb), grupo «Portal» en la sidebar y modo «portal» de Ctrl+K.
+      Revisado en navegador (modo debug) a 800 px y 375 px sin overflow
+      horizontal; ajustada la cabecera móvil y el foco al primer error.
+- [x] Scripts para la VM: `npm run portal:discover` (diccionario Meta4 →
+      `data/portal-discovery/`) y `npm run portal:verify -- [todo|sql|soap]`
+      (columnas, recuentos por sociedad y WSDL; sin valores personales).
+      Probados aquí solo hasta el error de configuración: esta máquina no
+      tiene `PEOPLENET_DB_*`.
+- [x] AGENTS.md, DESIGN.md y README actualizados.
+- [x] Verificación: `npm run typecheck`, `npm test` (120 archivos; 635 correctas y
+      2 omitidas), `npm run build`, `git diff --check` y `git status --short`
+      correctos. `npm run lint` mantiene los siete avisos y archivos con
+      formato pendiente previos (360); los archivos nuevos y los modificados
+      que antes pasaban, formateados y sin avisos.
+- [ ] Ejecutar `npm run portal:discover` en la VM y devolver la salida para
+      cerrar las consultas SQL por dominio (datos, tiempo, retribución,
+      talento, responsable).
+- [ ] Ejecutar `npm run portal:verify` en la VM: disponibilidad real de los
+      servicios SOAP usados (lecturas SOAP marcadas «por verificar»).
+- [ ] Contrastar la población `SNTC_AD_POPULATION` con el SSM real; solo
+      entonces `MANAGER_SCOPE_VERIFIED = true`.
+- [ ] Escrituras del portal (P04) y documentos/blobs (P08): requieren servicio
+      publicado y aprobación expresa; AGENTS.md no las autoriza.
+
 ## Copia completa del portal en Git - 2026-10-02
 
 - [x] Incorporada `clon_portal/` íntegra por petición expresa del usuario,

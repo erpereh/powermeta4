@@ -110,6 +110,35 @@ producto fuera del chat. La sociedad no la elige el navegador.
 - Los workspaces futuros muestran estados honestos de disponibilidad; no
   simular conexiones, resultados ni operaciones de ERP.
 
+## Portal del empleado y del responsable
+
+- `src/lib/portal/registry` es la fuente única de pantallas, rutas, fichas de
+  `docs/portal`, contratos de lectura, escrituras del original, variantes y
+  búsqueda. `npm run portal:docs` genera
+  `docs/portal/implementacion/{estado,dependencias-servidor}.md`.
+- La sociedad, la variante (carpeta `m4custom` homónima; BASE en otro caso) y
+  la identidad se resuelven en servidor (`getPortalContext`). La identidad
+  exige un registro del perfil con `clave_Self` igual al usuario y, si
+  PeopleNet está configurado, una única ficha coherente en
+  `M4ORO_EMPLEADOS`; sin coherencia no se muestran datos personales. Ninguna
+  acción recibe sociedad ni matrícula propia del navegador.
+- Lecturas reales: servicios SOAP publicados en `/services/*` con su contrato
+  generado desde las fuentes Java de `clon_portal` (`npm run
+  portal:soap-catalog`) y `SELECT` parametrizadas en PeopleNet guardadas por
+  `assertReadOnlySql`. Lo demás muestra su dependencia (P01–P09) y nunca datos
+  inventados.
+- Todas las escrituras del portal (`generico_actualizar`, `CR_*`, GTA,
+  delegaciones…) se presentan como formulario completo y validado con el
+  envío deshabilitado, el método Meta4 y su pendiente. No se ejecutan ni se
+  simulan: la única escritura ERP aprobada sigue siendo el alta de personas.
+- Los datos de otra persona exigen pertenecer a la población de
+  `SNTC_AD_POPULATION`; los sensibles siguen cerrados mientras
+  `MANAGER_SCOPE_VERIFIED` sea `false` (hasta que el usuario lo verifique en
+  el portal real). El chat no recibe datos del portal.
+- `npm run portal:discover` y `npm run portal:verify` se ejecutan en la VM:
+  solo diccionario Meta4, recuentos, presencia de columnas y WSDL; nunca
+  valores de empleados.
+
 ## Componentes, diseño y accesibilidad
 
 - Usar shadcn/ui y assistant-ui existentes antes de crear alternativas. La
@@ -135,8 +164,11 @@ Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/`, `/home`, `/chat/new`, `/chat/[chatId]`, `/settings`, `/tools`,
 `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
 `/tools/users/new`, `/tools/companies`, `/tools/payroll`,
-`/tools/payroll/receipt`, `/tools/reports` y
-`/tools/processes`.
+`/tools/payroll/receipt`, `/tools/reports`,
+`/tools/processes` y el portal del empleado y del responsable bajo `/portal`
+(`/portal`, `/portal/tareas`, `/portal/organizacion/...`,
+`/portal/empleado/...` y `/portal/responsable/...`, resueltas desde el
+registro tipado `src/lib/portal/registry`).
 Los Route Handlers locales de workspace
 y backups usan runtime Node.js y validan la sesión, la empresa y la
 conversación en servidor. `POST /api/chat/run` es el runtime de chat

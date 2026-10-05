@@ -15,6 +15,7 @@ import {
   selectConversationAction,
 } from "@/app/actions/workspace";
 import { CommandPalette, type CommandItem, useToast } from "@/components/system";
+import { usePortalCommandItems } from "@/components/portal/use-portal-command-items";
 import { createToolsCommandItems } from "@/components/tools/tools-command-palette";
 import {
   CHAT_ICONS,
@@ -26,7 +27,7 @@ import {
   useWorkspaceStore,
 } from "@/stores/use-workspace-store";
 
-export type AppCommandPaletteMode = "actions" | "chats";
+export type AppCommandPaletteMode = "actions" | "chats" | "portal";
 
 type AppCommandPaletteContextValue = {
   openCommandPalette: (mode?: AppCommandPaletteMode) => void;
@@ -63,7 +64,12 @@ export function AppCommandPaletteProvider({ children }: { children: ReactNode })
   const chats = workspace?.chats ?? [];
 
   const resolveDefaultMode = useCallback(
-    (): AppCommandPaletteMode => (pathname === "/home" ? "actions" : "chats"),
+    (): AppCommandPaletteMode =>
+      pathname === "/home"
+        ? "actions"
+        : pathname === "/portal" || pathname.startsWith("/portal/")
+          ? "portal"
+          : "chats",
     [pathname],
   );
 
@@ -140,13 +146,28 @@ export function AppCommandPaletteProvider({ children }: { children: ReactNode })
     [chats, handleSelectChat],
   );
 
-  const items = mode === "actions" ? actionItems : chatItems;
+  const navigatePortal = useCallback(
+    (href: string) => {
+      router.push(href);
+      setOpen(false);
+    },
+    [router],
+  );
+  const portal = usePortalCommandItems({ navigate: navigatePortal });
+
+  const items = mode === "actions" ? actionItems : mode === "portal" ? portal.items : chatItems;
   const placeholder =
-    mode === "actions" ? "Buscar acciones..." : "Buscar en tus conversaciones...";
+    mode === "actions"
+      ? "Buscar acciones..."
+      : mode === "portal"
+        ? "Buscar empleados y opciones del portal..."
+        : "Buscar en tus conversaciones...";
   const emptyMessage =
     mode === "actions"
       ? "No hay acciones que coincidan."
-      : "No hay conversaciones que coincidan.";
+      : mode === "portal"
+        ? "No hay opciones del portal que coincidan."
+        : "No hay conversaciones que coincidan.";
 
   const contextValue = useMemo(
     () => ({ openCommandPalette }),
@@ -162,6 +183,8 @@ export function AppCommandPaletteProvider({ children }: { children: ReactNode })
         onOpenChange={handleOpenChange}
         placeholder={placeholder}
         emptyMessage={emptyMessage}
+        onQueryChange={mode === "portal" ? portal.onQueryChange : undefined}
+        status={mode === "portal" ? portal.status : undefined}
       />
     </AppCommandPaletteContext.Provider>
   );

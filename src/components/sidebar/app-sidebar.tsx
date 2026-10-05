@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
+import { Building2, Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
 
 import { useOptionalAppCommandPalette } from "@/components/app-shell/app-command-palette";
+import { PORTAL_ICONS } from "@/components/portal/portal-icons";
 import { ChatSidebarItem } from "@/components/sidebar/chat-sidebar-item";
 import { SocietyHeader } from "@/components/sidebar/society-header";
 import { UserMenu } from "@/components/sidebar/user-menu";
@@ -31,6 +32,7 @@ import {
   selectConversationAction,
   updateConversationAction,
 } from "@/app/actions/workspace";
+import { PORTAL_SIDEBAR_ITEMS } from "@/lib/portal/navigation";
 import { SIDEBAR_TOOL_ITEMS, TOOL_ICONS } from "@/lib/tools/registry";
 import {
   DEFAULT_CHAT_COLOR,
@@ -60,9 +62,11 @@ export function AppSidebar() {
   const setChatColor = useWorkspaceStore((store) => store.setChatColor);
   const deleteChat = useWorkspaceStore((store) => store.deleteChat);
   const [toolsOpen, setToolsOpen] = useState(true);
+  const [portalOpen, setPortalOpen] = useState(() => pathname === "/portal" || pathname.startsWith("/portal/"));
 
   useEffect(() => {
     if (pathname.startsWith("/tools/")) setToolsOpen(true);
+    if (pathname === "/portal" || pathname.startsWith("/portal/")) setPortalOpen(true);
   }, [pathname]);
 
   const chats = workspace?.chats ?? [];
@@ -82,6 +86,21 @@ export function AppSidebar() {
     }
     setToolsOpen((current) => !current);
   };
+
+  const handlePortalSelect = () => {
+    if (!isMobile && state === "collapsed") {
+      setPortalOpen(true);
+      return;
+    }
+    setPortalOpen((current) => !current);
+  };
+
+  const isPortalItemActive = (route: string) =>
+    route === "/portal"
+      ? pathname === "/portal"
+      : route === "/portal/responsable"
+        ? pathname.startsWith("/portal/responsable") || pathname.startsWith("/portal/tareas")
+        : pathname === route || pathname.startsWith(`${route}/`);
 
   const handleNewChat = () => {
     if (!activeCompanyId) return;
@@ -217,6 +236,37 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup className="pt-1">
           <SidebarMenu>
+            <SidebarMenuItem>
+              <Tooltip content="Portal" side="right" wrapperClassName="flex w-full min-w-0">
+                <SidebarMenuButton
+                  icon={<Building2 className="size-4" />}
+                  ariaExpanded={portalOpen}
+                  onSelect={handlePortalSelect}
+                  closeOnSelect={false}
+                >
+                  Portal
+                </SidebarMenuButton>
+              </Tooltip>
+              <SidebarMenuSub open={portalOpen} id="sidebar-portal-submenu">
+                {PORTAL_SIDEBAR_ITEMS.map((item) => {
+                  const Icon = PORTAL_ICONS[item.icon];
+                  return (
+                    <SidebarMenuSubItem key={item.route}>
+                      <SidebarMenuSubButton
+                        icon={<Icon className="size-4" />}
+                        isActive={isPortalItemActive(item.route)}
+                        onSelect={() => {
+                          router.push(item.route);
+                          closeMobileSidebar();
+                        }}
+                      >
+                        {item.name}
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  );
+                })}
+              </SidebarMenuSub>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <Tooltip content="Herramientas" side="right" wrapperClassName="flex w-full min-w-0">
                 <SidebarMenuButton
