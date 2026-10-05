@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-10-05 - Unificación de davidev y salvadev en main
+
+- `main` incorpora `davidev` (portal, alta y rendimiento) y `salvadev`
+  (filtros, retroactivos y descarga de nóminas). Conflictos de tests del alta
+  resueltos con la versión de `davidev`, que incluye la de `salvadev`.
+- El portal usa `getPayrollReceiptRange` con todas las pagas y solo la paga
+  actual, igual que antes de los filtros. `PayrollReceiptRange` muestra la
+  descarga solo si recibe `parameters`; el portal no la muestra.
+- Typecheck y build correctos. Suite: 129 archivos correctos, 1 omitido y
+  2 con fallos: backups (pasa aislado, 6/6) y Excel COM real (agota tiempo
+  también aislado; sin cambios en ese código respecto a `davidev`).
+
 ## 2026-10-05 - Correcciones y lecturas disponibles del portal
 
 - Directorio y organigrama agrupan sociedad/matrícula, conservan asignaciones
@@ -291,6 +303,79 @@
   problemas de formato en 368 archivos. No se aplica formateo global.
   Revisado el diff limitado a la eliminación, sus tests y documentación;
   sin referencias a los campos retirados en código ni tests.
+
+## 2026-09-28 - Nómina: filtro del calendario de pagas
+
+- «Qué pagas ver» encima de Desde/Hasta: Todas · Mensuales · Revisiones e
+  incrementos · Retribución variable · Otras, con el número de pagas de cada
+  grupo. Los selectores muestran solo el grupo elegido y en «Todas» marcan las
+  pagas que no son mensuales.
+- La consulta y la descarga reciben `payFilter` y el servidor solo lee las
+  pagas de ese grupo dentro del rango (1013, enero–abril 2026, «Mensuales»:
+  Enero, Febrero, Marzo y Abril, sin pagas sin recibo).
+- Clasificación en `src/lib/payroll/pay-category.ts`: PeopleNet solo marca la
+  variable (`SCO_ID_PAY_TYPE` 2); el resto se deduce del nombre, comprobado con
+  las pagas reales de CYC, IBER y COLL.
+- `tsc --noEmit` con la caché incremental (`tsconfig.tsbuildinfo`) dio un falso
+  verde durante el cambio; la verificación se hace con `--incremental false`.
+- Verificación: `tsc --noEmit --incremental false` y `build` correctos;
+  `npm test` 564 correctas y 2 fallos que no son de nómina (`hire/excel.test.ts`
+  por Excel COM colgado y `meta4/config.test.ts`, que pasa aislado);
+  `oxlint` sin avisos nuevos; formato y `git diff --check` correctos.
+
+## 2026-09-28 - Nómina: descarga en PDF y Excel
+
+- Menú «Descargar» sobre la nómina visible: esa nómina o todas las del rango,
+  en PDF o en Excel.
+- `POST /api/payroll/receipts/export` (Node.js, requiere sesión) recibe solo
+  los parámetros de la consulta, el formato y los ids; vuelve a leer los
+  recibos en PeopleNet con la sociedad del contexto operativo y devuelve el
+  fichero sin guardarlo. La validación de parámetros es compartida con la
+  action (`src/lib/payroll/receipt-parameters.ts`).
+- PDF con `pdf-lib` (dependencia nueva, JavaScript puro): una página A4 por
+  nómina con el diseño de casillas del recibo y salto de página si hay muchas
+  líneas. Excel con `exceljs`: una hoja por nómina con importes numéricos y
+  hoja «Resumen» con totales (`SUM`) si son varias.
+- Tests de validación, exportadores (Excel leído con `exceljs`, texto del PDF
+  con `unpdf`) y ruta. PDF real de la 1013 revisado visualmente y borrado.
+- Verificación: `typecheck` y `build` correctos; `npm test` 548 correctas y
+  1 fallo en `hire/excel.test.ts` (timeout de Excel COM con un proceso EXCEL
+  colgado); `oxlint` sin avisos nuevos; formato y `git diff --check`
+  correctos.
+
+## 2026-09-28 - Nómina: pagas retroactivas y paga normal + retroactivas
+
+- «Pagas retroactivas» y «Paga normal + retroactivas» funcionan con las
+  `SELECT` de Meta4: filtro de imputación `SCO_DT_ALLOC <> fecha de pago` o
+  sin filtro. Cada alta da un recibo que suma sus meses imputados.
+- Como el PDF de Meta4: una línea que junta varios meses no muestra unidades
+  ni precio; los retroactivos no llevan banco; la cabecera indica el tipo de
+  pagas. Normal + retroactivas agrupa por cuenta las órdenes de la paga.
+- Comprobado contra PeopleNet: 1013 (2026-04-25) idéntico al PDF de
+  retroactivos; 299/300 recibos de abril cuadran en los dos modos nuevos.
+- Varias altas en una paga, banco beneficiario y tests de la action (entrada
+  anterior) incluidos en el mismo commit.
+- Verificación: `typecheck` y `build` correctos; `npm test` 525 correctas y
+  2 fallos del alta de personas (`hire/excel.test.ts` por timeout de Excel
+  COM, con un proceso EXCEL colgado desde las 12:50, y `hire-path.test.ts`,
+  que pasa aislado); `oxlint` sin avisos nuevos; formato y `git diff --check`
+  correctos.
+## 2026-09-28 - Nómina: varias altas en una paga, banco beneficiario y tests
+
+- Una paga con baja y nueva alta devuelve un recibo por periodo de alta
+  (`SCO_OR_HR_PERIOD`), con id propio en el rango y nombre «… · alta N de M».
+- «Datos del banco beneficiario» muestra las órdenes con `SCO_EMP_CHECK = 0`
+  (cuenta adicional del empleado); antes salía siempre vacío. Las órdenes ya no
+  se filtran por la vigencia del dato de pago, que dejaba sin banco a las
+  nuevas altas.
+- Comprobado contra PeopleNet (abril 2026, CYC): banco + beneficiario = líquido
+  en 585/587 recibos; 1315 muestra sus dos altas de marzo con su banco.
+- Tests nuevos de `getPayrollReceiptAction`, del reparto entre cuentas y de
+  varias altas en el visor del rango.
+- Verificación: `typecheck` y `build` correctos; `npm test` con 2 fallos
+  intermitentes (backups y Excel real) que pasan aislados (9/9); `oxlint` sin
+  avisos nuevos; archivos cambiados pasan `oxfmt --check`; `git diff --check`
+  correcto.
 
 ## 2026-09-28 - Cuatro campos del alta confirmados por el usuario
 

@@ -17,9 +17,16 @@ import { getPayrollReceiptAction } from "@/app/actions/payroll-receipt";
 
 import { PayrollReceiptConsult } from "./payroll-receipt-consult";
 
+const pay = (
+  paymentDate: string,
+  name: string,
+  category: PayrollPayOption["category"],
+): PayrollPayOption => ({ paymentDate, name, startDate: "", endDate: "", category });
+
 const PAYS: PayrollPayOption[] = [
-  { paymentDate: "2026-04-25", name: "Abril 2026", startDate: "2026-04-01", endDate: "2026-04-30" },
-  { paymentDate: "2026-03-25", name: "Marzo 2026", startDate: "2026-03-01", endDate: "2026-03-31" },
+  pay("2026-04-25", "Abril 2026", "ordinary"),
+  pay("2026-04-14", "Revisión Convenio 2026", "revision"),
+  pay("2026-03-25", "Marzo 2026", "ordinary"),
 ];
 
 beforeEach(() => {
@@ -88,10 +95,33 @@ describe("PayrollReceiptConsult", () => {
       employeeId: "1013",
       fromPaymentDate: "2026-04-25",
       toPaymentDate: "2026-04-25",
+      payFilter: "all",
       paymentType: "current",
       currency: { mode: "calculation" },
     });
     expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("filters the calendar by pay group and consults only that group", async () => {
+    vi.mocked(getPayrollReceiptAction).mockResolvedValue({ ok: false, message: "Sin datos." });
+    render(<PayrollReceiptConsult pays={PAYS} paysError={null} />);
+
+    expect(screen.getByRole("tab", { name: /Todass*3/ })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /Mensualess*2/ })).toBeTruthy();
+    expect(screen.queryByRole("tab", { name: /Retribución variable/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: /Revisiones e incrementos/ }));
+    fireEvent.change(screen.getByLabelText("Matrícula"), { target: { value: "1013" } });
+    fireEvent.click(screen.getByRole("button", { name: "Consultar recibos" }));
+
+    await waitFor(() => expect(getPayrollReceiptAction).toHaveBeenCalled());
+    expect(getPayrollReceiptAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fromPaymentDate: "2026-04-14",
+        toPaymentDate: "2026-04-14",
+        payFilter: "revision",
+      }),
+    );
   });
 
   it("blocks the consult when the pay calendar could not be loaded", () => {

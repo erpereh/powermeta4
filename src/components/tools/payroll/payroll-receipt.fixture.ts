@@ -2,6 +2,7 @@ import type { PayrollReceipt } from "@/types/payroll-receipt";
 
 /** Recibo de ejemplo con importes de una paga real de CYC y datos personales ficticios. */
 export const sampleReceipt: PayrollReceipt = {
+  paymentType: "current",
   currencyId: "EUR",
   company: { name: "ACYC España", taxId: "A28008795", socialSecurityRegistration: "28000618251" },
   periodLabel: "Del 1 al 30 Abril 2026",

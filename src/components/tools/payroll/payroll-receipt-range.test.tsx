@@ -3,12 +3,18 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { PayrollReceiptEntry } from "@/types/payroll-receipt";
+import type { PayrollReceiptEntry, PayrollReceiptParameters } from "@/types/payroll-receipt";
 
 import { sampleReceipt } from "./payroll-receipt.fixture";
 import { PayrollReceiptRange } from "./payroll-receipt-range";
 
-const entry = (paymentDate: string, payName: string, netPay: number): PayrollReceiptEntry => ({
+const entry = (
+  paymentDate: string,
+  payName: string,
+  netPay: number,
+  id = paymentDate,
+): PayrollReceiptEntry => ({
+  id,
   paymentDate,
   payName,
   receipt: {
@@ -17,6 +23,15 @@ const entry = (paymentDate: string, payName: string, netPay: number): PayrollRec
     totals: { ...sampleReceipt.totals, netPay },
   },
 });
+
+const PARAMETERS: PayrollReceiptParameters = {
+  employeeId: "9001",
+  fromPaymentDate: "2026-02-25",
+  toPaymentDate: "2026-04-25",
+  payFilter: "all",
+  paymentType: "current",
+  currency: { mode: "calculation" },
+};
 
 const RECEIPTS = [
   entry("2026-02-25", "Febrero", 4000),
@@ -43,11 +58,12 @@ afterEach(() => {
 
 describe("PayrollReceiptRange", () => {
   it("shows one receipt at a time, starting with the most recent", () => {
-    render(<PayrollReceiptRange receipts={RECEIPTS} missing={[]} />);
+    render(<PayrollReceiptRange parameters={PARAMETERS} receipts={RECEIPTS} missing={[]} />);
 
     expect(screen.getAllByRole("article")).toHaveLength(1);
     expect(screen.getByRole("article", { name: /Abril 2026/ })).toBeTruthy();
     expect(screen.getByText("3 nóminas")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Descargar" })).toBeTruthy();
     expect(screen.getByText("12.622,35 EUR")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Nómina siguiente" })).toHaveProperty(
       "disabled",
@@ -56,7 +72,7 @@ describe("PayrollReceiptRange", () => {
   });
 
   it("moves between receipts with the previous button and the pay tabs", () => {
-    render(<PayrollReceiptRange receipts={RECEIPTS} missing={[]} />);
+    render(<PayrollReceiptRange parameters={PARAMETERS} receipts={RECEIPTS} missing={[]} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Nómina anterior" }));
     expect(screen.getByRole("article", { name: /Marzo 2026/ })).toBeTruthy();
@@ -70,9 +86,28 @@ describe("PayrollReceiptRange", () => {
     );
   });
 
+  it("shows each HR period of the same pay as its own receipt", () => {
+    render(
+      <PayrollReceiptRange
+        parameters={PARAMETERS}
+        receipts={[
+          entry("2026-03-25", "Marzo 2026 · alta 1 de 2", 1038.25, "2026-03-25-1"),
+          entry("2026-03-25", "Marzo 2026 · alta 2 de 2", 122.69, "2026-03-25-2"),
+        ]}
+        missing={[]}
+      />,
+    );
+
+    expect(screen.getByRole("article", { name: /alta 2 de 2/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: /alta 1 de 2/ }));
+    expect(screen.getByRole("article", { name: /alta 1 de 2/ })).toBeTruthy();
+    expect(screen.getAllByRole("article")).toHaveLength(1);
+  });
+
   it("hides the range navigation for a single receipt and lists pays without receipt", () => {
     render(
       <PayrollReceiptRange
+        parameters={PARAMETERS}
         receipts={[RECEIPTS[2] ?? entry("2026-04-25", "Abril 2026", 1)]}
         missing={[
           {

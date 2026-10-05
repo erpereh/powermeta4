@@ -1,5 +1,14 @@
 # powermeta4 - estado de tareas
 
+## Unificación de ramas en main - 2026-10-05
+
+- [x] `davidev` y `salvadev` mergeadas en `main`; conflictos resueltos.
+- [x] Portal adaptado a la API de nóminas de `salvadev` sin cambiar su
+      comportamiento; descarga opcional en `PayrollReceiptRange`.
+- [x] Typecheck y build correctos; backups pasan aislados.
+- [ ] La prueba real de Excel COM agota tiempo en este equipo (también
+      aislada y antes del merge); revisar Excel colgado.
+
 ## Correcciones y lecturas del portal - 2026-10-05
 
 - [x] Directorio y organigrama agrupan por sociedad y matrícula antes de
@@ -417,16 +426,30 @@
       nómina a la vista, pestañas por paga y anterior/siguiente. Tests de
       vista, formulario y rango; servicio de rango probado contra PeopleNet.
 
+- [x] Descarga en PDF o Excel de la nómina visible o de todas las del rango
+      (`POST /api/payroll/receipts/export`, `pdf-lib` + `exceljs`). El servidor
+      regenera los recibos desde PeopleNet; revisado visualmente el PDF real de
+      la 1013 (actual y retroactivos).
+
+- [x] Filtro del calendario de pagas: Todas · Mensuales · Revisiones e
+      incrementos · Retribución variable · Otras, con contador. Clasificación en
+      `src/lib/payroll/pay-category.ts`: `SCO_ID_PAY_TYPE` 2 es variable; el
+      resto por nombre (mensual = solo el nombre del mes), comprobado con las
+      332 pagas de CYC, IBER y COLL. El rango solo consulta las del grupo.
+      Commit propio para poder revertirlo si no convence.
+
 ### Pendiente para la próxima sesión (por prioridad)
 
-- [ ] **Pagas retroactivas y paga normal + retroactivas.** Pendientes de las
-      `SELECT` que hace Meta4 para esos modos (las aportará el usuario). Hoy
-      `getPayrollReceiptAction` responde «todavía no está disponible».
-      Pista: en retroactivas `SCO_DT_ALLOC` (mes recalculado) ≠
-      `SCO_DT_PAYMENT` (mes de pago). Caso de prueba: 1013 cobra en la paga
-      2026-04-25 tres retroactivos de −5,58 € (imputación 2026-01-25,
-      2026-02-25 y 2026-03-25) en `M4SCO_PAYMEN_ORDER`; la paga actual filtra
-      `SCO_DT_ALLOCATION = fecha de pago` para excluirlos.
+- [x] **Pagas retroactivas y paga normal + retroactivas**, con las `SELECT`
+      de Meta4: mismas consultas con `SCO_DT_ALLOC <> fecha de pago`
+      (retroactivas) o sin filtro de imputación (normal + retroactivas). Un
+      recibo por alta que suma los meses imputados; las líneas que juntan
+      varios meses van sin unidades ni precio y los retroactivos sin banco,
+      como el PDF. 1013 en 2026-04-25 idéntico al PDF de retroactivos;
+      abril 2026 CYC: 299/300 recibos cuadran en ambos modos.
+- [ ] Normal + retroactivas: el banco agrupa por cuenta las órdenes de todas
+      las imputaciones (1013: 4.505,61 = líquido). Sin PDF de referencia de
+      este modo; confirmarlo.
 - [ ] **Recibos que no cuadran** (muestran «Recibo incompleto» con la
       diferencia; abril 2026: CYC 7/587, IBER 38/112, COLL 9/21). Pedir PDF de
       referencia al usuario:
@@ -450,15 +473,22 @@
       claro/oscuro, selectores Desde/Hasta, navegación del rango, errores y
       responsive (1440, 1024, 768 y 390 px). Hasta ahora solo se ha probado el
       servicio contra PeopleNet y los tests de componentes.
-- [ ] **Casos poco frecuentes:**
-      - Varios periodos de alta en la misma paga (en abril 2026 solo 1315):
-        hoy lanza «todavía no está disponible».
-      - Moneda «Otra»: filtra `A.ID_CURRENCY = @currency`, pero PeopleNet solo
-        tiene EUR y no se ha podido probar.
-      - «Datos del banco beneficiario»: siempre vacío; confirmar de dónde sale
-        (quizá la cuenta `SCO_ID_BANKUSE = 'COMIDAS'` de `M4SCO_PERSON_BANK`).
-- [ ] **Tests de `src/app/actions/payroll-receipt.ts`** (validación de
-      parámetros, tipo de pagas no disponible, errores de sesión/PeopleNet).
+- [x] Varios periodos de alta en la misma paga (baja y nueva alta, p. ej.
+      1315 en 2026-03-25): un recibo por `SCO_OR_HR_PERIOD`, navegable como
+      «Marzo 2026 · alta 1 de 2». Las órdenes de pago ya no se filtran por la
+      vigencia de `M4SCO_PAYMENT_DATA` (la orden fija `SCO_OR_PAYMENTDATA`).
+- [x] «Datos del banco beneficiario» = órdenes con `SCO_EMP_CHECK = 0`
+      (segunda cuenta del propio empleado, importe fijo); «Datos del banco» =
+      `SCO_EMP_CHECK = 1`. Abril 2026 CYC: banco + beneficiario = líquido en
+      585/587 (los 2 restantes tienen líquido negativo y ninguna orden); 50
+      recibos usan cuenta adicional. Deducido de los datos: confirmar con un
+      PDF que Meta4 la pinta en «beneficiario».
+- [x] Tests de `src/app/actions/payroll-receipt.ts`: validación, retroactivas
+      no disponibles, sociedad del servidor y errores de PeopleNet/sesión.
+- [ ] Moneda «Otra»: filtra `A.ID_CURRENCY = @currency`, pero PeopleNet solo
+      tiene EUR y no se ha podido probar.
+- [ ] Origen de pago `SCO_ORIGIN_TYPE = '03'` (1 caso en abril 2026 CYC) queda
+      fuera del recibo, como en la SELECT de Meta4; confirmar qué es.
 
 Referencias técnicas para retomar:
 - Plantilla: `M4SCO_ROWS` / `M4SCO_ROW_COL_DEF` (`SCO_ID_REPORT = 'RECIBO'`,

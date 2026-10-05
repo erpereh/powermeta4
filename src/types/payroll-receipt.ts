@@ -12,6 +12,19 @@ export type PayrollProcessCurrency =
   | { mode: "calculation" }
   | { mode: "other"; currencyId: string };
 
+/** Grupos del calendario de pagas para filtrar mensuales, revisiones, variable y otras. */
+export const PAYROLL_PAY_CATEGORIES = [
+  { value: "ordinary", label: "Mensuales" },
+  { value: "revision", label: "Revisiones e incrementos" },
+  { value: "variable", label: "Retribución variable" },
+  { value: "other", label: "Otras" },
+] as const;
+
+export type PayrollPayCategory = (typeof PAYROLL_PAY_CATEGORIES)[number]["value"];
+
+/** Filtro del calendario: todas las pagas o un grupo. */
+export type PayrollPayFilter = "all" | PayrollPayCategory;
+
 /** Paga del calendario de nómina (`M4SCO_HT_PAYS`) de la sociedad activa. */
 export type PayrollPayOption = {
   /** Fecha de pago ISO `YYYY-MM-DD` (`SCO_DT_ACCRUED`). */
@@ -20,6 +33,7 @@ export type PayrollPayOption = {
   /** Fechas ISO `YYYY-MM-DD` del periodo de liquidación. */
   startDate: string;
   endDate: string;
+  category: PayrollPayCategory;
 };
 
 /** Máximo de pagas por consulta de rango. */
@@ -30,6 +44,8 @@ export type PayrollReceiptParameters = {
   /** Fechas de pago ISO `YYYY-MM-DD` de la primera y la última paga del rango. */
   fromPaymentDate: string;
   toPaymentDate: string;
+  /** Solo las pagas de este grupo dentro del rango. */
+  payFilter: PayrollPayFilter;
   paymentType: PayrollPaymentType;
   currency: PayrollProcessCurrency;
 };
@@ -55,6 +71,8 @@ export type PayrollReceiptLine = {
 };
 
 export type PayrollReceipt = {
+  /** Qué filas de la paga suma: la actual, los retroactivos o ambos. */
+  paymentType: PayrollPaymentType;
   currencyId: string;
   company: { name: string; taxId: string; socialSecurityRegistration: string };
   periodLabel: string;
@@ -88,8 +106,10 @@ export type PayrollReceipt = {
   unmapped: { accrued: number; deducted: number };
 };
 
-/** Recibo de una paga del rango. */
+/** Recibo de una paga del rango; una paga con baja y nueva alta tiene uno por alta. */
 export type PayrollReceiptEntry = {
+  /** Único en el rango: la fecha de pago, más el número de alta si hay varias. */
+  id: string;
   paymentDate: string;
   payName: string;
   receipt: PayrollReceipt;

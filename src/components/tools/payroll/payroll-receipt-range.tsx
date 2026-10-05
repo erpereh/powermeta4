@@ -4,8 +4,13 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button, Callout, Tabs, TabsList, TabsTrigger } from "@/components/system";
-import type { PayrollMissingReceipt, PayrollReceiptEntry } from "@/types/payroll-receipt";
+import type {
+  PayrollMissingReceipt,
+  PayrollReceiptEntry,
+  PayrollReceiptParameters,
+} from "@/types/payroll-receipt";
 
+import { PayrollReceiptDownload } from "./payroll-receipt-download";
 import { PayrollReceiptView } from "./payroll-receipt-view";
 
 const decimalFormatter = new Intl.NumberFormat("es-ES", {
@@ -21,16 +26,19 @@ const formatDate = (isoDate: string): string => {
 
 /** Una nómina a la vista; el resto del rango se recorre con pestañas o anterior/siguiente. */
 export function PayrollReceiptRange({
+  parameters,
   receipts,
   missing,
 }: {
+  /** Consulta que se puede volver a pedir para descargar; sin ella no hay descarga (portal). */
+  parameters?: PayrollReceiptParameters;
   receipts: readonly PayrollReceiptEntry[];
   missing: readonly PayrollMissingReceipt[];
 }) {
-  const [selected, setSelected] = useState(receipts.at(-1)?.paymentDate ?? "");
+  const [selected, setSelected] = useState(receipts.at(-1)?.id ?? "");
   const index = Math.max(
     0,
-    receipts.findIndex((entry) => entry.paymentDate === selected),
+    receipts.findIndex((entry) => entry.id === selected),
   );
   const current = receipts[index];
   const previous = receipts[index - 1];
@@ -80,19 +88,15 @@ export function PayrollReceiptRange({
               className="shrink-0"
               aria-label="Nómina anterior"
               disabled={!previous}
-              onClick={() => previous && setSelected(previous.paymentDate)}
+              onClick={() => previous && setSelected(previous.id)}
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
             </Button>
             <div className="min-w-0 flex-1">
-              <Tabs
-                value={current?.paymentDate ?? ""}
-                onValueChange={setSelected}
-                variant="underline"
-              >
+              <Tabs value={current?.id ?? ""} onValueChange={setSelected} variant="underline">
                 <TabsList>
                   {receipts.map((entry) => (
-                    <TabsTrigger key={entry.paymentDate} value={entry.paymentDate}>
+                    <TabsTrigger key={entry.id} value={entry.id}>
                       <span className="flex flex-col items-start leading-tight">
                         <span className="text-sm">{entry.payName}</span>
                         <span className="text-xs tabular-nums text-muted-foreground">
@@ -111,7 +115,7 @@ export function PayrollReceiptRange({
               className="shrink-0"
               aria-label="Nómina siguiente"
               disabled={!next}
-              onClick={() => next && setSelected(next.paymentDate)}
+              onClick={() => next && setSelected(next.id)}
             >
               <ChevronRight aria-hidden="true" className="size-4" />
             </Button>
@@ -133,7 +137,20 @@ export function PayrollReceiptRange({
       ) : null}
 
       {current ? (
-        <section aria-label={`Nómina ${current.payName}`} aria-live="polite">
+        <section aria-label={`Nómina ${current.payName}`} className="space-y-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <p className="text-sm text-muted-foreground" aria-live="polite">
+              <span className="font-medium text-foreground">{current.payName}</span> · pago del{" "}
+              {formatDate(current.paymentDate)}
+            </p>
+            {parameters ? (
+              <PayrollReceiptDownload
+                parameters={parameters}
+                currentId={current.id}
+                total={receipts.length}
+              />
+            ) : null}
+          </div>
           <PayrollReceiptView receipt={current.receipt} />
         </section>
       ) : null}

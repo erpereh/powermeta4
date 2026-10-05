@@ -1,3 +1,4 @@
+import { classifyPay } from "@/lib/payroll/pay-category";
 import type { PeopleNetSqlValue } from "@/lib/peoplenet/employees";
 import {
   evaluateReceiptTemplate,
@@ -5,13 +6,19 @@ import {
   type PeopleNetRow,
   type ReceiptTemplate,
 } from "@/lib/peoplenet/payroll-receipt-template";
-import type { PayrollPayOption, PayrollReceipt, PayrollReceiptLine } from "@/types/payroll-receipt";
+import type {
+  PayrollPaymentType,
+  PayrollPayOption,
+  PayrollReceipt,
+  PayrollReceiptLine,
+} from "@/types/payroll-receipt";
 
 export type { PeopleNetRow } from "@/lib/peoplenet/payroll-receipt-template";
 
 /** Columnas de la paga que usan la cabecera, el pie y los enlaces a otras tablas. */
 export const PERIOD_EXTRA_COLUMNS = [
   "SCO_OR_HR_PERIOD",
+  "SCO_DT_ALLOC",
   "ID_CURRENCY",
   "SCO_DT_PAY_START",
   "SCO_DT_PAY_END",
@@ -32,6 +39,7 @@ export const PERIOD_EXTRA_COLUMNS = [
 
 export const ROLE_EXTRA_COLUMNS = [
   "SCO_OR_HR_ROLE",
+  "SCO_DT_ALLOC",
   "SCO_DT_START_SLICE",
   "SCO_ID_WORK_LOCATION",
 ] as const;
@@ -119,7 +127,12 @@ export const formatIban = (iban: string): string =>
 
 export type PayrollReceiptRows = {
   template: ReceiptTemplate;
-  period: PeopleNetRow;
+  paymentType: PayrollPaymentType;
+  /**
+   * Filas de la paga de un periodo de alta: una por mes imputado
+   * (`SCO_DT_ALLOC`). La paga actual tiene una; los retroactivos, una por mes.
+   */
+  periods: readonly PeopleNetRow[];
   roles: readonly PeopleNetRow[];
   hrPeriod: PeopleNetRow | null;
   person: PeopleNetRow | null;
@@ -137,37 +150,100 @@ const sumBy = (
   pick: (line: PayrollReceiptLine) => number | null,
 ): number => lines.reduce((total, line) => total + (pick(line) ?? 0), 0);
 
+const sumColumn = (rows: readonly PeopleNetRow[], column: string): number =>
+  round2(rows.reduce((total, row) => total + (amount(row, column) ?? 0), 0)) || 0;
+
+const sumOrNull = (a: number | null, b: number | null): number | null =>
+  a === null && b === null ? null : round2((a ?? 0) + (b ?? 0));
+
+/**
+ * Suma las líneas de varios meses imputados. Como el recibo de Meta4, una línea
+ * que junta varios meses no muestra unidades ni precio, solo importes.
+ */
+const mergeLines = (
+  template: ReceiptTemplate,
+  groups: readonly PayrollReceiptLine[][],
+): PayrollReceiptLine[] => {
+  if (groups.length === 1) return groups[0] ?? [];
+  const order = new Map(template.lines.map((line, index) => [`r${line.rowId}`, index]));
+  const merged = new Map<string, PayrollReceiptLine & { count: number }>();
+  for (const line of groups.flat()) {
+    const previous = merged.get(line.id);
+    merged.set(
+      line.id,
+      previous
+        ? {
+            ...previous,
+            count: previous.count + 1,
+            earning: sumOrNull(previous.earning, line.earning),
+            deduction: sumOrNull(previous.deduction, line.deduction),
+          }
+        : { ...line, count: 1 },
+    );
+  }
+  return [...merged.values()]
+    .filter((line) => line.earning || line.deduction)
+    .sort(
+      (a, b) =>
+        (order.get(a.id.split("-")[0] ?? "") ?? 0) - (order.get(b.id.split("-")[0] ?? "") ?? 0),
+    )
+    .map(({ count, ...line }) => (count > 1 ? { ...line, units: null, price: null } : line));
+};
+
 /** Convierte las filas de PeopleNet en el recibo con la plantilla y estructura de Meta4. */
 export const mapPayrollReceipt = (rows: PayrollReceiptRows): PayrollReceipt => {
-  const { period } = rows;
+  const { periods } = rows;
+  const [header = {}] = periods;
   const orderedRoles = [...rows.roles].sort(
     (a, b) =>
       (toNumber(a.SCO_OR_HR_ROLE) ?? 0) - (toNumber(b.SCO_OR_HR_ROLE) ?? 0) ||
       toText(a.SCO_DT_START_SLICE).localeCompare(toText(b.SCO_DT_START_SLICE)),
   );
-  const lines = evaluateReceiptTemplate(rows.template, period, orderedRoles);
+  // Cada mes imputado se evalúa con sus roles y después se suma.
+  const lines = mergeLines(
+    rows.template,
+    periods.map((period) =>
+      evaluateReceiptTemplate(
+        rows.template,
+        period,
+        orderedRoles.filter((role) => toText(role.SCO_DT_ALLOC) === toText(period.SCO_DT_ALLOC)),
+      ),
+    ),
+  );
 
   const concepts = lines.filter((line) => line.section === "concept");
-  const accrued = amount(period, "SSP_TOTAL_DEVENGOS") ?? 0;
-  const deducted = amount(period, "SSP_TOTAL_RETENIDO") ?? 0;
+  const accrued = sumColumn(periods, "SSP_TOTAL_DEVENGOS");
+  const deducted = sumColumn(periods, "SSP_TOTAL_RETENIDO");
 
   const person = rows.person ?? {};
-  const bankPayments = rows.payments.flatMap((payment) => {
-    const iban = toText(payment.SCO_GB_IBAN);
-    const value = amount(payment, "SCO_PAYORDPRIM");
-    return value === null ? [] : [{ account: iban ? formatIban(iban) : "—", amount: value }];
-  });
+  /**
+   * `SCO_EMP_CHECK` 1 = cuenta principal; 0 = cuenta adicional («banco
+   * beneficiario»). Las órdenes de varias imputaciones se agrupan por cuenta.
+   */
+  const toPayments = (mainAccount: boolean) => {
+    const byAccount = new Map<string, number>();
+    for (const payment of rows.payments) {
+      if ((toText(payment.SCO_EMP_CHECK) === "1") !== mainAccount) continue;
+      const value = amount(payment, "SCO_PAYORDPRIM");
+      if (value === null) continue;
+      const iban = toText(payment.SCO_GB_IBAN);
+      const account = iban ? formatIban(iban) : "—";
+      byAccount.set(account, round2((byAccount.get(account) ?? 0) + value));
+    }
+    return [...byAccount].map(([account, total]) => ({ account, amount: total }));
+  };
 
   return {
-    currencyId: toText(period.ID_CURRENCY),
+    paymentType: rows.paymentType,
+    currencyId: toText(header.ID_CURRENCY),
     company: {
       name: toText(rows.legalEntity?.STD_N_LEG_ENT),
       taxId: toText(rows.legalEntity?.SSP_ID_LEGAL),
       socialSecurityRegistration: toText(rows.contributionAccount?.SSP_NUM_CUENTA_COT),
     },
     periodLabel: buildPeriodLabel(
-      toIsoDate(period.SCO_DT_PAY_START),
-      toIsoDate(period.SCO_DT_PAY_END),
+      toIsoDate(header.SCO_DT_PAY_START),
+      toIsoDate(header.SCO_DT_PAY_END),
     ),
     worker: {
       employeeId: toText(rows.hrPeriod?.SSP_NUM_MATRICULA) || rows.employeeId,
@@ -185,20 +261,21 @@ export const mapPayrollReceipt = (rows: PayrollReceiptRows): PayrollReceipt => {
     seniorityDate: toIsoDate(rows.hrPeriod?.SSP_FEC_ANTIGUEDAD),
     lines,
     bases: {
-      totalRemuneration: amount(period, "SSP_BASE_TOT_RG_RE") ?? 0,
-      extraPayProration: amount(period, "SSP_PRORRATA") ?? 0,
-      totalBase: amount(period, "SSP_TOTAL_REG_GEN") ?? 0,
-      generalRegimeBase: amount(period, "SSP_BASE_RG_RECIBO") ?? 0,
-      unemploymentBase: amount(period, "SSP_BASE_ACC_RECIB") ?? 0,
+      totalRemuneration: sumColumn(periods, "SSP_BASE_TOT_RG_RE"),
+      extraPayProration: sumColumn(periods, "SSP_PRORRATA"),
+      totalBase: sumColumn(periods, "SSP_TOTAL_REG_GEN"),
+      generalRegimeBase: sumColumn(periods, "SSP_BASE_RG_RECIBO"),
+      unemploymentBase: sumColumn(periods, "SSP_BASE_ACC_RECIB"),
     },
-    totals: { accrued, deducted, netPay: amount(period, "SSP_LIQUIDO") ?? 0 },
+    totals: { accrued, deducted, netPay: sumColumn(periods, "SSP_LIQUIDO") },
+    // Los retroactivos traen los acumulados a cero; la suma deja los de la paga actual.
     accumulated: {
-      irpfBase: amount(period, "CSP_REC_BASE_IRPF") ?? 0,
-      irpfQuota: amount(period, "CSP_REC_RET_IRPF") ?? 0,
-      socialSecurityQuota: amount(period, "CSP_REC_CUOTA_SS") ?? 0,
+      irpfBase: sumColumn(periods, "CSP_REC_BASE_IRPF"),
+      irpfQuota: sumColumn(periods, "CSP_REC_RET_IRPF"),
+      socialSecurityQuota: sumColumn(periods, "CSP_REC_CUOTA_SS"),
     },
-    bankPayments,
-    beneficiaryPayments: [],
+    bankPayments: toPayments(true),
+    beneficiaryPayments: toPayments(false),
     unmapped: {
       // `|| 0` evita mostrar -0 cuando el redondeo deja un cero negativo.
       accrued: round2(accrued - sumBy(concepts, (line) => line.earning)) || 0,
@@ -217,6 +294,7 @@ export const mapPayrollPays = (rows: readonly PeopleNetRow[]): PayrollPayOption[
         name: toText(row.PAY_NAME) || paymentDate,
         startDate: toIsoDate(row.SCO_DT_START) ?? "",
         endDate: toIsoDate(row.SCO_DATE_END) ?? "",
+        category: classifyPay(toText(row.PAY_NAME), toText(row.SCO_ID_PAY_TYPE)),
       },
     ];
   });

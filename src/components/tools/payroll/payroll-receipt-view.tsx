@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 
 import { Callout } from "@/components/system";
 import { cn } from "@/lib/utils";
-import type { PayrollReceipt, PayrollReceiptLine } from "@/types/payroll-receipt";
+import {
+  PAYROLL_PAYMENT_TYPES,
+  type PayrollReceipt,
+  type PayrollReceiptLine,
+} from "@/types/payroll-receipt";
 
 const decimalFormatter = new Intl.NumberFormat("es-ES", {
   minimumFractionDigits: 2,
@@ -164,7 +168,8 @@ export function PayrollReceiptView({ receipt }: { receipt: PayrollReceipt }) {
             {receipt.company.name || "Recibo de nómina"}
           </h2>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Recibo de salarios · {currencyId}
+            {PAYROLL_PAYMENT_TYPES.find((option) => option.value === receipt.paymentType)?.label} ·{" "}
+            {currencyId}
           </p>
         </header>
 

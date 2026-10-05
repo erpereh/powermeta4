@@ -19,11 +19,18 @@ import {
   RadioGroup,
   RadioGroupItem,
   Surface,
+  Tabs,
+  TabsList,
+  TabsTrigger,
   type ComboboxFilter,
 } from "@/components/system";
+import { matchesPayFilter } from "@/lib/payroll/pay-category";
 import {
+  PAYROLL_PAY_CATEGORIES,
   PAYROLL_PAYMENT_TYPES,
   PAYROLL_RANGE_MAX_PAYS,
+  type PayrollPayCategory,
+  type PayrollPayFilter,
   type PayrollMissingReceipt,
   type PayrollPaymentType,
   type PayrollPayOption,
@@ -45,6 +52,7 @@ type ConsultState =
   | {
       status: "ready";
       key: number;
+      parameters: PayrollReceiptParameters;
       receipts: readonly PayrollReceiptEntry[];
       missing: readonly PayrollMissingReceipt[];
     };
@@ -69,8 +77,19 @@ const foldText = (text: string): string =>
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase();
 
+const PAY_FILTERS: readonly { value: PayrollPayFilter; label: string }[] = [
+  { value: "all", label: "Todas" },
+  ...PAYROLL_PAY_CATEGORIES,
+];
+
+const isPayFilter = (value: string): value is PayrollPayFilter =>
+  PAY_FILTERS.some((option) => option.value === value);
+
+const categoryLabel = (category: PayrollPayCategory): string =>
+  PAYROLL_PAY_CATEGORIES.find((option) => option.value === category)?.label ?? "";
+
 /** Busca por nombre de la paga y por fecha de pago en cualquiera de sus formatos. */
-const payFilter: ComboboxFilter = (value, query, keywords) => {
+const searchFilter: ComboboxFilter = (value, query, keywords) => {
   const needle = foldText(query.trim());
   return !needle || foldText([value, ...keywords].join(" ")).includes(needle);
 };
@@ -82,9 +101,12 @@ function PayCombobox({
   onValueChange,
   invalid,
   describedBy,
+  showCategory,
 }: {
   label: string;
   pays: readonly PayrollPayOption[];
+  /** En «Todas», marca las pagas que no son mensuales. */
+  showCategory: boolean;
   value: string;
   onValueChange: (value: string) => void;
   invalid: boolean;
@@ -99,7 +121,7 @@ function PayCombobox({
       <Combobox
         value={value}
         onValueChange={onValueChange}
-        filter={payFilter}
+        filter={searchFilter}
         disabled={pays.length === 0}
       >
         <ComboboxTrigger className="h-11 rounded-full">
@@ -118,13 +140,18 @@ function PayCombobox({
                 key={pay.paymentDate}
                 value={pay.paymentDate}
                 textValue={pay.name}
-                keywords={[pay.name, formatDate(pay.paymentDate)]}
+                keywords={[pay.name, formatDate(pay.paymentDate), categoryLabel(pay.category)]}
               >
-                <span className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-3">
+                <span className="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3">
                   <span className="tabular-nums text-muted-foreground">
                     {formatDate(pay.paymentDate)}
                   </span>
                   <span className="truncate text-foreground">{pay.name}</span>
+                  {showCategory && pay.category !== "ordinary" ? (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[0.7rem] text-muted-foreground">
+                      {categoryLabel(pay.category)}
+                    </span>
+                  ) : null}
                 </span>
               </ComboboxItem>
             ))}
@@ -147,6 +174,7 @@ export function PayrollReceiptConsult({
   const scopeLabel = getWorkspaceScopeLabel(useWorkspaceStore((state) => state.auth));
   const rangeErrorId = useId();
   const latest = pays[0]?.paymentDate ?? "";
+  const [payGroup, setPayGroup] = useState<PayrollPayFilter>("all");
   const [employeeId, setEmployeeId] = useState("");
   const [fromPaymentDate, setFromPaymentDate] = useState(latest);
   const [toPaymentDate, setToPaymentDate] = useState(latest);
@@ -157,9 +185,27 @@ export function PayrollReceiptConsult({
   const [state, setState] = useState<ConsultState>({ status: "idle" });
   const [pending, startTransition] = useTransition();
 
-  const paysInRange = pays.filter(
+  const visiblePays = pays.filter((pay) => matchesPayFilter(pay.category, payGroup));
+  const groupCounts = new Map<PayrollPayFilter, number>([["all", pays.length]]);
+  for (const pay of pays) groupCounts.set(pay.category, (groupCounts.get(pay.category) ?? 0) + 1);
+
+  const paysInRange = visiblePays.filter(
     (pay) => pay.paymentDate >= fromPaymentDate && pay.paymentDate <= toPaymentDate,
   ).length;
+
+  // Al cambiar de grupo, un extremo que ya no está en la lista pasa a la última paga del grupo.
+  const chooseGroup = (value: string) => {
+    if (!isPayFilter(value)) return;
+    setPayGroup(value);
+    const dates = new Set(
+      pays.filter((pay) => matchesPayFilter(pay.category, value)).map((pay) => pay.paymentDate),
+    );
+    const newest = pays.find((pay) => matchesPayFilter(pay.category, value))?.paymentDate ?? "";
+    if (!dates.has(fromPaymentDate) || !dates.has(toPaymentDate)) {
+      setFromPaymentDate(newest);
+      setToPaymentDate(newest);
+    }
+  };
 
   // Mantiene el rango ordenado: elegir un extremo arrastra al otro si se cruzan.
   const chooseFrom = (value: string) => {
@@ -175,7 +221,7 @@ export function PayrollReceiptConsult({
     const nextErrors: FormErrors = {};
     const trimmedEmployeeId = employeeId.trim();
     const normalizedCurrencyId = currencyId.trim().toUpperCase();
-    const knownDates = new Set(pays.map((pay) => pay.paymentDate));
+    const knownDates = new Set(visiblePays.map((pay) => pay.paymentDate));
 
     if (!EMPLOYEE_ID_PATTERN.test(trimmedEmployeeId)) {
       nextErrors.employeeId = "Indica la matrícula del empleado.";
@@ -196,6 +242,7 @@ export function PayrollReceiptConsult({
       employeeId: trimmedEmployeeId,
       fromPaymentDate,
       toPaymentDate,
+      payFilter: payGroup,
       paymentType,
       currency:
         currencyMode === "other"
@@ -222,6 +269,7 @@ export function PayrollReceiptConsult({
           setState({
             status: "ready",
             key: Date.now(),
+            parameters,
             receipts: result.receipts,
             missing: result.missing,
           });
@@ -272,12 +320,30 @@ export function PayrollReceiptConsult({
               error={errors.employeeId}
               required
             />
-            <fieldset className="min-w-0 space-y-1.5">
+            <fieldset className="min-w-0 space-y-3">
               <legend className="sr-only">Periodo de liquidación</legend>
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium text-foreground">Qué pagas ver</p>
+                <Tabs value={payGroup} onValueChange={chooseGroup} variant="pill">
+                  <TabsList>
+                    {PAY_FILTERS.filter((option) => (groupCounts.get(option.value) ?? 0) > 0).map(
+                      (option) => (
+                        <TabsTrigger key={option.value} value={option.value}>
+                          {option.label}
+                          <span className="ml-1.5 tabular-nums text-muted-foreground">
+                            {groupCounts.get(option.value)}
+                          </span>
+                        </TabsTrigger>
+                      ),
+                    )}
+                  </TabsList>
+                </Tabs>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <PayCombobox
                   label="Desde la paga"
-                  pays={pays}
+                  pays={visiblePays}
+                  showCategory={payGroup === "all"}
                   value={fromPaymentDate}
                   onValueChange={chooseFrom}
                   invalid={Boolean(errors.range)}
@@ -285,7 +351,8 @@ export function PayrollReceiptConsult({
                 />
                 <PayCombobox
                   label="Hasta la paga"
-                  pays={pays}
+                  pays={visiblePays}
+                  showCategory={payGroup === "all"}
                   value={toPaymentDate}
                   onValueChange={chooseTo}
                   invalid={Boolean(errors.range)}
@@ -369,7 +436,12 @@ export function PayrollReceiptConsult({
           </Callout>
         ) : null}
         {state.status === "ready" ? (
-          <PayrollReceiptRange key={state.key} receipts={state.receipts} missing={state.missing} />
+          <PayrollReceiptRange
+            key={state.key}
+            parameters={state.parameters}
+            receipts={state.receipts}
+            missing={state.missing}
+          />
         ) : null}
       </section>
     </div>

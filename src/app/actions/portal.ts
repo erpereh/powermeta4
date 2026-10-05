@@ -7,10 +7,7 @@ import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
 import { portalUnavailable, type PortalResult } from "@/lib/portal/result";
 import { readPortal } from "@/lib/portal/server";
 import { PeopleNetConfigError } from "@/lib/peoplenet/client";
-import {
-  getCurrentPayrollReceiptRange,
-  PayrollReceiptError,
-} from "@/lib/peoplenet/payroll-receipt";
+import { getPayrollReceiptRange, PayrollReceiptError } from "@/lib/peoplenet/payroll-receipt";
 import type { PayrollReceiptResult } from "@/types/payroll-receipt";
 
 const MAX_QUERY = 120;
@@ -42,11 +39,14 @@ export async function getOwnPayslipsAction(
     return { ok: false, message: context.identity.message };
   const employeeId = context.identity.person.employeeId;
   try {
-    const { receipts, missing } = await getCurrentPayrollReceiptRange({
+    // Como antes de los filtros de nómina: todas las pagas, solo la paga actual.
+    const { receipts, missing } = await getPayrollReceiptRange({
       organization: context.society,
       employeeId,
       fromPaymentDate: from,
       toPaymentDate: to,
+      payFilter: "all",
+      paymentType: "current",
       currency: { mode: "calculation" },
     });
     return { ok: true, receipts, missing };
