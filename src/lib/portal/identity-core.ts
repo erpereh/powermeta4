@@ -1,3 +1,4 @@
+import { decodeXmlEntities } from "@/lib/meta4/format-profile-field";
 import type { Meta4ProfileRecordSet } from "@/lib/meta4/user-profile-types";
 
 /** Persona propia que muestra la cabecera del portal. */
@@ -20,14 +21,18 @@ export type IdentityEvaluation =
 
 const normalizeKey = (key: string): string => key.replaceAll("_", "").toLowerCase();
 
-/** Lee un campo del perfil sin depender de mayúsculas ni guiones bajos. */
+/**
+ * Lee un campo del perfil sin depender de mayúsculas ni guiones bajos. El perfil
+ * se parsea sin procesar entidades, así que «Gonz&#xE1;lez» o «&amp;» se decodifican aquí.
+ */
 export const profileField = (
   fields: Readonly<Record<string, string>>,
   ...names: readonly string[]
 ): string | null => {
   const wanted = names.map(normalizeKey);
   for (const [key, value] of Object.entries(fields)) {
-    if (wanted.includes(normalizeKey(key)) && value.trim() !== "") return value.trim();
+    const text = decodeXmlEntities(value).trim();
+    if (wanted.includes(normalizeKey(key)) && text !== "") return text;
   }
   return null;
 };

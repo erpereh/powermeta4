@@ -125,16 +125,28 @@ producto fuera del chat. La sociedad no la elige el navegador.
 - Lecturas reales: servicios SOAP publicados en `/services/*` con su contrato
   generado desde las fuentes Java de `clon_portal` (`npm run
   portal:soap-catalog`) y `SELECT` parametrizadas en PeopleNet guardadas por
-  `assertReadOnlySql`. Lo demás muestra su dependencia (P01–P09) y nunca datos
-  inventados.
+  `assertReadOnlySql`. Los apartados `sql` (`sqlConsult` en
+  `src/lib/portal/registry/sql/*`) reproducen la sentencia original de cada
+  nodo Meta4, resuelta del diccionario con `scripts/portal/resolver-tablas.ts`
+  (`docs/portal/implementacion/lecturas-sql.md`); sus parámetros los pone solo
+  el servidor (`@organization`, `@today`, `@employeeId` o el equipo).
+  `npm run portal:verify -- consultas <sociedad> <matrícula>` las ejecuta y
+  solo imprime recuentos. Lo demás muestra su dependencia (P01–P09) y nunca
+  datos inventados.
+- `GET /api/portal/documents/[kind]` (Node.js, requiere sesión) descarga en
+  solo lectura los PDF que PeopleNet guarda (recibos, certificados,
+  proyecciones): la matrícula y la sociedad salen del servidor y la clave de
+  la URL solo elige entre los documentos de esa persona.
 - Todas las escrituras del portal (`generico_actualizar`, `CR_*`, GTA,
   delegaciones…) se presentan como formulario completo y validado con el
   envío deshabilitado, el método Meta4 y su pendiente. No se ejecutan ni se
   simulan: la única escritura ERP aprobada sigue siendo el alta de personas.
-- Los datos de otra persona exigen pertenecer a la población de
-  `SNTC_AD_POPULATION`; los sensibles siguen cerrados mientras
-  `MANAGER_SCOPE_VERIFIED` sea `false` (hasta que el usuario lo verifique en
-  el portal real). El chat no recibe datos del portal.
+- Los datos de otra persona solo se leen para el equipo del responsable: su
+  jerarquía en ORO (`ID_RESPONSABLE`, hasta 10 niveles, `COMPUTA = '1'`),
+  calculada en la base desde su matrícula (`src/lib/portal/data/team-scope.ts`).
+  Decisión del usuario del 2026-10-05, porque `SNTC_AD_POPULATION` llega
+  vacío por SOAP; `MANAGER_SCOPE_VERIFIED` es `true`. El chat no recibe datos
+  del portal.
 - `npm run portal:discover` y `npm run portal:verify` se ejecutan en la VM:
   solo diccionario Meta4, recuentos, presencia de columnas y WSDL; nunca
   valores de empleados.

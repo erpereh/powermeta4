@@ -6,8 +6,8 @@ const { isInManagerScope, MANAGER_SCOPE_VERIFIED, mapPopulationIds, mapResponsib
   await import("./scope");
 
 describe("alcance del responsable", () => {
-  it("la puerta de datos sensibles sigue cerrada hasta la verificación", () => {
-    expect(MANAGER_SCOPE_VERIFIED).toBe(false);
+  it("la puerta de datos sensibles está abierta con el equipo de la jerarquía de ORO", () => {
+    expect(MANAGER_SCOPE_VERIFIED).toBe(true);
   });
 
   it("deduplica unidades y personas y solo admite matrículas de la población", () => {

@@ -1,15 +1,16 @@
 import type { PortalFeature } from "../types";
 import {
-  consult,
   date,
   form,
   methodWrite,
   note,
-  pendingRead,
   pendingSelect,
+  sqlConsult,
+  sqlRead,
   text,
   validationForm,
 } from "./helpers";
+import { RESPONSABLE_SQL } from "./sql/responsable";
 
 const TAR = "responsable/tareas";
 const EQ = "responsable/equipo";
@@ -71,15 +72,22 @@ export const RESPONSABLE_ALCANCE: readonly PortalFeature[] = [
     ficha: `${TAR}/mss_generico--mss_delegation.md`,
     keywords: ["delegación", "sustituto", "ausencia"],
     sensitive: false,
-    read: pendingRead(["MSS_DELEGATION!MSS_DELEGATION_ROOT.MSS_ACTION_LOAD"]),
+    read: sqlRead(RESPONSABLE_SQL.delegaciones.tables),
     view: "generic",
     sections: [
-      consult("delegaciones", "Mis delegaciones", "MSS_DELEGATION", "list", [
-        [null, "Proceso"],
-        [null, "Delegado"],
-        [null, "Inicio"],
-        [null, "Fin"],
-      ]),
+      sqlConsult(
+        "delegaciones",
+        "Mis delegaciones",
+        "MSS_DELEGATION!MSS_DELEGATION",
+        "list",
+        [
+          ["SCO_ID_PROCESS", "Proceso"],
+          ["DELEGADO", "Delegado"],
+          ["DT_START", "Inicio"],
+          ["DT_END", "Fin"],
+        ],
+        RESPONSABLE_SQL.delegaciones,
+      ),
       form({
         id: "delegacion",
         title: "Nueva delegación",
@@ -205,28 +213,24 @@ export const RESPONSABLE_EQUIPO: readonly PortalFeature[] = [
     ficha: `${EQ}/mss_g1--smco_g1_profs_info_cabecera.md`,
     keywords: ["dossier", "ficha", "empleado"],
     sensitive: true,
-    read: pendingRead([
-      "SMCO_EMPLOYEE_PROFESIONAL_DATA",
-      "SCO_EMPLOYEE_DOSSIER!SCO_ID_PERSONA.SSE_M4THROW",
-    ]),
+    read: sqlRead(RESPONSABLE_SQL.ficha.tables),
     view: "generic",
     sections: [
-      consult("apartados", "Apartados del dossier", "SMCO_EMPLOYEE_PROFESIONAL_DATA", "list", [
-        [null, "Situación actual"],
-        [null, "Puestos y posiciones"],
-        [null, "Unidades y lugares de trabajo"],
-        [null, "Contratos"],
-        [null, "Roles y tipo de empleado"],
-        [null, "Cursos y certificados"],
-        [null, "Conocimientos y competencias"],
-        [null, "Evaluaciones"],
-        [null, "Entrevistas"],
-        [null, "Carrera y preferencias"],
-        [null, "Salario"],
-        [null, "Tiempo"],
-        [null, "Dependientes"],
-        [null, "Equipos, cesiones e incidentes"],
-      ]),
+      sqlConsult(
+        "apartados",
+        "Situación actual del equipo",
+        "SMCO_EMPLOYEE_PROFESIONAL_DATA!SMCO_PROFS_INFO_TODAY_MAIN_ROL",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["N_PUESTO", "Puesto"],
+          ["N_UNIDAD", "Unidad"],
+          ["N_CENTRO_TRABAJO", "Centro de trabajo"],
+          ["FEC_ANTIGUEDAD", "Antigüedad"],
+          ["CORREO", "Correo"],
+        ],
+        RESPONSABLE_SQL.ficha,
+      ),
     ],
   },
   {
@@ -254,16 +258,22 @@ export const RESPONSABLE_EQUIPO: readonly PortalFeature[] = [
     ficha: `${EQ}/mss_g1--mss_g1_p1_val.md`,
     keywords: ["validar", "aprobar", "direcciones", "teléfonos"],
     sensitive: true,
-    read: pendingRead(personalValidations.map(([, , tag]) => `${tag} (peticiones pendientes)`)),
+    read: sqlRead(RESPONSABLE_SQL.validarPersonales.tables),
     view: "generic",
     sections: [
-      consult("peticiones", "Peticiones", "SSE_ADDRESS", "list", [
-        [null, "Empleado"],
-        [null, "Dato actual"],
-        [null, "Dato propuesto"],
-        [null, "Nivel de validación"],
-        [null, "Comentario"],
-      ]),
+      sqlConsult(
+        "peticiones",
+        "Peticiones pendientes",
+        "SSE_ADDRESS!SSE_ADDRESS_VAL",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["TIPO", "Dato"],
+          ["NIVEL_ACEPTADO", "Nivel de validación"],
+          ["MOTIVO_ACCION", "Comentario"],
+        ],
+        RESPONSABLE_SQL.validarPersonales,
+      ),
       ...personalValidations.map(([id, title, tag, nod]) =>
         validationForm(`validar-${id}`, `Validar ${title.toLowerCase()}`, tag, nod),
       ),
@@ -289,11 +299,26 @@ export const RESPONSABLE_EQUIPO: readonly PortalFeature[] = [
     ],
     ficha: `${EQ}/mss_g1--mss_g1_p3_val.md`,
     sensitive: true,
-    read: pendingRead(professionalValidations.map(([, , tag]) => `${tag} (peticiones pendientes)`)),
+    read: sqlRead(RESPONSABLE_SQL.validarProfesionales.tables),
     view: "generic",
-    sections: professionalValidations.map(([id, title, tag, nod]) =>
-      validationForm(`validar-${id}`, `Validar ${title.toLowerCase()}`, tag, nod),
-    ),
+    sections: [
+      sqlConsult(
+        "peticiones",
+        "Peticiones pendientes",
+        "SSE_EMP_BACKGROUND!SSE_EMP_BACKGROUND_VAL",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["TIPO", "Dato"],
+          ["NIVEL_ACEPTADO", "Nivel de validación"],
+          ["MOTIVO_ACCION", "Comentario"],
+        ],
+        RESPONSABLE_SQL.validarProfesionales,
+      ),
+      ...professionalValidations.map(([id, title, tag, nod]) =>
+        validationForm(`validar-${id}`, `Validar ${title.toLowerCase()}`, tag, nod),
+      ),
+    ],
   },
   {
     id: "responsable.equipo.validar-irpf",
@@ -310,9 +335,22 @@ export const RESPONSABLE_EQUIPO: readonly PortalFeature[] = [
     ],
     ficha: `${EQ}/mss_g1--smco_g1_p6_val.md`,
     sensitive: true,
-    read: pendingRead(["SSCO_HR_DOCUMENTS", "SSE_MOD_SITIRPF"]),
+    read: sqlRead(RESPONSABLE_SQL.validarIrpf.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "modificaciones",
+        "Modificaciones del IRPF",
+        "SSE_MOD_SITIRPF!SSE_VAL_ACUSE_RECIBO",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SSP_NM_ESTADO", "Estado"],
+          ["SSP_FEC_SOLIC", "Solicitud"],
+          ["SSP_FEC_EFECTO", "Efecto"],
+        ],
+        RESPONSABLE_SQL.validarIrpf,
+      ),
       note(
         "Acuse del Modelo 145",
         "El estándar distingue los estados de entrega de documentación 01, 02 y 03 con fechas condicionadas; no equivalen a una autorización fiscal automática.",
@@ -342,14 +380,40 @@ export const RESPONSABLE_EQUIPO: readonly PortalFeature[] = [
     sources: ["mss_g1/mss_g1_p3_cv.jsp", "mss_g1/mss_g1_cv.jsp"],
     ficha: `${EQ}/mss_g1--mss_g1_p3_cv.md`,
     sensitive: true,
-    read: {
-      kind: "pending",
-      meta4: ["CSP_CV", "CSP_RP_CV", "SSE_EMP_CV"],
-      pending: ["P03", "P08"],
-      detail:
-        "El currículum es un informe de Meta4 y un dato sensible: requiere alcance verificado y su documento (CSP_SERVICIO_CV pendiente de verificar).",
-    },
+    read: sqlRead([
+      ...new Set([...RESPONSABLE_SQL.cvTitulaciones.tables, ...RESPONSABLE_SQL.cvIdiomas.tables]),
+    ]),
     view: "generic",
+    sections: [
+      note(
+        "Documento",
+        "El PDF del CV lo genera el motor de informes de Meta4 (CSP_RP_CV) y no se puede leer por SQL. Aquí se muestran los datos que lo componen para tu equipo.",
+      ),
+      sqlConsult(
+        "titulaciones",
+        "Titulaciones del equipo",
+        "SSE_EMP_CV!M4T_EMP_BACKGROUND",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["STD_N_DIPLOMA", "Titulación"],
+          ["STD_DESC_EDU_CENTER", "Centro"],
+          ["STD_DT_EARNED_EXPE", "Fecha de obtención"],
+        ],
+        RESPONSABLE_SQL.cvTitulaciones,
+      ),
+      sqlConsult(
+        "idiomas",
+        "Idiomas del equipo",
+        "SSE_EMP_CV!M4T_EMP_CV_LANGUAGES",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["STD_N_LANGUAGE", "Idioma"],
+        ],
+        RESPONSABLE_SQL.cvIdiomas,
+      ),
+    ],
   },
   {
     id: "responsable.equipo.informes",
@@ -369,15 +433,26 @@ export const RESPONSABLE_EQUIPO: readonly PortalFeature[] = [
     ficha: `${EQ}/mss_g1--mss_g1_rp_puestos.md`,
     keywords: ["informe", "puestos", "salarios", "oro"],
     sensitive: true,
-    read: {
-      kind: "pending",
-      meta4: ["CSP_RP_ORO_MSS!CSP_RP_ORO_MSS.CSP_CARGA_FILTRO"],
-      pending: ["P03", "P08"],
-      detail:
-        "Los informes se generan con el motor de informes de Meta4 a partir de filtros de dirección, área y puesto (actualizar_informe_oro.jsp).",
-    },
+    read: sqlRead(RESPONSABLE_SQL.informeOro.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "oro",
+        "Informe ORO de tu organización",
+        "CSP_RP_ORO_MSS!CSP_RP_ORO_MSS",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["N_DIRECCION", "Dirección"],
+          ["N_AREA", "Área"],
+          ["N_UNIDAD", "Unidad"],
+          ["N_PUESTO", "Puesto"],
+          ["N_CENTRO_TRABAJO", "Centro de trabajo"],
+          ["FEC_ALTA_EMPLEADO", "Alta"],
+        ],
+        RESPONSABLE_SQL.informeOro,
+        "Los datos del informe ORO para tu equipo. Los PDF de mapa de puestos y salarios los genera el motor de informes de Meta4 y no se pueden leer por SQL.",
+      ),
       form({
         id: "filtro-informe",
         title: "Filtro: informe de puestos por unidad",

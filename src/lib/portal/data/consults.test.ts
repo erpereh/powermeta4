@@ -4,8 +4,12 @@ import { consult } from "../registry/helpers";
 import { PORTAL_FEATURES } from "../registry";
 import { PeopleNetConfigError } from "@/lib/peoplenet/client";
 
-const mocks = vi.hoisted(() => ({ emails: vi.fn(), payments: vi.fn() }));
+const mocks = vi.hoisted(() => ({ emails: vi.fn(), payments: vi.fn(), select: vi.fn() }));
 vi.mock("@/lib/auth/session", () => ({ requireAuthContext: vi.fn() }));
+vi.mock("../peoplenet/query", async (original) => ({
+  ...(await original<typeof import("../peoplenet/query")>()),
+  runPortalSelect: mocks.select,
+}));
 vi.mock("../context", () => ({ getPortalContext: vi.fn() }));
 vi.mock("./organization", () => ({ getOwnEmails: mocks.emails, getOwnMaritalStatus: vi.fn() }));
 vi.mock("./payments", () => ({ getOwnPaymentAccounts: mocks.payments }));
@@ -89,10 +93,11 @@ describe("apartados independientes", () => {
         locationTypeCode: "",
       },
     ]);
+    mocks.select.mockResolvedValue([]);
     const result = await loadFeatureConsults(feature, context);
     expect(result["dossier-cyc"].status).toBe("unavailable");
     expect(result.correos.status).toBe("ok");
-    expect(result.beneficiario.status).toBe("unavailable");
+    expect(result.beneficiario.status).toBe("ok");
     expect(mocks.payments).toHaveBeenCalledWith("COLL", "001471");
     expect(mocks.emails).toHaveBeenCalledWith("001471");
   });
@@ -105,5 +110,62 @@ describe("apartados independientes", () => {
     await loadFeatureConsults({ ...feature, profile: "responsable" }, context);
     expect(mocks.emails).not.toHaveBeenCalled();
     expect(mocks.payments).not.toHaveBeenCalled();
+    expect(mocks.select).not.toHaveBeenCalled();
+  });
+});
+
+describe("apartados sql", () => {
+  const sqlFeature = (id: string) => PORTAL_FEATURES.find((entry) => entry.id === id)!;
+  const params = (call: number) => mocks.select.mock.calls[call]?.[1] as Record<string, unknown>;
+
+  it("lee los datos propios con la sociedad y la matrícula del servidor", async () => {
+    mocks.select.mockResolvedValue([{ SSP_NM_CATEGORIA: "Grupo I" }]);
+    const result = await loadFeatureConsults(sqlFeature("empleado.datos.ficha"), context);
+    expect(result["grupo-nivel"]).toMatchObject({
+      status: "ok",
+      data: { rows: [[{ label: "Grupo y nivel", value: "Grupo I" }]] },
+    });
+    for (const call of mocks.select.mock.calls.keys())
+      expect(params(call)).toMatchObject({
+        organization: { value: "COLL" },
+        employeeId: { value: "001471" },
+      });
+  });
+
+  it("el equipo se calcula en la base desde la matrícula del responsable", async () => {
+    mocks.select.mockResolvedValue([]);
+    // La puerta del responsable se prueba aparte; aquí solo cómo se forma la consulta de equipo.
+    await loadFeatureConsults(
+      { ...sqlFeature("responsable.retribucion.salarios"), profile: "empleado" },
+      context,
+    );
+    const [statement, values] = mocks.select.mock.calls[0] ?? [];
+    expect(statement).toMatch(/^WITH TEAM_HR/);
+    expect(statement).not.toContain("@team");
+    expect(values).toMatchObject({ employeeId: { value: "001471" } });
+  });
+
+  it("los catálogos de la sociedad no reciben ninguna matrícula", async () => {
+    mocks.select.mockResolvedValue([]);
+    await loadFeatureConsults(sqlFeature("empleado.talento.formacion"), context);
+    expect(params(0)).not.toHaveProperty("employeeId");
+  });
+
+  it("enlaza cada documento por su clave sin exponerla como dato", async () => {
+    mocks.select.mockResolvedValue([
+      { SCO_NM_PAY: "Julio 2026", DOC_KEY: "1|2026-07-25|004|1" },
+      { SCO_NM_PAY: "Junio 2026", DOC_KEY: null },
+    ]);
+    const result = await loadFeatureConsults(
+      sqlFeature("empleado.retribucion.recibos-pdf"),
+      context,
+    );
+    const recibos = result.recibos;
+    if (recibos?.status !== "ok") throw new Error("Se esperaban recibos");
+    expect(recibos.data.links).toEqual([
+      "/api/portal/documents/payslip?k=1%7C2026-07-25%7C004%7C1",
+      null,
+    ]);
+    expect(recibos.data.rows[0].map((field) => field.value)).not.toContain("1|2026-07-25|004|1");
   });
 });

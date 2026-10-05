@@ -12,6 +12,8 @@ import { getMeta4BaseUrl } from "../../src/lib/meta4/config";
 import { getPeopleNetConfig } from "../../src/lib/peoplenet/client";
 import { ORO_PORTAL_COLUMNS } from "../../src/lib/portal/data/organization";
 import { PAYMENT_COLUMNS } from "../../src/lib/portal/data/payments";
+import { withTeamScope } from "../../src/lib/portal/data/team-scope";
+import { PORTAL_FEATURES } from "../../src/lib/portal/registry";
 import { assertReadOnlySql } from "../../src/lib/portal/peoplenet/query";
 import { SOAP_CATALOG } from "../../src/lib/portal/soap/catalog.generated";
 import { inspectPortalWsdl } from "../../src/lib/portal/soap/wsdl";
@@ -214,11 +216,60 @@ const verifySoap = async () => {
   }
 };
 
+/**
+ * Ejecuta cada apartado `sql` del registro con la sociedad y la matrícula
+ * indicadas, como lo hace el servidor (equipo incluido), e imprime solo
+ * recuentos de filas y de campos con dato: nunca valores.
+ */
+const verifyConsults = async (society: string, employeeId: string) => {
+  if (!/^\d{1,10}$/.test(employeeId)) throw new Error("Matrícula no válida.");
+  const pool = await new sql.ConnectionPool(getPeopleNetConfig()).connect();
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  try {
+    for (const feature of PORTAL_FEATURES)
+      for (const section of feature.sections ?? []) {
+        if (section.kind !== "consult" || !section.consult.query) continue;
+        const { scope, statement } = section.consult.query;
+        const text = scope === "team" ? withTeamScope(statement) : statement;
+        assertReadOnlySql(text);
+        const request = pool
+          .request()
+          .input("organization", sql.VarChar(4), society)
+          .input("today", sql.Date, today);
+        if (scope !== "society") request.input("employeeId", sql.VarChar(64), employeeId);
+        const where = `${feature.id}/${section.consult.id}`;
+        try {
+          const rows = (await request.query<Record<string, unknown>>(text)).recordset;
+          const filled = section.consult.fields.filter((field) =>
+            rows.some(
+              (row) => row[field.item ?? ""] !== null && row[field.item ?? ""] !== undefined,
+            ),
+          ).length;
+          console.log(
+            `${where}: ${rows.length} filas · ${filled}/${section.consult.fields.length} campos con dato`,
+          );
+        } catch (error) {
+          console.log(`${where}: ERROR ${error instanceof Error ? error.message : "desconocido"}`);
+          process.exitCode = 1;
+        }
+      }
+  } finally {
+    await pool.close();
+  }
+};
+
 const main = async () => {
   loadEnv();
   const target = process.argv[2] ?? "todo";
-  if (!["todo", "sql", "soap"].includes(target)) {
-    throw new Error("Uso: npm run portal:verify -- [todo|sql|soap]");
+  if (!["todo", "sql", "soap", "consultas"].includes(target)) {
+    throw new Error(
+      "Uso: npm run portal:verify -- [todo|sql|soap] | consultas <sociedad> <matrícula>",
+    );
+  }
+  if (target === "consultas") {
+    await verifyConsults(process.argv[3] ?? "", process.argv[4] ?? "");
+    return;
   }
   const results = await Promise.allSettled([
     ...(target !== "soap" ? [verifySql()] : []),

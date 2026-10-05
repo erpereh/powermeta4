@@ -1,5 +1,6 @@
 import type { PortalFeature } from "../types";
-import { consult, methodWrite, note, pendingRead, validationForm } from "./helpers";
+import { methodWrite, note, sqlConsult, sqlRead, validationForm } from "./helpers";
+import { RESPONSABLE_SQL } from "./sql/responsable";
 
 const RET = "responsable/retribucion";
 const base = "/portal/responsable/retribucion";
@@ -17,16 +18,24 @@ export const RESPONSABLE_RETRIBUCION: readonly PortalFeature[] = [
     ficha: `${RET}/mss_g2--mss_g2_p1.md`,
     keywords: ["salarios", "retribución", "equipo"],
     sensitive: true,
-    read: pendingRead(["SSM_SALARY!SSM_PRINCIPAL.CARGA", "SSM_H_SAL_DATA!SSM_PRINCIPAL.CARGA"]),
+    read: sqlRead(RESPONSABLE_SQL.salarios.tables),
     view: "generic",
     sections: [
-      consult("salario", "Datos salariales", "SSM_SALARY", "list", [
-        [null, "Empleado"],
-        [null, "Salario bruto"],
-        [null, "Fijo"],
-        [null, "Variable"],
-        [null, "Beneficios"],
-      ]),
+      sqlConsult(
+        "salario",
+        "Datos salariales",
+        "SSM_H_SAL_DATA!SSM_PRINCIPAL",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_SAL_TOTAL", "Salario bruto"],
+          ["SCO_FIX_SALARY", "Fijo"],
+          ["SCO_VAR_SALARY", "Variable"],
+          ["SCO_BNFT_LEG_ENT", "Beneficios"],
+          ["ID_CURRENCY", "Moneda"],
+        ],
+        RESPONSABLE_SQL.salarios,
+      ),
       note(
         "Presupuesto",
         "El manual describe un análisis de presupuesto por unidad (fecha inicial hoy, incluir hijos) que compara presupuesto, fijo, variable, beneficios y coste; no se ha identificado la página que lo ejecuta en la copia local (P01). No se calcula ningún porcentaje en powermeta4.",
@@ -55,22 +64,27 @@ export const RESPONSABLE_RETRIBUCION: readonly PortalFeature[] = [
     ficha: `${RET}/mss_g2--mss_g2_p1_val.md`,
     keywords: ["validar", "préstamos", "cuentas", "beneficios"],
     sensitive: true,
-    read: pendingRead([
-      "SSE_PAYMENT_DATA (peticiones)",
-      "SSE_OTHER_PDATA (peticiones)",
-      "SSE_LOANS (peticiones)",
-      "SSE_BFT_EE_BNFT_ELEC (peticiones)",
-      "SSE_BFT_DEP_BENE_COV (peticiones)",
-      "SSE_BFT_H_EE_IN_BNFT_MOD (peticiones)",
+    read: sqlRead([
+      ...new Set([
+        ...RESPONSABLE_SQL.validarCuentas.tables,
+        ...RESPONSABLE_SQL.validarPrestamos.tables,
+      ]),
     ]),
     view: "generic",
     sections: [
-      consult("cuentas", "Cuenta bancaria principal", "SSE_PAYMENT_DATA", "list", [
-        [null, "Inicio"],
-        [null, "Código bancario"],
-        [null, "Moneda"],
-        [null, "Forma de pago"],
-      ]),
+      sqlConsult(
+        "cuentas",
+        "Cuentas bancarias pendientes",
+        "SSE_PAYMENT_DATA!SSE_PAYMENT_DATA_VAL",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["TIPO", "Dato"],
+          ["NIVEL_ACEPTADO", "Nivel de validación"],
+          ["MOTIVO_ACCION", "Comentario"],
+        ],
+        RESPONSABLE_SQL.validarCuentas,
+      ),
       validationForm(
         "validar-cuenta",
         "Validar cuenta bancaria principal",
@@ -83,12 +97,19 @@ export const RESPONSABLE_RETRIBUCION: readonly PortalFeature[] = [
         "SSE_OTHER_PDATA",
         "SSE_OTHER_PDATA",
       ),
-      consult("prestamos", "Préstamos", "SSE_LOANS", "list", [
-        [null, "Tipo de préstamo"],
-        [null, "Interés"],
-        [null, "Capital"],
-        [null, "Importe cuota"],
-      ]),
+      sqlConsult(
+        "prestamos",
+        "Préstamos pendientes",
+        "SSE_LOANS!SSE_LOANS_VAL",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["TIPO", "Dato"],
+          ["NIVEL_ACEPTADO", "Nivel de validación"],
+          ["MOTIVO_ACCION", "Comentario"],
+        ],
+        RESPONSABLE_SQL.validarPrestamos,
+      ),
       validationForm("validar-prestamos", "Validar préstamos", "SSE_LOANS", "SSE_LOANS"),
       validationForm(
         "validar-beneficios",
@@ -143,21 +164,27 @@ export const RESPONSABLE_RETRIBUCION: readonly PortalFeature[] = [
     ficha: `${RET}/mss_g2--mss_g2_p0.md`,
     keywords: ["revisión salarial", "incremento", "planes salariales", "aprobación"],
     sensitive: true,
-    read: pendingRead([
-      "SSM_SALARY_REVIEW_PROCESS.CR_WORK_UNITS_FOR_MANAGER",
-      "SSM_SALARY_REVIEW_PROCESS.CR_SALARY_REVIEW_MAIN_PROCESS",
-      "SSM_SALARY_REVIEW_PROCESS.CR_LOAD_SALARY_REVIEW_PETITION",
-    ]),
+    read: sqlRead(RESPONSABLE_SQL.revisiones.tables),
     view: "generic",
     sections: [
-      consult("pasos", "Recorrido de la revisión", "SSM_SALARY_REVIEW_PROCESS", "list", [
-        [null, "Unidades y responsable (CR_WORK_UNITS_FOR_MANAGER)"],
-        [null, "Empleados a revisar (CR_SET_EMPLOYEES_FOR_REVIEW)"],
-        [null, "Planes y datos (CR_SET_SAL_PLAN_FOR_REVIEW, CR_SET_EMPLOYEE_PERFORMANCE)"],
-        [null, "Propuesta, comentarios y avisos"],
-        [null, "Aprobación (CR_SET_EMPLOYEES_FOR_APPROVAL)"],
-        [null, "Exportación e importación (CR_MSR_EXPORT, CR_MSR_IMPORT)"],
-      ]),
+      sqlConsult(
+        "revisiones",
+        "Revisiones salariales del equipo",
+        "SSM_SALARY_REVIEW_PROCESS!M4HCO_CR_H_HR_SREV",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["HCO_CR_REVIEW_DATE", "Fecha de revisión"],
+          ["HCO_CR_INC_PERCENT", "% de incremento"],
+          ["HCO_CR_SAL_REV_VAL", "Importe revisado"],
+          ["HCO_CR_REVIEW_STAT", "Estado"],
+        ],
+        RESPONSABLE_SQL.revisiones,
+      ),
+      note(
+        "Recorrido de la revisión",
+        "Unidades y responsable (CR_WORK_UNITS_FOR_MANAGER) · Empleados a revisar (CR_SET_EMPLOYEES_FOR_REVIEW) · Planes y datos (CR_SET_SAL_PLAN_FOR_REVIEW) · Propuesta, comentarios y avisos · Aprobación (CR_SET_EMPLOYEES_FOR_APPROVAL) · Exportación e importación (CR_MSR_EXPORT, CR_MSR_IMPORT). Son métodos de Meta4 que escriben; siguen deshabilitados.",
+      ),
       note(
         "Cálculo",
         "El incremento, el presupuesto, los máximos y el reparto dependen de la metodología configurada en Meta4: no hay un simulador genérico en powermeta4.",

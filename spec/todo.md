@@ -1,5 +1,43 @@
 # powermeta4 - estado de tareas
 
+## Portal: lecturas pendientes conectadas a PeopleNet (solo lectura) - 2026-10-05
+
+- [x] Cabecera del portal con acentos: `profileField` decodifica las entidades
+      XML del perfil («Gonz&#xE1;lez» → «González», «&amp;» → «&»).
+- [x] `scripts/portal/resolver-tablas.ts` resuelve del diccionario Meta4
+      (`M4RCH_*`/`M4RDC_*`) la TI, la tabla física, la sentencia original
+      (`M4RCH_SENTENCES3.APISQL`) y los conectores de 1.414 nodos de 116
+      objetos → `docs/portal/implementacion/lecturas-sql.md`. Solo metadatos.
+- [x] Lector genérico `sql` (`sqlConsult` + `registry/sql/*`): cada apartado
+      declara su SELECT con alias = items; el servidor pone `@organization`,
+      `@today` y la matrícula o el equipo. Tres alcances: `own`, `team`, `society`.
+- [x] Conectadas 71/76 pantallas (antes 11) y 87/87 consultas (antes 5) de
+      Mis datos, Retribución, Tiempo, Talento, Organización y Responsable.
+- [x] Descarga de PDF guardados en PeopleNet (`GET /api/portal/documents/[kind]`):
+      recibos (`M4SCO_HR_PAY_DOC1`), certificados (`M4CSP_CERT_DOC`) y
+      proyecciones (`M4CSP_PROYEC_DOC`); se quita la cabecera `~BLOB` de Meta4.
+- [x] Responsable abierto (`MANAGER_SCOPE_VERIFIED = true`) por decisión del
+      usuario: `SNTC_AD_POPULATION` llega vacío por SOAP (`LOAD_PERSONS` no se
+      ejecuta fuera del runtime), así que el equipo es la jerarquía de ORO
+      (`ID_RESPONSABLE`, 10 niveles, `COMPUTA='1'`) con CTE recursivo en la base.
+- [x] `npm run portal:verify -- consultas CYC 1498`: 82 consultas, 0 errores
+      (solo recuentos). Validadas además con fichas que sí tienen los datos
+      que faltan a jorge.salvador y con un responsable de 248 personas y 5 niveles.
+- [x] Tests del portal: 21 archivos, 79 pruebas (registro, consultas, equipo,
+      documentos, identidad, componentes). Typecheck correcto. Suite completa:
+      134 archivos y 701 pruebas correctas, 36 omitidas; solo fallan 2 pruebas
+      reales de Excel COM por tiempo agotado (ajenas al portal, ya fallaban antes).
+      Build correcto (incluye `/api/portal/documents/[kind]`); `git diff --check` limpio.
+- [ ] Pendiente de revisión visual en el navegador con «Entrar como
+      jorge.salvador» (sin navegador disponible en esta sesión).
+- [ ] Sin conexión posible solo con lectura: cambio de contraseña (escritura),
+      Life events y Aplicaciones internas (sin objeto Meta4), Mi conocimiento
+      (KnowNet externo) y Actividad (no existe ninguna tabla de actividades).
+- [ ] Sin datos en CYC aunque la consulta funciona: vacaciones (saldos y
+      peticiones), GTA (planificación, fichajes, festivos), préstamos,
+      beneficios, peticiones de cambio `SSE_*`, revisión salarial (`M4HCO_CR_*`),
+      movilidad, plan de carrera, entrevistas y publicaciones de RR. HH.
+
 ## Unificación de ramas en main - 2026-10-05
 
 - [x] `davidev` y `salvadev` mergeadas en `main`; conflictos resueltos.

@@ -1,16 +1,17 @@
 import type { PortalFeature } from "../types";
 import {
   area,
-  consult,
   date,
   form,
   methodWrite,
   note,
-  pendingRead,
   pendingSelect,
+  sqlConsult,
+  sqlRead,
   text,
   validationForm,
 } from "./helpers";
+import { RESPONSABLE_SQL } from "./sql/responsable";
 
 const TAL = "responsable/talento";
 const base = "/portal/responsable/talento";
@@ -45,22 +46,22 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/mss_g3--mss_g3_p5.md`,
     keywords: ["evaluación", "objetivos", "validar evaluaciones", "historial"],
     sensitive: true,
-    read: pendingRead([
-      "SSM_DEFINE_CRITERIA",
-      "SSM_EV_ROL_LV_OBJ",
-      "SSCO_H_EVALUTE",
-      "SMCO_OBJETIVES",
-      "SMCO_EVAL_CRITERIA",
-      "SMCO_GRAPH_EVAL_GAUSS",
-    ]),
+    read: sqlRead(RESPONSABLE_SQL.evaluaciones.tables),
     view: "generic",
     sections: [
-      consult("historial", "Historiales de evaluación", "SSCO_H_EVALUTE", "list", [
-        [null, "Empleado"],
-        [null, "Proceso"],
-        [null, "Resultado global"],
-        [null, "Estado"],
-      ]),
+      sqlConsult(
+        "historial",
+        "Historiales de evaluación",
+        "SSCO_H_EVALUTE!SSCO_H_EVALUATE",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_NM_EVAL_PROC", "Proceso"],
+          ["SCO_NM_LEVEL_OBJ", "Resultado global"],
+          ["SCO_DT_START_EVAL", "Evaluación"],
+        ],
+        RESPONSABLE_SQL.evaluaciones,
+      ),
       note(
         "Roles y fases",
         "El responsable actúa como evaluador, validador o jerárquico según el plan. Guardar no cierra la evaluación; el cálculo de notas y el cierre son de Meta4. La validación de objetivos tras la valoración del empleado es una fase propia.",
@@ -117,16 +118,22 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/mss_g3--mss_g3_p6_mod1.md`,
     keywords: ["formación", "necesidades", "cursos", "eficacia"],
     sensitive: false,
-    read: pendingRead([
-      "SSM_TRAINING_REQUEST",
-      "CSP_SSM_TRAINING_REQUEST",
-      "SSM_TRAINING_ENROLLMENT",
-      "SSM_ENROLLMENT_OVERVIEW",
-      "CSP_MNG_VALORA_EFICA",
-      "SCO_TRAINING_REQ_COSTS",
-    ]),
+    read: sqlRead(RESPONSABLE_SQL.formacion.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "solicitudes",
+        "Solicitudes de formación del equipo",
+        "SSM_TRAINING_REQUEST!M4T_REQ_DETAIL",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_NM_DEV_SUBPRODUCT", "Curso"],
+          ["SCO_NM_REQ_STATUS", "Estado"],
+          ["DT_START", "Fecha"],
+        ],
+        RESPONSABLE_SQL.formacion,
+      ),
       form({
         id: "necesidad",
         title: "Solicita necesidades de formación",
@@ -188,9 +195,22 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/mss_g3--mss_g3_p8.md`,
     keywords: ["carrera", "gap", "competencias"],
     sensitive: true,
-    read: pendingRead(["SSM_CAREER_PLAN", "SCO_GR_HR_GAP", "SSM_R_JOB_COMP", "SSM_H_KNC_LVL"]),
+    read: sqlRead(RESPONSABLE_SQL.carrera.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "planes",
+        "Planes de carrera del equipo",
+        "SSM_CAREER_PLAN!SSM_CAREER_PLAN",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_NM_CR_PLAN", "Plan"],
+          ["DT_START", "Desde"],
+          ["DT_END", "Hasta"],
+        ],
+        RESPONSABLE_SQL.carrera,
+      ),
       note("No valorado", "«No valorado» no equivale a cero ni a ausencia de competencia."),
     ],
   },
@@ -218,15 +238,22 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/mss_g3--mss_g3_p1_wiz1.md`,
     keywords: ["vacante", "selección", "candidatos"],
     sensitive: false,
-    read: pendingRead(["SSM_VACANT", "SSM_RECRUIT_PRO"]),
+    read: sqlRead(RESPONSABLE_SQL.vacantes.tables),
     view: "generic",
     sections: [
-      consult("procesos", "Procesos de selección abiertos", "SSM_RECRUIT_PRO", "list", [
-        [null, "Proceso"],
-        [null, "Puesto"],
-        [null, "Vacantes"],
-        [null, "Estado"],
-      ]),
+      sqlConsult(
+        "procesos",
+        "Procesos de selección",
+        "SSM_RECRUIT_PRO!SSM_RECRUIT_PRO",
+        "list",
+        [
+          ["SCO_NM_RECRUIT", "Proceso"],
+          ["STD_N_JOB_CODE", "Puesto"],
+          ["SCO_NU_POST_ESTIMA", "Vacantes"],
+          ["SCO_DT_LIMIT", "Plazo"],
+        ],
+        RESPONSABLE_SQL.vacantes,
+      ),
       form({
         id: "vacante",
         title: "Definición de la vacante",
@@ -267,9 +294,23 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
     ],
     ficha: `${TAL}/mss_g3--smco_g3_p30_pet.md`,
     sensitive: true,
-    read: pendingRead(["SSM_GN_INTERVIEW", "SMCO_IV_INTERV_RES", "SMCO_KNOWLEDGE_FEEDBACK"]),
+    read: sqlRead(RESPONSABLE_SQL.entrevistas.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "entrevistas",
+        "Entrevistas del equipo",
+        "SSM_GN_INTERVIEW!M4T_GN_INTERVIEW",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_INTERVIEW_NAME", "Entrevista"],
+          ["SCO_NM_IV_TYPE", "Tipo"],
+          ["SCO_DT_REQUEST", "Solicitada"],
+          ["SCO_DT_FINISH", "Finalizada"],
+        ],
+        RESPONSABLE_SQL.entrevistas,
+      ),
       form({
         id: "entrevista",
         title: "Solicitud de entrevista",
@@ -314,9 +355,22 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
     sources: ["mss_g3/smco_g3_p32.jsp", "mss_g3/smco_g3_p32_val.jsp"],
     ficha: `${TAL}/mss_g3--smco_g3_p32_val.md`,
     sensitive: false,
-    read: pendingRead(["SSM_CR_PREFERENC"]),
+    read: sqlRead(RESPONSABLE_SQL.preferencias.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "preferencias",
+        "Preferencias del equipo",
+        "SSM_CR_PREFERENC!SSM_CR_PREFERENC",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_PREFERENCES", "Preferencia"],
+          ["SCO_PREF_PRIORITY", "Prioridad"],
+          ["DT_START", "Desde"],
+        ],
+        RESPONSABLE_SQL.preferencias,
+      ),
       validationForm(
         "validar-preferencias",
         "Validar preferencias",
@@ -347,9 +401,22 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/mss_g3--smco_pm_modification.md`,
     keywords: ["traslado", "cambio de puesto", "movilidad"],
     sensitive: true,
-    read: pendingRead(["SRCO_PA_MODIFICATION", "SSE_INT_MOVILITY (peticiones)"]),
+    read: sqlRead(RESPONSABLE_SQL.movimientos.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "peticiones",
+        "Peticiones de movimiento",
+        "SRCO_PA_MODIFICATION!SRCO_PA_PM_H_HRP_REQUEST",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_ID_PM_TYPE", "Tipo"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_DT_END", "Fin"],
+        ],
+        RESPONSABLE_SQL.movimientos,
+      ),
       note(
         "Cancelación y archivo",
         "Una solicitud se cancela antes de la respuesta de RRHH y se archiva después de resolverse; las archivadas pueden mostrarse a petición.",
@@ -391,12 +458,23 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
     ],
     ficha: `${TAL}/mss_g3--smco_g3_dev_plan_emp.md`,
     sensitive: false,
-    read: pendingRead([
-      "SMCO_DEV_PLAN_ACCION",
-      "SMCO_DEV_PLAN_ACCION_SEG",
-      "SMCO_PLAN_ACTION_PROFS",
-    ]),
+    read: sqlRead(RESPONSABLE_SQL.desarrollo.tables),
     view: "generic",
+    sections: [
+      sqlConsult(
+        "acciones",
+        "Acciones de desarrollo del equipo",
+        "SMCO_DEV_PLAN_ACCION!SMCO_DEV_PLAN_ACCION",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_NM_ACTION", "Acción"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_IS_FINISHED", "Estado"],
+        ],
+        RESPONSABLE_SQL.desarrollo,
+      ),
+    ],
     writes: [
       methodWrite("asignar", "Asignar acción", "SMCO_DEV_PLAN_ACCION (smco_g3_dev_plan_act.jsp)"),
       methodWrite(

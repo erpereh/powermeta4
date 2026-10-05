@@ -7,6 +7,7 @@ import type {
   FormSpec,
   PendingId,
   PortalReaderId,
+  PortalSqlQuery,
   ReadContract,
   WriteOperation,
 } from "../types";
@@ -72,6 +73,42 @@ export const consult = (
     fields: fields.map(([item, label]): ConsultField => (item ? { item, label } : { label })),
     ...(description ? { description } : {}),
   },
+});
+
+/**
+ * Apartado conectado: reproduce la lectura del nodo Meta4 con su SELECT de
+ * `docs/portal/implementacion/lecturas-sql.md`. Cada `item` es un alias de la consulta.
+ */
+export const sqlConsult = (
+  id: string,
+  title: string,
+  meta4: string,
+  layout: ConsultSpec["layout"],
+  fields: readonly (readonly [item: string, label: string])[],
+  query: PortalSqlQuery,
+  description?: string,
+  download?: ConsultSpec["download"],
+): FeatureSection => ({
+  kind: "consult",
+  consult: {
+    id,
+    title,
+    meta4,
+    layout,
+    reader: "sql",
+    read: sqlRead(query.tables),
+    query,
+    fields: fields.map(([item, label]): ConsultField => ({ item, label })),
+    ...(description ? { description } : {}),
+    ...(download ? { download } : {}),
+  },
+});
+
+/** Lectura principal de una pantalla cuyos apartados son consultas `sql`. */
+export const sqlRead = (tables: readonly string[]): ReadContract => ({
+  kind: "sql",
+  tables,
+  verified: true,
 });
 
 export const form = (spec: FormSpec): FeatureSection => ({ kind: "form", form: spec });

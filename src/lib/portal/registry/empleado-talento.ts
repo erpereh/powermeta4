@@ -2,16 +2,17 @@ import type { PortalFeature } from "../types";
 import {
   area,
   check,
-  consult,
   date,
   form,
   genericWrite,
   methodWrite,
   note,
-  pendingRead,
   pendingSelect,
+  sqlConsult,
+  sqlRead,
   text,
 } from "./helpers";
+import { TALENTO_SQL } from "./sql/talento";
 
 const TAL = "empleado/talento";
 const base = "/portal/empleado/talento";
@@ -34,14 +35,21 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/sse_g3--sse_g3_p0.md`,
     keywords: ["puesto", "dpt", "funciones", "historial"],
     sensitive: false,
-    read: pendingRead(["SSE_JOB!SSE_JOB_PRINCIPAL.CARGA", "CSP_RP_JOB_DESCR!STD_JOB.LANZAR_LOADS"]),
+    read: sqlRead(TALENTO_SQL.puestos.tables),
     view: "generic",
     sections: [
-      consult("historial", "Historial de puestos", "SSE_JOB", "list", [
-        [null, "Puesto"],
-        [null, "Inicio"],
-        [null, "Fin"],
-      ]),
+      sqlConsult(
+        "historial",
+        "Historial de puestos",
+        "SSE_JOB!SSE_H_HR_JOB",
+        "list",
+        [
+          ["STD_N_JOB_CODE", "Puesto"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_DT_END", "Fin"],
+        ],
+        TALENTO_SQL.puestos,
+      ),
       note(
         "Descripción del puesto (DPT)",
         "El original genera la DPT con el informe CSP_RP_JOB_DESCR y, en CYC, el documento CSP_DOC_PUESTO_FICHA cuando CSP_MOSTRAR_DOC lo permite. Se ofrecerá cuando su documento esté verificado (P08).",
@@ -70,23 +78,26 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/sse_g3--sse_g3_p3_mod1.md`,
     keywords: ["cursos", "formación", "inscripción", "catálogo"],
     sensitive: false,
-    read: pendingRead(["CSP_SSE_TRAINING_REQUEST!SSE_PRINCIPAL.CARGA", "SGCO_TRAINING_DESC"]),
+    read: sqlRead(TALENTO_SQL.cursosOfertados.tables),
     view: "generic",
     sections: [
-      consult("curso", "Descripción del curso de formación", "CSP_SSE_TRAINING_REQUEST", "record", [
-        [null, "Tipo de formación"],
-        [null, "Producto"],
-        [null, "Curso"],
-        [null, "Lugar"],
-        [null, "Días"],
-        [null, "Número de horas"],
-        [null, "Número de horas fuera de jornada"],
-        [null, "Número mínimo de asistentes"],
-        [null, "Número máximo de asistentes"],
-        [null, "Modalidad"],
-        [null, "Objetivo formativo"],
-        [null, "Destinatarios"],
-      ]),
+      sqlConsult(
+        "curso",
+        "Cursos publicados",
+        "SSE_TRAINING_REQUEST!M4T_CURSOS",
+        "list",
+        [
+          ["SCO_NM_DEV_SUBPRODUCT", "Curso"],
+          ["SCO_DAYS", "Días"],
+          ["SCO_HOURS", "Número de horas"],
+          ["SCO_HOURS_OTW", "Número de horas fuera de jornada"],
+          ["SCO_NB_MIN", "Número mínimo de asistentes"],
+          ["SCO_NB_MAX", "Número máximo de asistentes"],
+          ["SCO_EDUCAT_OBJ", "Objetivo formativo"],
+        ],
+        TALENTO_SQL.cursosOfertados,
+        "Cursos del catálogo con publicación vigente que se pueden solicitar.",
+      ),
       form({
         id: "inscripcion",
         title: "Inscripción en curso",
@@ -129,21 +140,38 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     sources: ["sse_g3/sse_g3_p7.jsp"],
     ficha: `${TAL}/sse_g3--sse_g3_p7.md`,
     sensitive: false,
-    read: pendingRead(["CSP_SSE_TRAINING_REQUEST", "SSE_TRAINING_REQUEST"]),
+    read: sqlRead([
+      ...TALENTO_SQL.solicitudesPendientes.tables,
+      ...TALENTO_SQL.solicitudesAceptadas.tables,
+    ]),
     view: "generic",
     sections: [
-      consult("pendientes", "Solicitudes pendientes", "CSP_SSE_TRAINING_REQUEST", "list", [
-        [null, "Curso"],
-        [null, "Tipo"],
-        [null, "Programado"],
-      ]),
-      consult("aceptadas", "Solicitudes aceptadas", "CSP_SSE_TRAINING_REQUEST", "list", [
-        [null, "Curso"],
-        [null, "Tipo"],
-        [null, "Sesión"],
-        [null, "Inicio"],
-        [null, "Fin"],
-      ]),
+      sqlConsult(
+        "pendientes",
+        "Solicitudes pendientes",
+        "SSE_TRAINING_REQUEST!SSE_TRAINING_REQUEST",
+        "list",
+        [
+          ["SCO_NM_TRAINING", "Curso"],
+          ["SCO_NM_TYPE", "Tipo"],
+          ["N_ACCION", "Estado"],
+        ],
+        TALENTO_SQL.solicitudesPendientes,
+      ),
+      sqlConsult(
+        "aceptadas",
+        "Solicitudes tramitadas",
+        "SSE_TRAINING_REQUEST!M4T_SOLICITUDES_ACEPTADAS",
+        "list",
+        [
+          ["SCO_NM_DEV_SUBPRODUCT", "Curso"],
+          ["SCO_NM_DEV_SUBACTION", "Sesión"],
+          ["SCO_NM_REQ_STATUS", "Estado"],
+          ["DT_START", "Inicio"],
+          ["DT_END", "Fin"],
+        ],
+        TALENTO_SQL.solicitudesAceptadas,
+      ),
     ],
     writes: [
       genericWrite(
@@ -171,12 +199,22 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/sse_g3--sse_g3_p21.md`,
     keywords: ["cursos realizados", "certificado de formación"],
     sensitive: false,
-    read: pendingRead([
-      "SSE_H_HR_COURSE!SSE_H_HR_COURSE.SMCO_MAIN_LOAD_PROCESS",
-      "CSP_MNG_DIPLOMAS_PORTAL",
-    ]),
+    read: sqlRead(TALENTO_SQL.formacionRealizada.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "cursos",
+        "Cursos realizados",
+        "SSE_H_HR_COURSE!SSE_H_HR_COURSE",
+        "list",
+        [
+          ["SCO_NM_DEV_SUBPRODUCT", "Curso"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_DT_END", "Fin"],
+          ["SCO_NM_STATE", "Estado"],
+        ],
+        TALENTO_SQL.formacionRealizada,
+      ),
       note(
         "Certificados",
         "El certificado de cada curso es un documento de Meta4; se ofrecerá cuando su formato y permisos estén verificados (P08).",
@@ -194,16 +232,21 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     sources: ["sse_g3/sse_g3_p8.jsp", "sse_g3/sse_g3_p8_desc.jsp", "sse_g3/sse_g3_p8_act.jsp"],
     ficha: `${TAL}/sse_g3--sse_g3_p8_desc.md`,
     sensitive: false,
-    read: pendingRead([
-      "SSE_TRAINING_EVAL!SSE_EVEN_EVAL_SHEET.CARGA",
-      "CSP_TRAINING_EVAL!SSE_EVEN_EVAL_SHEET.CARGA",
-    ]),
+    read: sqlRead(TALENTO_SQL.evaluacionCursos.tables),
     view: "generic",
     sections: [
-      consult("pendientes", "Cursos pendientes de evaluar", "SSE_TRAINING_EVAL", "list", [
-        [null, "Curso"],
-        [null, "Realizado en"],
-      ]),
+      sqlConsult(
+        "pendientes",
+        "Cuestionarios de cursos",
+        "SSE_TRAINING_EVAL!SSE_EVEN_EVAL_SHEET",
+        "list",
+        [
+          ["SCO_NM_DEV_SUBACTION", "Curso"],
+          ["DT_START", "Inicio"],
+          ["DT_END", "Fin"],
+        ],
+        TALENTO_SQL.evaluacionCursos,
+      ),
       note(
         "Cuestionario",
         "Cada pregunta tiene su tipo de respuesta y sus opciones definidas en Meta4 (texto libre o lista). No se sustituyen por una escala inventada; el cuestionario se mostrará con sus preguntas reales.",
@@ -224,14 +267,22 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     sources: ["sse_g3/ssco_g3_pform.jsp"],
     ficha: `${TAL}/sse_g3--ssco_g3_pform.md`,
     sensitive: false,
-    read: {
-      kind: "pending",
-      meta4: ["CSP_PUBLICACIONES_ESS!CSP_PUBLICACIONES_ESS.CSP_CARGA"],
-      pending: ["P02", "P08"],
-      detail:
-        "Los documentos se descargan con el servlet download_blob de Meta4; falta su tabla, formato y permisos verificados.",
-    },
+    read: sqlRead(TALENTO_SQL.publicaciones.tables),
     view: "generic",
+    sections: [
+      sqlConsult(
+        "publicaciones",
+        "Documentación de RR. HH.",
+        "CSP_PUBLICACIONES_ESS!CSP_PUBLICACIONES_ESS",
+        "list",
+        [
+          ["N_FILE", "Documento"],
+          ["COMMENTS", "Descripción"],
+        ],
+        TALENTO_SQL.publicaciones,
+        "Publicaciones de la plantilla PUBLICACIONESESS. La descarga se añadirá cuando haya documentos publicados con los que verificarla.",
+      ),
+    ],
   },
   {
     id: "empleado.talento.evaluacion",
@@ -259,21 +310,23 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/sse_g3--ssco_evaluator_body.md`,
     keywords: ["evaluación", "objetivos", "competencias", "autoevaluación"],
     sensitive: true,
-    read: pendingRead([
-      "SSCO_H_EVALUTE!SSCO_H_EVALUATE.SSCO_LOAD",
-      "SSE_H_EVALUATOR_HIST",
-      "SSE_OBJECTIVES!SSE_OBJETIVES.CARGA",
-      "SSM_EV_ROL_LV_OBJ!SSE_PRINCIPAL.CARGA",
-      "SSE_H_HR_KNC_LVL!SSE_H_HR_KNC_LVL.SMCO_MAIN_LOAD_PROCESS",
-    ]),
+    read: sqlRead(TALENTO_SQL.evaluaciones.tables),
     view: "generic",
     sections: [
-      consult("procesos", "Evaluaciones", "SSCO_H_EVALUTE", "list", [
-        [null, "Proceso"],
-        [null, "Rol"],
-        [null, "Periodo de cuestionarios"],
-        [null, "Estado"],
-      ]),
+      sqlConsult(
+        "procesos",
+        "Evaluaciones",
+        "SSCO_H_EVALUTE!SSCO_H_EVALUATE",
+        "list",
+        [
+          ["SCO_NM_EVAL_PROC", "Proceso"],
+          ["SCO_DT_ST_EV_PER", "Inicio del periodo evaluado"],
+          ["SCO_DT_END_EV_PER", "Fin del periodo evaluado"],
+          ["SCO_NM_LEVEL_OBJ", "Nivel de objetivos"],
+          ["SCO_NM_LEVEL_CAP", "Nivel de competencias"],
+        ],
+        TALENTO_SQL.evaluaciones,
+      ),
       note(
         "Criterios y cálculo",
         "Cada criterio conserva peso, nivel esperado y obtenido, magnitud, resultado y comentarios según su tipo; los objetivos cuantitativos y cualitativos se separan. Las notas las calcula Meta4 con sus ponderaciones: no se hacen medias simples ni se cierra una evaluación al guardar un borrador.",
@@ -314,9 +367,21 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     ],
     ficha: `${TAL}/sse_g3--sse_g3_p4_1_mod.md`,
     sensitive: false,
-    read: pendingRead(["SSE_EVAL360!SSE_PRINCIPAL.CARGA", "SSE_EVALUATOR"]),
+    read: sqlRead(TALENTO_SQL.evaluadores.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "evaluadores",
+        "Mis evaluadores",
+        "SSCO_H_EVALUTE!SSCO_EVALUATOR",
+        "list",
+        [
+          ["SCO_NM_EVALUATOR", "Evaluador"],
+          ["SCO_DT_START_EVAL", "Evaluación"],
+          ["SCO_EVALUAT_DATE", "Fecha de evaluación"],
+        ],
+        TALENTO_SQL.evaluadores,
+      ),
       note(
         "Fase",
         "El estándar solo permite elegir evaluadores en la fase de fijación de criterios; la fase la determina el proceso en Meta4.",
@@ -364,14 +429,21 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/sse_g3--sse_g3_p9.md`,
     keywords: ["carrera", "mentor", "promoción"],
     sensitive: false,
-    read: pendingRead(["SSE_CAREER_PLAN!SSE_CR_PLAN_HT.SMCO_MAIN_LOAD_PROCESS"]),
+    read: sqlRead(TALENTO_SQL.carrera.tables),
     view: "generic",
     sections: [
-      consult("plan", "Plan de carrera", "SSE_CAREER_PLAN", "record", [
-        [null, "Plan de carrera"],
-        [null, "Mentor"],
-        [null, "Puestos y periodos (desde)"],
-      ]),
+      sqlConsult(
+        "plan",
+        "Plan de carrera",
+        "SSE_CAREER_PLAN!SSE_CR_PLAN_HT",
+        "list",
+        [
+          ["SCO_NM_CR_PLAN", "Plan de carrera"],
+          ["DT_START", "Desde"],
+          ["DT_END", "Hasta"],
+        ],
+        TALENTO_SQL.carrera,
+      ),
     ],
   },
   {
@@ -386,14 +458,33 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/sse_g3--sse_g3_p2.md`,
     keywords: ["vacantes", "movilidad", "traslado"],
     sensitive: false,
-    read: pendingRead(["SSE_INT_MOVILITY!SSE_PRINCIPAL.CARGA"]),
+    read: sqlRead([...TALENTO_SQL.vacantes.tables, ...TALENTO_SQL.peticionesMovilidad.tables]),
     view: "generic",
     sections: [
-      consult("vacantes", "Puestos vacantes", "SSE_INT_MOVILITY", "list", [[null, "Puesto"]]),
-      consult("peticiones", "Peticiones de movilidad", "SSE_INT_MOVILITY", "list", [
-        [null, "Puesto"],
-        [null, "Fecha de solicitud"],
-      ]),
+      sqlConsult(
+        "vacantes",
+        "Puestos vacantes",
+        "SSE_INT_MOVILITY!M4T_RECRUIT_PRO",
+        "list",
+        [
+          ["SCO_NM_RECRUIT", "Proceso"],
+          ["STD_N_JOB_CODE", "Puesto"],
+          ["SCO_DT_LIMIT", "Plazo"],
+        ],
+        TALENTO_SQL.vacantes,
+      ),
+      sqlConsult(
+        "peticiones",
+        "Peticiones de movilidad",
+        "SSE_INT_MOVILITY!SSE_INT_MOVILITY",
+        "list",
+        [
+          ["SCO_NM_RECRUIT", "Puesto"],
+          ["SSE_SOLIC_DATE", "Fecha de solicitud"],
+          ["ID_ESTADO_REG", "Estado"],
+        ],
+        TALENTO_SQL.peticionesMovilidad,
+      ),
       note(
         "Estados",
         "Las peticiones aceptadas quedan incluidas o por incluir en un proceso de selección y el Departamento de Selección se pondrá en contacto contigo.",
@@ -437,18 +528,23 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     ficha: `${TAL}/sse_g3--ssco_g3_pdev_body.md`,
     keywords: ["desarrollo", "preferencias", "plan de acción"],
     sensitive: false,
-    read: pendingRead([
-      "SSCO_DEV_PLAN!SSCO_DEV_PLAN.SSCO_DEV_PLAN_LOAD",
-      "SSE_CR_PREFERENC!SSE_PRINCIPAL.CARGA",
-      "SSE_PLAN_ACTION",
-    ]),
+    read: sqlRead(TALENTO_SQL.desarrollo.tables),
     view: "generic",
     sections: [
-      consult("acciones", "Acciones de desarrollo", "SSCO_DEV_PLAN", "list", [
-        [null, "Acción"],
-        [null, "Estado"],
-        [null, "Seguimiento"],
-      ]),
+      sqlConsult(
+        "acciones",
+        "Acciones de desarrollo",
+        "SSCO_DEV_PLAN!SSCO_DEV_PLAN",
+        "list",
+        [
+          ["SCO_NM_ACTION", "Acción"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_DT_END", "Fin"],
+          ["SCO_IS_FINISHED", "Estado"],
+          ["SCO_FINISH_DESC", "Seguimiento"],
+        ],
+        TALENTO_SQL.desarrollo,
+      ),
     ],
     writes: [
       genericWrite(
@@ -485,8 +581,23 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
     sources: ["sse_g3/ssco_g3_p11.jsp", "sse_g3/ssco_g3_p11_det.jsp", "sse_g3/ssco_g3_p11_pet.jsp"],
     ficha: `${TAL}/sse_g3--ssco_g3_p11.md`,
     sensitive: false,
-    read: pendingRead(["SSE_GN_INTERVIEW!SSE_PRINCIPAL.CARGA"]),
+    read: sqlRead(TALENTO_SQL.entrevistas.tables),
     view: "generic",
+    sections: [
+      sqlConsult(
+        "entrevistas",
+        "Mis entrevistas",
+        "SSE_GN_INTERVIEW!M4T_GN_INTERVIEW",
+        "list",
+        [
+          ["SCO_INTERVIEW_NAME", "Entrevista"],
+          ["SCO_NM_IV_TYPE", "Tipo"],
+          ["SCO_DT_REQUEST", "Solicitada"],
+          ["SCO_DT_FINISH", "Finalizada"],
+        ],
+        TALENTO_SQL.entrevistas,
+      ),
+    ],
     writes: [
       genericWrite(
         "entrevista",

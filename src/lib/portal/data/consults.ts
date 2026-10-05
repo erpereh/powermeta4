@@ -1,37 +1,86 @@
 import "server-only";
 
+import type { Meta4Society } from "@/lib/meta4/societies";
+
 import type { PortalContext } from "../context";
-import { sqlText, type PortalSqlRow } from "../peoplenet/query";
+import {
+  employeeParam,
+  organizationParam,
+  runPortalSelect,
+  sqlText,
+  type PortalSqlParam,
+  type PortalSqlRow,
+} from "../peoplenet/query";
 import { portalUnavailable, type PortalResult } from "../result";
 import { readPortal } from "../server";
-import type { ConsultData, ConsultSpec, PortalFeature } from "../types";
+import type { ConsultData, ConsultSpec, PortalFeature, PortalSqlQuery } from "../types";
+import { documentHref } from "./documents-core";
 import { getOwnEmails, getOwnMaritalStatus } from "./organization";
 import { getOwnPaymentAccounts } from "./payments";
 import { MANAGER_SCOPE_VERIFIED } from "./scope";
+import { withTeamScope } from "./team-scope";
 
 export type ConsultResults = Readonly<Record<string, PortalResult<ConsultData>>>;
 
 const dateItems = new Set(["SCO_DT_START", "SCO_DT_END", "STD_DT_START", "STD_DT_END"]);
+/** `sqlText` deja las fechas de SQL como `AAAA-MM-DD`; nada más tiene esa forma exacta. */
+const SQL_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const displayValue = (item: string | undefined, value: string | null): string => {
   if (!value) return "No informado";
-  if (!item || !dateItems.has(item)) return value;
+  if (!(item && dateItems.has(item)) && !SQL_DATE.test(value)) return value;
   if (value.startsWith("4000-01-01")) return "Vigente";
   if (!/^\d{4}-\d{2}-\d{2}/.test(value)) return value;
   const [year, month, day] = value.slice(0, 10).split("-");
   return `${day}/${month}/${year}`;
 };
 
+const startOfToday = (): Date => {
+  const now = new Date();
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+};
+
+/**
+ * Ejecuta la SELECT de un apartado `sql`. La sociedad, la matrícula propia y el
+ * equipo del responsable salen del servidor; el navegador no aporta parámetros.
+ */
+const runSqlConsult = async (
+  query: PortalSqlQuery,
+  society: Meta4Society,
+  employeeId: string,
+): Promise<PortalSqlRow[]> => {
+  const base: Record<string, PortalSqlParam> = {
+    organization: organizationParam(society),
+    today: { type: "date", value: startOfToday() },
+  };
+  if (query.scope === "society") return runPortalSelect(query.statement, base);
+  const own = { ...base, employeeId: employeeParam(employeeId) };
+  if (query.scope === "own") return runPortalSelect(query.statement, own);
+  // El equipo se resuelve en la base desde la matrícula del servidor (team-scope.ts).
+  return runPortalSelect(withTeamScope(query.statement), own);
+};
+
 export const mapConsultRows = (
   consult: ConsultSpec,
   rows: readonly PortalSqlRow[],
-): ConsultData => ({
-  rows: rows.map((row) =>
-    consult.fields.map((field) => ({
-      label: field.label,
-      value: displayValue(field.item, field.item ? sqlText(row[field.item]) : null),
-    })),
-  ),
-});
+): ConsultData => {
+  const download = consult.download;
+  return {
+    rows: rows.map((row) =>
+      consult.fields.map((field) => ({
+        label: field.label,
+        value: displayValue(field.item, field.item ? sqlText(row[field.item]) : null),
+      })),
+    ),
+    ...(download
+      ? {
+          links: rows.map((row) => {
+            const key = sqlText(row.DOC_KEY);
+            return key ? documentHref(download.kind, key) : null;
+          }),
+        }
+      : {}),
+  };
+};
 
 /** Cada apartado falla de forma independiente; ninguna matrícula llega del navegador. */
 export const loadFeatureConsults = async (
@@ -91,6 +140,13 @@ export const loadFeatureConsults = async (
                       return mapConsultRows(
                         consult,
                         await getOwnMaritalStatus(meta4.society, employeeId),
+                      );
+                    }
+                    case "sql": {
+                      if (!consult.query) throw new Error("Apartado sql sin consulta.");
+                      return mapConsultRows(
+                        consult,
+                        await runSqlConsult(consult.query, meta4.society, employeeId),
                       );
                     }
                     default:

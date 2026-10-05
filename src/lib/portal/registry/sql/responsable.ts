@@ -1,0 +1,305 @@
+import type { PortalSqlQuery } from "../../types";
+
+/**
+ * Lecturas del responsable sobre su población (`SNTC_AD_POPULATION`). El
+ * servidor expande `IN (@team)` solo con las personas de esa población y nunca
+ * con un valor del navegador. Reproducen los nodos `SSM_*`, `SMCO_*` y las
+ * peticiones `SSE_*` pendientes (`docs/portal/implementacion/lecturas-sql.md`).
+ */
+
+const team = (tables: readonly string[], statement: string): PortalSqlQuery => ({
+  scope: "team",
+  tables,
+  statement,
+});
+
+const own = (tables: readonly string[], statement: string): PortalSqlQuery => ({
+  scope: "own",
+  tables,
+  statement,
+});
+
+/** Nombre de la persona del equipo desde ORO (solo su registro que computa, sin duplicar filas). */
+const employee = (
+  column: string,
+) => `LEFT JOIN M4ORO_EMPLEADOS O ON O.ID_ORGANIZATION = @organization
+  AND O.ID_EMPLEADO = ${column} AND O.COMPUTA = '1'`;
+const EMPLOYEE_NAME = `LTRIM(RTRIM(CONCAT(O.NOMBRE, ' ', O.APELLIDO_1, ' ', O.APELLIDO_2))) AS EMPLEADO`;
+
+/** Peticiones `SSE_*` pendientes de validar (`<TAG>_VAL`): mismas columnas de flujo en todas. */
+const pendingRequests = (requests: readonly (readonly [table: string, label: string])[]) =>
+  team(
+    [...requests.map(([table]) => table), "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, R.TIPO AS TIPO, R.NIVEL_ACEPTADO AS NIVEL_ACEPTADO,
+  R.MOTIVO_ACCION AS MOTIVO_ACCION
+FROM (
+${requests
+  .map(
+    ([
+      table,
+      label,
+    ]) => `  SELECT '${label}' AS TIPO, A.STD_ID_PERSON, A.NIVEL_ACEPTADO, A.MOTIVO_ACCION
+  FROM ${table} A
+  WHERE A.ID_ORGANIZATION = @organization AND A.ID_ESTADO_REG = 'PENDIENTE' AND A.STD_ID_PERSON IN (@team)`,
+  )
+  .join("\n  UNION ALL\n")}
+) R
+${employee("R.STD_ID_PERSON")}
+ORDER BY EMPLEADO, R.TIPO`,
+  );
+
+export const RESPONSABLE_SQL = {
+  /** `MSS_DELEGATION!MSS_DELEGATION`: delegaciones del responsable. */
+  delegaciones: own(
+    ["M4SSE_DELEGATION", "M4ORO_EMPLEADOS"],
+    `SELECT D.SCO_ID_PROCESS AS SCO_ID_PROCESS, ${EMPLOYEE_NAME.replace("AS EMPLEADO", "AS DELEGADO")},
+  D.DT_START AS DT_START, D.DT_END AS DT_END
+FROM M4SSE_DELEGATION D
+${employee("D.SCO_ID_DELEGATE")}
+WHERE D.ID_ORGANIZATION = @organization AND D.SCO_ID_MSS = @employeeId
+ORDER BY D.DT_START DESC`,
+  ),
+  /** `SMCO_EMPLOYEE_PROFESIONAL_DATA`: situación actual de cada persona del equipo. */
+  ficha: team(
+    ["M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, O.N_PUESTO AS N_PUESTO, O.N_UNIDAD AS N_UNIDAD,
+  O.N_CENTRO_TRABAJO AS N_CENTRO_TRABAJO, O.FEC_ANTIGUEDAD AS FEC_ANTIGUEDAD, O.CORREO AS CORREO
+FROM M4ORO_EMPLEADOS O
+WHERE O.ID_ORGANIZATION = @organization AND O.ID_EMPLEADO IN (@team) AND O.COMPUTA = '1'
+ORDER BY O.NOMBRE, O.APELLIDO_1`,
+  ),
+  /** Peticiones de datos personales pendientes (`SSE_ADDRESS_VAL` y equivalentes). */
+  validarPersonales: pendingRequests([
+    ["M4SSE_ADDRESS", "Dirección"],
+    ["M4SSE_EMAIL", "Correo electrónico"],
+    ["M4SSE_PHONE_FAX", "Teléfono"],
+    ["M4SSE_HT_MAR_STAT", "Estado civil"],
+    ["M4SSE_HOME_PAGE", "Página web"],
+    ["M4SSE_OTH_CONTACT_FORMS", "Otras formas de contacto"],
+    ["M4SSE_HR_CONTACT", "Contacto de emergencia"],
+    ["M4SSE_FAMILY", "Dependiente"],
+  ]),
+  /** Peticiones de datos profesionales pendientes. */
+  validarProfesionales: pendingRequests([
+    ["M4SSE_EMP_BCKGRND", "Titulación"],
+    ["M4SSE_EMP_LANG", "Idioma"],
+    ["M4SSE_EMP_PREV_JBS", "Experiencia"],
+    ["M4SSE_CERTIFICATION_LICEN", "Certificado o licencia"],
+    ["M4SSE_HR_COMP_BACKG", "Otros cursos"],
+    ["M4SEE_ASSOC_ME", "Asociación"],
+    ["M4SSE_HR_COMP_INFO", "Información complementaria"],
+  ]),
+  /** Peticiones económicas pendientes: cuentas (`SSE_PAYMENT_DATA`). */
+  validarCuentas: pendingRequests([["M4SSE_PAYMENT_DATA", "Cuenta bancaria"]]),
+  /** Peticiones económicas pendientes: préstamos (`SSE_LOANS`). */
+  validarPrestamos: pendingRequests([["M4SSE_LOANS", "Préstamo"]]),
+  /** `SSE_MOD_SITIRPF!SSE_VAL_ACUSE_RECIBO`: modificaciones del IRPF del equipo y su estado. */
+  validarIrpf: team(
+    ["M4SSE_HT_SITIRPF", "M4SSE_LU_EST_SITIRPF", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, L.SSP_NM_ESTADOESP AS SSP_NM_ESTADO, A.SSP_FEC_SOLIC AS SSP_FEC_SOLIC,
+  A.SSP_FEC_EFECTO AS SSP_FEC_EFECTO
+FROM M4SSE_HT_SITIRPF A
+LEFT JOIN M4SSE_LU_EST_SITIRPF L ON L.ID_ORGANIZATION IN ('0000', A.ID_ORGANIZATION) AND L.SSP_ID_ESTADO = A.SSP_ID_ESTADO
+${employee("A.STD_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.STD_ID_HR IN (@team)
+ORDER BY A.SSP_FEC_SOLIC DESC`,
+  ),
+  /** `SSM_SALARY` / `SSM_H_SAL_DATA`: paquete salarial vigente del equipo. */
+  salarios: team(
+    ["M4SCO_H_SAL_DATA", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, COALESCE(S.SCO_FIX_SALARY, 0) + COALESCE(S.SCO_VAR_SALARY, 0) AS SCO_SAL_TOTAL,
+  S.SCO_FIX_SALARY AS SCO_FIX_SALARY, S.SCO_VAR_SALARY AS SCO_VAR_SALARY,
+  S.SCO_BNFT_LEG_ENT AS SCO_BNFT_LEG_ENT, S.ID_CURRENCY AS ID_CURRENCY
+FROM M4ORO_EMPLEADOS O
+CROSS APPLY (SELECT TOP 1 X.* FROM M4SCO_H_SAL_DATA X
+  WHERE X.ID_ORGANIZATION = O.ID_ORGANIZATION AND X.SCO_ID_HR = O.ID_EMPLEADO
+    AND X.SCO_DT_START <= @today AND X.SCO_DT_END >= @today
+  ORDER BY X.SCO_DT_START DESC, X.SCO_OR_HR_PERIOD DESC) S
+WHERE O.ID_ORGANIZATION = @organization AND O.ID_EMPLEADO IN (@team) AND O.COMPUTA = '1'
+ORDER BY EMPLEADO`,
+  ),
+  /** `SSCO_H_EVALUTE`: evaluaciones del equipo. */
+  evaluaciones: team(
+    ["M4SCO_H_EVALUATE", "M4SCO_H_EVAL_PROC", "M4SCO_SCALE_LEVEL", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, P.SCO_NM_EVAL_PROESP AS SCO_NM_EVAL_PROC,
+  (SELECT TOP 1 L.SCO_NM_LEVELESP FROM M4SCO_SCALE_LEVEL L
+    WHERE L.ID_ORGANIZATION IN ('0000', A.ID_ORGANIZATION) AND L.SCO_ID_LEVEL = A.SCO_ID_LEVEL_OBJ) AS SCO_NM_LEVEL_OBJ,
+  A.SCO_DT_START_EVAL AS SCO_DT_START_EVAL
+FROM M4SCO_H_EVALUATE A
+LEFT JOIN M4SCO_H_EVAL_PROC P ON P.ID_ORGANIZATION = A.ID_ORGANIZATION
+  AND P.SCO_ID_EVAL_PLAN = A.SCO_ID_EVAL_PLAN AND P.SCO_DT_START_PROC = A.SCO_DT_START_PROC
+${employee("A.SCO_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.SCO_ID_HR IN (@team)
+ORDER BY A.SCO_DT_START_EVAL DESC, EMPLEADO`,
+  ),
+  /** `SSM_RECRUIT_PRO`: procesos de selección que el responsable solicitó o dirige. */
+  vacantes: own(
+    ["M4SCO_RECRUIT_PRO", "STD_JOB"],
+    `SELECT A.SCO_NM_RECRUITESP AS SCO_NM_RECRUIT, J.STD_N_JOB_CODEESP AS STD_N_JOB_CODE,
+  A.SCO_NU_POST_ESTIMA AS SCO_NU_POST_ESTIMA, A.SCO_DT_LIMIT AS SCO_DT_LIMIT
+FROM M4SCO_RECRUIT_PRO A
+LEFT JOIN STD_JOB J ON J.ID_ORGANIZATION = A.ID_ORGANIZATION AND J.STD_ID_JOB_CODE = A.SCO_ID_JOB
+  AND J.STD_DT_START <= @today AND J.STD_DT_END >= @today
+WHERE A.ID_ORGANIZATION = @organization
+  AND (A.SCO_ID_HR_REQUEST = @employeeId OR A.SCO_ID_HR_RESPONS = @employeeId)
+ORDER BY A.SCO_DT_START DESC`,
+  ),
+  /** `SSM_ABSENCES!SSM_ABSENCE_DETAIL`: total de ausencias por persona y año. */
+  ausencias: team(
+    ["M4SCO_REAL_TM_PRD", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, YEAR(A.SCO_DT_START) AS ANIO, SUM(A.SCO_UNITS) AS TOTAL
+FROM M4SCO_REAL_TM_PRD A
+${employee("A.STD_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.STD_ID_HR IN (@team)
+  AND YEAR(A.SCO_DT_START) >= YEAR(@today) - 1
+GROUP BY O.NOMBRE, O.APELLIDO_1, O.APELLIDO_2, YEAR(A.SCO_DT_START)
+ORDER BY ANIO DESC, EMPLEADO`,
+  ),
+  /** `SSM_HOLYDAYS`: vacaciones registradas del equipo en el año en curso. */
+  vacaciones: team(
+    ["M4SCO_REAL_TM_PRD", "M4SCO_INCIDENCE", "M4SCO_INCIDENCE_GR", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, B.SCO_INCIDENCEESP AS SCO_NM_INCIDENCE, A.SCO_DT_START AS SCO_DT_START,
+  A.SCO_DT_END AS SCO_DT_END, A.SCO_UNITS AS SCO_UNITS
+FROM M4SCO_REAL_TM_PRD A
+LEFT JOIN M4SCO_INCIDENCE B ON B.ID_ORGANIZATION IN ('0000', A.ID_ORGANIZATION) AND B.SCO_ID_INCIDENCE = A.SCO_ID_INCIDENCE
+LEFT JOIN M4SCO_INCIDENCE_GR G ON G.ID_ORGANIZATION = B.ID_ORGANIZATION AND G.SCO_ID_INC_GROUP = B.SCO_ID_INC_GROUP
+${employee("A.STD_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.STD_ID_HR IN (@team)
+  AND G.SFR_ID_ITR_GROUP = '02' AND YEAR(A.SCO_DT_START) = YEAR(@today)
+ORDER BY A.SCO_DT_START DESC`,
+  ),
+  /** `SMCO_AB_ENT_SUMMARY!SMCO_H_HRP_ENT_SUMMARY`: bolsas de derechos del equipo. */
+  bolsas: team(
+    ["M4SCO_AB_H_HRP_ENT_SUMMARY", "M4SCO_X_AB_ENTITLEMENT_TYPE", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, T.SCO_N_ENT_TYPEESP AS SCO_N_ENT_TYPE,
+  A.SCO_NUM_ENTITLEMENT AS SCO_NUM_ENTITLEMENT, A.SCO_NUM_USED AS SCO_NUM_USED,
+  A.SCO_TOT_REMAINING AS SCO_TOT_REMAINING
+FROM M4SCO_AB_H_HRP_ENT_SUMMARY A
+LEFT JOIN M4SCO_X_AB_ENTITLEMENT_TYPE T ON T.ID_ORGANIZATION = A.ID_ORGANIZATION
+  AND T.SCO_ID_ENTITLEMENT_TYPE = A.SCO_ID_ENTITLEMENT_TYPE
+${employee("A.SCO_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.SCO_ID_HR IN (@team) AND A.SCO_DT_END >= @today
+ORDER BY EMPLEADO`,
+  ),
+  /** `SSE_GTA_PLAN` (vista del responsable): días planificados del equipo para hoy. */
+  planificacion: team(
+    ["M4SCO_HR_REAL_WORK_DAYS", "M4SCO_DAY_TYPE", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, W.DT_START AS DT_START, D.NM_DAY_TYPEESP AS SCO_NM_DAY_TYPE,
+  W.SCO_WORK_THEO_HRS AS SCO_WORK_THEO_HRS
+FROM M4SCO_HR_REAL_WORK_DAYS W
+LEFT JOIN M4SCO_DAY_TYPE D ON D.ID_ORGANIZATION IN ('0000', W.ID_ORGANIZATION) AND D.SCO_ID_DAY_TYPE = W.SCO_ID_DAY_TYPE
+${employee("W.STD_ID_HR")}
+WHERE W.ID_ORGANIZATION = @organization AND W.STD_ID_HR IN (@team) AND W.DT_START = @today
+ORDER BY EMPLEADO`,
+  ),
+  /** `SSM_TRAINING_REQUEST`: solicitudes de formación del equipo. */
+  formacion: team(
+    [
+      "M4SCO_REQ_DETAIL",
+      "M4SCO_TRTB_REQ",
+      "M4SCO_DEVEL_SUBPRO",
+      "M4SCO_REQ_STATUS",
+      "M4ORO_EMPLEADOS",
+    ],
+    `SELECT ${EMPLOYEE_NAME}, S.SCO_NM_DEV_SUBESP AS SCO_NM_DEV_SUBPRODUCT,
+  R.SCO_NM_REQ_STATESP AS SCO_NM_REQ_STATUS, D.DT_START AS DT_START
+FROM M4SCO_REQ_DETAIL D
+LEFT JOIN M4SCO_TRTB_REQ A ON A.ID_ORGANIZATION = D.ID_ORGANIZATION AND A.SCO_ID_TRTBREQ = D.SCO_ID_TRTBREQ
+LEFT JOIN M4SCO_DEVEL_SUBPRO S ON S.ID_ORGANIZATION IN ('0000', A.ID_ORGANIZATION) AND S.SCO_ID_DEV_SUBPROD = A.SCO_ID_DEV_SUBPROD
+LEFT JOIN M4SCO_REQ_STATUS R ON R.ID_ORGANIZATION IN ('0000', D.ID_ORGANIZATION) AND R.SCO_ID_REQ_STATUS = D.SCO_ID_REQ_STATUS
+${employee("D.STD_ID_PERSON")}
+WHERE D.ID_ORGANIZATION = @organization AND D.STD_ID_PERSON IN (@team)
+ORDER BY D.DT_START DESC`,
+  ),
+  /** `SSM_CAREER_PLAN`: planes de carrera del equipo. */
+  carrera: team(
+    ["M4SCO_CR_PLAN_HT", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, A.SCO_NM_CR_PLANESP AS SCO_NM_CR_PLAN, A.DT_START AS DT_START, A.DT_END AS DT_END
+FROM M4SCO_CR_PLAN_HT A
+${employee("A.STD_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.STD_ID_HR IN (@team)
+ORDER BY EMPLEADO, A.DT_START DESC`,
+  ),
+  /** `SSM_GN_INTERVIEW!M4T_GN_INTERVIEW`: entrevistas del equipo. */
+  entrevistas: team(
+    ["M4SCO_GN_INTERVIEW", "M4SCO_X_IV_TYPE", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, A.SCO_INTERVIEW_NAME AS SCO_INTERVIEW_NAME, T.SCO_NM_IV_TYPEESP AS SCO_NM_IV_TYPE,
+  A.SCO_DT_REQUEST AS SCO_DT_REQUEST, A.SCO_DT_FINISH AS SCO_DT_FINISH
+FROM M4SCO_GN_INTERVIEW A
+LEFT JOIN M4SCO_X_IV_TYPE T ON T.ID_ORGANIZATION IN ('0000', A.ID_ORGANIZATION) AND T.SCO_ID_IV_TYPE = A.SCO_ID_IV_TYPE
+${employee("A.SCO_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.SCO_ID_HR IN (@team)
+ORDER BY A.SCO_DT_REQUEST DESC`,
+  ),
+  /** `SSM_CR_PREFERENC`: preferencias de carrera del equipo. */
+  preferencias: team(
+    ["M4SCO_CR_PREFERENC", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, A.SCO_PREFERENCES AS SCO_PREFERENCES, A.SCO_PREF_PRIORITY AS SCO_PREF_PRIORITY,
+  A.DT_START AS DT_START
+FROM M4SCO_CR_PREFERENC A
+${employee("A.STD_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.STD_ID_HR IN (@team)
+ORDER BY EMPLEADO, A.SCO_PREF_PRIORITY`,
+  ),
+  /** `SRCO_PA_MODIFICATION!SRCO_PA_PM_H_HRP_REQUEST`: peticiones de movimiento del equipo. */
+  movimientos: team(
+    ["M4SCO_PM_H_HRP_REQUEST", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, A.SCO_ID_PM_TYPE AS SCO_ID_PM_TYPE, A.SCO_DT_START AS SCO_DT_START,
+  A.SCO_DT_END AS SCO_DT_END
+FROM M4SCO_PM_H_HRP_REQUEST A
+${employee("A.SCO_ID_PERSON")}
+WHERE A.ID_ORGANIZATION = @organization AND A.SCO_ID_PERSON IN (@team)
+ORDER BY A.SCO_DT_START DESC`,
+  ),
+  /** `SSM_SALARY_REVIEW_PROCESS!M4HCO_CR_H_HR_SREV`: revisiones salariales del equipo. */
+  revisiones: team(
+    ["M4HCO_CR_H_HR_SREV", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, A.HCO_CR_REVIEW_DATE AS HCO_CR_REVIEW_DATE,
+  A.HCO_CR_INC_PERCENT AS HCO_CR_INC_PERCENT, A.HCO_CR_SAL_REV_VAL AS HCO_CR_SAL_REV_VAL,
+  A.HCO_CR_REVIEW_STAT AS HCO_CR_REVIEW_STAT
+FROM M4HCO_CR_H_HR_SREV A
+${employee("A.SCO_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.SCO_ID_HR IN (@team)
+ORDER BY A.HCO_CR_REVIEW_DATE DESC, EMPLEADO`,
+  ),
+  /** `CSP_RP_ORO_MSS!CSP_RP_ORO_MSS`: listado ORO de la organización del responsable. */
+  informeOro: team(
+    ["M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, O.N_DIRECCION AS N_DIRECCION, O.N_AREA AS N_AREA, O.N_UNIDAD AS N_UNIDAD,
+  O.N_PUESTO AS N_PUESTO, O.N_CENTRO_TRABAJO AS N_CENTRO_TRABAJO, O.FEC_ALTA_EMPLEADO AS FEC_ALTA_EMPLEADO
+FROM M4ORO_EMPLEADOS O
+WHERE O.ID_ORGANIZATION = @organization AND O.ID_EMPLEADO IN (@team) AND O.COMPUTA = '1'
+ORDER BY O.N_DIRECCION, O.N_AREA, O.N_UNIDAD, O.NOMBRE`,
+  ),
+  /** `SSE_EMP_CV`: titulaciones del equipo para su CV. */
+  cvTitulaciones: team(
+    ["STD_HR_ACAD_BACKGR", "STD_LU_EDU_DIPLOMA", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, D.STD_N_DIPLOMAESP AS STD_N_DIPLOMA, A.STD_DESC_EDU_CENTER AS STD_DESC_EDU_CENTER,
+  A.STD_DT_EARNED_EXPE AS STD_DT_EARNED_EXPE
+FROM STD_HR_ACAD_BACKGR A
+LEFT JOIN STD_LU_EDU_DIPLOMA D ON D.ID_ORGANIZATION = A.ID_ORGANIZATION AND D.STD_ID_DIPLOMA = A.STD_ID_DIPLOMA
+${employee("A.STD_ID_HR")}
+WHERE A.ID_ORGANIZATION IN ('0000', @organization) AND A.STD_ID_HR IN (@team)
+ORDER BY EMPLEADO, A.STD_DT_START`,
+  ),
+  /** `SSE_EMP_CV!M4T_EMP_CV_LANGUAGES`: idiomas del equipo. */
+  cvIdiomas: team(
+    ["STD_HR_LANG", "STD_LU_LANGUAGES", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, G.STD_N_LANGUAGEESP AS STD_N_LANGUAGE
+FROM STD_HR_LANG A
+LEFT JOIN STD_LU_LANGUAGES G ON G.ID_ORGANIZATION = A.ID_ORGANIZATION AND G.STD_ID_LANGUAGE = A.STD_ID_LANGUAGE
+${employee("A.STD_ID_HR")}
+WHERE A.ID_ORGANIZATION IN ('0000', @organization) AND A.STD_ID_HR IN (@team)
+ORDER BY EMPLEADO`,
+  ),
+  /** `SMCO_DEV_PLAN_ACCION`: acciones de desarrollo del equipo. */
+  desarrollo: team(
+    ["M4SCO_CR_ACTION_HR", "M4ORO_EMPLEADOS"],
+    `SELECT ${EMPLOYEE_NAME}, A.SCO_NM_ACTIONESP AS SCO_NM_ACTION, A.SCO_DT_START AS SCO_DT_START,
+  CASE A.SCO_IS_FINISHED WHEN 1 THEN 'Finalizada' ELSE 'En curso' END AS SCO_IS_FINISHED
+FROM M4SCO_CR_ACTION_HR A
+${employee("A.SCO_ID_HR")}
+WHERE A.ID_ORGANIZATION = @organization AND A.SCO_ID_HR IN (@team)
+ORDER BY EMPLEADO, A.SCO_DT_START DESC`,
+  ),
+} as const satisfies Record<string, PortalSqlQuery>;

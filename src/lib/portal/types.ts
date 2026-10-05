@@ -220,17 +220,41 @@ export type ConsultSpec = {
   readonly fields: readonly ConsultField[];
   readonly reader: PortalReaderId;
   readonly read: ReadContract;
+  /** Solo con `reader: "sql"`: la SELECT que reproduce el nodo Meta4 original. */
+  readonly query?: PortalSqlQuery;
+  /** Documento guardado en PeopleNet por fila; la SELECT devuelve su clave como `DOC_KEY`. */
+  readonly download?: { readonly kind: PortalDocumentKind; readonly label: string };
+};
+
+/** Documentos propios que el portal original descarga con `download_blob`. */
+export type PortalDocumentKind = "payslip" | "certificate" | "projection";
+
+/**
+ * Lectura de un nodo Meta4 reproducida desde su sentencia original
+ * (`docs/portal/implementacion/lecturas-sql.md`). Las columnas llevan como alias
+ * el item de cada campo. Parámetros que pone el servidor: `@organization`,
+ * `@today` y, según el alcance, `@employeeId` (`own`) o la población del
+ * responsable expandida en `IN (@team)` (`team`). `society` solo lee catálogos
+ * de la sociedad (cursos ofertados, vacantes). El navegador no aporta ninguno.
+ */
+export type PortalSqlQuery = {
+  readonly scope: "own" | "team" | "society";
+  readonly tables: readonly string[];
+  readonly statement: string;
 };
 
 export type PortalReaderId =
   | "dependency"
   | "own-emails"
   | "own-payment-accounts"
-  | "own-oro-status";
+  | "own-oro-status"
+  | "sql";
 
 /** Solo campos declarados, sin objetos de BD ni información ajena a la sección. */
 export type ConsultData = {
   readonly rows: readonly (readonly { readonly label: string; readonly value: string }[])[];
+  /** Enlace de descarga de cada fila (mismo orden que `rows`), si el apartado tiene documento. */
+  readonly links?: readonly (string | null)[];
 };
 
 export type FeatureSection =

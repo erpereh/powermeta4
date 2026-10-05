@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { assertReadOnlySql } from "../peoplenet/query";
 import { SOAP_CATALOG } from "../soap/catalog.generated";
 import { PORTAL_READER_FIELDS } from "./readers";
 import {
@@ -48,7 +49,34 @@ describe("registro del portal", () => {
       for (const query of queries) {
         expect(query.read).toBeDefined();
         if (query.reader === "dependency") expect(query.read.kind).toBe("pending");
-        else {
+        else if (query.reader === "sql") {
+          const where = `${feature.id}/${query.id}`;
+          const sqlQuery = query.query;
+          expect(sqlQuery, where).toBeDefined();
+          if (!sqlQuery) continue;
+          expect(() => assertReadOnlySql(sqlQuery.statement), where).not.toThrow();
+          expect(query.read).toMatchObject({ kind: "sql", tables: sqlQuery.tables });
+          for (const field of query.fields)
+            expect(
+              new RegExp(`\\bAS\\s+${field.item}\\b`, "i").test(sqlQuery.statement),
+              `${where}/${field.item}`,
+            ).toBe(true);
+          // Solo parámetros que pone el servidor, y el filtro de su alcance.
+          for (const [, param] of sqlQuery.statement.matchAll(/@(\w+)/g))
+            expect(
+              ["organization", "today", "employeeId", "team"],
+              `${where}: @${param}`,
+            ).toContain(param);
+          // Los catálogos compartidos (p. ej. publicaciones de RR. HH.) no dependen de la sociedad.
+          if (sqlQuery.scope !== "society")
+            expect(sqlQuery.statement, where).toContain("@organization");
+          if (query.download) expect(sqlQuery.statement, where).toMatch(/\bAS DOC_KEY\b/);
+          if (sqlQuery.scope === "own") expect(sqlQuery.statement, where).toContain("@employeeId");
+          else if (sqlQuery.scope === "team")
+            expect(sqlQuery.statement, where).toMatch(/IN \(@team\)/);
+          // Un catálogo de la sociedad nunca recibe una matrícula.
+          else expect(sqlQuery.statement, where).not.toMatch(/@employeeId|@team/);
+        } else {
           const fields: readonly string[] = PORTAL_READER_FIELDS[query.reader];
           for (const field of query.fields)
             expect(

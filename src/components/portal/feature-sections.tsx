@@ -1,4 +1,4 @@
-import { Info } from "lucide-react";
+import { Download, Info } from "lucide-react";
 
 import { Surface } from "@/components/system";
 import type { ConsultData, ConsultSpec, PortalFeature } from "@/lib/portal/types";
@@ -21,20 +21,34 @@ export function ConsultContent({
       return <p className="text-sm text-muted-foreground">No hay registros para este apartado.</p>;
     return (
       <ul className="flex min-w-0 flex-col gap-4" aria-label={consult.title}>
-        {result.data.rows.map((fields, index) => (
-          <li key={index} className="min-w-0 rounded-lg border border-border p-3">
-            <dl className="grid min-w-0 gap-3 sm:grid-cols-2">
-              {fields.map((field) => (
-                <div key={field.label} className="min-w-0 space-y-1">
-                  <dt className="text-xs text-muted-foreground">{field.label}</dt>
-                  <dd className="min-w-0 break-words text-sm text-foreground [overflow-wrap:anywhere]">
-                    {field.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </li>
-        ))}
+        {result.data.rows.map((fields, index) => {
+          const href = result.data.links?.[index];
+          return (
+            <li key={index} className="min-w-0 rounded-lg border border-border p-3">
+              <dl className="grid min-w-0 gap-3 sm:grid-cols-2">
+                {fields.map((field) => (
+                  <div key={field.label} className="min-w-0 space-y-1">
+                    <dt className="text-xs text-muted-foreground">{field.label}</dt>
+                    <dd className="min-w-0 break-words text-sm text-foreground [overflow-wrap:anywhere]">
+                      {field.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              {href && consult.download ? (
+                <a
+                  href={href}
+                  download
+                  aria-label={`${consult.download.label}: ${fields.map((field) => field.value).join(", ")}`}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Download className="size-4" aria-hidden="true" />
+                  {consult.download.label}
+                </a>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     );
   }

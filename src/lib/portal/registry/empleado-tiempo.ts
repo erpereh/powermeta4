@@ -1,7 +1,6 @@
 import type { PortalFeature } from "../types";
 import {
   check,
-  consult,
   date,
   form,
   genericWrite,
@@ -9,8 +8,11 @@ import {
   note,
   pendingRead,
   pendingSelect,
+  sqlConsult,
+  sqlRead,
   text,
 } from "./helpers";
+import { TIEMPO_SQL } from "./sql/tiempo";
 
 const TIE = "empleado/tiempo";
 const base = "/portal/empleado/tiempo";
@@ -35,35 +37,59 @@ export const EMPLEADO_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/sse_g4--sse_g4_p2.md`,
     keywords: ["vacaciones", "días", "bolsa", "solicitud", "saldo"],
     sensitive: true,
-    read: pendingRead([
-      "SSE_HOLYDAYS!SSE_PRINCIPAL.CARGA (TIPO_CARGA=ALL, NIVEL=0)",
-      "SSE_HOLYDAYS!SSE_REAL_TIME_PRD",
-      "SSE_HOLYDAYS!M4T_REAL_TIME_PRD",
-      "SSE_HOLYDAYS!SSE_INCIDENCE",
+    read: sqlRead([
+      ...new Set([
+        ...TIEMPO_SQL.bolsa.tables,
+        ...TIEMPO_SQL.peticiones.tables,
+        ...TIEMPO_SQL.aceptadas.tables,
+      ]),
     ]),
     view: "generic",
     sections: [
-      consult("bolsa", "Bolsa de vacaciones", "SSE_HOLYDAYS!SSE_INCIDENCE", "record", [
-        ["SCO_NUM_ENTITLEMENT", "Días del año"],
-        ["SCO_NUM_ENTITLEMENT_N1", "Arrastre del año anterior"],
-        ["SCO_NUM_REMAINING", "Disponibles"],
-        ["SCO_NUM_PENDING", "Pendientes"],
-        ["SCO_NUM_REMAINING_THEORETICAL", "Disponibles teóricos"],
-        ["SCO_NM_UNIT", "Unidad"],
-      ]),
-      consult("peticiones", "Peticiones", "SSE_HOLYDAYS!SSE_REAL_TIME_PRD", "list", [
-        ["SCO_NM_INCIDENCE", "Tipo"],
-        ["SSE_DT_START", "Inicio"],
-        ["SSE_DT_END", "Fin"],
-        ["SCO_UNITS", "Días"],
-        ["N_ACCION", "Estado"],
-      ]),
-      consult("aceptadas", "Registros aceptados", "SSE_HOLYDAYS!M4T_REAL_TIME_PRD", "list", [
-        ["SCO_NM_INCIDENCE", "Tipo"],
-        ["SCO_DT_START", "Inicio"],
-        ["SCO_DT_END", "Fin"],
-        ["SCO_UNITS", "Días"],
-      ]),
+      sqlConsult(
+        "bolsa",
+        "Bolsa de vacaciones",
+        "SSE_HOLYDAYS!SSE_AB_HRP_ENT_SUMMARY",
+        "list",
+        [
+          ["SCO_NM_INCIDENCE", "Tipo"],
+          ["SCO_NUM_ENTITLEMENT", "Días del año"],
+          ["SCO_NUM_ENTITLEMENT_N1", "Arrastre del año anterior"],
+          ["SCO_NUM_USED", "Disfrutados"],
+          ["SCO_NUM_REMAINING", "Disponibles"],
+          ["SCO_DT_END", "Vigencia"],
+        ],
+        TIEMPO_SQL.bolsa,
+      ),
+      sqlConsult(
+        "peticiones",
+        "Peticiones",
+        "SSE_HOLYDAYS!SSE_REAL_TIME_PRD",
+        "list",
+        [
+          ["SCO_NM_INCIDENCE", "Tipo"],
+          ["SSE_DT_START", "Inicio"],
+          ["SSE_DT_END", "Fin"],
+          ["SCO_UNITS", "Duración"],
+          ["SCO_NM_TIME_UNIT", "Unidad"],
+          ["N_ACCION", "Estado"],
+        ],
+        TIEMPO_SQL.peticiones,
+      ),
+      sqlConsult(
+        "aceptadas",
+        "Registros aceptados",
+        "SSE_HOLYDAYS!M4T_REAL_TIME_PRD",
+        "list",
+        [
+          ["SCO_NM_INCIDENCE", "Tipo"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_DT_END", "Fin"],
+          ["SCO_UNITS", "Duración"],
+          ["SCO_NM_TIME_UNIT", "Unidad"],
+        ],
+        TIEMPO_SQL.aceptadas,
+      ),
       form({
         id: "solicitud-vacaciones",
         title: "Solicitud de nuevo periodo",
@@ -124,9 +150,24 @@ export const EMPLEADO_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/sse_g4--sse_g4_gta_incidences_request_body.md`,
     keywords: ["incidencia", "permiso", "ausencia", "horas"],
     sensitive: true,
-    read: pendingRead(["SSE_HOLYDAYS!SSE_REAL_TIME_PRD", "SSE_HOLYDAYS!SSE_INCIDENCE"]),
+    read: sqlRead(TIEMPO_SQL.peticiones.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "peticiones",
+        "Mis peticiones",
+        "SSE_HOLYDAYS!SSE_REAL_TIME_PRD",
+        "list",
+        [
+          ["SCO_NM_INCIDENCE", "Tipo"],
+          ["SSE_DT_START", "Inicio"],
+          ["SSE_DT_END", "Fin"],
+          ["SCO_UNITS", "Duración"],
+          ["SCO_NM_TIME_UNIT", "Unidad"],
+          ["N_ACCION", "Estado"],
+        ],
+        TIEMPO_SQL.peticiones,
+      ),
       form({
         id: "incidencia",
         title: "Nueva incidencia",
@@ -212,14 +253,24 @@ export const EMPLEADO_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/sse_g4--sse_g4_p1.md`,
     keywords: ["absentismo", "bajas", "ausencias"],
     sensitive: true,
-    read: pendingRead(["SSE_REAL_TIME!SSE_REAL_TIME.CARGA"]),
+    read: sqlRead(TIEMPO_SQL.ausencias.tables),
     view: "generic",
     sections: [
-      consult("ausencias", "Ausencias laborales", "SSE_REAL_TIME", "list", [
-        [null, "Tipo absentismo"],
-        [null, "Inicio"],
-        [null, "Duración"],
-      ]),
+      sqlConsult(
+        "ausencias",
+        "Ausencias laborales",
+        "SSE_REAL_TIME!SSE_REAL_TIME",
+        "list",
+        [
+          ["SCO_NM_INCIDENCE", "Tipo absentismo"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_DT_END", "Fin"],
+          ["SCO_UNITS", "Duración"],
+          ["SCO_NM_TIME_UNIT", "Unidad"],
+        ],
+        TIEMPO_SQL.ausencias,
+        "Ausencias registradas en el año en curso.",
+      ),
     ],
   },
   {
@@ -234,11 +285,23 @@ export const EMPLEADO_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/sse_g4--sse_g4_p3.md`,
     keywords: ["festivos", "calendario laboral"],
     sensitive: false,
-    read: pendingRead(
-      ["SSE_CARGA_FESTIVOS!SSE_FESTIVOS.CARGA"],
-      "El calendario laboral (festivos legales y de la organización por centro) es un dato del ERP; no se deriva de calendarios públicos. Falta la lectura verificada de SSE_CARGA_FESTIVOS.",
-    ),
+    read: sqlRead(TIEMPO_SQL.festivos.tables),
     view: "generic",
+    sections: [
+      sqlConsult(
+        "festivos",
+        "Festivos del año",
+        "SSE_CARGA_FESTIVOS!SSE_FESTIVOS",
+        "list",
+        [
+          ["SCO_DT_DAY", "Día"],
+          ["SCO_NM_DAYCALEN_TYPE", "Tipo"],
+          ["SCO_COMMENT", "Comentario"],
+        ],
+        TIEMPO_SQL.festivos,
+        "Días del calendario laboral asignado en tus días de trabajo (GTA). Si tu sociedad no gestiona el calendario en Meta4, no hay registros.",
+      ),
+    ],
   },
   {
     id: "empleado.tiempo.planificacion",
@@ -262,12 +325,23 @@ export const EMPLEADO_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/sse_g4--sse_g4_gta_planning_body.md`,
     keywords: ["gta", "turnos", "jornada", "franjas"],
     sensitive: true,
-    read: pendingRead([
-      "SSE_GTA_PLAN!SSE_GTA_PLAN.SSE_MAIN_PRE_LOAD",
-      "SSE_GTA_PLAN!SSE_GTA_PLAN.SSE_MAIN_LOAD",
-    ]),
+    read: sqlRead(TIEMPO_SQL.planificacion.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "proximos-dias",
+        "Próximos días",
+        "SSE_GTA_PLAN!SSE_GTA_PLAN",
+        "list",
+        [
+          ["DT_START", "Día"],
+          ["SCO_NM_DAY_TYPE", "Tipo de día"],
+          ["SCO_WORK_THEO_HRS", "Horas teóricas"],
+          ["SCO_REAL_WORK_HRS", "Horas reales"],
+        ],
+        TIEMPO_SQL.planificacion,
+        "Planificación GTA de los próximos 31 días registrada en Meta4.",
+      ),
       form({
         id: "filtro-planificacion",
         title: "Periodo",
@@ -360,9 +434,20 @@ export const EMPLEADO_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/sse_g4--sse_g4_gta_virtual_clock.md`,
     keywords: ["fichaje", "entrada", "salida", "reloj"],
     sensitive: true,
-    read: pendingRead(["SSE_GTA_VIRTUAL_CLOCK_IN_OUT"]),
+    read: sqlRead(TIEMPO_SQL.fichajes.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "fichajes",
+        "Últimos fichajes",
+        "SSE_GTA_VIRTUAL_CLOCK_IN_OUT!SSE_GTA_VIRTUAL_CLOCK",
+        "list",
+        [
+          ["SCO_DT_DATE_AND_HOUR", "Fecha y hora"],
+          ["SCO_IN_OR_OUT", "Sentido"],
+        ],
+        TIEMPO_SQL.fichajes,
+      ),
       note(
         "Fichaje",
         "El servidor publica SCO_CLOCK_INOUT_API (tarjeta, hora, sentido, actividad), pero fichar es una escritura ERP no autorizada en powermeta4: no se registra ningún fichaje local ni simulado.",

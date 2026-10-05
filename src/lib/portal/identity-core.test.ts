@@ -5,6 +5,25 @@ import { crossCheckIdentity, evaluateProfileIdentity } from "./identity-core";
 const record = (fields: Record<string, string>) => ({ fields });
 
 describe("identidad propia del portal", () => {
+  it("decodifica las entidades XML del perfil en nombre y puesto", () => {
+    const evaluation = evaluateProfileIdentity(
+      [
+        record({
+          clave_Self: "u",
+          id_Empleado: "1",
+          nombre: "Jorge Salvador",
+          apellido_1: "Gonz&#xE1;lez",
+          n_Puesto: "CMS, CRM, Intranet &amp; HR",
+        }),
+      ],
+      "u",
+    );
+    expect(evaluation).toMatchObject({
+      status: "resolved",
+      person: { fullName: "Jorge Salvador González", job: "CMS, CRM, Intranet & HR" },
+    });
+  });
+
   it("acepta duplicados equivalentes y bloquea usuarios contradictorios sin perder ceros", () => {
     const profile = record({ clave_Self: "U", id_Empleado: "001471" });
     expect(evaluateProfileIdentity([profile, profile], "u")).toMatchObject({

@@ -47,4 +47,25 @@ describe("apartados de consultas", () => {
     );
     expect(screen.getByText("Ficha ambigua")).toBeTruthy();
   });
+  it("ofrece la descarga de cada documento con un nombre accesible propio", () => {
+    render(
+      <ConsultContent
+        consult={{ ...spec, download: { kind: "payslip", label: "Descargar PDF" } }}
+        result={{
+          status: "ok",
+          society: "CYC",
+          data: {
+            rows: [
+              [{ label: "IBAN", value: "Julio 2026" }],
+              [{ label: "IBAN", value: "Junio 2026" }],
+            ],
+            links: ["/api/portal/documents/payslip?k=1", null],
+          },
+        }}
+      />,
+    );
+    const link = screen.getByRole("link", { name: "Descargar PDF: Julio 2026" });
+    expect(link.getAttribute("href")).toBe("/api/portal/documents/payslip?k=1");
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+  });
 });

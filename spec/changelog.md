@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-10-05 - Portal conectado a PeopleNet en solo lectura
+
+- La cabecera del portal decodifica las entidades XML del perfil Meta4.
+- Nuevo lector `sql`: cada apartado reproduce la sentencia original de su nodo
+  Meta4, resuelta del diccionario por `scripts/portal/resolver-tablas.ts`
+  (`docs/portal/implementacion/lecturas-sql.md`). Todas pasan por
+  `assertReadOnlySql` y solo reciben parámetros del servidor.
+- 71 de 76 pantallas y las 87 consultas conectadas: datos personales y
+  profesionales, CV, IRPF, cuentas, recibos, certificados, proyecciones,
+  paquete salarial, préstamos, beneficios, vacaciones, ausencias, GTA,
+  formación, evaluación, carrera, movilidad, contactos y todo Responsable.
+- Descarga de los PDF que PeopleNet guarda (recibos, certificados y
+  proyecciones) en `GET /api/portal/documents/[kind]`, siempre de la matrícula
+  de la sesión.
+- Responsable abierto con el equipo de la jerarquía de ORO, calculado en la
+  base desde la matrícula del servidor (`SNTC_AD_POPULATION` llega vacío por SOAP).
+- `npm run portal:verify -- consultas <sociedad> <matrícula>` ejecuta todas las
+  consultas e imprime solo recuentos. Ninguna escritura se ha habilitado.
+
 ## 2026-10-05 - Unificación de davidev y salvadev en main
 
 - `main` incorpora `davidev` (portal, alta y rendimiento) y `salvadev`

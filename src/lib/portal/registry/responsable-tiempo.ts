@@ -1,15 +1,16 @@
 import type { PortalFeature } from "../types";
 import {
-  consult,
   date,
   form,
   methodWrite,
   note,
-  pendingRead,
   pendingSelect,
+  sqlConsult,
+  sqlRead,
   staticSelect,
   validationForm,
 } from "./helpers";
+import { RESPONSABLE_SQL } from "./sql/responsable";
 
 const TIE = "responsable/tiempo";
 const base = "/portal/responsable/tiempo";
@@ -48,12 +49,24 @@ export const RESPONSABLE_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/mss_g4--mss_g4_p1_val_body.md`,
     keywords: ["vacaciones", "validar", "equipo", "calendario"],
     sensitive: true,
-    read: pendingRead([
-      "SSM_HOLYDAYS!SSM_PRINCIPAL.CARGA",
-      "SSE_HOLYDAYS!SSE_CARGA_FESTIVOS.MSS_CARGA_VAL",
-    ]),
+    read: sqlRead(RESPONSABLE_SQL.vacaciones.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "vacaciones",
+        "Vacaciones del equipo",
+        "SSM_HOLYDAYS!M4T_REAL_TIME_PRD",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_NM_INCIDENCE", "Tipo"],
+          ["SCO_DT_START", "Inicio"],
+          ["SCO_DT_END", "Fin"],
+          ["SCO_UNITS", "Duración"],
+        ],
+        RESPONSABLE_SQL.vacaciones,
+        "Vacaciones registradas en el año en curso.",
+      ),
       form({
         id: "filtro-vacaciones",
         title: "Periodo",
@@ -103,14 +116,22 @@ export const RESPONSABLE_TIEMPO: readonly PortalFeature[] = [
     ],
     ficha: `${TIE}/mss_g4--mss_g4_p2_val_stat.md`,
     sensitive: true,
-    read: pendingRead(["SSM_ABSENCES!SSM_PRINCIPAL.CARGA", "SSM_ABSENCES_DYN"]),
+    read: sqlRead(RESPONSABLE_SQL.ausencias.tables),
     view: "generic",
     sections: [
-      consult("ausencias", "Ausencias", "SSM_ABSENCES", "list", [
-        [null, "Empleado"],
-        [null, "Año"],
-        [null, "Total"],
-      ]),
+      sqlConsult(
+        "ausencias",
+        "Ausencias",
+        "SSM_ABSENCES!SSM_ABSENCE_DETAIL",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["ANIO", "Año"],
+          ["TOTAL", "Total"],
+        ],
+        RESPONSABLE_SQL.ausencias,
+        "Unidades de ausencia por persona en el año en curso y el anterior.",
+      ),
     ],
   },
   {
@@ -125,9 +146,23 @@ export const RESPONSABLE_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/mss_g4--smco_ab_manual_adjustment.md`,
     keywords: ["bolsa", "saldo", "ajuste"],
     sensitive: true,
-    read: pendingRead(["SMCO_AB_ENT_SUMMARY", "SMCO_AB_MANUAL_ADJUST"]),
+    read: sqlRead(RESPONSABLE_SQL.bolsas.tables),
     view: "generic",
     sections: [
+      sqlConsult(
+        "bolsas",
+        "Bolsas del equipo",
+        "SMCO_AB_ENT_SUMMARY!SMCO_H_HRP_ENT_SUMMARY",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_N_ENT_TYPE", "Derecho"],
+          ["SCO_NUM_ENTITLEMENT", "Generado"],
+          ["SCO_NUM_USED", "Disfrutado"],
+          ["SCO_TOT_REMAINING", "Pendiente"],
+        ],
+        RESPONSABLE_SQL.bolsas,
+      ),
       note(
         "Saldos",
         "Una bolsa sin definir es distinta de saldo cero; los ajustes manuales pueden ser positivos o negativos.",
@@ -179,8 +214,22 @@ export const RESPONSABLE_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/mss_g4--mss_g4_gta_timesheet.md`,
     keywords: ["gta", "planificación", "alertas", "hoja de tiempos"],
     sensitive: true,
-    read: pendingRead(["SSE_GTA_PLAN", "SCO_GTA_VIEW_ALERTS", "SCO_GTA_EMPLOYEE_PRESENCE_REPR"]),
+    read: sqlRead(RESPONSABLE_SQL.planificacion.tables),
     view: "generic",
+    sections: [
+      sqlConsult(
+        "hoy",
+        "Planificación de hoy",
+        "SSE_GTA_PLAN!SSE_GTA_PLAN",
+        "list",
+        [
+          ["EMPLEADO", "Empleado"],
+          ["SCO_NM_DAY_TYPE", "Tipo de día"],
+          ["SCO_WORK_THEO_HRS", "Horas teóricas"],
+        ],
+        RESPONSABLE_SQL.planificacion,
+      ),
+    ],
     writes: [
       methodWrite(
         "incidencias-masivas",

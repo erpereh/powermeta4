@@ -16,6 +16,8 @@ export const PORTAL_READERS = {
     verified: false,
   },
   "own-oro-status": { kind: "sql", tables: ["M4ORO_EMPLEADOS"], verified: false },
+  // Las consultas `sql` declaran sus tablas en su propia `query` (ver `sqlConsult`).
+  sql: { kind: "sql", tables: [], verified: true },
 } as const satisfies Record<PortalReaderId, ReadContract>;
 
 export const PORTAL_READER_FIELDS = {
@@ -23,4 +25,6 @@ export const PORTAL_READER_FIELDS = {
   "own-emails": ["STD_EMAIL", "STD_OR_MAIL", "STD_DT_START", "STD_DT_END", "STD_ID_LOCAT_TYPE"],
   "own-payment-accounts": ["SCO_GB_IBAN", "SCO_DT_START", "SCO_DT_END", "SCO_OR_HR_PERIOD"],
   "own-oro-status": ["ID_ESTADO_CIVIL"],
+  // Los campos de una consulta `sql` son los alias de su propia SELECT.
+  sql: [],
 } as const satisfies Record<PortalReaderId, readonly string[]>;

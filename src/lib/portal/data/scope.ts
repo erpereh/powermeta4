@@ -4,12 +4,12 @@ import { callPortalService, type CallPortalServiceDeps } from "../soap/call";
 import type { SoapRecord } from "../soap/types";
 
 /**
- * Puerta de datos sensibles del responsable. Permanece cerrada hasta que el
- * usuario confirme que la población de `SNTC_AD_POPULATION` coincide con la del
- * SSM real (decisión registrada en spec/todo.md). Con la puerta cerrada solo se
- * muestran datos de directorio.
+ * Puerta de datos sensibles del responsable. Abierta el 2026-10-05 por decisión
+ * del usuario: `SNTC_AD_POPULATION` llega vacío por SOAP fuera del runtime de
+ * Meta4, así que los apartados del responsable leen solo el equipo que define
+ * su jerarquía en ORO (`team-scope.ts`), calculado en servidor desde su matrícula.
  */
-export const MANAGER_SCOPE_VERIFIED = false;
+export const MANAGER_SCOPE_VERIFIED = true;
 
 export type ResponsibilityUnit = {
   readonly unitId: string;

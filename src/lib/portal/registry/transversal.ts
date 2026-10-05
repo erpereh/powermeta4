@@ -1,5 +1,6 @@
 import type { PortalFeature } from "../types";
-import { methodWrite, note, pendingRead } from "./helpers";
+import { methodWrite, note, sqlConsult, sqlRead } from "./helpers";
+import { ORGANIZACION_SQL } from "./sql/organizacion";
 
 const ORG = "empleado/organizacion";
 const NAV = "transversal/navegacion";
@@ -133,8 +134,24 @@ export const TRANSVERSAL: readonly PortalFeature[] = [
     ],
     ficha: `${ORG}/sse_g0--sse_g0_p1.md`,
     sensitive: false,
-    read: pendingRead(["SGCO_CONTACT", "SSCO_WHO_IS_WHO"]),
+    read: sqlRead(ORGANIZACION_SQL.contactos.tables),
     view: "generic",
+    sections: [
+      sqlConsult(
+        "contactos",
+        "Mis contactos",
+        "SGCO_CONTACT!SGCO_CONTACT_MAIN",
+        "list",
+        [
+          ["NOMBRECOMPLETO", "Nombre"],
+          ["N_PUESTO", "Puesto"],
+          ["N_UNIDAD", "Unidad"],
+          ["CORREO", "Correo"],
+          ["SCO_DT_INSERTED", "Añadido el"],
+        ],
+        ORGANIZACION_SQL.contactos,
+      ),
+    ],
     writes: [
       methodWrite("contacto-alta", "Añadir contacto", "SGCO_CONTACT (ssco_g0_contact.jsp)"),
       methodWrite("contacto-baja", "Eliminar contacto", "SGCO_CONTACT (ssco_mn_contact.jsp)"),
