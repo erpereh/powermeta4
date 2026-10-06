@@ -5,6 +5,17 @@ pestañas, Inicio, breadcrumbs, rutas y búsqueda. El empleado sigue las trece
 capturas aportadas; el responsable sigue `libreria/menu_mss_esp.js` y
 `mss_generico/espanol/generico_mapa.jsp`. Se conserva el diseño de powermeta4.
 
+Las pestañas principales subrayadas permanecen en la cabecera del portal. Las
+subpáginas se muestran como enlaces pill dentro de cada pantalla, después del
+título y descripción y antes de los metadatos y contenido, solo cuando hay más
+de una página disponible para la variante. En ambos perfiles la URL determina
+la selección.
+
+El grupo «Aplicaciones Internas» tiene `showInPrimaryNav: false`: su pestaña
+superior no se muestra y, en su página, ninguna otra pestaña queda seleccionada.
+Conserva su URL, búsqueda y acceso desde la sidebar como primera página de su
+sección cuando la variante la admite. Los demás grupos son visibles por defecto.
+
 Cada entrada declara pantalla, ruta y destino original. Los parámetros como
 `vista=0/1/2`, `mss=0/1`, `proc=1` y `zTLoad=FR` distinguen modos; no llegan al
 servidor como sociedad, matrícula ni alcance. Las rutas públicas existentes se

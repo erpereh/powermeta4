@@ -1,5 +1,32 @@
 # powermeta4 - estado de tareas
 
+## Portal: ajuste de pestañas en salvadev - 2026-10-06
+
+- [x] `showInPrimaryNav` opcional, visible por defecto. Solo Aplicaciones
+      Internas oculta su pestaña; conserva página, URL, búsqueda y entrada desde
+      sidebar, sin seleccionar otra pestaña en esa página.
+- [x] Navegación principal subrayada en `PortalShell`; subtabs pill en
+      `FeatureHeader`, después del título y descripción y antes de los metadatos.
+      Ambos perfiles muestran subtabs solo si hay varias páginas disponibles.
+- [x] Enlaces reales, selección por ruta, foco visible y teclado en ambas
+      variantes de `SectionNav`. Pruebas dirigidas: 17 correctas en 3 archivos;
+      variantes CYC/BASE comprobadas con contexto sintético.
+- [x] Revisión local en modo desarrollo: empleado y responsable, acceso directo,
+      recarga, atrás/adelante, búsqueda, sidebar y tamaños 1440, 1024 y 390 px.
+      Scroll de pestañas contenido y sin overflow horizontal de la página.
+      No se ha comprobado una sesión Meta4 viva ni cambio real de sociedad.
+- [x] Documentación de navegación y diseño actualizada; `npm run portal:docs`
+      regenerado con 194 pantallas. `typecheck`, `build` y `git diff --check`
+      correctos; `git status --short` revisado. Suite completa: 758 pruebas
+      correctas y 2 omitidas (138 archivos).
+- [x] Lint global ejecutado: mantiene 7 avisos y formato pendiente en 406
+      archivos previos. Oxlint y formato dirigidos al código y documentación
+      de navegación del cambio pasan; se conserva el formato histórico de specs.
+- [x] Registrados los avisos observados en desarrollo: el aviso previo de
+      actualización durante render en la búsqueda y un aviso de hidratación al
+      encadenar recarga/historial en la prueba. La repetición secuencial en ambos
+      perfiles mantiene URL, título y selección coherentes.
+
 ## Portal: organización del original en salvadev - 2026-10-06
 
 - [x] Registro único con sección, grupo, página, ruta, pantalla y destino

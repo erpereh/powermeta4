@@ -80,6 +80,19 @@ const employeeGroups = [
 ];
 
 describe("navegación original del portal", () => {
+  it("oculta solo la pestaña de Aplicaciones Internas y conserva su entrada, URL y búsqueda", () => {
+    const hidden = PORTAL_MENU.flatMap((section) => section.groups).filter(
+      (group) => group.showInPrimaryNav === false,
+    );
+    expect(hidden).toHaveLength(1);
+    expect(hidden[0].title).toBe("Aplicaciones Internas");
+    const route = "/portal/empleado/aplicaciones/internas";
+    expect(getPortalFeatureByRoute(route)?.title).toBe("Aplicaciones Internas");
+    expect(getPortalMenuRedirect("/portal/empleado/aplicaciones", "CYC")).toBe(route);
+    expect(
+      searchPortalFeatures("Aplicaciones Internas", "CYC").map((feature) => feature.route),
+    ).toContain(route);
+  });
   it("cubre los destinos del menú español del responsable de la copia local", () => {
     const source = readFileSync(
       path.resolve("clon_portal/portal/libreria/menu_mss_esp.js"),

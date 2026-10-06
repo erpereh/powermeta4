@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-10-06 - Pestañas del portal dentro de cada página
+
+- Aplicaciones Internas conserva su página, URL, búsqueda y acceso de sidebar,
+  pero oculta su pestaña superior mediante `showInPrimaryNav: false`. En esa
+  página las otras pestañas quedan sin seleccionar.
+- Pestañas principales subrayadas en la cabecera; subtabs pill compartidas
+  mediante `FeatureHeader`, entre título/descripción y metadatos, para empleado
+  y responsable. Solo se muestran si hay varias páginas disponibles, con enlaces
+  reales, selección por URL, foco y navegación por teclado.
+- Diseño y documentación de navegación actualizados; `portal:docs` regenerado
+  (194 pantallas). Pruebas dirigidas: 17 correctas; suite completa: 758 correctas
+  y 2 omitidas. Typecheck, build y diff correctos. Lint global conserva 7 avisos
+  y 406 archivos con formato previo pendiente; revisión dirigida correcta.
+- Comprobados ambos perfiles en modo desarrollo, recarga e historial, búsqueda,
+  sidebar y tamaños de escritorio, tablet y móvil sin overflow horizontal.
+  CYC/BASE cubiertas con contexto sintético; falta verificación con sesión Meta4
+  viva. Durante la prueba apareció un aviso de hidratación al encadenar
+  recarga/historial; el recorrido secuencial en ambos perfiles pasó. La búsqueda
+  conserva su aviso previo de actualización durante render.
+
 ## 2026-10-06 - Portal organizado como el original
 
 - Sidebar del empleado y responsable con las secciones del portal español;

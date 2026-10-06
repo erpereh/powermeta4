@@ -335,8 +335,11 @@ nómina con importes numéricos, más «Resumen» si son varias.
 - Raíz `/portal` con cabecera propia: breadcrumb y búsqueda (Ctrl+K abre el
   palette en modo «portal»: pantallas y personas desde dos caracteres),
   persona y sociedad, conmutador Empleado/Responsable con enlaces reales y
-  `SectionNav` de dominios (enlaces con `aria-current`, flechas, Inicio y Fin,
-  desplazamiento horizontal interno en móvil).
+  `SectionNav` subrayadas para los apartados de la sección activa. Las subpáginas
+  usan su variante `pill` dentro de `FeatureHeader`, después del título y resumen
+  y antes de los metadatos, solo si hay varias páginas disponibles. Ambos niveles
+  conservan enlaces con `aria-current`, flechas, Inicio y Fin y desplazamiento
+  horizontal interno en móvil.
 - La sidebar añade el grupo colapsable «Portal» con las mismas reglas que
   Herramientas: la fila no navega, los hijos sí.
 - Cada pantalla muestra título, resumen, origen (JSP de la ficha) y estado del

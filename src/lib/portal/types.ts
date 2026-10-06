@@ -341,6 +341,8 @@ export type PortalMenuGroup = {
   readonly id: string;
   readonly title: string;
   readonly pages: readonly PortalMenuPage[];
+  /** Visible en las pestañas principales por defecto; no altera rutas ni la entrada de sección. */
+  readonly showInPrimaryNav?: boolean;
 };
 
 export type PortalMenuSection = {

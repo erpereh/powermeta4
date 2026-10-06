@@ -6,14 +6,14 @@
 
 Raíz: `/portal/empleado/aplicaciones`. Abre la primera página disponible.
 
-| Pestaña                 | Página                  | Ruta                                                | Destino original                     |
-| ----------------------- | ----------------------- | --------------------------------------------------- | ------------------------------------ |
-| Aplicaciones Internas   | Aplicaciones Internas   | `/portal/empleado/aplicaciones/internas`            | sse_g1/sse_g1_pcyc.jsp               |
-| Organigrama             | Organigrama             | `/portal/empleado/aplicaciones/organigrama`         | sse_g0/sse_g0_organigramas.jsp       |
-| Quién es Quién          | Quién es Quién          | `/portal/empleado/aplicaciones/quien-es-quien`      | sse_g0/ssco_g0_who_is_who.jsp        |
-| Certificado de Haberes  | Certificado de Haberes  | `/portal/empleado/aplicaciones/certificado-haberes` | sse_g2/sse_g2_cert_hab.jsp?estado=21 |
-| Informe de proyecciones | Informe de proyecciones | `/portal/empleado/aplicaciones/proyecciones`        | sse_g2/sse_g2_proyecciones.jsp       |
-| Nómina                  | Nómina                  | `/portal/empleado/aplicaciones/nomina`              | sse_g2/sse_g2_p4.jsp                 |
+| Pestaña                                      | Página                  | Ruta                                                | Destino original                     |
+| -------------------------------------------- | ----------------------- | --------------------------------------------------- | ------------------------------------ |
+| Aplicaciones Internas (sin pestaña superior) | Aplicaciones Internas   | `/portal/empleado/aplicaciones/internas`            | sse_g1/sse_g1_pcyc.jsp               |
+| Organigrama                                  | Organigrama             | `/portal/empleado/aplicaciones/organigrama`         | sse_g0/sse_g0_organigramas.jsp       |
+| Quién es Quién                               | Quién es Quién          | `/portal/empleado/aplicaciones/quien-es-quien`      | sse_g0/ssco_g0_who_is_who.jsp        |
+| Certificado de Haberes                       | Certificado de Haberes  | `/portal/empleado/aplicaciones/certificado-haberes` | sse_g2/sse_g2_cert_hab.jsp?estado=21 |
+| Informe de proyecciones                      | Informe de proyecciones | `/portal/empleado/aplicaciones/proyecciones`        | sse_g2/sse_g2_proyecciones.jsp       |
+| Nómina                                       | Nómina                  | `/portal/empleado/aplicaciones/nomina`              | sse_g2/sse_g2_p4.jsp                 |
 
 ## empleado: Mis herramientas
 

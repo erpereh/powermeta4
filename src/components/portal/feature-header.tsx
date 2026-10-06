@@ -1,5 +1,7 @@
 import { FileSearch } from "lucide-react";
 
+import { SectionNav } from "@/components/system";
+import { getPortalMenuLocation, getPortalMenuPages } from "@/lib/portal/registry";
 import type { PortalFeature, PortalVariant } from "@/lib/portal/types";
 
 import { PORTAL_ICONS } from "./portal-icons";
@@ -10,7 +12,7 @@ const READ_LABEL: Record<PortalFeature["read"]["kind"], string> = {
   pending: "Pendiente de conexión",
 };
 
-/** Título, resumen y origen de la pantalla original. */
+/** Título, resumen, subpáginas y origen de la pantalla original. */
 export function FeatureHeader({
   feature,
   variant,
@@ -20,6 +22,8 @@ export function FeatureHeader({
 }) {
   const Icon = PORTAL_ICONS[feature.icon];
   const variantNote = variant ? feature.variants?.[variant] : undefined;
+  const location = getPortalMenuLocation(feature.route);
+  const pages = location?.group ? getPortalMenuPages(location.group, variant ?? undefined) : [];
   return (
     <header className="flex min-w-0 flex-col gap-3">
       <div className="flex min-w-0 items-start gap-3">
@@ -31,6 +35,18 @@ export function FeatureHeader({
           <p className="text-sm text-muted-foreground">{feature.summary}</p>
         </div>
       </div>
+      {pages.length > 1 ? (
+        <SectionNav
+          aria-label={`Páginas de ${location?.group?.title}`}
+          variant="pill"
+          items={pages.map((page) => ({
+            href: page.route,
+            label: page.title,
+            badge: page.modeLabel,
+          }))}
+          activeHref={location?.page?.route ?? null}
+        />
+      ) : null}
       <dl className="flex min-w-0 flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
         <div className="flex gap-1.5">
           <dt>Datos:</dt>

@@ -268,11 +268,14 @@ export function createPortalMenu(baseFeatures: readonly PortalFeature[]) {
   ];
   const employeeSections = [
     es("aplicaciones", "Aplicaciones Internas", "link", [
-      single(
-        e("datos.aplicaciones", "Aplicaciones Internas", {
-          route: "/portal/empleado/aplicaciones/internas",
-        }),
-      ),
+      {
+        ...single(
+          e("datos.aplicaciones", "Aplicaciones Internas", {
+            route: "/portal/empleado/aplicaciones/internas",
+          }),
+        ),
+        showInPrimaryNav: false,
+      },
       single(
         page("organizacion.organigrama", "Organigrama", {
           route: "/portal/empleado/aplicaciones/organigrama",

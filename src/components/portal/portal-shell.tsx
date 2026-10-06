@@ -130,7 +130,7 @@ function PortalBreadcrumb({ pathname }: { pathname: string }) {
   );
 }
 
-/** Marco del portal: perfil y dos niveles de pestañas derivados de la URL. */
+/** Marco del portal: perfil y pestañas principales derivadas de la URL. */
 export function PortalShell({
   context,
   children,
@@ -145,6 +145,7 @@ export function PortalShell({
   const variant = context.mode === "meta4" ? context.variant : undefined;
   const groups =
     location?.section.groups.flatMap((group) => {
+      if (group.showInPrimaryNav === false) return [];
       const first = getPortalMenuPages(group, variant)[0];
       return first
         ? [
@@ -156,10 +157,10 @@ export function PortalShell({
           ]
         : [];
     }) ?? [];
-  const pages = location?.group ? getPortalMenuPages(location.group, variant) : [];
-  const activeGroupHref = location?.group
-    ? (getPortalMenuPages(location.group, variant)[0]?.route ?? null)
-    : null;
+  const activeGroupHref =
+    location?.group && location.group.showInPrimaryNav !== false
+      ? (getPortalMenuPages(location.group, variant)[0]?.route ?? null)
+      : null;
   const person = context.mode === "meta4" ? context.person : null;
 
   return (
@@ -219,20 +220,7 @@ export function PortalShell({
               }
               items={groups}
               activeHref={activeGroupHref}
-              className={pages.length > 1 ? undefined : "border-b-0"}
             />
-            {pages.length > 1 ? (
-              <SectionNav
-                aria-label={`Páginas de ${location.group?.title}`}
-                items={pages.map((page) => ({
-                  href: page.route,
-                  label: page.title,
-                  badge: page.modeLabel,
-                }))}
-                activeHref={location.page?.route ?? null}
-                className="border-b-0"
-              />
-            ) : null}
           </div>
         ) : null}
       </div>
