@@ -6,7 +6,7 @@ import { UserRound } from "lucide-react";
 import { searchPortalDirectoryAction } from "@/app/actions/portal";
 import type { CommandItem } from "@/components/system";
 import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
-import { getPortalDomain, PORTAL_FEATURES } from "@/lib/portal/registry";
+import { getPortalDomain, getPortalMenuLocation, PORTAL_FEATURES } from "@/lib/portal/registry";
 import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
 
 import { PORTAL_ICONS } from "./portal-icons";
@@ -85,15 +85,30 @@ export function usePortalCommandItems({ navigate }: { navigate: (href: string) =
   );
 
   const items = useMemo<CommandItem[]>(() => {
-    const features = PORTAL_FEATURES.map((feature) => ({
-      id: `portal:${feature.id}`,
-      label: feature.title,
-      group: getPortalDomain(feature.domain)?.title ?? "Portal",
-      hint: feature.profile === "responsable" ? "Responsable" : undefined,
-      keywords: [feature.summary, ...(feature.keywords ?? [])],
-      icon: PORTAL_ICONS[feature.icon],
-      onSelect: () => navigate(feature.route),
-    }));
+    const features = PORTAL_FEATURES.map((feature) => {
+      const location = getPortalMenuLocation(feature.route);
+      return {
+        id: `portal:${feature.id}`,
+        label: feature.title,
+        group: location?.section.title ?? getPortalDomain(feature.domain)?.title ?? "Portal",
+        hint:
+          [
+            feature.profile === "responsable" ? "Responsable" : null,
+            location?.group?.title !== feature.title ? location?.group?.title : null,
+            location?.page?.modeLabel,
+          ]
+            .filter(Boolean)
+            .join(" · ") || undefined,
+        keywords: [
+          feature.summary,
+          location?.section.title ?? "",
+          location?.group?.title ?? "",
+          ...(feature.keywords ?? []),
+        ],
+        icon: PORTAL_ICONS[feature.icon],
+        onSelect: () => navigate(feature.route),
+      };
+    });
     const persons = people.map((person) => ({
       id: `persona:${person.key}`,
       label: person.fullName,

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PortalContext } from "../context";
 import { consult } from "../registry/helpers";
 import { PORTAL_FEATURES } from "../registry";
+import { EMPLEADO_DATOS } from "../registry/empleado-datos";
 import { PeopleNetConfigError } from "@/lib/peoplenet/client";
 
 const mocks = vi.hoisted(() => ({ emails: vi.fn(), payments: vi.fn(), select: vi.fn() }));
@@ -34,10 +35,25 @@ const context: PortalContext = {
     },
   },
 };
-const feature = PORTAL_FEATURES.find((entry) => entry.id === "empleado.datos.ficha")!;
+const feature = EMPLEADO_DATOS.find((entry) => entry.id === "empleado.datos.ficha")!;
 beforeEach(() => vi.clearAllMocks());
 
 describe("apartados independientes", () => {
+  it("separa tipos de solicitud y conserva las descargas de sus filas", () => {
+    const section = consult("solicitudes", "Peticiones", "SSE_ADDRESS", "list", [["TIPO", "Tipo"]]);
+    if (section.kind !== "consult") throw new Error("Se esperaba consulta");
+    const spec = {
+      ...section.consult,
+      rowFilter: { item: "TIPO", equals: ["Dirección"] },
+      download: { kind: "certificate", label: "PDF" },
+    } as const;
+    const result = mapConsultRows(spec, [
+      { TIPO: "Idioma", DOC_KEY: "ajeno" },
+      { TIPO: "Dirección", DOC_KEY: "propio" },
+    ]);
+    expect(result.rows).toEqual([[{ label: "Tipo", value: "Dirección" }]]);
+    expect(result.links).toEqual(["/api/portal/documents/certificate?k=propio"]);
+  });
   it("presenta fechas y vigencias sin alterar identificadores", () => {
     const section = consult(
       "x",
@@ -120,7 +136,7 @@ describe("apartados sql", () => {
 
   it("lee los datos propios con la sociedad y la matrícula del servidor", async () => {
     mocks.select.mockResolvedValue([{ SSP_NM_CATEGORIA: "Grupo I" }]);
-    const result = await loadFeatureConsults(sqlFeature("empleado.datos.ficha"), context);
+    const result = await loadFeatureConsults(feature, context);
     expect(result["grupo-nivel"]).toMatchObject({
       status: "ok",
       data: { rows: [[{ label: "Grupo y nivel", value: "Grupo I" }]] },
@@ -132,6 +148,21 @@ describe("apartados sql", () => {
       });
   });
 
+  it("un cambio de sociedad usa el nuevo contexto del servidor en las páginas separadas", async () => {
+    mocks.select.mockResolvedValue([]);
+    const page = sqlFeature("menu.empleado.datos.idiomas");
+    await loadFeatureConsults(page, context);
+    expect(params(0)).toMatchObject({
+      organization: { value: "COLL" },
+      employeeId: { value: "001471" },
+    });
+    mocks.select.mockClear();
+    await loadFeatureConsults(page, { ...context, society: "CYC", variant: "CYC" });
+    expect(params(0)).toMatchObject({
+      organization: { value: "CYC" },
+      employeeId: { value: "001471" },
+    });
+  });
   it("el equipo se calcula en la base desde la matrícula del responsable", async () => {
     mocks.select.mockResolvedValue([]);
     // La puerta del responsable se prueba aparte; aquí solo cómo se forma la consulta de equipo.

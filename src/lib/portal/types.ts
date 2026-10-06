@@ -136,6 +136,7 @@ export type FieldOptionsSource =
 
 export type FieldType =
   | "text"
+  | "password"
   | "textarea"
   | "date"
   | "number"
@@ -183,9 +184,15 @@ export type FormRule =
   | { readonly kind: "notBeforeHireDate"; readonly field: string; readonly message: string }
   | { readonly kind: "oneOf"; readonly fields: readonly string[]; readonly message: string }
   | {
-      readonly kind: "emailMatch";
+      readonly kind: "emailMatch" | "fieldsMatch";
       readonly field: string;
       readonly confirm: string;
+      readonly message: string;
+    }
+  | {
+      readonly kind: "fieldsDiffer";
+      readonly field: string;
+      readonly other: string;
       readonly message: string;
     };
 
@@ -222,6 +229,8 @@ export type ConsultSpec = {
   readonly read: ReadContract;
   /** Solo con `reader: "sql"`: la SELECT que reproduce el nodo Meta4 original. */
   readonly query?: PortalSqlQuery;
+  /** Filtro fijo del registro para separar tipos en consultas históricas agregadas. */
+  readonly rowFilter?: { readonly item: string; readonly equals: readonly string[] };
   /** Documento guardado en PeopleNet por fila; la SELECT devuelve su clave como `DOC_KEY`. */
   readonly download?: { readonly kind: PortalDocumentKind; readonly label: string };
 };
@@ -309,4 +318,36 @@ export type PortalDomain = {
   readonly icon: PortalIconName;
   readonly route: string;
   readonly guide: string;
+};
+
+/** Destino original: no se deduce una URL de una etiqueta del menú dinámico. */
+export type PortalOriginalDestination =
+  | {
+      readonly kind: "jsp";
+      readonly path: string;
+      readonly parameters: Readonly<Record<string, string>>;
+    }
+  | { readonly kind: "dynamic"; readonly menuEntry: string; readonly dependency: string };
+
+export type PortalMenuPage = {
+  readonly featureId: string;
+  readonly route: string;
+  readonly title: string;
+  readonly original: PortalOriginalDestination;
+  readonly modeLabel?: string;
+};
+
+export type PortalMenuGroup = {
+  readonly id: string;
+  readonly title: string;
+  readonly pages: readonly PortalMenuPage[];
+};
+
+export type PortalMenuSection = {
+  readonly id: string;
+  readonly profile: PortalProfile;
+  readonly title: string;
+  readonly icon: PortalIconName;
+  readonly route: string;
+  readonly groups: readonly PortalMenuGroup[];
 };

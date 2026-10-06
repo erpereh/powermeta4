@@ -44,10 +44,14 @@ export const methodWrite = (
 });
 
 /** Lectura que solo puede resolverse con el runtime Meta4 o tablas por descubrir. */
-export const pendingRead = (meta4: readonly string[], detail?: string): ReadContract => ({
+export const pendingRead = (
+  meta4: readonly string[],
+  detail?: string,
+  pending: readonly PendingId[] = ["P02", "P05"],
+): ReadContract => ({
   kind: "pending",
   meta4,
-  pending: ["P02", "P05"],
+  pending,
   detail:
     detail ??
     "La pantalla original ejecuta el objeto en el runtime Meta4. Falta publicarlo como servicio o verificar sus tablas en PeopleNet.",

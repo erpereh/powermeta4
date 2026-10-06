@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,12 @@ export interface SectionNavProps {
  */
 export function SectionNav({ items, activeHref, className, ...rest }: SectionNavProps) {
   const listRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    listRef.current
+      ?.querySelector<HTMLAnchorElement>('a[aria-current="page"]')
+      ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [activeHref]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
     const links = [
@@ -66,7 +72,7 @@ export function SectionNav({ items, activeHref, className, ...rest }: SectionNav
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative inline-flex h-10 items-center gap-1.5 rounded-t-md px-3 text-sm whitespace-nowrap transition-colors outline-none",
-                  "focus-visible:ring-2 focus-visible:ring-ring/60",
+                  "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60",
                   active
                     ? "font-medium text-foreground after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary"
                     : "text-muted-foreground hover:text-foreground",

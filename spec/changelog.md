@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-10-06 - Portal organizado como el original
+
+- Sidebar del empleado y responsable con las secciones del portal español;
+  pestañas superiores para apartados y una segunda fila para sus subpáginas.
+  Selección por URL, enlaces directos, recarga e historial. Inicio, breadcrumbs
+  y búsqueda consumen la misma jerarquía tipada; no hay favoritos del portal.
+- Se conservan las rutas previas y se añaden accesos contextuales con sección
+  activa propia. La primera página disponible se resuelve con la variante del
+  servidor. Las distintas versiones y parámetros originales mantienen destinos
+  separados.
+- Datos profesionales, cuentas, beneficios, carrera, evaluación, formación y
+  validaciones muestran su contenido específico. Las peticiones agregadas del
+  responsable se filtran por tipo fijo dentro del equipo del servidor; el
+  historial de beneficios incluye también periodos finalizados.
+- Formularios y estructuras respaldados por JSP, con validaciones y envío ERP
+  bloqueado. Los menús dinámicos y cuestionarios sin contrato muestran su
+  dependencia. Se mantienen lecturas y descargas existentes, sin datos inventados
+  ni almacenamiento personal nuevo.
+- Documentación de navegación y `portal:docs` regenerados (194 pantallas).
+  Pruebas del portal y sidebar: 102 correctas; typecheck, build y diff correctos.
+  Revisión local de ambos perfiles y tamaños de pantalla en modo desarrollo;
+  datos y descargas vivos pendientes de sesión Meta4. Lint global conserva
+  problemas previos de formato; el chequeo dirigido del cambio pasa.
+- Suite completa: 753 pruebas correctas, 2 omitidas y un timeout de 5 s en
+  backups; sus 6 pruebas pasan al repetirlas solas. Excel COM pasa. Suite sin
+  Excel COM: 744 pruebas correctas y 2 omitidas. La expectativa de referencias
+  de vacaciones se actualiza a la consulta separada y pasa.
+
 ## 2026-10-05 - Portal conectado a PeopleNet en solo lectura
 
 - La cabecera del portal decodifica las entidades XML del perfil Meta4.

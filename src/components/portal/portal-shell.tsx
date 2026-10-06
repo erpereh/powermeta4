@@ -22,13 +22,12 @@ import {
 import {
   getDomainForRoute,
   getPortalFeatureByRoute,
-  getProfileDomains,
+  getPortalMenuLocation,
+  getPortalMenuPages,
   getProfileForRoute,
 } from "@/lib/portal/registry";
-import type { PortalProfile } from "@/lib/portal/types";
+import type { PortalProfile, PortalVariant } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
-
-import { PORTAL_ICONS } from "./portal-icons";
 
 export type PortalShellPerson = {
   fullName: string;
@@ -42,7 +41,7 @@ export type PortalShellContext =
   | {
       mode: "meta4";
       society: string;
-      variant: string;
+      variant: PortalVariant;
       person: PortalShellPerson | null;
       identityMessage: string | null;
     }
@@ -84,10 +83,16 @@ function ProfileSwitch({ active }: { active: PortalProfile }) {
 function PortalBreadcrumb({ pathname }: { pathname: string }) {
   const domain = getDomainForRoute(pathname);
   const feature = getPortalFeatureByRoute(pathname);
+  const location = getPortalMenuLocation(pathname);
   const crumbs: { href: string; label: string }[] = [{ href: "/portal", label: "Portal" }];
   if (pathname.startsWith("/portal/responsable"))
     crumbs.push({ href: "/portal/responsable", label: "Responsable" });
-  if (domain && domain.route !== pathname) crumbs.push({ href: domain.route, label: domain.title });
+  if (location) {
+    crumbs.push({ href: location.section.route, label: location.section.title });
+    if (location.group && location.group.title !== location.page?.title)
+      crumbs.push({ href: location.group.pages[0].route, label: location.group.title });
+  } else if (domain && domain.route !== pathname)
+    crumbs.push({ href: domain.route, label: domain.title });
   const last =
     feature?.title ??
     (domain?.route === pathname
@@ -97,12 +102,14 @@ function PortalBreadcrumb({ pathname }: { pathname: string }) {
         : pathname.includes("/personas/")
           ? "Ficha"
           : null);
-  const filtered = crumbs.filter((crumb) => crumb.href !== pathname);
+  const filtered = crumbs.filter(
+    (crumb) => crumb.href !== pathname || crumb.label !== feature?.title,
+  );
   return (
     <Breadcrumb aria-label="Ruta">
       <BreadcrumbList className="flex-nowrap overflow-hidden">
-        {filtered.map((crumb) => (
-          <span key={crumb.href} className="contents">
+        {filtered.map((crumb, index) => (
+          <span key={`${crumb.href}:${index}`} className="contents">
             <BreadcrumbItem className="hidden min-w-0 sm:inline-flex">
               <BreadcrumbLink asChild>
                 <Link href={crumb.href} className="truncate">
@@ -123,7 +130,7 @@ function PortalBreadcrumb({ pathname }: { pathname: string }) {
   );
 }
 
-/** Marco del portal: cabecera de la persona, perfil y navegación por dominios. */
+/** Marco del portal: perfil y dos niveles de pestañas derivados de la URL. */
 export function PortalShell({
   context,
   children,
@@ -134,17 +141,25 @@ export function PortalShell({
   const pathname = usePathname();
   const palette = useOptionalAppCommandPalette();
   const profile = getProfileForRoute(pathname);
-  const domains = getProfileDomains(profile);
-  const activeDomain = getDomainForRoute(pathname);
-  const homeHref = profile === "responsable" ? "/portal/responsable" : "/portal";
-  const items = [
-    { href: homeHref, label: "Inicio", icon: <PORTAL_ICONS.home /> },
-    ...domains.map((domain) => {
-      const Icon = PORTAL_ICONS[domain.icon];
-      return { href: domain.route, label: domain.title, icon: <Icon /> };
-    }),
-  ];
-  const activeHref = activeDomain?.route ?? (pathname === homeHref ? homeHref : null);
+  const location = getPortalMenuLocation(pathname);
+  const variant = context.mode === "meta4" ? context.variant : undefined;
+  const groups =
+    location?.section.groups.flatMap((group) => {
+      const first = getPortalMenuPages(group, variant)[0];
+      return first
+        ? [
+            {
+              href: first.route,
+              label: group.title,
+              badge: group.pages.length === 1 ? first.modeLabel : undefined,
+            },
+          ]
+        : [];
+    }) ?? [];
+  const pages = location?.group ? getPortalMenuPages(location.group, variant) : [];
+  const activeGroupHref = location?.group
+    ? (getPortalMenuPages(location.group, variant)[0]?.route ?? null)
+    : null;
   const person = context.mode === "meta4" ? context.person : null;
 
   return (
@@ -196,16 +211,30 @@ export function PortalShell({
           </div>
           <ProfileSwitch active={profile} />
         </div>
-        <div className="mx-auto w-full max-w-6xl px-2 pt-2 sm:px-4">
-          <SectionNav
-            aria-label={
-              profile === "responsable" ? "Apartados del responsable" : "Apartados del empleado"
-            }
-            items={items}
-            activeHref={activeHref}
-            className="border-b-0"
-          />
-        </div>
+        {location ? (
+          <div className="mx-auto w-full max-w-6xl min-w-0 px-2 pt-2 sm:px-4">
+            <SectionNav
+              aria-label={
+                profile === "responsable" ? "Apartados del responsable" : "Apartados del empleado"
+              }
+              items={groups}
+              activeHref={activeGroupHref}
+              className={pages.length > 1 ? undefined : "border-b-0"}
+            />
+            {pages.length > 1 ? (
+              <SectionNav
+                aria-label={`Páginas de ${location.group?.title}`}
+                items={pages.map((page) => ({
+                  href: page.route,
+                  label: page.title,
+                  badge: page.modeLabel,
+                }))}
+                activeHref={location.page?.route ?? null}
+                className="border-b-0"
+              />
+            ) : null}
+          </div>
+        ) : null}
       </div>
       <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
         {children}

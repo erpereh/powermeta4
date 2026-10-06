@@ -64,8 +64,13 @@ export const mapConsultRows = (
   rows: readonly PortalSqlRow[],
 ): ConsultData => {
   const download = consult.download;
+  const visibleRows = consult.rowFilter
+    ? rows.filter((row) =>
+        consult.rowFilter?.equals.includes(sqlText(row[consult.rowFilter.item]) ?? ""),
+      )
+    : rows;
   return {
-    rows: rows.map((row) =>
+    rows: visibleRows.map((row) =>
       consult.fields.map((field) => ({
         label: field.label,
         value: displayValue(field.item, field.item ? sqlText(row[field.item]) : null),
@@ -73,7 +78,7 @@ export const mapConsultRows = (
     ),
     ...(download
       ? {
-          links: rows.map((row) => {
+          links: visibleRows.map((row) => {
             const key = sqlText(row.DOC_KEY);
             return key ? documentHref(download.kind, key) : null;
           }),

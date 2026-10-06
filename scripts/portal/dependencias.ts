@@ -8,7 +8,7 @@ import path from "node:path";
 
 import { collectMeta4References } from "../../src/lib/portal/meta4-refs";
 import { PENDING_LABELS } from "../../src/lib/portal/pending";
-import { PORTAL_DOMAINS, PORTAL_FEATURES } from "../../src/lib/portal/registry";
+import { PORTAL_DOMAINS, PORTAL_FEATURES, PORTAL_MENU } from "../../src/lib/portal/registry";
 import type { PortalFeature, ReadContract, WriteOperation } from "../../src/lib/portal/types";
 import { formatGenerated } from "./format";
 
@@ -223,10 +223,38 @@ const sourceAudit = (): string => {
   return lines.join("\n");
 };
 
+const navigation = () =>
+  [
+    "# Navegación del portal",
+    "",
+    "> Generado por `npm run portal:docs` desde el registro único. No editar a mano.",
+    "",
+    ...PORTAL_MENU.flatMap((section) => [
+      `## ${section.profile}: ${section.title}`,
+      "",
+      `Raíz: \`${section.route}\`. Abre la primera página disponible.`,
+      "",
+      "| Pestaña | Página | Ruta | Destino original |",
+      "| --- | --- | --- | --- |",
+      ...section.groups.flatMap((group) =>
+        group.pages.map((page) => {
+          const original =
+            page.original.kind === "jsp"
+              ? `${page.original.path}${Object.keys(page.original.parameters).length ? `?${new URLSearchParams(page.original.parameters)}` : ""}`
+              : `Menú dinámico: ${page.original.menuEntry} · ${page.original.dependency}`;
+          return `| ${cell(group.title)} | ${cell(page.title)}${page.modeLabel ? ` (${page.modeLabel})` : ""} | \`${page.route}\` | ${cell(original)} |`;
+        }),
+      ),
+      "",
+    ]),
+  ].join("\n");
+
+writeFileSync(path.join(OUT, "navegacion.md"), navigation());
 writeFileSync(path.join(OUT, "dependencias-servidor.md"), dependencies());
 writeFileSync(path.join(OUT, "estado.md"), status());
 writeFileSync(path.join(OUT, "auditoria-fuentes.md"), sourceAudit());
 formatGenerated([
+  path.join(OUT, "navegacion.md"),
   path.join(OUT, "dependencias-servidor.md"),
   path.join(OUT, "estado.md"),
   path.join(OUT, "auditoria-fuentes.md"),

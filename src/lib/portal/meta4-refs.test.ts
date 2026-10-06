@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { collectMeta4References, parseMeta4References } from "./meta4-refs";
-import { PORTAL_FEATURES } from "./registry";
+import { getPortalFeatureByRoute, PORTAL_FEATURES } from "./registry";
 
 describe("referencias Meta4 del registro", () => {
   it("separa objeto y nodo e ignora métodos, JSP y texto libre", () => {
@@ -18,7 +18,9 @@ describe("referencias Meta4 del registro", () => {
     const refs = collectMeta4References(PORTAL_FEATURES);
     const holidays = refs.find((ref) => ref.object === "SSM_HOLYDAYS");
     expect(holidays?.nodes).toContain("SSM_PRINCIPAL");
-    expect(holidays?.features).toContain("responsable.tiempo.vacaciones");
+    expect(holidays?.features).toContain(
+      getPortalFeatureByRoute("/portal/responsable/tiempo/vacaciones-aceptadas")?.id,
+    );
     expect(refs.every((ref) => ref.features.length > 0)).toBe(true);
   });
 });

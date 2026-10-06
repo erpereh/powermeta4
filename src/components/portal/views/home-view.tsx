@@ -4,7 +4,12 @@ import { ChevronRight } from "lucide-react";
 
 import { Skeleton, Surface } from "@/components/system";
 import type { PortalContext } from "@/lib/portal/context";
-import { getDomainFeatures, getProfileDomains } from "@/lib/portal/registry";
+import {
+  getPortalFeature,
+  getPortalMenuPages,
+  getPortalSectionHref,
+  getPortalSections,
+} from "@/lib/portal/registry";
 import type { PortalProfile } from "@/lib/portal/types";
 
 import { PORTAL_ICONS } from "../portal-icons";
@@ -13,17 +18,22 @@ import { TasksView } from "./tasks-view";
 
 function DomainGrid({ profile, context }: { profile: PortalProfile; context: PortalContext }) {
   const variant = context.mode === "meta4" ? context.variant : undefined;
-  const domains = getProfileDomains(profile);
+  const domains = getPortalSections(profile);
   return (
     <ul className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {domains.map((domain) => {
         const Icon = PORTAL_ICONS[domain.icon];
-        const features = getDomainFeatures(domain.id, variant);
+        const features = domain.groups
+          .flatMap((group) => getPortalMenuPages(group, variant))
+          .flatMap((page) => {
+            const feature = getPortalFeature(page.featureId);
+            return feature ? [feature] : [];
+          });
         const connected = features.filter((feature) => feature.read.kind !== "pending").length;
         return (
           <li key={domain.id} className="min-w-0">
             <Link
-              href={domain.route}
+              href={getPortalSectionHref(domain, variant)}
               className="group flex h-full min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 outline-none transition-colors hover:border-foreground/20 hover:bg-elevated focus-visible:ring-2 focus-visible:ring-ring/60"
             >
               <span className="flex items-center gap-3">
@@ -38,7 +48,9 @@ function DomainGrid({ profile, context }: { profile: PortalProfile; context: Por
                   aria-hidden="true"
                 />
               </span>
-              <span className="text-xs text-muted-foreground">{domain.summary}</span>
+              <span className="line-clamp-2 text-xs text-muted-foreground">
+                {domain.groups.map((group) => group.title).join(" · ")}
+              </span>
               <span className="mt-auto text-[11px] text-muted-foreground">
                 {features.length} {features.length === 1 ? "pantalla" : "pantallas"} · {connected}{" "}
                 con datos conectados

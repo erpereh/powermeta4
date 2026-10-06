@@ -16,11 +16,12 @@ import { RESPONSABLE_RETRIBUCION } from "./responsable-retribucion";
 import { RESPONSABLE_TALENTO } from "./responsable-talento";
 import { RESPONSABLE_TIEMPO } from "./responsable-tiempo";
 import { TRANSVERSAL } from "./transversal";
+import { availableMenuPages, createPortalMenu } from "./menu";
 
 export { PORTAL_DOMAINS } from "./domains";
 
 /** Registro único de pantallas del portal: navegación, búsqueda, contratos y docs. */
-export const PORTAL_FEATURES: readonly PortalFeature[] = [
+const BASE_FEATURES: readonly PortalFeature[] = [
   ...TRANSVERSAL,
   ...EMPLEADO_DATOS,
   ...EMPLEADO_RETRIBUCION,
@@ -34,6 +35,63 @@ export const PORTAL_FEATURES: readonly PortalFeature[] = [
   ...RESPONSABLE_TIEMPO,
 ];
 
+const menu = createPortalMenu(BASE_FEATURES);
+export const PORTAL_FEATURES: readonly PortalFeature[] = menu.features;
+export const PORTAL_MENU = menu.sections;
+export const getPortalSections = (profile: PortalProfile) =>
+  PORTAL_MENU.filter((section) => section.profile === profile);
+export const getPortalMenuPages = (
+  group: (typeof PORTAL_MENU)[number]["groups"][number],
+  variant?: PortalVariant,
+) => availableMenuPages(group, PORTAL_FEATURES, variant);
+export const getPortalSectionHref = (
+  section: (typeof PORTAL_MENU)[number],
+  variant?: PortalVariant,
+) =>
+  section.groups.flatMap((group) => getPortalMenuPages(group, variant))[0]?.route ?? section.route;
+
+/** Coincidencia exacta de página; no se infiere la sección por prefijos compartidos. */
+export const getPortalMenuLocation = (route: string) => {
+  const path = normalizeRoute(route);
+  for (const section of PORTAL_MENU) {
+    for (const group of section.groups) {
+      const page = group.pages.find((page) => page.route === path);
+      if (page) return { section, group, page };
+    }
+    if (section.route === path) return { section, group: undefined, page: undefined };
+  }
+  const feature = PORTAL_FEATURES.find((feature) => feature.route === path);
+  if (feature && feature.domain !== "inicio") {
+    const sectionId: Partial<Record<PortalDomainId, string>> = {
+      tareas: "empleado.herramientas",
+      organizacion: "empleado.aplicaciones",
+      datos: "empleado.datos",
+      retribucion: "empleado.retribucion",
+      talento: "empleado.talento",
+      tiempo: "empleado.tiempo",
+      conocimiento: "empleado.talento",
+      alcance: "responsable.herramientas",
+      equipo: "responsable.equipo",
+      "retribucion-equipo": "responsable.retribucion",
+      "talento-equipo": "responsable.talento",
+      "tiempo-equipo": "responsable.tiempo",
+    };
+    const section = PORTAL_MENU.find((section) => section.id === sectionId[feature.domain]);
+    if (section) return { section, group: undefined, page: undefined };
+  }
+  return undefined;
+};
+
+/** Las antiguas raíces por dominio abren ahora la primera página de su sección. */
+export const getPortalMenuRedirect = (
+  route: string,
+  variant?: PortalVariant,
+): string | undefined => {
+  const section = PORTAL_MENU.find((section) => section.route === normalizeRoute(route));
+  const href = section ? getPortalSectionHref(section, variant) : undefined;
+  return href && href !== normalizeRoute(route) ? href : undefined;
+};
+
 const normalizeRoute = (route: string): string => route.replace(/\/+$/, "") || "/";
 
 export const getPortalFeatureByRoute = (route: string): PortalFeature | undefined => {
@@ -43,7 +101,20 @@ export const getPortalFeatureByRoute = (route: string): PortalFeature | undefine
 
 /** Pantalla de powermeta4 que sustituye a una página JSP del original. */
 export const getPortalFeatureBySource = (source: string): PortalFeature | undefined => {
-  const wanted = source.toLowerCase();
+  const [path, query] = source.split("?", 2);
+  const wanted = path.toLowerCase();
+  const parameters = new URLSearchParams(query);
+  const page = PORTAL_MENU.flatMap((section) =>
+    section.groups.flatMap((group) => group.pages),
+  ).find(
+    (page) =>
+      page.original.kind === "jsp" &&
+      page.original.path.toLowerCase() === wanted &&
+      [...parameters].every(
+        ([key, value]) => page.original.kind === "jsp" && page.original.parameters[key] === value,
+      ),
+  );
+  if (page) return getPortalFeature(page.featureId);
   return PORTAL_FEATURES.find((feature) =>
     feature.sources.some((candidate) => candidate.toLowerCase() === wanted),
   );
@@ -101,7 +172,10 @@ export const searchPortalFeatures = (query: string, variant?: PortalVariant): Po
   if (terms.length === 0) return [];
   return PORTAL_FEATURES.filter((feature) => {
     if (variant && !isFeatureAvailable(feature, variant)) return false;
-    const domain = getPortalDomain(feature.domain)?.title ?? "";
+    const location = getPortalMenuLocation(feature.route);
+    const domain = location
+      ? `${location.section.title} ${location.group?.title ?? ""}`
+      : (getPortalDomain(feature.domain)?.title ?? "");
     const haystack = fold(
       [feature.title, feature.summary, domain, ...(feature.keywords ?? [])].join(" "),
     );

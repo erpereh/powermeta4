@@ -165,7 +165,7 @@ function FieldControl({
         <div
           aria-labelledby={labelId}
           role="group"
-          className="flex h-10 items-center rounded-xl border border-dashed border-border bg-muted/30 px-3 text-xs text-muted-foreground"
+          className="flex min-h-10 min-w-0 items-center rounded-xl border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground [overflow-wrap:anywhere]"
         >
           Catálogo pendiente{source?.kind === "pending" ? ` (${source.meta4})` : ""}
         </div>
@@ -195,7 +195,7 @@ function FieldControl({
         <div
           role="group"
           aria-labelledby={labelId}
-          className="flex h-10 items-center rounded-xl border border-dashed border-border bg-muted/30 px-3 text-xs text-muted-foreground"
+          className="flex min-h-10 min-w-0 items-center rounded-xl border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground [overflow-wrap:anywhere]"
         >
           {catalogs.message}
         </div>
@@ -249,15 +249,17 @@ function FieldControl({
   }
 
   const inputType =
-    field.type === "date"
-      ? "date"
-      : field.type === "number"
-        ? "number"
-        : field.type === "email"
-          ? "email"
-          : field.type === "tel"
-            ? "tel"
-            : "text";
+    field.type === "password"
+      ? "password"
+      : field.type === "date"
+        ? "date"
+        : field.type === "number"
+          ? "number"
+          : field.type === "email"
+            ? "email"
+            : field.type === "tel"
+              ? "tel"
+              : "text";
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       {label}

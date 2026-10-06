@@ -1,5 +1,54 @@
 # powermeta4 - estado de tareas
 
+## Portal: organización del original en salvadev - 2026-10-06
+
+- [x] Registro único con sección, grupo, página, ruta, pantalla y destino
+      original. Empleado sigue las trece capturas; responsable sigue el menú
+      español y el mapa de la copia local. Sin favoritos del portal.
+- [x] Sidebar por perfil con Inicio y seis secciones; pestañas de apartados y
+      subpáginas, breadcrumbs, Inicio y búsqueda derivados del registro.
+      La raíz de sección resuelve en servidor la primera página disponible
+      para la variante. Se conservan las URLs anteriores y los accesos contextuales.
+- [x] Separados datos profesionales, consulta/modificación/alta bancaria,
+      modalidades de beneficios, carrera, evaluación, formación y validaciones
+      del responsable. Los modos y accesos dinámicos distintos conservan rutas
+      propias; no se sustituye una función pendiente por otra consulta.
+- [x] Formularios reconstruidos desde las fuentes conocidas: contraseña,
+      cuenta en otro formato, beneficios y preferencias. Validación local y
+      envío deshabilitado. Sociedad, identidad y equipo siguen en servidor;
+      ninguna escritura ERP ni cambio al chat.
+- [x] `npm run portal:docs`: 194 pantallas registradas; mapa de navegación,
+      estado, dependencias y auditoría regenerados. La ficha de navegación
+      explica los destinos dinámicos y contratos que aún faltan.
+- [x] Pruebas del portal y sidebar: 24 archivos, 102 pruebas correctas.
+      Cubren entradas originales, rutas, parámetros, perfiles, selección,
+      variantes, filtros, formularios y cambio de sociedad con contexto sintético.
+- [x] Suite completa ejecutada: último pase con 753 pruebas correctas, 2
+      omitidas y un timeout de 5 s en la exportación de backups. El archivo de
+      backups pasa 6/6 al repetirlo solo; también pasó en el primer pase completo.
+      Excel COM pasa en ambos pases. Suite sin Excel COM: 137 archivos y 744
+      pruebas correctas, 2 omitidas. La expectativa antigua de referencias de
+      vacaciones del primer pase se actualizó a su página separada y pasa.
+- [x] Navegador local en modo desarrollo: empleado/responsable, enlaces directos,
+      recarga, atrás/adelante, búsqueda, teclado, sidebar expandida/colapsada,
+      Sheet móvil y ancho de página en escritorio, tablet y móvil. Corregido
+      el desbordamiento de textos de catálogos pendientes en tablet.
+- [x] `npm run typecheck`, `npm run build` y `git diff --check` correctos.
+      Oxlint dirigido al cambio sin avisos. Lint global ejecutado: formato
+      pendiente en archivos ajenos al cambio y siete avisos previos.
+      Formato dirigido del código y docs del cambio correcto; se conserva el
+      formato histórico de todo/changelog para evitar modificaciones ajenas.
+- [ ] Comprobar datos y descargas reales con sesión Meta4, incluida la
+      sociedad activa: la sesión local de desarrollo no dispone de identidad ERP.
+- [ ] Dossiers antiguo/nuevo, documentos a tramitar, RRHH, evaluación nueva,
+      continua y accesos GTA dinámicos requieren SCO_MENU o sistemas externos
+      (P01/P06). Cuestionarios y catálogos generados por Meta4 conservan su
+      dependencia concreta, sin inventar preguntas, opciones ni resultados.
+- [ ] Aviso observado al abrir el buscador: actualización de
+      AppCommandPaletteProvider durante el render de CommandPalette. El
+      callback de apertura compartido ya existía; la búsqueda y navegación
+      funcionan. No se amplía este cambio a la implementación común del buscador.
+
 ## Portal: lecturas pendientes conectadas a PeopleNet (solo lectura) - 2026-10-05
 
 - [x] Cabecera del portal con acentos: `profileField` decodifica las entidades

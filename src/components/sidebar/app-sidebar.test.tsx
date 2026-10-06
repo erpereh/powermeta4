@@ -254,6 +254,40 @@ describe("app sidebar tools group", () => {
     expect(screen.getByText("Modo desarrollo")).toBeTruthy();
   });
 
+  it("selects the employee section for a nested portal URL", () => {
+    mocks.pathname = "/portal/empleado/datos/idiomas";
+    renderSidebar();
+    const submenu = within(document.getElementById("sidebar-portal-submenu")!);
+    expect(
+      submenu.getByRole("button", { name: "Mi información personal" }).getAttribute("aria-current"),
+    ).toBe("page");
+    expect(submenu.queryByRole("button", { name: "Mis favoritos" })).toBeNull();
+  });
+
+  it("shows the manager sections for the manager profile", () => {
+    mocks.pathname = "/portal/responsable/equipo/validar-idiomas";
+    renderSidebar();
+    const submenu = within(document.getElementById("sidebar-portal-submenu")!);
+    expect(
+      submenu.getByRole("button", { name: "Información personal" }).getAttribute("aria-current"),
+    ).toBe("page");
+    expect(submenu.getByRole("button", { name: "Revisión de la remuneración" })).toBeTruthy();
+    expect(submenu.queryByRole("button", { name: "Mi información personal" })).toBeNull();
+  });
+
+  it("closes the mobile Sheet after navigating to a portal section", async () => {
+    mocks.pathname = "/portal";
+    const user = userEvent.setup();
+    renderSidebar({ mobile: true });
+    const portal = await screen.findByRole("button", { name: "Portal" });
+    await user.click(portal);
+    expect(portal.getAttribute("aria-expanded")).toBe("false");
+    await user.click(portal);
+    await user.click(screen.getByRole("button", { name: "Mis datos económicos" }));
+    expect(mocks.push).toHaveBeenCalledWith("/portal/empleado/retribucion");
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Portal" })).toBeNull());
+  });
+
   it("opens the conversation search dialog from Buscar without crashing", async () => {
     const user = userEvent.setup();
     renderSidebar();

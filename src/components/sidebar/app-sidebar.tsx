@@ -32,12 +32,10 @@ import {
   selectConversationAction,
   updateConversationAction,
 } from "@/app/actions/workspace";
-import { PORTAL_SIDEBAR_ITEMS } from "@/lib/portal/navigation";
+import { getPortalSidebarItems, isPortalSidebarItemActive } from "@/lib/portal/navigation";
+import { getProfileForRoute } from "@/lib/portal/registry";
 import { SIDEBAR_TOOL_ITEMS, TOOL_ICONS } from "@/lib/tools/registry";
-import {
-  DEFAULT_CHAT_COLOR,
-  DEFAULT_CHAT_ICON,
-} from "@/lib/chat-customization";
+import { DEFAULT_CHAT_COLOR, DEFAULT_CHAT_ICON } from "@/lib/chat-customization";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import {
   hydrateWorkspaceStore,
@@ -62,7 +60,9 @@ export function AppSidebar() {
   const setChatColor = useWorkspaceStore((store) => store.setChatColor);
   const deleteChat = useWorkspaceStore((store) => store.deleteChat);
   const [toolsOpen, setToolsOpen] = useState(true);
-  const [portalOpen, setPortalOpen] = useState(() => pathname === "/portal" || pathname.startsWith("/portal/"));
+  const [portalOpen, setPortalOpen] = useState(
+    () => pathname === "/portal" || pathname.startsWith("/portal/"),
+  );
 
   useEffect(() => {
     if (pathname.startsWith("/tools/")) setToolsOpen(true);
@@ -95,12 +95,7 @@ export function AppSidebar() {
     setPortalOpen((current) => !current);
   };
 
-  const isPortalItemActive = (route: string) =>
-    route === "/portal"
-      ? pathname === "/portal"
-      : route === "/portal/responsable"
-        ? pathname.startsWith("/portal/responsable") || pathname.startsWith("/portal/tareas")
-        : pathname === route || pathname.startsWith(`${route}/`);
+  const portalItems = getPortalSidebarItems(getProfileForRoute(pathname));
 
   const handleNewChat = () => {
     if (!activeCompanyId) return;
@@ -248,13 +243,13 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </Tooltip>
               <SidebarMenuSub open={portalOpen} id="sidebar-portal-submenu">
-                {PORTAL_SIDEBAR_ITEMS.map((item) => {
+                {portalItems.map((item) => {
                   const Icon = PORTAL_ICONS[item.icon];
                   return (
                     <SidebarMenuSubItem key={item.route}>
                       <SidebarMenuSubButton
                         icon={<Icon className="size-4" />}
-                        isActive={isPortalItemActive(item.route)}
+                        isActive={isPortalSidebarItemActive(pathname, item)}
                         onSelect={() => {
                           router.push(item.route);
                           closeMobileSidebar();

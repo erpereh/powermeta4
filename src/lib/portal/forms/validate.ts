@@ -22,7 +22,7 @@ const isRealDate = (value: string): boolean => {
 };
 
 const fieldIssue = (field: FormFieldSpec, raw: string | undefined): string | null => {
-  const value = (raw ?? "").trim();
+  const value = field.type === "password" ? (raw ?? "") : (raw ?? "").trim();
   if (field.type === "checkbox") {
     return field.required && value !== "true" ? `${field.label}: es obligatorio.` : null;
   }
@@ -96,10 +96,16 @@ export const validatePortalForm = (
         }
         break;
       }
-      case "emailMatch": {
+      case "emailMatch":
+      case "fieldsMatch": {
         if ((values[rule.field] ?? "") !== (values[rule.confirm] ?? "") && !issues[rule.confirm]) {
           issues[rule.confirm] = rule.message;
         }
+        break;
+      }
+      case "fieldsDiffer": {
+        if (values[rule.field] && values[rule.field] === values[rule.other] && !issues[rule.field])
+          issues[rule.field] = rule.message;
         break;
       }
     }

@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { DomainOverview } from "@/components/portal/views/domain-overview";
 import { FeatureDispatch } from "@/components/portal/views/feature-dispatch";
-import { getPortalFeatureByRoute, PORTAL_DOMAINS } from "@/lib/portal/registry";
+import {
+  getPortalFeatureByRoute,
+  getPortalMenuLocation,
+  getPortalMenuRedirect,
+  PORTAL_DOMAINS,
+} from "@/lib/portal/registry";
 import { getRequestPortalContext } from "@/lib/portal/server";
 
 const SEGMENT = /^[a-z0-9-]{1,60}$/;
@@ -21,6 +26,7 @@ export async function generateMetadata({
   const route = routeOf((await params).slug);
   const title = route
     ? (getPortalFeatureByRoute(route)?.title ??
+      getPortalMenuLocation(route)?.section.title ??
       PORTAL_DOMAINS.find((domain) => domain.route === route)?.title)
     : undefined;
   return { title: `${title ?? "Portal"} · powermeta4` };
@@ -33,8 +39,14 @@ export default async function PortalRoutePage({ params }: { params: Promise<{ sl
   if (!route) notFound();
   const feature = getPortalFeatureByRoute(route);
   const domain = PORTAL_DOMAINS.find((candidate) => candidate.route === route);
-  if (!feature && !domain) notFound();
+  const menuLocation = getPortalMenuLocation(route);
+  if (!feature && !domain && !menuLocation) notFound();
   const context = await getRequestPortalContext();
+  const destination = getPortalMenuRedirect(
+    route,
+    context.mode === "meta4" ? context.variant : undefined,
+  );
+  if (destination) redirect(destination);
   if (feature) return <FeatureDispatch feature={feature} context={context} />;
   if (!domain) notFound();
   return (

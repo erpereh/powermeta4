@@ -1,16 +1,27 @@
-import type { PortalIconName } from "./types";
+import { getPortalMenuLocation, getPortalSections } from "./registry";
+import type { PortalProfile } from "./types";
 
-/** Entradas del grupo «Portal» de la sidebar (la fila del grupo no navega). */
-export const PORTAL_SIDEBAR_ITEMS: readonly {
-  route: string;
-  name: string;
-  icon: PortalIconName;
-}[] = [
-  { route: "/portal", name: "Inicio", icon: "home" },
-  { route: "/portal/empleado/datos", name: "Mis datos", icon: "id-card" },
-  { route: "/portal/empleado/retribucion", name: "Retribución", icon: "payslip" },
-  { route: "/portal/empleado/tiempo", name: "Tiempo", icon: "calendar" },
-  { route: "/portal/empleado/talento", name: "Talento", icon: "career" },
-  { route: "/portal/organizacion", name: "Organización", icon: "org" },
-  { route: "/portal/responsable", name: "Responsable", icon: "team" },
+/** Sidebar derivada de la misma jerarquía que pestañas, Inicio y búsqueda. */
+export const getPortalSidebarItems = (profile: PortalProfile) => [
+  {
+    route: profile === "responsable" ? "/portal/responsable" : "/portal",
+    name: "Inicio",
+    icon: "home" as const,
+    sectionId: null,
+  },
+  ...getPortalSections(profile).map((section) => ({
+    // La raíz resuelve en servidor la primera página disponible para la variante.
+    route: section.route,
+    name: section.title,
+    icon: section.icon,
+    sectionId: section.id,
+  })),
 ];
+
+export const isPortalSidebarItemActive = (
+  pathname: string,
+  item: ReturnType<typeof getPortalSidebarItems>[number],
+) =>
+  item.sectionId
+    ? getPortalMenuLocation(pathname)?.section.id === item.sectionId
+    : pathname === item.route;

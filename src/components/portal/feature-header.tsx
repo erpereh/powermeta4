@@ -45,7 +45,7 @@ export function FeatureHeader({
             Original:
           </dt>
           <dd className="min-w-0 truncate font-mono" title={feature.sources.join(", ")}>
-            {feature.sources[0]}
+            {feature.sources[0] ?? "Menú dinámico del original"}
             {feature.sources.length > 1 ? ` +${feature.sources.length - 1}` : ""}
           </dd>
         </div>
