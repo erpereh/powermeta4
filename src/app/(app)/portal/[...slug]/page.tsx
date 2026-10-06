@@ -10,6 +10,7 @@ import {
   PORTAL_DOMAINS,
 } from "@/lib/portal/registry";
 import { getRequestPortalContext } from "@/lib/portal/server";
+import type { OrgSearchParams } from "@/lib/portal/organization-navigation";
 
 const SEGMENT = /^[a-z0-9-]{1,60}$/;
 
@@ -33,21 +34,34 @@ export async function generateMetadata({
 }
 
 /** Cada ruta del portal sale del registro único; lo demás es 404. */
-export default async function PortalRoutePage({ params }: { params: Promise<{ slug: string[] }> }) {
+export default async function PortalRoutePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string[] }>;
+  searchParams: Promise<OrgSearchParams>;
+}) {
   const { slug } = await params;
   const route = routeOf(slug);
   if (!route) notFound();
   const feature = getPortalFeatureByRoute(route);
   const domain = PORTAL_DOMAINS.find((candidate) => candidate.route === route);
   const menuLocation = getPortalMenuLocation(route);
-  if (!feature && !domain && !menuLocation) notFound();
   const context = await getRequestPortalContext();
   const destination = getPortalMenuRedirect(
     route,
     context.mode === "meta4" ? context.variant : undefined,
   );
   if (destination) redirect(destination);
-  if (feature) return <FeatureDispatch feature={feature} context={context} />;
+  if (!feature && !domain && !menuLocation) notFound();
+  if (feature)
+    return (
+      <FeatureDispatch
+        feature={feature}
+        context={context}
+        orgSearchParams={feature.view === "orgchart" ? await searchParams : undefined}
+      />
+    );
   if (!domain) notFound();
   return (
     <DomainOverview domain={domain} variant={context.mode === "meta4" ? context.variant : null} />

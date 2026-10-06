@@ -1,5 +1,37 @@
 # powermeta4 - estado de tareas
 
+## Portal: entrada y organigrama visual en salvadev - 2026-10-06
+
+- [x] Retiradas las dos páginas de Aplicaciones Internas del registro, Inicio
+      y búsqueda. Se conserva la sección, que abre Organigrama en todas las
+      variantes; ambas URLs antiguas redirigen antes del 404. Retirada la
+      excepción `showInPrimaryNav`.
+- [x] Árbol de unidades y gráfico de persona/equipo directo en la misma ruta
+      con `persona`. Subir, abrir otro equipo y volver conservan filtro y ramas
+      en URL. Quién es Quién mantiene sus fichas.
+- [x] SELECT parametrizadas de ORO por sociedad del servidor y `COMPUTA = '1'`;
+      asignaciones consolidadas, responsables ambiguos, ausencias y
+      autorreferencias cubiertos. API de fotos autenticada, contrato físico
+      comprobado antes de leer, PNG/JPEG y BLOB Meta4, sin caché ni ficheros.
+      Avatar con iniciales ante ausencia o error y recarga al cambiar de sociedad.
+- [x] Revisión en navegador local: redirecciones, búsqueda, responsable,
+      navegación del gráfico, filtro, expansión, recarga, historial, teclado,
+      sidebar/Sheet y tamaños 1440/1024/390 px sin overflow de página. Gráfico
+      centrado en la persona al abrir y redimensionar. Vista sintética temporal
+      retirada antes de compilar; no se añadieron datos de prueba al producto.
+- [x] Documentación y `portal:docs` regenerados (192 pantallas). Typecheck y
+      build correctos. Lint global ejecutado: 7 avisos y 404 archivos previos
+      con formato pendiente; oxlint y formato del código cambiado pasan.
+- [x] Suite completa: 787 correctas y 2 omitidas en 145 archivos, con
+      `npm test -- --maxWorkers=4`. Primera ejecución: 784 correctas,
+      2 omitidas y 2 timeouts en Registro Retributivo/launchpad; ambas pruebas
+      pasan dirigidas y en la repetición completa. Navegación final: 18 pruebas
+      correctas en 3 archivos. Diff revisado y comprobación Git sin errores.
+- [ ] Verificar jerarquías y fotografías reales en la VM, incluida su
+      correspondencia de claves y almacenamiento físico (P08). PeopleNet no
+      está configurado aquí. Variantes y cambio de sociedad se prueban con
+      contextos sintéticos; no se comprobó un cambio con sesión Meta4 viva.
+
 ## Portal: ajuste de pestañas en salvadev - 2026-10-06
 
 - [x] `showInPrimaryNav` opcional, visible por defecto. Solo Aplicaciones

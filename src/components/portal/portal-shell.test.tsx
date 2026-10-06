@@ -104,7 +104,7 @@ describe("pestañas del portal", () => {
     },
   );
   it("no añade una segunda fila a una página directa y respeta la variante del servidor", () => {
-    route.pathname = "/portal/empleado/aplicaciones/internas";
+    route.pathname = "/portal/empleado/aplicaciones/organigrama";
     const meta4: PortalShellContext = {
       mode: "meta4",
       society: "CYC",
@@ -114,13 +114,17 @@ describe("pestañas del portal", () => {
     };
     const { rerender } = render(view(meta4));
     const nav = screen.getByRole("navigation", { name: "Apartados del empleado" });
-    expect(screen.getByRole("heading", { name: "Aplicaciones Internas", level: 1 })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Organigrama", level: 1 })).toBeTruthy();
     expect(within(nav).queryByRole("link", { name: "Aplicaciones Internas" })).toBeNull();
-    expect(nav.querySelector('[aria-current="page"]')).toBeNull();
+    expect(
+      within(nav).getByRole("link", { name: "Organigrama" }).getAttribute("aria-current"),
+    ).toBe("page");
     expect(within(nav).getByRole("link", { name: "Informe de proyecciones" })).toBeTruthy();
     expect(screen.queryByRole("navigation", { name: /^Páginas de/ })).toBeNull();
     rerender(view({ ...meta4, society: "BASE", variant: "BASE" }));
-    expect(nav.querySelector('[aria-current="page"]')).toBeNull();
+    expect(
+      within(nav).getByRole("link", { name: "Organigrama" }).getAttribute("aria-current"),
+    ).toBe("page");
     expect(within(nav).queryByRole("link", { name: "Informe de proyecciones" })).toBeNull();
     expect(
       within(screen.getByRole("navigation", { name: "Ruta" }))

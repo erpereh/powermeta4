@@ -19,14 +19,7 @@ import {
 } from "./index";
 
 const employeeGroups = [
-  [
-    "Aplicaciones Internas",
-    "Organigrama",
-    "Quién es Quién",
-    "Certificado de Haberes",
-    "Informe de proyecciones",
-    "Nómina",
-  ],
+  ["Organigrama", "Quién es Quién", "Certificado de Haberes", "Informe de proyecciones", "Nómina"],
   [
     "Mis tareas",
     "Cambio de contraseña",
@@ -80,18 +73,28 @@ const employeeGroups = [
 ];
 
 describe("navegación original del portal", () => {
-  it("oculta solo la pestaña de Aplicaciones Internas y conserva su entrada, URL y búsqueda", () => {
-    const hidden = PORTAL_MENU.flatMap((section) => section.groups).filter(
-      (group) => group.showInPrimaryNav === false,
+  it("retira ambas páginas internas del registro y búsqueda, conservando las redirecciones", () => {
+    expect(getPortalFeature("empleado.datos.aplicaciones")).toBeUndefined();
+    expect(getPortalMenuLocation("/portal/organizacion/organigrama")?.group?.title).toBe(
+      "Organigrama",
     );
-    expect(hidden).toHaveLength(1);
-    expect(hidden[0].title).toBe("Aplicaciones Internas");
-    const route = "/portal/empleado/aplicaciones/internas";
-    expect(getPortalFeatureByRoute(route)?.title).toBe("Aplicaciones Internas");
-    expect(getPortalMenuRedirect("/portal/empleado/aplicaciones", "CYC")).toBe(route);
     expect(
-      searchPortalFeatures("Aplicaciones Internas", "CYC").map((feature) => feature.route),
-    ).toContain(route);
+      getPortalMenuLocation("/portal/empleado/herramientas/organigrama-dinamico")?.section.id,
+    ).toBe("empleado.herramientas");
+    for (const route of [
+      "/portal/empleado/aplicaciones/internas",
+      "/portal/empleado/datos/aplicaciones",
+    ]) {
+      expect(getPortalFeatureByRoute(route)).toBeUndefined();
+      expect(
+        searchPortalFeatures("Aplicaciones Internas").some((feature) => feature.route === route),
+      ).toBe(false);
+      expect(getPortalMenuRedirect(route)).toBe("/portal/empleado/aplicaciones/organigrama");
+    }
+    for (const variant of ["BASE", "CYC", "IBER", "COLL"] as const)
+      expect(getPortalMenuRedirect("/portal/empleado/aplicaciones", variant)).toBe(
+        "/portal/empleado/aplicaciones/organigrama",
+      );
   });
   it("cubre los destinos del menú español del responsable de la copia local", () => {
     const source = readFileSync(
@@ -304,7 +307,7 @@ describe("navegación original del portal", () => {
       "/portal/empleado/aplicaciones/organigrama",
     );
     expect(getPortalMenuRedirect("/portal/empleado/aplicaciones", "CYC")).toBe(
-      "/portal/empleado/aplicaciones/internas",
+      "/portal/empleado/aplicaciones/organigrama",
     );
     expect(getPortalMenuRedirect("/portal/empleado/retribucion")).toBe(
       "/portal/empleado/retribucion/cuenta-principal",

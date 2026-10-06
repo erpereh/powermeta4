@@ -242,7 +242,7 @@ const navigation = () =>
             page.original.kind === "jsp"
               ? `${page.original.path}${Object.keys(page.original.parameters).length ? `?${new URLSearchParams(page.original.parameters)}` : ""}`
               : `Menú dinámico: ${page.original.menuEntry} · ${page.original.dependency}`;
-          return `| ${cell(group.title)}${group.showInPrimaryNav === false ? " (sin pestaña superior)" : ""} | ${cell(page.title)}${page.modeLabel ? ` (${page.modeLabel})` : ""} | \`${page.route}\` | ${cell(original)} |`;
+          return `| ${cell(group.title)} | ${cell(page.title)}${page.modeLabel ? ` (${page.modeLabel})` : ""} | \`${page.route}\` | ${cell(original)} |`;
         }),
       ),
       "",

@@ -2,7 +2,8 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/system";
 import type { PortalContext } from "@/lib/portal/context";
-import { getOrgTree } from "@/lib/portal/data/organization";
+import { getOrgTree, getPersonHierarchy } from "@/lib/portal/data/organization";
+import { getOrgSelection, type OrgSearchParams } from "@/lib/portal/organization-navigation";
 import { readPortal } from "@/lib/portal/server";
 import type { PortalFeature } from "@/lib/portal/types";
 
@@ -14,10 +15,47 @@ import { FeatureView } from "./feature-view";
 import { HomeView } from "./home-view";
 import { ManagerHomeView, PopulationPanel } from "./manager-view";
 import { OrgTree } from "./org-tree";
+import { OrgTreeLink, PersonOrgChart } from "./person-org-chart";
 import { PayslipsView } from "./payslips-view";
 import { TasksView } from "./tasks-view";
 
-async function OrgChart({ context }: { context: PortalContext }) {
+async function OrgChart({
+  context,
+  route,
+  params,
+}: {
+  context: PortalContext;
+  route: string;
+  params: OrgSearchParams;
+}) {
+  const selected = getOrgSelection(params);
+  if (selected.status === "invalid") return <PersonOrgChart hierarchy={null} route={route} />;
+  if (selected.status === "selected") {
+    const result = await readPortal(
+      context,
+      (meta4) => getPersonHierarchy(meta4.society, selected.employeeId),
+      "la jerarquía",
+    );
+    if (result.status === "unavailable")
+      return (
+        <div className="flex min-w-0 flex-col items-start gap-4">
+          <OrgTreeLink route={route} />
+          <DependencyState
+            message={result.message}
+            pending={result.pending}
+            meta4={["M4ORO_EMPLEADOS.ID_RESPONSABLE"]}
+          />
+        </div>
+      );
+    if (result.status === "error")
+      return (
+        <div className="flex min-w-0 flex-col items-start gap-4">
+          <OrgTreeLink route={route} />
+          <PortalError message={result.message} />
+        </div>
+      );
+    return <PersonOrgChart hierarchy={result.data} route={route} />;
+  }
   const result = await readPortal(context, (meta4) => getOrgTree(meta4.society), "el organigrama");
   if (result.status === "unavailable") {
     return (
@@ -29,7 +67,7 @@ async function OrgChart({ context }: { context: PortalContext }) {
     );
   }
   if (result.status === "error") return <PortalError message={result.message} />;
-  return <OrgTree roots={result.data} />;
+  return <OrgTree roots={result.data} route={route} />;
 }
 
 const NO_CATALOGS = { status: "ready", options: {} } as const;
@@ -38,9 +76,11 @@ const NO_CATALOGS = { status: "ready", options: {} } as const;
 export function FeatureDispatch({
   feature,
   context,
+  orgSearchParams = {},
 }: {
   feature: PortalFeature;
   context: PortalContext;
+  orgSearchParams?: OrgSearchParams;
 }) {
   const variant = context.mode === "meta4" ? context.variant : null;
   const header = <FeatureHeader feature={feature} variant={variant} />;
@@ -72,7 +112,7 @@ export function FeatureDispatch({
         <div className="flex min-w-0 flex-col gap-6">
           {header}
           <Suspense fallback={fallback}>
-            <OrgChart context={context} />
+            <OrgChart context={context} route={feature.route} params={orgSearchParams} />
           </Suspense>
         </div>
       );

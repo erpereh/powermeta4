@@ -1262,25 +1262,4 @@ export const EMPLEADO_DATOS: readonly PortalFeature[] = [
     },
     view: "generic",
   },
-  {
-    id: "empleado.datos.aplicaciones",
-    profile: "empleado",
-    domain: "datos",
-    title: "Aplicaciones internas",
-    summary: "Accesos corporativos: certificado de haberes, currículum web, mi evaluación y Hol@.",
-    icon: "link",
-    route: `${base}/aplicaciones`,
-    sources: ["sse_g1/sse_g1_pcyc.jsp"],
-    ficha: `${DATOS}/sse_g1--sse_g1_pcyc.md`,
-    sensitive: false,
-    availableIn: ["CYC", "IBER", "COLL"],
-    read: {
-      kind: "pending",
-      meta4: [],
-      pending: ["P01", "P07"],
-      detail:
-        "Los enlaces apuntan a sistemas externos (Certificado de Haberes, Curriculum Web, Mi Evaluación, Hol@ Kiosco y Hol@ validador). Falta confirmar sus direcciones publicadas.",
-    },
-    view: "generic",
-  },
 ];

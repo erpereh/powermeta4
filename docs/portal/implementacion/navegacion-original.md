@@ -11,10 +11,21 @@ título y descripción y antes de los metadatos y contenido, solo cuando hay má
 de una página disponible para la variante. En ambos perfiles la URL determina
 la selección.
 
-El grupo «Aplicaciones Internas» tiene `showInPrimaryNav: false`: su pestaña
-superior no se muestra y, en su página, ninguna otra pestaña queda seleccionada.
-Conserva su URL, búsqueda y acceso desde la sidebar como primera página de su
-sección cuando la variante la admite. Los demás grupos son visibles por defecto.
+La sección «Aplicaciones Internas» abre Organigrama como primera pestaña en
+todas las sociedades. La antigua página interna y su acceso en información
+personal se han retirado de registro, Inicio y búsqueda. Sus URLs
+`/portal/empleado/aplicaciones/internas` y `/portal/empleado/datos/aplicaciones`
+redirigen a `/portal/empleado/aplicaciones/organigrama` antes de comprobar el
+registro. Todos los grupos restantes participan en la navegación principal.
+
+El árbol del Organigrama abre la jerarquía gráfica mediante `?persona=<matrícula>`
+en la misma ruta, también desde Organigrama dinámico y el acceso antiguo. El
+acceso `/portal/organizacion/organigrama` conserva su URL y selecciona la
+pestaña Organigrama dentro de Aplicaciones Internas. El
+filtro (`filtro`) y las ramas abiertas (`ramas`, claves separadas por salto de
+línea) permanecen en la URL al subir, abrir otro equipo y volver al árbol.
+«Quién es Quién» conserva sus fichas. La lectura y las fotografías se describen
+en [Organigrama visual](organigrama-visual.md).
 
 Cada entrada declara pantalla, ruta y destino original. Los parámetros como
 `vista=0/1/2`, `mss=0/1`, `proc=1` y `zTLoad=FR` distinguen modos; no llegan al

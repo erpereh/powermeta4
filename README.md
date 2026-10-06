@@ -194,6 +194,12 @@ del proyecto jamás puedan compilar código nativo.
   dependencia; los envíos del portal están bloqueados con su método Meta4.
   Estado y dependencias: `docs/portal/implementacion/estado.md` y
   `dependencias-servidor.md`.
+  Aplicaciones Internas abre Organigrama; cada persona del árbol abre su
+  jerarquía en la misma ruta con `?persona=`, conservando filtro y expansión.
+  Las fotos se leen mediante `/api/portal/photos/[employeeId]`, autenticado y
+  limitado a la sociedad activa, con fallback a iniciales y sin caché.
+  Contrato y comprobación pendiente en la VM:
+  [Organigrama visual](docs/portal/implementacion/organigrama-visual.md).
 
 Scripts del portal: `npm run portal:docs` (regenera estado y dependencias),
 `npm run portal:soap-catalog` (contratos SOAP desde `clon_portal`) y, en la VM

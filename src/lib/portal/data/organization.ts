@@ -19,6 +19,8 @@ import {
   type OroRow,
 } from "./organization-core";
 import { PortalDataAmbiguousError } from "./errors";
+import { isOrgEmployeeId } from "../organization-navigation";
+import { buildPersonHierarchy, managerIds, type PersonHierarchy } from "./person-hierarchy-core";
 
 export const DIRECTORY_MIN_QUERY = 2;
 const DIRECTORY_LIMIT = 50;
@@ -37,7 +39,9 @@ const ORG_COLUMNS = `${DIRECTORY_COLUMNS}, ID_DIRECCION, ID_AREA, ID_UNIDAD, ID_
 /** Columnas de `M4ORO_EMPLEADOS` que lee el portal (las comprueba `portal:verify`). */
 export const ORO_PORTAL_COLUMNS: readonly string[] = [
   ...new Set(
-    `${FILE_COLUMNS}, ${ORG_COLUMNS}, ID_ORGANIZATION`.split(",").map((column) => column.trim()),
+    `${FILE_COLUMNS}, ${ORG_COLUMNS}, ID_ORGANIZATION, COMPUTA`
+      .split(",")
+      .map((column) => column.trim()),
   ),
 ];
 
@@ -214,10 +218,43 @@ WHERE ID_ORGANIZATION = @organization AND ID_EMPLEADO IN (${batch.map((_, index)
 
 const ORG_QUERY = `SELECT ${ORG_COLUMNS}
 FROM M4ORO_EMPLEADOS
-WHERE ID_ORGANIZATION = @organization`;
+WHERE ID_ORGANIZATION = @organization AND COMPUTA = '1'`;
 
 /** Organigrama de la sociedad construido con la jerarquía de ORO. */
 export const getOrgTree = async (society: Meta4Society): Promise<OrgNode[]> =>
   buildOrgTree(
     await runPortalSelect<OroRow>(ORG_QUERY, { organization: organizationParam(society) }),
   );
+
+/** Jerarquía pública de directorio, limitada a la sociedad activa y al equipo directo. */
+export const getPersonHierarchy = async (
+  society: Meta4Society,
+  employeeId: string,
+): Promise<PersonHierarchy | null> => {
+  if (!isOrgEmployeeId(employeeId)) return null;
+  const columns = `${DIRECTORY_COLUMNS}, ID_RESPONSABLE, COMPUTA`;
+  const params = {
+    organization: organizationParam(society),
+    employeeId: employeeParam(employeeId),
+  };
+  const selected = await runPortalSelect<OroRow>(
+    `SELECT ${columns} FROM M4ORO_EMPLEADOS
+WHERE ID_ORGANIZATION = @organization AND COMPUTA = '1' AND ID_EMPLEADO = @employeeId`,
+    params,
+  );
+  if (selected.length === 0) return null;
+  const ids = managerIds(selected);
+  const managerId =
+    ids.length === 1 && ids[0] !== employeeId && isOrgEmployeeId(ids[0]) ? ids[0] : "";
+  // Se cargan todas las asignaciones de cada candidato, para detectar responsables contradictorios.
+  const related = await runPortalSelect<OroRow>(
+    `SELECT ${columns} FROM M4ORO_EMPLEADOS
+WHERE ID_ORGANIZATION = @organization AND COMPUTA = '1'
+  AND (ID_EMPLEADO = @managerId OR ID_EMPLEADO IN (
+    SELECT R.ID_EMPLEADO FROM M4ORO_EMPLEADOS R
+    WHERE R.ID_ORGANIZATION = @organization AND R.COMPUTA = '1' AND R.ID_RESPONSABLE = @employeeId
+  ))`,
+    { ...params, managerId: employeeParam(managerId) },
+  );
+  return buildPersonHierarchy(employeeId, society, selected, related);
+};

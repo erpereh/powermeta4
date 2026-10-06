@@ -53,9 +53,13 @@ export const getPortalSectionHref = (
 /** Coincidencia exacta de página; no se infiere la sección por prefijos compartidos. */
 export const getPortalMenuLocation = (route: string) => {
   const path = normalizeRoute(route);
+  const menuPath =
+    path === "/portal/organizacion/organigrama"
+      ? "/portal/empleado/aplicaciones/organigrama"
+      : path;
   for (const section of PORTAL_MENU) {
     for (const group of section.groups) {
-      const page = group.pages.find((page) => page.route === path);
+      const page = group.pages.find((page) => page.route === menuPath);
       if (page) return { section, group, page };
     }
     if (section.route === path) return { section, group: undefined, page: undefined };
@@ -87,6 +91,12 @@ export const getPortalMenuRedirect = (
   route: string,
   variant?: PortalVariant,
 ): string | undefined => {
+  if (
+    ["/portal/empleado/aplicaciones/internas", "/portal/empleado/datos/aplicaciones"].includes(
+      normalizeRoute(route),
+    )
+  )
+    return "/portal/empleado/aplicaciones/organigrama";
   const section = PORTAL_MENU.find((section) => section.route === normalizeRoute(route));
   const href = section ? getPortalSectionHref(section, variant) : undefined;
   return href && href !== normalizeRoute(route) ? href : undefined;

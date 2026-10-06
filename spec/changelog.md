@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-06 - Organigrama visual y retirada de la página interna
+
+- Aplicaciones Internas conserva la sección y abre Organigrama en todas las
+  sociedades. Se retiran las dos páginas internas del registro, Inicio y
+  búsqueda; sus URLs redirigen antes del 404. Desaparece `showInPrimaryNav`.
+- Las personas del árbol abren su jerarquía y equipo directo en la misma ruta
+  con `persona`; subir, abrir otro equipo y volver mantienen filtro y ramas
+  en URL. Quién es Quién conserva sus fichas. Gráfico con líneas y tarjetas,
+  scroll contenido, foco y centrado al abrir o redimensionar.
+- Lectura de ORO por sociedad del servidor y `COMPUTA = '1'`, sin elegir
+  responsables contradictorios ni dibujar autorreferencias. Fotos autenticadas
+  desde el contrato original, esquema físico comprobado antes de leer, BLOB
+  Meta4, MIME por contenido PNG/JPEG y no-store. Avatar con fallback y nueva
+  lectura al cambiar de sociedad aunque coincida la matrícula.
+- Navegador local comprobado con datos sintéticos: redirecciones, búsqueda,
+  navegación del responsable, subir/bajar/volver, filtro, expansión, recarga,
+  historial, teclado, sidebar/Sheet y tamaños 1440/1024/390 px sin overflow.
+  Vista temporal retirada antes del build. Falta validar datos y fotografías
+  reales en la VM (P08); PeopleNet no está configurado en este entorno.
+- `portal:docs` regenerado con 192 pantallas. Typecheck y build correctos;
+  revisión dirigida de lint/formato correcta. Lint global conserva 7 avisos
+  y 404 archivos con formato previo pendiente. La primera suite completa tuvo
+  784 correctas, 2 omitidas y 2 timeouts en otras herramientas, que pasan en
+  repetición dirigida. Suite completa repetida con cuatro workers: 787
+  correctas y 2 omitidas en 145 archivos. Las últimas comprobaciones de
+  navegación pasan (18 pruebas en 3 archivos); diff revisado sin errores.
+
 ## 2026-10-06 - Pestañas del portal dentro de cada página
 
 - Aplicaciones Internas conserva su página, URL, búsqueda y acceso de sidebar,

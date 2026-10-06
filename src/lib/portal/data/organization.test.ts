@@ -7,12 +7,45 @@ vi.mock("../peoplenet/query", async (original) => ({
   runPortalSelect: mocks.select,
 }));
 vi.mock("@/lib/peoplenet/employees", () => ({ getEmployeeEmailsByPersonId: mocks.emails }));
-import { getOwnFile, getDirectoryPerson, searchDirectory } from "./organization";
+import {
+  getOwnFile,
+  getDirectoryPerson,
+  searchDirectory,
+  getPersonHierarchy,
+  getOrgTree,
+} from "./organization";
 import { PortalDataAmbiguousError } from "./errors";
 import { getOwnPaymentAccounts } from "./payments";
 beforeEach(() => vi.clearAllMocks());
 
 describe("lecturas ORO parametrizadas", () => {
+  it("filtra el organigrama y su jerarquía por sociedad y COMPUTA con parámetros", async () => {
+    mocks.select
+      .mockResolvedValueOnce([
+        { ID_ORGANIZATION: "CYC", ID_EMPLEADO: "2", ID_RESPONSABLE: "1", COMPUTA: "1" },
+      ])
+      .mockResolvedValueOnce([]);
+    expect(await getPersonHierarchy("CYC", "2")).toMatchObject({
+      managerStatus: "missing",
+      reports: [],
+    });
+    for (const [statement, params] of mocks.select.mock.calls) {
+      expect(() => assertReadOnlySql(statement)).not.toThrow();
+      expect(statement).toContain("COMPUTA = '1'");
+      expect(params.organization.value).toBe("CYC");
+      expect(params.employeeId.value).toBe("2");
+      expect(statement).not.toContain("FEC_NACIMIENTO");
+    }
+    expect(mocks.select.mock.calls[1][1].managerId.value).toBe("1");
+    mocks.select.mockResolvedValueOnce([]);
+    expect(await getPersonHierarchy("IBER", "2")).toBeNull();
+    const count = mocks.select.mock.calls.length;
+    expect(await getPersonHierarchy("CYC", "../2")).toBeNull();
+    expect(mocks.select).toHaveBeenCalledTimes(count);
+    mocks.select.mockResolvedValueOnce([]);
+    await getOrgTree("IBER");
+    expect(mocks.select.mock.calls.at(-1)?.[0]).toContain("COMPUTA = '1'");
+  });
   it("limita personas únicas y filtra siempre por sociedad", async () => {
     mocks.select.mockResolvedValue([
       { ID_EMPLEADO: "001471", NOMBRE: "Ana" },

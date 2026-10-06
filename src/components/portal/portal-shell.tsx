@@ -145,7 +145,6 @@ export function PortalShell({
   const variant = context.mode === "meta4" ? context.variant : undefined;
   const groups =
     location?.section.groups.flatMap((group) => {
-      if (group.showInPrimaryNav === false) return [];
       const first = getPortalMenuPages(group, variant)[0];
       return first
         ? [
@@ -157,10 +156,9 @@ export function PortalShell({
           ]
         : [];
     }) ?? [];
-  const activeGroupHref =
-    location?.group && location.group.showInPrimaryNav !== false
-      ? (getPortalMenuPages(location.group, variant)[0]?.route ?? null)
-      : null;
+  const activeGroupHref = location?.group
+    ? (getPortalMenuPages(location.group, variant)[0]?.route ?? null)
+    : null;
   const person = context.mode === "meta4" ? context.person : null;
 
   return (

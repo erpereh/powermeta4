@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ChevronRight, Network, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { Button, EmptyState, Input } from "@/components/system";
 import type { OrgNode } from "@/lib/portal/data/organization-core";
+import { orgChartHref, orgTreeState } from "@/lib/portal/organization-navigation";
 import { cn } from "@/lib/utils";
 
 const fold = (text: string): string =>
@@ -33,12 +35,14 @@ function OrgBranch({
   expanded,
   toggle,
   forceOpen,
+  personHref,
 }: {
   node: OrgNode;
   depth: number;
   expanded: ReadonlySet<string>;
   toggle: (key: string) => void;
   forceOpen: boolean;
+  personHref: (employeeId: string) => string;
 }) {
   const open = forceOpen || expanded.has(node.key);
   const panelId = `org-${node.key.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
@@ -83,7 +87,8 @@ function OrgBranch({
               {node.people.map((person) => (
                 <li key={person.key} className="min-w-0">
                   <Link
-                    href={`/portal/organizacion/personas/${encodeURIComponent(person.employeeId)}`}
+                    href={personHref(person.employeeId)}
+                    prefetch={false}
                     className="flex min-w-0 items-baseline gap-2 rounded-md px-2 py-1 text-sm outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
                     <span className="truncate text-foreground">{person.fullName}</span>
@@ -105,6 +110,7 @@ function OrgBranch({
                   expanded={expanded}
                   toggle={toggle}
                   forceOpen={forceOpen}
+                  personHref={personHref}
                 />
               ))}
             </ul>
@@ -115,22 +121,29 @@ function OrgBranch({
   );
 }
 
-/** Organigrama navegable: expansión separada de la navegación a cada ficha. */
-export function OrgTree({ roots }: { roots: readonly OrgNode[] }) {
-  const [query, setQuery] = useState("");
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(
-    () => new Set(roots.map((node) => node.key)),
+/** El filtro y la expansión pertenecen a la URL y se recuperan al volver del gráfico. */
+export function OrgTree({ roots, route }: { roots: readonly OrgNode[]; route: string }) {
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams.toString());
+  const { query, expanded } = orgTreeState(
+    params,
+    roots.map((node) => node.key),
   );
   const needle = fold(query.trim());
   const visible = useMemo(() => filterTree(roots, needle), [roots, needle]);
 
-  const toggle = (key: string) =>
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+  const update = (nextQuery: string, nextExpanded: ReadonlySet<string>) => {
+    const next = new URLSearchParams();
+    if (nextQuery) next.set("filtro", nextQuery.slice(0, 120));
+    next.set("ramas", [...nextExpanded].join("\n"));
+    window.history.replaceState(null, "", orgChartHref(route, next));
+  };
+  const toggle = (key: string) => {
+    const next = new Set(expanded);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    update(query, next);
+  };
 
   if (roots.length === 0) {
     return (
@@ -150,11 +163,11 @@ export function OrgTree({ roots }: { roots: readonly OrgNode[] }) {
             type="search"
             label="Filtrar unidades o personas"
             value={query}
-            onChange={setQuery}
+            onChange={(value) => update(value, expanded)}
             leftIcon={<Search className="size-4" aria-hidden="true" />}
           />
         </div>
-        <Button variant="secondary" size="sm" onClick={() => setExpanded(new Set())}>
+        <Button variant="secondary" size="sm" onClick={() => update(query, new Set())}>
           Contraer todo
         </Button>
       </div>
@@ -175,6 +188,7 @@ export function OrgTree({ roots }: { roots: readonly OrgNode[] }) {
               expanded={expanded}
               toggle={toggle}
               forceOpen={needle !== ""}
+              personHref={(employeeId) => orgChartHref(route, params, employeeId)}
             />
           ))}
         </ul>
