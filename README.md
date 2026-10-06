@@ -196,6 +196,9 @@ del proyecto jamás puedan compilar código nativo.
   `dependencias-servidor.md`.
   Aplicaciones Internas abre Organigrama; cada persona del árbol abre su
   jerarquía en la misma ruta con `?persona=`, conservando filtro y expansión.
+  El lienzo permite arrastrar, hacer zoom, desplegar equipos sucesivos y abrir
+  fichas públicas en un panel lateral. La ventana ampliada conserva el estado;
+  `equipos` restaura las ramas de personas mediante recarga e historial.
   Las fotos se leen mediante `/api/portal/photos/[employeeId]`, autenticado y
   limitado a la sociedad activa, con fallback a iniciales y sin caché.
   Contrato y comprobación pendiente en la VM:

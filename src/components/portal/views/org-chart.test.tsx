@@ -9,6 +9,7 @@ import { PersonOrgChart } from "./person-org-chart";
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
+vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => false }));
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -96,8 +97,10 @@ describe("árbol y gráfico del organigrama", () => {
       screen.getByRole("link", { name: /Subir al responsable/ }).getAttribute("href"),
     ).toContain("persona=9");
     expect(
-      screen.getByRole("link", { name: "Abrir equipo de Luis" }).getAttribute("href"),
-    ).toContain("persona=2");
+      screen
+        .getByRole("button", { name: "Desplegar equipo de Luis" })
+        .getAttribute("aria-expanded"),
+    ).toBe("false");
     const back = screen.getByRole("link", { name: "Volver al organigrama" }).getAttribute("href")!;
     expect(back).toBe(`${route}?filtro=Ana&ramas=U`);
     expect(screen.queryByRole("link", { name: /Quién/ })).toBeNull();

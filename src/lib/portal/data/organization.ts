@@ -106,10 +106,12 @@ const loadFileRow = async (society: Meta4Society, employeeId: string): Promise<O
 export const getDirectoryPerson = async (
   society: Meta4Society,
   employeeId: string,
+  computableOnly = false,
 ): Promise<PersonFile | null> => {
+  if (!isOrgEmployeeId(employeeId)) return null;
   const rows = await runPortalSelect<OroRow>(
     `SELECT ${PUBLIC_FILE_COLUMNS} FROM M4ORO_EMPLEADOS
-WHERE ID_ORGANIZATION = @organization AND ID_EMPLEADO = @employeeId`,
+WHERE ID_ORGANIZATION = @organization AND ID_EMPLEADO = @employeeId${computableOnly ? " AND COMPUTA = '1'" : ""}`,
     {
       organization: organizationParam(society),
       employeeId: employeeParam(employeeId),

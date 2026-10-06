@@ -23,7 +23,11 @@ en la misma ruta, también desde Organigrama dinámico y el acceso antiguo. El
 acceso `/portal/organizacion/organigrama` conserva su URL y selecciona la
 pestaña Organigrama dentro de Aplicaciones Internas. El
 filtro (`filtro`) y las ramas abiertas (`ramas`, claves separadas por salto de
-línea) permanecen en la URL al subir, abrir otro equipo y volver al árbol.
+línea) permanecen en la URL al subir y volver al árbol.
+Los equipos de personas desplegados usan `equipos`, separado de `ramas`:
+contracción e historial mantienen sus expansiones anteriores; una nueva raíz
+inicia su equipo directo. La cámara y la ficha lateral permanecen en memoria
+durante la visita y al ampliar la ventana.
 «Quién es Quién» conserva sus fichas. La lectura y las fotografías se describen
 en [Organigrama visual](organigrama-visual.md).
 

@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-06 - Organigrama interactivo con expansión de equipos
+
+- El selector abre un lienzo HTML/SVG con arrastre, zoom al puntero entre
+  20–200%, dos dedos, teclado y controles de centrado y ajuste. La distribución
+  reserva cada subárbol, mantiene visible la persona desplegada y omite ciclos.
+- Cada equipo se carga al desplegarlo, sin sustituir los niveles anteriores.
+  Se conservan ramas, lecturas y expansiones al contraer; carga, error con
+  reintento y vacío tienen estados explícitos. `equipos` restaura ramas
+  alcanzables mediante recarga e historial, separado de `ramas` del selector.
+- Nombre y foto abren una ficha pública lateral. Modal `viewport` conserva
+  cámara, equipos y ficha, con Escape, foco contenido y retorno al disparador.
+  En móvil, la ficha ocupa el lienzo y lo deja inactivo hasta cerrarse.
+- APIs de jerarquía y ficha autenticadas, sociedad e identidad del servidor,
+  `COMPUTA = '1'`, SELECT parametrizadas y no-store. Cambio de raíz o contexto
+  cancela cargas y descarta respuestas tardías. Sin dependencias nuevas ni
+  persistencia de personas; fotografías e iniciales reutilizadas.
+- Navegador local con datos sintéticos: arrastre, rueda, cuatro niveles,
+  ficha, ventana, foco, Escape, recarga, historial y tamaños de escritorio,
+  tablet y móvil sin overflow. Vista temporal retirada antes del build.
+  Gestos táctiles comprobados con PointerEvent en pruebas, sin dispositivo
+  físico. Lecturas y fotografías reales pendientes en la VM (P08).
+- `portal:docs` regenerado (192 pantallas). Suite completa con cuatro workers:
+  803 correctas y 2 omitidas en 148 archivos; pruebas finales dirigidas:
+  31 correctas en 6 archivos. Typecheck, build y comprobaciones Git pasan.
+  Lint y formato del código cambiado pasan; lint global conserva 7 avisos
+  previos y formato pendiente en 402 archivos.
+
 ## 2026-10-06 - Organigrama visual y retirada de la página interna
 
 - Aplicaciones Internas conserva la sección y abre Organigrama en todas las

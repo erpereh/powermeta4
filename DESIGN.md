@@ -61,8 +61,10 @@ de forma global además del respeto que ya traen los componentes beUI.
 - **Un Button** (`Button` / `StatefulButton`). Prohibidos MagneticButton,
   MetallicButton y efectos magnetic / metallic / tilt / bloom / shader /
   marquee / goo.
-- **Un Modal** (`Modal`): tamaños `sm | md | lg`; `lg` usa
+- **Un Modal** (`Modal`): tamaños `sm | md | lg | viewport`; `lg` usa
   `max-w-[min(64rem,calc(100vw-2rem))]`; overlay semántico sin blur fuerte.
+  `viewport` ocupa la pantalla con un margen de 1rem, altura en `dvh` y
+  contenido flex contenido; conserva cierre, Escape, foco y retorno al disparador.
   API controlada: `open`, `onOpenChange`, `title`, `description`, `children`,
   `footer`, `size`. Sin hold-to-confirm.
 - **Un Toast**: un solo `AnimatedToastStack` vía `ToastProvider` +
@@ -99,6 +101,14 @@ de forma global además del respeto que ya traen los componentes beUI.
 - `textarea` permanece en shadcn.
 
 ## Shell y sidebar
+
+El organigrama usa tarjetas HTML y conectores SVG dentro de un lienzo contenido.
+Arrastre del fondo, rueda anclada al puntero y dos dedos permiten mover y ampliar
+entre 20% y 200%; flechas y controles visibles ofrecen alternativas de teclado.
+Desplegar equipo y consultar la ficha son acciones independientes. La ficha
+vive en un panel lateral, ocupa el lienzo en móvil y se conserva al abrir el
+Modal `viewport`, junto con las ramas y la cámara. La distribución reserva la
+anchura de cada subárbol y mantiene visible la persona que se despliega.
 
 La sidebar de producto (migración posterior) usará la fachada beUI
 `animated-sidebar` con las mismas reglas de producto actuales:

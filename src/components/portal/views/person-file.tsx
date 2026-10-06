@@ -13,12 +13,20 @@ const formatDate = (value: string): string => {
 };
 
 /** Secciones de una ficha como listas de definición en dos columnas. */
-export function FileSections({ sections }: { sections: readonly FileSection[] }) {
+export function FileSections({
+  sections,
+  compact = false,
+}: {
+  sections: readonly FileSection[];
+  compact?: boolean;
+}) {
   return (
-    <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+    <div className={`grid min-w-0 gap-4 ${compact ? "" : "lg:grid-cols-2"}`}>
       {sections.map((section) => (
         <Surface key={section.id} title={section.title}>
-          <dl className="grid min-w-0 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)]">
+          <dl
+            className={`grid min-w-0 grid-cols-1 gap-x-4 gap-y-3 ${compact ? "" : "sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)]"}`}
+          >
             {section.fields.map((field) => (
               <div key={field.label} className="contents">
                 <dt className="text-xs text-muted-foreground">{field.label}</dt>

@@ -1,7 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { getOrgSelection, orgChartHref, orgTreeState } from "./organization-navigation";
+import {
+  getOrgSelection,
+  orgChartHref,
+  orgTreeState,
+  orgExpandedPeople,
+  orgExpandedHref,
+} from "./organization-navigation";
 
 describe("estado del organigrama en URL", () => {
+  it("restaura equipos y los separa de las ramas de unidades; cambiar raíz limpia equipos", () => {
+    expect(orgExpandedPeople(new URLSearchParams(), "1")).toEqual(new Set(["1"]));
+    expect(orgExpandedPeople(new URLSearchParams("equipos="), "1")).toEqual(new Set());
+    const params = new URLSearchParams({ filtro: "Ana", ramas: "U", equipos: "1,2,2,../3" });
+    expect(orgExpandedPeople(params, "1")).toEqual(new Set(["1", "2"]));
+    const href = orgExpandedHref(
+      "/portal/organizacion/organigrama",
+      params,
+      "1",
+      new Set(["1", "2"]),
+    );
+    expect(new URL(href, "https://local.test").searchParams.get("equipos")).toBe("1,2");
+    expect(orgChartHref("/portal/organizacion/organigrama", params, "2")).not.toContain("equipos");
+  });
   it("valida selección sin confundir una matrícula alfabética con un estado", () => {
     expect(getOrgSelection({})).toEqual({ status: "tree" });
     expect(getOrgSelection({ persona: "invalid" })).toEqual({

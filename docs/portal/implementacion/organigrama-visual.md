@@ -2,15 +2,38 @@
 
 El árbol de unidades conserva su entrada. Al elegir una persona, la misma ruta
 abre `?persona=<matrícula>` y presenta esa persona y sus dependientes directos.
-Los controles independientes permiten subir al responsable único, abrir el
-equipo de un dependiente o volver al árbol. No se abre la ficha de directorio.
+Los controles independientes permiten subir al responsable único y volver al
+árbol. «Desplegar equipo» añade subordinados debajo de la persona, manteniendo
+los niveles anteriores y varias ramas abiertas. Nombre y fotografía abren una
+ficha pública en un panel lateral, sin navegar a «Quién es Quién».
 
-El filtro y la expansión pertenecen a la URL (`filtro` y `ramas`). La API nativa
-de historial actualiza esos parámetros sin volver a consultar el servidor en
-cada pulsación; los enlaces a personas sí cargan su jerarquía en servidor.
-Recarga e historial reconstruyen la vista. Los parámetros no eligen sociedad,
-identidad ni alcance de consultas. El gráfico tiene scroll horizontal contenido,
-tarjetas con nombres y puestos, líneas decorativas y región accesible por teclado.
+El filtro y las unidades abiertas pertenecen a la URL (`filtro` y `ramas`).
+`equipos` contiene las matrículas desplegadas, separadas por coma. Sin ese
+parámetro se abre el equipo de la raíz; vacío contrae todas las ramas. La API
+nativa de historial actualiza estos parámetros. Recarga e historial reconstruyen
+solo las ramas alcanzables desde la raíz, consultando cada equipo necesario.
+Una contracción oculta descendientes y conserva sus expansiones; al reabrirlos
+se reutilizan las lecturas de la visita. Cambiar de raíz inicia su equipo directo.
+Los parámetros no eligen sociedad, identidad ni alcance de consultas.
+
+## Lienzo, ficha y ventana
+
+Tarjetas HTML posicionadas y conectores SVG usan una distribución pura de
+subárboles sin solapamientos ni ciclos. Expandir mantiene la posición visible
+de esa persona. Arrastrar el fondo mueve la cámara; botones y enlaces no
+inician arrastre. La rueda cancela el scroll de página solo dentro del lienzo y
+amplía alrededor del puntero entre 20% y 200%. Un dedo arrastra y dos permiten
+ampliar y mover. Controles visibles muestran el porcentaje, acercan, alejan,
+centran la raíz y ajustan el gráfico; con foco en el lienzo, flechas, +, − y 0
+ofrecen las mismas operaciones.
+
+El `Modal` existente tiene una variante `viewport`, cierre visible, Escape y
+foco contenido. Abrir y cerrar conserva equipos, cámara y ficha; al cerrar se
+recupera el disparador. La ficha muestra puesto, organización, centro y contacto
+del directorio público. En móvil ocupa el área del gráfico y deja el lienzo
+inactivo hasta cerrarse. Cámara y panel solo viven en memoria; al recargar se
+ajusta el gráfico reconstruido. Cargas, errores con reintento y equipos vacíos
+se muestran explícitamente. No se añaden dependencias.
 
 ## Lectura de la jerarquía
 
@@ -20,7 +43,19 @@ misma matrícula y conserva puestos distintos. `ID_RESPONSABLE` determina el
 responsable y los dependientes directos. No se elige entre responsables
 contradictorios; las relaciones ambiguas y autorreferencias no se dibujan.
 Responsable ausente, persona fuera de sociedad y equipo vacío tienen estados
-explícitos. No hay escrituras, recursión ni persistencia local de personas.
+explícitos. El cliente detecta conexiones circulares entre equipos sucesivos y
+omite esa conexión, sin inventar relaciones. No hay escrituras ni persistencia
+local de personas.
+
+`GET /api/portal/organization/[employeeId]/hierarchy` reutiliza `PersonHierarchy`;
+`GET /api/portal/organization/[employeeId]/person` reutiliza la ficha pública
+con `COMPUTA = '1'`. Ambos exigen sesión Meta4 e identidad coherente, resuelven
+sociedad en servidor y usan SELECT parametrizadas. Devuelven los estados
+tipados de dependencia del portal y `Cache-Control: no-store`. Se rechazan
+matrículas inválidas y personas ajenas a la sociedad. Las respuestas se
+validan antes de incorporarse al estado temporal. Cambiar raíz, workspace o
+sociedad aborta cargas y descarta respuestas tardías; las lecturas y fichas se
+limpian con ese contexto.
 
 ## Fotografías
 

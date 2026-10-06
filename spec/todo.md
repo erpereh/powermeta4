@@ -1,5 +1,36 @@
 # powermeta4 - estado de tareas
 
+## Portal: organigrama interactivo en salvadev - 2026-10-06
+
+- [x] Selector de unidades conservado; lienzo de tarjetas HTML y conectores SVG
+      con distribución pura probada, varias ramas y niveles sin solapamientos,
+      ciclos ni duplicados. Despliegue independiente de la ficha pública.
+- [x] Cámara con arrastre del fondo, zoom anclado al puntero entre 20–200%,
+      gestos con dos dedos, flechas, porcentaje, centrado y ajuste del gráfico.
+      Modal `viewport` conserva equipos, cámara y panel; Escape, foco contenido
+      y retorno al disparador. Ficha lateral y área completa en móvil.
+- [x] Lecturas autenticadas de equipo y ficha pública con sociedad e identidad
+      del servidor, `COMPUTA = '1'`, SELECT parametrizadas y no-store. Carga,
+      vacío y reintento; lecturas reutilizadas durante la visita y cancelación
+      de respuestas tardías al cambiar raíz o contexto.
+- [x] `equipos` separado de `ramas` en URL; recarga e historial restauran solo
+      ramas alcanzables. Contracción conserva expansiones anteriores; nueva
+      raíz inicia su equipo directo. Subir y volver conservan el selector.
+- [x] Navegador local con datos sintéticos: arrastre, rueda, cuatro niveles,
+      ficha, ventana ampliada, Escape, foco, recarga, atrás/adelante y tamaños
+      de escritorio, tablet y móvil sin overflow de página. Gestos táctiles,
+      errores, vacío, ciclos, autenticación y contexto cubiertos con pruebas.
+      La vista temporal se retiró antes del build.
+- [x] Diseño, documentación y `portal:docs` actualizados (192 pantallas).
+      Suite completa: 803 correctas y 2 omitidas en 148 archivos, con cuatro
+      workers. Revisión final dirigida: 31 pruebas correctas en 6 archivos.
+      Typecheck y build correctos; oxlint y formato del código cambiado pasan.
+      Lint global: 7 avisos previos y 402 archivos con formato pendiente.
+      Diff revisado y comprobaciones Git sin errores.
+- [ ] Verificar lecturas y fotografías reales en la VM (P08). PeopleNet no
+      está configurado aquí; no se comprobó un cambio de sociedad con sesión
+      Meta4 viva ni gestos en un dispositivo táctil físico.
+
 ## Portal: entrada y organigrama visual en salvadev - 2026-10-06
 
 - [x] Retiradas las dos páginas de Aplicaciones Internas del registro, Inicio

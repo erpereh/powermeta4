@@ -92,4 +92,18 @@ describe("lecturas ORO parametrizadas", () => {
     expect(params.employeeId.value).toBe("001471");
     expect(statement).toContain("SCO_EMP_CHECK = '1'");
   });
+  it("la ficha del organigrama limita computables y columnas públicas", async () => {
+    mocks.select.mockResolvedValue([]);
+    await getDirectoryPerson("CYC", "123", true);
+    const [statement, params] = mocks.select.mock.calls[0];
+    expect(statement).toContain("COMPUTA = '1'");
+    expect(statement).not.toContain("ID_LEGAL");
+    expect(() => assertReadOnlySql(statement)).not.toThrow();
+    expect(params.employeeId.value).toBe("123");
+    expect(params.organization.value).toBe("CYC");
+    await getDirectoryPerson("IBER", "123");
+    expect(mocks.select.mock.calls[1][0]).not.toContain("COMPUTA = '1'");
+    expect(await getDirectoryPerson("CYC", "../123", true)).toBeNull();
+    expect(mocks.select).toHaveBeenCalledTimes(2);
+  });
 });

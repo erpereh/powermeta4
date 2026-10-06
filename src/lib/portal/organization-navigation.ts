@@ -35,3 +35,22 @@ export const orgChartHref = (
   const query = next.toString();
   return query ? `${route}?${query}` : route;
 };
+
+/** Ausente: equipo raíz abierto; vacío: todas las personas contraídas. */
+export const orgExpandedPeople = (params: URLSearchParams, rootId: string): ReadonlySet<string> =>
+  new Set(
+    params.has("equipos")
+      ? (params.get("equipos") ?? "").slice(0, 16000).split(",").filter(isOrgEmployeeId)
+      : [rootId],
+  );
+
+export const orgExpandedHref = (
+  route: string,
+  params: URLSearchParams,
+  rootId: string,
+  ids: ReadonlySet<string>,
+) => {
+  const next = new URLSearchParams(orgChartHref(route, params, rootId).split("?")[1]);
+  next.set("equipos", [...ids].filter(isOrgEmployeeId).sort().join(",").slice(0, 16000));
+  return `${route}?${next}`;
+};
