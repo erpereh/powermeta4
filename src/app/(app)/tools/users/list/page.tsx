@@ -18,7 +18,12 @@ import { listMeta4Users } from "@/lib/meta4/users/service";
 export default function UsersListPage() {
   return (
     <main className="flex min-h-svh flex-col">
-      <ToolsPageHeader title="Usuarios" />
+      <ToolsPageHeader
+        title="Usuarios"
+        icon="users"
+        moduleId="users"
+        contentClassName="mx-auto w-full max-w-6xl"
+      />
       <Suspense fallback={<UsersListSkeleton />}>
         <UsersListContent />
       </Suspense>
@@ -35,7 +40,7 @@ async function UsersListContent() {
   } catch (error) {
     if (error instanceof Meta4SessionRequiredError) {
       return (
-        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8">
+        <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6">
           <Alert>
             <AlertCircle />
             <AlertTitle>Sesión Meta4 requerida</AlertTitle>

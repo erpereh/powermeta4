@@ -2,7 +2,9 @@
 
 import { useWorkspaceHydrated } from "@/components/app-shell/app-shell";
 import { SettingsContent } from "@/components/settings/settings-content";
-import { Skeleton } from "@/components/system";
+import { Settings } from "lucide-react";
+
+import { PageHeader, Skeleton } from "@/components/system";
 
 export function SettingsScreen() {
   const hydrated = useWorkspaceHydrated();
@@ -20,15 +22,15 @@ export function SettingsScreen() {
   }
 
   return (
-    <main className="min-h-svh p-4 sm:p-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-5">
-        <header className="space-y-1.5">
-          <p className="text-sm font-medium text-muted-foreground">Configuración local</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Ajustes</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Consulta tu perfil Meta4 y protege la información local de este equipo.
-          </p>
-        </header>
+    <main className="flex min-h-svh flex-col">
+      <PageHeader
+        icon={Settings}
+        tone="slate"
+        title={<h1>Ajustes</h1>}
+        description="Consulta tu perfil Meta4 y protege la información local de este equipo."
+        contentClassName="mx-auto max-w-5xl"
+      />
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6">
         <SettingsContent variant="page" />
       </div>
     </main>

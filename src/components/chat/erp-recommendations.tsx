@@ -3,7 +3,10 @@
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { useState, type RefObject } from "react";
 
-import { Button } from "@/components/system";
+import { ChevronRight } from "lucide-react";
+
+import { Button, IconChip } from "@/components/system";
+import { MODULE_TONES } from "@/lib/theme/icon-tones";
 import { TOOL_ICONS, TOOL_MODULES, type ToolModuleId } from "@/lib/tools/registry";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +32,7 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
   };
 
   return (
-    <section className="flex w-full flex-col gap-2" aria-label="Recomendaciones para operaciones">
+    <section className="flex w-full flex-col gap-3" aria-label="Recomendaciones para operaciones">
       <div
         className="flex flex-wrap justify-center gap-2"
         role="group"
@@ -51,11 +54,11 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
                 setActiveCategoryId((current) => (current === module.id ? null : module.id))
               }
               className={cn(
-                "min-h-8 gap-1.5 px-3 text-xs",
+                "min-h-8 gap-1.5 rounded-full px-2.5 text-xs",
                 !isActive && "text-muted-foreground",
               )}
             >
-              <Icon className={cn("size-3.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+              <IconChip icon={Icon} tone={MODULE_TONES[module.id]} size="xs" />
               {module.name}
             </Button>
           );
@@ -64,22 +67,30 @@ export function ErpRecommendations({ inputRef }: ErpRecommendationsProps) {
 
       {activeCategory && (
         <div
-          className="flex flex-wrap justify-center gap-2"
+          className="flex flex-col gap-0.5"
           role="group"
           aria-label={`Acciones de ${activeCategory.name}`}
         >
-          {activeCategory.tools.map((action) => (
-            <ThreadPrimitive.Suggestion
-              key={action.id}
-              prompt={action.aiPrompt}
-              send={false}
-              type="button"
-              onClick={focusComposer}
-              className="inline-flex min-h-8 shrink-0 items-center justify-center rounded-full border border-border bg-transparent px-3 text-xs font-medium whitespace-nowrap text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
-            >
-              {action.name}
-            </ThreadPrimitive.Suggestion>
-          ))}
+          {activeCategory.tools.map((action) => {
+            const ActionIcon = TOOL_ICONS[action.icon];
+            return (
+              <ThreadPrimitive.Suggestion
+                key={action.id}
+                prompt={action.aiPrompt}
+                send={false}
+                type="button"
+                onClick={focusComposer}
+                className="group flex min-h-10 w-full items-center gap-3 rounded-lg px-3 text-left text-sm text-foreground outline-none transition-colors hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+              >
+                <ActionIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate">{action.name}</span>
+                <ChevronRight
+                  className="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                  aria-hidden="true"
+                />
+              </ThreadPrimitive.Suggestion>
+            );
+          })}
         </div>
       )}
     </section>

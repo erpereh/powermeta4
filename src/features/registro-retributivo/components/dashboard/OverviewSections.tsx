@@ -2,7 +2,7 @@
 
 import { AlertTriangle, ArrowRight, CheckCircle2, ChevronRight, FileWarning, ListChecks, Scale } from "lucide-react";
 import type { ReactNode } from "react";
-import { Button, Surface } from "@/components/system";
+import { Button, Section, StatTile, Surface } from "@/components/system";
 import type { AnalysisResult } from "@/features/registro-retributivo/types";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export function AnalysisVerdict({
       aria-labelledby="verdict-title"
       data-testid="analysis-verdict"
       className={cn(
-        "flex flex-col gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-4 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between",
         allOk ? "border-emerald-500/30 bg-emerald-500/5" : withDifference ? "border-destructive/25 bg-destructive/5" : "border-border bg-card",
       )}
     >
@@ -73,7 +73,7 @@ export function StatusBreakdown({
   onGoToPeople,
 }: Readonly<{ total: number; statuses: readonly PersonStatusCount[]; onGoToPeople: GoToPeople }>) {
   return (
-    <Surface title="Estado de las personas" description={`${total} personas analizadas. Pulsa una fila para ver el listado.`} flush className="rounded-2xl">
+    <Surface title="Estado de las personas" description={`${total} personas analizadas. Pulsa una fila para ver el listado.`} flush>
       <div className="px-4 pb-2 sm:px-5">
         <div
           role="img"
@@ -112,45 +112,36 @@ export function StatusBreakdown({
   );
 }
 
-function AmountRow({ label, value, explanation, tone }: Readonly<{ label: string; value: number; explanation: string; tone?: "danger" | "muted" }>) {
-  return (
-    <div className="flex flex-col gap-0.5 py-3 first:pt-0 last:pb-0">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className={cn("font-mono text-xl font-semibold tabular-nums", tone === "danger" && value !== 0 ? "text-destructive" : "text-foreground")}>
-        {formatEuro(value)}
-      </dd>
-      <dd className="text-xs text-muted-foreground text-pretty">{explanation}</dd>
-    </div>
-  );
-}
-
 /** Importes clave. No se suman entre sí: cada uno mide una cosa distinta. */
 export function AmountsPanel({ result }: Readonly<{ result: AnalysisResult }>) {
   const summary = result.summary;
   const matchedPeople = summary.matchedPeople ?? 0;
   const withoutRegistro = summary.peopleInPdfWithoutRegistro ?? 0;
+  const netDifference = summary.matchedTotalDifference ?? summary.totalGlobalDifference;
 
   return (
-    <Surface title="Importes" description="Cada importe mide algo distinto; no se suman." className="rounded-2xl">
-      <dl className="divide-y divide-border">
-        <AmountRow
+    <Section title="Importes" description="Cada importe mide algo distinto; no se suman.">
+      <div className="grid gap-3 md:grid-cols-3">
+        <StatTile
           label="Diferencia neta (recibo − registro)"
-          value={summary.matchedTotalDifference ?? summary.totalGlobalDifference}
-          explanation={`Suma de las ${matchedPeople} personas que aparecen en los dos ficheros. Las diferencias positivas y negativas se compensan.`}
-          tone="danger"
+          value={formatEuro(netDifference)}
+          valueClassName={cn("font-mono", netDifference !== 0 && "text-destructive")}
+          note={`Suma de las ${matchedPeople} personas que aparecen en los dos ficheros. Las diferencias positivas y negativas se compensan.`}
         />
-        <AmountRow
+        <StatTile
           label="En recibos sin persona en el Registro"
-          value={summary.totalPdfWithoutRegistro ?? 0}
-          explanation={`${withoutRegistro} ${withoutRegistro === 1 ? "persona tiene" : "personas tienen"} recibo pero no figuran en el Excel.`}
+          value={formatEuro(summary.totalPdfWithoutRegistro ?? 0)}
+          valueClassName="font-mono"
+          note={`${withoutRegistro} ${withoutRegistro === 1 ? "persona tiene" : "personas tienen"} recibo pero no figuran en el Excel.`}
         />
-        <AmountRow
+        <StatTile
           label="Pendiente de decidir"
-          value={summary.pendingDecisionPdfTotal ?? summary.pendingReviewAmount ?? 0}
-          explanation="Conceptos de recibo que todavía no cuentan en la comparación."
+          value={formatEuro(summary.pendingDecisionPdfTotal ?? summary.pendingReviewAmount ?? 0)}
+          valueClassName="font-mono"
+          note="Conceptos de recibo que todavía no cuentan en la comparación."
         />
-      </dl>
-    </Surface>
+      </div>
+    </Section>
   );
 }
 
@@ -204,7 +195,7 @@ export function PendingReview({
   }
 
   return (
-    <Surface title="Pendiente de revisar" className="rounded-2xl">
+    <Surface title="Pendiente de revisar">
       {items.length ? (
         <ul className="flex flex-col gap-3">
           {items.map((item) => (

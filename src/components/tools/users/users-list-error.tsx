@@ -9,7 +9,7 @@ export function UsersListError({ message }: { message: string }) {
   const router = useRouter();
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6">
       <EmptyState
         icon={<AlertCircle aria-hidden="true" />}
         title="No se pudo cargar el listado"

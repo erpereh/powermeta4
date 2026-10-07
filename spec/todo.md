@@ -1,5 +1,27 @@
 # powermeta4 - estado de tareas
 
+## Rediseño visual de la interfaz - 2026-10-07
+
+- [x] Fachada `system`: `IconChip` con tonos estáticos (`src/lib/theme/icon-tones.ts`,
+      tokens `--tone-*` light/dark), `PageHeader` dentro del contenido (sin
+      barra, con `toolbar`, `badge`, `leading` y trigger solo en móvil),
+      `SidebarToggle` (con icono visible), `DetailHeader`, `Section`,
+      `PropertyList` y `StatTile`.
+- [x] Sidebar: fila de cabecera con sociedad, Buscar y plegar; Inicio y Nuevo
+      chat; Herramientas como sección siempre visible; Portal plegable con
+      chips de color; Favoritos solo si hay; «Sin chats» vacío.
+- [x] Inicio centrado, workspaces de módulo con patrón de detalle, chat
+      (bienvenida con isotipo y recomendaciones en lista), Ajustes en filas y
+      `PropertyList`, Portal (cabecera con persona, pastilla de datos,
+      secciones), Usuarios, Alta, Consultar nómina y Registro Retributivo
+      (cabecera común e importes en `StatTile`). Sin cambios de rutas ni
+      lógica.
+- [x] Revisión en navegador local (modo debug) a 1440 px y 390 px: sin
+      overflow horizontal y un único trigger visible en Inicio, Usuarios,
+      Portal, Ajustes y Registro Retributivo; tema claro y oscuro.
+- [ ] Revisar visualmente con sesión Meta4 real (persona del portal,
+      listado de usuarios y nómina con datos) y a 768/1024 px.
+
 ## DPAPI y arranque en desarrollo - 2026-10-07
 
 - [x] DPAPI se inicializa una vez por proceso (`globalThis`) y deja de

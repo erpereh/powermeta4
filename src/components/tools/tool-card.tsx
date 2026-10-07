@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
-import { Badge } from "@/components/system";
+import { Badge, IconChip } from "@/components/system";
+import { MODULE_TONES } from "@/lib/theme/icon-tones";
 import { TOOL_ICONS, type ToolDefinition } from "@/lib/tools/registry";
 import { cn } from "@/lib/utils";
 
@@ -19,14 +20,12 @@ export function ToolCard({ tool, onVisit, onUnavailable }: ToolCardProps) {
 
   const content = (
     <>
-      <span
-        className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted",
-          tool.implemented ? "text-foreground" : "text-muted-foreground",
-        )}
-      >
-        <Icon className="size-4" aria-hidden="true" />
-      </span>
+      <IconChip
+        icon={Icon}
+        tone={MODULE_TONES[tool.moduleId]}
+        size="sm"
+        className={tool.implemented ? undefined : "opacity-60"}
+      />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium text-foreground">{tool.name}</span>
         <span className="block truncate text-xs text-muted-foreground">{tool.description}</span>

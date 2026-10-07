@@ -12,8 +12,7 @@ import {
 } from "@/app/actions/workspace";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger, Tooltip, useSidebar } from "@/components/system";
+import { PageHeader } from "@/components/system";
 import type { GlobalChatStatus } from "@/lib/chat/global-chat-client";
 import type { CompanyId } from "@/types/workspace";
 
@@ -24,7 +23,6 @@ type ChatScreenProps = {
 
 export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
   const router = useRouter();
-  const { isMobile, open, openMobile } = useSidebar();
   const hydrated = useWorkspaceHydrated();
   const companyId = useWorkspaceStore((state) => state.activeCompanyId);
   const workspace = useWorkspaceStore((state) =>
@@ -32,8 +30,6 @@ export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
   );
   const createChat = useWorkspaceStore((state) => state.createChat);
   const selectChat = useWorkspaceStore((state) => state.selectChat);
-  const sidebarOpen = isMobile ? openMobile : open;
-  const sidebarTriggerLabel = sidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral";
   const activeChat = requestedChatId
     ? workspace?.chats.find((chat) => chat.id === requestedChatId)
     : workspace?.chats.find((chat) => chat.id === workspace.activeChatId);
@@ -80,17 +76,14 @@ export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
 
   return (
     <main className="flex h-svh min-h-0 flex-col">
-      <header className="flex h-12 shrink-0 items-center gap-2.5 border-b border-border px-3 sm:h-14 sm:gap-3 sm:px-5">
-        <Tooltip content={sidebarTriggerLabel} side="bottom">
-          <SidebarTrigger
-            aria-label={sidebarTriggerLabel}
-            aria-expanded={sidebarOpen}
-            title={sidebarTriggerLabel}
-          />
-        </Tooltip>
-        <Separator orientation="vertical" className="h-5" />
-        <h1 className="min-w-0 truncate text-sm font-medium text-foreground">{activeChat.title}</h1>
-      </header>
+      <PageHeader
+        className="pb-1 sm:pt-3"
+        title={
+          <h1 className="min-w-0 truncate text-sm font-medium text-muted-foreground">
+            {activeChat.title}
+          </h1>
+        }
+      />
 
       <div className="min-h-0 flex-1">
         <ChatRuntimeProvider

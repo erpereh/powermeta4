@@ -93,7 +93,7 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
     <section
       data-surface="upload-panel"
       aria-label="Preparar análisis"
-      className={cn(!stacked && "rounded-2xl border border-border bg-card p-4 sm:p-6")}
+      className={cn(!stacked && "rounded-xl border border-border bg-card p-4 sm:p-6")}
     >
       <ol
         className={cn(

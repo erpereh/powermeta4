@@ -47,6 +47,14 @@ Los colores de empresas y favoritos son
 excepciones deliberadas y se resuelven desde mapas estáticos tipados; nunca se
 guardan clases dinámicas en el store.
 
+Los **chips de icono** (`IconChip`) son la otra excepción controlada: ocho
+tonos (`orange`, `blue`, `green`, `violet`, `amber`, `teal`, `rose`, `slate`)
+definidos como pares `--tone-*` / `--tone-*-foreground` en `globals.css` para
+light y dark (oklch) y resueltos solo desde `src/lib/theme/icon-tones.ts`:
+`MODULE_TONES` (módulos ERP), `STANDALONE_TOOL_TONES` (herramientas) y
+`PORTAL_ICON_TONES` (iconos del portal). El chip es decorativo
+(`aria-hidden`); el nombre accesible está en el texto contiguo.
+
 Claro, oscuro y sistema representan el mismo producto con distintos valores
 de tokens. El tema usa `next-themes`, `attribute="class"`, sistema habilitado
 y `disableTransitionOnChange`. Ninguna pantalla depende de una clase `dark`
@@ -86,6 +94,18 @@ de forma global además del respeto que ya traen los componentes beUI.
   `AnimatedNumber` con `format` para importes.
 - **Copiar**: `ActionSwapButton` (Copiar → Copiado) para confirmar acciones
   instantáneas sin toast.
+- **Cabecera de pantalla**: `PageHeader` vive dentro del contenido, sin barra
+  ni borde: chip de icono (o `leading`, p. ej. avatar), ruta pequeña opcional,
+  título con `badge`, descripción, acciones a la derecha y `toolbar` (filtros
+  o navegación) en una segunda fila. En escritorio el trigger de la sidebar
+  está en la propia sidebar; `PageHeader` solo lo muestra en móvil
+  (`SidebarToggle`), de modo que siempre hay un único trigger visible.
+  `ToolsPageHeader` recibe el icono por nombre del registro para poder usarse
+  desde páginas de servidor y añade la ruta «Acciones / Módulo».
+- **Detalle**: `DetailHeader` (ruta, chip grande, título con estado,
+  descripción) en columna centrada, `Section` (título fuera de la caja) y
+  `PropertyList` (tabla clave‑valor de dos columnas con pie opcional).
+- **Cifras**: `StatTile` (etiqueta, valor y nota) para filas de importes.
 - **Variantes de Tabs por contexto**: `underline` para navegación de una
   herramienta y filtros secundarios dentro de un panel; `segment` para cambiar
   de modo o de gráfica; `pill` para filtros de estado con contador.
@@ -113,16 +133,23 @@ anchura de cada subárbol y mantiene visible la persona que se despliega.
 La sidebar de producto (migración posterior) usará la fachada beUI
 `animated-sidebar` con las mismas reglas de producto actuales:
 
-- la cabecera única integra el isotipo, la sociedad activa y el alcance;
+- la cabecera única integra el isotipo, la sociedad activa y el alcance, y en
+  la misma fila los iconos Buscar (abre la búsqueda de chats) y plegar
+  (`SidebarToggle`); plegada, apila isotipo y trigger y Buscar pasa a la
+  lista de navegación;
+- la sidebar usa el token `sidebar` como fondo y etiquetas de grupo en
+  minúscula (`Herramientas`, `Portal`, `Favoritos`, `Chats`); Favoritos solo
+  aparece si hay favoritos y Chats muestra «Sin chats» si está vacío;
 - en sesión Meta4 con varias sociedades muestra un selector de solo lectura
   (`CYC` | `IBER` | `COLL` detectadas) sin crear ni eliminar workspaces;
   con una sola sociedad el header no es interactivo; en modo debug muestra
   `Modo desarrollo` sin sociedades inventadas;
 - el aislamiento interno por `activeCompanyId` / `society_code` se gestiona
   en servidor: el navegador no elige la sociedad de una operación SOAP;
-- expandida muestra navegación, el grupo Herramientas, Favoritos, Chats y usuario;
+- expandida muestra Inicio y Nuevo chat, la sección Herramientas, el grupo
+  Portal, Favoritos, Chats y usuario;
 - colapsada muestra únicamente controles funcionales, tooltips y avatar;
-- en desktop colapsada, pulsar el icono de Herramientas expande la sidebar
+- en desktop colapsada, pulsar el icono de Portal expande la sidebar
   (`useSidebar().setOpen(true)`), abre el grupo y muestra el submenu; no usa
   Popover ni DropdownMenu para ese caso;
 - móvil conserva el Sheet/offcanvas nativo, nunca un rail permanente.
@@ -131,19 +158,20 @@ El menú de usuario abre Ajustes como un diálogo grande con los datos de la
 persona y las copias locales; `/settings` reutiliza el mismo contenido como
 deep-link. La configuración del chat no vive en Ajustes.
 
-Herramientas es un grupo colapsable, no una ruta de navegación. Todo el row
-es el `CollapsibleTrigger`: abre o cierra el submenu, anuncia `aria-expanded`
-y no navega a `/tools`. El submenu consume solo `STANDALONE_TOOLS` (hoy
-`Reg. Retrib.`); los módulos ERP no aparecen ahí. El hijo activo muestra
-estado seleccionado; el grupo no. El contenido principal conserva un único
-trigger accesible para la sidebar.
+Herramientas es una sección con etiqueta siempre visible, no una ruta de
+navegación ni un grupo plegable: lista directamente `STANDALONE_TOOLS` (hoy
+`Reg. Retrib.`) con su chip de color; los módulos ERP no aparecen ahí y no hay
+enlace a `/tools`. Portal sí es un grupo plegable: la fila abre o cierra el
+submenu, anuncia `aria-expanded` y no navega; los hijos llevan chip con el
+tono de su icono. El elemento activo muestra estado seleccionado.
 
 ## Inicio y workspaces
 
-Inicio (`/home`) es un command center compacto de **Acciones** (operaciones
-ERP/Meta4): cabecera mínima, alcance activo (sociedad Meta4 o modo desarrollo),
-trigger de búsqueda con atajo `Ctrl+K`, dock de módulos, rejilla de tarjetas y
-actividad reciente real. No incluye hero, acceso rápido ni tarjetas gigantes
+Inicio (`/home`) es un command center centrado de **Acciones** (operaciones
+ERP/Meta4): chip de alcance activo (sociedad Meta4 o modo desarrollo), isotipo
+con el título «Acciones» y una frase, caja de búsqueda grande con atajo
+`Ctrl+K`, dock de módulos con chips de color, lista de acciones y actividad
+reciente real. Sin barra de cabecera (solo el trigger móvil). No incluye hero, acceso rápido ni tarjetas gigantes
 de módulo. Las **Herramientas** (utilidades independientes de powermeta4) no
 aparecen en Inicio; se listan solo en el submenu de la sidebar.
 
@@ -170,9 +198,11 @@ descripción, keywords y nombre de módulo.
 Las visitas solo se registran para acciones implementadas; la ausencia de visitas
 tiene un empty state compacto.
 
-Los cinco workspaces ERP usan una plantilla común: breadcrumb (`Acciones` →
-`/home`), alcance activo,
-icono, título, descripción, cuatro tarjetas de acciones y estado inferior.
+Los cinco workspaces ERP usan una plantilla de detalle común en columna
+centrada: `DetailHeader` con ruta `Acciones / Módulo`, chip grande, título y
+badge honesto «Sin conexión ERP», descripción; `Section` «Acciones
+disponibles» y `Section` «Estado» con `PropertyList` (alcance, acciones
+disponibles X de N, conexión ERP pendiente).
 Las acciones futuras muestran `Disponible próximamente` y no navegan, guardan
 datos ni inventan resultados. Usuarios ya no representa personas locales: el
 listado consulta PeopleNet y el alta de personas llama a Meta4; las rutas
@@ -228,7 +258,9 @@ derecha de la nav.
 - **Inicio sin análisis**: título «Nuevo análisis» con una frase de qué hace la
   herramienta y tres pasos numerados (Recibos de nómina, Registro Retributivo,
   Analizar), cada uno con una línea que explica qué fichero va ahí.
-- **Inicio con análisis**: se lee de arriba abajo y todo queda visible (sin
+- **Inicio con análisis** (orden: cabecera, veredicto, «Importes» como fila de
+  tres `StatTile`, y debajo «Estado de las personas» junto a «Pendiente de
+  revisar»): se lee de arriba abajo y todo queda visible (sin
   acordeones ni pestañas que escondan datos): cabecera con fecha y fuentes;
   veredicto en una frase («X de Y personas tienen diferencias») con acceso
   directo; «Estado de las personas» con una fila explicada por estado que abre
@@ -342,7 +374,9 @@ nómina con importes numéricos, más «Resumen» si son varias.
 
 ## Portal
 
-- Raíz `/portal` con cabecera propia: breadcrumb y búsqueda (Ctrl+K abre el
+- Raíz `/portal` con `PageHeader`: ruta pequeña sobre el título (la persona con
+  avatar, puesto · unidad y sociedad como badge, o el nombre del portal), y
+  búsqueda (Ctrl+K abre el
   palette en modo «portal»: pantallas y personas desde dos caracteres),
   persona y sociedad, conmutador Empleado/Responsable con enlaces reales y
   `SectionNav` subrayadas para los apartados de la sección activa. Las subpáginas
@@ -352,8 +386,10 @@ nómina con importes numéricos, más «Resumen» si son varias.
   horizontal interno en móvil.
 - La sidebar añade el grupo colapsable «Portal» con las mismas reglas que
   Herramientas: la fila no navega, los hijos sí.
-- Cada pantalla muestra título, resumen, origen (JSP de la ficha) y estado del
-  dato. Estados honestos: `DependencyState` (objeto Meta4 y pendientes),
+- Cada pantalla muestra chip con el tono de su icono, título, resumen, estado
+  del dato como pastilla («Datos: …») y origen (JSP de la ficha) atenuado. Las
+  consultas y formularios usan `Section` (título fuera) y cada registro leído
+  se muestra con `PropertyList`. Estados honestos: `DependencyState` (objeto Meta4 y pendientes),
   `SensitiveLocked`, `PortalError` y `WriteBlockedNotice` (método Meta4 y
   pendiente; el botón de envío queda `disabled` y descrito por el aviso).
 - `PortalForm` reproduce las validaciones visibles del original (obligatorios,

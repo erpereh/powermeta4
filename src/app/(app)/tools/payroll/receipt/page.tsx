@@ -12,7 +12,12 @@ import { listPayrollPays } from "@/lib/peoplenet/payroll-receipt";
 export default function PayrollReceiptPage() {
   return (
     <main className="flex min-h-svh flex-col">
-      <ToolsPageHeader title="Consultar una nómina" />
+      <ToolsPageHeader
+        title="Consultar una nómina"
+        icon="payroll-search"
+        moduleId="payroll"
+        contentClassName="mx-auto w-full max-w-6xl"
+      />
       <Suspense fallback={<PayrollReceiptSkeleton />}>
         <PayrollReceiptContent />
       </Suspense>

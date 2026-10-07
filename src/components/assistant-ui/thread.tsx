@@ -33,6 +33,7 @@ import {
   USER_MESSAGE_BUBBLE_CLASS,
   USER_MESSAGE_ROOT_CLASS,
 } from "@/components/assistant-ui/user-message-layout";
+import { PowermetaLogo } from "@/components/branding/powermeta-logo";
 import { ErpRecommendations } from "@/components/chat/erp-recommendations";
 import {
   Badge,
@@ -102,7 +103,8 @@ export function Thread({ chatStatus }: ThreadProps) {
 }
 
 const ThreadWelcome: FC = () => (
-  <div className="mb-5 flex flex-col items-center px-3 text-center">
+  <div className="mb-6 flex items-center justify-center gap-2.5 px-3 text-center">
+    <PowermetaLogo compact markClassName="size-7" />
     <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
       ¿En qué puedo ayudarte hoy?
     </h1>
@@ -114,7 +116,7 @@ type ThreadSuggestionsProps = {
 };
 
 const ThreadSuggestions: FC<ThreadSuggestionsProps> = ({ inputRef }) => (
-  <div className="flex w-full flex-wrap items-center justify-center px-1 pb-1">
+  <div className="flex w-full flex-col px-1 pb-1 pt-1">
     <ErpRecommendations inputRef={inputRef} />
   </div>
 );
@@ -149,7 +151,7 @@ const Composer = ({ inputRef, chatStatus }: ComposerProps) => {
   const statusLabel = getChatStatusLabel(chatStatus);
   return (
     <ComposerPrimitive.Root className="relative flex w-full flex-col">
-      <div className="flex w-full flex-col gap-2 rounded-(--composer-radius) border border-border bg-card p-(--composer-padding) shadow-sm transition-[border-color] focus-within:border-ring">
+      <div className="flex w-full flex-col gap-2 rounded-(--composer-radius) border border-border bg-card p-(--composer-padding) shadow-md transition-[border-color] focus-within:border-ring">
         <ComposerPrimitive.Input
           ref={inputRef}
           placeholder="Escribe un mensaje..."

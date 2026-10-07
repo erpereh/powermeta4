@@ -147,94 +147,57 @@ function renderSidebar({ defaultOpen = true, mobile = false } = {}) {
   );
 }
 
-function toolsTrigger() {
-  return screen.getByRole("button", { name: "Herramientas" });
-}
-
-function toolsSubmenu() {
-  const submenu = document.getElementById("sidebar-tools-submenu");
-  if (!submenu) throw new Error("expected tools submenu");
-  return within(submenu);
+function toolsList() {
+  return within(screen.getByRole("list", { name: "Herramientas" }));
 }
 
 describe("app sidebar tools group", () => {
-  it("makes Herramientas a single collapsible control instead of a /tools link", async () => {
-    const user = userEvent.setup();
+  it("lists Herramientas as an always visible section instead of a /tools link", () => {
     const { container } = renderSidebar();
 
     expect(container.querySelector('a[href="/tools"]')).toBeNull();
-    const submenu = toolsSubmenu();
-    expect(submenu.getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
-    expect(submenu.queryByRole("button", { name: "Usuarios" })).toBeNull();
-    expect(submenu.queryByRole("button", { name: "Empresas" })).toBeNull();
-    expect(submenu.queryByRole("button", { name: "Nóminas" })).toBeNull();
-    expect(submenu.queryByRole("button", { name: "Informes" })).toBeNull();
-    expect(submenu.queryByRole("button", { name: "Procesos" })).toBeNull();
-
-    const trigger = toolsTrigger();
-    expect(trigger.getAttribute("aria-expanded")).toBe("true");
-
-    await user.click(trigger);
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    await waitFor(() => {
-      expect(screen.queryByRole("button", { name: "Reg. Retrib." })).toBeNull();
-    });
+    expect(screen.queryByRole("button", { name: "Herramientas" })).toBeNull();
+    const tools = toolsList();
+    expect(tools.getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
+    expect(tools.queryByRole("button", { name: "Usuarios" })).toBeNull();
+    expect(tools.queryByRole("button", { name: "Empresas" })).toBeNull();
+    expect(tools.queryByRole("button", { name: "Nóminas" })).toBeNull();
+    expect(tools.queryByRole("button", { name: "Informes" })).toBeNull();
+    expect(tools.queryByRole("button", { name: "Procesos" })).toBeNull();
     expect(mocks.push).not.toHaveBeenCalled();
-
-    await user.click(trigger);
-    expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(toolsSubmenu().getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
   });
 
-  it("expands a collapsed desktop sidebar and opens the tools submenu", async () => {
+  it("keeps the tools reachable from the collapsed desktop rail", async () => {
     const user = userEvent.setup();
     const { container } = renderSidebar({ defaultOpen: false });
 
     const sidebar = container.querySelector("[data-slot='sidebar']");
     expect(sidebar?.getAttribute("data-state")).toBe("collapsed");
-    expect(toolsTrigger().getAttribute("aria-expanded")).toBe("true");
 
-    await user.click(toolsTrigger());
+    await user.click(toolsList().getByRole("button", { name: "Reg. Retrib." }));
 
-    expect(sidebar?.getAttribute("data-state")).toBe("expanded");
-    expect(toolsTrigger().getAttribute("aria-expanded")).toBe("true");
-    expect(toolsSubmenu().getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
-    expect(mocks.push).not.toHaveBeenCalled();
+    expect(mocks.push).toHaveBeenCalledWith("/tools/registro-retributivo");
   });
 
-  it("marks Reg. Retrib. active without activating Herramientas", () => {
+  it("marks Reg. Retrib. active", () => {
     mocks.pathname = "/tools/registro-retributivo";
     renderSidebar();
 
-    const trigger = toolsTrigger();
-    expect(trigger.getAttribute("aria-current")).toBeNull();
     expect(
-      toolsSubmenu().getByRole("button", { name: "Reg. Retrib." }).getAttribute("aria-current"),
+      toolsList().getByRole("button", { name: "Reg. Retrib." }).getAttribute("aria-current"),
     ).toBe("page");
   });
 
-  it("keeps the mobile sidebar open when toggling Herramientas and closes it when navigating", async () => {
+  it("closes the mobile sidebar after navigating to a tool", async () => {
     const user = userEvent.setup();
     renderSidebar({ mobile: true });
 
+    const tool = await screen.findByRole("button", { name: "Reg. Retrib." });
+    await user.click(tool);
+
+    expect(mocks.push).toHaveBeenCalledWith("/tools/registro-retributivo");
     await waitFor(() => {
-      expect(toolsTrigger()).toBeTruthy();
-    });
-
-    const trigger = toolsTrigger();
-    expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(toolsSubmenu().getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
-
-    await user.click(trigger);
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(screen.getByRole("button", { name: "Herramientas" })).toBeTruthy();
-    expect(mocks.push).not.toHaveBeenCalled();
-
-    await user.click(trigger);
-    await user.click(toolsSubmenu().getByRole("button", { name: "Reg. Retrib." }));
-
-    await waitFor(() => {
-      expect(screen.queryByRole("button", { name: "Herramientas" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Reg. Retrib." })).toBeNull();
     });
   });
 

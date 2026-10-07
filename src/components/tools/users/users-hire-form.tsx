@@ -4,7 +4,16 @@ import { useCallback, useMemo, useRef, useState, type FocusEvent } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { launchMeta4HireAction } from "@/app/actions/meta4-hire";
-import { Button, Modal, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/system";
+import {
+  Avatar,
+  Button,
+  Callout,
+  Modal,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/system";
 import type { HireCatalogState } from "@/lib/meta4/hire/catalogs";
 import type { Meta4HireIssue } from "@/lib/meta4/hire/errors";
 import type { HirePersonInput } from "@/lib/meta4/hire/types";
@@ -307,11 +316,11 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
 
   return (
     <HireCatalogsProvider value={catalogs}>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-8">
-        <p className="text-sm text-muted-foreground">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5 px-4 pt-5 sm:px-6">
+        <Callout role="note" title="Borrador local hasta confirmar">
           Los rótulos rojos indican un mapping Excel por confirmar. Esos valores permanecen en el
           borrador local; los campos integrados se envían al confirmar el alta.
-        </p>
+        </Callout>
 
         <div className="flex flex-col gap-3">
           {people.map((draft, index) => {
@@ -326,9 +335,9 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                 <fieldset
                   key={draft.id}
                   onBlurCapture={markTouched}
-                  className="min-w-0 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm"
+                  className="min-w-0 rounded-xl border border-border bg-card p-4 text-card-foreground sm:p-5"
                 >
-                  <legend className="px-1 text-sm font-medium text-foreground">
+                  <legend className="rounded-md bg-background px-2 text-sm font-semibold text-foreground">
                     Persona {index + 1}
                   </legend>
                   {process.env.NODE_ENV !== "production" ? (
@@ -383,7 +392,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                     </HireDraftProvider>
                   </HireIssuesProvider>
                   {expandedFeedback?.attempted && visibleIssues.length > 0 ? (
-                    <div className="mt-5 rounded-2xl border border-destructive/40 p-4">
+                    <div className="mt-5 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                       <p className="text-sm font-medium text-destructive">
                         Datos por revisar de la Persona {index + 1}
                       </p>
@@ -429,12 +438,15 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
             return (
               <div
                 key={draft.id}
-                className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3 text-card-foreground sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground">Persona {index + 1}</p>
-                  <p className="truncate text-sm text-foreground">{name}</p>
-                  <p className="truncate text-sm text-muted-foreground">{summary}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar name={name || `Persona ${index + 1}`} />
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">Persona {index + 1}</p>
+                    <p className="truncate text-sm font-medium text-foreground">{name}</p>
+                    <p className="truncate text-sm text-muted-foreground">{summary}</p>
+                  </div>
                 </div>
                 <div className="flex shrink-0 gap-1">
                   <Button
@@ -462,16 +474,6 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
           })}
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" onClick={addPerson}>
-            <Plus className="size-4" aria-hidden="true" />
-            Añadir persona
-          </Button>
-          <Button type="button" onClick={requestConfirm} disabled={pending} aria-busy={pending}>
-            Lanzar alta
-          </Button>
-        </div>
-
         {error ? (
           <div role="alert" className="space-y-1 text-sm text-destructive">
             <p>{error.message}</p>
@@ -492,6 +494,21 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
             {success}
           </p>
         ) : null}
+
+        <div className="sticky bottom-0 z-10 -mx-4 mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+          <Button type="button" variant="outline" onClick={addPerson}>
+            <Plus className="size-4" aria-hidden="true" />
+            Añadir persona
+          </Button>
+          <div className="flex items-center gap-3">
+            <p className="hidden text-sm text-muted-foreground sm:block">
+              {people.length === 1 ? "1 persona" : `${people.length} personas`}
+            </p>
+            <Button type="button" onClick={requestConfirm} disabled={pending} aria-busy={pending}>
+              Lanzar alta
+            </Button>
+          </div>
+        </div>
 
         <Modal
           open={confirmOpen}

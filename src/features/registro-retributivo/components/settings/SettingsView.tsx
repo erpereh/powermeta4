@@ -115,7 +115,7 @@ function GeneralSection() {
         title="Cuándo hay una diferencia"
         description="Define cuántos euros pueden separarse los recibos del Registro Retributivo antes de marcar a una persona."
       />
-      <Surface data-surface="settings-layout" className="rounded-2xl">
+      <Surface data-surface="settings-layout" className="rounded-xl">
         <DifferenceScale tolerance={tolerance} incident={incident} />
         <div className="divide-y divide-border border-t border-border pt-4">
           <MoneyField
@@ -153,7 +153,7 @@ function PrivacySection() {
         title="Privacidad"
         description="Qué datos usa el Registro Retributivo y qué no sale nunca de este equipo."
       />
-      <Surface className="rounded-2xl">
+      <Surface className="rounded-xl">
         <ul className="divide-y divide-border">
           {PRIVACY_ITEMS.map((item) => (
             <li key={item.title} className="flex items-start gap-3 py-3.5 first:pt-0 last:pb-0">

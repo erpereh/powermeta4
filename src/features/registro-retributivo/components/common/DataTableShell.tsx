@@ -25,7 +25,7 @@ export function DataTableShell({
     <div
       data-surface="table-shell"
       className={cn(
-        "flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-border bg-card",
+        "flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-xl border border-border bg-card",
         className,
       )}
     >

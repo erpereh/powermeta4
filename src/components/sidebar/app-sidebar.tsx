@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Home, MessageSquarePlus, Search, Wrench } from "lucide-react";
+import { Building2, Home, MessageSquarePlus, Search } from "lucide-react";
 
 import { useOptionalAppCommandPalette } from "@/components/app-shell/app-command-palette";
 import { PORTAL_ICONS } from "@/components/portal/portal-icons";
@@ -10,6 +10,8 @@ import { ChatSidebarItem } from "@/components/sidebar/chat-sidebar-item";
 import { SocietyHeader } from "@/components/sidebar/society-header";
 import { UserMenu } from "@/components/sidebar/user-menu";
 import {
+  Button,
+  IconChip,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -23,6 +25,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarToggle,
   Tooltip,
   useSidebar,
 } from "@/components/system";
@@ -35,6 +38,7 @@ import {
 import { getPortalSidebarItems, isPortalSidebarItemActive } from "@/lib/portal/navigation";
 import { getProfileForRoute } from "@/lib/portal/registry";
 import { SIDEBAR_TOOL_ITEMS, TOOL_ICONS } from "@/lib/tools/registry";
+import { getStandaloneToolTone, PORTAL_ICON_TONES } from "@/lib/theme/icon-tones";
 import { DEFAULT_CHAT_COLOR, DEFAULT_CHAT_ICON } from "@/lib/chat-customization";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import {
@@ -42,6 +46,7 @@ import {
   useWorkspaceStore,
   workspaceStore,
 } from "@/stores/use-workspace-store";
+import { cn } from "@/lib/utils";
 import type { Chat } from "@/types/chat";
 
 export function AppSidebar() {
@@ -59,13 +64,11 @@ export function AppSidebar() {
   const setChatIcon = useWorkspaceStore((store) => store.setChatIcon);
   const setChatColor = useWorkspaceStore((store) => store.setChatColor);
   const deleteChat = useWorkspaceStore((store) => store.deleteChat);
-  const [toolsOpen, setToolsOpen] = useState(true);
   const [portalOpen, setPortalOpen] = useState(
     () => pathname === "/portal" || pathname.startsWith("/portal/"),
   );
 
   useEffect(() => {
-    if (pathname.startsWith("/tools/")) setToolsOpen(true);
     if (pathname === "/portal" || pathname.startsWith("/portal/")) setPortalOpen(true);
   }, [pathname]);
 
@@ -74,17 +77,10 @@ export function AppSidebar() {
   const favorites = useMemo(() => chats.filter((chat) => chat.favorite), [chats]);
   const regularChats = useMemo(() => chats.filter((chat) => !chat.favorite), [chats]);
   const showChatLists = isMobile || state === "expanded";
+  const collapsed = !isMobile && state === "collapsed";
 
   const closeMobileSidebar = () => {
     if (isMobile) setOpenMobile(false);
-  };
-
-  const handleToolsSelect = () => {
-    if (!isMobile && state === "collapsed") {
-      setToolsOpen(true);
-      return;
-    }
-    setToolsOpen((current) => !current);
   };
 
   const handlePortalSelect = () => {
@@ -183,58 +179,115 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" variant="sidebar" ariaLabel="Navegación principal">
-      <SidebarHeader className="border-b border-border/70">
-        <SocietyHeader />
-        <SidebarGroup className="px-0 pb-1 pt-0">
+    <Sidebar
+      collapsible="icon"
+      variant="sidebar"
+      ariaLabel="Navegación principal"
+      className="[&_[data-slot=sidebar-group-label]]:h-6 [&_[data-slot=sidebar-group-label]]:text-xs [&_[data-slot=sidebar-group-label]]:normal-case [&_[data-slot=sidebar-group-label]]:tracking-normal"
+      panelClassName="bg-sidebar"
+    >
+      <SidebarHeader className="gap-1 pb-1">
+        <div className={cn("flex min-w-0 items-center gap-1", collapsed && "flex-col")}>
+          <div className="min-w-0 flex-1 self-stretch">
+            <SocietyHeader />
+          </div>
+          {palette && !collapsed ? (
+            <Tooltip content="Buscar chats (Ctrl+K)" side="bottom">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Buscar"
+                aria-keyshortcuts="Control+K"
+                className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+                onClick={() => palette.openCommandPalette("chats")}
+              >
+                <Search className="size-4" aria-hidden="true" />
+              </Button>
+            </Tooltip>
+          ) : null}
+          {isMobile ? null : <SidebarToggle tooltipSide={collapsed ? "right" : "bottom"} />}
+        </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Tooltip content="Inicio" side="right" wrapperClassName="flex w-full min-w-0">
+              <SidebarMenuButton
+                icon={<Home className="size-4" />}
+                isActive={pathname === "/home"}
+                onSelect={() => {
+                  router.push("/home");
+                  closeMobileSidebar();
+                }}
+              >
+                Inicio
+              </SidebarMenuButton>
+            </Tooltip>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Tooltip content="Nuevo chat" side="right" wrapperClassName="flex w-full min-w-0">
+              <SidebarMenuButton
+                icon={<MessageSquarePlus className="size-4" />}
+                onSelect={handleNewChat}
+              >
+                Nuevo chat
+              </SidebarMenuButton>
+            </Tooltip>
+          </SidebarMenuItem>
+          {collapsed && palette ? (
+            <SidebarMenuItem>
+              <Tooltip content="Buscar" side="right" wrapperClassName="flex w-full min-w-0">
+                <SidebarMenuButton
+                  icon={<Search className="size-4" />}
+                  onSelect={() => palette.openCommandPalette("chats")}
+                >
+                  Buscar
+                </SidebarMenuButton>
+              </Tooltip>
+            </SidebarMenuItem>
+          ) : null}
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent className="gap-1">
+        <SidebarGroup>
+          <SidebarGroupLabel>Herramientas</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <Tooltip content="Buscar" side="right" wrapperClassName="flex w-full min-w-0">
-                  <SidebarMenuButton
-                    icon={<Search className="size-4" />}
-                    onSelect={() => palette?.openCommandPalette("chats")}
-                  >
-                    Buscar
-                  </SidebarMenuButton>
-                </Tooltip>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <Tooltip content="Nuevo chat" side="right" wrapperClassName="flex w-full min-w-0">
-                  <SidebarMenuButton
-                    icon={<MessageSquarePlus className="size-4" />}
-                    onSelect={handleNewChat}
-                  >
-                    Nuevo chat
-                  </SidebarMenuButton>
-                </Tooltip>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <Tooltip content="Inicio" side="right" wrapperClassName="flex w-full min-w-0">
-                  <SidebarMenuButton
-                    icon={<Home className="size-4" />}
-                    isActive={pathname === "/home"}
-                    onSelect={() => {
-                      router.push("/home");
-                      closeMobileSidebar();
-                    }}
-                  >
-                    Inicio
-                  </SidebarMenuButton>
-                </Tooltip>
-              </SidebarMenuItem>
+            <SidebarMenu aria-label="Herramientas">
+              {SIDEBAR_TOOL_ITEMS.map((item) => {
+                const Icon = TOOL_ICONS[item.icon];
+                return (
+                  <SidebarMenuItem key={item.id}>
+                    <Tooltip
+                      content={item.name}
+                      side="right"
+                      wrapperClassName="flex w-full min-w-0"
+                    >
+                      <SidebarMenuButton
+                        icon={
+                          <IconChip icon={Icon} tone={getStandaloneToolTone(item.id)} size="xs" />
+                        }
+                        isActive={pathname.startsWith(item.route)}
+                        onSelect={() => {
+                          router.push(item.route);
+                          closeMobileSidebar();
+                        }}
+                      >
+                        {item.name}
+                      </SidebarMenuButton>
+                    </Tooltip>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup className="pt-1">
+        <SidebarGroup>
+          <SidebarGroupLabel>Portal</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
               <Tooltip content="Portal" side="right" wrapperClassName="flex w-full min-w-0">
                 <SidebarMenuButton
-                  icon={<Building2 className="size-4" />}
+                  icon={<IconChip icon={Building2} tone="teal" size="xs" />}
                   ariaExpanded={portalOpen}
                   onSelect={handlePortalSelect}
                   closeOnSelect={false}
@@ -248,39 +301,15 @@ export function AppSidebar() {
                   return (
                     <SidebarMenuSubItem key={item.route}>
                       <SidebarMenuSubButton
-                        icon={<Icon className="size-4" />}
+                        icon={
+                          <IconChip
+                            icon={Icon}
+                            tone={PORTAL_ICON_TONES[item.icon]}
+                            size="xs"
+                            className="size-4 rounded-[5px] [&_svg]:size-2.5"
+                          />
+                        }
                         isActive={isPortalSidebarItemActive(pathname, item)}
-                        onSelect={() => {
-                          router.push(item.route);
-                          closeMobileSidebar();
-                        }}
-                      >
-                        {item.name}
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  );
-                })}
-              </SidebarMenuSub>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Tooltip content="Herramientas" side="right" wrapperClassName="flex w-full min-w-0">
-                <SidebarMenuButton
-                  icon={<Wrench className="size-4" />}
-                  ariaExpanded={toolsOpen}
-                  onSelect={handleToolsSelect}
-                  closeOnSelect={false}
-                >
-                  Herramientas
-                </SidebarMenuButton>
-              </Tooltip>
-              <SidebarMenuSub open={toolsOpen} id="sidebar-tools-submenu">
-                {SIDEBAR_TOOL_ITEMS.map((item) => {
-                  const Icon = TOOL_ICONS[item.icon];
-                  return (
-                    <SidebarMenuSubItem key={item.id}>
-                      <SidebarMenuSubButton
-                        icon={<Icon className="size-4" />}
-                        isActive={pathname.startsWith(item.route)}
                         onSelect={() => {
                           router.push(item.route);
                           closeMobileSidebar();
@@ -298,61 +327,67 @@ export function AppSidebar() {
 
         {showChatLists ? (
           <>
-            <SidebarGroup className="pt-0">
-              <SidebarGroupLabel className="flex items-center gap-2">
-                Favoritos
-                <span className="ml-auto tabular-nums text-muted-foreground/70">
-                  {favorites.length}
-                </span>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {favorites.map((chat) => (
-                    <ChatSidebarItem
-                      key={chat.id}
-                      chat={chat}
-                      active={
-                        activeChatId === chat.id &&
-                        (pathname === "/" || pathname === `/chat/${chat.id}`)
-                      }
-                      onSelect={() => handleSelectChat(chat.id)}
-                      onToggleFavorite={() => handleToggleFavorite(chat)}
-                      onSetIcon={(icon) => handleSetIcon(chat, icon)}
-                      onSetColor={(color) => handleSetColor(chat, color)}
-                      onDelete={() => handleDeleteChat(chat.id)}
-                    />
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {favorites.length > 0 ? (
+              <SidebarGroup>
+                <SidebarGroupLabel className="flex items-center gap-2">
+                  Favoritos
+                  <span className="ml-auto tabular-nums text-muted-foreground/70">
+                    {favorites.length}
+                  </span>
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {favorites.map((chat) => (
+                      <ChatSidebarItem
+                        key={chat.id}
+                        chat={chat}
+                        active={
+                          activeChatId === chat.id &&
+                          (pathname === "/" || pathname === `/chat/${chat.id}`)
+                        }
+                        onSelect={() => handleSelectChat(chat.id)}
+                        onToggleFavorite={() => handleToggleFavorite(chat)}
+                        onSetIcon={(icon) => handleSetIcon(chat, icon)}
+                        onSetColor={(color) => handleSetColor(chat, color)}
+                        onDelete={() => handleDeleteChat(chat.id)}
+                      />
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ) : null}
 
-            <SidebarGroup className="pt-0">
+            <SidebarGroup>
               <SidebarGroupLabel>Chats</SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
-                  {regularChats.map((chat) => (
-                    <ChatSidebarItem
-                      key={chat.id}
-                      chat={chat}
-                      active={
-                        activeChatId === chat.id &&
-                        (pathname === "/" || pathname === `/chat/${chat.id}`)
-                      }
-                      onSelect={() => handleSelectChat(chat.id)}
-                      onToggleFavorite={() => handleToggleFavorite(chat)}
-                      onSetIcon={(icon) => handleSetIcon(chat, icon)}
-                      onSetColor={(color) => handleSetColor(chat, color)}
-                      onDelete={() => handleDeleteChat(chat.id)}
-                    />
-                  ))}
-                </SidebarMenu>
+                {regularChats.length === 0 ? (
+                  <p className="px-3 py-1 text-sm text-muted-foreground/80">Sin chats</p>
+                ) : (
+                  <SidebarMenu>
+                    {regularChats.map((chat) => (
+                      <ChatSidebarItem
+                        key={chat.id}
+                        chat={chat}
+                        active={
+                          activeChatId === chat.id &&
+                          (pathname === "/" || pathname === `/chat/${chat.id}`)
+                        }
+                        onSelect={() => handleSelectChat(chat.id)}
+                        onToggleFavorite={() => handleToggleFavorite(chat)}
+                        onSetIcon={(icon) => handleSetIcon(chat, icon)}
+                        onSetColor={(color) => handleSetColor(chat, color)}
+                        onDelete={() => handleDeleteChat(chat.id)}
+                      />
+                    ))}
+                  </SidebarMenu>
+                )}
               </SidebarGroupContent>
             </SidebarGroup>
           </>
         ) : null}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/70">
+      <SidebarFooter className="border-t-0 pt-1">
         <UserMenu />
       </SidebarFooter>
     </Sidebar>

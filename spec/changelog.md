@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-10-07 - Rediseño visual: cabeceras, sidebar y patrón de detalle
+
+- Sin barra fina por pantalla: `PageHeader` vive en el contenido con chip de
+  icono, título, acciones y fila de filtros; el trigger de la sidebar pasa a
+  la propia sidebar (en móvil, a la cabecera) y ahora muestra su icono.
+- Sidebar reorganizada: sociedad + Buscar + plegar en una fila, Inicio y
+  Nuevo chat, Herramientas como sección siempre visible, Portal plegable,
+  chips de icono con tono y fondo `sidebar`.
+- Chips de color como excepción controlada: ocho tonos en `globals.css` y
+  mapas tipados en `src/lib/theme/icon-tones.ts`.
+- Nuevos componentes de fachada: `IconChip`, `SidebarToggle`, `DetailHeader`,
+  `Section`, `PropertyList` y `StatTile`. Inicio, módulos, chat, Ajustes,
+  Portal, Usuarios, Alta, Consultar nómina y Registro Retributivo los usan;
+  se eliminan títulos duplicados entre cabecera y contenido. Rutas, stores,
+  acciones y Route Handlers sin cambios.
+- Comprobaciones: typecheck, build, `git diff --check` y oxlint (solo los 3
+  avisos previos de `exportExcel.ts`) correctos; formato correcto en los
+  archivos nuevos. Suite sin los tests de Excel COM y backups (bloqueados en
+  este equipo): 779 correctas, 2 omitidas y 1 timeout bajo carga en
+  `tools-command-palette` que pasa en aislado. Revisión en navegador local a
+  1440 y 390 px sin overflow.
+
 ## 2026-10-07 - DPAPI inicializado una vez por proceso
 
 - Con `next dev --webpack` cada ruta instanciaba `src/lib/security/dpapi.ts`

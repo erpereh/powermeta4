@@ -3,12 +3,11 @@ import { Skeleton } from "@/components/system";
 export function UsersListSkeleton() {
   return (
     <div
-      className="mx-auto w-full max-w-6xl space-y-5 px-4 py-6 sm:px-8"
+      className="mx-auto w-full max-w-6xl space-y-4 px-4 py-5 sm:px-6"
       aria-busy="true"
       aria-label="Cargando listado de usuarios"
     >
       <div className="flex flex-wrap items-center gap-2.5">
-        <Skeleton className="h-7 w-32" />
         <Skeleton className="h-6 w-12 rounded-full" />
       </div>
       <Skeleton className="h-4 w-72 max-w-full" />

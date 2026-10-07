@@ -171,7 +171,7 @@ export function HistoryView() {
               Limpiar historial
             </Button>
           </div>
-          <HoverList aria-label="Análisis guardados" className="flex flex-col rounded-2xl border border-border bg-card p-1.5">
+          <HoverList aria-label="Análisis guardados" className="flex flex-col rounded-xl border border-border bg-card p-1.5">
             {history.map((analysis) => (
               <HistoryRow
                 key={analysis.id}

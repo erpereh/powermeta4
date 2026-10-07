@@ -71,7 +71,6 @@ export function ChartsPanel({ result }: Readonly<{ result: AnalysisResult }>) {
         data-testid="chart-by-block"
         title="¿En qué parte del salario están las diferencias?"
         description="Diferencia neta (recibo − registro) por bloque. En rojo, cuando el recibo paga menos que el registro."
-        className="rounded-2xl"
       >
         <div className="h-60">
           <ResponsiveContainer width="100%" height="100%">
@@ -95,7 +94,6 @@ export function ChartsPanel({ result }: Readonly<{ result: AnalysisResult }>) {
         data-testid="chart-top-people"
         title="Personas con mayor diferencia"
         description="Las 8 diferencias más grandes, por importe. Empieza la revisión por aquí."
-        className="rounded-2xl"
       >
         {topPeople.length ? (
           <div className="h-60">

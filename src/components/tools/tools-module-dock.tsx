@@ -1,7 +1,8 @@
 "use client";
 
 import { TOOL_ICONS, TOOL_MODULES, type ToolModuleId } from "@/lib/tools/registry";
-import { Tabs, TabsList, TabsTrigger } from "@/components/system";
+import { MODULE_TONES } from "@/lib/theme/icon-tones";
+import { IconChip, Tabs, TabsList, TabsTrigger } from "@/components/system";
 
 export type ModuleFilter = "all" | ToolModuleId;
 
@@ -29,7 +30,7 @@ export function ToolsModuleDock({ value, onChange }: ToolsModuleDockProps) {
               value={module.id}
               className="gap-1.5 px-2.5 py-1.5 text-xs sm:gap-2 sm:px-3 sm:text-sm"
             >
-              <Icon className="size-3.5 shrink-0" aria-hidden="true" />
+              <IconChip icon={Icon} tone={MODULE_TONES[module.id]} size="xs" />
               <span>{module.name}</span>
             </TabsTrigger>
           );

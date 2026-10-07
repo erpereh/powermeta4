@@ -25,7 +25,7 @@ const isMeta4Society = (value: string | null | undefined): value is Meta4Society
   value === "CYC" || value === "IBER" || value === "COLL";
 
 const headerButtonClass =
-  "relative flex min-h-11 w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-xl px-3 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
+  "relative flex min-h-10 w-full min-w-0 items-center gap-2 overflow-hidden rounded-xl px-1.5 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 
 export function SocietyHeader() {
   const router = useRouter();
@@ -91,7 +91,7 @@ export function SocietyHeader() {
               className={cn(headerButtonClass, "cursor-default hover:bg-transparent")}
               aria-label={`powermeta4. ${title}. ${subtitle}`}
             >
-              <PowermetaLogo compact markClassName="size-8" />
+              <PowermetaLogo compact markClassName="size-7" />
               {label}
             </div>
           </Tooltip>
@@ -113,7 +113,7 @@ export function SocietyHeader() {
                 aria-haspopup="menu"
                 className={headerButtonClass}
               >
-                <PowermetaLogo compact markClassName="size-8" />
+                <PowermetaLogo compact markClassName="size-7" />
                 {label}
                 <ChevronsUpDown
                   className={cn("ml-auto size-4 shrink-0 text-muted-foreground", collapsed && "hidden")}

@@ -400,7 +400,7 @@ function GapVerdict({ rows, measure, stat, plural }: Readonly<{ rows: readonly G
   return (
     <section
       aria-labelledby="gap-verdict-title"
-      className={cn("flex items-start gap-3 rounded-2xl border p-5", over ? "border-destructive/25 bg-destructive/5" : "border-emerald-500/30 bg-emerald-500/5")}
+      className={cn("flex items-start gap-3 rounded-xl border p-5", over ? "border-destructive/25 bg-destructive/5" : "border-emerald-500/30 bg-emerald-500/5")}
     >
       {over ? (
         <AlertTriangle className="mt-0.5 size-6 shrink-0 text-destructive" aria-hidden="true" />

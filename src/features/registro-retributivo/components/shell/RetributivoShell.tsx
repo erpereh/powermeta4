@@ -35,6 +35,9 @@ export function RetributivoShell({
     >
       <ToolsPageHeader
         title="Registro Retributivo"
+        icon="registro-retributivo"
+        tone="rose"
+        heading={false}
         actions={
           <RetributivoInnerHeader
             canExport={canExport}
@@ -43,11 +46,13 @@ export function RetributivoShell({
             onNewAnalysis={onNewAnalysis}
           />
         }
+        toolbar={
+          <div className="flex min-w-0 items-end gap-3 border-b border-border">
+            <RetributivoInnerNav className="-mb-px min-w-0 flex-1" view={view} onSelectView={onSelectView} />
+            <ActiveAnalysisCard className="hidden pb-2.5 md:flex" />
+          </div>
+        }
       />
-      <div className="flex min-w-0 shrink-0 items-end gap-3 border-b border-border px-3 sm:px-4">
-        <RetributivoInnerNav className="-mb-px min-w-0 flex-1" view={view} onSelectView={onSelectView} />
-        <ActiveAnalysisCard className="hidden pb-2.5 md:flex" />
-      </div>
       <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-5 md:px-6">
         <h1 className="sr-only">{RETRIBUTIVO_VIEW_LABELS[view]}</h1>
         {children}

@@ -33,6 +33,8 @@ vi.mock("@/stores/use-workspace-store", () => ({
     }),
 }));
 
+import { SidebarProvider } from "@/components/system";
+
 import { SettingsScreen } from "./settings-screen";
 
 beforeEach(() => {
@@ -61,7 +63,11 @@ beforeEach(() => {
 
 describe("settings session view", () => {
   it("shows the debug mode Meta4 limitation through shared settings content", async () => {
-    render(<SettingsScreen />);
+    render(
+      <SidebarProvider>
+        <SettingsScreen />
+      </SidebarProvider>,
+    );
 
     expect(screen.getByText("Ajustes")).toBeTruthy();
     await waitFor(() => {

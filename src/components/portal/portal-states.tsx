@@ -1,7 +1,7 @@
 import { CircleAlert, Lock, PlugZap } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Callout } from "@/components/system";
+import { Callout, IconChip } from "@/components/system";
 import { PENDING_LABELS } from "@/lib/portal/pending";
 import type { PendingId, WriteOperation } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
@@ -45,14 +45,12 @@ export function DependencyState({
     <div
       role="status"
       className={cn(
-        "flex min-w-0 flex-col gap-3 rounded-xl border border-dashed border-border bg-elevated/40 p-4 sm:p-5",
+        "flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:p-5",
         className,
       )}
     >
       <div className="flex min-w-0 items-start gap-3">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-          <PlugZap className="size-4" aria-hidden="true" />
-        </span>
+        <IconChip icon={PlugZap} tone="amber" size="md" />
         <div className="min-w-0 space-y-1">
           <p className="text-sm font-medium text-foreground">{title}</p>
           <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{message}</p>

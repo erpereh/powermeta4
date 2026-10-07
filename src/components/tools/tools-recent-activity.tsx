@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 
-import { HoverList } from "@/components/system";
+import { HoverList, IconChip } from "@/components/system";
+import { MODULE_TONES } from "@/lib/theme/icon-tones";
 import { TOOL_ICONS, getTool, getToolModule } from "@/lib/tools/registry";
 import type { ToolVisit } from "@/types/workspace";
 
@@ -20,16 +21,11 @@ export function ToolsRecentActivity({ recentTools }: ToolsRecentActivityProps) {
 
   return (
     <section className="space-y-2" aria-labelledby="recent-tools-heading">
-      <h2
-        id="recent-tools-heading"
-        className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground"
-      >
+      <h2 id="recent-tools-heading" className="px-3 text-sm font-semibold text-foreground">
         Actividad reciente
       </h2>
       {visits.length === 0 ? (
-        <p className="px-3 text-sm text-muted-foreground">
-          Las acciones que uses aparecerán aquí.
-        </p>
+        <p className="px-3 text-sm text-muted-foreground">Las acciones que uses aparecerán aquí.</p>
       ) : (
         <HoverList aria-labelledby="recent-tools-heading">
           {visits.map(({ visit, tool }) => {
@@ -41,7 +37,7 @@ export function ToolsRecentActivity({ recentTools }: ToolsRecentActivityProps) {
                   href={tool.route}
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                 >
-                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <IconChip icon={Icon} tone={MODULE_TONES[tool.moduleId]} size="xs" />
                   <span className="min-w-0 flex-1 truncate text-foreground">{tool.name}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">{moduleName}</span>
                 </Link>

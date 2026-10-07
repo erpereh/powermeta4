@@ -220,3 +220,15 @@ export {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+export { IconChip } from "./icon-chip";
+export type { IconChipProps, IconChipSize } from "./icon-chip";
+export { SidebarToggle } from "./sidebar-toggle";
+export type { SidebarToggleProps } from "./sidebar-toggle";
+export { Section } from "./section";
+export type { SectionProps } from "./section";
+export { PropertyList } from "./property-list";
+export type { PropertyListItem, PropertyListProps } from "./property-list";
+export { StatTile } from "./stat-tile";
+export type { StatTileProps } from "./stat-tile";
+export { DetailHeader } from "./detail-header";
+export type { DetailHeaderProps } from "./detail-header";

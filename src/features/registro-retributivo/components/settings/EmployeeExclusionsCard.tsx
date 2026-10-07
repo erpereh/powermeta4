@@ -70,7 +70,7 @@ export function EmployeeExclusionsCard() {
         description="Las matrículas de esta lista no se tienen en cuenta en ninguna comparativa ni exportación. Útil para bajas, expatriados o casos que se revisan aparte."
       />
 
-      <Surface className="rounded-2xl">
+      <Surface className="rounded-xl">
         <form
           className="flex flex-col gap-2 sm:flex-row sm:items-end"
           onSubmit={(event) => {

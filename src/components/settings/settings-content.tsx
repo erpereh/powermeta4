@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Download, FileArchive, ShieldCheck } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Database,
+  Download,
+  FileArchive,
+  Palette,
+  ShieldCheck,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 
 import { getMeta4ProfileViewAction } from "@/app/actions/meta4-profile";
 import {
@@ -12,6 +22,7 @@ import {
   Input,
   Loader,
   Modal,
+  PropertyList,
   Skeleton,
   StatefulButton,
   ThemeModeControl,
@@ -38,10 +49,10 @@ type ValidationResult = {
 
 type SettingsSectionId = "person" | "appearance" | "backups";
 
-const NAV_ITEMS: Array<{ id: SettingsSectionId; label: string }> = [
-  { id: "person", label: "Datos de la persona" },
-  { id: "appearance", label: "Apariencia" },
-  { id: "backups", label: "Datos y copias" },
+const NAV_ITEMS: Array<{ id: SettingsSectionId; label: string; icon: LucideIcon }> = [
+  { id: "person", label: "Datos de la persona", icon: UserRound },
+  { id: "appearance", label: "Apariencia", icon: Palette },
+  { id: "backups", label: "Datos y copias", icon: Database },
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -86,13 +97,7 @@ const formatBytes = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-function BusyStatus({
-  label,
-  message,
-}: {
-  label: string;
-  message: string;
-}) {
+function BusyStatus({ label, message }: { label: string; message: string }) {
   return (
     <div className="flex items-start gap-3" role="status" aria-live="polite">
       <Loader variant="spinner" size={18} label={label} className="mt-0.5 shrink-0" />
@@ -103,6 +108,37 @@ function BusyStatus({
     </div>
   );
 }
+
+/** Fila de ajuste: título y explicación a la izquierda, control a la derecha. */
+function SettingRow({
+  title,
+  description,
+  headingId,
+  children,
+}: {
+  title: string;
+  description: string;
+  headingId?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      aria-labelledby={headingId}
+      className="flex min-w-0 flex-col gap-3 px-4 py-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6"
+    >
+      <div className="min-w-0 space-y-0.5 lg:max-w-xs">
+        <h2 id={headingId} className="text-sm font-semibold text-foreground">
+          {title}
+        </h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="min-w-0 space-y-3 lg:shrink-0">{children}</div>
+    </section>
+  );
+}
+
+const SETTINGS_PANEL_CLASS =
+  "divide-y divide-border overflow-hidden rounded-xl border border-border bg-card";
 
 export type SettingsContentProps = {
   variant?: "page" | "dialog";
@@ -269,20 +305,29 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
       >
         <nav
           aria-label="Secciones de ajustes"
-          className="flex min-w-0 flex-row gap-1.5 overflow-x-auto md:flex-col md:overflow-visible"
+          className="flex min-w-0 flex-row gap-1 overflow-x-auto md:flex-col md:overflow-visible"
         >
-          {NAV_ITEMS.map((item) => (
-            <Button
-              key={item.id}
-              type="button"
-              size="sm"
-              variant={activeSection === item.id ? "secondary" : "ghost"}
-              className="shrink-0 justify-start rounded-lg"
-              onClick={() => setActiveSection(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const active = activeSection === item.id;
+            return (
+              <Button
+                key={item.id}
+                type="button"
+                size="sm"
+                variant={active ? "secondary" : "ghost"}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "shrink-0 justify-start gap-2 rounded-lg",
+                  !active && "text-muted-foreground",
+                )}
+                onClick={() => setActiveSection(item.id)}
+              >
+                <Icon className="size-4" aria-hidden="true" />
+                {item.label}
+              </Button>
+            );
+          })}
         </nav>
 
         <div
@@ -293,51 +338,31 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
         >
           <div className="space-y-6">
             {activeSection === "appearance" ? (
-              <div className="space-y-6">
-                <section className="space-y-3" aria-labelledby="settings-theme-heading">
-                  <h2
-                    id="settings-theme-heading"
-                    className="text-base font-semibold tracking-tight text-foreground sm:text-lg"
-                  >
-                    Tema
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Claro, oscuro o el mismo que el sistema.
-                  </p>
+              <div className={SETTINGS_PANEL_CLASS}>
+                <SettingRow
+                  headingId="settings-theme-heading"
+                  title="Tema"
+                  description="Claro, oscuro o el mismo que el sistema."
+                >
                   <ThemeModeControl />
-                </section>
-
-                <div className="border-t border-border" role="separator" />
-
-                <section className="space-y-3" aria-labelledby="settings-accent-heading">
-                  <h2
-                    id="settings-accent-heading"
-                    className="text-base font-semibold tracking-tight text-foreground sm:text-lg"
-                  >
-                    Color de acento
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Se aplica a botones, selección, foco y gráficas en claro y oscuro. Se guarda
-                    en este navegador.
-                  </p>
+                </SettingRow>
+                <SettingRow
+                  headingId="settings-accent-heading"
+                  title="Color de acento"
+                  description="Se aplica a botones, selección, foco y gráficas en claro y oscuro. Se guarda en este navegador."
+                >
                   <AccentControl />
-                </section>
+                </SettingRow>
               </div>
             ) : activeSection === "backups" ? (
-              <div className="space-y-6">
-                <section className="space-y-3">
-                  <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
-                    Exportar workspace
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Incluye conversaciones, empresas, configuración funcional, actividad y uploads;
-                    excluye secretos, sesiones y el perfil Meta4 cifrado.
-                  </p>
+              <div className={SETTINGS_PANEL_CLASS}>
+                <SettingRow
+                  headingId="settings-export-heading"
+                  title="Exportar workspace"
+                  description="Incluye conversaciones, empresas, configuración funcional, actividad y uploads; excluye secretos, sesiones y el perfil Meta4 cifrado."
+                >
                   {busy === "export" ? (
-                    <BusyStatus
-                      label="Creando copia"
-                      message="Creando una copia consistente..."
-                    />
+                    <BusyStatus label="Creando copia" message="Creando una copia consistente..." />
                   ) : null}
                   <StatefulButton
                     type="button"
@@ -350,17 +375,12 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                   >
                     Crear y descargar ZIP
                   </StatefulButton>
-                </section>
-
-                <div className="border-t border-border" role="separator" />
-
-                <section className="space-y-3">
-                  <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
-                    Restaurar workspace
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Primero se valida el ZIP y después se confirma el reemplazo local.
-                  </p>
+                </SettingRow>
+                <SettingRow
+                  headingId="settings-restore-heading"
+                  title="Restaurar workspace"
+                  description="Primero se valida el ZIP y después se confirma el reemplazo local."
+                >
                   <Input
                     ref={backupFileRef}
                     id="backup-file"
@@ -376,7 +396,8 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                     disabled={busy !== null}
                     classNames={{
                       field: "h-auto min-h-11 rounded-xl",
-                      input: "py-2.5 file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-foreground",
+                      input:
+                        "py-2.5 file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-foreground",
                     }}
                   />
                   {busy === "validate" ? (
@@ -394,7 +415,7 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                     <FileArchive className="size-4" aria-hidden="true" />
                     Validar ZIP
                   </Button>
-                </section>
+                </SettingRow>
               </div>
             ) : profileLoading ? (
               <div className="space-y-3" aria-busy="true">
@@ -411,10 +432,7 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                 </AlertDescription>
               </Alert>
             ) : !profile?.available ? (
-              <Alert
-                variant="destructive"
-                className="border-destructive/30 bg-destructive/5"
-              >
+              <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
                 <AlertCircle />
                 <AlertTitle>Perfil no disponible</AlertTitle>
                 <AlertDescription>
@@ -424,7 +442,7 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
             ) : (
               <section className="space-y-6">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+                  <h2 className="text-base font-semibold tracking-tight text-foreground">
                     Datos de la persona
                   </h2>
                   {profile.societyCode ? (
@@ -442,29 +460,28 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                     >
                       <h3
                         id={`settings-${section.id}-heading`}
-                        className="font-heading text-base font-medium text-foreground"
+                        className="text-sm font-semibold text-foreground"
                       >
                         {section.title}
                       </h3>
-                      <dl className="grid gap-4 sm:grid-cols-2">
-                        {section.fields.map((field) => (
-                          <div key={`${section.id}-${field.key}`} className="min-w-0 space-y-1">
-                            <dt className="text-sm text-muted-foreground">{field.label}</dt>
-                            <dd className="text-sm font-medium break-words text-foreground">
-                              {field.value}
-                            </dd>
-                          </div>
-                        ))}
-                      </dl>
-                      {section.id === "session" ? (
-                        <div className="flex items-start gap-3 text-sm text-muted-foreground">
-                          <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-                          <p>
-                            Las cookies son opacas y HttpOnly. Los tokens Meta4 no se muestran ni
-                            se guardan en el navegador.
-                          </p>
-                        </div>
-                      ) : null}
+                      <PropertyList
+                        items={section.fields.map((field) => ({
+                          id: `${section.id}-${field.key}`,
+                          label: field.label,
+                          value: field.value,
+                        }))}
+                        footer={
+                          section.id === "session" ? (
+                            <div className="flex items-start gap-3 text-muted-foreground">
+                              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                              <p>
+                                Las cookies son opacas y HttpOnly. Los tokens Meta4 no se muestran
+                                ni se guardan en el navegador.
+                              </p>
+                            </div>
+                          ) : undefined
+                        }
+                      />
                     </section>
                   ))
                 ) : (
@@ -534,10 +551,7 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
         ) : null}
         {busy === "restore" ? (
           <div className="mt-4">
-            <BusyStatus
-              label="Restaurando copia"
-              message="Revalidando y restaurando..."
-            />
+            <BusyStatus label="Restaurando copia" message="Revalidando y restaurando..." />
           </div>
         ) : null}
       </Modal>

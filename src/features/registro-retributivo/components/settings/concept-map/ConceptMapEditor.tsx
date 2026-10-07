@@ -580,7 +580,7 @@ export function ConceptMapEditor() {
         ) : null}
       </div>
 
-      <Surface flush className="mt-4 overflow-hidden rounded-2xl">
+      <Surface flush className="mt-4 overflow-hidden rounded-xl">
         <div className="flex flex-col gap-3 border-b border-border p-3 sm:p-4">
           <div role="group" aria-label="Filtrar conceptos" className="flex flex-wrap gap-1.5">
             {USAGE_FILTERS.map((item) => {

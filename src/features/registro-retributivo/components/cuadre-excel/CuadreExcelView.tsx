@@ -136,7 +136,7 @@ function ModeCards({
             aria-pressed={active}
             onClick={() => onChange(item.id)}
             className={cn(
-              "flex min-w-0 flex-col gap-1 rounded-2xl border p-4 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              "flex min-w-0 flex-col gap-1 rounded-xl border p-4 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
               active ? "border-primary/50 bg-selected" : "border-border bg-card hover:bg-muted/50",
             )}
           >
@@ -180,7 +180,7 @@ function CuadreVerdict({ rows, tolerance, mode }: Readonly<{ rows: readonly Cuad
     <section
       aria-labelledby="cuadre-verdict-title"
       className={cn(
-        "flex items-start gap-3 rounded-2xl border p-5",
+        "flex items-start gap-3 rounded-xl border p-5",
         allOk ? "border-emerald-500/30 bg-emerald-500/5" : mode.expected ? "border-amber-500/30 bg-amber-500/5" : "border-destructive/25 bg-destructive/5",
       )}
     >

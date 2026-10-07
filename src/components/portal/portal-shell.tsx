@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search } from "lucide-react";
+import { Building2, Search } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { useOptionalAppCommandPalette } from "@/components/app-shell/app-command-palette";
@@ -15,6 +15,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Button,
+  IconChip,
   PageHeader,
   SectionNav,
   Tooltip,
@@ -55,7 +56,7 @@ const PROFILE_LINKS: readonly { profile: PortalProfile; href: string; label: str
 function ProfileSwitch({ active }: { active: PortalProfile }) {
   return (
     <nav aria-label="Perfil del portal" className="shrink-0">
-      <ul className="flex rounded-full border border-border bg-muted/40 p-0.5">
+      <ul className="flex rounded-lg border border-border bg-muted/40 p-0.5">
         {PROFILE_LINKS.map((item) => {
           const current = item.profile === active;
           return (
@@ -64,7 +65,7 @@ function ProfileSwitch({ active }: { active: PortalProfile }) {
                 href={item.href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "inline-flex h-8 items-center rounded-full px-3 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
+                  "inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
                   current
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
@@ -164,54 +165,57 @@ export function PortalShell({
   return (
     <div data-portal-root className="flex min-h-svh min-w-0 flex-col">
       <PageHeader
-        title={<PortalBreadcrumb pathname={pathname} />}
-        actions={
-          palette ? (
-            <Tooltip content="Buscar en el portal (Ctrl+K)" side="bottom">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Buscar en el portal"
-                aria-keyshortcuts="Control+K"
-                onClick={() => palette.openCommandPalette("portal")}
-              >
-                <Search className="size-4" aria-hidden="true" />
-              </Button>
-            </Tooltip>
+        contentClassName="mx-auto w-full max-w-6xl"
+        breadcrumb={<PortalBreadcrumb pathname={pathname} />}
+        leading={
+          person ? (
+            <Avatar name={person.fullName} size="md" className="size-9" />
+          ) : (
+            <IconChip icon={Building2} tone="teal" size="md" className="hidden sm:inline-flex" />
+          )
+        }
+        title={
+          person?.fullName ??
+          (profile === "responsable" ? "Portal del responsable" : "Portal del empleado")
+        }
+        badge={
+          context.mode === "meta4" ? (
+            <span
+              className="hidden rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground sm:inline"
+              title={`Variante del portal: ${context.variant}`}
+            >
+              {context.society}
+            </span>
           ) : null
         }
-      />
-      <div className="border-b border-border bg-card/40">
-        <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-wrap items-center gap-x-4 gap-y-3 px-4 pt-4 sm:px-6">
-          <div className="flex min-w-0 basis-full items-center gap-3 sm:basis-0 sm:flex-1">
-            {person ? <Avatar name={person.fullName} size="md" /> : null}
-            <div className="min-w-0">
-              <p className="truncate text-base font-semibold text-foreground">
-                {person?.fullName ??
-                  (profile === "responsable" ? "Portal del responsable" : "Portal del empleado")}
-              </p>
-              <p className="line-clamp-2 text-xs text-muted-foreground sm:truncate">
-                {person
-                  ? [person.job, person.unit, person.workCenter].filter(Boolean).join(" · ") ||
-                    `Matrícula ${person.employeeId}`
-                  : context.mode === "meta4"
-                    ? (context.identityMessage ?? "")
-                    : context.message}
-              </p>
-            </div>
-            {context.mode === "meta4" ? (
-              <span
-                className="ml-1 hidden shrink-0 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground sm:inline"
-                title={`Variante del portal: ${context.variant}`}
-              >
-                {context.society}
-              </span>
+        description={
+          person
+            ? [person.job, person.unit, person.workCenter].filter(Boolean).join(" · ") ||
+              `Matrícula ${person.employeeId}`
+            : context.mode === "meta4"
+              ? (context.identityMessage ?? undefined)
+              : context.message
+        }
+        actions={
+          <>
+            {palette ? (
+              <Tooltip content="Buscar en el portal (Ctrl+K)" side="bottom">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Buscar en el portal"
+                  aria-keyshortcuts="Control+K"
+                  onClick={() => palette.openCommandPalette("portal")}
+                >
+                  <Search className="size-4" aria-hidden="true" />
+                </Button>
+              </Tooltip>
             ) : null}
-          </div>
-          <ProfileSwitch active={profile} />
-        </div>
-        {location ? (
-          <div className="mx-auto w-full max-w-6xl min-w-0 px-2 pt-2 sm:px-4">
+            <ProfileSwitch active={profile} />
+          </>
+        }
+        toolbar={
+          location ? (
             <SectionNav
               aria-label={
                 profile === "responsable" ? "Apartados del responsable" : "Apartados del empleado"
@@ -219,9 +223,9 @@ export function PortalShell({
               items={groups}
               activeHref={activeGroupHref}
             />
-          </div>
-        ) : null}
-      </div>
+          ) : null
+        }
+      />
       <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
         {children}
       </div>

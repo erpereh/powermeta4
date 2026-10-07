@@ -18,6 +18,7 @@ import {
   Input,
   RadioGroup,
   RadioGroupItem,
+  Section,
   Surface,
   Tabs,
   TabsList,
@@ -284,21 +285,15 @@ export function PayrollReceiptConsult({
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-8 sm:py-8">
-      <section className="flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
-          <ReceiptText className="size-5" aria-hidden="true" />
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-5 sm:px-6">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 text-xs text-muted-foreground">
+          {scopeLabel}
         </span>
-        <div className="min-w-0 space-y-1">
-          <p className="text-xs text-muted-foreground">{scopeLabel}</p>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
-            Consultar una nómina
-          </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            Consulta los recibos de nómina de un empleado en una paga o en un rango de pagas.
-          </p>
-        </div>
-      </section>
+        <p className="text-sm text-muted-foreground">
+          Consulta los recibos de nómina de un empleado en una paga o en un rango de pagas.
+        </p>
+      </div>
 
       {paysError ? (
         <Callout status="error" title="Calendario de pagas no disponible">
@@ -306,121 +301,123 @@ export function PayrollReceiptConsult({
         </Callout>
       ) : null}
 
-      <Surface title="Ejecución del recibo de nómina" description="Parámetros de la consulta">
-        <form noValidate onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
-            <Input
-              label="Matrícula"
-              name="employeeId"
-              inputMode="text"
-              autoComplete="off"
-              placeholder="Ej. 1013"
-              value={employeeId}
-              onChange={setEmployeeId}
-              error={errors.employeeId}
-              required
-            />
-            <fieldset className="min-w-0 space-y-3">
-              <legend className="sr-only">Periodo de liquidación</legend>
-              <div className="space-y-1.5">
-                <p className="text-sm font-medium text-foreground">Qué pagas ver</p>
-                <Tabs value={payGroup} onValueChange={chooseGroup} variant="pill">
-                  <TabsList>
-                    {PAY_FILTERS.filter((option) => (groupCounts.get(option.value) ?? 0) > 0).map(
-                      (option) => (
-                        <TabsTrigger key={option.value} value={option.value}>
-                          {option.label}
-                          <span className="ml-1.5 tabular-nums text-muted-foreground">
-                            {groupCounts.get(option.value)}
-                          </span>
-                        </TabsTrigger>
-                      ),
-                    )}
-                  </TabsList>
-                </Tabs>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <PayCombobox
-                  label="Desde la paga"
-                  pays={visiblePays}
-                  showCategory={payGroup === "all"}
-                  value={fromPaymentDate}
-                  onValueChange={chooseFrom}
-                  invalid={Boolean(errors.range)}
-                  describedBy={errors.range ? rangeErrorId : undefined}
-                />
-                <PayCombobox
-                  label="Hasta la paga"
-                  pays={visiblePays}
-                  showCategory={payGroup === "all"}
-                  value={toPaymentDate}
-                  onValueChange={chooseTo}
-                  invalid={Boolean(errors.range)}
-                  describedBy={errors.range ? rangeErrorId : undefined}
-                />
-              </div>
-              {errors.range ? (
-                <p id={rangeErrorId} className="text-xs text-destructive">
-                  {errors.range}
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  {paysInRange === 1 ? "1 paga" : `${paysInRange} pagas`} en el rango (máximo{" "}
-                  {PAYROLL_RANGE_MAX_PAYS}).
-                </p>
-              )}
-            </fieldset>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <fieldset className="min-w-0 space-y-3 rounded-xl border border-border px-4 pb-4 pt-2">
-              <legend className="px-1 text-sm font-medium text-foreground">Tipo de pagas</legend>
-              <RadioGroup
-                value={paymentType}
-                onValueChange={(value) => {
-                  if (isPaymentType(value)) setPaymentType(value);
-                }}
-              >
-                {PAYROLL_PAYMENT_TYPES.map((option) => (
-                  <RadioGroupItem key={option.value} value={option.value} label={option.label} />
-                ))}
-              </RadioGroup>
-            </fieldset>
-
-            <fieldset className="min-w-0 space-y-3 rounded-xl border border-border px-4 pb-4 pt-2">
-              <legend className="px-1 text-sm font-medium text-foreground">
-                Moneda de proceso
-              </legend>
-              <RadioGroup
-                value={currencyMode}
-                onValueChange={(value) => {
-                  if (isCurrencyMode(value)) setCurrencyMode(value);
-                }}
-              >
-                <RadioGroupItem value="calculation" label="Moneda de cálculo" />
-                <RadioGroupItem value="other" label="Otra" />
-              </RadioGroup>
+      <Section title="Ejecución del recibo de nómina" description="Parámetros de la consulta">
+        <Surface>
+          <form noValidate onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid gap-4 md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
               <Input
-                label="ID moneda"
-                name="currencyId"
+                label="Matrícula"
+                name="employeeId"
+                inputMode="text"
                 autoComplete="off"
-                placeholder="EUR"
-                value={currencyId}
-                onChange={(value) => setCurrencyId(value.toUpperCase())}
-                disabled={currencyMode !== "other"}
-                error={currencyMode === "other" ? errors.currencyId : undefined}
-                classNames={{ root: "max-w-40" }}
+                placeholder="Ej. 1013"
+                value={employeeId}
+                onChange={setEmployeeId}
+                error={errors.employeeId}
+                required
               />
-            </fieldset>
-          </div>
+              <fieldset className="min-w-0 space-y-3">
+                <legend className="sr-only">Periodo de liquidación</legend>
+                <div className="space-y-1.5">
+                  <p className="text-sm font-medium text-foreground">Qué pagas ver</p>
+                  <Tabs value={payGroup} onValueChange={chooseGroup} variant="pill">
+                    <TabsList>
+                      {PAY_FILTERS.filter((option) => (groupCounts.get(option.value) ?? 0) > 0).map(
+                        (option) => (
+                          <TabsTrigger key={option.value} value={option.value}>
+                            {option.label}
+                            <span className="ml-1.5 tabular-nums text-muted-foreground">
+                              {groupCounts.get(option.value)}
+                            </span>
+                          </TabsTrigger>
+                        ),
+                      )}
+                    </TabsList>
+                  </Tabs>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <PayCombobox
+                    label="Desde la paga"
+                    pays={visiblePays}
+                    showCategory={payGroup === "all"}
+                    value={fromPaymentDate}
+                    onValueChange={chooseFrom}
+                    invalid={Boolean(errors.range)}
+                    describedBy={errors.range ? rangeErrorId : undefined}
+                  />
+                  <PayCombobox
+                    label="Hasta la paga"
+                    pays={visiblePays}
+                    showCategory={payGroup === "all"}
+                    value={toPaymentDate}
+                    onValueChange={chooseTo}
+                    invalid={Boolean(errors.range)}
+                    describedBy={errors.range ? rangeErrorId : undefined}
+                  />
+                </div>
+                {errors.range ? (
+                  <p id={rangeErrorId} className="text-xs text-destructive">
+                    {errors.range}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {paysInRange === 1 ? "1 paga" : `${paysInRange} pagas`} en el rango (máximo{" "}
+                    {PAYROLL_RANGE_MAX_PAYS}).
+                  </p>
+                )}
+              </fieldset>
+            </div>
 
-          <div className="flex justify-end">
-            <Button type="submit" disabled={pending || pays.length === 0} aria-busy={pending}>
-              {pending ? "Consultando…" : "Consultar recibos"}
-            </Button>
-          </div>
-        </form>
-      </Surface>
+            <div className="grid gap-4 md:grid-cols-2">
+              <fieldset className="min-w-0 space-y-3 rounded-xl border border-border px-4 pb-4 pt-2">
+                <legend className="px-1 text-sm font-medium text-foreground">Tipo de pagas</legend>
+                <RadioGroup
+                  value={paymentType}
+                  onValueChange={(value) => {
+                    if (isPaymentType(value)) setPaymentType(value);
+                  }}
+                >
+                  {PAYROLL_PAYMENT_TYPES.map((option) => (
+                    <RadioGroupItem key={option.value} value={option.value} label={option.label} />
+                  ))}
+                </RadioGroup>
+              </fieldset>
+
+              <fieldset className="min-w-0 space-y-3 rounded-xl border border-border px-4 pb-4 pt-2">
+                <legend className="px-1 text-sm font-medium text-foreground">
+                  Moneda de proceso
+                </legend>
+                <RadioGroup
+                  value={currencyMode}
+                  onValueChange={(value) => {
+                    if (isCurrencyMode(value)) setCurrencyMode(value);
+                  }}
+                >
+                  <RadioGroupItem value="calculation" label="Moneda de cálculo" />
+                  <RadioGroupItem value="other" label="Otra" />
+                </RadioGroup>
+                <Input
+                  label="ID moneda"
+                  name="currencyId"
+                  autoComplete="off"
+                  placeholder="EUR"
+                  value={currencyId}
+                  onChange={(value) => setCurrencyId(value.toUpperCase())}
+                  disabled={currencyMode !== "other"}
+                  error={currencyMode === "other" ? errors.currencyId : undefined}
+                  classNames={{ root: "max-w-40" }}
+                />
+              </fieldset>
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="submit" disabled={pending || pays.length === 0} aria-busy={pending}>
+                {pending ? "Consultando…" : "Consultar recibos"}
+              </Button>
+            </div>
+          </form>
+        </Surface>
+      </Section>
 
       <section aria-label="Recibos de nómina" aria-busy={pending}>
         {state.status === "idle" ? (

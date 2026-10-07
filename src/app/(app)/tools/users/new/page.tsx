@@ -11,7 +11,12 @@ import { loadHireCatalogState } from "@/lib/meta4/hire/catalog-queries";
 export default function NewUserPage() {
   return (
     <main className="flex min-h-svh flex-col">
-      <ToolsPageHeader title="Alta de personas" />
+      <ToolsPageHeader
+        title="Alta de personas"
+        icon="user-plus"
+        moduleId="users"
+        contentClassName="mx-auto w-full max-w-6xl"
+      />
       <Suspense>
         <HirePageContent />
       </Suspense>
@@ -24,7 +29,7 @@ async function HirePageContent() {
   if (authSession.authContext.mode !== "meta4" || !authSession.authContext.canUseMeta4) {
     const error = new Meta4SessionRequiredError();
     return (
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6">
         <Alert>
           <AlertCircle />
           <AlertTitle>Sesión Meta4 requerida</AlertTitle>

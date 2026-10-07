@@ -105,12 +105,11 @@ export function DashboardView() {
         </Callout>
       ) : null}
 
+      <AmountsPanel result={result} />
+
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-        <div className="flex min-w-0 flex-col gap-4">
-          <StatusBreakdown total={total} statuses={statuses} onGoToPeople={goToPeople} />
-          <PendingReview result={result} onGoToSettings={() => setView("ajustes")} onGoToCuadre={() => setView("cuadre-excel")} />
-        </div>
-        <AmountsPanel result={result} />
+        <StatusBreakdown total={total} statuses={statuses} onGoToPeople={goToPeople} />
+        <PendingReview result={result} onGoToSettings={() => setView("ajustes")} onGoToCuadre={() => setView("cuadre-excel")} />
       </div>
 
       <ChartsPanel result={result} />

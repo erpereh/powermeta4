@@ -123,7 +123,6 @@ describe("UsersListTable", () => {
   it("renders society copy, columns and rows", () => {
     render(<UsersListTable society="CYC" users={sampleUsers} />);
 
-    expect(screen.getByText("Usuarios")).toBeTruthy();
     expect(screen.getByText("CYC")).toBeTruthy();
     expect(screen.getByText("Todos los usuarios disponibles en CYC.")).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "ID" })).toBeTruthy();

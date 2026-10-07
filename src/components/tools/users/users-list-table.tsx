@@ -125,18 +125,15 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
   );
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-5 px-4 py-6 sm:px-8">
-      <header className="space-y-1.5">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Usuarios</h1>
-          <Badge status="neutral" size="sm">
-            {society}
-          </Badge>
-        </div>
+    <div className="mx-auto w-full max-w-6xl space-y-4 px-4 py-5 sm:px-6">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <Badge status="neutral" size="sm">
+          {society}
+        </Badge>
         <p className="text-sm text-muted-foreground">
           Todos los usuarios disponibles en {society}.
         </p>
-      </header>
+      </div>
 
       {users.length === 0 ? (
         <EmptyState title={`No hay usuarios disponibles en ${society}.`} />
