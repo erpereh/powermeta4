@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-10-07 - DPAPI inicializado una vez por proceso
+
+- Con `next dev --webpack` cada ruta instanciaba `src/lib/security/dpapi.ts`
+  y volvía a registrar `DATA_BLOB` en `koffi` (externo y compartido), que
+  lanzaba `Duplicate type name`. El portal no podía descifrar el perfil Meta4
+  y mostraba «No se ha podido leer tu perfil Meta4» al desplegar equipos y en
+  las fotografías. El runner se guarda ahora en `globalThis`.
+- `npm run dev` y `npm run build` (Turbopack) se bloqueaban: el loader
+  PostCSS agotaba su plazo porque Tailwind escaneaba `clon_portal` (33.518
+  archivos versionados), `fuentes`, `docs` y `manuales`. `globals.css` los
+  excluye con `@source not`; `/login` vuelve a compilar con Turbopack.
+- Comprobaciones: typecheck y build correctos; pruebas de
+  `src/lib/security` correctas (7 en 2 archivos). Suite completa: 740
+  correctas, 36 omitidas y 5 fallidas en `hire/excel`, más fallos en
+  `backups/backup` y `hire/hire-path` por procesos Excel COM bloqueados en
+  este equipo (no relacionados con el cambio). Lint global falla por
+  formato previo (oxfmt sin configuración, 1882 archivos).
+
 ## 2026-10-06 - Organigrama interactivo con expansión de equipos
 
 - El selector abre un lienzo HTML/SVG con arrastre, zoom al puntero entre

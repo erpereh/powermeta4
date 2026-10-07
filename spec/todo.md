@@ -1,5 +1,14 @@
 # powermeta4 - estado de tareas
 
+## DPAPI y arranque en desarrollo - 2026-10-07
+
+- [x] DPAPI se inicializa una vez por proceso (`globalThis`) y deja de
+      fallar con `Duplicate type name 'DATA_BLOB'` en rutas del portal.
+- [x] Tailwind excluye `clon_portal`, `fuentes`, `docs` y `manuales`; dev y
+      build con Turbopack dejan de bloquearse en PostCSS.
+- [ ] Revisar las pruebas de Excel COM y backups, bloqueadas en este equipo
+      por procesos Excel que no terminan.
+
 ## Portal: organigrama interactivo en salvadev - 2026-10-06
 
 - [x] Selector de unidades conservado; lienzo de tarjetas HTML y conectores SVG

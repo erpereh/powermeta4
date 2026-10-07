@@ -10,7 +10,12 @@ export type DpapiAdapter = {
   unprotectSecret: (value: string) => Promise<string>;
 };
 
-let defaultRunner: Promise<DpapiRunner> | null = null;
+// koffi es un paquete externo compartido por todo el proceso y no admite
+// registrar dos veces `DATA_BLOB`; el bundler puede instanciar este módulo una
+// vez por ruta, así que el runner se guarda en globalThis.
+const runnerStore = globalThis as typeof globalThis & {
+  __powermeta4DpapiRunner?: Promise<DpapiRunner> | null;
+};
 
 const loadKoffi = async (): Promise<KoffiLike> => {
   const koffi = await import("koffi");
@@ -22,16 +27,16 @@ const loadKoffi = async (): Promise<KoffiLike> => {
 };
 
 const getCrypt32Runner = (): Promise<DpapiRunner> => {
-  if (!defaultRunner) {
-    defaultRunner = loadKoffi()
+  if (!runnerStore.__powermeta4DpapiRunner) {
+    runnerStore.__powermeta4DpapiRunner = loadKoffi()
       .then((koffi) => createCrypt32DpapiRunner(bindCrypt32Native(koffi)))
       .catch((error: unknown) => {
-        defaultRunner = null;
+        runnerStore.__powermeta4DpapiRunner = null;
         const message = error instanceof Error ? error.message : "Error desconocido";
         throw new Error(`No se pudo iniciar DPAPI: ${message.slice(0, 160)}`);
       });
   }
-  return defaultRunner;
+  return runnerStore.__powermeta4DpapiRunner;
 };
 
 const runCrypt32Dpapi: DpapiRunner = async (operation, value) => {
