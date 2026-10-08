@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mockPortalLayout } from "@/test/portal-layout";
 import { consult } from "@/lib/portal/registry/helpers";
 import { ConsultContent } from "./feature-sections";
 const section = consult(
@@ -14,7 +15,12 @@ const section = consult(
 );
 if (section.kind !== "consult") throw new Error("Se esperaba consulta");
 const spec = section.consult;
-afterEach(cleanup);
+beforeEach(() => mockPortalLayout());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 describe("apartados de consultas", () => {
   it("muestra datos y campos ausentes sin el aviso incondicional de pendiente", () => {
     render(
@@ -27,7 +33,7 @@ describe("apartados de consultas", () => {
         }}
       />,
     );
-    expect(screen.getByRole("list", { name: "Cuenta" })).toBeTruthy();
+    expect(screen.getByRole("table")).toBeTruthy();
     expect(screen.getByText("No informado")).toBeTruthy();
     expect(screen.queryByText("Consulta pendiente de conexión")).toBeNull();
   });

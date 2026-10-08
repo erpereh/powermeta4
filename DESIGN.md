@@ -53,7 +53,9 @@ definidos como pares `--tone-*` / `--tone-*-foreground` en `globals.css` para
 light y dark (oklch) y resueltos solo desde `src/lib/theme/icon-tones.ts`:
 `MODULE_TONES` (módulos ERP), `STANDALONE_TOOL_TONES` (herramientas) y
 `PORTAL_ICON_TONES` (iconos del portal). El chip es decorativo
-(`aria-hidden`); el nombre accesible está en el texto contiguo.
+(`aria-hidden`); el nombre accesible está en el texto contiguo. La opción
+`appearance="plain"` conserva el tono y retira el fondo; la apariencia por
+defecto sigue siendo `chip`.
 
 Claro, oscuro y sistema representan el mismo producto con distintos valores
 de tokens. El tema usa `next-themes`, `attribute="class"`, sistema habilitado
@@ -160,10 +162,11 @@ deep-link. La configuración del chat no vive en Ajustes.
 
 Herramientas es una sección con etiqueta siempre visible, no una ruta de
 navegación ni un grupo plegable: lista directamente `STANDALONE_TOOLS` (hoy
-`Reg. Retrib.`) con su chip de color; los módulos ERP no aparecen ahí y no hay
+`Reg. Retrib.`) con su icono de color sin fondo; los módulos ERP no aparecen ahí y no hay
 enlace a `/tools`. Portal sí es un grupo plegable: la fila abre o cierra el
-submenu, anuncia `aria-expanded` y no navega; los hijos llevan chip con el
-tono de su icono. El elemento activo muestra estado seleccionado.
+submenu, anuncia `aria-expanded` y no navega; tanto el grupo como sus hijos
+llevan iconos sin fondo con su tono original. El elemento activo muestra
+estado seleccionado. AppShell, Sheet y controles de la sidebar se conservan.
 
 ## Inicio y workspaces
 
@@ -180,7 +183,9 @@ La búsqueda de Acciones usa `CommandDialog` con filtrado propio
 módulo ERP. No incluye herramientas standalone. En `/home`, `Ctrl+K` abre esta
 paleta; en el resto de rutas abre la búsqueda de conversaciones en la sidebar.
 
-El dock de módulos filtra la rejilla mediante `Tabs` en línea con
+El dock queda centrado cuando cabe; cuando falta espacio mantiene el
+desplazamiento dentro de su contenedor y los controles de los extremos.
+Filtra la rejilla mediante `Tabs` en línea con
 `ScrollArea` horizontal; el acento cian (`primary`) aparece solo en el tab
 activo. `ToolCard` es una fila compacta (~75–100 px) con composición propia
 (`Link`/`button`, chip de icono, título, descripción breve y flecha); las no
@@ -374,24 +379,39 @@ nómina con importes numéricos, más «Resumen» si son varias.
 
 ## Portal
 
-- Raíz `/portal` con `PageHeader`: ruta pequeña sobre el título (la persona con
-  avatar, puesto · unidad y sociedad como badge, o el nombre del portal), y
-  búsqueda (Ctrl+K abre el
-  palette en modo «portal»: pantallas y personas desde dos caracteres),
-  persona y sociedad, conmutador Empleado/Responsable con enlaces reales y
-  `SectionNav` subrayadas para los apartados de la sección activa. Las subpáginas
-  usan su variante `pill` dentro de `FeatureHeader`, después del título y resumen
-  y antes de los metadatos, solo si hay varias páginas disponibles. Ambos niveles
-  conservan enlaces con `aria-current`, flechas, Inicio y Fin y desplazamiento
-  horizontal interno en móvil.
-- La sidebar añade el grupo colapsable «Portal» con las mismas reglas que
-  Herramientas: la fila no navega, los hijos sí.
-- Cada pantalla muestra chip con el tono de su icono, título, resumen, estado
-  del dato como pastilla («Datos: …») y origen (JSP de la ficha) atenuado. Las
-  consultas y formularios usan `Section` (título fuera) y cada registro leído
-  se muestra con `PropertyList`. Estados honestos: `DependencyState` (objeto Meta4 y pendientes),
-  `SensitiveLocked`, `PortalError` y `WriteBlockedNotice` (método Meta4 y
-  pendiente; el botón de envío queda `disabled` y descrito por el aviso).
+- Cabecera compacta con breadcrumbs, búsqueda y conmutador
+  Empleado/Responsable con enlaces reales. Ctrl+K abre la búsqueda de
+  pantallas y personas desde dos caracteres. La identidad no se repite sobre
+  el contenido; cada pantalla conserva su título, icono sin fondo y resumen.
+  No se muestran «Datos», «Original», «Variante» ni notas técnicas de variante.
+- Ambos niveles de `SectionNav` usan `overflow="menu"`: miden las etiquetas
+  y el espacio disponible, mantienen visible la página activa y agrupan el
+  resto en «Más», con enlaces reales. En móvil, o si la etiqueta activa y
+  «Más» no caben, usan el Select beUI de la fachada. La selección procede de
+  la URL y conserva teclado, historial y `aria-current` en los enlaces. Fuera
+  del portal se mantiene el desplazamiento anterior por defecto.
+- Índices, consultas, directorio, equipo, unidades, tareas y correos usan
+  tablas beUI con separadores suaves. `PortalDataTable` recibe solo filas y
+  campos serializables; conserva su orden y muestra los primeros cuatro
+  campos si el contenedor tiene al menos 960 px, tres desde 600 px y dos por
+  debajo. «Ver detalle» abre un Drawer con todos los campos, mantiene el foco
+  dentro del panel con Tab y devuelve el foco al cerrar. Las descargas tienen
+  un acceso independiente.
+- `PortalRecord` presenta hasta seis campos como filas de etiqueta/valor y
+  ofrece el detalle completo cuando hay más. Los formularios viven en
+  secciones continuas sin cards envolventes. Ningún campo, cálculo,
+  validación, consulta, permiso, descarga ni ruta se modifica.
+- Carga, vacío, error, dependencia y bloqueo se anuncian de forma breve.
+  Métodos Meta4, pendientes y explicaciones técnicas se conservan en un
+  Accordion «Ver detalles», cerrado inicialmente. El motivo de un envío
+  bloqueado permanece visible y el botón sigue `disabled` y descrito por el
+  aviso. Las lecturas pendientes de verificación no se presentan como
+  conexiones confirmadas.
+- El árbol de organización y los nodos del gráfico se conservan. Volver,
+  subir al responsable, zoom, centrar, ajustar, ampliar y ayuda accesible
+  viven en una barra dentro del marco, separada del área de arrastre. La
+  ficha móvil ocupa el marco y oculta los controles de cámara; dimensiones
+  de nodos, gestos, expansión, límites, cámara y estado en URL se mantienen.
 - `PortalForm` reproduce las validaciones visibles del original (obligatorios,
   longitudes, CP, fechas reales, orden de fechas, fecha de alta, campos
   condicionales); el foco va al primer campo con error y el resumen se anuncia

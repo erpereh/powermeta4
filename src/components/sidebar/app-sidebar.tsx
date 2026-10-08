@@ -263,7 +263,13 @@ export function AppSidebar() {
                     >
                       <SidebarMenuButton
                         icon={
-                          <IconChip icon={Icon} tone={getStandaloneToolTone(item.id)} size="xs" />
+                          <IconChip
+                            icon={Icon}
+                            tone={getStandaloneToolTone(item.id)}
+                            size="xs"
+                            appearance="plain"
+                            className="[&_svg]:size-4"
+                          />
                         }
                         isActive={pathname.startsWith(item.route)}
                         onSelect={() => {
@@ -287,7 +293,15 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <Tooltip content="Portal" side="right" wrapperClassName="flex w-full min-w-0">
                 <SidebarMenuButton
-                  icon={<IconChip icon={Building2} tone="teal" size="xs" />}
+                  icon={
+                    <IconChip
+                      icon={Building2}
+                      tone="teal"
+                      size="xs"
+                      appearance="plain"
+                      className="[&_svg]:size-4"
+                    />
+                  }
                   ariaExpanded={portalOpen}
                   onSelect={handlePortalSelect}
                   closeOnSelect={false}
@@ -303,10 +317,11 @@ export function AppSidebar() {
                       <SidebarMenuSubButton
                         icon={
                           <IconChip
+                            appearance="plain"
                             icon={Icon}
                             tone={PORTAL_ICON_TONES[item.icon]}
                             size="xs"
-                            className="size-4 rounded-[5px] [&_svg]:size-2.5"
+                            className="size-4 [&_svg]:size-3.5"
                           />
                         }
                         isActive={isPortalSidebarItemActive(pathname, item)}

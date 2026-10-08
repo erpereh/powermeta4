@@ -127,7 +127,7 @@ export function OwnPayslips({ pays }: { pays: readonly PayrollPayOption[] }) {
       <form
         noValidate
         aria-label="Elegir pagas"
-        className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4"
+        className="flex min-w-0 flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (from && to && inRange > 0 && inRange <= PAYROLL_RANGE_MAX_PAYS) consult(from, to);

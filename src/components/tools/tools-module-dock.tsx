@@ -18,7 +18,7 @@ export function ToolsModuleDock({ value, onChange }: ToolsModuleDockProps) {
       onValueChange={(next) => onChange(next as ModuleFilter)}
       className="w-full min-w-0"
     >
-      <TabsList className="gap-0.5" wrapperClassName="w-full min-w-0">
+      <TabsList className="mx-auto flex gap-0.5" wrapperClassName="w-full min-w-0">
         <TabsTrigger value="all" className="px-3 py-1.5 text-xs sm:text-sm">
           Todos
         </TabsTrigger>

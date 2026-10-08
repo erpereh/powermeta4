@@ -1,5 +1,42 @@
 # powermeta4 - estado de tareas
 
+## Portal: tablas y navegación con beUI - 2026-10-08
+
+- [x] Cabecera compacta sin identidad repetida ni metadatos de origen,
+      datos o variante; título, breadcrumbs, búsqueda y selector de perfil.
+- [x] Tablas beUI en índices, consultas, directorio, equipo, unidades,
+      tareas y correos. Resumen de 4/3/2 campos según el ancho del contenedor,
+      Drawer con todos los campos y descargas independientes. Fichas de
+      hasta seis campos con acceso al resto.
+- [x] Formularios sin cards y avisos breves con «Ver detalles» cerrado;
+      motivos de bloqueo visibles, validaciones y envío deshabilitado intactos.
+- [x] Dos niveles de navegación con página activa visible y menú «Más»;
+      Select beUI en móvil o sin espacio. Enlaces, teclado, selección por
+      URL e historial conservados. Dock de Acciones centrado cuando cabe.
+- [x] Iconos de Herramientas, Portal y submenú sin fondos, con tonos,
+      selección y comportamiento originales. AppShell sin cambios.
+- [x] Barra del organigrama dentro del marco, ayuda accesible y ficha móvil
+      ocupando el marco sin controles de cámara. Geometría, gestos, expansión
+      y estado en URL conservados.
+- [x] Revisión con fixtures sintéticas y lecturas simuladas temporales a
+      1440/1024/768/390 px, claro/oscuro, empleado/responsable y CYC/BASE.
+      Sin overflow de página ni navegación cortada; detalle, foco, formularios
+      bloqueados y navegación del organigrama revisados. Prueba temporal de
+      movimiento reducido correcta. Vista y prueba temporales retiradas.
+- [x] Pruebas dirigidas: 36 correctas en 8 archivos del portal y navegación.
+- [x] `npm run typecheck`, `npm run build` y `git diff --check` correctos;
+      formato dirigido correcto en los 25 archivos de código modificados.
+      La referencia obsoleta de la vista temporal en `.next/dev/types` se
+      regeneró antes de repetir typecheck/build correctamente.
+- [x] Suite completa ejecutada, también con `--maxWorkers=2`: última ejecución
+      con 814 correctas, 2 omitidas y 1 timeout de 180 s en `hire/excel.test.ts`
+      (fórmulas de moneda, archivo sin modificar; Excel COM ya figuraba como
+      pendiente). Las 36 pruebas dirigidas vuelven a pasar tras los ajustes finales.
+- [x] Lint global ejecutado: oxlint sin errores y 7 avisos en archivos ajenos;
+      falla el formato global previo. No se reformatean archivos ajenos al alcance.
+- [ ] Revisión de datos y descargas reales en la VM con sesión Meta4/PeopleNet;
+      esta tarea verifica presentación con datos sintéticos, sin conexión a BD.
+
 ## Rediseño visual de la interfaz - 2026-10-07
 
 - [x] Fachada `system`: `IconChip` con tonos estáticos (`src/lib/theme/icon-tones.ts`,

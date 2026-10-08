@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-10-08 - Portal simplificado con tablas beUI
+
+- Cabecera compacta con ruta, búsqueda y perfiles, sin identidad repetida ni
+  metadatos «Datos», «Original», «Variante». Índices, consultas, directorio,
+  equipo, unidades, tareas y correos pasan a tablas beUI desde la fachada
+  `system`. Resumen adaptable y Drawer con todos los campos; las descargas
+  conservan su acceso independiente y las fichas muestran seis campos.
+- Formularios en secciones continuas y avisos breves. Métodos Meta4,
+  pendientes y notas técnicas en «Ver detalles» cerrado inicialmente;
+  validaciones, motivo de bloqueo y envío deshabilitado conservados.
+- Navegación medida con página activa visible y menú «Más»; Select beUI
+  en móvil o sin espacio. Dock de Acciones centrado cuando cabe. Iconos de
+  Herramientas y Portal sin fondo; AppShell y comportamiento de sidebar intactos.
+- Controles y ayuda del organigrama dentro del marco, separados del arrastre.
+  La ficha móvil ocupa el marco y oculta la cámara. Árbol, nodos, dimensiones,
+  gestos, zoom, expansión e historial conservados.
+- Sin cambios en contratos, SQL, servicios, permisos, cálculos, rutas ni
+  persistencia. Revisión visual temporal con datos sintéticos a
+  1440/1024/768/390 px en claro/oscuro y ambos perfiles, CYC/BASE; sin
+  overflow de página ni pestañas cortadas. Fixtures retiradas antes del build.
+  Pruebas dirigidas: 36 correctas en 8 archivos; comprobación temporal de
+  detalle y foco con movimiento reducido correcta.
+- Typecheck, build, diff y formato dirigido de los 25 archivos de código
+  modificados correctos. Next regeneró los tipos de desarrollo tras retirar
+  la vista temporal. Suite completa final con dos workers: 814 correctas,
+  2 omitidas y 1 timeout de 180 s en la prueba de fórmulas de moneda de
+  `hire/excel.test.ts`, sin cambios (incidencia de Excel COM ya documentada).
+  Lint global: oxlint sin errores, 7 avisos existentes; formato global previo
+  pendiente fuera del alcance de este rediseño.
+
 ## 2026-10-07 - Rediseño visual: cabeceras, sidebar y patrón de detalle
 
 - Sin barra fina por pantalla: `PageHeader` vive en el contenido con chip de

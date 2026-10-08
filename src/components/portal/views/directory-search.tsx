@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { ChevronRight, Search, UserRound } from "lucide-react";
+import { Search, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { searchPortalDirectoryAction } from "@/app/actions/portal";
 import { EmptyState, Input, Skeleton } from "@/components/system";
+import { PortalDataTable } from "../portal-data";
 import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
 import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
 
@@ -120,35 +120,20 @@ export function DirectorySearch() {
                   ? "Se muestran las 50 primeras coincidencias; afina la búsqueda para ver más."
                   : `${state.entries.length} ${state.entries.length === 1 ? "persona" : "personas"}`}
               </p>
-              <ul className="flex min-w-0 flex-col divide-y divide-border rounded-xl border border-border bg-card">
-                {state.entries.map((entry) => (
-                  <li key={entry.key} className="min-w-0">
-                    <Link
-                      href={`/portal/organizacion/personas/${encodeURIComponent(entry.employeeId)}`}
-                      className="flex min-w-0 items-center gap-3 px-4 py-3 outline-none transition-colors hover:bg-elevated focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
-                    >
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-sm font-medium text-foreground">
-                          {entry.fullName}
-                        </span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          {[entry.job, entry.unit, entry.workCenter].filter(Boolean).join(" · ") ||
-                            "Sin puesto informado"}
-                        </span>
-                      </span>
-                      {entry.email ? (
-                        <span className="hidden max-w-[16rem] truncate text-xs text-muted-foreground md:inline">
-                          {entry.email}
-                        </span>
-                      ) : null}
-                      <ChevronRight
-                        className="size-4 shrink-0 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <PortalDataTable
+                title="Personas"
+                rows={state.entries.map((entry) => ({
+                  id: entry.key,
+                  href: `/portal/organizacion/personas/${encodeURIComponent(entry.employeeId)}`,
+                  fields: [
+                    { label: "Persona", value: entry.fullName },
+                    { label: "Puesto", value: entry.job ?? "No informado" },
+                    { label: "Unidad", value: entry.unit ?? "No informado" },
+                    { label: "Centro", value: entry.workCenter ?? "No informado" },
+                    { label: "Correo", value: entry.email ?? "No informado" },
+                  ],
+                }))}
+              />
             </div>
           )
         ) : null}

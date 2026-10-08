@@ -1,6 +1,5 @@
-import { Mail } from "lucide-react";
-
-import { Surface } from "@/components/system";
+import { Section } from "@/components/system";
+import { PortalDataTable, PortalRecord } from "../portal-data";
 import type { EmployeeEmailRecord } from "@/lib/peoplenet/employee-detail";
 import type { FileSection } from "@/lib/portal/data/organization-core";
 
@@ -12,7 +11,7 @@ const formatDate = (value: string): string => {
   return `${day}/${month}/${year}`;
 };
 
-/** Secciones de una ficha como listas de definición en dos columnas. */
+/** Ficha en filas de etiqueta/valor, con acceso al detalle completo. */
 export function FileSections({
   sections,
   compact = false,
@@ -21,20 +20,11 @@ export function FileSections({
   compact?: boolean;
 }) {
   return (
-    <div className={`grid min-w-0 gap-4 ${compact ? "" : "lg:grid-cols-2"}`}>
+    <div className={`flex min-w-0 flex-col ${compact ? "gap-4" : "gap-6"}`}>
       {sections.map((section) => (
-        <Surface key={section.id} title={section.title}>
-          <dl
-            className={`grid min-w-0 grid-cols-1 gap-x-4 gap-y-3 ${compact ? "" : "sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)]"}`}
-          >
-            {section.fields.map((field) => (
-              <div key={field.label} className="contents">
-                <dt className="text-xs text-muted-foreground">{field.label}</dt>
-                <dd className="min-w-0 break-words text-sm text-foreground">{field.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </Surface>
+        <Section key={section.id} title={section.title}>
+          <PortalRecord title={section.title} fields={section.fields} />
+        </Section>
       ))}
     </div>
   );
@@ -43,32 +33,23 @@ export function FileSections({
 /** Correos de la persona (`STD_EMAIL`), con su vigencia. */
 export function EmailList({ emails }: { emails: readonly EmployeeEmailRecord[] }) {
   return (
-    <Surface
-      title="Correos electrónicos"
-      description="Direcciones registradas en PeopleNet con su vigencia."
-    >
+    <Section title="Correos electrónicos">
       {emails.length === 0 ? (
         <p className="text-sm text-muted-foreground">No hay correos registrados.</p>
       ) : (
-        <ul className="flex min-w-0 flex-col divide-y divide-border">
-          {emails.map((email) => (
-            <li
-              key={`${email.order}-${email.email}`}
-              className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 py-2.5 first:pt-0 last:pb-0"
-            >
-              <span className="flex min-w-0 items-center gap-2 text-sm text-foreground">
-                <Mail className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <span className="min-w-0 break-all">{email.email}</span>
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {email.startDate ? `Desde ${formatDate(email.startDate)}` : null}
-                {email.endDate ? ` · Hasta ${formatDate(email.endDate)}` : null}
-                {email.locationTypeCode ? ` · Lugar ${email.locationTypeCode}` : null}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <PortalDataTable
+          title="Correos electrónicos"
+          rows={emails.map((email) => ({
+            id: `${email.order}-${email.email}`,
+            fields: [
+              { label: "Correo", value: email.email },
+              { label: "Desde", value: email.startDate ? formatDate(email.startDate) : "—" },
+              { label: "Hasta", value: email.endDate ? formatDate(email.endDate) : "—" },
+              { label: "Lugar", value: email.locationTypeCode ?? "—" },
+            ],
+          }))}
+        />
       )}
-    </Surface>
+    </Section>
   );
 }

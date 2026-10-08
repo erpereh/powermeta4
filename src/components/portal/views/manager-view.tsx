@@ -1,14 +1,14 @@
-import Link from "next/link";
 import { Suspense } from "react";
-import { ChevronRight, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
-import { EmptyState, Skeleton, Surface } from "@/components/system";
+import { EmptyState, Skeleton, Section } from "@/components/system";
 import type { PortalContext } from "@/lib/portal/context";
 import { getDirectoryEntries } from "@/lib/portal/data/organization";
 import { loadManagerScope } from "@/lib/portal/data/scope";
 import { readPortal } from "@/lib/portal/server";
 
 import { DependencyState, PortalError, SensitiveLocked } from "../portal-states";
+import { PortalDataTable } from "../portal-data";
 import { DomainGrid } from "./home-view";
 import { TasksView } from "./tasks-view";
 
@@ -38,7 +38,7 @@ export async function PopulationPanel({ context }: { context: PortalContext }) {
   return (
     <div className="flex min-w-0 flex-col gap-4">
       {!scope.verified ? <SensitiveLocked message={SCOPE_MESSAGE} /> : null}
-      <Surface
+      <Section
         title="Unidades de responsabilidad"
         description="Unidades organizativas de las que eres responsable según Meta4."
       >
@@ -47,29 +47,25 @@ export async function PopulationPanel({ context }: { context: PortalContext }) {
             Meta4 no devuelve unidades de responsabilidad para tu usuario.
           </p>
         ) : (
-          <ul className="flex min-w-0 flex-wrap gap-2">
-            {scope.units.map((unit) => (
-              <li
-                key={unit.unitId}
-                className="rounded-lg border border-border px-2.5 py-1 text-xs text-foreground"
-              >
-                {unit.unitName ?? unit.unitId}
-                {unit.responsibilityType ? (
-                  <span className="text-muted-foreground"> · tipo {unit.responsibilityType}</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
+          <PortalDataTable
+            title="Unidades de responsabilidad"
+            rows={scope.units.map((unit) => ({
+              id: unit.unitId,
+              fields: [
+                { label: "Unidad", value: unit.unitName ?? unit.unitId },
+                { label: "Tipo", value: unit.responsibilityType ?? "No informado" },
+              ],
+            }))}
+          />
         )}
-      </Surface>
-      <Surface
+      </Section>
+      <Section
         title="Tu equipo"
         description={
           peopleResult.status === "ok"
             ? `${people.length} ${people.length === 1 ? "persona" : "personas"} en tu población.`
             : "Las unidades se han cargado; los datos de directorio se consultan por separado."
         }
-        flush
       >
         {peopleResult.status === "error" ? (
           <div className="p-4">
@@ -92,31 +88,22 @@ export async function PopulationPanel({ context }: { context: PortalContext }) {
             />
           </div>
         ) : (
-          <ul className="flex min-w-0 flex-col divide-y divide-border border-t border-border">
-            {people.map((person) => (
-              <li key={person.key} className="min-w-0">
-                <Link
-                  href={`/portal/organizacion/personas/${encodeURIComponent(person.employeeId)}`}
-                  className="flex min-w-0 items-center gap-3 px-4 py-3 outline-none hover:bg-elevated focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
-                >
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-sm font-medium text-foreground">
-                      {person.fullName}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {[person.job, person.unit].filter(Boolean).join(" · ")}
-                    </span>
-                  </span>
-                  <ChevronRight
-                    className="size-4 shrink-0 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <PortalDataTable
+            title="Tu equipo"
+            rows={people.map((person) => ({
+              id: person.key,
+              href: `/portal/organizacion/personas/${encodeURIComponent(person.employeeId)}`,
+              fields: [
+                { label: "Persona", value: person.fullName },
+                { label: "Puesto", value: person.job ?? "No informado" },
+                { label: "Unidad", value: person.unit ?? "No informado" },
+                { label: "Centro", value: person.workCenter ?? "No informado" },
+                { label: "Correo", value: person.email ?? "No informado" },
+              ],
+            }))}
+          />
         )}
-      </Surface>
+      </Section>
     </div>
   );
 }

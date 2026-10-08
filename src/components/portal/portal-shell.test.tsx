@@ -7,11 +7,21 @@ import { FeatureHeader } from "./feature-header";
 import { PortalShell, type PortalShellContext } from "./portal-shell";
 
 const route = vi.hoisted(() => ({ pathname: "/portal/empleado/datos/idiomas" }));
-vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => route.pathname,
+  useRouter: () => ({ push: vi.fn() }),
+}));
 vi.mock("@/components/app-shell/app-command-palette", () => ({
   useOptionalAppCommandPalette: () => null,
 }));
 beforeEach(() => {
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
   vi.stubGlobal(
     "matchMedia",
     vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
@@ -40,6 +50,32 @@ const view = (value: PortalShellContext = context) => {
 };
 
 describe("pestañas del portal", () => {
+  it("retira la identidad duplicada de la cabecera", () => {
+    route.pathname = "/portal/empleado/datos/idiomas";
+    render(
+      view({
+        mode: "meta4",
+        society: "CYC",
+        variant: "CYC",
+        person: {
+          fullName: "Nombre duplicado",
+          employeeId: "001",
+          job: "Puesto duplicado",
+          unit: "Unidad duplicada",
+          workCenter: "Centro duplicado",
+        },
+        identityMessage: null,
+      }),
+    );
+    for (const value of [
+      "Nombre duplicado",
+      "Puesto duplicado",
+      "Unidad duplicada",
+      "Centro duplicado",
+    ])
+      expect(screen.queryByText(value)).toBeNull();
+    expect(screen.getByRole("navigation", { name: "Ruta" })).toBeTruthy();
+  });
   it("selecciona grupo y página desde una URL directa y conserva enlaces reales", () => {
     route.pathname = "/portal/empleado/datos/idiomas";
     render(view());
@@ -85,24 +121,18 @@ describe("pestañas del portal", () => {
   it.each([
     ["/portal/empleado/datos/idiomas", "Páginas de Mis datos profesionales"],
     ["/portal/responsable/equipo/validar-idiomas", "Páginas de Datos profesionales"],
-  ])(
-    "sitúa las subpáginas después del título y antes de los metadatos en %s",
-    (pathname, label) => {
-      route.pathname = pathname;
-      render(view());
-      const heading = screen.getByRole("heading", { level: 1 });
-      const header = heading.closest("header")!;
-      const nested = screen.getByRole("navigation", { name: label });
-      const metadata = within(header).getByText("Datos:").closest("dl")!;
-      expect(header.contains(nested)).toBe(true);
-      expect(
-        heading.compareDocumentPosition(nested) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
-      expect(
-        nested.compareDocumentPosition(metadata) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
-    },
-  );
+  ])("sitúa las subpáginas después del título sin metadatos en %s", (pathname, label) => {
+    route.pathname = pathname;
+    render(view());
+    const heading = screen.getByRole("heading", { level: 1 });
+    const header = heading.closest("header")!;
+    const nested = screen.getByRole("navigation", { name: label });
+    expect(within(header).queryByText("Datos:")).toBeNull();
+    expect(within(header).queryByText("Original:")).toBeNull();
+    expect(within(header).queryByText("Variante:")).toBeNull();
+    expect(header.contains(nested)).toBe(true);
+    expect(heading.compareDocumentPosition(nested) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
   it("no añade una segunda fila a una página directa y respeta la variante del servidor", () => {
     route.pathname = "/portal/empleado/aplicaciones/organigrama";
     const meta4: PortalShellContext = {

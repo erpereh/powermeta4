@@ -1,11 +1,12 @@
-import { Download, Info } from "lucide-react";
+import { Info } from "lucide-react";
 
-import { PropertyList, Section, Surface } from "@/components/system";
+import { Accordion, Section } from "@/components/system";
 import type { ConsultData, ConsultSpec, PortalFeature } from "@/lib/portal/types";
 import type { ConsultResults } from "@/lib/portal/data/consults";
 import type { PortalResult } from "@/lib/portal/result";
 
 import { PortalForm, type CatalogAvailability } from "./portal-form";
+import { PortalDataTable, PortalRecord } from "./portal-data";
 import { DependencyState, PortalError, WriteBlockedNotice } from "./portal-states";
 
 export function ConsultContent({
@@ -19,36 +20,18 @@ export function ConsultContent({
   if (result?.status === "ok") {
     if (result.data.rows.length === 0)
       return <p className="text-sm text-muted-foreground">No hay registros para este apartado.</p>;
-    return (
-      <ul className="flex min-w-0 flex-col gap-3" aria-label={consult.title}>
-        {result.data.rows.map((fields, index) => {
-          const href = result.data.links?.[index];
-          return (
-            <li key={index} className="min-w-0">
-              <PropertyList
-                items={fields.map((field) => ({
-                  id: field.label,
-                  label: field.label,
-                  value: <span className="[overflow-wrap:anywhere]">{field.value}</span>,
-                }))}
-                footer={
-                  href && consult.download ? (
-                    <a
-                      href={href}
-                      download
-                      aria-label={`${consult.download.label}: ${fields.map((field) => field.value).join(", ")}`}
-                      className="inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <Download className="size-4" aria-hidden="true" />
-                      {consult.download.label}
-                    </a>
-                  ) : undefined
-                }
-              />
-            </li>
-          );
-        })}
-      </ul>
+    const rows = result.data.rows.map((fields, index) => {
+      const href = result.data.links?.[index];
+      return {
+        id: String(index),
+        fields,
+        download: href && consult.download ? { href, label: consult.download.label } : undefined,
+      };
+    });
+    return consult.layout !== "list" && rows.length === 1 ? (
+      <PortalRecord title={consult.title} fields={rows[0].fields} download={rows[0].download} />
+    ) : (
+      <PortalDataTable title={consult.title} rows={rows} />
     );
   }
   const pending = consult.read.kind === "pending" ? consult.read : null;
@@ -110,14 +93,18 @@ export function FeatureSections({
       {sections.map((section) => {
         if (section.kind === "note") {
           return (
-            <div
-              key={section.title}
-              className="flex min-w-0 items-start gap-3 rounded-xl border border-border bg-muted/30 p-4 text-sm"
-            >
+            <div key={section.title} className="flex min-w-0 items-start gap-3 text-sm">
               <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div className="min-w-0 space-y-1">
                 <p className="font-medium text-foreground">{section.title}</p>
-                <p className="text-muted-foreground">{section.body}</p>
+                <Accordion
+                  items={[{ id: "details", title: "Ver detalles", description: section.body }]}
+                  classNames={{
+                    item: "border-0 bg-transparent",
+                    trigger: "px-0 py-2 text-xs",
+                    description: "text-sm",
+                  }}
+                />
               </div>
             </div>
           );
@@ -135,18 +122,13 @@ export function FeatureSections({
         }
         return (
           <Section key={section.form.id} title={section.form.title}>
-            <Surface>
-              <PortalForm spec={section.form} catalogs={catalogs} hireDate={hireDate} />
-            </Surface>
+            <PortalForm spec={section.form} catalogs={catalogs} hireDate={hireDate} />
           </Section>
         );
       })}
       {feature.writes && feature.writes.length > 0 ? (
-        <Section
-          title="Otras operaciones del original"
-          description="Acciones que el portal clásico ofrece sobre los registros de esta pantalla."
-        >
-          <ul className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4">
+        <Section title="Otras operaciones">
+          <ul className="flex min-w-0 flex-col gap-4">
             {feature.writes.map((write) => (
               <li key={write.id} className="min-w-0 space-y-1.5">
                 <p className="text-sm font-medium text-foreground">{write.label}</p>

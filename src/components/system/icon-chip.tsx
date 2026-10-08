@@ -9,6 +9,7 @@ export interface IconChipProps {
   icon: LucideIcon;
   tone?: IconTone;
   size?: IconChipSize;
+  appearance?: "chip" | "plain";
   className?: string;
 }
 
@@ -20,7 +21,13 @@ const SIZE_CLASS: Record<IconChipSize, { box: string; icon: string }> = {
 };
 
 /** Chip de icono con tono (mapa estático). Decorativo: el nombre va en el texto contiguo. */
-export function IconChip({ icon: Icon, tone = "slate", size = "sm", className }: IconChipProps) {
+export function IconChip({
+  icon: Icon,
+  tone = "slate",
+  size = "sm",
+  appearance = "chip",
+  className,
+}: IconChipProps) {
   const sizing = SIZE_CLASS[size];
   return (
     <span
@@ -30,6 +37,7 @@ export function IconChip({ icon: Icon, tone = "slate", size = "sm", className }:
         "inline-flex shrink-0 items-center justify-center",
         sizing.box,
         ICON_TONE_CLASSES[tone],
+        appearance === "plain" && "rounded-none bg-transparent",
         className,
       )}
     >

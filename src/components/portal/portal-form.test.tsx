@@ -2,13 +2,17 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mockPortalLayout } from "@/test/portal-layout";
 
 import { PortalForm } from "@/components/portal/portal-form";
 import type { FormSpec } from "@/lib/portal/types";
 
+beforeEach(() => mockPortalLayout());
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 const spec: FormSpec = {
@@ -33,7 +37,14 @@ describe("PortalForm", () => {
 
     const submit = screen.getByRole("button", { name: "Enviar petición" });
     expect(submit).toHaveProperty("disabled", true);
-    expect(document.body.textContent).toContain("SSE_EMAIL!SSE_PRINCIPAL.GESTION");
+    expect(screen.getByRole("button", { name: "Ver detalles" }).getAttribute("aria-expanded")).toBe(
+      "false",
+    );
+    expect(
+      screen.getByText("Falta un servicio publicado y la autorización de escritura."),
+    ).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Ver detalles" }));
+    expect(screen.getByText("SSE_EMAIL!SSE_PRINCIPAL.GESTION")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Comprobar datos" }));
     expect(screen.getByText(/Se han encontrado 1 error/)).toBeTruthy();

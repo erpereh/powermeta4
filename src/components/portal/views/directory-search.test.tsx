@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PortalResult } from "@/lib/portal/result";
 import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
 import { workspaceStore } from "@/stores/use-workspace-store";
+import { mockPortalLayout } from "@/test/portal-layout";
 const mocks = vi.hoisted(() => ({ search: vi.fn() }));
 vi.mock("@/app/actions/portal", () => ({ searchPortalDirectoryAction: mocks.search }));
 import { DirectorySearch } from "./directory-search";
@@ -33,6 +34,7 @@ const search = async (text: string) => {
   });
 };
 beforeEach(() => {
+  mockPortalLayout();
   vi.useFakeTimers();
   mocks.search.mockReset();
   workspaceStore.setState({
@@ -47,6 +49,8 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.useRealTimers();
   workspaceStore.setState({ auth: null });
 });

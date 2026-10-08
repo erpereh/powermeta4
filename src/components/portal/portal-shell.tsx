@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { useOptionalAppCommandPalette } from "@/components/app-shell/app-command-palette";
 import {
-  Avatar,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -15,7 +14,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Button,
-  IconChip,
   PageHeader,
   SectionNav,
   Tooltip,
@@ -160,42 +158,12 @@ export function PortalShell({
   const activeGroupHref = location?.group
     ? (getPortalMenuPages(location.group, variant)[0]?.route ?? null)
     : null;
-  const person = context.mode === "meta4" ? context.person : null;
 
   return (
     <div data-portal-root className="flex min-h-svh min-w-0 flex-col">
       <PageHeader
         contentClassName="mx-auto w-full max-w-6xl"
-        breadcrumb={<PortalBreadcrumb pathname={pathname} />}
-        leading={
-          person ? (
-            <Avatar name={person.fullName} size="md" className="size-9" />
-          ) : (
-            <IconChip icon={Building2} tone="teal" size="md" className="hidden sm:inline-flex" />
-          )
-        }
-        title={
-          person?.fullName ??
-          (profile === "responsable" ? "Portal del responsable" : "Portal del empleado")
-        }
-        badge={
-          context.mode === "meta4" ? (
-            <span
-              className="hidden rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground sm:inline"
-              title={`Variante del portal: ${context.variant}`}
-            >
-              {context.society}
-            </span>
-          ) : null
-        }
-        description={
-          person
-            ? [person.job, person.unit, person.workCenter].filter(Boolean).join(" · ") ||
-              `Matrícula ${person.employeeId}`
-            : context.mode === "meta4"
-              ? (context.identityMessage ?? undefined)
-              : context.message
-        }
+        title={<PortalBreadcrumb pathname={pathname} />}
         actions={
           <>
             {palette ? (
@@ -217,6 +185,7 @@ export function PortalShell({
         toolbar={
           location ? (
             <SectionNav
+              overflow="menu"
               aria-label={
                 profile === "responsable" ? "Apartados del responsable" : "Apartados del empleado"
               }

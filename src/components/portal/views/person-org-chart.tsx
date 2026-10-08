@@ -7,6 +7,7 @@ import {
   ArrowUp,
   ChevronDown,
   ChevronUp,
+  CircleHelp,
   Focus,
   Maximize2,
   Minus,
@@ -15,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Avatar, Button, Modal } from "@/components/system";
+import { Avatar, Button, Modal, Tooltip } from "@/components/system";
 import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
 import type { PersonFile } from "@/lib/portal/data/organization";
 import type { PersonHierarchy, ManagerStatus } from "@/lib/portal/data/person-hierarchy-core";
@@ -48,8 +49,14 @@ type LoadState = { status: "loading" } | { status: "error"; message: string };
 export function OrgTreeLink({ route }: { route: string }) {
   const params = new URLSearchParams(useSearchParams().toString());
   return (
-    <Link href={orgChartHref(route, params)} className={linkClass}>
-      <ArrowLeft className="size-4" aria-hidden="true" /> Volver al organigrama
+    <Link
+      href={orgChartHref(route, params)}
+      className={linkClass}
+      aria-label="Volver al organigrama"
+      title="Volver al organigrama"
+    >
+      <ArrowLeft className="size-4" aria-hidden="true" />
+      <span className="hidden lg:inline">Volver al organigrama</span>
     </Link>
   );
 }
@@ -338,167 +345,207 @@ function OrgChartSession({
   const body = (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
       <div
-        className="flex shrink-0 flex-wrap items-center gap-2"
-        aria-label="Controles del organigrama"
-      >
-        <Button
-          variant="secondary"
-          size="icon"
-          aria-label="Alejar"
-          disabled={view.camera.scale <= 0.2}
-          onClick={() => view.zoom(1 / 1.2)}
-        >
-          <Minus className="size-4" aria-hidden="true" />
-        </Button>
-        <output className="w-12 text-center text-xs tabular-nums" aria-label="Zoom">
-          {Math.round(view.camera.scale * 100)}%
-        </output>
-        <Button
-          variant="secondary"
-          size="icon"
-          aria-label="Acercar"
-          disabled={view.camera.scale >= 2}
-          onClick={() => view.zoom(1.2)}
-        >
-          <Plus className="size-4" aria-hidden="true" />
-        </Button>
-        <Button variant="secondary" size="sm" onClick={view.center}>
-          <Focus className="size-4" aria-hidden="true" /> Centrar persona
-        </Button>
-        <Button variant="secondary" size="sm" onClick={view.fit}>
-          <Scan className="size-4" aria-hidden="true" /> Ajustar gráfico
-        </Button>
-        {!enlarged ? (
-          <Button
-            ref={enlargeTrigger}
-            variant="secondary"
-            size="sm"
-            aria-haspopup="dialog"
-            onClick={() => changeEnlarged(true)}
-          >
-            <Maximize2 className="size-4" aria-hidden="true" /> Ampliar ventana
-          </Button>
-        ) : null}
-      </div>
-      <p className="shrink-0 text-xs text-muted-foreground">
-        Arrastra el fondo para moverte. Usa la rueda para acercar o alejar; en táctil, dos dedos.
-        Con foco en el lienzo: flechas, +, − y 0.
-      </p>
-      <div
-        className={`relative flex min-h-0 min-w-0 overflow-hidden rounded-xl border border-border ${enlarged ? "flex-1" : "h-[clamp(24rem,65dvh,46rem)]"}`}
+        className={`relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border ${enlarged ? "flex-1" : "h-[clamp(24rem,65dvh,46rem)]"}`}
       >
         <div
-          ref={view.setViewport}
-          inert={mobile && !!selectedInfo}
-          role="region"
-          aria-label={`Jerarquía de ${root.fullName}`}
-          tabIndex={0}
-          {...view.handlers}
-          className={`relative min-h-0 min-w-0 flex-1 touch-none select-none overflow-clip bg-muted/20 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${view.dragging ? "cursor-grabbing" : "cursor-grab"}`}
+          hidden={mobile && !!selectedInfo}
+          className={`shrink-0 flex-wrap items-center gap-2 border-b border-border bg-card p-2 ${mobile && selectedInfo ? "hidden" : "flex"}`}
+          aria-label="Controles del organigrama"
         >
-          <div
-            data-org-camera=""
-            className="absolute left-0 top-0 origin-top-left"
-            style={{
-              width: layout.width,
-              height: layout.height,
-              transform: `translate(${view.camera.x}px, ${view.camera.y}px) scale(${view.camera.scale})`,
-            }}
-          >
-            <svg
-              width={layout.width}
-              height={layout.height}
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 overflow-visible text-border"
-            >
-              {layout.nodes.map((node) => {
-                const parent = node.parentId ? nodeMap.get(node.parentId) : undefined;
-                if (!parent) return null;
-                const px = parent.x + CARD_WIDTH / 2,
-                  py = parent.y + CARD_HEIGHT,
-                  x = node.x + CARD_WIDTH / 2;
-                const midY = (py + node.y) / 2;
-                return (
-                  <path
-                    key={node.person.key}
-                    d={`M ${px} ${py} V ${midY} H ${x} V ${node.y}`}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                );
-              })}
-            </svg>
-            {layout.nodes.map((node) => (
-              <div
-                key={node.person.key}
-                style={{
-                  position: "absolute",
-                  left: node.x,
-                  top: node.y,
-                  width: CARD_WIDTH,
-                  height: CARD_HEIGHT,
-                }}
+          <div className="flex items-center gap-2">
+            <OrgTreeLink route={route} />
+            {hierarchy.manager ? (
+              <Link
+                href={orgChartHref(
+                  route,
+                  new URLSearchParams(search),
+                  hierarchy.manager.employeeId,
+                )}
+                prefetch={false}
+                className={linkClass}
+                aria-label={`Subir al responsable: ${hierarchy.manager.fullName}`}
               >
-                <PersonCard
-                  person={node.person}
-                  infoId={`${panelId}-person-${node.person.employeeId}`}
-                  root={node.depth === 0}
-                  expanded={expanded.has(node.person.employeeId)}
-                  team={teams.get(node.person.employeeId)}
-                  state={teamStates.get(node.person.employeeId)}
-                  toggle={() => toggle(node.person)}
-                  info={() => info(node.person)}
-                />
-              </div>
-            ))}
+                <ArrowUp className="size-4" aria-hidden="true" />
+                <span className="hidden lg:inline">Subir al responsable</span>
+              </Link>
+            ) : null}
           </div>
-        </div>
-        {selectedInfo ? (
-          <aside
-            id={panelId}
-            aria-label={`Información de ${selectedInfo.fullName}`}
-            className="absolute inset-0 z-10 flex min-h-0 flex-col border-l border-border bg-background md:static md:w-80 md:shrink-0"
+
+          <Button
+            variant="secondary"
+            size="icon"
+            aria-label="Alejar"
+            disabled={view.camera.scale <= 0.2}
+            onClick={() => view.zoom(1 / 1.2)}
           >
-            <header className="flex shrink-0 items-start gap-2 border-b border-border p-4">
-              <div className="min-w-0 flex-1">
-                <h2 className="text-sm font-semibold">{selectedInfo.fullName}</h2>
-                <p className="text-xs text-muted-foreground">Información de directorio</p>
-              </div>
-              <Button
-                ref={panelClose}
-                variant="ghost"
-                size="icon"
-                aria-label="Cerrar información"
-                onClick={closeInfo}
+            <Minus className="size-4" aria-hidden="true" />
+          </Button>
+          <output className="w-12 text-center text-xs tabular-nums" aria-label="Zoom">
+            {Math.round(view.camera.scale * 100)}%
+          </output>
+          <Button
+            variant="secondary"
+            size="icon"
+            aria-label="Acercar"
+            disabled={view.camera.scale >= 2}
+            onClick={() => view.zoom(1.2)}
+          >
+            <Plus className="size-4" aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Centrar persona"
+            title="Centrar persona"
+            onClick={view.center}
+          >
+            <Focus className="size-4" aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Ajustar gráfico"
+            title="Ajustar gráfico"
+            onClick={view.fit}
+          >
+            <Scan className="size-4" aria-hidden="true" />
+          </Button>
+          {!enlarged ? (
+            <Button
+              ref={enlargeTrigger}
+              variant="ghost"
+              size="icon"
+              aria-label="Ampliar ventana"
+              title="Ampliar ventana"
+              aria-haspopup="dialog"
+              onClick={() => changeEnlarged(true)}
+            >
+              <Maximize2 className="size-4" aria-hidden="true" />
+            </Button>
+          ) : null}
+          <Tooltip
+            content="Arrastra el fondo para moverte. Rueda o dos dedos para zoom. Con foco en el lienzo: flechas, +, − y 0."
+            side="bottom"
+          >
+            <Button variant="ghost" size="icon" aria-label="Ayuda del organigrama">
+              <CircleHelp className="size-4" aria-hidden="true" />
+            </Button>
+          </Tooltip>
+        </div>
+        <div className="relative flex min-h-0 min-w-0 flex-1">
+          <div
+            ref={view.setViewport}
+            inert={mobile && !!selectedInfo}
+            role="region"
+            aria-label={`Jerarquía de ${root.fullName}`}
+            tabIndex={0}
+            {...view.handlers}
+            className={`relative min-h-0 min-w-0 flex-1 touch-none select-none overflow-clip bg-muted/20 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${view.dragging ? "cursor-grabbing" : "cursor-grab"}`}
+          >
+            <div
+              data-org-camera=""
+              className="absolute left-0 top-0 origin-top-left"
+              style={{
+                width: layout.width,
+                height: layout.height,
+                transform: `translate(${view.camera.x}px, ${view.camera.y}px) scale(${view.camera.scale})`,
+              }}
+            >
+              <svg
+                width={layout.width}
+                height={layout.height}
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 overflow-visible text-border"
               >
-                <X className="size-4" aria-hidden="true" />
-              </Button>
-            </header>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-              {file ? (
-                <FileSections sections={file.sections} compact />
-              ) : fileState?.status === "error" ? (
-                <div className="space-y-3">
-                  <p role="status" className="text-sm">
-                    {fileState.message}
-                  </p>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => load(selectedInfo, "person")}
-                  >
-                    Reintentar ficha
-                  </Button>
+                {layout.nodes.map((node) => {
+                  const parent = node.parentId ? nodeMap.get(node.parentId) : undefined;
+                  if (!parent) return null;
+                  const px = parent.x + CARD_WIDTH / 2,
+                    py = parent.y + CARD_HEIGHT,
+                    x = node.x + CARD_WIDTH / 2;
+                  const midY = (py + node.y) / 2;
+                  return (
+                    <path
+                      key={node.person.key}
+                      d={`M ${px} ${py} V ${midY} H ${x} V ${node.y}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                  );
+                })}
+              </svg>
+              {layout.nodes.map((node) => (
+                <div
+                  key={node.person.key}
+                  style={{
+                    position: "absolute",
+                    left: node.x,
+                    top: node.y,
+                    width: CARD_WIDTH,
+                    height: CARD_HEIGHT,
+                  }}
+                >
+                  <PersonCard
+                    person={node.person}
+                    infoId={`${panelId}-person-${node.person.employeeId}`}
+                    root={node.depth === 0}
+                    expanded={expanded.has(node.person.employeeId)}
+                    team={teams.get(node.person.employeeId)}
+                    state={teamStates.get(node.person.employeeId)}
+                    toggle={() => toggle(node.person)}
+                    info={() => info(node.person)}
+                  />
                 </div>
-              ) : (
-                <p role="status" className="text-sm text-muted-foreground">
-                  Cargando información…
-                </p>
-              )}
+              ))}
             </div>
-          </aside>
-        ) : null}
+          </div>
+          {selectedInfo ? (
+            <aside
+              id={panelId}
+              aria-label={`Información de ${selectedInfo.fullName}`}
+              className="absolute inset-0 z-10 flex min-h-0 flex-col border-l border-border bg-background md:static md:w-80 md:shrink-0"
+            >
+              <header className="flex shrink-0 items-start gap-2 border-b border-border p-4">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-sm font-semibold">{selectedInfo.fullName}</h2>
+                  <p className="text-xs text-muted-foreground">Información de directorio</p>
+                </div>
+                <Button
+                  ref={panelClose}
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Cerrar información"
+                  onClick={closeInfo}
+                >
+                  <X className="size-4" aria-hidden="true" />
+                </Button>
+              </header>
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+                {file ? (
+                  <FileSections sections={file.sections} compact />
+                ) : fileState?.status === "error" ? (
+                  <div className="space-y-3">
+                    <p role="status" className="text-sm">
+                      {fileState.message}
+                    </p>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => load(selectedInfo, "person")}
+                    >
+                      Reintentar ficha
+                    </Button>
+                  </div>
+                ) : (
+                  <p role="status" className="text-sm text-muted-foreground">
+                    Cargando información…
+                  </p>
+                )}
+              </div>
+            </aside>
+          ) : null}
+        </div>
       </div>
       {layout.cycleIds.size > 0 ? (
         <p role="status" className="text-xs text-muted-foreground">
@@ -509,19 +556,6 @@ function OrgChartSession({
   );
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex flex-wrap gap-3">
-        <OrgTreeLink route={route} />
-        {hierarchy.manager ? (
-          <Link
-            href={orgChartHref(route, new URLSearchParams(search), hierarchy.manager.employeeId)}
-            prefetch={false}
-            className={linkClass}
-            aria-label={`Subir al responsable: ${hierarchy.manager.fullName}`}
-          >
-            <ArrowUp className="size-4" aria-hidden="true" /> Subir al responsable
-          </Link>
-        ) : null}
-      </div>
       {hierarchy.managerStatus !== "available" ? (
         <p role="status" className="text-sm text-muted-foreground">
           {managerMessages[hierarchy.managerStatus]}

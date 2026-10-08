@@ -253,6 +253,7 @@ describe("organigrama interactivo", () => {
     await user.click(screen.getByRole("button", { name: "Ver información de Persona 2" }));
     await screen.findByText("Ficha pública");
     expect(document.querySelector('[role="region"]')?.hasAttribute("inert")).toBe(true);
+    expect(screen.queryByRole("button", { name: "Acercar" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Cerrar información" }));
     await waitFor(() =>
       expect(document.activeElement).toBe(
@@ -260,6 +261,7 @@ describe("organigrama interactivo", () => {
       ),
     );
     expect(screen.getByRole("region").hasAttribute("inert")).toBe(false);
+    expect(screen.getByRole("button", { name: "Acercar" }).closest('[role="region"]')).toBeNull();
   });
   it("recupera cargas abortadas durante el montaje de StrictMode", async () => {
     window.history.replaceState(null, "", `${route}?persona=1&equipos=1,2`);

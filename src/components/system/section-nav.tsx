@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronDown } from "lucide-react";
+
+import { Button } from "./button";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "./menu";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./select";
 
 import { cn } from "@/lib/utils";
 
@@ -19,6 +25,8 @@ export interface SectionNavProps {
   activeHref: string | null;
   "aria-label": string;
   variant?: "underline" | "pill";
+  overflow?: "scroll" | "menu";
+  revealActive?: boolean;
   className?: string;
 }
 
@@ -30,16 +38,19 @@ export function SectionNav({
   items,
   activeHref,
   variant = "underline",
+  overflow = "scroll",
+  revealActive = true,
   className,
   ...rest
 }: SectionNavProps) {
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
+    if (!revealActive) return;
     listRef.current
       ?.querySelector<HTMLAnchorElement>('a[aria-current="page"]')
       ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
-  }, [activeHref]);
+  }, [activeHref, revealActive]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
     const links = [
@@ -61,6 +72,17 @@ export function SectionNav({
     event.preventDefault();
     next.focus();
   };
+
+  if (overflow === "menu")
+    return (
+      <AdaptiveSectionNav
+        items={items}
+        activeHref={activeHref}
+        variant={variant}
+        className={className}
+        aria-label={rest["aria-label"]}
+      />
+    );
 
   return (
     <nav aria-label={rest["aria-label"]} className={cn("min-w-0", className)}>
@@ -116,6 +138,144 @@ export function SectionNav({
           );
         })}
       </ul>
+    </nav>
+  );
+}
+
+/** Keeps the current route visible; hidden routes remain real links in the menu. */
+function AdaptiveSectionNav({
+  items,
+  activeHref,
+  variant = "underline",
+  className,
+  "aria-label": label,
+}: SectionNavProps) {
+  const router = useRouter();
+  const root = useRef<HTMLElement>(null);
+  const measurements = useRef<HTMLDivElement>(null);
+  const [layout, setLayout] = useState<{ visible: string[]; select: boolean }>({
+    visible: items.map((item) => item.href),
+    select: false,
+  });
+  useEffect(() => {
+    const element = root.current;
+    const measure = measurements.current;
+    if (!element || !measure) return;
+    const update = () => {
+      const widths = [...measure.children].map((child) => child.getBoundingClientRect().width);
+      const available = element.getBoundingClientRect().width - (variant === "pill" ? 8 : 0);
+      const activeIndex = Math.max(
+        0,
+        items.findIndex((item) => item.href === activeHref),
+      );
+      const moreWidth = widths[items.length] ?? 88;
+      const select =
+        window.innerWidth < 768 ||
+        (available > 0 && (widths[activeIndex] ?? 0) + moreWidth + 4 > available);
+      const total = widths.slice(0, items.length).reduce((sum, width) => sum + width + 4, -4);
+      const chosen = new Set<number>();
+      if (total <= available || available <= 0) items.forEach((_, index) => chosen.add(index));
+      else {
+        chosen.add(activeIndex);
+        let used = (widths[activeIndex] ?? 0) + moreWidth + 4;
+        items.forEach((_, index) => {
+          if (index !== activeIndex && used + widths[index] + 4 <= available) {
+            chosen.add(index);
+            used += widths[index] + 4;
+          }
+        });
+      }
+      setLayout({
+        visible: items.filter((_, index) => chosen.has(index)).map((item) => item.href),
+        select,
+      });
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    observer.observe(measure);
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [items, activeHref, variant]);
+  const hidden = items.filter((item) => !layout.visible.includes(item.href));
+  return (
+    <nav ref={root} aria-label={label} className={cn("relative min-w-0", className)}>
+      <div
+        ref={measurements}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 flex h-0 overflow-hidden whitespace-nowrap opacity-0"
+      >
+        {items.map((item) => (
+          <span
+            key={item.href}
+            className="inline-flex shrink-0 items-center gap-1.5 px-3 text-sm font-medium"
+          >
+            {item.icon}
+            {item.label}
+            {item.badge ? <span className="px-1.5 text-[10px]">{item.badge}</span> : null}
+          </span>
+        ))}
+        <span className="inline-flex shrink-0 items-center gap-2 px-3 text-sm">
+          Más
+          <ChevronDown className="size-4" />
+        </span>
+      </div>
+      {layout.select ? (
+        <Select value={activeHref ?? undefined} onValueChange={(href) => router.push(href)}>
+          <SelectTrigger aria-label={label} className="w-full">
+            <span className="min-w-0 truncate">
+              {items.find((item) => item.href === activeHref)?.label ?? "Elegir apartado"}
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            {items.map((item) => (
+              <SelectItem key={item.href} value={item.href}>
+                {item.label}
+                {item.badge ? ` · ${item.badge}` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <div
+          className={cn(
+            "flex min-w-0 items-center gap-1",
+            variant === "pill" ? "rounded-xl bg-muted/40 p-1" : "border-b border-border",
+          )}
+        >
+          <SectionNav
+            revealActive={false}
+            items={items.filter((item) => layout.visible.includes(item.href))}
+            activeHref={activeHref}
+            variant={variant}
+            aria-label={`${label}: pestañas`}
+            className="[&_ul]:overflow-visible [&_ul]:border-0 [&_ul]:bg-transparent [&_ul]:p-0"
+          />
+          {hidden.length ? (
+            <Menu>
+              <MenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="shrink-0" aria-label={`Más: ${label}`}>
+                  Más
+                  <ChevronDown className="size-4" aria-hidden="true" />
+                </Button>
+              </MenuTrigger>
+              <MenuContent align="end">
+                {hidden.map((item) => (
+                  <MenuItem key={item.href} asChild>
+                    <Link href={item.href}>
+                      {item.label}
+                      {item.badge ? ` · ${item.badge}` : ""}
+                    </Link>
+                  </MenuItem>
+                ))}
+              </MenuContent>
+            </Menu>
+          ) : null}
+        </div>
+      )}
     </nav>
   );
 }
