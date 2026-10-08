@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 
-import { Button } from "./button";
+import { Button, ButtonLink } from "./button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "./menu";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "./select";
 
@@ -24,10 +31,20 @@ export interface SectionNavProps {
   /** Ruta activa: el elemento con el mismo href se marca con aria-current. */
   activeHref: string | null;
   "aria-label": string;
-  variant?: "underline" | "pill";
+  variant?: "underline" | "pill" | "segment";
   overflow?: "scroll" | "menu";
+  /** Optional width for overflow menus; constrained to the viewport. */
+  menuWidth?: number;
   revealActive?: boolean;
   className?: string;
+}
+
+function SegmentLink({ className, ...props }: ComponentProps<typeof Link>) {
+  return (
+    <ButtonLink asChild variant="ghost" size="sm" pressScale={1} className={className}>
+      <Link {...props} />
+    </ButtonLink>
+  );
 }
 
 /**
@@ -39,11 +56,13 @@ export function SectionNav({
   activeHref,
   variant = "underline",
   overflow = "scroll",
+  menuWidth,
   revealActive = true,
   className,
   ...rest
 }: SectionNavProps) {
   const listRef = useRef<HTMLUListElement>(null);
+  const NavigationLink = variant === "segment" ? SegmentLink : Link;
 
   useEffect(() => {
     if (!revealActive) return;
@@ -79,6 +98,7 @@ export function SectionNav({
         items={items}
         activeHref={activeHref}
         variant={variant}
+        menuWidth={menuWidth}
         className={className}
         aria-label={rest["aria-label"]}
       />
@@ -93,25 +113,33 @@ export function SectionNav({
           "no-scrollbar flex min-w-0 gap-1 overflow-x-auto",
           variant === "pill"
             ? "w-fit max-w-full rounded-full bg-card p-1"
-            : "border-b border-border",
+            : variant === "segment"
+              ? "w-fit max-w-full rounded-lg bg-muted/40 p-1"
+              : "border-b border-border",
         )}
       >
         {items.map((item) => {
           const active = item.href === activeHref;
           return (
             <li key={item.href} className="shrink-0">
-              <Link
+              <NavigationLink
                 href={item.href}
                 data-section-link
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative inline-flex items-center gap-1.5 px-3 text-sm whitespace-nowrap transition-colors outline-none",
                   "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60",
-                  variant === "pill" ? "h-9 rounded-full" : "h-10 rounded-t-md",
+                  variant === "pill"
+                    ? "h-9 rounded-full"
+                    : variant === "segment"
+                      ? "h-9 rounded-md"
+                      : "h-10 rounded-t-md",
                   active
                     ? variant === "pill"
                       ? "bg-primary font-medium text-primary-foreground"
-                      : "font-medium text-foreground after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary"
+                      : variant === "segment"
+                        ? "bg-background font-medium text-primary shadow-sm ring-1 ring-border"
+                        : "font-medium text-foreground after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -133,7 +161,7 @@ export function SectionNav({
                     {item.badge}
                   </span>
                 ) : null}
-              </Link>
+              </NavigationLink>
             </li>
           );
         })}
@@ -148,6 +176,7 @@ function AdaptiveSectionNav({
   activeHref,
   variant = "underline",
   className,
+  menuWidth,
   "aria-label": label,
 }: SectionNavProps) {
   const router = useRouter();
@@ -163,7 +192,7 @@ function AdaptiveSectionNav({
     if (!element || !measure) return;
     const update = () => {
       const widths = [...measure.children].map((child) => child.getBoundingClientRect().width);
-      const available = element.getBoundingClientRect().width - (variant === "pill" ? 8 : 0);
+      const available = element.getBoundingClientRect().width - (variant === "underline" ? 0 : 8);
       const activeIndex = Math.max(
         0,
         items.findIndex((item) => item.href === activeHref),
@@ -202,7 +231,11 @@ function AdaptiveSectionNav({
   }, [items, activeHref, variant]);
   const hidden = items.filter((item) => !layout.visible.includes(item.href));
   return (
-    <nav ref={root} aria-label={label} className={cn("relative min-w-0", className)}>
+    <nav
+      ref={root}
+      aria-label={label}
+      className={cn("relative min-w-0 overflow-x-clip", className)}
+    >
       <div
         ref={measurements}
         aria-hidden="true"
@@ -243,7 +276,11 @@ function AdaptiveSectionNav({
         <div
           className={cn(
             "flex min-w-0 items-center gap-1",
-            variant === "pill" ? "rounded-xl bg-muted/40 p-1" : "border-b border-border",
+            variant === "pill"
+              ? "rounded-xl bg-muted/40 p-1"
+              : variant === "segment"
+                ? "w-fit max-w-full rounded-lg bg-muted/40 p-1"
+                : "border-b border-border",
           )}
         >
           <SectionNav
@@ -262,9 +299,18 @@ function AdaptiveSectionNav({
                   <ChevronDown className="size-4" aria-hidden="true" />
                 </Button>
               </MenuTrigger>
-              <MenuContent align="end">
+              <MenuContent
+                align="end"
+                style={menuWidth ? { width: menuWidth, maxWidth: "calc(100vw - 2rem)" } : undefined}
+              >
                 {hidden.map((item) => (
-                  <MenuItem key={item.href} asChild>
+                  <MenuItem
+                    key={item.href}
+                    asChild
+                    className={
+                      menuWidth ? "items-start whitespace-normal wrap-break-word" : undefined
+                    }
+                  >
                     <Link href={item.href}>
                       {item.label}
                       {item.badge ? ` · ${item.badge}` : ""}

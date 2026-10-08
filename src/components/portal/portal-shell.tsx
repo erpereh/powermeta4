@@ -186,6 +186,7 @@ export function PortalShell({
           location ? (
             <SectionNav
               overflow="menu"
+              menuWidth={320}
               aria-label={
                 profile === "responsable" ? "Apartados del responsable" : "Apartados del empleado"
               }

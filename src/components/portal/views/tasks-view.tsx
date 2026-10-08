@@ -1,11 +1,12 @@
-import { EmptyState, Section } from "@/components/system";
+import { ListTodo } from "lucide-react";
+import { EmptyState, Section, Surface } from "@/components/system";
 import type { PortalContext } from "@/lib/portal/context";
 import { loadPortalTaskGroup } from "@/lib/portal/data/tasks";
 import type { PortalTaskLine } from "@/lib/portal/data/tasks-core";
 import { getPortalFeatureBySource } from "@/lib/portal/registry";
 import { readPortal } from "@/lib/portal/server";
 
-import { PortalDataTable } from "../portal-data";
+import { PortalDataTable, type PortalRow } from "../portal-data";
 import { DependencyState, PortalError } from "../portal-states";
 
 const GROUPS: readonly { kind: PortalTaskLine["kind"]; title: string; description: string }[] = [
@@ -57,6 +58,41 @@ export async function TasksView({
   return (
     <div className="flex min-w-0 flex-col gap-4">
       {groups.map(({ group, result }) => {
+        if (result.status === "ok" && result.data.length > 0) {
+          const rows: PortalRow[] = result.data.map((line, index) => ({
+            id: String(index),
+            href: line.source ? getPortalFeatureBySource(line.source)?.route : undefined,
+            fields: [
+              { label: "Tarea", value: line.title },
+              {
+                label: "Pendientes",
+                value: line.count === null ? "—" : String(line.count),
+                numeric: true,
+                tone: line.count !== null && line.count > 0 ? "warning" : undefined,
+              },
+              { label: "Fecha límite", value: line.deadline ? formatDate(line.deadline) : "—" },
+              ...(line.tooltip ? [{ label: "Descripción", value: line.tooltip }] : []),
+              ...(line.source ? [{ label: "Origen", value: line.source }] : []),
+            ],
+          }));
+          return (
+            <Surface
+              key={group.kind}
+              flush
+              headerTone="muted"
+              title={
+                <span className="flex items-center gap-2">
+                  <ListTodo className="size-4 text-tone-amber-foreground" aria-hidden="true" />
+                  {group.title}
+                </span>
+              }
+              description={compact ? undefined : group.description}
+              className="overflow-hidden"
+            >
+              <PortalDataTable title={group.title} rows={rows} framed={false} />
+            </Surface>
+          );
+        }
         return (
           <Section
             key={group.kind}
@@ -75,28 +111,10 @@ export async function TasksView({
                   meta4={["PGCO_ES_WS_VALIDATIONS"]}
                 />
               </div>
-            ) : result.data.length === 0 ? (
+            ) : (
               <p className="p-4 text-sm text-muted-foreground">
                 No hay registros para este apartado.
               </p>
-            ) : (
-              <PortalDataTable
-                title={group.title}
-                rows={result.data.map((line, index) => ({
-                  id: String(index),
-                  href: line.source ? getPortalFeatureBySource(line.source)?.route : undefined,
-                  fields: [
-                    { label: "Tarea", value: line.title },
-                    { label: "Pendientes", value: line.count === null ? "—" : String(line.count) },
-                    {
-                      label: "Fecha límite",
-                      value: line.deadline ? formatDate(line.deadline) : "—",
-                    },
-                    ...(line.tooltip ? [{ label: "Descripción", value: line.tooltip }] : []),
-                    ...(line.source ? [{ label: "Origen", value: line.source }] : []),
-                  ],
-                }))}
-              />
             )}
           </Section>
         );

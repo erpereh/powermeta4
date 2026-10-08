@@ -17,12 +17,7 @@ import { useColumnSort } from "./use-column-sort";
 import { useRowSelection } from "./use-row-selection";
 import { alignText, CHECKBOX_PX, CHECKBOX_WIDTH, readCell } from "./utils";
 
-export type {
-  SortDirection,
-  SortState,
-  TableColumn,
-  TableProps,
-} from "./types";
+export type { SortDirection, SortState, TableColumn, TableProps } from "./types";
 
 /**
  * Narrowest a column of bare inputs may be floored to and still show a value:
@@ -43,9 +38,7 @@ const DEFAULT_ROOT_FONT_SIZE = 16;
 function useRootFontSize() {
   const [size, setSize] = useState(DEFAULT_ROOT_FONT_SIZE);
   useEffect(() => {
-    const measured = Number.parseFloat(
-      getComputedStyle(document.documentElement).fontSize,
-    );
+    const measured = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
     if (measured > 0) setSize(measured);
   }, []);
   return size;
@@ -56,10 +49,7 @@ function useRootFontSize() {
  * of the remainder instead (`fr`, `%`, `auto`, `calc()`, nothing at all) — those
  * are worth whatever is left over, which is not a width this can add up.
  */
-function resolveColumnWidth(
-  width: string | undefined,
-  rootFontSize: number,
-): number | null {
+function resolveColumnWidth(width: string | undefined, rootFontSize: number): number | null {
   if (!width) return null;
   const value = Number.parseFloat(width);
   if (!Number.isFinite(value)) return null;
@@ -93,6 +83,7 @@ export function Table<T>({
   onDeleteColumn,
   rowHeight = 48,
   height = 440,
+  autoHeight = false,
   overscan = 10,
   onEndReached,
   loading = false,
@@ -104,9 +95,7 @@ export function Table<T>({
 }: TableProps<T>) {
   const reduce = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const thRefs: HeaderCellRefs = useRef<
-    Record<string, HTMLTableCellElement | null>
-  >({});
+  const thRefs: HeaderCellRefs = useRef<Record<string, HTMLTableCellElement | null>>({});
 
   const rows = useMemo(
     () =>
@@ -117,14 +106,8 @@ export function Table<T>({
     [data, getRowId],
   );
 
-  const {
-    orderedColumns,
-    dragKey,
-    dropIndex,
-    startReorder,
-    moveReorder,
-    endReorder,
-  } = useColumnReorder({ columns, thRefs, onColumnOrderChange });
+  const { orderedColumns, dragKey, dropIndex, startReorder, moveReorder, endReorder } =
+    useColumnReorder({ columns, thRefs, onColumnOrderChange });
 
   const { sort, sortedRows, toggleSort } = useColumnSort({
     rows,
@@ -141,36 +124,38 @@ export function Table<T>({
     onColumnResize,
   });
 
-  const { selected, allSelected, someSelected, toggleAll, toggleRow } =
-    useRowSelection({
-      sortedRows,
-      selectedRowIds,
-      defaultSelectedRowIds,
-      onSelectionChange,
-    });
+  const { selected, allSelected, someSelected, toggleAll, toggleRow } = useRowSelection({
+    sortedRows,
+    selectedRowIds,
+    defaultSelectedRowIds,
+    onSelectionChange,
+  });
 
   const virtualizer = useVirtualizer({
+    enabled: !autoHeight,
     count: sortedRows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => rowHeight,
     overscan,
   });
 
-  const virtualItems = virtualizer.getVirtualItems();
-  const totalSize = virtualizer.getTotalSize();
+  const virtualItems = autoHeight
+    ? sortedRows.map((_, index) => ({
+        index,
+        start: index * rowHeight,
+        end: (index + 1) * rowHeight,
+      }))
+    : virtualizer.getVirtualItems();
+  const totalSize = autoHeight ? sortedRows.length * rowHeight : virtualizer.getTotalSize();
   const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
   const paddingBottom =
-    virtualItems.length > 0
-      ? totalSize - virtualItems[virtualItems.length - 1].end
-      : 0;
+    virtualItems.length > 0 ? totalSize - virtualItems[virtualItems.length - 1].end : 0;
 
   const hasRowMenu = !!(onInsertRow || onDeleteRow);
   const hasColumnMenu = !!(onInsertColumn || onDeleteColumn);
   // Only shrink-wrap (w-max) once every column has an explicit resized width;
   // otherwise stay fill-width so a flexible column can't size to cell content.
-  const sized =
-    orderedColumns.length > 0 &&
-    orderedColumns.every((c) => widths[c.key] != null);
+  const sized = orderedColumns.length > 0 && orderedColumns.every((c) => widths[c.key] != null);
 
   const rootFontSize = useRootFontSize();
   // In a container narrower than the columns, `table-layout: fixed` shrinks
@@ -185,27 +170,20 @@ export function Table<T>({
     // sizes the column.
     const inputOnly = (column: (typeof orderedColumns)[number]) =>
       Boolean(onColumnRename) || (!column.cell && Boolean(column.editable));
-    const total = orderedColumns.reduce((sum, column) => {
-      const resized = widths[column.key];
-      if (resized != null) return sum + resized;
-      const declared = resolveColumnWidth(column.width, rootFontSize);
-      if (declared != null) return sum + declared;
-      return (
-        sum +
-        (inputOnly(column)
-          ? Math.max(minColumnWidth, INPUT_COLUMN_WIDTH)
-          : minColumnWidth)
-      );
-    }, selectable ? CHECKBOX_PX : 0);
+    const total = orderedColumns.reduce(
+      (sum, column) => {
+        const resized = widths[column.key];
+        if (resized != null) return sum + resized;
+        const declared = resolveColumnWidth(column.width, rootFontSize);
+        if (declared != null) return sum + declared;
+        return (
+          sum + (inputOnly(column) ? Math.max(minColumnWidth, INPUT_COLUMN_WIDTH) : minColumnWidth)
+        );
+      },
+      selectable ? CHECKBOX_PX : 0,
+    );
     return Math.round(total);
-  }, [
-    minColumnWidth,
-    onColumnRename,
-    orderedColumns,
-    rootFontSize,
-    selectable,
-    widths,
-  ]);
+  }, [minColumnWidth, onColumnRename, orderedColumns, rootFontSize, selectable, widths]);
 
   // Infinite scroll: fire onEndReached once per near-bottom dwell, paused while
   // loading; the guard resets when the load completes.
@@ -236,9 +214,7 @@ export function Table<T>({
   }, []);
 
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
-  const [activeRow, setActiveRow] = useState<{ id: string; index: number } | null>(
-    null,
-  );
+  const [activeRow, setActiveRow] = useState<{ id: string; index: number } | null>(null);
   const rowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activateRow = useCallback((id: string, index: number) => {
     if (rowTimer.current) clearTimeout(rowTimer.current);
@@ -255,16 +231,14 @@ export function Table<T>({
 
   return (
     <div
-      className={cn(
-        "w-full overflow-hidden border border-border bg-background text-sm",
-        className,
-      )}
+      className={cn("w-full overflow-hidden border border-border bg-background text-sm", className)}
     >
       <div
+        data-table-viewport=""
         ref={scrollRef}
         onScroll={handleScroll}
         className="overflow-auto"
-        style={{ height }}
+        style={{ height: autoHeight ? "auto" : height }}
       >
         <table
           className={cn("border-collapse", sized ? "w-max" : undefined)}
@@ -278,9 +252,7 @@ export function Table<T>({
             {orderedColumns.map((column) => {
               const override = widths[column.key];
               const width = override ? `${override}px` : column.width;
-              return (
-                <col key={column.key} style={width ? { width } : undefined} />
-              );
+              return <col key={column.key} style={width ? { width } : undefined} />;
             })}
             {/* Empty filler owns the leftover space — no gap, content unpinned. */}
             <col />
@@ -319,17 +291,14 @@ export function Table<T>({
             {sortedRows.length === 0 ? (
               loading ? (
                 <SkeletonRows
-                  count={Math.max(1, Math.ceil(height / rowHeight))}
+                  count={autoHeight ? skeletonRows : Math.max(1, Math.ceil(height / rowHeight))}
                   columns={orderedColumns}
                   selectable={selectable}
                   rowHeight={rowHeight}
                 />
               ) : (
                 <tr>
-                  <td
-                    colSpan={leadColumns + 1}
-                    className="p-10 text-center text-muted-foreground"
-                  >
+                  <td colSpan={leadColumns + 1} className="p-10 text-center text-muted-foreground">
                     {emptyState}
                   </td>
                 </tr>
@@ -353,11 +322,7 @@ export function Table<T>({
                       data-selected={isSelected}
                       style={{ height: rowHeight }}
                       tabIndex={onRowActivate ? 0 : undefined}
-                      aria-label={
-                        onRowActivate
-                          ? getRowAriaLabel?.(entry.row)
-                          : undefined
-                      }
+                      aria-label={onRowActivate ? getRowAriaLabel?.(entry.row) : undefined}
                       onClick={
                         onRowActivate
                           ? (event) => {
@@ -384,9 +349,7 @@ export function Table<T>({
                           : undefined
                       }
                       onPointerEnter={
-                        hasRowMenu
-                          ? () => activateRow(entry.id, vItem.index)
-                          : undefined
+                        hasRowMenu ? () => activateRow(entry.id, vItem.index) : undefined
                       }
                       onPointerLeave={hasRowMenu ? deactivateRow : undefined}
                       className={cn(
@@ -411,18 +374,13 @@ export function Table<T>({
                       {orderedColumns.map((column) => (
                         <td
                           key={column.key}
-                          className={cn(
-                            "truncate px-4 text-foreground",
-                            alignText(column.align),
-                          )}
+                          className={cn("truncate px-4 text-foreground", alignText(column.align))}
                         >
                           {!column.cell && column.editable ? (
                             <EditableCell
                               value={String(readCell(entry.row, column) ?? "")}
                               label={`${column.key} for row ${vItem.index + 1}`}
-                              onChange={(next) =>
-                                onCellEdit?.(entry.id, column.key, next)
-                              }
+                              onChange={(next) => onCellEdit?.(entry.id, column.key, next)}
                             />
                           ) : (
                             readCell(entry.row, column)

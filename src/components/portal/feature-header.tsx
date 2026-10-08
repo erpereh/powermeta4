@@ -29,6 +29,8 @@ export function FeatureHeader({
         <SectionNav
           aria-label={`Páginas de ${location?.group?.title}`}
           overflow="menu"
+          variant="segment"
+          menuWidth={320}
           items={pages.map((page) => ({
             href: page.route,
             label: page.title,

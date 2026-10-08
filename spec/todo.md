@@ -1,5 +1,40 @@
 # powermeta4 - estado de tareas
 
+## Portal: tablas compactas y subsecciones segmentadas - 2026-10-08
+
+- [x] Tablas de hasta siete registros con altura natural, sin scroll interno
+      ni espacio vacío; desde ocho, viewport virtualizado de 440 px. Ancho
+      corregido para bordes y scrollbar solo cuando hace falta.
+- [x] Cabeceras tenues, separadores ligeros, primera columna destacada y
+      badges con tonos explícitos mediante metadatos serializables; valores,
+      orden, resumen adaptable, Drawer y descargas conservados.
+- [x] Navegación principal subrayada y subsecciones segmentadas con enlaces
+      beUI. Menú «Más» de 320 px limitado a la ventana, etiquetas completas,
+      página activa visible y Select móvil. Destinos duplicados conservados.
+- [x] Surface con cabecera tenue en grupos de tareas con registros y fichas
+      individuales, título único y filas continuas. Formularios, vacíos y
+      motivos de bloqueo conservados. AppShell y sidebar sin cambios.
+- [x] Matriz visual de 64 casos: 1440/1024/768/390 px, claro/oscuro,
+      empleado/responsable y BASE/CYC/IBER/COLL. Tablas de 0/1/3/7/8/40 filas,
+      textos largos, ausencias, badges, detalles y enlace de descarga, sin
+      overflow de página ni scroll en tablas cortas. Fixtures sin BD retiradas
+      y ruta temporal comprobada como 404 antes del build.
+- [x] Teclado, foco contenido y retorno al cerrar el Drawer, etiquetas de
+      «Más», recarga e historial revisados. Movimiento reducido cubierto
+      por prueba dirigida. Consola de navegador sin errores ni avisos.
+- [x] Pruebas dirigidas finales: 47 correctas en 9 archivos, incluidas
+      lecturas simuladas de tareas y los nuevos casos de altura y navegación.
+- [x] Typecheck y build correctos; formato dirigido correcto en los 15
+      archivos de código modificados. `git diff --check` correcto y
+      `git status --short` revisado, sin fixtures ni cambios ajenos.
+- [x] Suite global con dos workers: 822 correctas, 2 omitidas y 1 timeout
+      previo de 180 s en `hire/excel.test.ts` (fórmulas de moneda, archivo sin
+      modificar). Las tres pruebas añadidas después pasan en la suite dirigida.
+- [x] Lint global ejecutado: oxlint sin errores y 7 avisos existentes;
+      permanece el fallo de formato global en 402 archivos ajenos al cambio.
+- [ ] Comprobar datos y descargas reales en la VM con sesión Meta4/PeopleNet;
+      esta revisión usa datos sintéticos y no se conecta a la BD.
+
 ## Portal: tablas y navegación con beUI - 2026-10-08
 
 - [x] Cabecera compacta sin identidad repetida ni metadatos de origen,

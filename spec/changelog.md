@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-10-08 - Tablas compactas y navegación segmentada del portal
+
+- Las tablas de hasta siete registros muestran todas sus filas con altura
+  natural; desde ocho conservan la virtualización y el máximo de 440 px.
+  Bordes y scrollbar se descuentan solo cuando corresponde. Cabeceras
+  suaves, separadores ligeros, tipografía más tranquila y primera columna
+  destacada; badges con tonos explícitos y texto mediante tokens existentes.
+- Apartados principales subrayados y subsecciones segmentadas con enlaces
+  beUI; «Más» mide 320 px, se limita a la ventana y envuelve las etiquetas.
+  Página activa, selector móvil, teclado, URLs e historial conservados.
+- Grupos de tareas con registros y fichas individuales usan Surface con
+  cabecera tenue y filas continuas, sin títulos repetidos. Nuevas opciones
+  compatibles de altura, navegación, cabecera y metadatos; valores por
+  defecto fuera del portal conservados. Sin cambios en AppShell, sidebar,
+  consultas, permisos, cálculos, rutas, descargas, formularios ni validaciones.
+- Revisión visual con fixtures sin BD: 64 combinaciones de tamaños
+  1440/1024/768/390 px, temas, perfiles y variantes BASE/CYC/IBER/COLL;
+  tablas de 0/1/3/7/8/40 filas sin overflow ni scroll en las cortas. Detalle,
+  foco, navegación, historial y enlaces de descarga comprobados; consola
+  sin errores ni avisos. Fixtures retiradas y ruta temporal devuelve 404.
+- Pruebas dirigidas finales: 47 correctas en 9 archivos, incluido movimiento
+  reducido. Typecheck, build y formato dirigido de los 15 archivos de código
+  modificados correctos; diff y estado Git revisados sin fixtures ni cambios
+  ajenos. Suite global con dos workers: 822 correctas,
+  2 omitidas y el timeout previo de 180 s de fórmulas de moneda en
+  `hire/excel.test.ts`, sin modificar. Las tres pruebas posteriores pasan
+  en la suite dirigida. Lint global: oxlint sin errores y 7 avisos existentes;
+  continúa el formato previo pendiente en 402 archivos ajenos. Datos y descargas
+  reales quedan para la revisión en la VM con Meta4/PeopleNet.
+
 ## 2026-10-08 - Portal simplificado con tablas beUI
 
 - Cabecera compacta con ruta, búsqueda y perfiles, sin identidad repetida ni

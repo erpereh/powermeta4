@@ -390,6 +390,10 @@ nómina con importes numéricos, más «Resumen» si son varias.
   «Más» no caben, usan el Select beUI de la fachada. La selección procede de
   la URL y conserva teclado, historial y `aria-current` en los enlaces. Fuera
   del portal se mantiene el desplazamiento anterior por defecto.
+  El nivel principal conserva el subrayado y las subsecciones usan la
+  variante `segment`, compuesta con `ButtonLink` beUI y enlaces reales.
+  «Más» mide 320 px, limitado al ancho de la ventana, y permite envolver
+  las etiquetas. Las entradas con distintos destinos se conservan.
 - Índices, consultas, directorio, equipo, unidades, tareas y correos usan
   tablas beUI con separadores suaves. `PortalDataTable` recibe solo filas y
   campos serializables; conserva su orden y muestra los primeros cuatro
@@ -397,9 +401,20 @@ nómina con importes numéricos, más «Resumen» si son varias.
   debajo. «Ver detalle» abre un Drawer con todos los campos, mantiene el foco
   dentro del panel con Tab y devuelve el foco al cerrar. Las descargas tienen
   un acceso independiente.
+  Hasta siete registros usan `Table autoHeight`: todas las filas se
+  renderizan sin virtualización y con altura natural. A partir de ocho,
+  la tabla conserva su viewport virtualizado de 440 px. El ancho útil
+  descuenta bordes y reserva scrollbar solo en las listas largas.
+  Cabeceras tenues, separadores suaves y primera columna con mayor
+  jerarquía; los badges reciben metadatos serializables explícitos de
+  presentación, sin inferir estados por textos ni cambiar valores.
 - `PortalRecord` presenta hasta seis campos como filas de etiqueta/valor y
-  ofrece el detalle completo cuando hay más. Los formularios viven en
-  secciones continuas sin cards envolventes. Ningún campo, cálculo,
+  ofrece el detalle completo cuando hay más. Las fichas y los grupos de
+  tareas con registros usan `Surface headerTone="muted"`, con una sola
+  cabecera y filas continuas. Pendientes en ámbar, estados confirmados en
+  verde y errores en rojo mediante tokens existentes; siempre con texto.
+  Los formularios viven en secciones continuas sin cards envolventes.
+  Ningún campo, cálculo,
   validación, consulta, permiso, descarga ni ruta se modifica.
 - Carga, vacío, error, dependencia y bloqueo se anuncian de forma breve.
   Métodos Meta4, pendientes y explicaciones técnicas se conservan en un

@@ -10,6 +10,8 @@ export interface SurfaceProps extends Omit<ComponentPropsWithoutRef<"section">, 
   actions?: ReactNode;
   /** Sin padding interno (listas y tablas a sangre). */
   flush?: boolean;
+  /** Soft section header for grouped rows; plain preserves the existing appearance. */
+  headerTone?: "plain" | "muted";
 }
 
 /**
@@ -21,6 +23,7 @@ export function Surface({
   description,
   actions,
   flush = false,
+  headerTone = "plain",
   className,
   children,
   ...rest
@@ -40,15 +43,13 @@ export function Surface({
           className={cn(
             "flex min-w-0 flex-wrap items-start justify-between gap-x-4 gap-y-2 px-4 pt-4 sm:px-5",
             flush ? "pb-3" : "pb-0",
+            headerTone === "muted" &&
+              "rounded-t-xl border-b border-border/60 bg-muted/35 px-4 py-3 sm:px-4",
           )}
         >
           <div className="min-w-0 space-y-0.5">
-            {title ? (
-              <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-            ) : null}
-            {description ? (
-              <p className="text-xs text-muted-foreground">{description}</p>
-            ) : null}
+            {title ? <h2 className="text-sm font-semibold text-foreground">{title}</h2> : null}
+            {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
           </div>
           {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
         </header>

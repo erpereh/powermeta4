@@ -65,6 +65,8 @@ export interface TableProps<T> {
   rowHeight?: number;
   /** Scroll viewport height in px. */
   height?: number;
+  /** Render every row at its natural height, without a vertical scroll viewport. */
+  autoHeight?: boolean;
   /** Rows rendered above/below the viewport. */
   overscan?: number;
   /** Fires when the viewport scrolls near the bottom — load the next page. */

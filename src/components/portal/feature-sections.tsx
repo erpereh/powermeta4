@@ -29,7 +29,12 @@ export function ConsultContent({
       };
     });
     return consult.layout !== "list" && rows.length === 1 ? (
-      <PortalRecord title={consult.title} fields={rows[0].fields} download={rows[0].download} />
+      <PortalRecord
+        title={consult.title}
+        description={consult.description}
+        fields={rows[0].fields}
+        download={rows[0].download}
+      />
     ) : (
       <PortalDataTable title={consult.title} rows={rows} />
     );
@@ -110,6 +115,15 @@ export function FeatureSections({
           );
         }
         if (section.kind === "consult") {
+          const result = results?.[section.consult.id];
+          if (
+            section.consult.layout !== "list" &&
+            result?.status === "ok" &&
+            result.data.rows.length === 1
+          )
+            return (
+              <ConsultContent key={section.consult.id} consult={section.consult} result={result} />
+            );
           return (
             <Section
               key={section.consult.id}

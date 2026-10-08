@@ -22,9 +22,7 @@ export function FileSections({
   return (
     <div className={`flex min-w-0 flex-col ${compact ? "gap-4" : "gap-6"}`}>
       {sections.map((section) => (
-        <Section key={section.id} title={section.title}>
-          <PortalRecord title={section.title} fields={section.fields} />
-        </Section>
+        <PortalRecord key={section.id} title={section.title} fields={section.fields} />
       ))}
     </div>
   );

@@ -47,6 +47,8 @@ describe("SectionNav", () => {
       <SectionNav
         aria-label="Apartados"
         overflow="menu"
+        variant="segment"
+        menuWidth={320}
         items={items}
         activeHref="/portal/empleado/tiempo"
       />,
@@ -54,6 +56,8 @@ describe("SectionNav", () => {
     expect(screen.getByRole("link", { name: "Tiempo" }).getAttribute("aria-current")).toBe("page");
     expect(screen.queryByRole("link", { name: "Mis datos" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Más: Apartados" }));
+    expect(screen.getByRole("menu").style.width).toBe("320px");
+    expect(screen.getByRole("menu").style.maxWidth).toBe("calc(100vw - 2rem)");
     expect(screen.getByRole("menuitem", { name: "Mis datos" }).getAttribute("href")).toBe(
       "/portal/empleado/datos",
     );
@@ -82,7 +86,7 @@ describe("SectionNav", () => {
       expect(push).toHaveBeenCalledWith("/portal/empleado/tiempo");
     },
   );
-  it.each(["underline", "pill"] as const)(
+  it.each(["underline", "pill", "segment"] as const)(
     "marca la sección activa y permite teclado en %s",
     async (variant) => {
       const user = userEvent.setup();
@@ -99,6 +103,7 @@ describe("SectionNav", () => {
       const active = screen.getByRole("link", { name: "Mis datos" });
       expect(active.getAttribute("aria-current")).toBe("page");
       expect(active.getAttribute("href")).toBe("/portal/empleado/datos");
+      expect(active.querySelector("button, a")).toBeNull();
       expect(screen.getByRole("link", { name: "Inicio" }).getAttribute("aria-current")).toBeNull();
 
       active.focus();

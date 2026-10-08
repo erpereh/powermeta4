@@ -40,6 +40,12 @@ export function DomainOverview({
               { label: "Descripción", value: feature.summary },
               {
                 label: "Estado",
+                tone:
+                  feature.read.kind === "pending"
+                    ? "warning"
+                    : feature.read.verified
+                      ? "success"
+                      : "neutral",
                 value:
                   feature.read.kind === "pending"
                     ? "Pendiente de conexión"

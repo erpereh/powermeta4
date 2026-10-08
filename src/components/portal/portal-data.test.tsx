@@ -16,6 +16,45 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("resumen y detalle del portal", () => {
+  it.each([0, 1, 3, 7, 8, 40])(
+    "ajusta la altura al contenido hasta siete registros (%i filas)",
+    (count) => {
+      const rows = Array.from({ length: count }, (_, index) => ({
+        id: String(index),
+        fields: [{ label: "Persona", value: `Persona ${index + 1}` }],
+      }));
+      render(<PortalDataTable title="Equipo" rows={rows} />);
+      const table = screen.getByRole("table");
+      expect(table.parentElement?.style.height).toBe(count <= 7 ? "auto" : "440px");
+      if (count <= 7) {
+        expect(table.querySelectorAll("tbody tr[aria-hidden]")).toHaveLength(0);
+        expect(within(table).getAllByRole("row")).toHaveLength(count ? count + 1 : 2);
+      }
+    },
+  );
+  it("solo aplica badges a los campos con un estado explícito y conserva su texto", () => {
+    render(
+      <PortalDataTable
+        title="Estados"
+        rows={[
+          {
+            id: "1",
+            fields: [
+              { label: "Nombre", value: "Pendiente" },
+              { label: "Estado", value: "Pendiente de conexión", tone: "warning" },
+              { label: "Recuento", value: "41", tone: "warning", numeric: true },
+            ],
+          },
+        ]}
+      />,
+    );
+    const table = screen.getByRole("table");
+    expect(within(table).getByText("Pendiente").className).not.toContain("bg-tone-amber");
+    expect(
+      within(table).getByText("Pendiente de conexión").closest("[title]")?.className,
+    ).toContain("bg-tone-amber");
+    expect(within(table).getByText("41")).toBeTruthy();
+  });
   it("conserva el orden y cierra el detalle si desaparece el registro", async () => {
     const user = userEvent.setup();
     const rows = [
@@ -71,8 +110,26 @@ describe("resumen y detalle del portal", () => {
   it("limita una ficha a seis campos y ofrece el resto sin perder valores", async () => {
     const user = userEvent.setup();
     render(<PortalRecord title="Ficha" fields={fields} />);
+    expect(screen.getAllByRole("heading", { name: "Ficha" })).toHaveLength(1);
     expect(screen.queryByText("Campo 7")).toBeNull();
     await user.click(screen.getByRole("button", { name: "Ver detalle" }));
     expect(within(screen.getByRole("dialog")).getByText("Campo 8")).toBeTruthy();
+  });
+  it("conserva detalle y retorno del foco con movimiento reducido", async () => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+    );
+    const user = userEvent.setup();
+    render(<PortalRecord title="Ficha" fields={fields} />);
+    const trigger = screen.getByRole("button", { name: "Ver detalle" });
+    await user.click(trigger);
+    const close = within(screen.getByRole("dialog", { name: "Ficha" })).getByRole("button", {
+      name: "Cerrar panel",
+    });
+    await waitFor(() => expect(document.activeElement).toBe(close));
+    expect(screen.getByText("Campo 8")).toBeTruthy();
+    await user.keyboard("{Escape}");
+    expect(document.activeElement).toBe(trigger);
   });
 });
