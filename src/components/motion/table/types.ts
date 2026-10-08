@@ -61,12 +61,17 @@ export interface TableProps<T> {
   onInsertColumn?: (index: number, position: InsertPosition) => void;
   /** Enables Delete in the column menu. */
   onDeleteColumn?: (columnKey: string, index: number) => void;
-  /** Fixed row height in px — required for virtualization. */
+  /** Fixed row height in px, or the initial estimate when variableRowHeight is enabled. */
   rowHeight?: number;
   /** Scroll viewport height in px. */
   height?: number;
   /** Render every row at its natural height, without a vertical scroll viewport. */
   autoHeight?: boolean;
+  /** Measure wrapped rows instead of assuming a fixed height. Defaults to false. */
+  variableRowHeight?: boolean;
+  /** Accessible name for a keyboard-focusable scroll viewport. */
+  scrollAreaLabel?: string;
+  scrollAreaDescription?: string;
   /** Rows rendered above/below the viewport. */
   overscan?: number;
   /** Fires when the viewport scrolls near the bottom — load the next page. */

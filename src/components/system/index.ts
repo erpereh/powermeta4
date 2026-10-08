@@ -6,11 +6,7 @@ export type {
 } from "./accordion";
 
 export { Badge } from "./badge";
-export type {
-  AnimatedBadgeProps,
-  AnimatedBadgeSize,
-  AnimatedBadgeStatus,
-} from "./badge";
+export type { AnimatedBadgeProps, AnimatedBadgeSize, AnimatedBadgeStatus } from "./badge";
 
 export { Button, ButtonLink, StatefulButton } from "./button";
 export type {
@@ -62,11 +58,12 @@ export type { CommandItem, CommandPaletteProps } from "./command-palette";
 export { EmptyState } from "./empty-state";
 export type { EmptyStateProps } from "./empty-state";
 
-export { FileUpload, createFileUploadItem } from "./file-upload";
+export { FileUpload, FileUploadList, createFileUploadItem } from "./file-upload";
 export type {
   FileUploadClassNames,
   FileUploadItem,
   FileUploadProps,
+  FileUploadListProps,
   FileUploadStatus,
   FileUploadVariant,
 } from "./file-upload";
@@ -116,13 +113,7 @@ export type { ModalProps, ModalSize } from "./modal";
 export { AnimatedNumber } from "./number";
 export type { AnimatedNumberProps } from "./number";
 
-export {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./select";
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 export type {
   SelectContentProps,
   SelectItemProps,
@@ -179,11 +170,7 @@ export type { ThinkingShimmerProps } from "./thinking";
 export { ThemeToggle, ThemeModeControl } from "./theme-toggle";
 export { AccentControl } from "./accent-control";
 export type { AccentControlProps } from "./accent-control";
-export type {
-  ThemeMode,
-  ThemeModeControlProps,
-  ThemeToggleProps,
-} from "./theme-toggle";
+export type { ThemeMode, ThemeModeControlProps, ThemeToggleProps } from "./theme-toggle";
 
 export { ToastProvider, useToast } from "./toast";
 export type { ProductToastStatus, ToastOptions } from "./toast";

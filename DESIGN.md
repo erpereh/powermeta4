@@ -257,12 +257,22 @@ simulan conexiones, resultados ni operaciones de ERP.
 Dos barras como máximo: `PageHeader` (título, «Exportar Excel» como botón de
 icono con tooltip y «Nuevo análisis») y la navegación de vistas con `Tabs underline`
 (en móvil solo la pestaña activa muestra su etiqueta; el resto la conserva en
-sr-only). El análisis activo y el estado de IA son un indicador compacto a la
-derecha de la nav.
+sr-only). El análisis activo conserva su fecha a la derecha de la nav y solo
+muestra «IA disponible» cuando corresponde; no muestra «IA no configurada».
+Los mensajes operativos de la explicación IA y el chat conservan su comportamiento.
 
 - **Inicio sin análisis**: título «Nuevo análisis» con una frase de qué hace la
   herramienta y tres pasos numerados (Recibos de nómina, Registro Retributivo,
   Analizar), cada uno con una línea que explica qué fichero va ahí.
+  La carga de recibos muestra hasta tres PDF y «Ver todos (N)» cuando hay más.
+  El Modal beUI reutiliza `FileUploadList` desde `system`, muestra nombres
+  completos, tamaños, estados y eliminación en el orden seleccionado, con
+  ancho máximo de 640 px y lista de hasta 65dvh. La vista previa limita solo
+  la presentación: todos los archivos siguen en el estado y en el análisis.
+  El mismo patrón se aplica a «Analizar otros archivos»; Escape cierra solo
+  el modal superior y devuelve el foco a «Ver todos» o a «Seleccionar carpeta»
+  si el recuento ya no necesita el botón. Excel, carpeta y análisis conservan
+  sus manejadores actuales.
 - **Inicio con análisis** (orden: cabecera, veredicto, «Importes» como fila de
   tres `StatTile`, y debajo «Estado de las personas» junto a «Pendiente de
   revisar»): se lee de arriba abajo y todo queda visible (sin
@@ -396,20 +406,25 @@ nómina con importes numéricos, más «Resumen» si son varias.
   las etiquetas. Las entradas con distintos destinos se conservan.
 - Índices, consultas, directorio, equipo, unidades, tareas y correos usan
   tablas beUI con separadores suaves. `PortalDataTable` recibe solo filas y
-  campos serializables; conserva su orden y muestra los primeros cuatro
-  campos si el contenedor tiene al menos 960 px, tres desde 600 px y dos por
-  debajo. «Ver detalle» abre un Drawer con todos los campos, mantiene el foco
-  dentro del panel con Tab y devuelve el foco al cerrar. Las descargas tienen
-  un acceso independiente.
+  campos serializables; conserva su orden y muestra todos los campos en
+  columnas, incluidos los opcionales y las etiquetas repetidas. No hay
+  «Ver detalle» ni Drawer. Cabeceras y valores completos envuelven el texto;
+  las columnas tienen anchos legibles y reparten el espacio sobrante. Cuando
+  no caben, el desplazamiento horizontal queda dentro de un área con nombre,
+  foco visible y una indicación breve. Las descargas tienen una columna
+  independiente únicamente cuando hay documentos.
   Hasta siete registros usan `Table autoHeight`: todas las filas se
   renderizan sin virtualización y con altura natural. A partir de ocho,
-  la tabla conserva su viewport virtualizado de 440 px. El ancho útil
+  la tabla conserva su viewport virtualizado de 440 px, midiendo la altura
+  real de filas y cabecera. Ctrl/Meta+Inicio y Fin permiten acceder al primer
+  y último registro también con textos de varias líneas. El ancho útil
   descuenta bordes y reserva scrollbar solo en las listas largas.
   Cabeceras tenues, separadores suaves y primera columna con mayor
   jerarquía; los badges reciben metadatos serializables explícitos de
   presentación, sin inferir estados por textos ni cambiar valores.
-- `PortalRecord` presenta hasta seis campos como filas de etiqueta/valor y
-  ofrece el detalle completo cuando hay más. Las fichas y los grupos de
+- `PortalRecord` presenta todos los campos como filas de etiqueta/valor,
+  sin resumen ni Drawer. El cuerpo tiene un máximo de 440 px y permite
+  desplazamiento con teclado; la descarga queda fuera de ese cuerpo. Las fichas y los grupos de
   tareas con registros usan `Surface headerTone="muted"`, con una sola
   cabecera y filas continuas. Pendientes en ámbar, estados confirmados en
   verde y errores en rojo mediante tokens existentes; siempre con texto.

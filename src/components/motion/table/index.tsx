@@ -84,6 +84,9 @@ export function Table<T>({
   rowHeight = 48,
   height = 440,
   autoHeight = false,
+  variableRowHeight = false,
+  scrollAreaLabel,
+  scrollAreaDescription,
   overscan = 10,
   onEndReached,
   loading = false,
@@ -95,6 +98,8 @@ export function Table<T>({
 }: TableProps<T>) {
   const reduce = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const thRefs: HeaderCellRefs = useRef<Record<string, HTMLTableCellElement | null>>({});
 
   const rows = useMemo(
@@ -131,13 +136,31 @@ export function Table<T>({
     onSelectionChange,
   });
 
+  useEffect(() => {
+    const header = tableRef.current?.tHead;
+    if (!variableRowHeight || !header) return;
+    const measure = () => setHeaderHeight(header.getBoundingClientRect().height);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [variableRowHeight]);
+
+  const scrollMargin = variableRowHeight && !autoHeight ? headerHeight : 0;
   const virtualizer = useVirtualizer({
     enabled: !autoHeight,
     count: sortedRows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => rowHeight,
     overscan,
+    ...(variableRowHeight
+      ? { getItemKey: (index: number) => sortedRows[index].id, scrollMargin }
+      : {}),
   });
+
+  useEffect(() => {
+    if (variableRowHeight && !autoHeight) virtualizer.measure();
+  }, [autoHeight, columns, data, variableRowHeight, virtualizer]);
 
   const virtualItems = autoHeight
     ? sortedRows.map((_, index) => ({
@@ -147,9 +170,12 @@ export function Table<T>({
       }))
     : virtualizer.getVirtualItems();
   const totalSize = autoHeight ? sortedRows.length * rowHeight : virtualizer.getTotalSize();
-  const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
+  const paddingTop =
+    virtualItems.length > 0 ? Math.max(0, virtualItems[0].start - scrollMargin) : 0;
   const paddingBottom =
-    virtualItems.length > 0 ? totalSize - virtualItems[virtualItems.length - 1].end : 0;
+    virtualItems.length > 0
+      ? Math.max(0, totalSize - virtualItems[virtualItems.length - 1].end + scrollMargin)
+      : 0;
 
   const hasRowMenu = !!(onInsertRow || onDeleteRow);
   const hasColumnMenu = !!(onInsertColumn || onDeleteColumn);
@@ -236,11 +262,33 @@ export function Table<T>({
       <div
         data-table-viewport=""
         ref={scrollRef}
+        role={scrollAreaLabel ? "region" : undefined}
+        aria-label={scrollAreaLabel}
+        aria-describedby={scrollAreaDescription}
+        tabIndex={scrollAreaLabel ? 0 : undefined}
+        onKeyDown={
+          scrollAreaLabel && variableRowHeight && !autoHeight
+            ? (event) => {
+                if (event.target !== event.currentTarget || !(event.ctrlKey || event.metaKey))
+                  return;
+                if (event.key !== "Home" && event.key !== "End") return;
+                event.preventDefault();
+                if (event.key === "Home") virtualizer.scrollToOffset(0);
+                else if (sortedRows.length)
+                  virtualizer.scrollToIndex(sortedRows.length - 1, { align: "end" });
+              }
+            : undefined
+        }
         onScroll={handleScroll}
-        className="overflow-auto"
+        className={cn(
+          "overflow-auto",
+          scrollAreaLabel &&
+            "outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+        )}
         style={{ height: autoHeight ? "auto" : height }}
       >
         <table
+          ref={tableRef}
           className={cn("border-collapse", sized ? "w-max" : undefined)}
           style={{
             tableLayout: "fixed",
@@ -261,6 +309,7 @@ export function Table<T>({
           <TableHeader
             columns={orderedColumns}
             rowHeight={rowHeight}
+            wrapContent={variableRowHeight}
             reduce={!!reduce}
             thRefs={thRefs}
             selectable={selectable}
@@ -318,7 +367,9 @@ export function Table<T>({
                       key={entry.id}
                       ref={(el) => {
                         rowRefs.current[entry.id] = el;
+                        if (variableRowHeight && !autoHeight) virtualizer.measureElement(el);
                       }}
+                      data-index={vItem.index}
                       data-selected={isSelected}
                       style={{ height: rowHeight }}
                       tabIndex={onRowActivate ? 0 : undefined}

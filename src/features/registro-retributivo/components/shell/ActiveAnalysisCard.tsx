@@ -29,16 +29,21 @@ export function ActiveAnalysisCard({ className }: ActiveAnalysisCardProps) {
       <p className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
         <span
           aria-hidden="true"
-          className={cn("size-1.5 rounded-full", activeAnalysis ? "bg-primary" : "bg-muted-foreground/50")}
+          className={cn(
+            "size-1.5 rounded-full",
+            activeAnalysis ? "bg-primary" : "bg-muted-foreground/50",
+          )}
         />
         <span className="sr-only">Análisis activo</span>
         <span className="font-medium text-foreground tabular-nums">
           {formatDate(activeAnalysis?.createdAt)}
         </span>
       </p>
-      <Badge status={aiConfigured ? "success" : "neutral"} size="sm">
-        {aiConfigured ? "IA disponible" : "IA no configurada"}
-      </Badge>
+      {aiConfigured ? (
+        <Badge status="success" size="sm">
+          IA disponible
+        </Badge>
+      ) : null}
     </section>
   );
 }

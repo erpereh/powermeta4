@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-10-08 - Datos completos del portal y carga compacta de recibos
+
+- Tablas del portal sin «Ver detalle» ni Drawer: muestran todos los campos
+  en orden, también etiquetas repetidas y ausencias, con textos y cabeceras
+  completos, columnas legibles y desplazamiento horizontal contenido.
+  Descargas solo cuando hay documentos. Altura natural hasta siete filas;
+  desde ocho, viewport virtualizado de 440 px con medición de alturas reales
+  y cabecera, foco visible y acceso al primer/último registro por teclado.
+- Fichas Surface con todos los campos en filas, sin resumen ni Drawer;
+  cuerpo de hasta 440 px con desplazamiento y descarga independiente.
+- La carga muestra tres PDF y «Ver todos (N)»: Modal beUI de hasta 640 px,
+  lista de hasta 65dvh y nombres completos, tamaños, estados y eliminación
+  mediante FileUploadList exportado por system. El límite visual no retira
+  archivos del estado ni del análisis. Se aplica también dentro de Analizar
+  otros archivos; Escape cierra solo el modal y devuelve el foco al disparador
+  o a Seleccionar carpeta cuando desaparece.
+- Retirado únicamente el badge «IA no configurada» de la cabecera del
+  Registro Retributivo. Fecha, IA disponible, mensajes operativos y chat
+  conservados. Nuevas opciones compatibles, desactivadas por defecto fuera
+  del portal; sin cambios en funcionalidades, AppShell, sidebar ni dominio.
+- Revisión visual sintética a 1440/1024/768/390 px en claro/oscuro: tablas
+  0/1/3/7/8/80 con todos los campos, textos largos y alturas variables; cargas
+  0/1/3/4/50. Sin overflow de página ni scroll vertical artificial en las
+  tablas cortas. Modal móvil de 358 px sin recorte horizontal; teclado, foco,
+  Escape y modal anidado comprobados. Consola sin errores ni avisos.
+  Fixtures retiradas y ruta temporal 404; no conexión a la BD.
+- Suite completa durante la implementación: 834 correctas, 2 omitidas,
+  152 archivos y dos workers; Excel COM sin timeout en esta ejecución.
+  Tras los ajustes finales, 69 pruebas dirigidas correctas en 13 archivos,
+  incluido movimiento reducido y regresión de FileUpload/tabla de usuarios.
+  Typecheck, build y formato dirigido de los 13 archivos de código correctos.
+  Lint global: oxlint sin errores y 7 avisos previos; formato previo pendiente
+  en 396 archivos, sin fallos en el código modificado. Diff y estado Git
+  revisados sin fixtures ni cambios ajenos. Datos/descargas reales pendientes
+  de revisión en la VM con Meta4/PeopleNet.
+
 ## 2026-10-08 - Tablas compactas y navegación segmentada del portal
 
 - Las tablas de hasta siete registros muestran todas sus filas con altura

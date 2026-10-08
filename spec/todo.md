@@ -1,5 +1,44 @@
 # powermeta4 - estado de tareas
 
+## Portal y Registro Retributivo: datos completos y carga compacta - 2026-10-08
+
+- [x] Todas las columnas y valores del portal visibles en su orden, sin
+      «Ver detalle» ni Drawer; etiquetas repetidas y campos opcionales
+      conservados. Descarga independiente solo cuando hay documentos.
+- [x] Textos y cabeceras completos, anchos legibles, espacio sobrante
+      repartido y desplazamiento horizontal contenido con foco e indicación.
+      Altura natural hasta siete registros y viewport virtualizado de 440 px
+      desde ocho, con medición real de filas y cabecera y acceso por teclado.
+- [x] Fichas Surface con todos los campos; cuerpo desplazable hasta 440 px
+      y descarga fuera del cuerpo. Sin límites de resumen ni panel de detalle.
+- [x] Primeros tres PDF y «Ver todos (N)» en ambas presentaciones de carga.
+      Modal beUI de hasta 640 px, lista de hasta 65dvh y filas FileUpload
+      reutilizadas desde system; todos los seleccionados siguen en el análisis.
+- [x] Eliminación y recuento actualizados desde el modal. Escape cierra solo
+      el modal superior y restaura el foco al botón o a Seleccionar carpeta.
+      Carpeta, Excel, análisis y estado conservan sus manejadores actuales.
+- [x] Retirado solo el badge «IA no configurada» del Registro Retributivo;
+      fecha, IA disponible, mensajes operativos de IA y chat conservados.
+- [x] Matriz visual de componentes compartidos a 1440/1024/768/390 px en
+      claro/oscuro: tablas 0/1/3/7/8/80, todas las columnas, alturas variables,
+      textos largos, ausencias y estados; PDF 0/1/3/4/50. Sin overflow de página,
+      sin scroll vertical en tablas cortas ni recorte horizontal en el modal.
+- [x] Teclado en tablas, salto al primer/último registro, foco contenido y
+      retorno normal o a carpeta; modal dentro del Drawer comprobado en navegador
+      y pruebas con movimiento normal y reducido. Consola sin errores ni avisos.
+- [x] Fixtures sintéticas sin BD retiradas; ruta temporal devuelve 404.
+      AppShell, sidebar, consultas, permisos, cálculos, rutas y validaciones intactos.
+- [x] Suite completa durante la implementación: 834 correctas y 2 omitidas
+      en 152 archivos, con dos workers y sin timeout de Excel COM. Tras los
+      ajustes finales: 69 pruebas dirigidas correctas en 13 archivos, incluyendo
+      la tabla de usuarios fuera del portal, FileUpload y el modal anidado.
+- [x] Typecheck, build y formato dirigido de los 13 archivos de código
+      correctos. Lint global ejecutado: oxlint sin errores y 7 avisos previos;
+      permanece el formato pendiente previo en 396 archivos, sin fallos de
+      formato en el código modificado. Diff y estado Git revisados sin fixtures.
+- [ ] Comprobar datos y descargas reales en la VM con sesión Meta4/PeopleNet;
+      las comprobaciones de presentación usan datos sintéticos.
+
 ## Portal: tablas compactas y subsecciones segmentadas - 2026-10-08
 
 - [x] Tablas de hasta siete registros con altura natural, sin scroll interno

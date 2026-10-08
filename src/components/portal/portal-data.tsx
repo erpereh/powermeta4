@@ -2,17 +2,9 @@
 
 import Link from "next/link";
 import { Download } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
-import {
-  Badge,
-  Button,
-  Drawer,
-  PropertyList,
-  Surface,
-  Table,
-  type TableProps,
-} from "@/components/system";
+import { Badge, PropertyList, Surface, Table, type TableProps } from "@/components/system";
 import { cn } from "@/lib/utils";
 
 /** Presentation data only: readers and their contracts stay on the server. */
@@ -46,7 +38,10 @@ function FieldValue({ field }: { field: PortalField }) {
       showIcon={false}
       pulse={false}
       title={field.value}
-      className={cn("max-w-full rounded-md", FIELD_TONES[field.tone])}
+      className={cn(
+        "max-w-full rounded-md whitespace-normal wrap-anywhere [&_[data-badge-label]]:wrap-anywhere",
+        FIELD_TONES[field.tone],
+      )}
     >
       {field.value}
     </Badge>
@@ -57,30 +52,11 @@ function FieldValue({ field }: { field: PortalField }) {
   );
 }
 
-/** Keep keyboard navigation inside an open detail, including its header/footer. */
-function containDetailFocus(event: KeyboardEvent<HTMLDivElement>) {
-  if (event.key !== "Tab") return;
-  const panel = event.currentTarget.querySelector<HTMLElement>('[role="dialog"]:not([inert])');
-  if (!panel) return;
-  const controls = [
-    ...panel.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex="0"]'),
-  ];
-  const first = controls[0];
-  const last = controls.at(-1);
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last?.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first?.focus();
-  }
-}
-
 function Fields({ fields, flush = false }: { fields: readonly PortalField[]; flush?: boolean }) {
   return (
     <PropertyList
       className={cn(
-        "[&_dt>span]:overflow-visible [&_dt>span]:whitespace-normal [&_dd]:font-normal [&_dl]:divide-border/60",
+        "[&_dt>span]:overflow-visible [&_dt>span]:whitespace-normal [&_dt>span]:wrap-anywhere [&_dd]:wrap-anywhere [&_dd]:font-normal [&_dl]:divide-border/60",
         flush && "rounded-none border-0 bg-background",
       )}
       items={fields.map((field, index) => ({
@@ -116,10 +92,8 @@ export function PortalDataTable({
   framed?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
-  const [limit, setLimit] = useState(4);
+  const hintId = useId();
   const [availableWidth, setAvailableWidth] = useState<number | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = rows.find((row) => row.id === selectedId) ?? null;
   const autoHeight = rows.length <= 7;
   useEffect(() => {
     const element = container.current;
@@ -127,112 +101,101 @@ export function PortalDataTable({
     const observer = new ResizeObserver(([entry]) => {
       const width = entry.contentRect.width;
       setAvailableWidth(width);
-      setLimit(width >= 960 ? 4 : width >= 600 ? 3 : 2);
     });
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const labels = [...new Set(rows.flatMap((row) => row.fields.map((field) => field.label)))];
-  const visibleLabels = labels.slice(0, limit);
-  const actionWidth = rows.some((row) => row.download) ? (limit === 2 ? 120 : 140) : 108;
-  const weights = visibleLabels.map((label) =>
-    Math.min(
-      3,
-      Math.max(
-        1,
-        Math.max(
-          label.length,
-          ...rows.map(
-            (row) => row.fields.find((field) => field.label === label)?.value.length ?? 0,
-          ),
-        ) / 24,
-      ),
-    ),
+  // Occurrences keep fields with repeated labels instead of silently dropping values.
+  const fields = new Map<
+    string,
+    { key: string; label: string; occurrence: number; length: number }
+  >();
+  for (const row of rows) {
+    const occurrences = new Map<string, number>();
+    for (const field of row.fields) {
+      const occurrence = occurrences.get(field.label) ?? 0;
+      occurrences.set(field.label, occurrence + 1);
+      const key = JSON.stringify([field.label, occurrence]);
+      const previous = fields.get(key);
+      fields.set(key, {
+        key,
+        label: field.label,
+        occurrence,
+        length: Math.max(previous?.length ?? 0, field.label.length, field.value.length),
+      });
+    }
+  }
+  const descriptors = [...fields.values()];
+  const hasDownloads = rows.some((row) => row.download);
+  const actionWidth = hasDownloads ? 48 : 0;
+  const widths = descriptors.map((field) => Math.max(144, Math.min(360, 24 + field.length * 8)));
+  const totalWidth = widths.reduce((sum, width) => sum + width, 0);
+  const usableWidth = Math.max(0, (availableWidth ?? 0) - (framed ? 2 : 0) - (autoHeight ? 0 : 18));
+  const extraWidth = Math.max(0, usableWidth - actionWidth - totalWidth);
+  const hasMoreColumns = availableWidth !== null && totalWidth + actionWidth > usableWidth;
+  const columns: TableProps<PortalRow>["columns"] = descriptors.map(
+    ({ key, label, occurrence }, index) => ({
+      key,
+      header: label,
+      width: `${widths[index] + Math.floor((extraWidth * widths[index]) / totalWidth)}px`,
+      cell: (row) => {
+        const field = row.fields.filter((field) => field.label === label)[occurrence] ?? {
+          label,
+          value: "—",
+        };
+        const value = field.value;
+        return index === 0 && row.href ? (
+          <Link
+            href={row.href}
+            title={value}
+            className="rounded-sm font-medium text-foreground outline-none hover:text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {value}
+          </Link>
+        ) : (
+          <span className={index === 0 ? "font-medium" : "font-normal"}>
+            <FieldValue field={field} />
+          </span>
+        );
+      },
+    }),
   );
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  const columns: TableProps<PortalRow>["columns"] = visibleLabels.map((label, index) => ({
-    key: label,
-    header: label,
-    width:
-      availableWidth === null
-        ? undefined
-        : `${80 + Math.floor((Math.max(0, availableWidth - actionWidth - (framed ? 2 : 0) - (autoHeight ? 0 : 18) - visibleLabels.length * 80) * weights[index]) / totalWeight)}px`,
-    cell: (row) => {
-      const field = row.fields.find((field) => field.label === label) ?? { label, value: "—" };
-      const value = field.value;
-      return index === 0 && row.href ? (
-        <Link
-          href={row.href}
-          title={value}
-          className="rounded-sm font-medium text-foreground outline-none hover:text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          {value}
-        </Link>
-      ) : (
-        <span className={index === 0 ? "font-medium" : "font-normal"}>
-          <FieldValue field={field} />
-        </span>
-      );
-    },
-  }));
-  columns.push({
-    key: "actions",
-    header: <span className="sr-only">Acciones</span>,
-    width: `${actionWidth}px`,
-    align: "right",
-    cell: (row) => (
-      <div className="flex items-center justify-end gap-1">
-        <DownloadLink row={row} />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="rounded-md px-2 text-primary"
-          aria-label={`Ver detalle: ${
-            row.fields
-              .slice(0, 2)
-              .map((field) => field.value)
-              .join(" · ") || title
-          }`}
-          onClick={() => setSelectedId(row.id)}
-        >
-          <span className="hidden sm:inline">Ver detalle</span>
-          <span className="sm:hidden">Detalle</span>
-        </Button>
-      </div>
-    ),
-  });
+  if (hasDownloads)
+    columns.push({
+      key: "downloads",
+      header: <span className="sr-only">Descargar</span>,
+      width: `${actionWidth}px`,
+      align: "right",
+      cell: (row) => (
+        <div className="flex items-center justify-end gap-1">
+          <DownloadLink row={row} />
+        </div>
+      ),
+    });
   return (
-    <div
-      ref={container}
-      className="min-w-0"
-      role="group"
-      aria-label={title}
-      onKeyDownCapture={containDetailFocus}
-    >
+    <div ref={container} className="min-w-0" role="group" aria-label={title}>
       <Table
         data={rows}
         columns={columns}
         getRowId={(row) => row.id}
         rowHeight={52}
+        variableRowHeight
+        scrollAreaLabel={`${title}: tabla completa`}
+        scrollAreaDescription={hasMoreColumns ? hintId : undefined}
         autoHeight={autoHeight}
         height={440}
         className={cn(
-          "rounded-xl border-border/70 bg-background shadow-none [&_table]:w-full [&_td]:px-3 [&_th]:bg-muted/35 [&_th]:px-0 [&_th]:text-xs [&_th]:font-normal [&_tr]:border-border/50 [&_tbody>tr:last-child]:border-b-0",
+          "rounded-xl border-border/70 bg-background shadow-none [&_table]:w-full [&_td]:overflow-visible [&_td]:text-clip [&_td]:whitespace-normal [&_td]:wrap-anywhere [&_td]:px-3 [&_td]:py-3 [&_td]:align-top [&_th]:bg-muted/35 [&_th]:px-0 [&_th]:text-xs [&_th]:font-normal [&_tr]:border-border/50 [&_tbody>tr:last-child]:border-b-0",
           !framed && "rounded-none border-0",
           rows.length === 0 && "[&_thead]:hidden [&_td]:p-5",
         )}
         emptyState="No hay registros para este apartado."
       />
-      <Drawer
-        open={selected !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelectedId(null);
-        }}
-        title={title}
-        footer={selected ? <DownloadLink row={selected} /> : undefined}
-      >
-        {selected ? <Fields fields={selected.fields} /> : null}
-      </Drawer>
+      {hasMoreColumns ? (
+        <p id={hintId} className="px-3 py-2 text-xs text-muted-foreground">
+          Desplaza la tabla horizontalmente para ver todas las columnas.
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -248,10 +211,9 @@ export function PortalRecord({
   download?: PortalRow["download"];
   description?: string;
 }) {
-  const [open, setOpen] = useState(false);
   const row = { id: title, fields, download };
   return (
-    <div className="min-w-0 space-y-2" onKeyDownCapture={containDetailFocus}>
+    <div className="min-w-0">
       <Surface
         title={title}
         description={description}
@@ -259,21 +221,20 @@ export function PortalRecord({
         headerTone="muted"
         className="overflow-hidden"
       >
-        <Fields fields={fields.slice(0, 6)} flush />
-        {fields.length > 6 || download ? (
+        <div
+          role="region"
+          aria-label={`${title}: todos los campos`}
+          tabIndex={0}
+          className="max-h-[440px] overflow-y-auto overscroll-contain outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        >
+          <Fields fields={fields} flush />
+        </div>
+        {download ? (
           <div className="flex items-center justify-end gap-2 border-t border-border/60 bg-muted/20 px-3 py-2">
             <DownloadLink row={row} />
-            {fields.length > 6 ? (
-              <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-                Ver detalle
-              </Button>
-            ) : null}
           </div>
         ) : null}
       </Surface>
-      <Drawer open={open} onOpenChange={setOpen} title={title}>
-        <Fields fields={fields} />
-      </Drawer>
     </div>
   );
 }

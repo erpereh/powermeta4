@@ -1,11 +1,13 @@
 "use client";
 
 import { FolderOpen, Play } from "lucide-react";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import {
   Button,
   FileUpload,
+  FileUploadList,
+  Modal,
   Input,
   StatefulButton,
   createFileUploadItem,
@@ -30,7 +32,14 @@ function Step({
   done,
   children,
   className,
-}: Readonly<{ index: number; title: string; hint: string; done: boolean; children: ReactNode; className?: string }>) {
+}: Readonly<{
+  index: number;
+  title: string;
+  hint: string;
+  done: boolean;
+  children: ReactNode;
+  className?: string;
+}>) {
   return (
     <li className={cn("flex min-w-0 flex-col gap-3", className)}>
       <div className="flex items-center gap-2.5">
@@ -86,6 +95,20 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
   const [pdfKey, setPdfKey] = useState(0);
   const [excelKey, setExcelKey] = useState(0);
   const pdfFolderInputRef = useRef<HTMLInputElement>(null);
+  const pdfListTrigger = useRef<HTMLButtonElement>(null);
+  const pdfFolderTrigger = useRef<HTMLButtonElement>(null);
+  const [pdfListOpen, setPdfListOpen] = useState(false);
+  const changePdfListOpen = useCallback((open: boolean) => {
+    setPdfListOpen(open);
+    if (!open)
+      requestAnimationFrame(() => {
+        if (!pdfListTrigger.current) pdfFolderTrigger.current?.focus();
+      });
+  }, []);
+  const removePdf = (item: FileUploadItem) => {
+    setPdfFiles(pdfFiles.filter((file) => file.name !== item.name || file.size !== item.size));
+    setPdfKey((current) => current + 1);
+  };
   const buttonState: ButtonState = analyzing ? "loading" : error ? "error" : "idle";
   const stacked = layout === "stacked";
 
@@ -93,18 +116,34 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
     <section
       data-surface="upload-panel"
       aria-label="Preparar análisis"
+      onKeyDownCapture={(event) => {
+        // A portaled child modal must not also close its enclosing sources Drawer.
+        if (pdfListOpen && event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          changePdfListOpen(false);
+        }
+      }}
       className={cn(!stacked && "rounded-xl border border-border bg-card p-4 sm:p-6")}
     >
       <ol
         className={cn(
           "grid gap-6",
-          !stacked && "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,18rem)] lg:gap-0 lg:divide-x lg:divide-border",
+          !stacked &&
+            "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,18rem)] lg:gap-0 lg:divide-x lg:divide-border",
         )}
       >
-        <Step index={1} title="Recibos de nómina" hint="Los PDF de las personas a comparar. Puedes subir varios o una carpeta entera." done={pdfFiles.length > 0} className={cn(!stacked && "lg:pr-6")}>
+        <Step
+          index={1}
+          title="Recibos de nómina"
+          hint="Los PDF de las personas a comparar. Puedes subir varios o una carpeta entera."
+          done={pdfFiles.length > 0}
+          className={cn(!stacked && "lg:pr-6")}
+        >
           <FileUpload
             key={`pdf-${pdfKey}-${pdfItems.length}`}
             value={pdfItems}
+            maxVisibleItems={3}
             multiple
             variant="centered"
             accept="application/pdf,.pdf"
@@ -116,13 +155,26 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
               const next = files.filter((file) => file.name.toLowerCase().endsWith(".pdf"));
               setPdfFiles(next.length ? [...pdfFiles, ...next] : pdfFiles);
             }}
-            onRemove={(item) => {
-              setPdfFiles(pdfFiles.filter((file) => file.name !== item.name || file.size !== item.size));
-              setPdfKey((current) => current + 1);
-            }}
+            onRemove={removePdf}
             className="min-w-0"
+            classNames={{ name: "overflow-visible whitespace-normal wrap-anywhere text-clip" }}
           />
+          {pdfItems.length > 3 || pdfListOpen ? (
+            <Button
+              ref={pdfListTrigger}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="self-start"
+              aria-haspopup="dialog"
+              aria-expanded={pdfListOpen}
+              onClick={() => changePdfListOpen(true)}
+            >
+              Ver todos ({pdfItems.length})
+            </Button>
+          ) : null}
           <Button
+            ref={pdfFolderTrigger}
             type="button"
             variant="ghost"
             size="sm"
@@ -147,7 +199,13 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
           />
         </Step>
 
-        <Step index={2} title="Registro Retributivo" hint="El Excel con los importes que deberían figurar en los recibos." done={Boolean(registroFile)} className={cn(!stacked && "lg:px-6")}>
+        <Step
+          index={2}
+          title="Registro Retributivo"
+          hint="El Excel con los importes que deberían figurar en los recibos."
+          done={Boolean(registroFile)}
+          className={cn(!stacked && "lg:px-6")}
+        >
           <FileUpload
             key={`excel-${excelKey}-${excelItems.length}`}
             value={excelItems}
@@ -171,7 +229,13 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
           />
         </Step>
 
-        <Step index={3} title="Analizar" hint="Las diferencias por debajo de la tolerancia se dan por buenas." done={false} className={cn(!stacked && "lg:pl-6")}>
+        <Step
+          index={3}
+          title="Analizar"
+          hint="Las diferencias por debajo de la tolerancia se dan por buenas."
+          done={false}
+          className={cn(!stacked && "lg:pl-6")}
+        >
           <Input
             id={stacked ? "tolerance-drawer" : "tolerance"}
             label="Tolerancia EUR"
@@ -201,6 +265,31 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
           </p>
         </Step>
       </ol>
+      <Modal
+        open={pdfListOpen}
+        onOpenChange={changePdfListOpen}
+        title={`Recibos de nómina (${pdfItems.length})`}
+        description="Archivos seleccionados para el análisis."
+        size="lg"
+        className="max-w-[min(640px,calc(100vw-2rem))]"
+      >
+        <div
+          role="region"
+          aria-label="Lista completa de recibos PDF"
+          tabIndex={0}
+          className="max-h-[65dvh] overflow-y-auto overscroll-contain rounded-md outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        >
+          {pdfItems.length ? (
+            <FileUploadList
+              items={pdfItems}
+              onRemove={removePdf}
+              classNames={{ name: "overflow-visible whitespace-normal wrap-anywhere text-clip" }}
+            />
+          ) : (
+            <p className="py-4 text-sm text-muted-foreground">No hay recibos seleccionados.</p>
+          )}
+        </div>
+      </Modal>
     </section>
   );
 }

@@ -1,6 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockPortalLayout } from "@/test/portal-layout";
 import { PortalDataTable, PortalRecord } from "./portal-data";
@@ -15,9 +14,10 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
-describe("resumen y detalle del portal", () => {
+
+describe("datos completos del portal", () => {
   it.each([0, 1, 3, 7, 8, 40])(
-    "ajusta la altura al contenido hasta siete registros (%i filas)",
+    "mantiene altura natural hasta siete registros (%i filas)",
     (count) => {
       const rows = Array.from({ length: count }, (_, index) => ({
         id: String(index),
@@ -26,13 +26,72 @@ describe("resumen y detalle del portal", () => {
       render(<PortalDataTable title="Equipo" rows={rows} />);
       const table = screen.getByRole("table");
       expect(table.parentElement?.style.height).toBe(count <= 7 ? "auto" : "440px");
-      if (count <= 7) {
-        expect(table.querySelectorAll("tbody tr[aria-hidden]")).toHaveLength(0);
-        expect(within(table).getAllByRole("row")).toHaveLength(count ? count + 1 : 2);
-      }
+      if (count <= 7) expect(table.querySelectorAll("tbody tr[aria-hidden]")).toHaveLength(0);
+      expect(screen.queryByRole("button", { name: /detalle/i })).toBeNull();
+      expect(screen.queryByRole("dialog")).toBeNull();
     },
   );
-  it("solo aplica badges a los campos con un estado explícito y conserva su texto", () => {
+  it.each([1200, 700, 350])("muestra todos los campos y conserva la descarga a %i px", (width) => {
+    mockPortalLayout(width);
+    render(
+      <PortalDataTable
+        title="Consulta"
+        rows={[{ id: "1", fields, download: { href: "/documento.pdf", label: "Descargar PDF" } }]}
+      />,
+    );
+    const table = screen.getByRole("table");
+    expect(within(table).getAllByRole("columnheader")).toHaveLength(9);
+    expect(within(table).getByText("No informado")).toBeTruthy();
+    expect(screen.getByRole("link", { name: /^Descargar PDF:/ }).getAttribute("href")).toBe(
+      "/documento.pdf",
+    );
+    expect(screen.getByRole("region", { name: "Consulta: tabla completa" }).tabIndex).toBe(0);
+    expect(screen.getByText(/Desplaza la tabla horizontalmente/)).toBeTruthy();
+  });
+  it("conserva campos opcionales, etiquetas repetidas, enlaces y orden sin columna de acciones vacía", () => {
+    render(
+      <PortalDataTable
+        title="Personas"
+        rows={[
+          {
+            id: "2",
+            href: "/segunda",
+            fields: [
+              { label: "Persona", value: "Segunda" },
+              { label: "Correo", value: "uno@example.test" },
+              { label: "Correo", value: "dos@example.test" },
+            ],
+          },
+          {
+            id: "1",
+            fields: [
+              { label: "Persona", value: "Primera" },
+              {
+                label: "Observación",
+                value: "Texto largo con todos los datos disponibles para consultar en la tabla.",
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+    const table = screen.getByRole("table");
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Persona", "Correo", "Correo", "Observación"]);
+    expect(
+      within(table)
+        .getAllByRole("row")
+        .slice(1)
+        .map((row) => row.firstChild?.textContent),
+    ).toEqual(["Segunda", "Primera"]);
+    expect(within(table).getByText("dos@example.test")).toBeTruthy();
+    expect(within(table).getAllByText("—")).toHaveLength(3);
+    expect(screen.getByRole("link", { name: "Segunda" }).getAttribute("href")).toBe("/segunda");
+  });
+  it("solo aplica badges a estados explícitos conservando su texto", () => {
     render(
       <PortalDataTable
         title="Estados"
@@ -53,83 +112,23 @@ describe("resumen y detalle del portal", () => {
     expect(
       within(table).getByText("Pendiente de conexión").closest("[title]")?.className,
     ).toContain("bg-tone-amber");
-    expect(within(table).getByText("41")).toBeTruthy();
   });
-  it("conserva el orden y cierra el detalle si desaparece el registro", async () => {
-    const user = userEvent.setup();
-    const rows = [
-      { id: "2", fields: [{ label: "Persona", value: "Segunda" }] },
-      { id: "1", fields: [{ label: "Persona", value: "Primera" }] },
-    ];
-    const view = render(<PortalDataTable title="Equipo" rows={rows} />);
-    expect(
-      screen
-        .getAllByRole("button", { name: /^Ver detalle:/ })
-        .map((button) => button.getAttribute("aria-label")),
-    ).toEqual(["Ver detalle: Segunda", "Ver detalle: Primera"]);
-    await user.click(screen.getByRole("button", { name: "Ver detalle: Segunda" }));
-    view.rerender(<PortalDataTable title="Equipo" rows={[]} />);
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull(), { timeout: 3000 });
-    expect(screen.queryByText("Segunda")).toBeNull();
-  });
-  it.each([
-    [1200, 4],
-    [700, 3],
-    [350, 2],
-  ])("muestra el resumen a %i px y conserva todos los campos en el panel", async (width, count) => {
-    mockPortalLayout(width);
-    const user = userEvent.setup();
+  it("presenta todos los campos de la ficha, un solo título y una descarga independiente", () => {
     render(
-      <PortalDataTable
-        title="Consulta"
-        rows={[{ id: "1", fields, download: { href: "/documento.pdf", label: "Descargar PDF" } }]}
+      <PortalRecord
+        title="Ficha"
+        fields={fields}
+        download={{ href: "/ficha.pdf", label: "Descargar PDF" }}
       />,
     );
-    const table = screen.getByRole("table");
-    expect(within(table).getAllByRole("columnheader")).toHaveLength(count + 1);
-    expect(within(table).queryByText("No informado")).toBeNull();
+    expect(screen.getAllByRole("heading", { name: "Ficha" })).toHaveLength(1);
+    expect(screen.getByText("Campo 8")).toBeTruthy();
+    expect(screen.getByText("No informado")).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Ficha: todos los campos" }).tabIndex).toBe(0);
+    expect(screen.queryByRole("button", { name: /detalle/i })).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("link", { name: /^Descargar PDF:/ }).hasAttribute("download")).toBe(
       true,
     );
-    const trigger = screen.getByRole("button", { name: "Ver detalle: Valor 1 · Valor 2" });
-    await user.click(trigger);
-    const panel = screen.getByRole("dialog", { name: "Consulta" });
-    expect(within(panel).getByText("Campo 8")).toBeTruthy();
-    expect(within(panel).getByText("No informado")).toBeTruthy();
-    const close = within(panel).getByRole("button", { name: "Cerrar panel" });
-    await waitFor(() => expect(document.activeElement).toBe(close));
-    await user.keyboard("{Shift>}{Tab}{/Shift}");
-    expect(document.activeElement).toBe(
-      within(panel).getByRole("link", { name: /^Descargar PDF:/ }),
-    );
-    await user.keyboard("{Tab}");
-    expect(document.activeElement).toBe(close);
-    await user.keyboard("{Escape}");
-    expect(document.activeElement).toBe(trigger);
-  });
-  it("limita una ficha a seis campos y ofrece el resto sin perder valores", async () => {
-    const user = userEvent.setup();
-    render(<PortalRecord title="Ficha" fields={fields} />);
-    expect(screen.getAllByRole("heading", { name: "Ficha" })).toHaveLength(1);
-    expect(screen.queryByText("Campo 7")).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Ver detalle" }));
-    expect(within(screen.getByRole("dialog")).getByText("Campo 8")).toBeTruthy();
-  });
-  it("conserva detalle y retorno del foco con movimiento reducido", async () => {
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
-    );
-    const user = userEvent.setup();
-    render(<PortalRecord title="Ficha" fields={fields} />);
-    const trigger = screen.getByRole("button", { name: "Ver detalle" });
-    await user.click(trigger);
-    const close = within(screen.getByRole("dialog", { name: "Ficha" })).getByRole("button", {
-      name: "Cerrar panel",
-    });
-    await waitFor(() => expect(document.activeElement).toBe(close));
-    expect(screen.getByText("Campo 8")).toBeTruthy();
-    await user.keyboard("{Escape}");
-    expect(document.activeElement).toBe(trigger);
   });
 });
