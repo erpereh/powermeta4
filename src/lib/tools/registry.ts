@@ -2,10 +2,12 @@ import {
   BarChart3,
   Building2,
   CalendarCog,
+  CalendarRange,
   ChartNoAxesCombined,
   CircleAlert,
   FileOutput,
   FileSearch,
+  FileSpreadsheet,
   History,
   Landmark,
   Play,
@@ -44,6 +46,8 @@ export type ToolIconName =
   | "report-search"
   | "report-export"
   | "report-schedule"
+  | "report-quinquennial"
+  | "report-payroll-results"
   | "processes"
   | "process-run"
   | "process-status"
@@ -113,6 +117,8 @@ export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   "report-search": FileSearch,
   "report-export": FileOutput,
   "report-schedule": CalendarCog,
+  "report-quinquennial": CalendarRange,
+  "report-payroll-results": FileSpreadsheet,
   processes: Workflow,
   "process-run": Play,
   "process-status": ChartNoAxesCombined,
@@ -295,6 +301,46 @@ export const TOOL_MODULES = [
     route: "/tools/reports",
     icon: "reports",
     tools: [
+      tool({
+        id: "reports.quinquenal",
+        moduleId: "reports",
+        name: "Consultar quinquenal",
+        description: "Retribución, jornada y variable de los últimos cinco años por empleado.",
+        route: "/tools/reports/quinquenal",
+        icon: "report-quinquennial",
+        keywords: [
+          "quinquenal",
+          "informe",
+          "retribución",
+          "retribucion",
+          "salarial",
+          "variable",
+          "jornada",
+          "empleado",
+        ],
+        aiPrompt: "Quiero consultar el informe quinquenal",
+        implemented: true,
+      }),
+      tool({
+        id: "reports.payroll-results",
+        moduleId: "reports",
+        name: "Resultados de nómina",
+        description: "Resultados guardados de los informes de nómina de PeopleNet, con su Excel.",
+        route: "/tools/reports/resultados-nomina",
+        icon: "report-payroll-results",
+        keywords: [
+          "resultados",
+          "informe",
+          "informes",
+          "nómina",
+          "nomina",
+          "informe normal",
+          "seguros sociales",
+          "excel",
+        ],
+        aiPrompt: "Quiero ver los resultados de un informe de nómina",
+        implemented: true,
+      }),
       tool({
         id: "reports.create",
         moduleId: "reports",

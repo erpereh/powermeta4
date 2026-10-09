@@ -14,7 +14,14 @@ export default async function ToolModulePage({
   params: Promise<{ moduleId: string }>;
 }) {
   const { moduleId } = await params;
-  if (!isToolModuleId(moduleId) || moduleId === "users" || moduleId === "payroll") notFound();
+  if (
+    !isToolModuleId(moduleId) ||
+    moduleId === "users" ||
+    moduleId === "payroll" ||
+    moduleId === "reports"
+  ) {
+    notFound();
+  }
 
   const module = getToolModule(moduleId);
   if (!module) notFound();

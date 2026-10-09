@@ -11,6 +11,56 @@
 - La cabecera de la sidebar muestra solo logo y sociedad, sin «Sociedad
   Meta4» y sin selector.
 
+## 2026-10-09 - Resultados de nómina
+
+- Nueva acción «Resultados de nómina» en Informes
+  (`/tools/reports/resultados-nomina`). Reproduce en solo lectura «Resultados
+  para Informes» de PeopleNet con la sociedad de la sesión: lista las
+  ejecuciones, muestra la paga y el resultado (hoja «Datos» e «Informe» por
+  centro y empleado) y descarga el Excel
+  (`POST /api/reports/payroll-results/export`).
+- El resultado se lee de `M4CSP_INF_RESULT1.CSP_RESULTADO` (`~BLOBD\0\0` y
+  texto Latin-1 con tabuladores). Las celdas se convierten como Excel; la
+  hoja «informe» calcula la tabla de `plantilla_infconnom.xls`.
+- Comprobado contra PeopleNet y el Excel de prueba de COLL: «Datos» idéntica
+  salvo la posición de una fila e «informe» idéntica. Lista, detalle y Excel
+  probados en CYC, IBER y COLL.
+- Comprobaciones: typecheck, build y pruebas dirigidas correctas; oxlint sin
+  avisos nuevos. Pendiente la revisión visual con sesión Meta4 real.
+- Excel con estilo: cabeceras en azul oscuro con filtros y paneles
+  inmovilizados, filas alternas, importes `#,##0.00`, fechas dd/mm/aaaa,
+  bloque de paga destacado y subtotales y total general resaltados. Los
+  valores no cambian; revisado en PDF con datos inventados.
+
+## 2026-10-09 - Consultar quinquenal
+
+- Nueva acción «Consultar quinquenal» en Informes
+  (`/tools/reports/quinquenal`). Reproduce en solo lectura el Meta4Object
+  `CYC_CONSULTA_QUINQUENAL` de PeopleNet a partir de su traza LDB. Consulta
+  todos los empleados computables o una matrícula, muestra la tabla y la ficha
+  con los cinco años y exporta el mismo Excel que PeopleNet
+  (`POST /api/reports/quinquenal/export`). La sociedad sale del contexto
+  operativo.
+- Los resultados muestran por defecto todos los campos de cada empleado
+  (las 57 columnas del Excel) sin tener que abrirlos uno a uno; «Resumen»
+  deja la identificación, el puesto y la retribución y el variable de los
+  cinco años. «Ampliar ventana» abre la
+  tabla a pantalla completa como el organigrama, conservando vista, empresa,
+  búsqueda y orden.
+- Las sentencias de la traza se agrupan por empleado en lugar de lanzarse una
+  por persona. El nodo `CYC_CONCEPT_PORTUGAL` no se reproduce porque no
+  interviene en el resultado.
+- Verificado contra PeopleNet y el Excel de prueba de CYC con
+  `npm run quinquenal:verify`, que solo imprime recuentos: 595/595 filas y
+  57/57 columnas idénticas. El Excel generado coincide en las 34.626 celdas
+  comparadas.
+- Comprobaciones:
+  - Correctos: typecheck, build, pruebas dirigidas (43) y oxlint sin avisos
+    nuevos.
+  - Suite completa: 831 correctas, 36 omitidas y 5 fallos por tiempo. Son 4
+    de Excel COM del alta de personas y `config.test.ts`, que pasa aislado.
+  - Pendiente: la revisión visual con una sesión Meta4 real.
+
 ## 2026-10-08 - Datos completos del portal y carga compacta de recibos
 
 - Tablas del portal sin «Ver detalle» ni Drawer: muestran todos los campos

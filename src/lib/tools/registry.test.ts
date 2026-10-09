@@ -12,7 +12,7 @@ import {
 } from "@/lib/tools/registry";
 
 describe("tool registry", () => {
-  it("contains five modules with four actions each", () => {
+  it("contains five modules with four actions each, plus the implemented reports", () => {
     expect(TOOL_MODULES.map((module) => module.id)).toEqual([
       "users",
       "companies",
@@ -20,7 +20,7 @@ describe("tool registry", () => {
       "reports",
       "processes",
     ]);
-    expect(TOOL_MODULES.every((module) => module.tools.length === 4)).toBe(true);
+    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([4, 4, 4, 6, 4]);
   });
 
   it("keeps action IDs, prompts and icons configured", () => {
@@ -42,6 +42,8 @@ describe("tool registry", () => {
       "Quiero consultar una nómina",
       "Quiero revisar las incidencias de nómina",
       "Quiero regenerar las nóminas de un periodo",
+      "Quiero consultar el informe quinquenal",
+      "Quiero ver los resultados de un informe de nómina",
       "Quiero crear un informe",
       "Quiero consultar los informes",
       "Quiero exportar los resultados de un informe",
@@ -88,12 +90,36 @@ describe("tool registry", () => {
     expect(userTools.every((tool) => TOOL_ICONS[tool.icon])).toBe(true);
   });
 
+  it("offers the quinquennial report and payroll results as implemented reports", () => {
+    const reports = TOOL_REGISTRY.filter((tool) => tool.moduleId === "reports");
+    const quinquenal = reports.find((tool) => tool.id === "reports.quinquenal");
+
+    expect(quinquenal).toMatchObject({
+      name: "Consultar quinquenal",
+      route: "/tools/reports/quinquenal",
+      icon: "report-quinquennial",
+      implemented: true,
+    });
+    expect(quinquenal && isToolRouteNavigable(quinquenal)).toBe(true);
+    expect(reports.filter((tool) => tool.implemented).map((tool) => tool.id)).toEqual([
+      "reports.quinquenal",
+      "reports.payroll-results",
+    ]);
+    expect(reports.find((tool) => tool.id === "reports.payroll-results")).toMatchObject({
+      name: "Resultados de nómina",
+      route: "/tools/reports/resultados-nomina",
+      icon: "report-payroll-results",
+    });
+    expect(searchTools("quinquenal").tools.map((tool) => tool.id)).toEqual(["reports.quinquenal"]);
+  });
+
   it("searches modules, actions, keywords and module names on tools", () => {
     expect(searchTools("nómina").tools.map((tool) => tool.moduleId)).toEqual([
       "payroll",
       "payroll",
       "payroll",
       "payroll",
+      "reports",
     ]);
     expect(searchTools("usuarios").modules.map((module) => module.id)).toContain("users");
     expect(searchTools("centro de trabajo").tools[0]?.id).toBe("companies.work-centers");
