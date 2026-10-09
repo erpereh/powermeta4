@@ -8,6 +8,7 @@ export type PortalSqlParam =
   | { readonly type: "varchar"; readonly length: number; readonly value: string }
   | { readonly type: "nvarchar"; readonly length: number; readonly value: string }
   | { readonly type: "date"; readonly value: Date }
+  | { readonly type: "datetime"; readonly value: Date }
   | { readonly type: "int"; readonly value: number };
 
 export type PortalSqlValue = string | number | boolean | Date | null;
@@ -48,6 +49,9 @@ const bind = (request: sql.Request, name: string, param: PortalSqlParam): void =
       return;
     case "date":
       request.input(name, sql.Date, param.value);
+      return;
+    case "datetime":
+      request.input(name, sql.DateTime, param.value);
       return;
     case "int":
       request.input(name, sql.Int, param.value);

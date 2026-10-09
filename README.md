@@ -187,6 +187,18 @@ del proyecto jamás puedan compilar código nativo.
   catálogo local de herramientas; `/tools/registro-retributivo` analiza el
   Registro Retributivo y los recibos en local; `/tools/users/list` consulta
   usuarios Meta4 por sociedad.
+- `/tools/reports/quinquenal`: «Consultar quinquenal» reproduce en solo
+  lectura el Meta4Object `CYC_CONSULTA_QUINQUENAL` de PeopleNet (todos los
+  empleados computables o una matrícula): datos del puesto y coeficiente de
+  jornada, retribución, retribución con reducción y variable de los últimos
+  cinco años. `POST /api/reports/quinquenal/export` descarga el mismo Excel
+  que PeopleNet. `npm run quinquenal:verify -- <excel> [sociedad] [matrícula]`
+  lo compara con un Excel exportado de PeopleNet e imprime solo recuentos.
+- `/tools/reports/resultados-nomina`: «Resultados de nómina» lista las
+  ejecuciones guardadas de los informes de nómina de PeopleNet (CYC, IBER o
+  COLL según la sesión) y muestra la hoja «Datos» y el «informe» por centro y
+  empleado. `POST /api/reports/payroll-results/export` descarga el Excel como
+  el de PeopleNet.
 
 - `/portal/...`: portal del empleado y del responsable de CYC, IBER y COLL
   (inicio, tareas, organización, mis datos, retribución, tiempo, talento,

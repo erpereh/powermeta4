@@ -1,5 +1,58 @@
 # powermeta4 - estado de tareas
 
+## Informes: Resultados de nómina - 2026-10-09
+
+- [x] Acción «Resultados de nómina» en Informes
+      (`reports.payroll-results`, `/tools/reports/resultados-nomina`).
+- [x] Las cuatro lecturas de «Resultados para Informes» con la sociedad de la
+      sesión (CYC, IBER o COLL), solo `SELECT`: lista de `M4CSP_INF_RESULT`,
+      resultado con `M4CSP_INF_RESULT1`, catálogo `M4CSP_X_INFORMES` y paga
+      de `M4SCO_HT_PAYS`. El BLOB (`~BLOBD\0\0` + texto con tabuladores) se
+      decodifica en la hoja «Datos»; las ejecuciones vacías se marcan.
+- [x] Detalle con datos de la paga, hojas «Datos» e «Informe» (centro,
+      empleado y nombre, total por centro y total general), buscador,
+      «Ampliar ventana» y «Descargar Excel» con el nombre de PeopleNet.
+- [x] Comparado con el Excel de prueba de COLL (06/10/2026 10:49:34): «Datos»
+      con las 20 filas idénticas (una cambia de posición por un orden interno
+      de Meta4) e «informe» con 146/146 cabeceras y todas sus celdas iguales.
+      Lista, detalle y Excel comprobados también en CYC e IBER.
+- [x] Pruebas dirigidas (BLOB, conversión de celdas, informe, clave, Excel,
+      ruta, componentes y registro), typecheck, build, oxlint sin avisos en
+      los archivos nuevos y formato dirigido.
+- [ ] La hoja «informe» se escribe con valores, no como tabla dinámica de
+      Excel. Otras plantillas (seguros sociales, reporting) solo llevan «Datos».
+- [ ] Revisión visual con sesión Meta4 real.
+
+## Informes: Consultar quinquenal - 2026-10-09
+
+- [x] Acción «Consultar quinquenal» en Informes (`reports.quinquenal`,
+      `/tools/reports/quinquenal`); `/tools/reports` tiene página propia.
+- [x] Reproduce en solo lectura el Meta4Object `CYC_CONSULTA_QUINQUENAL`
+      a partir de la traza LDB: lista de empleados, Atradius, VPT, última
+      paga publicada y acumulados actual, de diciembre y de variable, en
+      consultas agrupadas por empleado (`runPortalSelect`, solo `SELECT`).
+- [x] Fórmulas deducidas de la traza (`src/lib/quinquenal/calc.ts`): ES, PT,
+      coeficiente de jornada, variable por porcentaje u objetivo, años sin
+      diciembre vacíos, niveles organizativos y grupo/nivel de puesto.
+- [x] Todos los empleados computables o una matrícula; tabla con buscador y
+      filtro por empresa, ficha con los cinco años y exportación a Excel con
+      el formato de PeopleNet (`POST /api/reports/quinquenal/export`).
+- [x] Resultados con «Todos los campos» por defecto (las 57 columnas del
+      Excel con desplazamiento horizontal) o «Resumen» (identificación, puesto y retribución y variable de los cinco años), y «Ampliar ventana»
+      como en el organigrama: Modal a pantalla completa que conserva vista,
+      empresa, búsqueda y orden y devuelve el foco al cerrar.
+- [x] `npm run quinquenal:verify` contra PeopleNet y el Excel de prueba de
+      CYC: 595/595 filas y 57/57 columnas idénticas; también con las
+      matrículas de muestra ES, PT y variable porcentual. El Excel generado
+      coincide en 34.626 celdas y en los rellenos de cabecera.
+- [x] Pruebas dirigidas: cálculo, parámetros, Excel, ruta de exportación,
+      componente y registro (43 correctas). Typecheck y build correctos;
+      oxlint sin avisos en los archivos nuevos y formato dirigido aplicado.
+- [ ] Suite completa: 831 correctas, 36 omitidas y 5 fallos por tiempo
+      (4 de Excel COM del alta de personas a 180 s y `config.test.ts` a 5 s
+      bajo carga; este último pasa aislado). Revisar Excel COM en la VM.
+- [ ] Revisión visual en el navegador con sesión Meta4 real.
+
 ## Portal y Registro Retributivo: datos completos y carga compacta - 2026-10-08
 
 - [x] Todas las columnas y valores del portal visibles en su orden, sin

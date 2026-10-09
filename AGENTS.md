@@ -176,7 +176,8 @@ Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/`, `/home`, `/chat/new`, `/chat/[chatId]`, `/settings`, `/tools`,
 `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
 `/tools/users/new`, `/tools/companies`, `/tools/payroll`,
-`/tools/payroll/receipt`, `/tools/reports`,
+`/tools/payroll/receipt`, `/tools/reports`, `/tools/reports/quinquenal`,
+`/tools/reports/resultados-nomina`,
 `/tools/processes` y el portal del empleado y del responsable bajo `/portal`
 (`/portal`, `/portal/tareas`, `/portal/organizacion/...`,
 `/portal/empleado/...` y `/portal/responsable/...`, resueltas desde el
@@ -212,6 +213,19 @@ de Meta4 y la sociedad del contexto operativo. `POST /api/payroll/receipts/expor
 (Node.js, requiere sesión) descarga en PDF (`pdf-lib`) o Excel (`exceljs`) las
 nóminas pedidas: recibe solo los parámetros de la consulta y los ids, vuelve a
 leer los recibos en servidor y no guarda ficheros ni datos personales.
+«Consultar quinquenal» (`/tools/reports/quinquenal`) reproduce con `SELECT`
+agrupadas el Meta4Object `CYC_CONSULTA_QUINQUENAL` con la sociedad del
+contexto operativo; las fórmulas viven en `src/lib/quinquenal/calc.ts`.
+`POST /api/reports/quinquenal/export` (Node.js, requiere sesión) recibe solo
+la matrícula opcional, vuelve a leer en servidor y devuelve el Excel con el
+formato de PeopleNet, sin guardar ficheros ni datos personales.
+«Resultados de nómina» (`/tools/reports/resultados-nomina`) lista con `SELECT`
+las ejecuciones de `M4CSP_INF_RESULT` de la sociedad del contexto operativo y
+muestra su resultado (`M4CSP_INF_RESULT1.CSP_RESULTADO`: `~BLOBD\0\0` y texto
+con tabuladores). `POST /api/reports/payroll-results/export` (Node.js, requiere
+sesión) recibe solo la clave de la ejecución, vuelve a leerla y devuelve el
+Excel con las hojas «Datos» e «informe» (tabla de `plantilla_infconnom.xls`
+ya calculada), sin guardar ficheros ni datos personales.
 El endpoint OpenAI-compatible global
 se configura mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL` en el entorno
 server-side; nunca se documentan credenciales ni se exponen claves al cliente.
