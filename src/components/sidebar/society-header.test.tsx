@@ -1,7 +1,6 @@
 /** @vitest-environment jsdom */
 
 import { cleanup, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -82,7 +81,8 @@ describe("society header", () => {
     renderHeader();
 
     expect(screen.getByText("CYC")).toBeTruthy();
-    expect(screen.getByText("Sociedad Meta4")).toBeTruthy();
+    expect(screen.queryByText("Sociedad Meta4")).toBeNull();
+    expect(screen.queryByRole("button")).toBeNull();
     expect(document.querySelector(`img[src="${POWERMETA_MARK_SRC}"]`)).toBeTruthy();
     expect(screen.queryByText("Sociedades")).toBeNull();
     expect(screen.queryByText("Add team")).toBeNull();
@@ -90,36 +90,15 @@ describe("society header", () => {
     expect(screen.queryByText("Eliminar empresa")).toBeNull();
   });
 
-  it("lists only the available societies and switches IBER", async () => {
+  it("never offers a society selector even with several societies", () => {
     mocks.auth.availableSocieties = ["CYC", "IBER"];
-    mocks.switchMeta4WorkspaceAction.mockResolvedValue({
-      ok: true,
-      data: {
-        companies: [],
-        activeCompanyId: "company-iber",
-        workspaces: {},
-        auth: {
-          mode: "meta4",
-          username: "usuario",
-          canUseMeta4: true,
-          societyCode: "IBER",
-          availableSocieties: ["CYC", "IBER"],
-        },
-      },
-    });
-    const user = userEvent.setup();
     renderHeader();
 
-    await user.click(screen.getByRole("button", { name: /Cambiar sociedad Meta4/i }));
-    expect(screen.getByText("Sociedades")).toBeTruthy();
-    expect(screen.getByText("IBER")).toBeTruthy();
-    expect(screen.queryByText("COLL")).toBeNull();
-    expect(screen.queryByText("Add team")).toBeNull();
-
-    await user.click(screen.getByText("IBER"));
-    expect(mocks.switchMeta4WorkspaceAction).toHaveBeenCalledWith("IBER");
-    expect(mocks.applySnapshot).toHaveBeenCalled();
-    expect(mocks.refresh).toHaveBeenCalled();
+    expect(screen.getByText("CYC")).toBeTruthy();
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.queryByText("Sociedades")).toBeNull();
+    expect(screen.queryByText("IBER")).toBeNull();
+    expect(mocks.switchMeta4WorkspaceAction).not.toHaveBeenCalled();
   });
 
   it("shows development mode for debug auth", () => {

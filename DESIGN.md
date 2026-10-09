@@ -18,8 +18,8 @@ el menú de acciones (ver Menú).
 assistant-ui se conserva para el Thread.
 
 La identidad visual se centraliza en `PowermetaLogo`, única API de branding. El
-isotipo oficial vive en `public/brand/powermeta4-mark.svg` y se sirve como
-`/brand/powermeta4-mark.svg`. `PowermetaLogo compact` muestra solo el isotipo;
+isotipo oficial vive en `public/brand/powermeta4-mark.webp` y se sirve como
+`/brand/powermeta4-mark.webp`. `PowermetaLogo compact` muestra solo el isotipo;
 el modo normal añade el wordmark textual `powermeta4`. SocietyHeader, login,
 cabeceras y settings consumen ese componente; no importan el SVG.
 

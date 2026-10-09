@@ -257,7 +257,7 @@ export function Table<T>({
 
   return (
     <div
-      className={cn("w-full overflow-hidden border border-border bg-background text-sm", className)}
+      className={cn("w-full overflow-hidden bg-transparent text-sm", className)}
     >
       <div
         data-table-viewport=""
@@ -404,9 +404,9 @@ export function Table<T>({
                       }
                       onPointerLeave={hasRowMenu ? deactivateRow : undefined}
                       className={cn(
-                        "border-border/60 border-b transition-colors",
-                        "data-[selected=true]:bg-muted/60",
-                        "hover:bg-muted/50",
+                        "border-border/50 border-b transition-colors",
+                        "data-[selected=true]:bg-muted/50",
+                        "hover:bg-muted/30",
                         onRowActivate &&
                           "cursor-pointer outline-none focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                       )}

@@ -29,29 +29,29 @@ export function PropertyList({
   return (
     <div
       className={cn(
-        "min-w-0 overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
+        "min-w-0 overflow-hidden rounded-xl border border-border/60 bg-card text-card-foreground shadow-xs",
         className,
       )}
     >
-      <dl aria-label={ariaLabel} className="divide-y divide-border">
+      <dl aria-label={ariaLabel} className="divide-y divide-border/60">
         {items.map((item, index) => {
           const Icon = item.icon;
           return (
             <div
               key={item.id ?? index}
-              className="grid min-w-0 gap-1 px-4 py-2.5 text-sm sm:grid-cols-[minmax(9rem,32%)_1fr] sm:gap-4"
+              className="grid min-w-0 gap-1 px-4 py-3.5 text-sm sm:grid-cols-[minmax(9rem,32%)_1fr] sm:gap-4"
             >
-              <dt className="flex min-w-0 items-center gap-2 text-muted-foreground">
-                {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
+              <dt className="flex min-w-0 items-center gap-2 font-medium text-foreground">
+                {Icon ? <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" /> : null}
                 <span className="min-w-0 truncate">{item.label}</span>
               </dt>
-              <dd className="min-w-0 wrap-break-word font-medium text-foreground">{item.value}</dd>
+              <dd className="min-w-0 wrap-break-word text-muted-foreground">{item.value}</dd>
             </div>
           );
         })}
       </dl>
       {footer ? (
-        <div className="border-t border-border bg-muted/30 px-4 py-2.5 text-sm">{footer}</div>
+        <div className="border-t border-border/60 bg-muted/30 px-4 py-3 text-sm">{footer}</div>
       ) : null}
     </div>
   );

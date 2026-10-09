@@ -19,7 +19,7 @@ export function SkeletonRows<T>({
     <>
       {Array.from({ length: count }, (_, r) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder rows
-        <tr key={r} style={{ height: rowHeight }} className="border-border/60 border-b">
+        <tr key={r} style={{ height: rowHeight }} className="border-border/50 border-b">
           {selectable ? <td /> : null}
           {columns.map((column) => (
             <td key={column.key} className={cn("px-4", alignText(column.align))}>

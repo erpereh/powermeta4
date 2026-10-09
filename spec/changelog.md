@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-09 - Tablas y cards según referencias, nuevo isotipo
+
+- Tablas del sistema sin borde exterior, con cabecera gris redondeada y filas
+  separadas por divisores finos. Solo estilos; la lógica no cambia.
+- `Surface` con cabecera se presenta como marco suave con título pequeño y
+  tarjeta interior; `PropertyList` y `Card` adoptan los mismos tokens.
+- Nuevo isotipo «P4» degradado (`/brand/powermeta4-mark.webp`) y favicon
+  `src/app/icon.png`; eliminados el SVG anterior y `favicon.ico`.
+- La cabecera de la sidebar muestra solo logo y sociedad, sin «Sociedad
+  Meta4» y sin selector.
+
 ## 2026-10-08 - Datos completos del portal y carga compacta de recibos
 
 - Tablas del portal sin «Ver detalle» ni Drawer: muestran todos los campos

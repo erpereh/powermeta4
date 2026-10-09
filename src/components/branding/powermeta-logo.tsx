@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
  * login, headers and settings must consume this component instead of the
  * public SVG path.
  */
-export const POWERMETA_MARK_SRC = "/brand/powermeta4-mark.svg";
+export const POWERMETA_MARK_SRC = "/brand/powermeta4-mark.webp";
 
 type PowermetaLogoProps = {
   className?: string;

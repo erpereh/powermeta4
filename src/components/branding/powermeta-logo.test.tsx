@@ -17,8 +17,8 @@ const OLD_INLINE_MARK =
 
 describe("PowermetaLogo", () => {
   it("uses the official mark asset from public/brand", () => {
-    expect(existsSync(path.join(process.cwd(), "public/brand/powermeta4-mark.svg"))).toBe(true);
-    expect(existsSync(path.join(process.cwd(), "powermeta4-mark.svg"))).toBe(false);
+    expect(existsSync(path.join(process.cwd(), "public/brand/powermeta4-mark.webp"))).toBe(true);
+    expect(existsSync(path.join(process.cwd(), "powermeta4-mark.webp"))).toBe(false);
   });
 
   it("renders the isotipo and wordmark without the old inline mark", () => {

@@ -185,7 +185,7 @@ export function PortalDataTable({
         autoHeight={autoHeight}
         height={440}
         className={cn(
-          "rounded-xl border-border/70 bg-background shadow-none [&_table]:w-full [&_td]:overflow-visible [&_td]:text-clip [&_td]:whitespace-normal [&_td]:wrap-anywhere [&_td]:px-3 [&_td]:py-3 [&_td]:align-top [&_th]:bg-muted/35 [&_th]:px-0 [&_th]:text-xs [&_th]:font-normal [&_tr]:border-border/50 [&_tbody>tr:last-child]:border-b-0",
+          "rounded-xl border-border/70 bg-background shadow-none [&_table]:w-full [&_td]:overflow-visible [&_td]:text-clip [&_td]:whitespace-normal [&_td]:wrap-anywhere [&_td]:px-3 [&_td]:py-3 [&_td]:align-top [&_th]:px-0 [&_th]:text-xs [&_th]:font-normal [&_tr]:border-border/50 [&_tbody>tr:last-child]:border-b-0",
           !framed && "rounded-none border-0",
           rows.length === 0 && "[&_thead]:hidden [&_td]:p-5",
         )}

@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Tablas, cards, isotipo y cabecera de sociedad - 2026-10-09
+
+- [x] `Table` (motion/table): sin marco exterior, cabecera gris redondeada
+      sin divisor, texto de cabecera normal y filas con divisor fino. Props,
+      virtualización, orden, selección y callbacks sin cambios.
+- [x] `Surface` con cabecera: marco suave `bg-muted/50` con título pequeño y
+      tarjeta interior; sin cabecera, solo la tarjeta. `PropertyList` con
+      etiqueta en primer plano y valor atenuado; `Card` con anillo suave.
+- [x] Isotipo «P4» degradado en `public/brand/powermeta4-mark.webp`
+      (recortado con sharp); retirado el SVG anterior. Favicon sustituido por
+      `src/app/icon.png`. `PowermetaLogo` sigue siendo la única API.
+- [x] `SocietyHeader` fijo y no seleccionable: sin «Sociedad Meta4», sin menú
+      ni cambio de sociedad desde la sidebar; «Modo desarrollo» en debug.
+- [x] Comprobado: `npm run typecheck`, `npm test` (153 ficheros, 838 tests),
+      `npm run build`, revisión visual en modo debug (login, sidebar,
+      Registro Retributivo: cards y tabla; claro, oscuro y 375 px sin
+      overflow). `npm run lint`: oxlint sin errores; `oxfmt --check` falla
+      por 492 ficheros sin formato preexistentes en el repo.
+
 ## Portal y Registro Retributivo: datos completos y carga compacta - 2026-10-08
 
 - [x] Todas las columnas y valores del portal visibles en su orden, sin

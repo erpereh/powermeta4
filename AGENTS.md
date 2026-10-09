@@ -104,7 +104,7 @@ producto fuera del chat. La sociedad no la elige el navegador.
 - Acciones: operaciones ERP/Meta4 mostradas desde Inicio. Herramientas:
   utilidades independientes de powermeta4 mostradas desde la sidebar.
 - `PowermetaLogo` es la única API de branding. El isotipo oficial está en
-  `public/brand/powermeta4-mark.svg`.
+  `public/brand/powermeta4-mark.webp`.
 - Las recomendaciones son acciones no ejecutables: solo preparan texto
   editable en el composer y dejan el envío bajo control explícito del usuario.
 - Los workspaces futuros muestran estados honestos de disponibilidad; no
