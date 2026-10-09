@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
@@ -99,5 +100,30 @@ describe("tools launchpad", () => {
     expect(launcher.getByRole("tab", { name: "Informes" })).toBeTruthy();
     expect(launcher.getByRole("tab", { name: "Procesos" })).toBeTruthy();
     expect(launcher.getByText("Listado de usuarios")).toBeTruthy();
+  });
+
+  it("hides unfinished actions with the availability switch", async () => {
+    const user = userEvent.setup();
+    renderLaunchpad();
+
+    const launcher = within(screen.getByRole("main"));
+    const toggle = launcher.getByRole("switch", { name: "Mostrar solo acciones disponibles" });
+
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(launcher.getByText("Modificar un usuario")).toBeTruthy();
+
+    await user.click(toggle);
+
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(launcher.queryByText("Modificar un usuario")).toBeNull();
+    expect(launcher.queryByText("Próximamente")).toBeNull();
+    expect(launcher.getByText("Listado de usuarios")).toBeTruthy();
+  });
+
+  it("does not show the workspace scope label", () => {
+    renderLaunchpad();
+
+    const launcher = within(screen.getByRole("main"));
+    expect(launcher.queryByText("Modo desarrollo")).toBeNull();
   });
 });

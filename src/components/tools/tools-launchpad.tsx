@@ -3,12 +3,11 @@
 import { useMemo, useState } from "react";
 
 import { PowermetaLogo } from "@/components/branding/powermeta-logo";
-import { HoverList, SidebarToggle, Surface } from "@/components/system";
+import { HoverList, SidebarToggle, Surface, Switch } from "@/components/system";
 import { recordToolVisitAction } from "@/app/actions/workspace";
 import { TOOL_REGISTRY } from "@/lib/tools/registry";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
-import { getWorkspaceScopeLabel } from "@/lib/workspaces/scope-label";
 import { ToolCard } from "@/components/tools/tool-card";
 import { ToolsModuleDock, type ModuleFilter } from "@/components/tools/tools-module-dock";
 import { ToolsRecentActivity } from "@/components/tools/tools-recent-activity";
@@ -16,19 +15,23 @@ import { ToolsSearchTrigger } from "@/components/tools/tools-search-trigger";
 
 export function ToolsLaunchpad() {
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
-  const auth = useWorkspaceStore((state) => state.auth);
   const workspace = useWorkspaceStore((state) =>
     state.activeCompanyId ? state.workspaces[state.activeCompanyId] : undefined,
   );
   const recordToolVisit = useWorkspaceStore((state) => state.recordToolVisit);
   const [moduleFilter, setModuleFilter] = useState<ModuleFilter>("all");
+  const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const scopeLabel = getWorkspaceScopeLabel(auth);
 
-  const filteredTools = useMemo(() => {
-    if (moduleFilter === "all") return TOOL_REGISTRY;
-    return TOOL_REGISTRY.filter((tool) => tool.moduleId === moduleFilter);
-  }, [moduleFilter]);
+  const filteredTools = useMemo(
+    () =>
+      TOOL_REGISTRY.filter(
+        (tool) =>
+          (moduleFilter === "all" || tool.moduleId === moduleFilter) &&
+          (!onlyAvailable || tool.implemented),
+      ),
+    [moduleFilter, onlyAvailable],
+  );
 
   const handleToolVisit = (toolId: string) => {
     if (!activeCompanyId) return;
@@ -44,15 +47,21 @@ export function ToolsLaunchpad() {
 
   return (
     <main className="flex min-h-svh flex-col bg-background">
-      <div className="px-4 pt-4 md:hidden">
-        <SidebarToggle wrapperClassName="-ml-1" />
+      <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-6">
+        <div className="md:hidden">
+          <SidebarToggle wrapperClassName="-ml-1" />
+        </div>
+        <Switch
+          checked={onlyAvailable}
+          onCheckedChange={setOnlyAvailable}
+          label="Solo disponibles"
+          ariaLabel="Mostrar solo acciones disponibles"
+          className="ml-auto text-sm text-muted-foreground"
+        />
       </div>
 
-      <div className="mx-auto w-full max-w-3xl space-y-8 px-4 pb-10 pt-8 sm:px-6 sm:pt-16">
+      <div className="mx-auto w-full max-w-3xl space-y-8 px-4 pb-10 pt-4 sm:px-6 sm:pt-10">
         <section className="flex flex-col items-center gap-3 text-center">
-          <span className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
-            {scopeLabel}
-          </span>
           <div className="flex items-center gap-2.5">
             <PowermetaLogo compact markClassName="size-7" />
             <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
@@ -64,24 +73,31 @@ export function ToolsLaunchpad() {
           </p>
         </section>
 
-        <div className="space-y-3">
-          <ToolsSearchTrigger />
-          <ToolsModuleDock value={moduleFilter} onChange={setModuleFilter} />
-        </div>
+        <ToolsSearchTrigger />
 
-        <Surface flush className="p-1.5 shadow-xs">
-          <HoverList aria-label="Acciones disponibles">
-            {filteredTools.map((tool) => (
-              <li key={tool.id}>
-                <ToolCard
-                  tool={tool}
-                  onVisit={() => handleToolVisit(tool.id)}
-                  onUnavailable={showUnavailable}
-                />
-              </li>
-            ))}
-          </HoverList>
-        </Surface>
+        <div className="space-y-3">
+          <ToolsModuleDock value={moduleFilter} onChange={setModuleFilter} />
+
+          <Surface flush className="p-1.5 shadow-xs">
+            {filteredTools.length > 0 ? (
+              <HoverList aria-label="Acciones disponibles">
+                {filteredTools.map((tool) => (
+                  <li key={tool.id}>
+                    <ToolCard
+                      tool={tool}
+                      onVisit={() => handleToolVisit(tool.id)}
+                      onUnavailable={showUnavailable}
+                    />
+                  </li>
+                ))}
+              </HoverList>
+            ) : (
+              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                No hay acciones disponibles en este módulo.
+              </p>
+            )}
+          </Surface>
+        </div>
 
         <ToolsRecentActivity recentTools={workspace?.recentTools ?? []} />
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-09 - Inicio: filtro de acciones disponibles
+
+- Switch «Solo disponibles» en la esquina superior derecha de Acciones para
+  ocultar las acciones «Próximamente»; estado vacío por módulo.
+- Barra de módulos pegada a la lista y separada del buscador.
+- Sin la píldora de sociedad/alcance en la cabecera de Acciones.
+
 ## 2026-10-09 - Tablas y cards según referencias, nuevo isotipo
 
 - Tablas del sistema sin borde exterior, con cabecera gris redondeada y filas

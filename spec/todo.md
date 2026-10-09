@@ -1,5 +1,18 @@
 # powermeta4 - estado de tareas
 
+## Inicio: solo disponibles, espaciado y sin alcance - 2026-10-09
+
+- [x] Switch «Solo disponibles» arriba a la derecha de Acciones: oculta las
+      acciones «Próximamente» (`implemented: false`); desactivado por defecto.
+      Mensaje propio si un módulo queda sin acciones.
+- [x] La barra de módulos queda junto a la lista y separada del buscador.
+- [x] Retirada la píldora de alcance («CYC») de la cabecera de Acciones.
+- [x] Comprobado: tests del launchpad (switch y ausencia del alcance),
+      `npm run typecheck`, `npm test`, `npm run build`, oxlint sin errores y
+      revisión en modo debug (escritorio oscuro, 375 px claro sin overflow,
+      estado vacío en Empresas). `oxfmt --check` sigue fallando por el
+      formato preexistente del repo.
+
 ## Tablas, cards, isotipo y cabecera de sociedad - 2026-10-09
 
 - [x] `Table` (motion/table): sin marco exterior, cabecera gris redondeada
