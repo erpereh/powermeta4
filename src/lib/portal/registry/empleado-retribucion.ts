@@ -14,6 +14,7 @@ import {
   text,
 } from "./helpers";
 import { RETRIBUCION_SQL } from "./sql/retribucion";
+import { PROJECTION_SQL } from "./sql/projections";
 
 const RET = "empleado/retribucion";
 const base = "/portal/empleado/retribucion";
@@ -313,12 +314,21 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
     keywords: ["proyección", "haberes", "compensación total", "beneficios sociales"],
     sensitive: true,
     availableIn: ["CYC", "IBER", "COLL"],
-    read: sqlRead([
-      ...RETRIBUCION_SQL.proyeccionDatos.tables,
-      ...RETRIBUCION_SQL.proyeccionConceptos.tables,
-      ...RETRIBUCION_SQL.proyeccionInformes.tables,
-    ]),
-    view: "generic",
+    read: {
+      kind: "sql",
+      tables: [
+        ...RETRIBUCION_SQL.proyeccionDatos.tables,
+        ...RETRIBUCION_SQL.proyeccionConceptos.tables,
+        ...RETRIBUCION_SQL.proyeccionInformes.tables,
+        ...PROJECTION_SQL.historicalHeaders.tables,
+        ...PROJECTION_SQL.historicalConcepts.tables,
+        "M4SCO_AC_HR_PERIOD",
+        "M4CSP_AC_HR_PERIOD",
+        "M4SCO_HT_PAYS",
+      ],
+      verified: false,
+    },
+    view: "projections",
     sections: [
       sqlConsult(
         "datos",
@@ -329,7 +339,7 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
           ["CSP_FEC_EJECUCION", "Calculada el"],
           ["SSP_NM_CATEGORIA", "Categoría"],
           ["SCO_N_WORK_LOCATION", "Centro de trabajo"],
-          ["PAGA_TOT", "Total anual"],
+          ["PAGA_TOT", "Etiqueta de total"],
         ],
         RETRIBUCION_SQL.proyeccionDatos,
       ),

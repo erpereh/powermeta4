@@ -18,6 +18,8 @@ import { OrgTree } from "./org-tree";
 import { OrgTreeLink, PersonOrgChart } from "./person-org-chart";
 import { PayslipsView } from "./payslips-view";
 import { TasksView } from "./tasks-view";
+import { ProjectionsView } from "./projections-view";
+import type { ProjectionSearchParams } from "@/lib/portal/projections/types";
 
 async function OrgChart({
   context,
@@ -77,10 +79,12 @@ export function FeatureDispatch({
   feature,
   context,
   orgSearchParams = {},
+  projectionSearchParams = {},
 }: {
   feature: PortalFeature;
   context: PortalContext;
   orgSearchParams?: OrgSearchParams;
+  projectionSearchParams?: ProjectionSearchParams;
 }) {
   const variant = context.mode === "meta4" ? context.variant : null;
   const header = <FeatureHeader feature={feature} variant={variant} />;
@@ -133,6 +137,22 @@ export function FeatureDispatch({
           {header}
           <PayslipsView context={context} />
           <FeatureSections feature={feature} catalogs={NO_CATALOGS} />
+        </div>
+      );
+    case "projections":
+      return (
+        <div className="flex min-w-0 flex-col gap-6">
+          {header}
+          <Suspense
+            fallback={
+              <div role="status" className="space-y-3">
+                <p className="text-sm text-muted-foreground">Cargando el informe de proyecciones…</p>
+                <div aria-hidden>{fallback}</div>
+              </div>
+            }
+          >
+            <ProjectionsView context={context} params={projectionSearchParams} />
+          </Suspense>
         </div>
       );
     case "my-file":

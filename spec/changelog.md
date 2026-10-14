@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-10-14 - Informe de proyecciones del portal
+
+- Modernizada `/portal/empleado/aplicaciones/proyecciones`, también accesible
+  desde Retribución, con ejercicio, cabecera propia, resumen y secciones
+  continuas. Mantiene todos los conceptos y pagas, distingue reales de
+  proyectadas y conserva la descarga del PDF original.
+- Anillos beUI para retribución directa y compensación total; comparativa
+  quinquenal con escala en euros, controles traducidos, teclado, leyendas y
+  tabla de importes. Componentes expuestos por `@/components/system`;
+  composition conserva la escala porcentual predeterminada.
+- Lecturas parametrizadas actuales e históricas de las tablas originales,
+  con sociedad, matrícula y periodo de alta resueltos en servidor. Selector
+  validado contra ejercicios propios; datos ausentes, errores y dependencias
+  explícitos. No se ejecutan métodos de cálculo ni escrituras ERP.
+- Se conservan las diferencias entre haberes, objetivos y compensación, los
+  acumulados y el límite de aportación extraordinaria al PPSE. La ayuda de
+  consumo exige un importe informado, sin aplicar los antiguos 100 euros.
+- Escenarios de desarrollo ficticios completo, parcial y vacío protegidos
+  por sesión debug y entorno de desarrollo. Corregida la aparición de arcos
+  cuando la preferencia de movimiento reducido se conoce tras hidratar.
+- Diseño y documentación del portal actualizados y regenerados. Lecturas
+  ampliadas marcadas por verificar en VM: no se afirma paridad económica
+  con PeopleNet ni se copian los datos personales del PDF.
+- Comprobado: typecheck, build, 924 pruebas de la suite completa (2 omitidas),
+  40 dirigidas y regresión adicional del anillo; ocho combinaciones de
+  ancho/tema, teclado, recarga e historial. Lint dirigido correcto; el lint
+  global conserva siete avisos y 529 problemas de formato preexistentes.
+
 ## 2026-10-09 - Inicio: filtro de acciones disponibles
 
 - Switch «Solo disponibles» en la esquina superior derecha de Acciones para

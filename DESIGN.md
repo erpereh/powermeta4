@@ -449,6 +449,22 @@ nómina con importes numéricos, más «Resumen» si son varias.
   controles deshabilitados con su motivo, nunca con opciones inventadas.
 - Las leyendas de estado combinan texto e icono, no solo color.
 
+## Informe de proyecciones
+
+En Aplicaciones Internas, el informe usa una vista propia: ejercicio y fecha,
+cuatro cifras, dos anillos beUI y todos los desgloses visibles. Las tablas de
+pagas conservan el concepto fijo y su scroll contenido; las valoraciones
+anuales se agrupan en columnas cuando hay espacio. PPSE separa ordinaria y
+extraordinaria. La comparativa beUI termina el informe con escala absoluta
+en euros y tabla de importes accesible. La fachada `system/charts` expone los
+originales beUI; sus modos porcentual y redondeado siguen siendo los defaults.
+El anillo denso usa extremos rectos para conservar los beneficios pequeños.
+
+Las cifras de haberes y de compensación tienen fuentes distintas; los
+importes ausentes no son cero y los porcentajes parciales se identifican.
+En debug autenticado de desarrollo hay muestras ficticias completa, parcial
+y vacía, con aviso visible. La descarga sigue siendo el PDF original.
+
 ## Responsive y accesibilidad
 
 Revisar 1440 px, 1024 px, 768 px y 390 px. Evitar overflow horizontal,

@@ -5,6 +5,9 @@
 Navegación implementada: [organización según el portal original](implementacion/navegacion-original.md)
 y [mapa generado de secciones, pestañas y destinos](implementacion/navegacion.md).
 
+La [vista del informe de proyecciones](implementacion/proyecciones-visual.md)
+documenta sus bloques, las lecturas propias y las muestras de desarrollo.
+
 Clonar **las funcionalidades del portal corporativo disponibles para CYC, IBER y COLL**, tanto para empleado como para responsable, dentro de powermeta4. El destino es una nueva sección **`/portal`**, integrada en la sesión existente y la sociedad activa resuelta por el servidor. La interfaz se adapta al diseño de powermeta4 y a sus componentes beUI; los JSP, frames y estilos antiguos sirven como evidencia funcional.
 
 Este directorio conserva la especificación del original y documenta su implementación bajo `/portal`. Los archivos de `implementacion` distinguen las pantallas con lectores y formularios de las dependencias pendientes. El alcance verificable procede de la copia local y los manuales; la existencia de un archivo no garantiza que esté publicado para una sociedad o perfil. Los envíos ERP del portal siguen bloqueados.

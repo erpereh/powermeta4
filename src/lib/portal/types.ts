@@ -280,6 +280,7 @@ export type FeatureView =
   | "orgchart"
   | "my-file"
   | "payslips"
+  | "projections"
   | "manager-home"
   | "population"
   | "team";

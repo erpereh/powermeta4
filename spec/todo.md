@@ -1,5 +1,37 @@
 # powermeta4 - estado de tareas
 
+## Portal: informe de proyecciones moderno - 2026-10-14
+
+- [x] Vista `projections` en Aplicaciones Internas y su ruta de Retribución:
+      ejercicio, identificación, fecha de cálculo, resumen, dos anillos beUI,
+      bloques completos y comparativa de hasta cinco años en euros.
+- [x] Fachada del sistema: gráficos donut y composition; escala absoluta
+      opcional conservando el modo porcentual, leyendas, teclado, importes
+      accesibles y movimiento reducido. Pagas con concepto fijo y scroll
+      contenido, estados Real/Proyectada/Sin clasificar y PDF original.
+- [x] Modelo serializable y `SELECT` propias actuales/históricas, vinculadas
+      al periodo de la cabecera. Ejercicios validados contra los de la persona
+      y sociedad resueltas en servidor; rechazo de periodos ambiguos.
+- [x] Haberes, objetivos y compensación separados; PPSE según la regla
+      original y ayuda de consumo sin constante inventada. Datos desconocidos
+      permanecen ausentes. Lectura quinquenal restringida a la matrícula propia.
+- [x] Muestras ficticias completa, parcial y vacía con sesión debug y entorno
+      de desarrollo; ninguna consulta Meta4 ni persistencia de las muestras.
+- [x] Revisión visual a 1440/1024/768/390 px en claro y oscuro, sin overflow
+      de página; teclado, columna fija, selector, recarga e historial.
+      Corregida la visibilidad de los anillos con movimiento reducido.
+- [x] `npm run typecheck`, `npm run build`, `npm run portal:docs` y
+      `git diff --check`; suite completa `npm test -- --maxWorkers=2`:
+      169 ficheros, 924 correctas y 2 omitidas. Pruebas dirigidas finales:
+      40 correctas y una regresión adicional de movimiento reducido correcta.
+- [x] `npm run lint` ejecutado: siete avisos previos y `oxfmt --check` falla
+      por 529 ficheros del repositorio. Lint y formato dirigidos de los
+      archivos nuevos correctos; sin reformateo masivo.
+- [ ] VM: verificar contratos actuales/históricos y paridad de importes por
+      variante; especialmente proyección frente a cifras quinquenales, años
+      archivados fuera del rango económico y descarga con sesión real.
+      Este equipo no dispone de `PEOPLENET_DB_*`.
+
 ## Inicio: solo disponibles, espaciado y sin alcance - 2026-10-09
 
 - [x] Switch «Solo disponibles» arriba a la derecha de Acciones: oculta las
