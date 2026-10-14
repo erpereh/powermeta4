@@ -138,6 +138,7 @@ export function PortalShell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const wideReport = getPortalFeatureByRoute(pathname)?.view === "projections";
   const palette = useOptionalAppCommandPalette();
   const profile = getProfileForRoute(pathname);
   const location = getPortalMenuLocation(pathname);
@@ -162,7 +163,7 @@ export function PortalShell({
   return (
     <div data-portal-root className="flex min-h-svh min-w-0 flex-col">
       <PageHeader
-        contentClassName="mx-auto w-full max-w-6xl"
+        contentClassName={cn("mx-auto w-full max-w-6xl", wideReport && "xl:max-w-none")}
         title={<PortalBreadcrumb pathname={pathname} />}
         actions={
           <>
@@ -196,7 +197,12 @@ export function PortalShell({
           ) : null
         }
       />
-      <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
+      <div
+        className={cn(
+          "mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6",
+          wideReport && "xl:max-w-none xl:px-2",
+        )}
+      >
         {children}
       </div>
     </div>

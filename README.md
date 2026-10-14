@@ -126,7 +126,9 @@ revoca y se exige un login Meta4 explícito.
 El informe de proyecciones de Aplicaciones Internas incorpora una muestra
 visual en `/portal/empleado/aplicaciones/proyecciones` únicamente con sesión
 debug válida, `NODE_ENV=development` y el flag anterior. Su selector permite
-ver datos ficticios completos, parciales o vacíos. No consulta Meta4 ni
+ver datos ficticios completos, parciales, vacíos o con 20 pagas. Las tablas
+siguen la agrupación del original y caben sin scroll desde 1280 px; en tablet
+y móvil el desplazamiento queda dentro de cada tabla. No consulta Meta4 ni
 PeopleNet, no guarda cifras y no está disponible en producción. La sesión
 Meta4 usa las lecturas propias del servidor y conserva los PDF originales.
 Contrato y verificación: [Informe de proyecciones](docs/portal/implementacion/proyecciones-visual.md).

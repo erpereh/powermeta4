@@ -1,5 +1,34 @@
 # powermeta4 - estado de tareas
 
+## Portal: tablas de proyecciones como el original - 2026-10-14
+
+- [x] Retribución fija en una sola tabla, con subtítulos de complementos y
+      total final; orden original de variable, base, Seguridad Social y
+      manutención. Capitales, primas y ayudas juntos a la izquierda; PPSE,
+      aportación definida, flexible, Navidad e histórico en sus posiciones.
+- [x] Clasificación por conceptos originales y contrato de grupo/subgrupo;
+      sin tablas automáticas de G/SG o Retenciones. Conceptos exclusivos de
+      gráficos separados y totales completos, sin convertir ausencias en cero.
+- [x] `Table getSectionRow` opcional para subtítulos a todo el ancho; las
+      tablas existentes conservan su comportamiento por defecto.
+- [x] Desde 1280 px, ancho disponible y márgenes de 8 px, sin scroll ni
+      cifras partidas; sidebar conservada. Cabeceras sin badges visibles de
+      Real/Proyectada. Euros en cabecera y moneda completa accesible.
+- [x] Tablet y móvil con scroll contenido, concepto/subtítulos visibles y
+      teclado. Histórico con anchos legibles; muestras ficticias de 15 y
+      20 pagas, parcial/vacía, únicamente en debug autenticado de desarrollo.
+- [x] Revisión visual en 24 combinaciones de escritorio (1280/1440/1920 px,
+      claro/oscuro, sidebar abierta/colapsada y 15/20 pagas), más 12 de
+      tablet/móvil (1024/768/390 px, ambos temas y ambas muestras). Sin
+      overflow de página; ejercicio, recarga y estados parciales comprobados.
+- [x] Suite completa: 171 ficheros, 930 correctas y 2 omitidas;
+      48 dirigidas finales correctas. Typecheck, build y diff correctos.
+      Lint/formato dirigidos del código correctos; lint global conserva siete
+      avisos y 526 ficheros con formato previo pendiente.
+- [ ] VM: contrastar los pares reales de grupo/subgrupo, datos actuales e
+      históricos por variante, totales y descarga original con sesión Meta4.
+      La revisión local usa muestras ficticias, sin conexión PeopleNet.
+
 ## Portal: informe de proyecciones moderno - 2026-10-14
 
 - [x] Vista `projections` en Aplicaciones Internas y su ruta de Retribución:

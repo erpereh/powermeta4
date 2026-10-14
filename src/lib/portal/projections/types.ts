@@ -7,6 +7,7 @@ export type ProjectionPay = {
 
 export type ProjectionRow = {
   id: string;
+  kind: "concept" | "section" | "total";
   label: string;
   amounts: readonly (number | null)[];
   total: number | null;
@@ -17,6 +18,7 @@ export type ProjectionSection = {
   id: string;
   title: string;
   layout: "pays" | "annual" | "ppse";
+  placement: "wide" | "benefits" | "compact";
   rows: ProjectionRow[];
 };
 

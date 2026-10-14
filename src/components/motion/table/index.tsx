@@ -63,6 +63,7 @@ export function Table<T>({
   data,
   columns,
   getRowId,
+  getSectionRow,
   selectable = false,
   selectedRowIds,
   defaultSelectedRowIds,
@@ -256,9 +257,7 @@ export function Table<T>({
   const leadColumns = columns.length + (selectable ? 1 : 0);
 
   return (
-    <div
-      className={cn("w-full overflow-hidden bg-transparent text-sm", className)}
-    >
+    <div className={cn("w-full overflow-hidden bg-transparent text-sm", className)}>
       <div
         data-table-viewport=""
         ref={scrollRef}
@@ -361,6 +360,25 @@ export function Table<T>({
                 ) : null}
                 {virtualItems.map((vItem) => {
                   const entry = sortedRows[vItem.index];
+                  const sectionLabel = getSectionRow?.(entry.row);
+                  if (sectionLabel !== null && sectionLabel !== undefined)
+                    return (
+                      <tr
+                        key={entry.id}
+                        data-table-section=""
+                        data-index={vItem.index}
+                        ref={(el) => {
+                          if (variableRowHeight && !autoHeight) virtualizer.measureElement(el);
+                        }}
+                      >
+                        <td
+                          colSpan={leadColumns + 1}
+                          className="bg-muted/40 px-4 py-2 font-medium text-foreground"
+                        >
+                          {sectionLabel}
+                        </td>
+                      </tr>
+                    );
                   const isSelected = selected.has(entry.id);
                   return (
                     <tr

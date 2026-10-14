@@ -8,6 +8,7 @@ import type {
   ProjectionSection,
   ProjectionSegment,
 } from "./types";
+import { buildProjectionTables, sumProjectionAmounts } from "./tables";
 
 export const projectionNumber = (value: unknown): number | null => {
   if (typeof value !== "number" && typeof value !== "string") return null;
@@ -49,7 +50,7 @@ const definitions = [
   ["salary", "Salario convenio", "pays", ["Salario Base", "Paga Extra Prorrateada"]],
   [
     "company",
-    "Complementos de compañía",
+    "Complementos compañía",
     "pays",
     ["Complemento Personal", "Salario base organigrama"],
   ],
@@ -72,12 +73,7 @@ const definitions = [
     ["Base Referencia Retribucion Variable", "Base Referencia Evaluacion anual"],
   ],
   ["social", "Seguridad Social", "pays", ["Coste S.S. empresa"]],
-  [
-    "meals",
-    "Manutención por jornada partida",
-    "pays",
-    ["Comida Tarjeta Importe", "Compensacion Comida"],
-  ],
+  ["meals", "Manutención por jornada partida", "pays", ["Comida Tarjeta Importe"]],
   [
     "capital",
     "Capitales de pólizas de seguros",
@@ -88,12 +84,12 @@ const definitions = [
     "premiums",
     "Primas de seguros",
     "annual",
-    ["Prima Anual Seg. Accidente", "Prima Anual Seg. Vida", "Seguro Salud Empresa"],
+    ["Prima Anual Seg. Accidente", "Prima Anual Seg. Vida", "Compensacion Comida"],
   ],
   ["aid", "Ayudas", "annual", ["Ayuda Escolar hijos", "Becas de empleados", "Ayuda Consumo"]],
   [
     "ppse",
-    "Plan de previsión social empresarial",
+    "PPSE",
     "ppse",
     [
       "Aportación Ordinaria PPSE",
@@ -104,18 +100,15 @@ const definitions = [
   ],
   [
     "defined",
-    "Seguro de aportación definida",
+    "Seguro aportación definida convenio colectivo",
     "annual",
     ["Aportación definida", "aportacion total"],
   ],
-  [
-    "flexible",
-    "Retribución flexible",
-    "pays",
-    ["Desc. Seguro Medico", "Especie Seguro Medico", "Manutención"],
-  ],
+  ["flexible", "Retribución flexible", "pays", ["Desc. Seguro Medico", "Especie Seguro Medico"]],
   ["christmas", "Lote de Navidad", "annual", ["Lote Navidad"]],
   ["travel", "Dietas y kilometrajes", "pays", ["Kilometraje No Exento"]],
+  ["retirement", "Compromiso a la jubilación", "annual", ["Compromiso a la jubilación"]],
+  ["vehicle", "Vehículo compañía", "annual", ["Vehículo compañía"]],
   [
     "training",
     "Inversión individual en formación",
@@ -124,18 +117,7 @@ const definitions = [
   ],
 ] as const;
 
-const groupTitles: Readonly<Record<string, string>> = {
-  RD: "Retribución directa",
-  RI: "Retribución indirecta y beneficios sociales",
-  PPSE: "Plan de previsión social empresarial",
-  RQ: "Compromisos a la jubilación",
-  RET: "Retenciones",
-};
-
-const sum = (values: readonly (number | null)[]): number | null =>
-  values.length && values.every((value) => value !== null)
-    ? Math.round(values.reduce<number>((total, value) => total + (value ?? 0), 0) * 100) / 100
-    : null;
+const sum = sumProjectionAmounts;
 
 export const projectionGraphTotal = (segments: readonly ProjectionSegment[]): number | null =>
   sum(segments.map((segment) => segment.value));
@@ -185,26 +167,69 @@ export const buildProjectionReport = ({
     (a, b) => (projectionNumber(a.CSP_ORDEN) ?? 0) - (projectionNumber(b.CSP_ORDEN) ?? 0),
   );
   const sections = new Map<string, ProjectionSection>();
+  const definitionFor = (label: string) =>
+    definitions.find((entry) => entry[3].some((item) => key(item) === key(label)));
+  const groupKey = (raw: PortalSqlRow) => {
+    const group = text(raw.CSP_ID_GRUPO);
+    const subgroup = text(raw.CSP_ID_SUBGR);
+    return group && subgroup ? JSON.stringify([group, subgroup]) : null;
+  };
+  // Los nodos originales filtran grupo/subgrupo. Un concepto conocido ancla
+  // su contrato; sus otros conceptos y totales se conservan en el mismo bloque.
+  // Un par sin ancla o compartido por varios bloques no se adivina.
+  const contracts = new Map<string, Set<(typeof definitions)[number]>>();
+  for (const raw of source) {
+    const definition = definitionFor(text(raw.ID_ITEM) ?? "");
+    const pair = groupKey(raw);
+    if (!definition || !pair) continue;
+    const entries = contracts.get(pair) ?? new Set();
+    entries.add(definition);
+    contracts.set(pair, entries);
+  }
   const rows = source.map((raw, index) => {
     const label = text(raw.ID_ITEM) ?? "Concepto no informado";
-    const definition = definitions.find((entry) =>
-      entry[3].some((item) => key(item) === key(label)),
+    const pair = groupKey(raw);
+    const candidates = pair ? contracts.get(pair) : undefined;
+    const graphOnly = ["Seguro Salud Empresa", "Manutención"].some(
+      (item) => key(item) === key(label),
     );
-    const group = text(raw.CSP_ID_GRUPO) ?? "Sin grupo";
-    const subgroup = text(raw.CSP_ID_SUBGR);
-    const id = definition?.[0] ?? `group:${group}:${subgroup ?? ""}`;
-    const title =
-      definition?.[1] ?? [groupTitles[group] ?? group, subgroup].filter(Boolean).join(" · ");
+    const technical = ["G", "RET"].includes(text(raw.CSP_ID_GRUPO) ?? "");
+    const species =
+      candidates &&
+      [...candidates].every((entry) => ["premiums", "christmas", "vehicle"].includes(entry[0])) &&
+      [...candidates].some((entry) => entry[0] === "premiums");
+    const definition = graphOnly
+      ? undefined
+      : (definitionFor(label) ??
+        (!technical && candidates?.size === 1
+          ? [...candidates][0]
+          : !technical && species
+            ? definitions.find((entry) => entry[0] === "premiums")
+            : undefined));
     const row: ProjectionRow = {
       id: `${index}:${text(raw.CSP_ORDEN) ?? ""}:${label}`,
+      kind: /^total\b/i.test(label) ? "total" : "concept",
       label,
       amounts: pays.map((pay) => projectionNumber(raw[pay.id])),
       total: projectionNumber(raw.TOTAL),
       subtotal: /^total\b/i.test(label),
     };
-    const section = sections.get(id) ?? { id, title, layout: definition?.[2] ?? "pays", rows: [] };
-    section.rows.push(row);
-    sections.set(id, section);
+    if (definition) {
+      const [id, title, layout] = definition;
+      const section = sections.get(id) ?? {
+        id,
+        title,
+        layout,
+        placement: ["capital", "premiums", "aid"].includes(id)
+          ? ("benefits" as const)
+          : layout === "pays"
+            ? ("wide" as const)
+            : ("compact" as const),
+        rows: [],
+      };
+      section.rows.push(row);
+      sections.set(id, section);
+    }
     return { raw, row };
   });
   const find = (...names: string[]) =>
@@ -302,6 +327,7 @@ export const buildProjectionReport = ({
     ppse.rows = [
       {
         id: "last",
+        kind: "concept",
         label: "Aportación de la compañía del último año",
         amounts: [ordinary, capped],
         total: sum([ordinary, capped]),
@@ -309,6 +335,7 @@ export const buildProjectionReport = ({
       },
       {
         id: "accumulated",
+        kind: "concept",
         label: "Aportación de la compañía acumulada",
         amounts: [ordinaryAccumulated, extraAccumulated],
         total: sum([ordinaryAccumulated, extraAccumulated]),
@@ -316,6 +343,7 @@ export const buildProjectionReport = ({
       },
       {
         id: "total",
+        kind: "total",
         label: "Total",
         amounts: [ordinaryTotal, extraTotal],
         total: sum([ordinaryTotal, extraTotal]),
@@ -336,7 +364,7 @@ export const buildProjectionReport = ({
     },
     calculatedAt: text(header.CSP_FEC_EJECUCION),
     pays,
-    sections: [...sections.values()],
+    sections: buildProjectionTables(sections),
     direct,
     compensation,
     history: history

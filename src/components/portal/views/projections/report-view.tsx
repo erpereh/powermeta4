@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useId, useTransition } from "react";
 import {
   AnimatedNumber,
-  Badge,
   ButtonLink,
   Callout,
   EmptyState,
@@ -17,28 +16,17 @@ import {
   StatTile,
   Surface,
   Table,
-  type TableProps,
   DonutChart,
   DonutChartCenter,
   DonutChartLegend,
   DonutChartPlot,
   CompositionChart,
 } from "@/components/system";
-import type {
-  ProjectionPageData,
-  ProjectionRow,
-  ProjectionSection,
-  ProjectionSegment,
-} from "@/lib/portal/projections/types";
+import type { ProjectionPageData, ProjectionSegment } from "@/lib/portal/projections/types";
 import { projectionGraphTotal } from "@/lib/portal/projections/core";
-import { cn } from "@/lib/utils";
+import { formatProjectionMoney as money } from "@/lib/portal/projections/format";
+import { ReportTable } from "./report-table";
 
-const euros = new Intl.NumberFormat("es-ES", {
-  style: "currency",
-  currency: "EUR",
-  minimumFractionDigits: 2,
-});
-const money = (value: number | null) => (value === null ? "No informado" : euros.format(value));
 const chartColors = [
   "var(--chart-1)",
   "var(--chart-2)",
@@ -172,118 +160,6 @@ function BreakdownChart({
   );
 }
 
-function ReportTable({
-  section,
-  pays,
-}: {
-  section: ProjectionSection;
-  pays: NonNullable<ProjectionPageData["report"]>["pays"];
-}) {
-  const columns: TableProps<ProjectionRow>["columns"] = [
-    {
-      key: "label",
-      header: "Concepto",
-      width: section.layout === "pays" ? "240px" : undefined,
-      cell: (row) => (
-        <span className={cn("block whitespace-normal text-sm", row.subtotal && "font-semibold")}>
-          {row.label}
-        </span>
-      ),
-    },
-  ];
-  if (section.layout === "pays")
-    pays.forEach((pay, index) =>
-      columns.push({
-        key: pay.id,
-        width: "145px",
-        align: "right",
-        header: (
-          <span className="block space-y-1 py-2 text-right whitespace-normal">
-            <span className="block">{pay.label}</span>
-            <span
-              className={cn(
-                "block text-[10px]",
-                pay.kind === "actual" ? "text-tone-green-foreground" : "text-muted-foreground",
-              )}
-            >
-              <Badge
-                status={pay.kind === "actual" ? "success" : "neutral"}
-                size="sm"
-                showIcon={false}
-              >
-                {pay.kind === "actual"
-                  ? "Real"
-                  : pay.kind === "projected"
-                    ? "Proyectada"
-                    : "Sin clasificar"}
-              </Badge>
-            </span>
-          </span>
-        ),
-        cell: (row) => (
-          <span
-            className={cn(
-              "text-xs tabular-nums",
-              pay.kind === "projected" && "text-muted-foreground",
-              row.subtotal && "font-semibold",
-            )}
-          >
-            {money(row.amounts[index] ?? null)}
-          </span>
-        ),
-      }),
-    );
-  if (section.layout === "ppse")
-    ["Ordinaria", "Extraordinaria"].forEach((label, index) =>
-      columns.push({
-        key: label,
-        header: label,
-        width: "170px",
-        align: "right",
-        cell: (row) => (
-          <span className="text-sm tabular-nums">{money(row.amounts[index] ?? null)}</span>
-        ),
-      }),
-    );
-  columns.push({
-    key: "total",
-    header: section.layout === "annual" ? "Valoración / acumulado" : "Total",
-    width: section.layout === "pays" ? "190px" : "160px",
-    align: "right",
-    cell: (row) => <span className="text-sm font-medium tabular-nums">{money(row.total)}</span>,
-  });
-  return (
-    <Surface title={section.title} flush>
-      <Table
-        data={section.rows}
-        columns={columns}
-        getRowId={(row) => row.id}
-        autoHeight
-        variableRowHeight
-        scrollAreaLabel={`Desglose de ${section.title}`}
-        scrollAreaDescription={
-          section.layout === "pays"
-            ? "Desplázate horizontalmente para consultar todas las pagas. El concepto permanece visible."
-            : undefined
-        }
-        className="[&_table]:min-w-full [&_td]:py-3 [&_th:first-child]:left-0 [&_th:first-child]:z-20 [&_td:first-child]:sticky [&_td:first-child]:left-0 [&_td:first-child]:z-10 [&_td:first-child]:bg-card [&_th]:whitespace-normal"
-      />
-      {section.layout === "pays" ? (
-        <p className="border-t border-border/50 px-4 py-2 text-xs text-muted-foreground">
-          Desplázate para ver todas las pagas. «Real» y «Proyectada» indican la naturaleza de cada
-          columna.
-        </p>
-      ) : null}
-      {section.layout === "ppse" ? (
-        <p className="border-t border-border/50 px-4 py-2 text-xs text-muted-foreground">
-          La aportación extraordinaria anual se limita a la ordinaria, según la regla del informe
-          original.
-        </p>
-      ) : null}
-    </Surface>
-  );
-}
-
 export function ProjectionReportView({
   data,
   debug = false,
@@ -298,7 +174,13 @@ export function ProjectionReportView({
   const selectId = useId();
   const scenario = params.get("scenario");
   const scenarioLabel =
-    scenario === "partial" ? "Datos parciales" : scenario === "empty" ? "Sin datos" : "Completo";
+    scenario === "partial"
+      ? "Datos parciales"
+      : scenario === "empty"
+        ? "Sin datos"
+        : scenario === "many-pays"
+          ? "20 pagas"
+          : "Completo";
   const navigate = (name: "year" | "scenario", value: string) => {
     const next = new URLSearchParams();
     const year = name === "year" ? value : params.get("year");
@@ -308,6 +190,8 @@ export function ProjectionReportView({
     startTransition(() => router.push(`${pathname}?${next}`, { scroll: false }));
   };
   const report = data.report;
+  const benefitTables =
+    report?.sections.filter((section) => section.placement === "benefits") ?? [];
   const documents = data.documents.filter((doc) => doc.year === data.selectedYear);
   return (
     <div className="flex min-w-0 flex-col gap-6" aria-busy={pending} data-projection-report>
@@ -329,6 +213,7 @@ export function ProjectionReportView({
                 <SelectItem value="full">Completo</SelectItem>
                 <SelectItem value="partial">Datos parciales</SelectItem>
                 <SelectItem value="empty">Sin datos</SelectItem>
+                <SelectItem value="many-pays">20 pagas</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -484,19 +369,31 @@ export function ProjectionReportView({
             title="Desglose de haberes y beneficios"
             description="Todos los conceptos y pagas del ejercicio, en el orden del informe."
           >
-            <div className="grid min-w-0 gap-4 xl:grid-cols-3">
-              {report.sections.map((section) => (
-                <div
-                  key={section.id}
-                  className={cn(
-                    "min-w-0",
-                    section.layout === "pays" && "xl:col-span-3",
-                    section.layout === "ppse" && "xl:col-span-2",
-                  )}
-                >
-                  <ReportTable section={section} pays={report.pays} />
-                </div>
-              ))}
+            <div className="flex min-w-0 flex-col items-start gap-4">
+              {report.sections.map((section) =>
+                section.placement === "benefits" ? (
+                  section.id === benefitTables[0]?.id ? (
+                    <div
+                      key="benefits"
+                      data-projection-benefits
+                      className="flex max-w-full flex-wrap items-start gap-4"
+                    >
+                      {benefitTables.map((entry) => (
+                        <ReportTable key={entry.id} section={entry} pays={report.pays} />
+                      ))}
+                    </div>
+                  ) : null
+                ) : (
+                  <div
+                    key={section.id}
+                    className={
+                      section.placement === "wide" ? "w-full min-w-0" : "max-w-full min-w-0"
+                    }
+                  >
+                    <ReportTable section={section} pays={report.pays} />
+                  </div>
+                ),
+              )}
             </div>
           </Section>
           <Section
@@ -534,17 +431,21 @@ export function ProjectionReportView({
                         {
                           key: "fixed",
                           header: "Retribución fija",
+                          width: "180px",
                           align: "right",
                           cell: (row) => money(row.fixed),
                         },
                         {
                           key: "variable",
                           header: "Retribución variable",
+                          width: "180px",
                           align: "right",
                           cell: (row) => money(row.variable),
                         },
                       ]}
                       autoHeight
+                      variableRowHeight
+                      className="[&_th:first-child]:left-0 [&_th:first-child]:z-20 [&_td:first-child]:sticky [&_td:first-child]:left-0 [&_td:first-child]:bg-card"
                       scrollAreaLabel="Importes de la comparativa anual"
                     />
                   </div>

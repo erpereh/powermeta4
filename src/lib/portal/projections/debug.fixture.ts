@@ -41,6 +41,14 @@ export function projectionDebugData(
     `Noviembre ${year}`,
     `Diciembre ${year}`,
   ];
+  if (scenario === "many-pays")
+    labels.push(
+      `Revisión de convenio adicional ${year} · Primera`,
+      `Revisión de convenio adicional ${year} · Segunda`,
+      `Retribución variable complementaria ${year}`,
+      `Regularización de jornada ${year}`,
+      `Liquidación complementaria ${year}`,
+    );
   const header: PortalSqlRow = {
     ANIO: year,
     STD_OR_HR_PERIOD: 1,
@@ -54,14 +62,20 @@ export function projectionDebugData(
     header[payField(index)] = label;
   });
   const concepts: PortalSqlRow[] = [];
-  const row = (label: string, group: string, monthly: number | null, total?: number | null) => {
+  const row = (
+    label: string,
+    group: string,
+    monthly: number | null,
+    total?: number | null,
+    subgroup = group,
+  ) => {
     const values = labels.map((_, index) =>
-      index === 2 || index === 5 || index === 6 ? 0 : monthly,
+      index === 2 || index === 5 || index === 6 || index >= 15 ? 0 : monthly,
     );
     const result: PortalSqlRow = {
       ID_ITEM: label,
       CSP_ID_GRUPO: group,
-      CSP_ID_SUBGR: "",
+      CSP_ID_SUBGR: subgroup,
       CSP_ORDEN: concepts.length,
       TOTAL: total === undefined ? (monthly === null ? null : monthly * 12) : total,
     };
@@ -71,34 +85,39 @@ export function projectionDebugData(
     concepts.push(result);
     return result;
   };
-  row("Salario Base", "RD", 2150);
-  row("Paga Extra Prorrateada", "RD", 537.5);
-  row("Complemento Personal", "RD", 85);
-  row("Salario base organigrama", "RD", 1275);
-  row("Compl Puesto Trabajo", "RD", 430);
-  row("Total Retribución fija", "RD", 4477.5);
-  const variable = row("Retribución Variable", "RD", 0, 9200);
+  row("Salario Base", "RD", 2150, undefined, "SC");
+  row("Paga Extra Prorrateada", "RD", 537.5, undefined, "SC");
+  const personal = row("Complemento Personal", "RD", 85, undefined, "CC");
+  if (scenario === "many-pays")
+    personal.ID_ITEM =
+      "Complemento personal por responsabilidades y disponibilidad durante la jornada de trabajo";
+  row("Salario base organigrama", "RD", 1275, undefined, "CC");
+  row("Compl Puesto Trabajo", "RD", 430, undefined, "CF");
+  row("Total Retribución fija", "RD", 4477.5, undefined, "CF");
+  const variable = row("Retribución Variable", "RD", 0, 9200, "RV");
   variable.PAGA03 = 9200;
-  row("Base Referencia Retribucion Variable", "RD", 0, 8500);
-  row("Coste S.S. empresa", "RD", 1342.55);
-  row("Comida Tarjeta Importe", "RI", 165);
-  row("Capital Seguro Accidentes", "RI", 0, 110000);
-  row("Capital Seguro de Vida Importe", "RI", 0, 78000);
-  row("Prima Anual Seg. Accidente", "RI", 0, 72.6);
-  row("Prima Anual Seg. Vida", "RI", 0, 815.4);
-  row("Seguro Salud Empresa", "RI", 67.5, 810);
-  row("Ayuda Escolar hijos", "RI", 0, 320);
+  row("Base Referencia Retribucion Variable", "RD", 0, 8500, "BV");
+  row("Coste S.S. empresa", "RD", 1342.55, undefined, "SS");
+  row("Comida Tarjeta Importe", "RI", 165, undefined, "CM");
+  row("Capital Seguro Accidentes", "RI", 0, 110000, "CS");
+  row("Capital Seguro de Vida Importe", "RI", 0, 78000, "CS");
+  row("Prima Anual Seg. Accidente", "RI", 0, 72.6, "VE");
+  row("Prima Anual Seg. Vida", "RI", 0, 815.4, "VE");
+  row("Seguro Salud Empresa", "RI", 67.5, 810, "VE");
+  row("Ayuda Escolar hijos", "RI", 0, 320, "AY");
   row("Aportación Ordinaria PPSE", "PPSE", 0, 2450);
   row("Aportación Extraordinaria PPSE", "PPSE", 0, 1200);
   row("Aportación PPSE Ordinaria Acumulada", "PPSE", 0, 16750);
   row("Aportación PPSE Extraordinaria Acumulada", "PPSE", 0, 4800);
   row("Aportación definida", "RQ", 1125, 1125);
   row("aportacion total", "RQ", 7600, 7600);
-  row("Desc. Seguro Medico", "RI", 39.5);
-  row("Especie Seguro Medico", "RI", 31.25);
-  row("Manutención", "RI", 180);
-  row("Lote Navidad", "RI", 0, 155.9);
-  row("Formación Año Anterior", "RI", 0, 650);
+  row("Desc. Seguro Medico", "RI", 39.5, undefined, "RF");
+  row("Especie Seguro Medico", "RI", 31.25, undefined, "RF");
+  row("Manutención", "RI", 180, undefined, "RF");
+  row("Lote Navidad", "RI", 0, 155.9, "VE");
+  row("Formación Año Anterior", "RI", 0, 650, "IF");
+  row("Revisión de convenio de demostración", "G", null, null, "SG");
+  row("Cotización del empleado de demostración", "RET", 123.45, undefined, "RET");
   if (scenario === "partial") {
     const missing = concepts.find((entry) => entry.ID_ITEM === "Coste S.S. empresa");
     if (missing) {

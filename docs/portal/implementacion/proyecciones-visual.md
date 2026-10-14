@@ -7,8 +7,22 @@ anterior de Retribución. La vista `projections` se selecciona desde el registro
 Muestra ejercicio, identidad propia, categoría, centro y fecha de cálculo;
 resumen, dos anillos beUI, todos los bloques y comparativa en euros. Cada
 gráfica conserva una leyenda de importes; el histórico tiene también tabla.
-Pagas y revisiones mantienen su orden, conceptos fijos y scroll contenido.
-Las pagas reales y proyectadas se identifican con texto, no solo por color.
+Pagas y revisiones mantienen su orden. Retribución fija reúne salario convenio,
+complementos de compañía, complemento funcional y total en una única tabla
+con subtítulos internos. Después aparecen variable, base, Seguridad Social
+y manutención. Capitales, primas y ayudas comparten una fila compacta a la
+izquierda; PPSE y aportación definida ocupan filas independientes. Flexible,
+Navidad y comparativa cierran el informe. Los bloques opcionales conservan
+el orden de `processTable` del original.
+
+Desde 1280 px se retira el límite de ancho únicamente de estas rutas, con
+márgenes de 8 px y columnas proporcionales: ninguna tabla necesita scroll.
+Se conserva el estado de la sidebar. Las cabeceras no muestran badges de
+Real/Proyectada; conservan la clasificación en texto accesible y estilos.
+Las matrices indican euros en la cabecera y conservan dos decimales; con más
+de 15 pagas omiten el separador de miles en las celdas mensuales. Los lectores
+de pantalla reciben siempre el importe con moneda. En tablet/móvil hay scroll
+contenido con concepto y subtítulos visibles y foco de teclado.
 
 Fuentes funcionales: `sse_g2/proyecciones/index.jsp`, `script.js`,
 `printGrafDoughnut.js`, `printGrafBar.js` y `sse_g2_inf_proyec.jsp` de la copia
@@ -31,9 +45,14 @@ datos personales. La descarga sigue usando el PDF que guarda PeopleNet.
   `year` solo selecciona ejercicios disponibles de esa persona; el periodo
   de alta se toma de la cabecera. Las consultas de conceptos usan ese periodo
   y, en histórico, el año. Periodos igualmente recientes ambiguos se rechazan.
-- Los conceptos se conservan, incluidos desconocidos, ausencias y signos.
-  Las etiquetas literales del original organizan los bloques; los desconocidos
-  conservan grupo/subgrupo. El total fijo debe existir en la extracción: no se
+- Los conceptos adicionales se conservan dentro del contrato de grupo/subgrupo
+  anclado por los conceptos literales del original, con ausencias y signos.
+  Pares sin ancla o ambiguos no generan tablas arbitrarias; G/SG y Retenciones
+  no aparecen como bloques automáticos. Salud y Manutención se conservan para
+  los gráficos, sin añadirlos a primas ni flexible. Las primas suman los
+  conceptos seleccionados, excluyendo salud, Navidad y vehículo, como el
+  script original. Totales derivados con una cifra desconocida siguen ausentes.
+  El total fijo debe existir en la extracción: no se
   inventa sumando un subconjunto de conceptos. Variable cero usa la base y
   evaluación informadas como objetivo, según el gráfico original.
 - El PPSE conserva la regla original de limitar la extraordinaria anual a
@@ -59,15 +78,19 @@ No se añaden tablas SQLite ni datos económicos al store del workspace.
 
 La muestra exige `isDebugAuthEnabled()`, una sesión autenticada debug y un
 contexto debug. Se carga en servidor mediante importación condicional.
-`scenario=partial|empty` y `year` permiten revisar estados; dichos parámetros
+`scenario=partial|empty|many-pays` y `year` permiten revisar estados; dichos parámetros
 no activan muestras con sesión Meta4, flag apagado o en producción.
 Persona, importes y ejercicios de la muestra son ficticios y no se persisten.
 
-Pruebas dirigidas de reglas, fuentes, aislamiento, ejercicios, periodos,
-ausencias, puerta de debug y escalas de beUI. Revisión en navegador en ocho
-combinaciones de 1440/1024/768/390 px y claro/oscuro, con teclado, columna
-fija, escenarios parcial/vacío, selector, recarga, historial y movimiento
-reducido. Sin desbordamiento de página ni errores de consola observados.
+Pruebas de reglas, fuentes, aislamiento, ejercicios, periodos, ausencias,
+puerta de debug, escalas y subtítulos de la tabla compartida. Suite completa:
+930 correctas y 2 omitidas; 48 dirigidas finales correctas. Revisión de 24
+combinaciones de escritorio (1280/1440/1920 px, claro/oscuro, sidebar abierta
+o colapsada y 15/20 pagas): sin scroll de tablas ni cifras partidas. Doce
+casos de tablet/móvil (1024/768/390 px, ambos temas y 15/20 pagas) con scroll
+contenido, teclado y concepto fijo; parcial/vacío y recarga de ejercicio.
+Sin desbordamiento de página ni errores de aplicación; al reiniciar dev
+se observaron los avisos temporales de desconexión de HMR.
 
 **Pendiente en la VM:** verificar presencia de tablas/columnas actuales e
 históricas, etiquetas de conceptos y periodos; contrastar cifras y reglas de

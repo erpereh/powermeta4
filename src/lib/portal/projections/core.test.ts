@@ -20,6 +20,15 @@ const person: PortalPerson = {
 };
 
 describe("informe de proyecciones", () => {
+  it("conserva el total fijo conocido aunque falten todos sus conceptos de detalle", () => {
+    const report = buildProjectionReport({
+      person,
+      header: { ANIO: 2026 },
+      concepts: [{ ID_ITEM: "Total Retribución fija", TOTAL: 1234.56 }],
+    });
+    expect(report?.sections[0].id).toBe("fixed");
+    expect(report?.sections[0].rows[0].total).toBe(1234.56);
+  });
   it("valida el ejercicio sin aceptar parámetros duplicados ni expresiones", () => {
     expect(projectionYearSelection(undefined)).toEqual({ status: "latest" });
     expect(projectionYearSelection("2026")).toEqual({ status: "selected", year: 2026 });
@@ -40,8 +49,23 @@ describe("informe de proyecciones", () => {
       person,
       header: { ANIO: 2026, PAGA01: "Enero", PAGA02: "Revisión", CSP_REAL: 1, PAGA_TOT: 999999 },
       concepts: [
-        { CSP_ORDEN: 2, ID_ITEM: "Concepto nuevo", CSP_ID_GRUPO: "OTRO", PAGA01: -5, TOTAL: -5 },
-        { CSP_ORDEN: 1, ID_ITEM: "Salario Base", PAGA01: 250, PAGA02: null, TOTAL: 250 },
+        {
+          CSP_ORDEN: 2,
+          ID_ITEM: "Concepto nuevo",
+          CSP_ID_GRUPO: "RD",
+          CSP_ID_SUBGR: "SC",
+          PAGA01: -5,
+          TOTAL: -5,
+        },
+        {
+          CSP_ORDEN: 1,
+          ID_ITEM: "Salario Base",
+          CSP_ID_GRUPO: "RD",
+          CSP_ID_SUBGR: "SC",
+          PAGA01: 250,
+          PAGA02: null,
+          TOTAL: 250,
+        },
       ],
     });
     expect(report?.pays.map((pay) => [pay.label, pay.kind])).toEqual([
@@ -52,7 +76,7 @@ describe("informe de proyecciones", () => {
       "Salario Base",
       "Concepto nuevo",
     ]);
-    expect(report?.sections[1].rows[0]).toMatchObject({ amounts: [-5, null], total: -5 });
+    expect(report?.sections[0].rows[1]).toMatchObject({ amounts: [-5, null], total: -5 });
     expect(report?.direct[0].value).toBeNull();
   });
   it("mantiene separadas las cifras de haberes, objetivos y compensación, sin los 100 euros fijos", () => {
@@ -107,5 +131,91 @@ describe("informe de proyecciones", () => {
     expect(projectionGraphTotal(partial?.compensation ?? [])).toBeNull();
     expect(projectionDebugData({ status: "latest" }, "empty").report).toBeNull();
     expect(projectionDebugData({ status: "selected", year: 2025 }, "full").report?.year).toBe(2025);
+  });
+
+  it("reproduce las tablas del original y sus subtítulos, sin grupos técnicos ni conceptos exclusivos del gráfico", () => {
+    const report = projectionDebugData({ status: "latest" }, "full").report;
+    expect(report?.sections.map((section) => section.id)).toEqual([
+      "fixed",
+      "variable",
+      "target",
+      "social",
+      "meals",
+      "capital",
+      "premiums",
+      "aid",
+      "ppse",
+      "defined",
+      "flexible",
+      "christmas",
+      "training",
+    ]);
+    const fixed = report?.sections[0];
+    expect(fixed?.rows.filter((row) => row.kind === "section").map((row) => row.label)).toEqual([
+      "Complementos compañía",
+      "Complemento funcional",
+    ]);
+    expect(fixed?.rows.at(-1)?.total).toBe(53730);
+    expect(
+      report?.sections
+        .filter((section) => section.placement === "benefits")
+        .map((section) => section.id),
+    ).toEqual(["capital", "premiums", "aid"]);
+    const concepts = report?.sections.flatMap((section) => section.rows.map((row) => row.label));
+    expect(concepts).not.toContain("Seguro Salud Empresa");
+    expect(concepts).not.toContain("Manutención");
+    expect(concepts).not.toContain("Cotización del empleado de demostración");
+    expect(report?.sections.find((section) => section.id === "capital")?.rows.at(-1)?.total).toBe(
+      188000,
+    );
+    expect(report?.sections.find((section) => section.id === "premiums")?.rows.at(-1)?.total).toBe(
+      888,
+    );
+    expect(report?.sections.find((section) => section.id === "defined")?.rows.at(-1)?.total).toBe(
+      8725,
+    );
+  });
+
+  it("conserva beneficios adicionales de la misma especie y recalcula el total sin salud, Navidad ni vehículo", () => {
+    const common = { CSP_ID_GRUPO: "RI", CSP_ID_SUBGR: "VE" };
+    const report = buildProjectionReport({
+      person,
+      header: { ANIO: 2026 },
+      concepts: [
+        { ...common, ID_ITEM: "Prima Anual Seg. Vida", TOTAL: 100 },
+        { ...common, ID_ITEM: "Prima de demostración adicional", TOTAL: 50 },
+        { ...common, ID_ITEM: "Seguro Salud Empresa", TOTAL: 120 },
+        { ...common, ID_ITEM: "Lote Navidad", TOTAL: 30 },
+        { ...common, ID_ITEM: "Vehículo compañía", TOTAL: 90 },
+        { ...common, ID_ITEM: "Total", TOTAL: 390 },
+      ],
+    });
+    expect(report?.sections.map((section) => section.id)).toEqual([
+      "premiums",
+      "christmas",
+      "vehicle",
+    ]);
+    expect(report?.sections[0].rows.map((row) => row.label)).toEqual([
+      "Prima Anual Seg. Vida",
+      "Prima de demostración adicional",
+      "Total",
+    ]);
+    expect(report?.sections[0].rows.at(-1)?.total).toBe(150);
+  });
+
+  it("los totales incompletos permanecen desconocidos y la muestra de 20 pagas conserva sus valores", () => {
+    const report = buildProjectionReport({
+      person,
+      header: { ANIO: 2026 },
+      concepts: [
+        { ID_ITEM: "Capital Seguro Accidentes", TOTAL: 100 },
+        { ID_ITEM: "Capital Seguro de Vida Importe", TOTAL: null },
+      ],
+    });
+    expect(report?.sections[0].rows.at(-1)?.total).toBeNull();
+    const many = projectionDebugData({ status: "latest" }, "many-pays").report;
+    expect(many?.pays).toHaveLength(20);
+    expect(many?.sections[0].rows.some((row) => row.label.includes("disponibilidad"))).toBe(true);
+    expect(many?.direct[0].value).toBe(53730);
   });
 });

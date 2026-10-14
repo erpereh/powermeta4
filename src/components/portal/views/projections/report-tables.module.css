@@ -1,0 +1,197 @@
+.table {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.table table {
+  width: 100%;
+}
+
+.table col:last-child {
+  width: 0;
+}
+
+.table td {
+  padding: 0.375rem 0.5rem;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.table th > div > span {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.table th,
+.table [data-table-section] td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.table [data-table-section] td {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.table td:last-child {
+  padding: 0;
+}
+
+.table [data-table-section] td:last-child {
+  padding: 0.375rem 0.5rem;
+}
+
+.pays {
+  --projection-concept-width: 160px;
+  --projection-pay-width: 110px;
+  --projection-total-width: 110px;
+}
+
+.pays table {
+  min-width: var(--projection-natural-width) !important;
+}
+
+.pays td:first-child,
+.pays th:first-child,
+.ppse td:first-child,
+.ppse th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.pays td:first-child,
+.ppse td:first-child {
+  background: var(--card);
+}
+
+.pays th:first-child,
+.ppse th:first-child {
+  z-index: 20;
+}
+
+.sectionTitle {
+  position: sticky;
+  left: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.pays [data-table-section] td {
+  position: static;
+  background: var(--muted);
+}
+
+.annual {
+  width: 19rem;
+  --projection-concept-width: 62%;
+  --projection-total-width: 38%;
+}
+
+.ppse {
+  width: 27rem;
+  --projection-concept-width: 46%;
+  --projection-pay-width: 18%;
+  --projection-total-width: 18%;
+}
+
+.ppse table {
+  min-width: calc(27rem - 2px) !important;
+}
+
+.defined {
+  width: 27rem;
+}
+
+.reference thead {
+  display: none;
+}
+
+.concept,
+.payHeading {
+  display: block;
+}
+
+.amount {
+  position: relative;
+  font-variant-numeric: tabular-nums;
+}
+
+.desktopMoney {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .pays {
+    --projection-concept-width: 11%;
+    --projection-pay-width: calc(81% / var(--projection-total-weight));
+    --projection-long-pay-width: calc(121.5% / var(--projection-total-weight));
+    --projection-total-width: 8%;
+  }
+
+  .pays table {
+    min-width: 100% !important;
+  }
+
+  .manyPays {
+    --projection-concept-width: 10%;
+    --projection-pay-width: calc(83% / var(--projection-total-weight));
+    --projection-total-width: 7%;
+  }
+
+  .pays td,
+  .pays th > div > span {
+    padding: 0.35rem 0.125rem;
+    font-size: 0.6875rem;
+  }
+
+  .pays td {
+    padding-inline: 0.015rem;
+    font-size: clamp(10px, calc(165px / var(--projection-pay-count)), 12px);
+  }
+
+  .manyPays .amount {
+    letter-spacing: -0.025em;
+  }
+
+  .manyPays td,
+  .manyPays th {
+    border-inline-end: 1px solid var(--border);
+  }
+
+  .manyPays td {
+    padding-inline: 0.125px;
+  }
+
+  .pays .mobileMoney {
+    display: none;
+  }
+
+  .desktopMoney {
+    display: inline;
+  }
+
+  .pays [data-table-section] td {
+    padding: 0.375rem 0.25rem;
+  }
+
+  .pays td:first-child,
+  .pays th:first-child {
+    position: static;
+  }
+
+  .sectionTitle {
+    position: static;
+  }
+}
+
+@media (min-width: 1536px) {
+  .pays td {
+    font-size: clamp(11px, calc(180px / var(--projection-pay-count)), 12px);
+  }
+}

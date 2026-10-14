@@ -452,9 +452,21 @@ nómina con importes numéricos, más «Resumen» si son varias.
 ## Informe de proyecciones
 
 En Aplicaciones Internas, el informe usa una vista propia: ejercicio y fecha,
-cuatro cifras, dos anillos beUI y todos los desgloses visibles. Las tablas de
-pagas conservan el concepto fijo y su scroll contenido; las valoraciones
-anuales se agrupan en columnas cuando hay espacio. PPSE separa ordinaria y
+cuatro cifras, dos anillos beUI y los bloques del original. Retribución fija
+reúne salario convenio, complementos y total en una tabla con subtítulos.
+Capitales, primas y ayudas comparten una fila alineada a la izquierda; PPSE
+y aportación definida tienen filas independientes. Flexible, Navidad y la
+comparativa conservan sus posiciones relativas. No se crean tablas de
+grupos técnicos de la extracción.
+
+Desde 1280 px, solo esta pantalla usa todo el ancho disponible con márgenes
+laterales de 8 px y columnas proporcionales, sin scroll horizontal. La sidebar
+conserva su estado. Cabeceras compactas sin badges de Real/Proyectada; la
+clasificación sigue en los nombres accesibles y los estilos. Las matrices
+indican euros en la cabecera; las de más de 15 pagas prescinden del separador
+de miles en las celdas mensuales para mantener los decimales juntos, con
+importe completo y moneda para lectores de pantalla. Tablet y móvil conservan
+concepto y subtítulos visibles y scroll contenido. PPSE separa ordinaria y
 extraordinaria. La comparativa beUI termina el informe con escala absoluta
 en euros y tabla de importes accesible. La fachada `system/charts` expone los
 originales beUI; sus modos porcentual y redondeado siguen siendo los defaults.

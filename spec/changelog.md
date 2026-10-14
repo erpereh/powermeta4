@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-10-14 - Tablas de proyecciones en la disposición original
+
+- Salario convenio y complementos reunidos en una tabla con subtítulos y
+  total fijo al final. Orden y disposición del original: variable, base,
+  Seguridad Social, manutención; capitales/primas/ayudas en una fila a la
+  izquierda; PPSE y aportación definida independientes, flexible y Navidad.
+- Clasificación mediante los conceptos y pares de grupo/subgrupo del original,
+  sin bloques técnicos automáticos. Salud y Manutención permanecen en los
+  gráficos; totales de primas excluyen salud, Navidad y vehículo, como el
+  script original. Ausencias y signos conservados.
+- Desde 1280 px, tablas ajustadas al ancho disponible sin scroll horizontal,
+  con márgenes reducidos y sidebar intacta. Cabeceras sin badges de estado;
+  clasificación e importes completos accesibles. En tablet/móvil, scroll
+  contenido y concepto fijo. Histórico con columnas de importes legibles.
+- Extensión opcional de la tabla beUI para subtítulos a todo el ancho.
+  Muestra debug de 20 pagas y textos largos, sin datos personales del PDF.
+- Verificación: suite completa de 930 pruebas correctas y 2 omitidas,
+  48 dirigidas finales, typecheck y build; revisión de 24 casos de escritorio y
+  12 de tablet/móvil. Lint dirigido correcto; el global conserva siete avisos
+  y 526 problemas de formato previos. Pendiente el contraste real en la VM.
+
 ## 2026-10-14 - Informe de proyecciones del portal
 
 - Modernizada `/portal/empleado/aplicaciones/proyecciones`, también accesible
