@@ -1,5 +1,29 @@
 # powermeta4 - estado de tareas
 
+## Portal: botones desplegables en ambos inicios — 2026-10-16
+
+- [x] Apartados de Empleado y Responsable como rejilla adaptable de botones,
+      iconos grandes sobre color propio y sin fondo gris envolvente. Registro,
+      orden, destinos y variante del servidor conservados; datos serializables.
+- [x] Menú Radix no modal de la fachada: hover 150 ms, salida 250 ms,
+      clic/toque, teclado, Escape y Tab. Hover sin robo de foco; objetivos
+      táctiles de 44 px y menús contenidos con desplazamiento vertical.
+- [x] 23 pruebas dirigidas de inicios, destinos por variante y marco del portal;
+      typecheck y build correctos. Revisión con sesión debug en ambos perfiles,
+      claro/oscuro y 1440/1024/768/390 px: 16 combinaciones sin overflow ni
+      errores de consola. Menú largo comprobado también a 390 × 640 px.
+- [x] Lint y formato dirigidos correctos en los nueve archivos de código;
+      lint global ejecutado: siete avisos previos y formato pendiente en 511
+      archivos. `git diff --check` y `git status --short` revisados.
+- [x] `npm test` ejecutado y detenido tras más de diez minutos en Excel COM,
+      con timeouts bajo carga. Repetición completa sin ese archivo y con dos
+      workers: 174 archivos, 947 pruebas correctas, 2 omitidas y 2 timeouts
+      de 5 s (buscador y formulario de alta, archivos sin cambios).
+      Ambos archivos pasan al repetir con un worker y margen de 20 s:
+      31 pruebas correctas, sin modificar tests ni configuración ajenos.
+- [ ] Completar la integración Excel COM del alta en un entorno estable;
+      el bloqueo local ya estaba documentado y no afecta al diseño del portal.
+
 ## Sidebar: Portal dentro de Herramientas — 2026-10-16
 
 - [x] Portal inmediatamente debajo de Reg. Retrib. en la misma lista de

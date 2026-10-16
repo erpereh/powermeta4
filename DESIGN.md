@@ -56,6 +56,10 @@ light y dark (oklch) y resueltos solo desde `src/lib/theme/icon-tones.ts`:
 (`aria-hidden`); el nombre accesible está en el texto contiguo. La opción
 `appearance="plain"` conserva el tono y retira el fondo; la apariencia por
 defecto sigue siendo `chip`.
+Los accesos del inicio del portal usan `size="xl"` (80 px, icono de 40 px)
+y `appearance="solid"`: fondos intensos `--tone-*-solid` y primer plano
+`--tone-solid-foreground`, independientes del acento y estables en ambos temas.
+Las apariencias y tamaños anteriores conservan sus valores.
 
 Claro, oscuro y sistema representan el mismo producto con distintos valores
 de tokens. El tema usa `next-themes`, `attribute="class"`, sistema habilitado
@@ -404,6 +408,20 @@ nómina con importes numéricos, más «Resumen» si son varias.
 
 ## Portal
 
+- Los inicios de Empleado y Responsable presentan sus apartados como botones
+  con iconos grandes de color y título debajo, sin tarjeta ni fondo gris
+  envolvente. Rejilla de una columna en móvil estrecho, dos desde 640 px y
+  tres desde 1024 px. Aplicaciones y revisión salarial en violeta, herramientas
+  en naranja, información personal en turquesa, datos económicos en ámbar,
+  puestos en verde azulado y tiempo en coral; mapas tipados y tokens de icono.
+  Cada botón abre un único menú no modal de la fachada: hover de ratón de
+  150 ms, cierre tras 250 ms fuera del botón y el menú, o clic/toque. El hover
+  conserva el foco; Enter/Espacio/Flecha abajo enfocan la primera sección,
+  Escape restaura el botón y Tab sale siguiendo su posición en la página.
+  Las entradas tienen al menos 44 px, envuelven el texto y enlazan a la primera
+  página disponible de cada grupo. Perfil y variante se resuelven en servidor
+  desde el registro; al cliente solo llega navegación serializable. Los menús
+  ajustan posición y altura a la ventana, con scroll cuando no caben.
 - Cabecera compacta con breadcrumbs, búsqueda y conmutador
   Empleado/Responsable con enlaces reales. Ctrl+K abre la búsqueda de
   pantallas y personas desde dos caracteres. La identidad no se repite sobre

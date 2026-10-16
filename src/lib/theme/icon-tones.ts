@@ -20,6 +20,18 @@ export const ICON_TONE_CLASSES: Record<IconTone, string> = {
   slate: "bg-tone-slate text-tone-slate-foreground",
 };
 
+/** Fondos intensos para accesos grandes; no altera los chips existentes. */
+export const ICON_SOLID_TONE_CLASSES: Record<IconTone, string> = {
+  orange: "bg-tone-orange-solid text-tone-solid-foreground",
+  blue: "bg-tone-blue-solid text-tone-solid-foreground",
+  green: "bg-tone-green-solid text-tone-solid-foreground",
+  violet: "bg-tone-violet-solid text-tone-solid-foreground",
+  amber: "bg-tone-amber-solid text-tone-solid-foreground",
+  teal: "bg-tone-teal-solid text-tone-solid-foreground",
+  rose: "bg-tone-rose-solid text-tone-solid-foreground",
+  slate: "bg-tone-slate-solid text-tone-solid-foreground",
+};
+
 export const MODULE_TONES: Record<ToolModuleId, IconTone> = {
   users: "blue",
   companies: "teal",

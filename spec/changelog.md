@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-10-16 - Botones desplegables en los inicios del portal
+
+- Empleado y Responsable sustituyen la tabla de apartados por botones con
+  iconos grandes sobre fondos de color, sin recuadros grises. Rejilla de una,
+  dos o tres columnas; nombres y orden del registro conservados.
+- Desplegables no modales con hover, clic/toque y teclado, sin mover el foco
+  al pasar el ratón. Escape devuelve el foco y Tab sale del menú; entradas
+  táctiles de 44 px, texto completo y ajuste a los límites de la ventana.
+- Destinos de grupos filtrados en servidor según la variante, sin enviar
+  contexto personal al cliente. IconChip añade tamaño xl y apariencia solid
+  con tokens propios, conservando las apariencias anteriores.
+- Verificados 23 casos dirigidos, typecheck y build; revisión local con sesión
+  debug en 16 combinaciones de perfil, tema y ancho (1440/1024/768/390 px),
+  sin overflow ni errores de consola. Menú largo revisado a 390 × 640 px.
+- Lint y formato dirigidos de los nueve archivos de código correctos;
+  lint global conserva siete avisos y formato pendiente en 511 archivos.
+  Diff y estado Git revisados. `npm test` detenido tras más de diez minutos
+  en la integración Excel COM ya documentada. Suite sin ese archivo, con dos
+  workers: 947 correctas, 2 omitidas y 2 timeouts de 5 s. Los dos archivos
+  afectados (sin cambios) pasan al repetir con un worker y 20 s: 31 correctas.
+  Pendiente completar Excel COM en un entorno estable.
+
 ## 2026-10-16 - Portal agrupado en Herramientas
 
 - Portal pasa a la misma lista de Herramientas, inmediatamente debajo de

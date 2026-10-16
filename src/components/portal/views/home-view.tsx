@@ -2,29 +2,16 @@ import { Suspense } from "react";
 
 import { Accordion, Skeleton } from "@/components/system";
 import type { PortalContext } from "@/lib/portal/context";
-import { getPortalSectionHref, getPortalSections } from "@/lib/portal/registry";
+import { getPortalHomeSections } from "@/lib/portal/home-sections";
 import type { PortalProfile } from "@/lib/portal/types";
 
-import { PortalDataTable } from "../portal-data";
+import { PortalHomeSections } from "../portal-home-sections";
 import { DependencyState } from "../portal-states";
 import { TasksView } from "./tasks-view";
 
 function DomainGrid({ profile, context }: { profile: PortalProfile; context: PortalContext }) {
   const variant = context.mode === "meta4" ? context.variant : undefined;
-  const domains = getPortalSections(profile);
-  return (
-    <PortalDataTable
-      title="Apartados"
-      rows={domains.map((domain) => ({
-        id: domain.id,
-        href: getPortalSectionHref(domain, variant),
-        fields: [
-          { label: "Apartado", value: domain.title },
-          { label: "Contenido", value: domain.groups.map((group) => group.title).join(" · ") },
-        ],
-      }))}
-    />
-  );
+  return <PortalHomeSections sections={getPortalHomeSections(profile, variant)} />;
 }
 
 /** Inicio del portal del empleado: apartados, tareas y estado de conexión. */

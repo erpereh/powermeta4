@@ -1,15 +1,15 @@
 import type { LucideIcon } from "lucide-react";
 
-import { ICON_TONE_CLASSES, type IconTone } from "@/lib/theme/icon-tones";
+import { ICON_SOLID_TONE_CLASSES, ICON_TONE_CLASSES, type IconTone } from "@/lib/theme/icon-tones";
 import { cn } from "@/lib/utils";
 
-export type IconChipSize = "xs" | "sm" | "md" | "lg";
+export type IconChipSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export interface IconChipProps {
   icon: LucideIcon;
   tone?: IconTone;
   size?: IconChipSize;
-  appearance?: "chip" | "plain";
+  appearance?: "chip" | "plain" | "solid";
   className?: string;
 }
 
@@ -18,6 +18,7 @@ const SIZE_CLASS: Record<IconChipSize, { box: string; icon: string }> = {
   sm: { box: "size-7 rounded-lg", icon: "size-3.5" },
   md: { box: "size-9 rounded-xl", icon: "size-4" },
   lg: { box: "size-11 rounded-xl", icon: "size-5" },
+  xl: { box: "size-20 rounded-2xl", icon: "size-10" },
 };
 
 /** Chip de icono con tono (mapa estático). Decorativo: el nombre va en el texto contiguo. */
@@ -36,7 +37,7 @@ export function IconChip({
       className={cn(
         "inline-flex shrink-0 items-center justify-center",
         sizing.box,
-        ICON_TONE_CLASSES[tone],
+        appearance === "solid" ? ICON_SOLID_TONE_CLASSES[tone] : ICON_TONE_CLASSES[tone],
         appearance === "plain" && "rounded-none bg-transparent",
         className,
       )}
