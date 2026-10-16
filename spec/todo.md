@@ -1,5 +1,17 @@
 # powermeta4 - estado de tareas
 
+## Sidebar: Portal dentro de Herramientas — 2026-10-16
+
+- [x] Portal inmediatamente debajo de Reg. Retrib. en la misma lista de
+      Herramientas, sin título de sección Portal. Conserva su desplegable,
+      iconos, opciones, selección y comportamiento móvil/plegado.
+- [x] Diseño actualizado, nueve pruebas de sidebar correctas, typecheck y build
+      correctos. Revisión visual con sesión debug y expansión por teclado.
+- [x] Lint dirigido correcto en los dos archivos de código; lint global
+      ejecutado con siete avisos previos y 515 archivos con formato pendiente.
+- [x] Suite completa: 173 archivos, 942 pruebas correctas y 2 omitidas.
+      `git diff --check` y `git status --short` revisados.
+
 ## Paneles laterales y buscador del portal — 2026-10-16
 
 - [x] Drawer compartido y ficha del organigrama con ancho inicial por contenido,

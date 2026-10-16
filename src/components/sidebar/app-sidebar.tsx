@@ -283,61 +283,55 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+              <SidebarMenuItem>
+                <Tooltip content="Portal" side="right" wrapperClassName="flex w-full min-w-0">
+                  <SidebarMenuButton
+                    icon={
+                      <IconChip
+                        icon={Building2}
+                        tone="teal"
+                        size="xs"
+                        appearance="plain"
+                        className="[&_svg]:size-4"
+                      />
+                    }
+                    ariaExpanded={portalOpen}
+                    onSelect={handlePortalSelect}
+                    closeOnSelect={false}
+                  >
+                    Portal
+                  </SidebarMenuButton>
+                </Tooltip>
+                <SidebarMenuSub open={portalOpen} id="sidebar-portal-submenu">
+                  {portalItems.map((item) => {
+                    const Icon = PORTAL_ICONS[item.icon];
+                    return (
+                      <SidebarMenuSubItem key={item.route}>
+                        <SidebarMenuSubButton
+                          icon={
+                            <IconChip
+                              appearance="plain"
+                              icon={Icon}
+                              tone={PORTAL_ICON_TONES[item.icon]}
+                              size="xs"
+                              className="size-4 [&_svg]:size-3.5"
+                            />
+                          }
+                          isActive={isPortalSidebarItemActive(pathname, item)}
+                          onSelect={() => {
+                            router.push(item.route);
+                            closeMobileSidebar();
+                          }}
+                        >
+                          {item.name}
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    );
+                  })}
+                </SidebarMenuSub>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Portal</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <Tooltip content="Portal" side="right" wrapperClassName="flex w-full min-w-0">
-                <SidebarMenuButton
-                  icon={
-                    <IconChip
-                      icon={Building2}
-                      tone="teal"
-                      size="xs"
-                      appearance="plain"
-                      className="[&_svg]:size-4"
-                    />
-                  }
-                  ariaExpanded={portalOpen}
-                  onSelect={handlePortalSelect}
-                  closeOnSelect={false}
-                >
-                  Portal
-                </SidebarMenuButton>
-              </Tooltip>
-              <SidebarMenuSub open={portalOpen} id="sidebar-portal-submenu">
-                {portalItems.map((item) => {
-                  const Icon = PORTAL_ICONS[item.icon];
-                  return (
-                    <SidebarMenuSubItem key={item.route}>
-                      <SidebarMenuSubButton
-                        icon={
-                          <IconChip
-                            appearance="plain"
-                            icon={Icon}
-                            tone={PORTAL_ICON_TONES[item.icon]}
-                            size="xs"
-                            className="size-4 [&_svg]:size-3.5"
-                          />
-                        }
-                        isActive={isPortalSidebarItemActive(pathname, item)}
-                        onSelect={() => {
-                          router.push(item.route);
-                          closeMobileSidebar();
-                        }}
-                      >
-                        {item.name}
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  );
-                })}
-              </SidebarMenuSub>
-            </SidebarMenuItem>
-          </SidebarMenu>
         </SidebarGroup>
 
         {showChatLists ? (

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-16 - Portal agrupado en Herramientas
+
+- Portal pasa a la misma lista de Herramientas, inmediatamente debajo de
+  Reg. Retrib., y desaparece su título de sección independiente. Se conservan
+  el desplegable, sus opciones, iconos y navegación en escritorio y móvil.
+- Nueve pruebas de sidebar, typecheck y build correctos; revisión en modo
+  debug con expansión por teclado. Lint dirigido correcto; el global conserva
+  siete avisos y problemas de formato previos en 515 archivos.
+- Suite completa correcta: 173 archivos, 942 pruebas aprobadas y 2 omitidas.
+  Comprobados también menú móvil, barra plegada, diff y estado Git.
+
 ## 2026-10-16 - Paneles laterales ajustables y búsqueda del portal
 
 - Drawer de producto y ficha del organigrama con ancho inicial medido a partir

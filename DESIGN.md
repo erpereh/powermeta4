@@ -153,7 +153,7 @@ La sidebar de producto (migración posterior) usará la fachada beUI
   (`SidebarToggle`); plegada, apila isotipo y trigger y Buscar pasa a la
   lista de navegación;
 - la sidebar usa el token `sidebar` como fondo y etiquetas de grupo en
-  minúscula (`Herramientas`, `Portal`, `Favoritos`, `Chats`); Favoritos solo
+  minúscula (`Herramientas`, `Favoritos`, `Chats`); Favoritos solo
   aparece si hay favoritos y Chats muestra «Sin chats» si está vacío;
 - en sesión Meta4 con varias sociedades muestra un selector de solo lectura
   (`CYC` | `IBER` | `COLL` detectadas) sin crear ni eliminar workspaces;
@@ -161,8 +161,8 @@ La sidebar de producto (migración posterior) usará la fachada beUI
   `Modo desarrollo` sin sociedades inventadas;
 - el aislamiento interno por `activeCompanyId` / `society_code` se gestiona
   en servidor: el navegador no elige la sociedad de una operación SOAP;
-- expandida muestra Inicio y Nuevo chat, la sección Herramientas, el grupo
-  Portal, Favoritos, Chats y usuario;
+- expandida muestra Inicio y Nuevo chat, la sección Herramientas con Reg.
+  Retrib. y Portal debajo, Favoritos, Chats y usuario;
 - colapsada muestra únicamente controles funcionales, tooltips y avatar;
 - en desktop colapsada, pulsar el icono de Portal expande la sidebar
   (`useSidebar().setOpen(true)`), abre el grupo y muestra el submenu; no usa
@@ -176,7 +176,9 @@ deep-link. La configuración del chat no vive en Ajustes.
 Herramientas es una sección con etiqueta siempre visible, no una ruta de
 navegación ni un grupo plegable: lista directamente `STANDALONE_TOOLS` (hoy
 `Reg. Retrib.`) con su icono de color sin fondo; los módulos ERP no aparecen ahí y no hay
-enlace a `/tools`. Portal sí es un grupo plegable: la fila abre o cierra el
+enlace a `/tools`. Portal aparece como otra herramienta inmediatamente debajo
+de Reg. Retrib., sin título de sección propio. Conserva su grupo plegable:
+la fila abre o cierra el
 submenu, anuncia `aria-expanded` y no navega; tanto el grupo como sus hijos
 llevan iconos sin fondo con su tono original. El elemento activo muestra
 estado seleccionado. AppShell, Sheet y controles de la sidebar se conservan.

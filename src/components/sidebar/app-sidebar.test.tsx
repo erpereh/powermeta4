@@ -159,6 +159,16 @@ describe("app sidebar tools group", () => {
     expect(screen.queryByRole("button", { name: "Herramientas" })).toBeNull();
     const tools = toolsList();
     expect(tools.getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
+    expect(tools.getByRole("button", { name: "Portal" })).toBeTruthy();
+    expect(tools.getAllByRole("button").map((button) => button.textContent?.trim())).toEqual([
+      "Reg. Retrib.",
+      "Portal",
+    ]);
+    expect(
+      [...container.querySelectorAll('[data-slot="sidebar-group-label"]')].map(
+        (label) => label.textContent,
+      ),
+    ).not.toContain("Portal");
     expect(tools.queryByRole("button", { name: "Usuarios" })).toBeNull();
     expect(tools.queryByRole("button", { name: "Empresas" })).toBeNull();
     expect(tools.queryByRole("button", { name: "Nóminas" })).toBeNull();
