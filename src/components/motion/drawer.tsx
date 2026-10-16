@@ -3,7 +3,14 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { useEffect, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from "react";
 import { EASE_OUT, SPRING_PANEL } from "@/lib/ease";
 import { PresenceGate } from "@/lib/presence-gate";
 import { cn } from "@/lib/utils";
@@ -15,6 +22,8 @@ export interface DrawerProps {
   children: ReactNode;
   /** Class for the panel surface. */
   className?: string;
+  panelRef?: Ref<HTMLElement>;
+  style?: CSSProperties;
   /** Class for the backdrop. */
   backdropClassName?: string;
   ariaLabel?: string;
@@ -28,16 +37,41 @@ export function Drawer({
   side = "right",
   children,
   className,
+  panelRef,
+  style,
   backdropClassName,
   ariaLabel,
   dismissable = true,
 }: DrawerProps) {
   const reduce = useReducedMotion();
+  const ownPanel = useRef<HTMLElement | null>(null);
+  const setPanel = useCallback(
+    (element: HTMLElement | null) => {
+      if (!element) return;
+      ownPanel.current = element;
+      const cleanup = typeof panelRef === "function" ? panelRef(element) : undefined;
+      if (panelRef && typeof panelRef !== "function") panelRef.current = element;
+      return () => {
+        if (ownPanel.current === element) ownPanel.current = null;
+        if (typeof cleanup === "function") cleanup();
+        else if (typeof panelRef === "function") panelRef(null);
+        else if (panelRef?.current === element) panelRef.current = null;
+      };
+    },
+    [panelRef],
+  );
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false);
+      const dialogs = [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')].filter(
+        (element) => !element.closest("[inert]"),
+      );
+      const top = dialogs.at(-1);
+      if (e.key === "Escape" && !e.defaultPrevented && top === ownPanel.current) {
+        e.preventDefault();
+        onOpenChange(false);
+      }
     };
     window.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
@@ -82,16 +116,16 @@ export function Drawer({
         <PresenceGate key="panel">
           {({ gate }) => (
             <motion.aside
+              ref={setPanel}
               role="dialog"
               aria-modal="true"
               aria-label={ariaLabel}
               initial={reduce ? { opacity: 0 } : { x: offscreen }}
               animate={reduce ? { opacity: 1 } : { x: 0 }}
               exit={reduce ? { opacity: 0 } : { x: offscreen }}
-              transition={
-                reduce ? { duration: 0.2, ease: EASE_OUT } : SPRING_PANEL
-              }
+              transition={reduce ? { duration: 0.2, ease: EASE_OUT } : SPRING_PANEL}
               {...gate}
+              style={{ ...style, ...gate.style }}
               className={cn(
                 "fixed inset-y-0 z-50 flex w-80 max-w-[85vw] flex-col bg-background shadow-2xl",
                 side === "right"

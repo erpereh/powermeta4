@@ -28,8 +28,9 @@ export function PropertyList({
 }: PropertyListProps) {
   return (
     <div
+      data-property-list=""
       className={cn(
-        "min-w-0 overflow-hidden rounded-xl border border-border/60 bg-card text-card-foreground shadow-xs",
+        "@container/properties min-w-0 overflow-hidden rounded-xl border border-border/60 bg-card text-card-foreground shadow-xs",
         className,
       )}
     >
@@ -39,11 +40,13 @@ export function PropertyList({
           return (
             <div
               key={item.id ?? index}
-              className="grid min-w-0 gap-1 px-4 py-3.5 text-sm sm:grid-cols-[minmax(9rem,32%)_1fr] sm:gap-4"
+              className="grid min-w-0 gap-1 px-4 py-3.5 text-sm @min-[24rem]/properties:grid-cols-[minmax(9rem,32%)_1fr] @min-[24rem]/properties:gap-4"
             >
               <dt className="flex min-w-0 items-center gap-2 font-medium text-foreground">
-                {Icon ? <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" /> : null}
-                <span className="min-w-0 truncate">{item.label}</span>
+                {Icon ? (
+                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                ) : null}
+                <span className="min-w-0 wrap-break-word">{item.label}</span>
               </dt>
               <dd className="min-w-0 wrap-break-word text-muted-foreground">{item.value}</dd>
             </div>

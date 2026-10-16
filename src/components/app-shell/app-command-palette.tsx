@@ -1,31 +1,15 @@
 "use client";
 
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import {
-  recordToolVisitAction,
-  selectConversationAction,
-} from "@/app/actions/workspace";
+import { recordToolVisitAction, selectConversationAction } from "@/app/actions/workspace";
 import { CommandPalette, type CommandItem, useToast } from "@/components/system";
 import { usePortalCommandItems } from "@/components/portal/use-portal-command-items";
 import { createToolsCommandItems } from "@/components/tools/tools-command-palette";
-import {
-  CHAT_ICONS,
-  DEFAULT_CHAT_ICON,
-} from "@/lib/chat-customization";
+import { CHAT_ICONS, DEFAULT_CHAT_ICON } from "@/lib/chat-customization";
 import { createClientMutationId } from "@/lib/client-mutation-id";
-import {
-  hydrateWorkspaceStore,
-  useWorkspaceStore,
-} from "@/stores/use-workspace-store";
+import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 
 export type AppCommandPaletteMode = "actions" | "chats" | "portal";
 
@@ -33,9 +17,7 @@ type AppCommandPaletteContextValue = {
   openCommandPalette: (mode?: AppCommandPaletteMode) => void;
 };
 
-const AppCommandPaletteContext = createContext<AppCommandPaletteContextValue | null>(
-  null,
-);
+const AppCommandPaletteContext = createContext<AppCommandPaletteContextValue | null>(null);
 
 export const useAppCommandPalette = () => {
   const context = useContext(AppCommandPaletteContext);
@@ -131,9 +113,7 @@ export function AppCommandPaletteProvider({ children }: { children: ReactNode })
   const chatItems = useMemo<CommandItem[]>(
     () =>
       chats.map((chat) => {
-        const Icon = chat.favorite
-          ? CHAT_ICONS[chat.icon ?? DEFAULT_CHAT_ICON]
-          : undefined;
+        const Icon = chat.favorite ? CHAT_ICONS[chat.icon ?? DEFAULT_CHAT_ICON] : undefined;
         return {
           id: chat.id,
           label: chat.title,
@@ -153,7 +133,10 @@ export function AppCommandPaletteProvider({ children }: { children: ReactNode })
     },
     [router],
   );
-  const portal = usePortalCommandItems({ navigate: navigatePortal });
+  const portal = usePortalCommandItems({
+    navigate: navigatePortal,
+    enabled: open && mode === "portal",
+  });
 
   const items = mode === "actions" ? actionItems : mode === "portal" ? portal.items : chatItems;
   const placeholder =
@@ -169,15 +152,13 @@ export function AppCommandPaletteProvider({ children }: { children: ReactNode })
         ? "No hay opciones del portal que coincidan."
         : "No hay conversaciones que coincidan.";
 
-  const contextValue = useMemo(
-    () => ({ openCommandPalette }),
-    [openCommandPalette],
-  );
+  const contextValue = useMemo(() => ({ openCommandPalette }), [openCommandPalette]);
 
   return (
     <AppCommandPaletteContext.Provider value={contextValue}>
       {children}
       <CommandPalette
+        key={mode}
         items={items}
         open={open}
         onOpenChange={handleOpenChange}

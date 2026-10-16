@@ -1,5 +1,30 @@
 # powermeta4 - estado de tareas
 
+## Paneles laterales y buscador del portal — 2026-10-16
+
+- [x] Drawer compartido y ficha del organigrama con ancho inicial por contenido,
+      redimensionado por puntero/teclado, límites de ventana/contenedor y ajuste
+      nuevo al reabrir; móvil a todo el ancho disponible.
+- [x] Propiedades con container queries y etiquetas completas; quinquenal sin
+      scroll horizontal cuando cabe. Foco circular en Drawer y Escape de la
+      ventana anidada sin cerrar el panel exterior.
+- [x] Buscador sin callbacks al padre durante render, con reinicio por apertura,
+      invalidación al cerrar/cambiar de modo o workspace y respuestas obsoletas
+      descartadas. Estado real de indisponibilidad del directorio en debug.
+- [x] Referencias de panel/contenedor protegidas contra el desmontaje tardío de
+      la ventana ampliada; prueba de redimensionado después de la transición.
+- [x] Suite completa: 173 archivos, 941 pruebas correctas y 2 omitidas. Pruebas
+      dirigidas finales de paneles, búsqueda, tablas y carga: 44 correctas.
+- [x] Navegador con sesión debug, textos sintéticos, claro/oscuro y revisión
+      responsive a 1440/1024/768/390px: ancho automático, tabla contenida,
+      propiedades apiladas, arrastre, teclado, reapertura y ventana ampliada.
+      Buscador real del portal sin errores de consola; muestras temporales
+      retiradas, sin consultas Meta4 ni datos ficticios persistidos.
+- [x] `npm run typecheck`, `npm run build`, `git diff --check` y
+      `git status --short`. Oxlint y formato dirigidos correctos en los 13
+      archivos de código modificados/nuevos. `npm run lint` ejecutado: siete
+      avisos previos y fallo global de formato preexistente, sin reformateo masivo.
+
 ## Portal: tablas de proyecciones como el original - 2026-10-14
 
 - [x] Retribución fija en una sola tabla, con subtítulos de complementos y

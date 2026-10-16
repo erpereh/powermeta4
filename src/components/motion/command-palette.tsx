@@ -8,6 +8,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useEffectEvent,
   useId,
   useMemo,
   useRef,
@@ -89,10 +90,7 @@ export function CommandPalette({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (
-        (e.metaKey || e.ctrlKey) &&
-        e.key.toLowerCase() === shortcut.toLowerCase()
-      ) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === shortcut.toLowerCase()) {
         e.preventDefault();
         setOpen(!open);
         return;
@@ -148,9 +146,15 @@ export function CommandPalette({
   // changed; `moveTo(null)` covers reopening on an already-empty query.
   useOnOpen(open, () => {
     setQuery("");
-    onQueryChange?.("");
     moveTo(null);
   });
+
+  // Consumer callbacks can update a parent; they must run after the commit.
+  // An unstable callback identity must never clear a query in progress.
+  const notifyOpen = useEffectEvent(() => onQueryChange?.(""));
+  useEffect(() => {
+    if (open) notifyOpen();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -177,9 +181,7 @@ export function CommandPalette({
 
   useEffect(() => {
     if (!open) return;
-    const el = listRef.current?.querySelector<HTMLButtonElement>(
-      `[data-index="${active}"]`,
-    );
+    const el = listRef.current?.querySelector<HTMLButtonElement>(`[data-index="${active}"]`);
     el?.scrollIntoView({ block: "nearest" });
   }, [active, open]);
 
@@ -256,13 +258,12 @@ export function CommandPalette({
                       onQueryChange?.(e.target.value);
                     }}
                     placeholder={placeholder}
+                    aria-label={placeholder}
                     role="combobox"
                     // The field only exists while the palette is open.
                     aria-expanded="true"
                     aria-controls={`${uid}-list`}
-                    aria-activedescendant={
-                      rows.length > 0 ? `${uid}-opt-${active}` : undefined
-                    }
+                    aria-activedescendant={rows.length > 0 ? `${uid}-opt-${active}` : undefined}
                     aria-autocomplete="list"
                     className={cn(
                       "h-12 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none",
@@ -323,9 +324,7 @@ export function CommandPalette({
                               }}
                               className={cn(
                                 "relative isolate flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors",
-                                isActive
-                                  ? "text-foreground"
-                                  : "text-muted-foreground",
+                                isActive ? "text-foreground" : "text-muted-foreground",
                               )}
                             >
                               {isActive ? (
@@ -350,13 +349,9 @@ export function CommandPalette({
                               ) : hasIcons ? (
                                 <span className="relative z-10 h-4 w-4" />
                               ) : null}
-                              <span className="relative z-10 flex-1 truncate">
-                                {it.label}
-                              </span>
+                              <span className="relative z-10 flex-1 truncate">{it.label}</span>
                               {it.badge ? (
-                                <span className="relative z-10 shrink-0">
-                                  {it.badge}
-                                </span>
+                                <span className="relative z-10 shrink-0">{it.badge}</span>
                               ) : null}
                               {it.hint ? (
                                 <kbd className="relative z-10 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">

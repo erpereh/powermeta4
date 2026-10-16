@@ -189,6 +189,8 @@ export { PageHeader } from "./page-header";
 export type { PageHeaderProps } from "./page-header";
 export { Drawer } from "./drawer";
 export type { DrawerProps } from "./drawer";
+export { PanelResizeHandle } from "./panel-resize-handle";
+export { usePanelWidth } from "./use-panel-width";
 export { RadioGroup, RadioGroupItem } from "./radio";
 export type { RadioGroupItemProps, RadioGroupProps } from "./radio";
 export { HoverList } from "./hover-list";

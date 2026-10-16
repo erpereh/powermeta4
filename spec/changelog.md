@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-10-16 - Paneles laterales ajustables y búsqueda del portal
+
+- Drawer de producto y ficha del organigrama con ancho inicial medido a partir
+  del contenido y tirador accesible con puntero y teclado. Ajuste manual solo
+  durante la apertura, límites según espacio disponible y ancho completo en
+  móvil. Las cargas asíncronas recalculan mientras no haya ajuste manual.
+- Propiedades adaptadas al ancho del panel mediante container queries, sin
+  etiquetas truncadas ni columnas de valores aplastadas. Las tablas mantienen
+  desplazamiento dentro de su área solo cuando no caben.
+- Conservado el ancho al ampliar el organigrama y corregida la limpieza de
+  referencias cuando se desmonta la ventana saliente tras su animación.
+- Corregido el error de React del buscador: las notificaciones externas al
+  abrir se ejecutan después del commit. Cerrar, cambiar de modo o de workspace
+  invalida las consultas pendientes. Opciones del portal disponibles en debug;
+  el directorio mantiene su aviso real de falta de sesión Meta4.
+- Suite completa: 173 archivos, 941 pruebas correctas y 2 omitidas; 44 pruebas
+  dirigidas finales correctas. Revisión en navegador
+  con sesión debug, muestras sintéticas temporales y claro/oscuro, escritorio,
+  tablet y móvil; arrastre, teclado, reapertura y ampliación. Sin errores de
+  consola ni overflow de página en los paneles revisados. Muestras retiradas.
+- Typecheck, build, diff y estado Git comprobados. Oxlint y formato de los 13
+  archivos de código modificados/nuevos correctos. Lint global ejecutado:
+  conserva siete avisos y problemas de formato previos del repositorio.
+
 ## 2026-10-14 - Tablas de proyecciones en la disposición original
 
 - Salario convenio y complementos reunidos en una tabla con subtítulos y

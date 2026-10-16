@@ -16,7 +16,14 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Avatar, Button, Modal, Tooltip } from "@/components/system";
+import {
+  Avatar,
+  Button,
+  Modal,
+  PanelResizeHandle,
+  Tooltip,
+  usePanelWidth,
+} from "@/components/system";
 import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
 import type { PersonFile } from "@/lib/portal/data/organization";
 import type { PersonHierarchy, ManagerStatus } from "@/lib/portal/data/person-hierarchy-core";
@@ -207,6 +214,12 @@ function OrgChartSession({
   const panelClose = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const mobile = useIsMobile();
+  const panel = usePanelWidth({
+    open: !!selectedInfo,
+    resetKey: selectedInfo?.employeeId,
+    fullWidth: mobile,
+  });
+  const panelCoversChart = mobile || panel.full;
   const layout = useMemo(() => layoutOrgChart(root, teams, expanded), [root, teams, expanded]);
   const restored = layout.nodes.every(
     (node) =>
@@ -348,8 +361,8 @@ function OrgChartSession({
         className={`relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border ${enlarged ? "flex-1" : "h-[clamp(24rem,65dvh,46rem)]"}`}
       >
         <div
-          hidden={mobile && !!selectedInfo}
-          className={`shrink-0 flex-wrap items-center gap-2 border-b border-border bg-card p-2 ${mobile && selectedInfo ? "hidden" : "flex"}`}
+          hidden={panelCoversChart && !!selectedInfo}
+          className={`shrink-0 flex-wrap items-center gap-2 border-b border-border bg-card p-2 ${panelCoversChart && selectedInfo ? "hidden" : "flex"}`}
           aria-label="Controles del organigrama"
         >
           <div className="flex items-center gap-2">
@@ -432,10 +445,10 @@ function OrgChartSession({
             </Button>
           </Tooltip>
         </div>
-        <div className="relative flex min-h-0 min-w-0 flex-1">
+        <div ref={panel.containerRef} className="relative flex min-h-0 min-w-0 flex-1">
           <div
             ref={view.setViewport}
-            inert={mobile && !!selectedInfo}
+            inert={panelCoversChart && !!selectedInfo}
             role="region"
             aria-label={`Jerarquía de ${root.fullName}`}
             tabIndex={0}
@@ -502,9 +515,11 @@ function OrgChartSession({
           </div>
           {selectedInfo ? (
             <aside
+              ref={panel.panelRef}
               id={panelId}
               aria-label={`Información de ${selectedInfo.fullName}`}
-              className="absolute inset-0 z-10 flex min-h-0 flex-col border-l border-border bg-background md:static md:w-80 md:shrink-0"
+              style={{ width: panel.width }}
+              className={`z-10 flex min-h-0 min-w-0 shrink-0 flex-col border-l border-border bg-background ${panelCoversChart ? "absolute inset-0" : "relative"}`}
             >
               <header className="flex shrink-0 items-start gap-2 border-b border-border p-4">
                 <div className="min-w-0 flex-1">
@@ -543,6 +558,15 @@ function OrgChartSession({
                   </p>
                 )}
               </div>
+              {panel.resizable && panel.width ? (
+                <PanelResizeHandle
+                  controls={panelId}
+                  width={panel.width}
+                  min={panel.min}
+                  max={panel.max}
+                  onWidthChange={panel.setWidth}
+                />
+              ) : null}
             </aside>
           ) : null}
         </div>

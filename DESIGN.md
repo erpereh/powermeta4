@@ -82,6 +82,19 @@ de forma global además del respeto que ya traen los componentes beUI.
   `neutral | info | loading | success | error`. `warning` se mapea a `error`.
 - **Tabs** variante pill por defecto.
 - **Table** beUI (fachada `Table`).
+- **Drawer**: ancho inicial medido sobre el contenido, con `md` (26rem) y
+  `lg` (36rem) como referencias mínimas de apertura, limitado al 90% de la
+  ventana. Tirador en el borde interior con puntero, flechas, Mayús+flechas e
+  Inicio/Fin; ajuste manual temporal y cálculo nuevo en cada apertura. Cargas
+  asíncronas ajustan el ancho hasta la primera intervención manual. Por debajo
+  de 768px ocupa todo el espacio disponible y oculta el tirador. La ficha del
+  organigrama comparte este contrato respecto a su contenedor y conserva el
+  ajuste al ampliar/cerrar la ventana. Las referencias de elementos salientes
+  animados no pueden invalidar las de sus sustitutos.
+- **PropertyList**: filas adaptadas al ancho del propio componente mediante
+  container queries; etiquetas y valores se apilan por debajo de 24rem, sin
+  truncar etiquetas. Las tablas conservan scroll horizontal contenido cuando
+  su ancho intrínseco supera el disponible.
 - **Loader** variante spinner por defecto.
 - **Badge** = `AnimatedBadge`.
 - **Empty** = `EmptyState` (composición propia mínima).

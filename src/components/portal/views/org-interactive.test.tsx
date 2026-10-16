@@ -54,6 +54,8 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
   workspaceStore.setState({ activeCompanyId: null, auth: null });
   window.history.replaceState(null, "", `${route}?persona=1`);
+  // The panel uses its container, rather than the window, as its resize boundary.
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(1200);
   const push = window.history.pushState.bind(window.history);
   vi.spyOn(window.history, "pushState").mockImplementation((data, unused, url) => {
     push(data, unused, url);
@@ -152,16 +154,27 @@ describe("organigrama interactivo", () => {
     expect(
       await within(screen.getByRole("complementary")).findByText("Ficha pública"),
     ).toBeTruthy();
+    const handle = screen.getByRole("separator", { name: "Cambiar ancho del panel" });
+    fireEvent.keyDown(handle, { key: "ArrowLeft" });
+    const panelWidth = handle.getAttribute("aria-valuenow");
     await user.click(screen.getByRole("button", { name: "Acercar" }));
     const zoom = screen.getByLabelText("Zoom").textContent;
     await user.click(screen.getByRole("button", { name: "Ampliar ventana" }));
     expect(screen.getByRole("dialog", { name: "Organigrama de Persona 1" })).toBeTruthy();
     expect(screen.getByLabelText("Zoom").textContent).toBe(zoom);
     expect(screen.getByRole("complementary").textContent).toContain("Ficha pública");
+    expect(screen.getByRole("separator").getAttribute("aria-valuenow")).toBe(panelWidth);
     await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(screen.getByLabelText("Zoom").textContent).toBe(zoom);
+    expect(screen.getByRole("separator").getAttribute("aria-valuenow")).toBe(panelWidth);
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Ampliar ventana" }));
+    // Let the outgoing animated tree unmount before resizing its replacement.
+    await waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeNull());
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(700);
+    fireEvent(window, new Event("resize"));
+    await waitFor(() => expect(screen.queryByRole("separator")).toBeNull());
+    expect(screen.getByRole("complementary").style.width).toBe("700px");
   });
   it("zoom con rueda cancela scroll y las flechas desplazan sin afectar controles", () => {
     show();

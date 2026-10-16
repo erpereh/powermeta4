@@ -18,33 +18,37 @@ const DEBOUNCE_MS = 250;
  * directorio (literal original: «Buscar empleados, opciones de menú y tareas
  * pendientes»). Las respuestas de otra sociedad se descartan.
  */
-export function usePortalCommandItems({ navigate }: { navigate: (href: string) => void }) {
+export function usePortalCommandItems({
+  navigate,
+  enabled = true,
+}: {
+  navigate: (href: string) => void;
+  enabled?: boolean;
+}) {
   const society = useWorkspaceStore((state) => state.auth?.societyCode ?? null);
+  const companyId = useWorkspaceStore((state) => state.activeCompanyId);
   const [people, setPeople] = useState<readonly DirectoryEntry[]>([]);
   const [status, setStatus] = useState<string | undefined>(undefined);
   const requestRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      requestRef.current++;
-    },
-    [],
-  );
 
   useEffect(() => {
     requestRef.current++;
     if (timerRef.current) clearTimeout(timerRef.current);
     setPeople([]);
     setStatus(undefined);
-  }, [society]);
+    return () => {
+      requestRef.current++;
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [society, companyId, enabled]);
 
   const onQueryChange = useCallback(
     (query: string) => {
       if (timerRef.current) clearTimeout(timerRef.current);
       const text = query.trim();
       const request = ++requestRef.current;
+      if (!enabled) return;
       if (text.length === 0) {
         setPeople([]);
         setStatus(undefined);
@@ -60,7 +64,11 @@ export function usePortalCommandItems({ navigate }: { navigate: (href: string) =
       timerRef.current = setTimeout(() => {
         void searchPortalDirectoryAction(text)
           .then((result) => {
-            if (request !== requestRef.current) return;
+            if (
+              request !== requestRef.current ||
+              companyId !== workspaceStore.getState().activeCompanyId
+            )
+              return;
             if (result.status === "ok") {
               if (result.society !== (workspaceStore.getState().auth?.societyCode ?? null)) {
                 setPeople([]);
@@ -81,7 +89,7 @@ export function usePortalCommandItems({ navigate }: { navigate: (href: string) =
           });
       }, DEBOUNCE_MS);
     },
-    [society],
+    [society, companyId, enabled],
   );
 
   const items = useMemo<CommandItem[]>(() => {
