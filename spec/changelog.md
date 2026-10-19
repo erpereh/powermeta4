@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-10-19 - Presentación y comprobación de exportaciones de proyecciones
+
+- PDF siempre A4 apaisado, con todas las secciones y cifras del informe.
+  Reutiliza huecos con bloques pequeños en dos columnas, mide textos y filas,
+  repite cabeceras en continuaciones y numera las páginas. Las matrices se
+  reparten en bloques de hasta ocho pagas con el total anual del servidor.
+- Excel con «Resumen» primero (indicadores, distribución y comparativa) y
+  «Desglose» íntegro. Cabeceras contrastadas, filas alternas, totales destacados,
+  textos ajustados, paneles congelados y formatos de moneda y porcentaje.
+- Descargas reales desde los botones de ambas pantallas comprobadas con
+  sesión debug de desarrollo: PDF/Excel propios y de otra matrícula/ejercicio,
+  sin errores de descarga. Las dependencias existentes se resuelven y el
+  build compila; el error de la captura no se reproduce. README documenta
+  reinstalar desde el lockfile y reiniciar en el equipo afectado.
+- 17 pruebas dirigidas correctas, incluidas descargas con generadores reales,
+  datos parciales, 20 pagas, leyendas largas y continuaciones. Revisión visual
+  de las 14 páginas PDF de las tres muestras y render de ambas hojas Excel.
+  Typecheck, build y lint/formato dirigidos correctos; lint global conserva
+  siete avisos previos y problemas de formato ajenos. Producción local arranca
+  y valida la protección de rutas/exportación. Pendiente sesión Meta4 en la VM.
+- Suite completa detenida al esperar Excel COM del alta (incidencia existente).
+  Repetición sin ese archivo, con dos workers: 177 archivos correctos, 972
+  pruebas pasadas y 2 omitidas. Diff y estado Git revisados. El primer pase de
+  navegador mostró un aviso de hidratación en los SVG de los anillos, cuyos
+  componentes no se modifican; las cuatro descargas terminaron correctamente.
+
 ## 2026-10-19 - Proyecciones por persona y consulta por matrícula
 
 - El informe de proyecciones construye tablas y gráficas desde los bloques

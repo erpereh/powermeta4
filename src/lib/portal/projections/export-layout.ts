@@ -57,6 +57,33 @@ export const projectionSectionTable = (
   };
 };
 
+/** A4: conserva cada paga y el total anual del servidor en bloques legibles. */
+export const projectionPdfTables = (
+  section: ProjectionSection,
+  pays: readonly ProjectionPay[],
+): ExportTable[] => {
+  const table = projectionSectionTable(section, pays);
+  if (section.layout !== "pays" || pays.length <= 8) return [table];
+  const tables: ExportTable[] = [];
+  for (let start = 0; start < pays.length; start += 8) {
+    const end = Math.min(start + 8, pays.length);
+    tables.push({
+      ...table,
+      title: `${table.title} · Pagas ${start + 1}-${end} de ${pays.length}`,
+      headers: [table.headers[0], ...table.headers.slice(start + 1, end + 1), "Total anual"],
+      numeric: Array.from({ length: end - start + 1 }, (_, index) => index + 1),
+      rows: table.rows.map((row) => ({
+        ...row,
+        cells:
+          row.kind === "section"
+            ? row.cells
+            : [row.cells[0], ...row.cells.slice(start + 1, end + 1), row.cells.at(-1) ?? null],
+      })),
+    });
+  }
+  return tables;
+};
+
 /** Gráfica como tabla: concepto, importe y porcentaje sobre los importes disponibles. */
 export const projectionSegmentTable = (
   id: string,

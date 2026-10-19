@@ -133,6 +133,20 @@ PeopleNet, no guarda cifras y no está disponible en producción. La sesión
 Meta4 usa las lecturas propias del servidor y conserva los PDF originales.
 Contrato y verificación: [Informe de proyecciones](docs/portal/implementacion/proyecciones-visual.md).
 
+El informe de proyecciones del portal y «Consultar proyecciones» de Inicio
+comparten la descarga mediante `POST /api/portal/projections/export`. El PDF
+conserva sus secciones en A4 apaisado, distribuye los bloques pequeños en dos
+columnas y divide las matrices en bloques de hasta ocho pagas con el total
+anual del servidor. El Excel abre con «Resumen» (indicadores, distribución y
+comparativa) y conserva todos los conceptos y pagas en «Desglose».
+
+Si tras actualizar aparece `Module not found: Can't resolve 'pdf-lib'`, detener
+el servidor e instalar las dependencias en la misma carpeta y equipo donde se
+ejecuta la aplicación con `npm ci`; después reiniciar `npm run dev` o ejecutar
+`npm run build` y `npm run start`. `pdf-lib` y `exceljs` son dependencias de
+producción incluidas en `package-lock.json`; copiar solo el código no instala
+esas librerías.
+
 ## Copias locales
 
 El ZIP contiene exclusivamente:

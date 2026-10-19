@@ -1,5 +1,36 @@
 # powermeta4 - estado de tareas
 
+## Proyecciones: descargas y presentación PDF/Excel — 2026-10-19
+
+- [x] Descargas compartidas comprobadas con servidor dev recién iniciado y
+      sesión debug: PDF y Excel propios desde el portal y de otra matrícula y
+      ejercicio desde Inicio, sin errores de descarga. `pdf-lib` y `exceljs`
+      se resuelven en esta instalación; no se reproduce el error de la captura.
+      README documenta `npm ci` y reinicio en el equipo de ejecución afectado.
+- [x] PDF siempre A4 apaisado, mismas secciones, conceptos e importes; pagas
+      en bloques de hasta ocho con total anual, textos completos, cabeceras
+      repetidas, numeración y bloques pequeños en huecos de dos columnas.
+- [x] Excel con «Resumen» primero y «Desglose» completo, cabeceras contrastadas,
+      filas alternas, totales destacados, paneles congelados y formatos
+      numéricos. Distingue ceros y ausencias y conserva los totales del servidor.
+- [x] 17 pruebas dirigidas correctas: generadores, ruta con mocks y ruta con
+      carga debug/generadores reales, selección propia/otra matrícula,
+      ejercicio, vacío, parcial, 20 pagas, etiquetas largas y continuaciones.
+- [x] Revisadas las 14 páginas PDF de las muestras completa/parcial/20 pagas
+      (4/4/6) y renderizadas ambas hojas de sus Excel con datos ficticios.
+      Typecheck, build y lint/formato dirigidos correctos. Lint global ejecutado:
+      siete avisos previos y formato pendiente fuera del alcance.
+- [x] Producción local: arranque correcto, pantallas privadas redirigen al
+      login y exportación PDF/Excel con cookie inválida devuelve 401, sin
+      errores de resolución de módulos.
+- [x] Suite completa ejecutada y detenida al quedar esperando en Excel COM del
+      alta de personas (bloqueo ya documentado). Repetición excluyendo solo
+      `src/lib/meta4/hire/excel.test.ts`, con dos workers: 177 archivos correctos,
+      972 pruebas pasadas y 2 omitidas. `git diff --check` y estado Git revisados.
+      En el primer pase de navegador se observó un aviso de hidratación en los
+      SVG de los anillos (componentes sin cambios); sin fallos de descarga.
+- [ ] Comprobar las descargas con sesión Meta4 y datos reales en la VM.
+
 ## Portal: proyecciones por persona y consulta del equipo — 2026-10-19
 
 - [x] El informe agrupa los conceptos por `CSP_ID_GRUPO`/`CSP_ID_SUBGR`
