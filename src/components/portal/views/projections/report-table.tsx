@@ -11,6 +11,38 @@ import { formatProjectionAmount, formatProjectionMoney } from "@/lib/portal/proj
 import { cn } from "@/lib/utils";
 import styles from "./report-tables.module.css";
 
+export function ProjectionTableAmount({
+  value,
+  compact = false,
+  grouping = true,
+}: {
+  value: number | null;
+  compact?: boolean;
+  grouping?: boolean;
+}) {
+  if (value === null)
+    return (
+      <>
+        <span aria-hidden>—</span>
+        <span className="sr-only">No informado</span>
+      </>
+    );
+  const money = formatProjectionMoney(value).replaceAll("\u00a0", " ");
+  return compact ? (
+    <>
+      <span className={styles.mobileMoney} aria-hidden>
+        {money}
+      </span>
+      <span className={styles.desktopMoney} aria-hidden>
+        {formatProjectionAmount(value, grouping)}
+      </span>
+      <span className="sr-only">{money}</span>
+    </>
+  ) : (
+    money
+  );
+}
+
 export function ReportTable({
   section,
   pays,
@@ -20,8 +52,7 @@ export function ReportTable({
 }) {
   const payTable = section.layout === "pays";
   const payWeight = (pay: ProjectionPay) =>
-    pays.length <= 15 && pay.label.split(/\s+/).length > 2 ? 1.5 : 1;
-  const money = (value: number | null) => formatProjectionMoney(value).replaceAll("\u00a0", " ");
+    pays.length <= 15 && pay.label.split(/\s+/).length > 2 ? 1.25 : 1;
   const columns: TableProps<ProjectionRow>["columns"] = [
     {
       key: "label",
@@ -70,13 +101,11 @@ export function ReportTable({
               pay.kind === "projected" && "text-muted-foreground",
             )}
           >
-            <span className={styles.mobileMoney} aria-hidden>
-              {money(row.amounts[index] ?? null)}
-            </span>
-            <span className={styles.desktopMoney} aria-hidden>
-              {formatProjectionAmount(row.amounts[index] ?? null, pays.length <= 15)}
-            </span>
-            <span className="sr-only">{money(row.amounts[index] ?? null)}</span>
+            <ProjectionTableAmount
+              value={row.amounts[index] ?? null}
+              compact
+              grouping={pays.length <= 15}
+            />
           </span>
         ),
       }),
@@ -95,7 +124,7 @@ export function ReportTable({
         align: "right",
         cell: (row) => (
           <span className={cn(styles.amount, row.subtotal && "font-semibold")}>
-            {money(row.amounts[index] ?? null)}
+            <ProjectionTableAmount value={row.amounts[index] ?? null} />
           </span>
         ),
       }),
@@ -121,7 +150,7 @@ export function ReportTable({
       ),
     cell: (row) => (
       <span className={cn(styles.amount, "font-medium", row.subtotal && "font-semibold")}>
-        {money(row.total)}
+        <ProjectionTableAmount value={row.total} />
       </span>
     ),
   });

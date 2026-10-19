@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-10-19 - Tablas de proyecciones más despejadas
+
+- Las tablas del informe muestran «—» para importes ausentes, incluido el
+  histórico, y conservan «No informado» para lectores de pantalla. Los ceros
+  siguen siendo importes; tarjetas, gráficas y PDF original no cambian.
+- Más espacio en celdas y bordes, columnas proporcionales redistribuidas,
+  tipografía responsive en matrices densas y PPSE más ancho para conservar
+  cifras completas. Se mantienen concepto fijo y scroll contenido en móvil.
+- Verificadas las muestras completa, parcial y de 20 pagas en cinco anchos
+  (390/768/1024/1280/1440 px): sin solapamientos de importes ni overflow de
+  página; tablas de escritorio sin scroll. Accesibilidad de las ausencias,
+  ceros, márgenes y desplazamiento con teclado móvil comprobados.
+- Typecheck, build, oxlint y formato dirigidos correctos. El lint global
+  conserva siete avisos y formato previo pendiente en 511 archivos.
+  `npm test` completo detenido por bloqueo de la integración Excel COM;
+  suite sin ese archivo con dos workers correcta: 174 archivos, 949 pruebas
+  aprobadas y 2 omitidas. Dieciocho pruebas dirigidas correctas; diff y estado
+  Git revisados.
+
 ## 2026-10-16 - Botones desplegables en los inicios del portal
 
 - Empleado y Responsable sustituyen la tabla de apartados por botones con

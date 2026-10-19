@@ -12,7 +12,7 @@
 }
 
 .table td {
-  padding: 0.375rem 0.5rem;
+  padding: 0.5rem;
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
@@ -22,7 +22,7 @@
 }
 
 .table th > div > span {
-  padding: 0.375rem 0.5rem;
+  padding: 0.5rem;
   font-size: 0.75rem;
   line-height: 1.35;
 }
@@ -43,7 +43,7 @@
 }
 
 .table [data-table-section] td:last-child {
-  padding: 0.375rem 0.5rem;
+  padding: 0.5rem;
 }
 
 .pays {
@@ -94,14 +94,14 @@
 }
 
 .ppse {
-  width: 27rem;
-  --projection-concept-width: 46%;
-  --projection-pay-width: 18%;
-  --projection-total-width: 18%;
+  width: 32rem;
+  --projection-concept-width: 40%;
+  --projection-pay-width: 20%;
+  --projection-total-width: 20%;
 }
 
 .ppse table {
-  min-width: calc(27rem - 2px) !important;
+  min-width: calc(32rem - 2px) !important;
 }
 
 .defined {
@@ -120,6 +120,7 @@
 .amount {
   position: relative;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .desktopMoney {
@@ -128,9 +129,9 @@
 
 @media (min-width: 1280px) {
   .pays {
-    --projection-concept-width: 11%;
-    --projection-pay-width: calc(81% / var(--projection-total-weight));
-    --projection-long-pay-width: calc(121.5% / var(--projection-total-weight));
+    --projection-concept-width: 10%;
+    --projection-pay-width: calc(82% / var(--projection-total-weight));
+    --projection-long-pay-width: calc(102.5% / var(--projection-total-weight));
     --projection-total-width: 8%;
   }
 
@@ -146,13 +147,16 @@
 
   .pays td,
   .pays th > div > span {
-    padding: 0.35rem 0.125rem;
+    padding: 0.5rem 0.25rem;
     font-size: 0.6875rem;
   }
 
   .pays td {
-    padding-inline: 0.015rem;
-    font-size: clamp(10px, calc(165px / var(--projection-pay-count)), 12px);
+    font-size: clamp(10px, calc(10px + (100vw - 1280px) / 160), 12px);
+  }
+
+  .manyPays td {
+    font-size: clamp(9.25px, calc(9.25px + (100vw - 1280px) / 160), 11px);
   }
 
   .manyPays .amount {
@@ -164,8 +168,23 @@
     border-inline-end: 1px solid var(--border);
   }
 
-  .manyPays td {
-    padding-inline: 0.125px;
+  .manyPays td,
+  .manyPays th > div > span {
+    padding-inline: 0.125rem;
+  }
+
+  .pays td:first-child,
+  .pays th:first-child > div > span {
+    padding-inline-start: 0.5rem;
+  }
+
+  .pays td:nth-last-child(2),
+  .pays th:nth-last-child(2) > div > span {
+    padding-inline-end: 0.5rem;
+  }
+
+  .pays td[aria-hidden] {
+    padding: 0;
   }
 
   .pays .mobileMoney {
@@ -177,7 +196,7 @@
   }
 
   .pays [data-table-section] td {
-    padding: 0.375rem 0.25rem;
+    padding: 0.5rem;
   }
 
   .pays td:first-child,

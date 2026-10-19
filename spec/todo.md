@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Portal: tablas de proyecciones más despejadas — 2026-10-19
+
+- [x] Importes ausentes como raya en las tablas de pagas, totales, PPSE,
+      beneficios e histórico; «No informado» conservado para lectores de
+      pantalla. Ceros, moneda, decimales, tarjetas, gráficas y PDF intactos.
+- [x] Celdas con 8 px verticales y bordes exteriores de 8 px; en escritorio,
+      4 px horizontales, o 2 px con más de 15 pagas. Anchos y tipografía
+      adaptados a las matrices densas; PPSE ampliado para cifras completas.
+- [x] Navegador con muestras completa, parcial y de 20 pagas en
+      390/768/1024/1280/1440 px: 15 combinaciones sin solapamientos ni overflow
+      de página; escritorio sin scroll. Teclado móvil y concepto fijo,
+      nombres accesibles, ceros y márgenes comprobados; sin errores de aplicación.
+- [x] Typecheck, build, oxlint y formato dirigidos correctos. Lint global
+      ejecutado: siete avisos y formato pendiente previo en 511 archivos.
+- [x] Suite sin Excel con dos workers: 174 archivos, 949 pruebas correctas y
+      2 omitidas. Dieciocho pruebas dirigidas de proyecciones y subtítulos
+      correctas; diff y estado Git revisados. `npm test` completo detenido al
+      quedar bloqueado en la integración Excel COM preexistente.
+
 ## Portal: botones desplegables en ambos inicios — 2026-10-16
 
 - [x] Apartados de Empleado y Responsable como rejilla adaptable de botones,

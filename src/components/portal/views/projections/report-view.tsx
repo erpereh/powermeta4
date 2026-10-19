@@ -25,7 +25,7 @@ import {
 import type { ProjectionPageData, ProjectionSegment } from "@/lib/portal/projections/types";
 import { projectionGraphTotal } from "@/lib/portal/projections/core";
 import { formatProjectionMoney as money } from "@/lib/portal/projections/format";
-import { ReportTable } from "./report-table";
+import { ProjectionTableAmount, ReportTable } from "./report-table";
 
 const chartColors = [
   "var(--chart-1)",
@@ -433,14 +433,14 @@ export function ProjectionReportView({
                           header: "Retribución fija",
                           width: "180px",
                           align: "right",
-                          cell: (row) => money(row.fixed),
+                          cell: (row) => <ProjectionTableAmount value={row.fixed} />,
                         },
                         {
                           key: "variable",
                           header: "Retribución variable",
                           width: "180px",
                           align: "right",
-                          cell: (row) => money(row.variable),
+                          cell: (row) => <ProjectionTableAmount value={row.variable} />,
                         },
                       ]}
                       autoHeight
