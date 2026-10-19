@@ -1,6 +1,13 @@
 "use client";
 
-import { CalendarDays, Download, FileChartColumn, ShieldCheck, Wallet } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Download,
+  FileChartColumn,
+  ShieldCheck,
+  Wallet,
+} from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useId, useTransition } from "react";
 import {
@@ -24,7 +31,10 @@ import {
 } from "@/components/system";
 import type { ProjectionPageData, ProjectionSegment } from "@/lib/portal/projections/types";
 import { projectionGraphTotal } from "@/lib/portal/projections/core";
+import { PROJECTION_LOOKUP } from "@/lib/portal/projections/types";
 import { formatProjectionMoney as money } from "@/lib/portal/projections/format";
+import { cn } from "@/lib/utils";
+import { ProjectionExport } from "./report-export";
 import { ReportTable } from "./report-table";
 
 const chartColors = [
@@ -187,9 +197,13 @@ export function ProjectionReportView({
     if (year) next.set("year", year);
     const scenario = name === "scenario" ? value : params.get("scenario");
     if (debug && scenario && scenario !== "full") next.set("scenario", scenario);
+    // La matrícula del equipo se conserva al cambiar de ejercicio; el servidor la vuelve a validar.
+    const employee = params.get("employee");
+    if (data.member && employee) next.set("employee", employee);
     startTransition(() => router.push(`${pathname}?${next}`, { scroll: false }));
   };
   const report = data.report;
+  const direct = (id: string) => report?.direct.find((segment) => segment.id === id);
   const benefitTables =
     report?.sections.filter((section) => section.placement === "benefits") ?? [];
   const documents = data.documents.filter((doc) => doc.year === data.selectedYear);
@@ -217,6 +231,27 @@ export function ProjectionReportView({
               </SelectContent>
             </Select>
           </div>
+        </Callout>
+      ) : null}
+      {data.member ? (
+        <Callout
+          status="info"
+          title={
+            PROJECTION_LOOKUP.scope === "team"
+              ? "Proyección de una persona de tu equipo"
+              : "Proyección de otra persona"
+          }
+          action={
+            <ButtonLink href={pathname} variant="outline" size="sm">
+              <ArrowLeft className="size-4" aria-hidden />
+              Ver mi proyección
+            </ButtonLink>
+          }
+        >
+          {data.member.name} · {data.member.id} ·{" "}
+          {PROJECTION_LOOKUP.scope === "team"
+            ? "Solo puedes consultar personas de tu jerarquía en la sociedad activa."
+            : "Matrícula de la sociedad activa."}
         </Callout>
       ) : null}
       <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
@@ -270,6 +305,13 @@ export function ProjectionReportView({
               Descargar PDF original<span className="sr-only"> · {doc.label}</span>
             </ButtonLink>
           ))}
+          {report ? (
+            <ProjectionExport
+              year={data.selectedYear}
+              employee={data.member ? params.get("employee") : null}
+              scenario={debug ? params.get("scenario") : null}
+            />
+          ) : null}
         </div>
       </div>
       {data.notices.length ? (
@@ -301,19 +343,21 @@ export function ProjectionReportView({
             {[
               {
                 label: "Retribución fija",
-                value: report.direct[0]?.value ?? null,
+                value: direct("fixed")?.value ?? null,
                 icon: Wallet,
                 note: "Total de haberes del informe",
               },
               {
                 label: "Retribución variable",
-                value: report.direct[1]?.value ?? null,
+                value: direct("variable")?.value ?? null,
                 icon: Wallet,
-                note: report.direct[1]?.label ?? "Importe no informado",
+                note: direct("variable")
+                  ? "Retribución variable del informe"
+                  : "Importe no informado",
               },
               {
                 label: "Seguridad Social",
-                value: report.direct[2]?.value ?? null,
+                value: direct("social")?.value ?? null,
                 icon: ShieldCheck,
                 note: "Coste de la empresa",
               },
@@ -344,9 +388,14 @@ export function ProjectionReportView({
               />
             ))}
           </div>
-          <div className="grid min-w-0 items-start gap-4 lg:grid-cols-2">
+          <div
+            className={cn(
+              "grid min-w-0 items-start gap-4 lg:grid-cols-2",
+              report.flexible.length && "2xl:grid-cols-3",
+            )}
+          >
             <BreakdownChart
-              title="Retribución directa"
+              title={`Retribución directa ${report.year}`}
               description="Haberes fijos, variable y coste de Seguridad Social"
               segments={report.direct}
             />
@@ -355,6 +404,13 @@ export function ProjectionReportView({
               description="Retribución anual, objetivo variable y beneficios"
               segments={report.compensation}
             />
+            {report.flexible.length ? (
+              <BreakdownChart
+                title="Retribución flexible"
+                description="Importes anuales de los productos de retribución flexible"
+                segments={report.flexible}
+              />
+            ) : null}
           </div>
           {report.notices.length ? (
             <Callout status="info" title="Sobre los importes de este informe">
@@ -396,12 +452,13 @@ export function ProjectionReportView({
               )}
             </div>
           </Section>
-          <Section
-            title="Comparativa de retribución de los últimos cinco años"
-            description="Retribución fija y variable en euros; solo ejercicios con datos disponibles."
-          >
-            <Surface>
-              {report.history.length ? (
+          {/* printGrafBar: proyecciones desde 2018; antes el original oculta la comparativa. */}
+          {report.history.length ? (
+            <Section
+              title="Comparativa de retribución de los últimos cinco años"
+              description="Retribución fija y variable de cada proyección desde 2018, en euros."
+            >
+              <Surface>
                 <>
                   <CompositionChart
                     scale="absolute"
@@ -450,14 +507,9 @@ export function ProjectionReportView({
                     />
                   </div>
                 </>
-              ) : (
-                <EmptyState
-                  title="Sin histórico comparable"
-                  description="La comparativa aparecerá cuando existan cifras económicas de ejercicios anteriores."
-                />
-              )}
-            </Surface>
-          </Section>
+              </Surface>
+            </Section>
+          ) : null}
         </>
       )}
     </div>

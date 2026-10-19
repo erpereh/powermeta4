@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-10-19 - Proyecciones por persona y consulta por matrícula
+
+- El informe de proyecciones construye tablas y gráficas desde los bloques
+  grupo/subgrupo de cada persona (`CSP_CARGA`), no desde una plantilla de
+  etiquetas. Añade la gráfica de retribución flexible (RI/RFA) y toma la
+  compensación total de RQ/RA, con las cifras quinquenales como respaldo.
+- Nueva acción «Consultar proyecciones» en Inicio (Informes,
+  `/tools/reports/proyecciones`) y bloque equivalente en el inicio del
+  portal: abren la proyección propia o la de otra persona por
+  matrícula (`?employee=`). Vale cualquier matrícula de la sociedad activa
+  (decisión del usuario); la regla de solo equipo se conserva desactivada en
+  `PROJECTION_LOOKUP` por si hay que volver a ella. Sin PDF de otra persona.
+- Tablas por paga legibles: ancho mínimo por columna (104 px), relleno de
+  0,75 rem, importes en una línea y desplazamiento horizontal con el concepto
+  fijo; las pagas sin importe muestran «—» (lector: «No informado»).
+- Igualado al portal: comparativa de cinco años con RQ/RA de cada proyección
+  desde 2018 (`printGrafBar`), nombre desde la cabecera de la proyección,
+  tablas por paga con valores absolutos y 0 en pagas vacías, Ayuda Consumo
+  de 100 € y etiquetas de `printGrafDoughnut`. Se retira la lectura
+  quinquenal del informe. Suite sin Excel COM: 921 correctas.
+- Exportación del informe a PDF y Excel en Inicio y en el portal
+  (`POST /api/portal/projections/export`), que vuelve a leer en servidor con
+  las mismas reglas; el informe de Inicio ocupa la pantalla completa desde xl
+  como en el portal. Suite sin Excel COM: 175 archivos, 928 correctas.
+- Typecheck, build y 88 pruebas dirigidas correctas. `npm test` cortado a los
+  15 min por Excel COM (4 fallos y 2 errores de worker, archivos sin cambios);
+  sin `excel.test.ts`: 173 archivos, 918 correctas y 36 omitidas.
+  Formato oxfmt aplicado solo a las líneas tocadas (el repo arrastra CRLF).
+
 ## 2026-10-16 - Botones desplegables en los inicios del portal
 
 - Empleado y Responsable sustituyen la tabla de apartados por botones con

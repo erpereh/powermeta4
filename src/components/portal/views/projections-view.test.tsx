@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), read: vi.fn() }));
 vi.mock("@/lib/auth/session", () => ({ requireAuthContext: mocks.auth }));
-vi.mock("@/lib/portal/data/projections", () => ({ getOwnProjections: mocks.read }));
+vi.mock("@/lib/portal/data/projections", () => ({ getProjections: mocks.read }));
 vi.mock("./projections/report-view", () => ({
   ProjectionReportView: ({ debug }: { debug?: boolean }) => (
     <div>{debug ? "Muestra ficticia" : "Informe real"}</div>
@@ -52,5 +52,19 @@ describe("puerta de la muestra de proyecciones", () => {
     expect(
       renderToStaticMarkup(await ProjectionsView({ context, params: { scenario: "full" } })),
     ).not.toContain("Muestra ficticia");
+  });
+  it("pasa la matrícula del equipo al servidor y rechaza una matrícula inválida sin leer", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    await ProjectionsView({ context, params: { employee: "0042" } });
+    expect(mocks.read).toHaveBeenCalledWith(
+      context,
+      { status: "latest" },
+      { status: "team", employeeId: "0042" },
+    );
+    mocks.read.mockClear();
+    expect(
+      renderToStaticMarkup(await ProjectionsView({ context, params: { employee: "00 42" } })),
+    ).toContain("La matrícula indicada no es válida.");
+    expect(mocks.read).not.toHaveBeenCalled();
   });
 });

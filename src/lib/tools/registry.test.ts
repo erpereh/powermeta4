@@ -20,7 +20,7 @@ describe("tool registry", () => {
       "reports",
       "processes",
     ]);
-    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([4, 4, 4, 6, 4]);
+    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([4, 4, 4, 7, 4]);
   });
 
   it("keeps action IDs, prompts and icons configured", () => {
@@ -44,6 +44,7 @@ describe("tool registry", () => {
       "Quiero regenerar las nóminas de un periodo",
       "Quiero consultar el informe quinquenal",
       "Quiero ver los resultados de un informe de nómina",
+      "Quiero consultar el informe de proyecciones",
       "Quiero crear un informe",
       "Quiero consultar los informes",
       "Quiero exportar los resultados de un informe",
@@ -104,6 +105,7 @@ describe("tool registry", () => {
     expect(reports.filter((tool) => tool.implemented).map((tool) => tool.id)).toEqual([
       "reports.quinquenal",
       "reports.payroll-results",
+      "reports.projections",
     ]);
     expect(reports.find((tool) => tool.id === "reports.payroll-results")).toMatchObject({
       name: "Resultados de nómina",
@@ -111,6 +113,9 @@ describe("tool registry", () => {
       icon: "report-payroll-results",
     });
     expect(searchTools("quinquenal").tools.map((tool) => tool.id)).toEqual(["reports.quinquenal"]);
+    expect(searchTools("proyecciones").tools.map((tool) => tool.id)).toEqual([
+      "reports.projections",
+    ]);
   });
 
   it("searches modules, actions, keywords and module names on tools", () => {

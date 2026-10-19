@@ -1,5 +1,50 @@
 # powermeta4 - estado de tareas
 
+## Portal: proyecciones por persona y consulta del equipo — 2026-10-19
+
+- [x] El informe agrupa los conceptos por `CSP_ID_GRUPO`/`CSP_ID_SUBGR`
+      (RD/SC, RD/CC, RD/CF, RD/RV, RD/RTV, RD/SS, RI/CO, RI/SG, RI/VE, RI/AYD,
+      RI/DK, JUB/CJ, PPSE/PPSE, PPSE/APOR, RI/RFX, RI/RFA, FORM/FE, RQ/RA) como
+      `CSP_RP_PROYECCIONES.CSP_CARGA`, en el orden de `processTable`. Ya no
+      depende de una lista fija de etiquetas.
+- [x] Gráficas como `printGrafDoughnut`: compensación total con RQ/RA (TOTAL
+      en ejercicio cerrado, paga real en el vigente) y tercera gráfica de
+      retribución flexible solo con RI/RFA. PPSE y aportación definida según
+      el JSON de `CARGA` (sin el tope del JSP de 2016).
+- [x] Inicio muestra, solo a quien tiene equipo en ORO, una búsqueda por
+      matrícula (`CARGA_2`). El servidor valida la matrícula contra la
+      jerarquía (`withTeamScope`) y no lista PDF de otra persona.
+- [x] Acción «Consultar proyecciones» en Inicio (Informes,
+      `/tools/reports/proyecciones`): formulario de matrícula y el mismo
+      informe; sin matrícula muestra el propio.
+- [x] Typecheck, build, oxlint dirigido, `git diff --check` y
+      `git status --short`. 25 pruebas dirigidas de proyecciones y 7 del
+      registro de acciones correctas.
+- [x] `npm test`: cortado a los 15 min con 4 fallos y 2 errores de worker
+      (Excel COM y formulario de alta bajo carga, sin cambios). Repetición sin
+      `excel.test.ts`: 173 archivos, 918 correctas y 36 omitidas (repetida
+      tras añadir la acción, mismo resultado).
+- [x] Consulta por matrícula abierta a cualquier persona de la sociedad activa
+      (`PROJECTION_LOOKUP.scope = "society"`), a petición del usuario. La
+      regla de equipo (`"team"`) queda en el código, probada y desactivada.
+      Typecheck, build y 88 pruebas dirigidas correctas.
+- [x] Tablas por paga sin columnas comprimidas: ancho mínimo, relleno,
+      importes sin partir y «—» para pagas sin importe. 71 pruebas del portal
+      correctas; pendiente revisión visual en navegador.
+- [x] Igual que el portal: comparativa de 5 años con RQ/RA de cada proyección
+      desde 2018 (oculta antes, sin lectura quinquenal), nombre desde la
+      cabecera (`STD_N_FIRST_NAME`/`STD_N_FAMILY_NAME_1`), tablas por paga en
+      valor absoluto y 0 en pagas vacías, Ayuda Consumo de 100 € y etiquetas
+      de `printGrafDoughnut`. Build y suite sin Excel COM: 921 correctas.
+- [x] Informe de Inicio a pantalla completa desde xl, igual que en el portal.
+- [x] Exportar a PDF y Excel en ambos lados (`POST
+      /api/portal/projections/export`): PDF apaisado (A3 con más de 14 pagas)
+      con gráficas de anillo, comparativa y todas las tablas; Excel con hojas
+      «Desglose» y «Gráficas». Carga común `loadProjectionPage`. PDF revisado
+      con la muestra; 7 pruebas nuevas; build y suite sin Excel COM: 928.
+- [ ] Comprobar en la VM que PeopleNet usa esos códigos de grupo/subgrupo y
+      revisar el informe y sus exportaciones con personas reales.
+
 ## Portal: botones desplegables en ambos inicios — 2026-10-16
 
 - [x] Apartados de Empleado y Responsable como rejilla adaptable de botones,

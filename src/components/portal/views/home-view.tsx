@@ -2,16 +2,30 @@ import { Suspense } from "react";
 
 import { Accordion, Skeleton } from "@/components/system";
 import type { PortalContext } from "@/lib/portal/context";
+import { getProjectionTeamSize } from "@/lib/portal/data/projections";
 import { getPortalHomeSections } from "@/lib/portal/home-sections";
+import { PROJECTION_LOOKUP } from "@/lib/portal/projections/types";
+import { getPortalFeature } from "@/lib/portal/registry";
 import type { PortalProfile } from "@/lib/portal/types";
 
 import { PortalHomeSections } from "../portal-home-sections";
 import { DependencyState } from "../portal-states";
+import { TeamProjectionLookup } from "./projections/team-lookup";
 import { TasksView } from "./tasks-view";
 
 function DomainGrid({ profile, context }: { profile: PortalProfile; context: PortalContext }) {
   const variant = context.mode === "meta4" ? context.variant : undefined;
   return <PortalHomeSections sections={getPortalHomeSections(profile, variant)} />;
+}
+
+/** Con alcance `team` solo se ofrece a quien tiene equipo en ORO; con `society`, a todos. */
+async function TeamProjections({ context }: { context: PortalContext }) {
+  const route = getPortalFeature("empleado.retribucion.proyecciones")?.route;
+  if (!route) return null;
+  if (PROJECTION_LOOKUP.scope === "society") return <TeamProjectionLookup route={route} />;
+  const team = await getProjectionTeamSize(context);
+  if (team.status !== "ok" || team.data === 0) return null;
+  return <TeamProjectionLookup route={route} teamSize={team.data} />;
 }
 
 /** Inicio del portal del empleado: apartados, tareas y estado de conexión. */
@@ -46,6 +60,11 @@ export function HomeView({ context }: { context: PortalContext }) {
             <TasksView context={context} compact />
           </Suspense>
         </section>
+      ) : null}
+      {context.mode === "meta4" ? (
+        <Suspense fallback={null}>
+          <TeamProjections context={context} />
+        </Suspense>
       ) : null}
       <Accordion
         items={[

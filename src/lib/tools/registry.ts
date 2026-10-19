@@ -5,6 +5,7 @@ import {
   CalendarRange,
   ChartNoAxesCombined,
   CircleAlert,
+  FileChartColumn,
   FileOutput,
   FileSearch,
   FileSpreadsheet,
@@ -48,6 +49,7 @@ export type ToolIconName =
   | "report-schedule"
   | "report-quinquennial"
   | "report-payroll-results"
+  | "report-projections"
   | "processes"
   | "process-run"
   | "process-status"
@@ -119,6 +121,7 @@ export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   "report-schedule": CalendarCog,
   "report-quinquennial": CalendarRange,
   "report-payroll-results": FileSpreadsheet,
+  "report-projections": FileChartColumn,
   processes: Workflow,
   "process-run": Play,
   "process-status": ChartNoAxesCombined,
@@ -339,6 +342,25 @@ export const TOOL_MODULES = [
           "excel",
         ],
         aiPrompt: "Quiero ver los resultados de un informe de nómina",
+        implemented: true,
+      }),
+      tool({
+        id: "reports.projections",
+        moduleId: "reports",
+        name: "Consultar proyecciones",
+        description: "Informe de compensación total propio o de cualquier persona por matrícula.",
+        route: "/tools/reports/proyecciones",
+        icon: "report-projections",
+        keywords: [
+          "proyección",
+          "proyecciones",
+          "compensación total",
+          "compensacion total",
+          "retribución flexible",
+          "beneficios",
+          "matrícula",
+        ],
+        aiPrompt: "Quiero consultar el informe de proyecciones",
         implemented: true,
       }),
       tool({

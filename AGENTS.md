@@ -147,6 +147,24 @@ producto fuera del chat. La sociedad no la elige el navegador.
   Decisión del usuario del 2026-10-05, porque `SNTC_AD_POPULATION` llega
   vacío por SOAP; `MANAGER_SCOPE_VERIFIED` es `true`. El chat no recibe datos
   del portal.
+- El informe de proyecciones agrupa los conceptos de cada persona por
+  `CSP_ID_GRUPO`/`CSP_ID_SUBGR` como `CSP_RP_PROYECCIONES.CSP_CARGA` y compone
+  sus gráficas como `printGrafDoughnut` (la de retribución flexible solo con
+  RI/RFA, etiquetas y Ayuda Consumo de 100 € del original). La comparativa de
+  cinco años es `printGrafBar`: RQ/RA de cada proyección desde 2018, sin la
+  lectura quinquenal. Las tablas por paga pintan valores absolutos y 0 como el
+  original, y el nombre sale de la cabecera de la proyección. La acción «Consultar proyecciones» de Inicio
+  (`/tools/reports/proyecciones`) y el inicio del portal abren la proyección
+  de una matrícula (`?employee=`, equivalente a `CARGA_2`). Excepción a la
+  regla del equipo, decisión del usuario del 2026-10-19: con
+  `PROJECTION_LOOKUP.scope = "society"` vale cualquier matrícula de la sociedad
+  activa (las SELECT filtran `@organization`) y nunca se listan sus PDF. La
+  regla anterior (`"team"`: solo su jerarquía ORO con `PROJECTION_TEAM_SQL` y
+  `withTeamScope`) se conserva en el código y basta cambiar ese valor.
+  `POST /api/portal/projections/export` (Node.js, requiere sesión) descarga el
+  informe en PDF (`pdf-lib`) o Excel (`exceljs`) desde Inicio y desde el
+  portal: recibe solo formato, ejercicio y matrícula, vuelve a leer con
+  `loadProjectionPage` (mismas reglas que la pantalla) y no guarda ficheros.
 - `npm run portal:discover` y `npm run portal:verify` se ejecutan en la VM:
   solo diccionario Meta4, recuentos, presencia de columnas y WSDL; nunca
   valores de empleados.
@@ -177,7 +195,7 @@ Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
 `/tools/users/new`, `/tools/companies`, `/tools/payroll`,
 `/tools/payroll/receipt`, `/tools/reports`, `/tools/reports/quinquenal`,
-`/tools/reports/resultados-nomina`,
+`/tools/reports/resultados-nomina`, `/tools/reports/proyecciones`,
 `/tools/processes` y el portal del empleado y del responsable bajo `/portal`
 (`/portal`, `/portal/tareas`, `/portal/organizacion/...`,
 `/portal/empleado/...` y `/portal/responsable/...`, resueltas desde el

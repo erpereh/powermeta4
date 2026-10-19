@@ -19,8 +19,6 @@ export function ReportTable({
   pays: ProjectionPay[];
 }) {
   const payTable = section.layout === "pays";
-  const payWeight = (pay: ProjectionPay) =>
-    pays.length <= 15 && pay.label.split(/\s+/).length > 2 ? 1.5 : 1;
   const money = (value: number | null) => formatProjectionMoney(value).replaceAll("\u00a0", " ");
   const columns: TableProps<ProjectionRow>["columns"] = [
     {
@@ -43,10 +41,7 @@ export function ReportTable({
     pays.forEach((pay, index) =>
       columns.push({
         key: pay.id,
-        width:
-          payWeight(pay) > 1
-            ? "var(--projection-long-pay-width, var(--projection-pay-width))"
-            : "var(--projection-pay-width)",
+        width: "var(--projection-pay-width)",
         align: "right",
         header: (
           <span className={styles.payHeading}>
@@ -70,12 +65,20 @@ export function ReportTable({
               pay.kind === "projected" && "text-muted-foreground",
             )}
           >
-            <span className={styles.mobileMoney} aria-hidden>
-              {money(row.amounts[index] ?? null)}
-            </span>
-            <span className={styles.desktopMoney} aria-hidden>
-              {formatProjectionAmount(row.amounts[index] ?? null, pays.length <= 15)}
-            </span>
+            {(row.amounts[index] ?? null) === null ? (
+              <span className={styles.empty} aria-hidden>
+                —
+              </span>
+            ) : (
+              <>
+                <span className={styles.mobileMoney} aria-hidden>
+                  {money(row.amounts[index] ?? null)}
+                </span>
+                <span className={styles.desktopMoney} aria-hidden>
+                  {formatProjectionAmount(row.amounts[index] ?? null)}
+                </span>
+              </>
+            )}
             <span className="sr-only">{money(row.amounts[index] ?? null)}</span>
           </span>
         ),
@@ -125,24 +128,15 @@ export function ReportTable({
       </span>
     ),
   });
-  const sizing: CSSProperties & {
-    "--projection-pay-count": number;
-    "--projection-total-weight": number;
-    "--projection-natural-width": string;
-  } = {
-    "--projection-pay-count": Math.max(1, pays.length),
-    "--projection-total-weight": Math.max(
-      1,
-      pays.reduce((total, pay) => total + payWeight(pay), 0),
-    ),
-    "--projection-natural-width": `${160 + pays.length * 110 + 110}px`,
+  // Ancho natural: concepto, una columna cómoda por paga y el total; si no cabe, se desplaza.
+  const sizing: CSSProperties & { "--projection-natural-width": string } = {
+    "--projection-natural-width": `${200 + pays.length * 104 + 130}px`,
   };
   return (
     <div
       className={cn(
         styles.table,
         payTable ? styles.pays : section.layout === "ppse" ? styles.ppse : styles.annual,
-        payTable && pays.length > 15 && styles.manyPays,
         section.id === "target" && styles.reference,
         section.id === "defined" && styles.defined,
       )}

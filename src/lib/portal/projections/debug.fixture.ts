@@ -19,10 +19,18 @@ const person: PortalPerson = {
 export function projectionDebugData(
   selection: ProjectionYearSelection,
   scenario: string | undefined,
+  employeeId?: string,
 ): ProjectionPageData {
   const years = [2026, 2025, 2024];
   const year = selection.status === "selected" ? selection.year : years[0];
-  const base = { years, selectedYear: year, documents: [], notices: [] };
+  const member = employeeId ? { id: employeeId, name: "Persona de ejemplo del equipo" } : undefined;
+  const base = {
+    years,
+    selectedYear: year,
+    documents: [],
+    notices: [],
+    ...(member ? { member } : {}),
+  };
   if (scenario === "empty" || !years.includes(year)) return { ...base, report: null };
   const labels = [
     `Enero ${year}`,
@@ -93,29 +101,32 @@ export function projectionDebugData(
       "Complemento personal por responsabilidades y disponibilidad durante la jornada de trabajo";
   row("Salario base organigrama", "RD", 1275, undefined, "CC");
   row("Compl Puesto Trabajo", "RD", 430, undefined, "CF");
-  row("Total Retribución fija", "RD", 4477.5, undefined, "CF");
   const variable = row("Retribución Variable", "RD", 0, 9200, "RV");
   variable.PAGA03 = 9200;
-  row("Base Referencia Retribucion Variable", "RD", 0, 8500, "BV");
+  row("Base Referencia Retribucion Variable", "RD", 8500, 8500, "RTV");
   row("Coste S.S. empresa", "RD", 1342.55, undefined, "SS");
-  row("Comida Tarjeta Importe", "RI", 165, undefined, "CM");
-  row("Capital Seguro Accidentes", "RI", 0, 110000, "CS");
-  row("Capital Seguro de Vida Importe", "RI", 0, 78000, "CS");
-  row("Prima Anual Seg. Accidente", "RI", 0, 72.6, "VE");
-  row("Prima Anual Seg. Vida", "RI", 0, 815.4, "VE");
+  row("Comida Tarjeta Importe", "RI", 165, undefined, "CO");
+  row("Capital Seguro Accidentes", "RI", 110000, 110000, "SG");
+  row("Capital Seguro de Vida Importe", "RI", 78000, 78000, "SG");
+  // Las primas se cobran en la primera paga: el JSON valora la especie en esa paga.
+  row("Prima Anual Seg. Accidente", "RI", 0, 72.6, "VE").PAGA01 = 72.6;
+  row("Prima Anual Seg. Vida", "RI", 0, 815.4, "VE").PAGA01 = 815.4;
   row("Seguro Salud Empresa", "RI", 67.5, 810, "VE");
-  row("Ayuda Escolar hijos", "RI", 0, 320, "AY");
+  row("Lote Navidad", "RI", 0, 155.9, "VE");
+  row("Ayuda Escolar hijos", "RI", 320, 320, "AYD");
   row("Aportación Ordinaria PPSE", "PPSE", 0, 2450);
   row("Aportación Extraordinaria PPSE", "PPSE", 0, 1200);
   row("Aportación PPSE Ordinaria Acumulada", "PPSE", 0, 16750);
   row("Aportación PPSE Extraordinaria Acumulada", "PPSE", 0, 4800);
-  row("Aportación definida", "RQ", 1125, 1125);
-  row("aportacion total", "RQ", 7600, 7600);
-  row("Desc. Seguro Medico", "RI", 39.5, undefined, "RF");
-  row("Especie Seguro Medico", "RI", 31.25, undefined, "RF");
-  row("Manutención", "RI", 180, undefined, "RF");
-  row("Lote Navidad", "RI", 0, 155.9, "VE");
-  row("Formación Año Anterior", "RI", 0, 650, "IF");
+  row("Aportación definida", "PPSE", 1125, 1125, "APOR");
+  row("aportacion total", "PPSE", 7600, 7600, "APOR");
+  row("Desc. Seguro Medico", "RI", -39.5, undefined, "RFX");
+  row("Especie Seguro Medico", "RI", 39.5, undefined, "RFX");
+  row("Manutención", "RI", 180, undefined, "RFX");
+  row("Coste Seguro Médico", "RI", 74.28, 891.36, "RFA");
+  row("Formación Año Anterior", "FORM", 0, 650, "FE");
+  row("Retrib anual año actual", "RQ", 51900, 51900, "RA");
+  row("Retrib variable año actual", "RQ", 8500, 8500, "RA");
   row("Revisión de convenio de demostración", "G", null, null, "SG");
   row("Cotización del empleado de demostración", "RET", 123.45, undefined, "RET");
   if (scenario === "partial") {
@@ -135,9 +146,8 @@ export function projectionDebugData(
   const report = buildProjectionReport({
     header,
     concepts,
-    person,
+    person: member ? { ...person, employeeId: member.id, fullName: member.name } : person,
     history,
-    economic: history.at(-1),
   });
   return { ...base, report };
 }

@@ -16,6 +16,7 @@ export const PROJECTION_SQL = {
     `SELECT A.STD_OR_HR_PERIOD AS STD_OR_HR_PERIOD, A.CSP_FEC_EJECUCION AS CSP_FEC_EJECUCION,
   A.CSP_REAL AS CSP_REAL, A.SSP_NM_CATEGORIA AS SSP_NM_CATEGORIA,
   A.SCO_N_WORK_LOCATION AS SCO_N_WORK_LOCATION, A.PAGA_TOT AS PAGA_TOT,
+  A.STD_N_FIRST_NAME AS STD_N_FIRST_NAME, A.STD_N_FAMILY_NAME_1 AS STD_N_FAMILY_NAME_1,
   A.PAGA01 AS PAGA01,
   A.PAGA02 AS PAGA02,
   A.PAGA03 AS PAGA03,
@@ -45,6 +46,7 @@ ORDER BY A.CSP_FEC_EJECUCION DESC`,
     `SELECT A.ANIO AS ANIO, A.STD_OR_HR_PERIOD AS STD_OR_HR_PERIOD, A.CSP_FEC_EJECUCION AS CSP_FEC_EJECUCION,
   A.CSP_REAL AS CSP_REAL, A.SSP_NM_CATEGORIA AS SSP_NM_CATEGORIA,
   A.SCO_N_WORK_LOCATION AS SCO_N_WORK_LOCATION, A.PAGA_TOT AS PAGA_TOT,
+  A.STD_N_FIRST_NAME AS STD_N_FIRST_NAME, A.STD_N_FAMILY_NAME_1 AS STD_N_FAMILY_NAME_1,
   A.PAGA01 AS PAGA01,
   A.PAGA02 AS PAGA02,
   A.PAGA03 AS PAGA03,
@@ -129,4 +131,44 @@ WHERE A.ID_ORGANIZATION = @organization AND A.STD_ID_HR = @employeeId
   AND A.STD_OR_HR_PERIOD = @period AND A.ANIO = @year
 ORDER BY A.CSP_ORDEN`,
   ),
+} as const satisfies Record<string, PortalSqlQuery>;
+
+/**
+ * Alcance `society` (`PROJECTION_LOOKUP`): nombre de cualquier matrícula de la
+ * sociedad activa en ORO. Es opcional: si ORO no la tiene, el informe se lee
+ * igualmente y sus SELECT ya filtran por `@organization`.
+ */
+export const PROJECTION_SOCIETY_SQL = {
+  member: {
+    scope: "society",
+    tables: ["M4ORO_EMPLEADOS"],
+    statement: `SELECT O.ID_EMPLEADO AS ID_EMPLEADO, O.COMPUTA AS COMPUTA,
+  LTRIM(RTRIM(CONCAT(O.NOMBRE, ' ', O.APELLIDO_1, ' ', O.APELLIDO_2))) AS EMPLEADO
+FROM M4ORO_EMPLEADOS O
+WHERE O.ID_ORGANIZATION = @organization AND O.ID_EMPLEADO = @targetId`,
+  },
+} as const satisfies Record<string, PortalSqlQuery>;
+
+/**
+ * Alcance `team` (desactivado): `CSP_PROYECCIONES_JSON.CARGA_2` carga la proyección de otra matrícula (`P_ID_HR`).
+ * Aquí solo se admite una persona del equipo del responsable: `IN (@team)` se
+ * expande en servidor con su jerarquía de ORO (`team-scope.ts`).
+ */
+export const PROJECTION_TEAM_SQL = {
+  member: {
+    scope: "team",
+    tables: ["M4ORO_EMPLEADOS"],
+    statement: `SELECT O.ID_EMPLEADO AS ID_EMPLEADO,
+  LTRIM(RTRIM(CONCAT(O.NOMBRE, ' ', O.APELLIDO_1, ' ', O.APELLIDO_2))) AS EMPLEADO
+FROM M4ORO_EMPLEADOS O
+WHERE O.ID_ORGANIZATION = @organization AND O.ID_EMPLEADO = @targetId AND O.COMPUTA = '1'
+  AND O.ID_EMPLEADO IN (@team)`,
+  },
+  size: {
+    scope: "team",
+    tables: ["M4ORO_EMPLEADOS"],
+    statement: `SELECT COUNT(DISTINCT O.ID_EMPLEADO) AS TOTAL
+FROM M4ORO_EMPLEADOS O
+WHERE O.ID_ORGANIZATION = @organization AND O.COMPUTA = '1' AND O.ID_EMPLEADO IN (@team)`,
+  },
 } as const satisfies Record<string, PortalSqlQuery>;
