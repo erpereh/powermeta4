@@ -9,8 +9,6 @@ export type CertificateValue = string | number | null;
 export type CertificateArrearsRow = Partial<Record<CertificateArrearsColumn, number | null>>;
 export type CertificateRefundRow = Partial<Record<CertificateRefundColumn, number | null>>;
 
-export type CertificateSignature = { readonly bytes: Uint8Array; readonly format: "jpg" | "png" };
-
 /**
  * Datos de un certificado de retenciones (`CYC_RP_CERT_HAB_<año>`) listos para
  * pintarse sobre la plantilla. No se persisten: se leen en cada petición.
@@ -22,10 +20,11 @@ export type WithholdingCertificate = {
   readonly refunds: readonly CertificateRefundRow[];
   /** Fecha de expedición `AAAA-MM-DD`: el día en que se genera, como el original. */
   readonly issuedAt: string;
-  readonly signer: {
-    readonly name: string | null;
-    readonly signature: CertificateSignature | null;
-  };
+  /**
+   * Línea del firmante (`SSP_FIRMT_CERT_HAB`, cargo y NIF de `STD_LEG_ENT`).
+   * La imagen de la firma es fija en el diseño del informe (`assets/cert-hab-firma.jpg`).
+   */
+  readonly signer: string | null;
 };
 
 /** Certificado guardado en PeopleNet (`CSP_CERT_DOC`): el original lo prefiere al generado. */

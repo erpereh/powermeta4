@@ -1,116 +1,68 @@
 import "server-only";
 
-import sql from "mssql";
-
-import { getPeopleNetPool } from "@/lib/peoplenet/client";
-
 import type { PortalContext } from "../context";
 import {
-  certificateArrearsFromRows,
-  certificateFieldsFromRow,
-  certificateRefundsFromRows,
-  certificateYears,
-  localIsoDate,
-} from "../certificates/core";
+  buildWithholdingCertificates,
+  irregularKey,
+  model190ExecutionFromRow,
+  model190RecordFromRow,
+  model190Years,
+  type CertificateLegalEntity,
+} from "../certificates/compute";
+import { certificateYears } from "../certificates/core";
 import type {
   CertificateMember,
   CertificatePageData,
-  CertificateSignature,
   CertificateStoredDocument,
   WithholdingCertificate,
 } from "../certificates/types";
 import {
-  assertReadOnlySql,
   employeeParam,
   organizationParam,
   runPortalSelect,
   sqlText,
   type PortalSqlParam,
+  type PortalSqlRow,
 } from "../peoplenet/query";
 import type { ProjectionEmployeeSelection, ProjectionYearSelection } from "../projections/types";
-import { CERTIFICATE_DATA_SQL, CERTIFICATE_SQL } from "../registry/sql/certificates";
+import { CERTIFICATE_SQL } from "../registry/sql/certificates";
 import { RETRIBUCION_SQL } from "../registry/sql/retribucion";
 import { portalError, portalOk, portalUnavailable, type PortalResult } from "../result";
 import { readPortal } from "../server";
 import { documentHref, parseDocumentKey } from "./documents-core";
-import { stripMeta4Blob } from "./documents";
 import { resolveSocietyMember } from "./projections";
-
-type Meta4Context = Extract<PortalContext, { mode: "meta4" }>;
 
 export type CertificateRead = {
   readonly page: CertificatePageData;
-  /** Certificado generado del ejercicio elegido, si sus casillas se han podido leer. */
-  readonly certificate: WithholdingCertificate | null;
+  /** Certificados generados del ejercicio elegido (dos páginas cada uno). */
+  readonly certificates: readonly WithholdingCertificate[];
 };
 
-const PENDING_MESSAGE =
-  "Las casillas del certificado (SSP_RP_C_HABERES) aún no están conectadas a PeopleNet.";
-
-const signatureFormat = (bytes: Uint8Array): CertificateSignature["format"] | null =>
-  bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
-    ? "png"
-    : bytes[0] === 0xff && bytes[1] === 0xd8
-      ? "jpg"
-      : null;
-
-/** Firmante y firma escaneada: la imagen es un blob y no pasa por `runPortalSelect`. */
-const readSigner = async (
-  statement: string,
-  params: Readonly<Record<string, PortalSqlParam>>,
-): Promise<WithholdingCertificate["signer"]> => {
-  assertReadOnlySql(statement);
-  const pool = await getPeopleNetPool();
-  const request = pool.request();
-  for (const [name, param] of Object.entries(params)) {
-    if (param.type === "varchar") request.input(name, sql.VarChar(param.length), param.value);
-    else if (param.type === "int") request.input(name, sql.Int, param.value);
+const legalEntitiesOf = (
+  entities: readonly PortalSqlRow[],
+  places: readonly PortalSqlRow[],
+): Map<string, CertificateLegalEntity> => {
+  // `SSP_RP_EMPRESA` ordena las direcciones por fecha de fin descendente y usa la primera.
+  const placeOf = new Map<string, string>();
+  for (const row of places) {
+    const id = sqlText(row.STD_ID_LEG_ENT);
+    const place = sqlText(row.STD_N_GEO_PLACE);
+    if (id && place && !placeOf.has(id)) placeOf.set(id, place);
   }
-  const [row] = (await request.query<{ FIRMANTE: string | null; FIRMA: Buffer | null }>(statement))
-    .recordset;
-  const bytes = row?.FIRMA ? new Uint8Array(stripMeta4Blob(row.FIRMA).bytes) : null;
-  const format = bytes ? signatureFormat(bytes) : null;
-  return {
-    name: row?.FIRMANTE?.trim() || null,
-    signature: bytes && format ? { bytes, format } : null,
-  };
-};
-
-/** Casillas del ejercicio. `null` si PeopleNet no tiene certificado de ese año. */
-const readCertificate = async (
-  context: Meta4Context,
-  employeeId: string,
-  year: number,
-  today: Date,
-): Promise<PortalResult<WithholdingCertificate | null>> => {
-  const contract = CERTIFICATE_DATA_SQL;
-  if (!contract) return portalUnavailable(["P02"], PENDING_MESSAGE);
-  const params = {
-    organization: organizationParam(context.society),
-    employeeId: employeeParam(employeeId),
-    year: { type: "int", value: year },
-  } as const satisfies Record<string, PortalSqlParam>;
-  return readPortal(
-    context,
-    async () => {
-      const [boxes, arrears, refunds, signer] = await Promise.all([
-        runPortalSelect(contract.boxes.statement, params),
-        runPortalSelect(contract.arrears.statement, params),
-        runPortalSelect(contract.refunds.statement, params),
-        readSigner(contract.signer.statement, params),
-      ]);
-      if (!boxes[0]) return null;
-      return {
-        year,
-        fields: certificateFieldsFromRow(boxes[0]),
-        arrears: certificateArrearsFromRows(arrears),
-        refunds: certificateRefundsFromRows(refunds),
-        issuedAt: localIsoDate(today),
-        signer,
-      };
-    },
-    "el certificado de retenciones",
-  );
+  const result = new Map<string, CertificateLegalEntity>();
+  for (const row of entities) {
+    const id = sqlText(row.STD_ID_LEG_ENT);
+    if (!id || result.has(id)) continue;
+    result.set(id, {
+      name: sqlText(row.STD_N_LEG_ENT),
+      nif: sqlText(row.SSP_ID_LEGAL),
+      signer: sqlText(row.SSP_FIRMT_CERT_HAB),
+      signerRole: sqlText(row.SSP_CARGO_CERT_HAB),
+      signerNif: sqlText(row.SSP_ID_LEG_CER_HAB),
+      place: placeOf.get(id) ?? null,
+    });
+  }
+  return result;
 };
 
 /**
@@ -140,27 +92,33 @@ export async function getCertificates(
     member = resolved.data;
   }
   const employeeId = member?.id ?? self;
-  const params = {
+  const own = {
     organization: organizationParam(context.society),
     employeeId: employeeParam(employeeId),
   };
-  const [periods, stored] = await Promise.all([
-    readPortal(
-      context,
-      () => runPortalSelect(CERTIFICATE_SQL.periods.statement, params),
-      "los ejercicios del certificado",
-    ),
-    // Como en proyecciones, los PDF guardados de otra persona no se listan ni se sirven.
-    member
-      ? portalOk(context.society, [])
-      : readPortal(
-          context,
-          () => runPortalSelect(RETRIBUCION_SQL.certificados.statement, params),
-          "los certificados guardados",
-        ),
-  ]);
-  if (periods.status !== "ok" && (member || stored.status !== "ok")) return periods;
-  const notices = [periods, stored].flatMap((result) =>
+  const society = { organization: organizationParam(context.society) };
+  const read = (
+    statement: string,
+    params: Readonly<Record<string, PortalSqlParam>>,
+    label: string,
+  ) => readPortal(context, () => runPortalSelect(statement, params), label);
+  const [periods, stored, perceptor, records, executions, entities, places, irregular] =
+    await Promise.all([
+      read(CERTIFICATE_SQL.periods.statement, own, "los ejercicios del certificado"),
+      // Como en proyecciones, los PDF guardados de otra persona no se listan ni se sirven.
+      member
+        ? portalOk<PortalSqlRow[]>(context.society, [])
+        : read(RETRIBUCION_SQL.certificados.statement, own, "los certificados guardados"),
+      read(CERTIFICATE_SQL.perceptor.statement, own, "los datos del perceptor"),
+      read(CERTIFICATE_SQL.records.statement, own, "los registros del modelo 190"),
+      read(CERTIFICATE_SQL.executions.statement, society, "las ejecuciones del modelo 190"),
+      read(CERTIFICATE_SQL.legalEntities.statement, society, "los datos del pagador"),
+      read(CERTIFICATE_SQL.places.statement, society, "la población del pagador"),
+      read(CERTIFICATE_SQL.irregularKeys.statement, society, "las claves de percepción"),
+    ]);
+  if (periods.status !== "ok" && records.status !== "ok" && (member || stored.status !== "ok"))
+    return records;
+  const notices = [periods, stored, places, irregular].flatMap((result) =>
     result.status === "ok" ? [] : [result.message],
   );
   const documents: (CertificateStoredDocument & { year: number })[] =
@@ -179,12 +137,14 @@ export async function getCertificates(
             : [];
         })
       : [];
+  const declared = records.status === "ok" ? records.data.map(model190RecordFromRow) : [];
   const years = certificateYears(
     periods.status === "ok"
       ? periods.data.map((row) => ({ start: row.STD_DT_START, end: row.STD_DT_END }))
       : [],
     documents,
     today,
+    model190Years(declared),
   );
   if (selection.status === "selected" && !years.some((entry) => entry.year === selection.year))
     return portalError(
@@ -194,31 +154,57 @@ export async function getCertificates(
       "CONTRACT_INCOMPATIBLE",
     );
   const selectedYear = selection.status === "selected" ? selection.year : (years[0]?.year ?? null);
-  const base = { years, selectedYear, ...(member ? { member } : {}) };
+  const base = { years, selectedYear, notices, ...(member ? { member } : {}) };
   if (selectedYear === null)
     return portalOk(context.society, {
-      page: { ...base, selection: { kind: "none" }, notices },
-      certificate: null,
+      page: { ...base, selection: { kind: "none" } },
+      certificates: [],
     });
   const document = years.find((entry) => entry.year === selectedYear)?.document;
   if (document)
     return portalOk(context.society, {
-      page: { ...base, selection: { kind: "stored", document }, notices },
-      certificate: null,
+      page: { ...base, selection: { kind: "stored", document } },
+      certificates: [],
     });
-  const certificate = await readCertificate(context, employeeId, selectedYear, today);
-  if (certificate.status === "error") return certificate;
+  // Sin los registros del 190 o sus ejecuciones no se puede generar: no se inventan importes.
+  const missing = [records, executions, entities].find((result) => result.status !== "ok");
+  if (missing)
+    return portalOk(context.society, {
+      page: { ...base, selection: { kind: "unavailable", message: missing.message } },
+      certificates: [],
+    });
+  const certificates = buildWithholdingCertificates({
+    year: selectedYear,
+    perceptorName:
+      perceptor.status === "ok" ? sqlText(perceptor.data[0]?.SCO_GB_NAME) : (member?.name ?? null),
+    records: declared,
+    executions: executions.status === "ok" ? executions.data.map(model190ExecutionFromRow) : [],
+    legalEntities: legalEntitiesOf(
+      entities.status === "ok" ? entities.data : [],
+      places.status === "ok" ? places.data : [],
+    ),
+    irregularKeys: new Set(
+      irregular.status === "ok"
+        ? irregular.data.flatMap((row) =>
+            Number(row.SSP_CHK_REDUC_POR_IRREG) === 1
+              ? [
+                  irregularKey(
+                    sqlText(row.SSP_ID_TP_IRPF) ?? "",
+                    sqlText(row.SSP_ID_CLAV_PERCEP) ?? "",
+                    sqlText(row.SSP_ID_SUBCLAVE) ?? "",
+                  ),
+                ]
+              : [],
+          )
+        : [],
+    ),
+    today,
+  });
   return portalOk(context.society, {
     page: {
       ...base,
-      selection:
-        certificate.status === "unavailable"
-          ? { kind: "unavailable", message: certificate.message }
-          : certificate.data
-            ? { kind: "generated" }
-            : { kind: "none" },
-      notices,
+      selection: certificates.length ? { kind: "generated" } : { kind: "none" },
     },
-    certificate: certificate.status === "ok" ? certificate.data : null,
+    certificates,
   });
 }

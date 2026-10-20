@@ -3,7 +3,14 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage } from "pdf-lib";
+import {
+  PDFDocument,
+  rgb,
+  StandardFonts,
+  type PDFFont,
+  type PDFImage,
+  type PDFPage,
+} from "pdf-lib";
 
 import {
   certificateFieldText,
@@ -29,14 +36,15 @@ import {
 } from "./layout";
 import type { WithholdingCertificate } from "./types";
 
-const TEMPLATES = ["cert-hab-p1.jpg", "cert-hab-p2.jpg"] as const;
+/** Modelo en blanco de cada página y firma fija del diseño del informe. */
+const ASSETS = ["cert-hab-p1.jpg", "cert-hab-p2.jpg", "cert-hab-firma.jpg"] as const;
 
-let templates: Promise<readonly Uint8Array[]> | null = null;
+let assets: Promise<readonly Uint8Array[]> | null = null;
 
-/** Modelo en blanco de cada página, leído una vez del disco del servidor. */
-const loadTemplates = (): Promise<readonly Uint8Array[]> => {
-  templates ??= Promise.all(
-    TEMPLATES.map(
+/** Recursos del informe, leídos una vez del disco del servidor. */
+const loadAssets = (): Promise<readonly Uint8Array[]> => {
+  assets ??= Promise.all(
+    ASSETS.map(
       async (name) =>
         new Uint8Array(
           await readFile(
@@ -49,10 +57,10 @@ const loadTemplates = (): Promise<readonly Uint8Array[]> => {
         ),
     ),
   ).catch((error: unknown) => {
-    templates = null;
+    assets = null;
     throw error;
   });
-  return templates;
+  return assets;
 };
 
 const BLACK = rgb(0, 0, 0);
@@ -72,24 +80,47 @@ const printable = (font: PDFFont, value: string): string =>
     .join("");
 
 /**
- * Certificado de retenciones con la misma plantilla, tipografía y posiciones
- * que el informe `CYC_RP_CERT_HAB_<año>` del portal original. La previsualización
+ * Certificados de retenciones con la misma plantilla, tipografía y posiciones
+ * que el informe `CYC_RP_CERT_HAB_<año>` del portal original: dos páginas por
+ * certificado, en el orden en que el original los imprime. La previsualización
  * y la descarga usan exactamente estos bytes.
  */
 export async function renderCertificatePdf(
-  certificate: WithholdingCertificate,
+  certificates: readonly WithholdingCertificate[],
 ): Promise<Uint8Array> {
   const document = await PDFDocument.create();
-  document.setTitle(`CYC_RP_CERT_HAB_${certificate.year}`);
+  const year = certificates[0]?.year;
+  document.setTitle(year === undefined ? "CYC_RP_CERT_HAB" : `CYC_RP_CERT_HAB_${year}`);
   document.setCreator("powermeta4");
   document.setProducer("powermeta4");
   const [regular, bold] = await Promise.all([
     document.embedFont(StandardFonts.Helvetica),
     document.embedFont(StandardFonts.HelveticaBold),
   ]);
-  const backgrounds = await Promise.all(
-    (await loadTemplates()).map((bytes) => document.embedJpg(bytes)),
-  );
+  const [first, second, signatureBytes] = await loadAssets();
+  if (!first || !second || !signatureBytes)
+    throw new Error("Faltan las plantillas del certificado.");
+  const [backgrounds, signature] = await Promise.all([
+    Promise.all([document.embedJpg(first), document.embedJpg(second)]),
+    document.embedJpg(signatureBytes),
+  ]);
+  for (const certificate of certificates)
+    drawCertificate(document, certificate, { regular, bold, backgrounds, signature });
+  return document.save();
+}
+
+type Resources = {
+  readonly regular: PDFFont;
+  readonly bold: PDFFont;
+  readonly backgrounds: readonly PDFImage[];
+  readonly signature: PDFImage;
+};
+
+function drawCertificate(
+  document: PDFDocument,
+  certificate: WithholdingCertificate,
+  { regular, bold, backgrounds, signature }: Resources,
+) {
   const pages: PDFPage[] = backgrounds.map((background, index) => {
     const page = document.addPage([CERTIFICATE_PAGE.width, CERTIFICATE_PAGE.height]);
     page.drawImage(background, CERTIFICATE_BACKGROUND);
@@ -123,7 +154,7 @@ export async function renderCertificatePdf(
   ) => {
     const textValue = printable(font, value);
     const page = pages[anchor.page];
-    if (!textValue || !page) return;
+    if (!textValue.trim() || !page) return;
     const x =
       anchor.align === "right" ? anchor.x - font.widthOfTextAtSize(textValue, size) : anchor.x;
     page.drawText(textValue, { x, y: anchor.y, size, font, color: BLACK });
@@ -131,11 +162,7 @@ export async function renderCertificatePdf(
 
   for (const [fieldId, spec] of Object.entries(CERTIFICATE_FIELDS)) {
     if (!isCertificateFieldId(fieldId)) continue;
-    const value =
-      fieldId === "ejercicio"
-        ? (certificate.fields.ejercicio ?? certificate.year)
-        : certificate.fields[fieldId];
-    const text = certificateFieldText(fieldId, value);
+    const text = certificateFieldText(fieldId, certificate.fields[fieldId]);
     for (const anchor of spec.at) draw(anchor, text);
   }
 
@@ -170,17 +197,7 @@ export async function renderCertificatePdf(
   draw(CERTIFICATE_ISSUE.month, issue.month);
   draw(CERTIFICATE_ISSUE.year, issue.year);
 
-  if (certificate.signer.name)
-    draw(CERTIFICATE_SIGNER.name, certificate.signer.name, regular, CERTIFICATE_FONT_SIZE.signer);
-  const signature = certificate.signer.signature;
-  const signaturePage = pages[1];
-  if (signature && signaturePage) {
-    const image =
-      signature.format === "png"
-        ? await document.embedPng(signature.bytes)
-        : await document.embedJpg(signature.bytes);
-    signaturePage.drawImage(image, CERTIFICATE_SIGNER.image);
-  }
-
-  return document.save();
+  if (certificate.signer)
+    draw(CERTIFICATE_SIGNER.name, certificate.signer, regular, CERTIFICATE_FONT_SIZE.signer);
+  pages[1]?.drawImage(signature, CERTIFICATE_SIGNER.image);
 }

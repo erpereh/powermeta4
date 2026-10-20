@@ -175,12 +175,16 @@ producto fuera del chat. La sociedad no la elige el navegador.
   todos los ejercicios) y las posiciones medidas de cada casilla.
   `GET /api/portal/certificates/pdf` (Node.js, requiere sesión) devuelve los
   mismos bytes para la vista previa (`inline`) y la descarga (`download=1`);
-  recibe solo ejercicio y matrícula y no guarda ficheros. Las casillas de
-  `SSP_RP_C_HABERES` siguen pendientes (`CERTIFICATE_DATA_SQL = null`, P02):
-  sin ellas se muestra el estado pendiente y nunca importes inventados. Esos
-  identificadores no son T3 del diccionario (el resolver no encontró nodos);
-  `npm run portal:certificate-discover -- <sociedad>` los busca en la VM y
-  escribe `docs/portal/implementacion/certificado-descubrimiento.{md,json}`
+  recibe solo ejercicio y matrícula y no guarda ficheros. Las casillas salen,
+  como en `CYC_RP_CERT_HAB_2024+` (`SRSP_RP_CERT_RET`), de los registros tipo 2
+  del modelo 190 del perceptor (`M4SSP_REGTIP2_190`, por NIF a 9 posiciones) de
+  la ejecución de certificado de `M4SSP_TMP_190` (o, antes de 2024, del último
+  190 enviado y su complementaria); `certificates/compute.ts` traduce
+  `SSP_CALC_EMPLEADOS` y el pagador, firmante y población salen de `STD_LEG_ENT`.
+  La firma escaneada es una imagen fija del diseño (`assets/cert-hab-firma.jpg`).
+  Si una lectura falla se muestra pendiente y nunca importes inventados.
+  `npm run portal:certificate-discover -- <sociedad>` vuelca en la VM el
+  diccionario del informe a `docs/portal/implementacion/certificado-descubrimiento.{md,json}`
   (solo metadatos y recuentos). La
   acción «Consultar certificado de retenciones» de Inicio
   (`/tools/reports/certificado-retenciones?employee=`) sigue la misma regla de

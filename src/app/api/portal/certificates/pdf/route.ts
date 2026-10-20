@@ -37,19 +37,20 @@ export async function GET(request: NextRequest) {
     });
     if (result.status === "unavailable") return failure(result.message, 503);
     if (result.status === "error") return failure(result.message, 400);
-    if (!result.certificate)
+    const [first] = result.certificates;
+    if (!first)
       return failure(
         result.page.selection.kind === "unavailable"
           ? result.page.selection.message
           : "No hay un certificado generado de ese ejercicio.",
         404,
       );
-    const bytes = await renderCertificatePdf(result.certificate);
+    const bytes = await renderCertificatePdf(result.certificates);
     const disposition = search.get("download") === "1" ? "attachment" : "inline";
     return new NextResponse(new Uint8Array(bytes), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `${disposition}; filename="${certificateFileName(result.certificate.year)}"`,
+        "Content-Disposition": `${disposition}; filename="${certificateFileName(first.year)}"`,
         "Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",
       },

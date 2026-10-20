@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  certificateArrearsFromRows,
   certificateFieldText,
-  certificateFieldsFromRow,
   certificateFileName,
   certificateIssueParts,
   certificateYears,
@@ -75,29 +73,11 @@ describe("ejercicios disponibles", () => {
     ]);
   });
 
+  it("incluye los ejercicios declarados en el 190", () => {
+    expect(certificateYears([], [], today, [2019]).map((entry) => entry.year)).toEqual([2019]);
+  });
+
   it("ignora periodos sin fecha de alta válida", () => {
     expect(certificateYears([{ start: null, end: null }], [], today)).toEqual([]);
-  });
-});
-
-describe("contrato de las lecturas de casillas", () => {
-  it("toma solo los alias conocidos y convierte importes", () => {
-    expect(
-      certificateFieldsFromRow({
-        perceptorNif: " 00000000T ",
-        trabajoDinerariasIntegro: "1234.5",
-        gastosDeducibles: 10,
-        OTRA_COLUMNA: "x",
-      }),
-    ).toEqual({
-      perceptorNif: "00000000T",
-      trabajoDinerariasIntegro: 1234.5,
-      gastosDeducibles: 10,
-    });
-  });
-
-  it("limita los atrasos a las cuatro filas de la plantilla", () => {
-    const rows = Array.from({ length: 6 }, (_, index) => ({ ejercicio: 2020 + index, integro: 1 }));
-    expect(certificateArrearsFromRows(rows)).toHaveLength(4);
   });
 });

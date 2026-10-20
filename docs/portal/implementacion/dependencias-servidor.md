@@ -249,91 +249,91 @@ servicio publicado y una aprobación de escritura (AGENTS.md solo aprueba el alt
 
 Entrada de `npm run portal:discover` en la VM.
 
-| Objeto                           | Nodos                                                                                                            | Uso                  | Pantallas |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------- | --------- |
-| `CSP_CERT_DOC`                   | CSP_CERT_DOC                                                                                                     | read                 | 2         |
-| `CSP_CERTIFICADO_HAB_ANIOS`      | CSP_CERTIFICADO_HAB_ANIOS                                                                                        | read                 | 2         |
-| `CSP_CV`                         | CSP_EXPERIENCIA_PROF_EXTERNA, CSP_FORMACION_INTERNA, CSP_IDIOMAS, CSP_OTROS_TITULOS, CSP_TITULACION              | read                 | 1         |
-| `CSP_PUBLICACIONES_ESS`          | CSP_PUBLICACIONES_ESS                                                                                            | read                 | 1         |
-| `CSP_QUIEN_ES_QUIEN`             | CSP_CUENTA_BENEFICIARIO, CSP_DATOS_PAGO_EMPLEADO, CSP_FAM_IRPF, CSP_GRUPO_NIVEL                                  | read                 | 2         |
-| `CSP_RP_CERT_HAB`                | —                                                                                                                | read                 | 2         |
-| `CSP_RP_ORO_MSS`                 | CSP_CONSULTA_AREAS, CSP_CONSULTA_DIRECCION, CSP_CONSULTA_PUESTO, CSP_RP_ORO_MSS                                  | catalog, read, write | 1         |
-| `CSP_RP_PROYECCIONES`            | CSP_ANIOS_PROYECCIONES, SSE_DATOS_PROYECCION, SSE_EXTRAC_PROYECCION                                              | read                 | 2         |
-| `CSP_SSE_TRAINING_REQUEST`       | SCO_COURSE, SCO_LANGUAGE, SSE_PRINCIPAL                                                                          | catalog, write       | 2         |
-| `CSP_TRAINING_EVAL`              | —                                                                                                                | write                | 1         |
-| `M4ORO_EMPLEADOS`                | —                                                                                                                | read                 | 1         |
-| `MSS_DELEGATION`                 | MSS_DELEGATION, SCO_PROCESS                                                                                      | catalog, read, write | 1         |
-| `SCO_CLOCK_INOUT_API`            | —                                                                                                                | write                | 1         |
-| `SCO_GTA_EMPLOYEE_PRESENCE_REPR` | SCO_GTA_SSE_VISUAL_INTERFACE                                                                                     | read, write          | 2         |
-| `SCO_GTA_VIEW_ALERTS`            | —                                                                                                                | write                | 1         |
-| `SGCO_CONTACT`                   | SGCO_CONTACT_MAIN                                                                                                | read, write          | 1         |
-| `SGCO_FAVOURITE`                 | SGCO_FAVOURITE                                                                                                   | write                | 1         |
-| `SMCO_AB_ENT_SUMMARY`            | SMCO_H_HRP_ENT_SUMMARY                                                                                           | read                 | 1         |
-| `SMCO_AB_MANUAL_ADJUST`          | SCO_ENTITLEMENT, SCO_HR                                                                                          | catalog, write       | 1         |
-| `SMCO_DEV_PLAN_ACCION`           | SMCO_DEV_PLAN_ACCION                                                                                             | read, write          | 1         |
-| `SMCO_DEV_PLAN_ACCION_SEG`       | —                                                                                                                | write                | 1         |
-| `SMCO_EMPLOYEE_PROFESIONAL_DATA` | SMCO_PROFS_INFO_TODAY_MAIN_ROL                                                                                   | read                 | 1         |
-| `SSCO_DEV_PLAN`                  | SSCO_DEV_PLAN                                                                                                    | read                 | 1         |
-| `SSCO_H_EVALUTE`                 | SSCO_EVALUATOR, SSCO_H_EVALUATE                                                                                  | read                 | 3         |
-| `SSCO_HR_DOCUMENTS`              | SCO_DOC_TYPE, SSE_PRINCIPAL                                                                                      | catalog, write       | 2         |
-| `SSCO_WF_EASY_TASK`              | —                                                                                                                | write                | 3         |
-| `SSE_ADDRESS`                    | M4T_ADDRESS, SSE_ADDRESS_VAL, SSE_PRINCIPAL                                                                      | read, write          | 3         |
-| `SSE_ADDRESS_OTROS`              | M4T_ADDRESS_OTROS, SSE_PRINCIPAL                                                                                 | read, write          | 4         |
-| `SSE_ASSOCIATION_ME`             | M4T_ASSOCIATION_ME, SCO_ASSOCIATION, SCO_ASSOC_TYPE, SSE_ASSOCIATION_ME_VAL, SSE_PRINCIPAL                       | catalog, read, write | 4         |
-| `SSE_BFT_DEP_BENE_COV`           | SSE_PRINCIPAL                                                                                                    | write                | 2         |
-| `SSE_BFT_EE_BNFT_ELEC`           | M4T_EE_BNFT_ELEC, SSE_PRINCIPAL                                                                                  | catalog, read, write | 4         |
-| `SSE_BFT_H_EE_IN_BNFT`           | M4T_H_EE_IN_BNFT, SSE_H_EE_IN_BNFT                                                                               | read                 | 2         |
-| `SSE_BFT_H_EE_IN_BNFT_MOD`       | SCO_BENEFIT, SSE_PRINCIPAL                                                                                       | catalog, write       | 3         |
-| `SSE_CAREER_PLAN`                | SSE_CR_PLAN_HT                                                                                                   | read                 | 1         |
-| `SSE_CARGA_FESTIVOS`             | SSE_FESTIVOS                                                                                                     | read                 | 1         |
-| `SSE_CERTIFICATION_LICEN`        | M4T_CERTIFICATION_LICEN, SCO_CERTIF_TYPE, SCO_ISSUE_ENTIT, SSE_CERTIFICATION_LICEN_VAL, SSE_PRINCIPAL            | catalog, read, write | 4         |
-| `SSE_CR_PREFERENC`               | M4T_COUNTRY, M4T_GEO_DIV, M4T_JOB, M4T_SUB_GEO_DIV, M4T_WORK_UNIT, SSE_CR_PREFERENC, SSE_PRINCIPAL               | catalog, read, write | 2         |
-| `SSE_E_MAIL`                     | SSE_E_MAIL_VAL, SSE_PRINCIPAL                                                                                    | read, write          | 3         |
-| `SSE_EMP_BACKGROUND`             | M4T_EMP_BACKGROUND, SSE_EMP_BACKGROUND_VAL, SSE_PRINCIPAL, STD_DIPLOMA, STD_EDU_CENTER, STD_EDU_SP, STD_EDU_TYPE | catalog, read, write | 4         |
-| `SSE_EMP_CV`                     | M4T_EMP_BACKGROUND, M4T_EMP_CV_LANGUAGES                                                                         | read                 | 1         |
-| `SSE_EMP_LANGUAGES`              | M4T_EMP_LANGUAGES, SSE_EMP_LANGUAGES_VAL, SSE_PRINCIPAL, STD_LANGUAGE, STD_LANG_LEVEL                            | catalog, read, write | 4         |
-| `SSE_EMP_PREV_JOBS`              | M4T_EMP_PREV_JOBS, SCO_AREA, SSE_EMP_PREV_JOBS_VAL, SSE_PRINCIPAL, STD_SECTOR                                    | catalog, read, write | 4         |
-| `SSE_EVAL360`                    | SSE_PRINCIPAL                                                                                                    | write                | 2         |
-| `SSE_EVALUATOR`                  | SSE_PRINCIPAL                                                                                                    | write                | 1         |
-| `SSE_FAMILY`                     | M4T_FAMILY, SSE_FAMILY_VAL, SSE_PRINCIPAL, STD_DEP_TYPE                                                          | catalog, read, write | 3         |
-| `SSE_GN_INTERVIEW`               | M4T_GN_INTERVIEW, SSE_PRINCIPAL                                                                                  | read, write          | 1         |
-| `SSE_GTA_PLAN`                   | SSE_GTA_PLAN                                                                                                     | read, write          | 2         |
-| `SSE_GTA_VIRTUAL_CLOCK_IN_OUT`   | SSE_GTA_VIRTUAL_CLOCK                                                                                            | read, write          | 1         |
-| `SSE_H_HR_COURSE`                | SSE_H_HR_COURSE                                                                                                  | read                 | 1         |
-| `SSE_H_HR_KNC_LVL`               | SSE_H_HR_KNC_EXP, SSE_H_HR_KNC_LVL                                                                               | read                 | 1         |
-| `SSE_H_HR_VENT_ACTIV_INDIV`      | SCO_ANALYTICAL_CODE, SSE_H_HR_VENT_ACTIV_INDIV_ROOT                                                              | catalog, read, write | 1         |
-| `SSE_H_SAL_DATA`                 | SSE_H_SAL_DATA                                                                                                   | read                 | 1         |
-| `SSE_HOLYDAYS`                   | M4T_REAL_TIME_PRD, SSE_AB_HRP_ENT_SUMMARY, SSE_INCIDENCE, SSE_PRINCIPAL, SSE_REAL_TIME_PRD                       | catalog, read, write | 4         |
-| `SSE_HOME_PAGE`                  | M4T_HOME_PAGE, SSE_HOME_PAGE_VAL, SSE_PRINCIPAL                                                                  | read, write          | 3         |
-| `SSE_HR_COMP_BACKGROUND`         | M4T_HR_COMP_BACKGROUND, SSE_HR_COMP_BACKGROUND_VAL, SSE_PRINCIPAL                                                | read, write          | 4         |
-| `SSE_HR_COMP_INFORMATION`        | M4T_HR_COMP_INFORMATION, SSE_HR_COMP_INFORMATION_VAL, SSE_PRINCIPAL                                              | read, write          | 4         |
-| `SSE_HR_CONTACT`                 | M4T_HR_CONTACT, SSE_HR_CONTACT_VAL, SSE_PRINCIPAL                                                                | read, write          | 3         |
-| `SSE_HT_MAR_STAT`                | M4T_HT_MAR_STAT, SSE_HT_MAR_STAT_VAL, SSE_PRINCIPAL                                                              | read, write          | 3         |
-| `SSE_INT_MOVILITY`               | M4T_RECRUIT_PRO, SCO_JOB, SSE_INT_MOVILITY, SSE_PRINCIPAL                                                        | catalog, read, write | 2         |
-| `SSE_JOB`                        | SSE_H_HR_JOB                                                                                                     | read                 | 1         |
-| `SSE_LAST_HR_PAY_DOCS`           | SSE_LAST_HR_PAY_DOCS                                                                                             | read                 | 1         |
-| `SSE_LOANS`                      | M4T_LN_HT_CONDITIONS, M4T_LN_HT_HR_LOANS, SCO_LOAN, SCO_PAY_OFF_FREQ, SCO_REASON, SSE_LOANS_VAL, SSE_PRINCIPAL   | catalog, read, write | 3         |
-| `SSE_MOD_SITIRPF`                | SSE_DATA_DATOS_PERCEPTOR, SSE_PRINCIPAL, SSE_VAL_ACUSE_RECIBO, SSP_EST_IRPF, SSP_MINUSVALIA, SSP_TP_DOC          | catalog, read, write | 2         |
-| `SSE_OBJECTIVES`                 | SSE_ROL_LV_OBJ                                                                                                   | read                 | 1         |
-| `SSE_OTH_CONTACT_FORMS`          | M4T_OTH_CONTACT_FORMS, SCO_CONTACT_TYPE, SSE_OTH_CONTACT_FORMS_VAL, SSE_PRINCIPAL                                | catalog, read, write | 3         |
-| `SSE_OTHER_PDATA`                | M4T_COUNTRY_LIST, M4T_FAMILY_LIST, M4T_OTHER_PDATA, SCO_PERSON, SSE_PRINCIPAL                                    | catalog, read, write | 5         |
-| `SSE_PAYMENT_DATA`               | SSE_PAYMENT_DATA_VAL, SSE_PRINCIPAL, SSP_CODIGO_ISO                                                              | catalog, read, write | 5         |
-| `SSE_PHONE_FAX`                  | M4T_PHONE_FAX, SSE_PHONE_FAX_VAL, SSE_PRINCIPAL, STD_LU_LINE_TYPE                                                | catalog, read, write | 3         |
-| `SSE_PLAN_ACTION`                | SSE_PRINCIPAL                                                                                                    | write                | 1         |
-| `SSE_REAL_TIME`                  | SSE_REAL_TIME                                                                                                    | read                 | 1         |
-| `SSE_TRAINING_EVAL`              | SSE_EVEN_EVAL_SHEET                                                                                              | read                 | 1         |
-| `SSE_TRAINING_REQUEST`           | M4T_CURSOS, M4T_SOLICITUDES_ACEPTADAS, SSE_PRINCIPAL, SSE_TRAINING_REQUEST                                       | read, write          | 3         |
-| `SSM_ABSENCES`                   | SSM_ABSENCE_DETAIL                                                                                               | read                 | 1         |
-| `SSM_CAREER_PLAN`                | SSM_CAREER_PLAN                                                                                                  | read                 | 1         |
-| `SSM_CR_PREFERENC`               | SSM_CR_PREFERENC                                                                                                 | read                 | 1         |
-| `SSM_EV_ROL_LV_OBJ`              | SSE_EV_ROL_LV_OBJ, SSE_PRINCIPAL                                                                                 | read, write          | 3         |
-| `SSM_GN_INTERVIEW`               | M4T_GN_INTERVIEW, SCO_INTERVIEW_TYPE, SSE_PRINCIPAL                                                              | catalog, read, write | 3         |
-| `SSM_H_SAL_DATA`                 | SSM_PRINCIPAL                                                                                                    | read                 | 1         |
-| `SSM_HOLYDAYS`                   | M4T_REAL_TIME_PRD, SSE_INCIDENCE, SSM_PRINCIPAL                                                                  | catalog, read, write | 1         |
-| `SSM_RECRUIT_PRO`                | SSM_RECRUIT_PRO                                                                                                  | read                 | 1         |
-| `SSM_SALARY_REVIEW_PROCESS`      | M4HCO_CR_H_HR_SREV                                                                                               | read, write          | 1         |
-| `SSM_SET_WORK_UNIT_TO_SEE`       | —                                                                                                                | write                | 1         |
-| `SSM_TRAINING_REQUEST`           | M4T_REQ_DETAIL, SCO_PRODUCT, SCO_TRAINING_TYPE                                                                   | catalog, read, write | 2         |
-| `SSM_VACANT`                     | SCO_JOB, SCO_MOBILITY, SCO_WORK_LOCATION                                                                         | catalog, write       | 1         |
-| `SSP_RP_C_HABERES`               | —                                                                                                                | read                 | 2         |
-| `STD_EMAIL`                      | —                                                                                                                | read                 | 3         |
+| Objeto                           | Nodos                                                                                                                  | Uso                  | Pantallas |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------- | --------- |
+| `CSP_CERT_DOC`                   | CSP_CERT_DOC                                                                                                           | read                 | 2         |
+| `CSP_CERTIFICADO_HAB_ANIOS`      | CSP_CERTIFICADO_HAB_ANIOS                                                                                              | read                 | 2         |
+| `CSP_CV`                         | CSP_EXPERIENCIA_PROF_EXTERNA, CSP_FORMACION_INTERNA, CSP_IDIOMAS, CSP_OTROS_TITULOS, CSP_TITULACION                    | read                 | 1         |
+| `CSP_PUBLICACIONES_ESS`          | CSP_PUBLICACIONES_ESS                                                                                                  | read                 | 1         |
+| `CSP_QUIEN_ES_QUIEN`             | CSP_CUENTA_BENEFICIARIO, CSP_DATOS_PAGO_EMPLEADO, CSP_FAM_IRPF, CSP_GRUPO_NIVEL                                        | read                 | 2         |
+| `CSP_RP_ORO_MSS`                 | CSP_CONSULTA_AREAS, CSP_CONSULTA_DIRECCION, CSP_CONSULTA_PUESTO, CSP_RP_ORO_MSS                                        | catalog, read, write | 1         |
+| `CSP_RP_PROYECCIONES`            | CSP_ANIOS_PROYECCIONES, SSE_DATOS_PROYECCION, SSE_EXTRAC_PROYECCION                                                    | read                 | 2         |
+| `CSP_SSE_TRAINING_REQUEST`       | SCO_COURSE, SCO_LANGUAGE, SSE_PRINCIPAL                                                                                | catalog, write       | 2         |
+| `CSP_TRAINING_EVAL`              | —                                                                                                                      | write                | 1         |
+| `M4ORO_EMPLEADOS`                | —                                                                                                                      | read                 | 1         |
+| `MSS_DELEGATION`                 | MSS_DELEGATION, SCO_PROCESS                                                                                            | catalog, read, write | 1         |
+| `SCO_CLOCK_INOUT_API`            | —                                                                                                                      | write                | 1         |
+| `SCO_GTA_EMPLOYEE_PRESENCE_REPR` | SCO_GTA_SSE_VISUAL_INTERFACE                                                                                           | read, write          | 2         |
+| `SCO_GTA_VIEW_ALERTS`            | —                                                                                                                      | write                | 1         |
+| `SGCO_CONTACT`                   | SGCO_CONTACT_MAIN                                                                                                      | read, write          | 1         |
+| `SGCO_FAVOURITE`                 | SGCO_FAVOURITE                                                                                                         | write                | 1         |
+| `SMCO_AB_ENT_SUMMARY`            | SMCO_H_HRP_ENT_SUMMARY                                                                                                 | read                 | 1         |
+| `SMCO_AB_MANUAL_ADJUST`          | SCO_ENTITLEMENT, SCO_HR                                                                                                | catalog, write       | 1         |
+| `SMCO_DEV_PLAN_ACCION`           | SMCO_DEV_PLAN_ACCION                                                                                                   | read, write          | 1         |
+| `SMCO_DEV_PLAN_ACCION_SEG`       | —                                                                                                                      | write                | 1         |
+| `SMCO_EMPLOYEE_PROFESIONAL_DATA` | SMCO_PROFS_INFO_TODAY_MAIN_ROL                                                                                         | read                 | 1         |
+| `SRSP_RP_CERT_RET`               | SRSP_CLAVES_SUBCLAVES, SRSP_DAT_PERCEPTOR_REG_TIP2, SRSP_RP_EMPRESA, SSP_DAT_PERCEPTOR_CERT_RET, SSP_EJEC_190_CERT_RET | read                 | 2         |
+| `SSCO_DEV_PLAN`                  | SSCO_DEV_PLAN                                                                                                          | read                 | 1         |
+| `SSCO_H_EVALUTE`                 | SSCO_EVALUATOR, SSCO_H_EVALUATE                                                                                        | read                 | 3         |
+| `SSCO_HR_DOCUMENTS`              | SCO_DOC_TYPE, SSE_PRINCIPAL                                                                                            | catalog, write       | 2         |
+| `SSCO_WF_EASY_TASK`              | —                                                                                                                      | write                | 3         |
+| `SSE_ADDRESS`                    | M4T_ADDRESS, SSE_ADDRESS_VAL, SSE_PRINCIPAL                                                                            | read, write          | 3         |
+| `SSE_ADDRESS_OTROS`              | M4T_ADDRESS_OTROS, SSE_PRINCIPAL                                                                                       | read, write          | 4         |
+| `SSE_ASSOCIATION_ME`             | M4T_ASSOCIATION_ME, SCO_ASSOCIATION, SCO_ASSOC_TYPE, SSE_ASSOCIATION_ME_VAL, SSE_PRINCIPAL                             | catalog, read, write | 4         |
+| `SSE_BFT_DEP_BENE_COV`           | SSE_PRINCIPAL                                                                                                          | write                | 2         |
+| `SSE_BFT_EE_BNFT_ELEC`           | M4T_EE_BNFT_ELEC, SSE_PRINCIPAL                                                                                        | catalog, read, write | 4         |
+| `SSE_BFT_H_EE_IN_BNFT`           | M4T_H_EE_IN_BNFT, SSE_H_EE_IN_BNFT                                                                                     | read                 | 2         |
+| `SSE_BFT_H_EE_IN_BNFT_MOD`       | SCO_BENEFIT, SSE_PRINCIPAL                                                                                             | catalog, write       | 3         |
+| `SSE_CAREER_PLAN`                | SSE_CR_PLAN_HT                                                                                                         | read                 | 1         |
+| `SSE_CARGA_FESTIVOS`             | SSE_FESTIVOS                                                                                                           | read                 | 1         |
+| `SSE_CERTIFICATION_LICEN`        | M4T_CERTIFICATION_LICEN, SCO_CERTIF_TYPE, SCO_ISSUE_ENTIT, SSE_CERTIFICATION_LICEN_VAL, SSE_PRINCIPAL                  | catalog, read, write | 4         |
+| `SSE_CR_PREFERENC`               | M4T_COUNTRY, M4T_GEO_DIV, M4T_JOB, M4T_SUB_GEO_DIV, M4T_WORK_UNIT, SSE_CR_PREFERENC, SSE_PRINCIPAL                     | catalog, read, write | 2         |
+| `SSE_E_MAIL`                     | SSE_E_MAIL_VAL, SSE_PRINCIPAL                                                                                          | read, write          | 3         |
+| `SSE_EMP_BACKGROUND`             | M4T_EMP_BACKGROUND, SSE_EMP_BACKGROUND_VAL, SSE_PRINCIPAL, STD_DIPLOMA, STD_EDU_CENTER, STD_EDU_SP, STD_EDU_TYPE       | catalog, read, write | 4         |
+| `SSE_EMP_CV`                     | M4T_EMP_BACKGROUND, M4T_EMP_CV_LANGUAGES                                                                               | read                 | 1         |
+| `SSE_EMP_LANGUAGES`              | M4T_EMP_LANGUAGES, SSE_EMP_LANGUAGES_VAL, SSE_PRINCIPAL, STD_LANGUAGE, STD_LANG_LEVEL                                  | catalog, read, write | 4         |
+| `SSE_EMP_PREV_JOBS`              | M4T_EMP_PREV_JOBS, SCO_AREA, SSE_EMP_PREV_JOBS_VAL, SSE_PRINCIPAL, STD_SECTOR                                          | catalog, read, write | 4         |
+| `SSE_EVAL360`                    | SSE_PRINCIPAL                                                                                                          | write                | 2         |
+| `SSE_EVALUATOR`                  | SSE_PRINCIPAL                                                                                                          | write                | 1         |
+| `SSE_FAMILY`                     | M4T_FAMILY, SSE_FAMILY_VAL, SSE_PRINCIPAL, STD_DEP_TYPE                                                                | catalog, read, write | 3         |
+| `SSE_GN_INTERVIEW`               | M4T_GN_INTERVIEW, SSE_PRINCIPAL                                                                                        | read, write          | 1         |
+| `SSE_GTA_PLAN`                   | SSE_GTA_PLAN                                                                                                           | read, write          | 2         |
+| `SSE_GTA_VIRTUAL_CLOCK_IN_OUT`   | SSE_GTA_VIRTUAL_CLOCK                                                                                                  | read, write          | 1         |
+| `SSE_H_HR_COURSE`                | SSE_H_HR_COURSE                                                                                                        | read                 | 1         |
+| `SSE_H_HR_KNC_LVL`               | SSE_H_HR_KNC_EXP, SSE_H_HR_KNC_LVL                                                                                     | read                 | 1         |
+| `SSE_H_HR_VENT_ACTIV_INDIV`      | SCO_ANALYTICAL_CODE, SSE_H_HR_VENT_ACTIV_INDIV_ROOT                                                                    | catalog, read, write | 1         |
+| `SSE_H_SAL_DATA`                 | SSE_H_SAL_DATA                                                                                                         | read                 | 1         |
+| `SSE_HOLYDAYS`                   | M4T_REAL_TIME_PRD, SSE_AB_HRP_ENT_SUMMARY, SSE_INCIDENCE, SSE_PRINCIPAL, SSE_REAL_TIME_PRD                             | catalog, read, write | 4         |
+| `SSE_HOME_PAGE`                  | M4T_HOME_PAGE, SSE_HOME_PAGE_VAL, SSE_PRINCIPAL                                                                        | read, write          | 3         |
+| `SSE_HR_COMP_BACKGROUND`         | M4T_HR_COMP_BACKGROUND, SSE_HR_COMP_BACKGROUND_VAL, SSE_PRINCIPAL                                                      | read, write          | 4         |
+| `SSE_HR_COMP_INFORMATION`        | M4T_HR_COMP_INFORMATION, SSE_HR_COMP_INFORMATION_VAL, SSE_PRINCIPAL                                                    | read, write          | 4         |
+| `SSE_HR_CONTACT`                 | M4T_HR_CONTACT, SSE_HR_CONTACT_VAL, SSE_PRINCIPAL                                                                      | read, write          | 3         |
+| `SSE_HT_MAR_STAT`                | M4T_HT_MAR_STAT, SSE_HT_MAR_STAT_VAL, SSE_PRINCIPAL                                                                    | read, write          | 3         |
+| `SSE_INT_MOVILITY`               | M4T_RECRUIT_PRO, SCO_JOB, SSE_INT_MOVILITY, SSE_PRINCIPAL                                                              | catalog, read, write | 2         |
+| `SSE_JOB`                        | SSE_H_HR_JOB                                                                                                           | read                 | 1         |
+| `SSE_LAST_HR_PAY_DOCS`           | SSE_LAST_HR_PAY_DOCS                                                                                                   | read                 | 1         |
+| `SSE_LOANS`                      | M4T_LN_HT_CONDITIONS, M4T_LN_HT_HR_LOANS, SCO_LOAN, SCO_PAY_OFF_FREQ, SCO_REASON, SSE_LOANS_VAL, SSE_PRINCIPAL         | catalog, read, write | 3         |
+| `SSE_MOD_SITIRPF`                | SSE_DATA_DATOS_PERCEPTOR, SSE_PRINCIPAL, SSE_VAL_ACUSE_RECIBO, SSP_EST_IRPF, SSP_MINUSVALIA, SSP_TP_DOC                | catalog, read, write | 2         |
+| `SSE_OBJECTIVES`                 | SSE_ROL_LV_OBJ                                                                                                         | read                 | 1         |
+| `SSE_OTH_CONTACT_FORMS`          | M4T_OTH_CONTACT_FORMS, SCO_CONTACT_TYPE, SSE_OTH_CONTACT_FORMS_VAL, SSE_PRINCIPAL                                      | catalog, read, write | 3         |
+| `SSE_OTHER_PDATA`                | M4T_COUNTRY_LIST, M4T_FAMILY_LIST, M4T_OTHER_PDATA, SCO_PERSON, SSE_PRINCIPAL                                          | catalog, read, write | 5         |
+| `SSE_PAYMENT_DATA`               | SSE_PAYMENT_DATA_VAL, SSE_PRINCIPAL, SSP_CODIGO_ISO                                                                    | catalog, read, write | 5         |
+| `SSE_PHONE_FAX`                  | M4T_PHONE_FAX, SSE_PHONE_FAX_VAL, SSE_PRINCIPAL, STD_LU_LINE_TYPE                                                      | catalog, read, write | 3         |
+| `SSE_PLAN_ACTION`                | SSE_PRINCIPAL                                                                                                          | write                | 1         |
+| `SSE_REAL_TIME`                  | SSE_REAL_TIME                                                                                                          | read                 | 1         |
+| `SSE_TRAINING_EVAL`              | SSE_EVEN_EVAL_SHEET                                                                                                    | read                 | 1         |
+| `SSE_TRAINING_REQUEST`           | M4T_CURSOS, M4T_SOLICITUDES_ACEPTADAS, SSE_PRINCIPAL, SSE_TRAINING_REQUEST                                             | read, write          | 3         |
+| `SSM_ABSENCES`                   | SSM_ABSENCE_DETAIL                                                                                                     | read                 | 1         |
+| `SSM_CAREER_PLAN`                | SSM_CAREER_PLAN                                                                                                        | read                 | 1         |
+| `SSM_CR_PREFERENC`               | SSM_CR_PREFERENC                                                                                                       | read                 | 1         |
+| `SSM_EV_ROL_LV_OBJ`              | SSE_EV_ROL_LV_OBJ, SSE_PRINCIPAL                                                                                       | read, write          | 3         |
+| `SSM_GN_INTERVIEW`               | M4T_GN_INTERVIEW, SCO_INTERVIEW_TYPE, SSE_PRINCIPAL                                                                    | catalog, read, write | 3         |
+| `SSM_H_SAL_DATA`                 | SSM_PRINCIPAL                                                                                                          | read                 | 1         |
+| `SSM_HOLYDAYS`                   | M4T_REAL_TIME_PRD, SSE_INCIDENCE, SSM_PRINCIPAL                                                                        | catalog, read, write | 1         |
+| `SSM_RECRUIT_PRO`                | SSM_RECRUIT_PRO                                                                                                        | read                 | 1         |
+| `SSM_SALARY_REVIEW_PROCESS`      | M4HCO_CR_H_HR_SREV                                                                                                     | read, write          | 1         |
+| `SSM_SET_WORK_UNIT_TO_SEE`       | —                                                                                                                      | write                | 1         |
+| `SSM_TRAINING_REQUEST`           | M4T_REQ_DETAIL, SCO_PRODUCT, SCO_TRAINING_TYPE                                                                         | catalog, read, write | 2         |
+| `SSM_VACANT`                     | SCO_JOB, SCO_MOBILITY, SCO_WORK_LOCATION                                                                               | catalog, write       | 1         |
+| `SSP_RP_CERT_HAB`                | SSP_RP_EMPRESA                                                                                                         | read                 | 2         |
+| `STD_EMAIL`                      | —                                                                                                                      | read                 | 3         |

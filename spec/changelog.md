@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-10-20 - Importes reales del certificado de retenciones
+
+- El certificado se genera con los datos de PeopleNet: registros tipo 2 del
+  modelo 190 del perceptor (`M4SSP_REGTIP2_190`) de la ejecución de certificado
+  (`M4SSP_TMP_190`), como `SRSP_RP_CERT_RET` en `CYC_RP_CERT_HAB_2024/2025`; antes
+  de 2024, el último 190 enviado y su complementaria.
+- `certificates/compute.ts` traduce `SSP_CALC_EMPLEADOS`: rendimientos del
+  ejercicio, IL, atrasos y reintegros, dietas, rentas exentas, reducciones,
+  actividades económicas, premios, derechos de imagen y montes públicos.
+  Pagador, firmante y población desde `STD_LEG_ENT` y su dirección.
+- La firma escaneada del diseño del informe se dibuja en la página 2. El PDF
+  encadena todos los certificados del ejercicio (dos páginas cada uno).
+- Los años con 190 declarado se añaden al selector; si falla alguna lectura se
+  muestra el estado pendiente sin inventar importes.
+
 ## 2026-10-20 - Descubrimiento dirigido del certificado de retenciones
 
 - El descubrimiento general en la VM no encontró T3 `CSP_RP_CERT_HAB` ni

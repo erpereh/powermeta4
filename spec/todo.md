@@ -33,9 +33,20 @@
       informe `CYC_RP_CERT_HAB*`, resolución de cada nodo y recuentos. Resolución
       de nodos compartida con `resolver-tablas.ts` (`scripts/portal/meta4-dictionary.ts`).
       Typecheck y lint correctos; aquí solo se comprobó que falla limpio sin PeopleNet.
-- [ ] Ejecutarlo en la VM, subir `certificado-descubrimiento.{md,json}` y
-      rellenar `CERTIFICATE_DATA_SQL` con las tablas reales. Hasta entonces el
-      certificado generado muestra su estado pendiente sin importes.
+- [x] Descubrimiento ejecutado en la VM (commit `55281715`): desde 2024 el informe
+      usa `SRSP_RP_CERT_RET` sobre `M4SSP_REGTIP2_190`; mapa casilla → ítem del
+      diseño 2025 y reglas LN4 (`SSP_CALC_EMPLEADOS`, `SSP_CARGA_CAMPOS`,
+      `SSP_ULT_EJECUCION`, `SSP_CALC_DATOS_EMPRESA`).
+- [x] Lecturas reales en `registry/sql/certificates.ts` (190 del perceptor,
+      ejecuciones, pagador, población, claves) y cálculo en
+      `certificates/compute.ts`: ejercicio, IL, atrasos (4 por página), reintegros,
+      dietas y rentas exentas, irregularidad, actividades, premios, imagen y
+      montes; un certificado por clave y página. Firma fija del diseño.
+- [x] Pruebas de cálculo con la estructura del certificado de referencia,
+      carga, ruta y PDF de varias páginas con firma.
+- [ ] En la VM: `npm run portal:verify -- consultas CYC <matrícula>` sin errores
+      (confirmar la tabla física `M4SSP_LG_ENT_ADDRESS` de la población) y
+      comparar el certificado 2025 de la app con `CYC_RP_CERT_HAB_2025.pdf`.
 - [ ] Comprobar con sesión Meta4 y datos reales en la VM.
 
 ## Apariencia: ocultar textos de desarrollo — 2026-10-20

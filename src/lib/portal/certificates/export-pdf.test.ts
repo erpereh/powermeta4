@@ -1,3 +1,4 @@
+import { PDFDict, PDFDocument, PDFName } from "pdf-lib";
 import { getDocumentProxy } from "unpdf";
 import { describe, expect, it } from "vitest";
 
@@ -49,11 +50,12 @@ const certificate: WithholdingCertificate = {
     incapacidadDinerariasIntegro: 0,
     gastosDeducibles: 1234.56,
     lugar: "MADRID",
+    ejercicio: 2025,
   },
   arrears: [{ ejercicio: 2024, integro: 1234.56, retenciones: 123.45 }],
   refunds: [],
   issuedAt: "2026-10-20",
-  signer: { name: "Firmante de Ejemplo", signature: null },
+  signer: "Firmante de Ejemplo ",
 };
 
 // Posiciones del PDF que genera el portal original (inicio de cada texto).
@@ -79,8 +81,21 @@ const ORIGINAL: readonly (readonly [page: number, text: string, x: number, y: nu
 ];
 
 describe("PDF del certificado de retenciones", () => {
+  it("encadena dos páginas por certificado y dibuja la firma del diseño", async () => {
+    const bytes = await renderCertificatePdf([certificate, certificate]);
+    const document = await PDFDocument.load(bytes);
+    expect(document.getPageCount()).toBe(4);
+    const images = (index: number) => {
+      const resources = document.getPage(index).node.Resources();
+      const xobjects = resources?.lookup(PDFName.of("XObject"), PDFDict);
+      return xobjects?.keys().length ?? 0;
+    };
+    // Página 1: plantilla. Página 2: plantilla y firma.
+    expect([images(0), images(1), images(2), images(3)]).toEqual([1, 2, 1, 2]);
+  });
+
   it("genera dos páginas A4 con la plantilla del original", async () => {
-    const pdf = await getDocumentProxy(await renderCertificatePdf(certificate));
+    const pdf = await getDocumentProxy(await renderCertificatePdf([certificate]));
     expect(pdf.numPages).toBe(2);
     for (const index of [1, 2]) {
       const viewport = (await pdf.getPage(index)).getViewport({ scale: 1 });
@@ -89,7 +104,7 @@ describe("PDF del certificado de retenciones", () => {
   });
 
   it("pinta cada dato en la misma posición que el informe original", async () => {
-    const pages = await placedText(await renderCertificatePdf(certificate));
+    const pages = await placedText(await renderCertificatePdf([certificate]));
     for (const [page, text, x, y] of ORIGINAL) {
       const found = pages[page]?.filter((item) => item.text === text) ?? [];
       expect(
@@ -101,7 +116,7 @@ describe("PDF del certificado de retenciones", () => {
   });
 
   it("deja en blanco los ceros y conserva el título en ambas páginas", async () => {
-    const pages = await placedText(await renderCertificatePdf(certificate));
+    const pages = await placedText(await renderCertificatePdf([certificate]));
     expect(pages.flat().some((item) => item.text === "0,00")).toBe(false);
     for (const page of pages)
       expect(
@@ -113,9 +128,9 @@ describe("PDF del certificado de retenciones", () => {
     const today = new Date(2026, 9, 20);
     for (const year of [2025, 2024, 2023]) {
       const data = certificateDebugData({ status: "selected", year }, { status: "own" }, today);
-      expect(data?.certificate).toBeTruthy();
-      if (!data?.certificate) continue;
-      const pages = await placedText(await renderCertificatePdf(data.certificate));
+      expect(data?.certificates).toHaveLength(1);
+      if (!data) continue;
+      const pages = await placedText(await renderCertificatePdf(data.certificates));
       expect(pages[0]?.some((item) => item.text === String(year))).toBe(true);
     }
     expect(

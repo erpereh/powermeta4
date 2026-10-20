@@ -1,9 +1,12 @@
 import type { PortalSqlQuery } from "../../types";
 
 /**
- * Lecturas del certificado de retenciones (`sse_g2_cert_hab_cyc.jsp`).
- * Parámetros que pone el servidor: `@organization`, `@employeeId` y, en las
- * casillas, `@year`. Ver `docs/portal/implementacion/lecturas-sql.md`.
+ * Lecturas del certificado de retenciones (`sse_g2_cert_hab_cyc.jsp`). Desde
+ * 2024 `CYC_RP_CERT_HAB_<año>` usa `SRSP_RP_CERT_RET`, que calcula las casillas
+ * a partir de los registros tipo 2 del modelo 190 del perceptor
+ * (`docs/portal/implementacion/certificado-descubrimiento.md`). Parámetros que
+ * pone el servidor: `@organization` y `@employeeId`; el ejercicio se elige
+ * después en `certificates/compute.ts`.
  */
 export const CERTIFICATE_SQL = {
   /**
@@ -17,29 +20,83 @@ export const CERTIFICATE_SQL = {
 FROM STD_HR_PERIOD P
 WHERE P.ID_ORGANIZATION = @organization AND P.STD_ID_HR = @employeeId`,
   },
+  /** `SSP_DAT_PERCEPTOR_CERT_RET`: NIF y nombre del perceptor con alta en la sociedad. */
+  perceptor: {
+    scope: "own",
+    tables: ["STD_PERSON", "STD_HR_PERIOD"],
+    statement: `SELECT P.STD_SSN AS STD_SSN, P.SCO_GB_NAME AS SCO_GB_NAME
+FROM STD_PERSON P
+WHERE P.STD_ID_PERSON = @employeeId
+  AND EXISTS (SELECT 1 FROM STD_HR_PERIOD H
+    WHERE H.ID_ORGANIZATION = @organization AND H.STD_ID_HR = P.STD_ID_PERSON)`,
+  },
+  /**
+   * `SRSP_DAT_PERCEPTOR_REG_TIP2` / `SSP_PERCEPTORES_CERT_RET`: registros del
+   * 190 del perceptor (NIF a 9 posiciones, `SSP_FORMATEAR_NIF_PERCEPTOR`) en
+   * todas sus ejecuciones; la ejecución de cada ejercicio se elige en servidor.
+   */
+  records: {
+    scope: "own",
+    tables: ["M4SSP_REGTIP2_190", "STD_PERSON"],
+    statement: `SELECT A.SSP_EJERCICIO AS SSP_EJERCICIO, A.STD_ID_LEG_ENT AS STD_ID_LEG_ENT,
+  A.SSP_ID_TP_IRPF AS SSP_ID_TP_IRPF, A.SSP_ID_EXE AS SSP_ID_EXE, A.SSP_TIP_REG AS SSP_TIP_REG,
+  A.SSP_NIF_PERCEPTOR AS SSP_NIF_PERCEPTOR, A.SSP_CLAVE_PERCEP AS SSP_CLAVE_PERCEP,
+  A.SSP_SUBCLAVE_PERCEP AS SSP_SUBCLAVE_PERCEP, A.SSP_EJERCICIO_DEVENGO AS SSP_EJERCICIO_DEVENGO,
+  A.SSP_PERCEP_INTEGRA AS SSP_PERCEP_INTEGRA, A.SSP_RETEN_PRACTIC AS SSP_RETEN_PRACTIC,
+  A.SSP_VALORACION AS SSP_VALORACION, A.SSP_INGR_CUENTA_EFEC AS SSP_INGR_CUENTA_EFEC,
+  A.SSP_INGR_CUENTA_REPER AS SSP_INGR_CUENTA_REPER, A.SSP_GASTOS_DEDUC AS SSP_GASTOS_DEDUC,
+  A.SSP_REDUCC_IMP_NO_INTEG AS SSP_REDUCC_IMP_NO_INTEG,
+  A.SSP_PERCEP_INTEGRA_IL AS SSP_PERCEP_INTEGRA_IL, A.SSP_RETEN_PRACTIC_IL AS SSP_RETEN_PRACTIC_IL,
+  A.SSP_VALORACION_IL AS SSP_VALORACION_IL, A.SSP_INGR_CUENTA_EFEC_IL AS SSP_INGR_CUENTA_EFEC_IL,
+  A.SSP_INGR_CUENTA_REPER_IL AS SSP_INGR_CUENTA_REPER_IL
+FROM M4SSP_REGTIP2_190 A
+WHERE A.ID_ORGANIZATION = @organization
+  AND A.SSP_NIF_PERCEPTOR IN (
+    SELECT RIGHT('000000000' + LTRIM(RTRIM(P.STD_SSN)), 9) FROM STD_PERSON P
+    WHERE P.STD_ID_PERSON = @employeeId)
+ORDER BY A.SSP_EJERCICIO ASC, A.STD_ID_LEG_ENT ASC, A.SSP_ID_TP_IRPF ASC, A.SSP_CLAVE_PERCEP ASC,
+  A.SSP_SUBCLAVE_PERCEP ASC, A.SSP_EJERCICIO_DEVENGO DESC`,
+  },
+  /** `SSP_TMP_190`: ejecuciones del 190 de la sociedad (`SSP_CARGA_CAMPOS`, `SSP_ULT_EJECUCION`). */
+  executions: {
+    scope: "society",
+    tables: ["M4SSP_TMP_190"],
+    statement: `SELECT T.SSP_EJERCICIO AS SSP_EJERCICIO, T.STD_ID_LEG_ENT AS STD_ID_LEG_ENT,
+  T.SSP_ID_TP_IRPF AS SSP_ID_TP_IRPF, T.SSP_ID_EXE AS SSP_ID_EXE, T.SSP_ID_EXE_ORIGEN AS SSP_ID_EXE_ORIGEN,
+  T.SSP_ID_EXE_190_CERT AS SSP_ID_EXE_190_CERT, T.SSP_ID_ESTADO_DECLARACION AS SSP_ID_ESTADO_DECLARACION,
+  T.SSP_CHK_ULT_ENVIADO AS SSP_CHK_ULT_ENVIADO, T.SSP_TIPO_DECLARA AS SSP_TIPO_DECLARA,
+  T.SSP_CHK_MODO_PRUEBA AS SSP_CHK_MODO_PRUEBA, T.SSP_FEC_LANZAMIENTO AS SSP_FEC_LANZAMIENTO
+FROM M4SSP_TMP_190 T
+WHERE T.ID_ORGANIZATION = @organization`,
+  },
+  /** `SSP_RP_EMPRESA`: datos del pagador y firmante de cada entidad legal. */
+  legalEntities: {
+    scope: "society",
+    tables: ["STD_LEG_ENT"],
+    statement: `SELECT A.STD_ID_LEG_ENT AS STD_ID_LEG_ENT, A.STD_N_LEG_ENT AS STD_N_LEG_ENT,
+  A.SSP_ID_LEGAL AS SSP_ID_LEGAL, A.SSP_FIRMT_CERT_HAB AS SSP_FIRMT_CERT_HAB,
+  A.SSP_CARGO_CERT_HAB AS SSP_CARGO_CERT_HAB, A.SSP_ID_LEG_CER_HAB AS SSP_ID_LEG_CER_HAB
+FROM STD_LEG_ENT A
+WHERE A.ID_ORGANIZATION = @organization`,
+  },
+  /** `SSP_RP_EMPRESA`: población de la dirección más reciente (`SSP_NM_POBLACION`, «En …»). */
+  places: {
+    scope: "society",
+    tables: ["M4SSP_LG_ENT_ADDRESS", "STD_GEO_PLACE"],
+    statement: `SELECT B.STD_ID_LEG_ENT AS STD_ID_LEG_ENT, C.STD_N_GEO_PLACE AS STD_N_GEO_PLACE
+FROM M4SSP_LG_ENT_ADDRESS B
+LEFT JOIN STD_GEO_PLACE C ON B.ID_ORGANIZATION = C.ID_ORGANIZATION
+  AND B.SSP_ID_NACION = C.STD_ID_COUNTRY AND B.STD_ID_GEO_DIV = C.STD_ID_GEO_DIV
+  AND B.STD_ID_GEO_PLACE = C.STD_ID_GEO_PLACE AND B.STD_ID_SUB_GEO_DIV = C.STD_ID_SUB_GEO_DIV
+WHERE B.ID_ORGANIZATION = @organization
+ORDER BY B.SSP_FEC_FIN DESC`,
+  },
+  /** `SRSP_CLAVES_SUBCLAVES`: claves con reducción por irregularidad. */
+  irregularKeys: {
+    scope: "society",
+    tables: ["M4SSP_CLAVE_SUBCLA"],
+    statement: `SELECT K.SSP_ID_TP_IRPF AS SSP_ID_TP_IRPF, K.SSP_ID_CLAV_PERCEP AS SSP_ID_CLAV_PERCEP,
+  K.SSP_ID_SUBCLAVE AS SSP_ID_SUBCLAVE, K.SSP_CHK_REDUC_POR_IRREG AS SSP_CHK_REDUC_POR_IRREG
+FROM M4SSP_CLAVE_SUBCLA K`,
+  },
 } as const satisfies Record<string, PortalSqlQuery>;
-
-/**
- * Casillas del informe `CYC_RP_CERT_HAB_<año>` (sentencia
- * `CSP_RP_CERT_HAB;SSP_RP_C_HABERES … SSE_EJECUCION_CYC "<año>"`).
- *
- * - `boxes`: una fila; cada columna con el alias de su casilla en
- *   `CERTIFICATE_FIELDS` (`perceptorNif`, `trabajoDinerariasIntegro`, `lugar`…).
- * - `arrears`: hasta cuatro filas de atrasos con `ejercicio`, `integro`,
- *   `retenciones`, `reducciones`, `gastos` y `otrasReducciones`.
- * - `refunds`: hasta tres filas de reintegros con `ejercicio`, `integro` y `reducciones`.
- * - `signer`: una fila con `FIRMANTE` y la imagen `FIRMA` (blob Meta4).
- *
- * Las tablas de esos Meta4Objects no están resueltas todavía: se obtienen en la
- * VM con `npm run portal:discover` y `scripts/portal/resolver-tablas.ts`, que
- * ya los incluyen. Hasta entonces el certificado generado queda pendiente (P02)
- * y nunca se inventan importes.
- */
-export type CertificateDataSql = {
-  readonly boxes: PortalSqlQuery;
-  readonly arrears: PortalSqlQuery;
-  readonly refunds: PortalSqlQuery;
-  readonly signer: PortalSqlQuery;
-};
-
-export const CERTIFICATE_DATA_SQL: CertificateDataSql | null = null;

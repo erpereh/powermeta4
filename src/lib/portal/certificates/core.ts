@@ -1,16 +1,12 @@
-import type { PortalSqlRow } from "../peoplenet/query";
 import {
   CERTIFICATE_ARREARS,
   CERTIFICATE_FIELDS,
-  CERTIFICATE_REFUNDS,
   type CertificateArrearsColumn,
   type CertificateFieldId,
   type CertificateRefundColumn,
 } from "./layout";
 import {
   CERTIFICATE_FIRST_GENERATED_YEAR,
-  type CertificateArrearsRow,
-  type CertificateRefundRow,
   type CertificateStoredDocument,
   type CertificateValue,
   type CertificateYear,
@@ -79,16 +75,19 @@ const yearOf = (value: unknown): number | null => {
 /**
  * Ejercicios que el original ofrece (`CSP_CERTIFICADO_HAB_ANIOS.P_LISTA_ANIOS`
  * sobre `STD_HR_PERIOD`): cada año cubierto por un periodo de alta, desde 2015
- * hasta el último ejercicio cerrado, más los certificados guardados en
- * `CSP_CERT_DOC`, que sustituyen al generado del mismo año. Más reciente primero.
+ * hasta el último ejercicio cerrado, más los ejercicios declarados en el 190 y
+ * los certificados guardados en `CSP_CERT_DOC`, que sustituyen al generado del
+ * mismo año. Más reciente primero.
  */
 export const certificateYears = (
   periods: readonly { readonly start: unknown; readonly end: unknown }[],
   stored: readonly (CertificateStoredDocument & { readonly year: number })[],
   today: Date,
+  /** Ejercicios con registros del 190 del perceptor. */
+  declared: readonly number[] = [],
 ): CertificateYear[] => {
   const lastClosed = today.getFullYear() - 1;
-  const years = new Set<number>();
+  const years = new Set<number>(declared);
   for (const period of periods) {
     const start = yearOf(period.start);
     if (start === null) continue;
@@ -106,61 +105,12 @@ export const certificateYears = (
     .map((year) => ({ year, document: documents.get(year) ?? null }));
 };
 
-const numeric = (value: unknown): number | null => {
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value.trim().replace(",", "."));
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-};
-
 export const isCertificateFieldId = (key: string): key is CertificateFieldId =>
   Object.hasOwn(CERTIFICATE_FIELDS, key);
 export const isCertificateArrearsColumn = (key: string): key is CertificateArrearsColumn =>
   Object.hasOwn(CERTIFICATE_ARREARS.columns, key);
 export const isCertificateRefundColumn = (key: string): key is CertificateRefundColumn =>
   key === "ejercicio" || key === "integro" || key === "reducciones";
-
-/**
- * Contrato de las lecturas de casillas: cada columna lleva como alias el
- * identificador de la casilla de `CERTIFICATE_FIELDS` (o de la columna de
- * atrasos/reintegros). Las columnas desconocidas se ignoran.
- */
-export const certificateFieldsFromRow = (
-  row: PortalSqlRow | undefined,
-): Partial<Record<CertificateFieldId, CertificateValue>> => {
-  const fields: Partial<Record<CertificateFieldId, CertificateValue>> = {};
-  for (const [key, value] of Object.entries(row ?? {})) {
-    if (!isCertificateFieldId(key)) continue;
-    const kind = CERTIFICATE_FIELDS[key].kind;
-    fields[key] =
-      kind === "text"
-        ? value === null || value instanceof Date
-          ? null
-          : String(value).trim() || null
-        : numeric(value);
-  }
-  return fields;
-};
-
-export const certificateArrearsFromRows = (
-  rows: readonly PortalSqlRow[],
-): CertificateArrearsRow[] =>
-  rows.slice(0, CERTIFICATE_ARREARS.rows.length).map((row) => {
-    const entry: CertificateArrearsRow = {};
-    for (const [key, value] of Object.entries(row))
-      if (isCertificateArrearsColumn(key)) entry[key] = numeric(value);
-    return entry;
-  });
-
-export const certificateRefundsFromRows = (rows: readonly PortalSqlRow[]): CertificateRefundRow[] =>
-  rows.slice(0, CERTIFICATE_REFUNDS.rows.length).map((row) => {
-    const entry: CertificateRefundRow = {};
-    for (const [key, value] of Object.entries(row))
-      if (isCertificateRefundColumn(key)) entry[key] = numeric(value);
-    return entry;
-  });
 
 /** `CYC_RP_CERT_HAB_2025.pdf`, el nombre que da el original. */
 export const certificateFileName = (year: number): string => `CYC_RP_CERT_HAB_${year}.pdf`;
