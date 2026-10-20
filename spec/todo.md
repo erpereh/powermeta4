@@ -26,9 +26,15 @@
       internas), cambio de ejercicio, vista previa, mismos bytes inline/descarga,
       acción de Inicio con matrícula y móvil 375 px sin overflow horizontal.
       Sin errores de consola ni de servidor.
-- [ ] Resolver en la VM las casillas de `SSP_RP_C_HABERES`/`CSP_RP_CERT_HAB`
-      (`npm run portal:discover` y `scripts/portal/resolver-tablas.ts`, que ya
-      incluyen esos objetos) y rellenar `CERTIFICATE_DATA_SQL`. Hasta entonces el
+- [x] `portal:discover` y `resolver-tablas.ts` ejecutados en la VM (commit
+      `256f8404`): ningún nodo con T3 `CSP_RP_CERT_HAB` ni `SSP_RP_C_HABERES`.
+- [x] `npm run portal:certificate-discover -- CYC` (`scripts/portal/descubrir-certificado.ts`):
+      T3/nodos por nombre o con el ítem `SSE_EJECUCION_CYC`, definición del
+      informe `CYC_RP_CERT_HAB*`, resolución de cada nodo y recuentos. Resolución
+      de nodos compartida con `resolver-tablas.ts` (`scripts/portal/meta4-dictionary.ts`).
+      Typecheck y lint correctos; aquí solo se comprobó que falla limpio sin PeopleNet.
+- [ ] Ejecutarlo en la VM, subir `certificado-descubrimiento.{md,json}` y
+      rellenar `CERTIFICATE_DATA_SQL` con las tablas reales. Hasta entonces el
       certificado generado muestra su estado pendiente sin importes.
 - [ ] Comprobar con sesión Meta4 y datos reales en la VM.
 

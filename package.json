@@ -14,6 +14,7 @@
     "portal:soap-catalog": "node --import tsx scripts/portal/soap-catalog.ts",
     "portal:docs": "node --import tsx scripts/portal/dependencias.ts",
     "portal:discover": "node --conditions=react-server --import tsx scripts/portal/descubrir.ts",
+    "portal:certificate-discover": "node --conditions=react-server --import tsx scripts/portal/descubrir-certificado.ts",
     "portal:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/portal/verificar.ts",
     "quinquenal:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/quinquenal/verificar.ts",
     "typecheck": "tsc --noEmit",

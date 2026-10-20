@@ -177,7 +177,11 @@ producto fuera del chat. La sociedad no la elige el navegador.
   mismos bytes para la vista previa (`inline`) y la descarga (`download=1`);
   recibe solo ejercicio y matrícula y no guarda ficheros. Las casillas de
   `SSP_RP_C_HABERES` siguen pendientes (`CERTIFICATE_DATA_SQL = null`, P02):
-  sin ellas se muestra el estado pendiente y nunca importes inventados. La
+  sin ellas se muestra el estado pendiente y nunca importes inventados. Esos
+  identificadores no son T3 del diccionario (el resolver no encontró nodos);
+  `npm run portal:certificate-discover -- <sociedad>` los busca en la VM y
+  escribe `docs/portal/implementacion/certificado-descubrimiento.{md,json}`
+  (solo metadatos y recuentos). La
   acción «Consultar certificado de retenciones» de Inicio
   (`/tools/reports/certificado-retenciones?employee=`) sigue la misma regla de
   sociedad que proyecciones (`CERTIFICATE_LOOKUP`).

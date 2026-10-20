@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-20 - Descubrimiento dirigido del certificado de retenciones
+
+- El descubrimiento general en la VM no encontró T3 `CSP_RP_CERT_HAB` ni
+  `SSP_RP_C_HABERES`. Nuevo `npm run portal:certificate-discover -- <sociedad>`
+  que busca en el diccionario los T3, nodos y la definición del informe
+  `CYC_RP_CERT_HAB*` y escribe `docs/portal/implementacion/certificado-descubrimiento.{md,json}`
+  (metadatos y recuentos, sin valores de empleados).
+- `scripts/portal/meta4-dictionary.ts` reúne la resolución de nodos que antes
+  vivía en `resolver-tablas.ts`, sin cambiar su salida.
+- Typecheck y lint correctos; ejecución real pendiente en la VM.
+
 ## 2026-10-20 - Certificado de retenciones con vista previa y PDF
 
 - Nueva vista `certificates` para `empleado.retribucion.certificados`, enlazada
