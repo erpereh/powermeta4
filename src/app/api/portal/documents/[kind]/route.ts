@@ -15,6 +15,7 @@ const notFound = () =>
  * proyección). Solo lectura: la identidad, la matrícula y la sociedad se
  * resuelven en el servidor; la clave de la URL únicamente elige entre los
  * documentos de esa persona, así que no da acceso a los de nadie más.
+ * Con `inline=1` el navegador lo muestra en lugar de descargarlo.
  */
 export async function GET(request: NextRequest, ctx: RouteContext<"/api/portal/documents/[kind]">) {
   const authSession = await getCurrentAuthContext();
@@ -24,6 +25,8 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/portal/d
   }
   const { kind } = await ctx.params;
   const key = request.nextUrl.searchParams.get("k") ?? "";
+  // `inline=1` solo cambia la presentación: la vista previa del certificado guardado.
+  const disposition = request.nextUrl.searchParams.get("inline") === "1" ? "inline" : "attachment";
   if (!isPortalDocumentKind(kind) || key.length > 64) return notFound();
 
   const context = await getPortalContext(authSession);
@@ -40,7 +43,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/portal/d
     return new NextResponse(new Uint8Array(document.bytes), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(document.fileName)}`,
+        "Content-Disposition": `${disposition}; filename*=UTF-8''${encodeURIComponent(document.fileName)}`,
         "Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",
       },

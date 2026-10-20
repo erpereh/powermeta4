@@ -1,5 +1,37 @@
 # powermeta4 - estado de tareas
 
+## Certificado de retenciones (CYC_RP_CERT_HAB) — 2026-10-20
+
+- [x] Pantalla «Mis certificados de retenciones» compartida por «Certificado de
+      Retenciones» (Datos económicos) y «Certificado de Haberes» (Aplicaciones
+      internas), misma feature como en el portal original. Selector «Año AAAA»,
+      vista previa del PDF y descarga del mismo fichero.
+- [x] Ejercicios de `STD_HR_PERIOD` (`CSP_CERTIFICADO_HAB_ANIOS`) desde 2015
+      hasta el último cerrado, más los PDF de `CSP_CERT_DOC`, que se prefieren
+      al generado del mismo año (vista previa `inline=1`).
+- [x] PDF con las plantillas en blanco del original para todos los ejercicios,
+      Helvetica 8, título en negrita, ceros en blanco, atrasos, reintegros, lugar,
+      fecha de expedición y firmante. Posiciones comparadas con el PDF de
+      referencia (±0,6 pt) en pruebas.
+- [x] `GET /api/portal/certificates/pdf`: mismos bytes `inline` y con `download=1`.
+- [x] Acción de Inicio «Consultar certificado de retenciones» por matrícula
+      (`/tools/reports/certificado-retenciones`, regla de sociedad como proyecciones).
+- [x] Muestra ficticia en sesión debug para los tres últimos ejercicios.
+- [x] Typecheck y build correctos. Lint global: oxlint sin errores con los siete
+      avisos previos; formato pendiente previo del repositorio, sin incidencias
+      en los archivos de este cambio. Suite sin `src/lib/meta4/hire/excel.test.ts`
+      (bloqueo Excel COM documentado), dos workers: 181 archivos, 1003 pruebas
+      pasadas y 2 omitidas.
+- [x] Navegador local con sesión debug: portal (Datos económicos y Aplicaciones
+      internas), cambio de ejercicio, vista previa, mismos bytes inline/descarga,
+      acción de Inicio con matrícula y móvil 375 px sin overflow horizontal.
+      Sin errores de consola ni de servidor.
+- [ ] Resolver en la VM las casillas de `SSP_RP_C_HABERES`/`CSP_RP_CERT_HAB`
+      (`npm run portal:discover` y `scripts/portal/resolver-tablas.ts`, que ya
+      incluyen esos objetos) y rellenar `CERTIFICATE_DATA_SQL`. Hasta entonces el
+      certificado generado muestra su estado pendiente sin importes.
+- [ ] Comprobar con sesión Meta4 y datos reales en la VM.
+
 ## Apariencia: ocultar textos de desarrollo — 2026-10-20
 
 - [x] Interruptor compartido por Ajustes en diálogo y `/settings`, activado por

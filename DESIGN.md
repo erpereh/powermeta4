@@ -523,6 +523,16 @@ importes ausentes no son cero y los porcentajes parciales se identifican.
 En debug autenticado de desarrollo hay muestras ficticias completa, parcial
 y vacía, con aviso visible. La descarga sigue siendo el PDF original.
 
+## Certificado de retenciones
+
+Reproduce «Mis Certificados de retenciones»: un `Surface` con el texto del
+original y un Select «Año AAAA» en la cabecera. Debajo, la vista previa del
+PDF en un `iframe` con proporción A4, sin reducir la plantilla, con «Abrir en
+otra pestaña» y «Descargar PDF», que usan el mismo fichero. El PDF no se
+rediseña: es la plantilla del original con Helvetica 8 y las mismas
+posiciones. Muestra ficticia identificada en debug; sin datos, estado vacío
+con su motivo.
+
 ## Responsive y accesibilidad
 
 Revisar 1440 px, 1024 px, 768 px y 390 px. Evitar overflow horizontal,

@@ -140,6 +140,15 @@ columnas y divide las matrices en bloques de hasta ocho pagas con el total
 anual del servidor. El Excel abre con «Resumen» (indicadores, distribución y
 comparativa) y conserva todos los conceptos y pagas en «Desglose».
 
+El certificado de retenciones («Certificado de Retenciones» en Datos
+económicos, «Certificado de Haberes» en Aplicaciones Internas y «Consultar
+certificado de retenciones» en Inicio) se previsualiza y descarga con
+`GET /api/portal/certificates/pdf`, que pinta los datos sobre la plantilla del
+original (`src/lib/portal/certificates/assets`). Con sesión debug muestra un
+certificado ficticio de los tres últimos ejercicios. Con sesión Meta4, las
+casillas quedan pendientes hasta resolver `SSP_RP_C_HABERES` en la VM
+(`CERTIFICATE_DATA_SQL`); los PDF guardados en PeopleNet se ven directamente.
+
 Si tras actualizar aparece `Module not found: Can't resolve 'pdf-lib'`, detener
 el servidor e instalar las dependencias en la misma carpeta y equipo donde se
 ejecuta la aplicación con `npm ci`; después reiniciar `npm run dev` o ejecutar

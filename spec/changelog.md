@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-10-20 - Certificado de retenciones con vista previa y PDF
+
+- Nueva vista `certificates` para `empleado.retribucion.certificados`, enlazada
+  también desde Aplicaciones internas como «Certificado de Haberes». Reproduce
+  el selector de años del original, previsualiza el certificado y lo descarga
+  con el mismo fichero (`GET /api/portal/certificates/pdf`).
+- `src/lib/portal/certificates`: plantillas en blanco de `CYC_RP_CERT_HAB`,
+  mapa tipado de casillas con las posiciones del original, formato de importes
+  (`120010,76`, cero en blanco), fecha de expedición y firmante.
+- Años de `STD_HR_PERIOD` desde 2015 y PDF guardados de `CSP_CERT_DOC`, que
+  tienen prioridad; la ruta de documentos admite `inline=1` para verlos.
+- Acción de Inicio «Consultar certificado de retenciones» por matrícula; el
+  buscador de proyecciones acepta textos propios en lugar de duplicarse.
+- Las casillas de `SSP_RP_C_HABERES` siguen pendientes de resolver en la VM
+  (`CERTIFICATE_DATA_SQL`); sin ellas no se inventan importes.
+- Typecheck, build y suite (181 archivos, 1003 pruebas, sin el test de Excel
+  COM) correctos; oxlint sin errores. Revisado en el navegador con sesión debug.
+  Sin comprobar datos reales en Meta4/VM.
+
 ## 2026-10-20 - Ocultación de textos de desarrollo desde Apariencia
 
 - Nuevo interruptor «Ocultar textos de desarrollo» en el diálogo de Ajustes y

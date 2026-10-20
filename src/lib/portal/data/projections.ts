@@ -61,7 +61,7 @@ const resolveMember = (context: Meta4Context, selfId: string, employeeId: string
     ? resolveTeamMember(context, selfId, employeeId)
     : resolveSocietyMember(context, employeeId);
 
-const resolveSocietyMember = async (
+export const resolveSocietyMember = async (
   context: Meta4Context,
   employeeId: string,
 ): Promise<PortalResult<ProjectionTeamMember | null>> =>

@@ -60,7 +60,11 @@ export default async function PortalRoutePage({
         feature={feature}
         context={context}
         orgSearchParams={feature.view === "orgchart" ? await searchParams : undefined}
-        projectionSearchParams={feature.view === "projections" ? await searchParams : undefined}
+        projectionSearchParams={
+          feature.view === "projections" || feature.view === "certificates"
+            ? await searchParams
+            : undefined
+        }
       />
     );
   if (!domain) notFound();

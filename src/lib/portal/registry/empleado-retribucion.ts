@@ -15,6 +15,7 @@ import {
 } from "./helpers";
 import { RETRIBUCION_SQL } from "./sql/retribucion";
 import { PROJECTION_SQL } from "./sql/projections";
+import { CERTIFICATE_SQL } from "./sql/certificates";
 
 const RET = "empleado/retribucion";
 const base = "/portal/empleado/retribucion";
@@ -278,11 +279,47 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
     route: `${base}/certificados`,
     sources: ["sse_g2/sse_g2_cert_hab.jsp", "sse_g2/sse_g2_cert_hab_cyc.jsp"],
     ficha: `${RET}/sse_g2--sse_g2_cert_hab_cyc.md`,
-    keywords: ["certificado", "irpf", "retenciones", "haberes"],
+    keywords: ["certificado", "irpf", "retenciones", "haberes", "certificado de haberes"],
     sensitive: true,
-    read: sqlRead(RETRIBUCION_SQL.certificados.tables),
-    view: "generic",
+    read: {
+      kind: "sql",
+      tables: [...CERTIFICATE_SQL.periods.tables, ...RETRIBUCION_SQL.certificados.tables],
+      verified: false,
+    },
+    view: "certificates",
     sections: [
+      sqlConsult(
+        "ejercicios",
+        "Ejercicios con certificado",
+        "CSP_CERTIFICADO_HAB_ANIOS!CSP_CERTIFICADO_HAB_ANIOS",
+        "list",
+        [
+          ["STD_DT_START", "Alta"],
+          ["STD_DT_END", "Baja"],
+        ],
+        CERTIFICATE_SQL.periods,
+        "P_LISTA_ANIOS: años de alta desde 2015 hasta el último ejercicio cerrado.",
+      ),
+      consult(
+        "casillas",
+        "Certificado de retenciones e ingresos a cuenta",
+        "SSP_RP_C_HABERES",
+        "record",
+        [
+          ["perceptorNif", "NIF del perceptor"],
+          ["trabajoDinerariasIntegro", "Importe íntegro satisfecho"],
+          ["trabajoDinerariasRetenciones", "Retenciones practicadas"],
+        ],
+        "Casillas del informe CYC_RP_CERT_HAB_<año> (sentencia CSP_RP_CERT_HAB;SSP_RP_C_HABERES con SSE_EJECUCION_CYC). Se pintan sobre la plantilla del original en src/lib/portal/certificates.",
+      ),
+      consult(
+        "informe",
+        "Informe del certificado",
+        "CSP_RP_CERT_HAB",
+        "record",
+        [["FIRMANTE", "Firmante"]],
+        "Objeto del informe: firmante, firma y lugar de expedición.",
+      ),
       sqlConsult(
         "certificados",
         "Certificados guardados",
@@ -293,12 +330,12 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
           ["SCO_NM_DOC", "Documento"],
         ],
         RETRIBUCION_SQL.certificados,
-        "Certificados que PeopleNet tiene guardados (CSP_CERT_DOC). Los ejercicios que el original genera al momento con el motor de informes de Meta4 (CYC_RP_CERT_HAB_<año>, SSP_RP_CERT_HAB) no están en tablas y no se pueden leer por SQL.",
+        "Certificados que PeopleNet tiene guardados (CSP_CERT_DOC); el original los prefiere al generado del mismo año.",
         { kind: "certificate", label: "Descargar PDF" },
       ),
     ],
     variants: {
-      CYC: "Lista de ejercicios (CSP_CERTIFICADO_HAB_ANIOS) con informes CYC_RP_CERT_HAB_2015–2017 e IBER_RP_CERT_HAB_2018–2021, y documentos históricos (CSP_CERT_DOC).",
+      CYC: "Lista de ejercicios (CSP_CERTIFICADO_HAB_ANIOS) con el informe CYC_RP_CERT_HAB_<año> y documentos guardados (CSP_CERT_DOC). La plantilla del certificado es la misma para todos los ejercicios.",
       BASE: "Certificado del año en curso con SSP_RP_CERT_HAB.",
     },
   },

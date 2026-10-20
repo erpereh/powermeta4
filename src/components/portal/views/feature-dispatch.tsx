@@ -19,6 +19,7 @@ import { OrgTreeLink, PersonOrgChart } from "./person-org-chart";
 import { PayslipsView } from "./payslips-view";
 import { TasksView } from "./tasks-view";
 import { ProjectionsView } from "./projections-view";
+import { CertificatesView } from "./certificates-view";
 import type { ProjectionSearchParams } from "@/lib/portal/projections/types";
 
 async function OrgChart({
@@ -146,12 +147,32 @@ export function FeatureDispatch({
           <Suspense
             fallback={
               <div role="status" className="space-y-3">
-                <p className="text-sm text-muted-foreground">Cargando el informe de proyecciones…</p>
+                <p className="text-sm text-muted-foreground">
+                  Cargando el informe de proyecciones…
+                </p>
                 <div aria-hidden>{fallback}</div>
               </div>
             }
           >
             <ProjectionsView context={context} params={projectionSearchParams} />
+          </Suspense>
+        </div>
+      );
+    case "certificates":
+      return (
+        <div className="flex min-w-0 flex-col gap-6">
+          {header}
+          <Suspense
+            fallback={
+              <div role="status" className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Cargando el certificado de retenciones…
+                </p>
+                <div aria-hidden>{fallback}</div>
+              </div>
+            }
+          >
+            <CertificatesView context={context} params={projectionSearchParams} />
           </Suspense>
         </div>
       );

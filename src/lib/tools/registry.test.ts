@@ -20,7 +20,7 @@ describe("tool registry", () => {
       "reports",
       "processes",
     ]);
-    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([4, 4, 4, 7, 4]);
+    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([4, 4, 4, 8, 4]);
   });
 
   it("keeps action IDs, prompts and icons configured", () => {
@@ -45,6 +45,7 @@ describe("tool registry", () => {
       "Quiero consultar el informe quinquenal",
       "Quiero ver los resultados de un informe de nómina",
       "Quiero consultar el informe de proyecciones",
+      "Quiero consultar el certificado de retenciones",
       "Quiero crear un informe",
       "Quiero consultar los informes",
       "Quiero exportar los resultados de un informe",
@@ -91,7 +92,7 @@ describe("tool registry", () => {
     expect(userTools.every((tool) => TOOL_ICONS[tool.icon])).toBe(true);
   });
 
-  it("offers the quinquennial report and payroll results as implemented reports", () => {
+  it("offers the quinquennial, payroll results, projections and certificate reports", () => {
     const reports = TOOL_REGISTRY.filter((tool) => tool.moduleId === "reports");
     const quinquenal = reports.find((tool) => tool.id === "reports.quinquenal");
 
@@ -106,6 +107,14 @@ describe("tool registry", () => {
       "reports.quinquenal",
       "reports.payroll-results",
       "reports.projections",
+      "reports.certificate",
+    ]);
+    expect(reports.find((tool) => tool.id === "reports.certificate")).toMatchObject({
+      route: "/tools/reports/certificado-retenciones",
+      icon: "report-certificate",
+    });
+    expect(searchTools("certificado de retenciones").tools.map((tool) => tool.id)).toEqual([
+      "reports.certificate",
     ]);
     expect(reports.find((tool) => tool.id === "reports.payroll-results")).toMatchObject({
       name: "Resultados de nómina",

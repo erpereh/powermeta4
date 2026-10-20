@@ -6,6 +6,7 @@ import {
   ChartNoAxesCombined,
   CircleAlert,
   FileChartColumn,
+  FileBadge,
   FileOutput,
   FileSearch,
   FileSpreadsheet,
@@ -50,6 +51,7 @@ export type ToolIconName =
   | "report-quinquennial"
   | "report-payroll-results"
   | "report-projections"
+  | "report-certificate"
   | "processes"
   | "process-run"
   | "process-status"
@@ -122,6 +124,7 @@ export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   "report-quinquennial": CalendarRange,
   "report-payroll-results": FileSpreadsheet,
   "report-projections": FileChartColumn,
+  "report-certificate": FileBadge,
   processes: Workflow,
   "process-run": Play,
   "process-status": ChartNoAxesCombined,
@@ -361,6 +364,26 @@ export const TOOL_MODULES = [
           "matrícula",
         ],
         aiPrompt: "Quiero consultar el informe de proyecciones",
+        implemented: true,
+      }),
+      tool({
+        id: "reports.certificate",
+        moduleId: "reports",
+        name: "Consultar certificado de retenciones",
+        description:
+          "Certificado de retenciones e ingresos a cuenta propio o de cualquier persona por matrícula.",
+        route: "/tools/reports/certificado-retenciones",
+        icon: "report-certificate",
+        keywords: [
+          "certificado",
+          "certificado de retenciones",
+          "certificado de haberes",
+          "retenciones",
+          "irpf",
+          "ingresos a cuenta",
+          "matrícula",
+        ],
+        aiPrompt: "Quiero consultar el certificado de retenciones",
         implemented: true,
       }),
       tool({

@@ -32,7 +32,6 @@ servicio publicado y una aprobación de escritura (AGENTS.md solo aprueba el alt
 | Gestiona entrevistas                                            | `/portal/responsable/talento/entrevistas`                        | —                                                                                        | P02, P05   |
 | Valida las solicitudes de movilidad interna                     | `/portal/responsable/talento/movimientos`                        | —                                                                                        | P02, P05   |
 | Valida vacaciones                                               | `/portal/responsable/tiempo/vacaciones`                          | —                                                                                        | P02, P05   |
-| Certificado de Haberes                                          | `/portal/empleado/aplicaciones/certificado-haberes`              | `sse_g2/sse_g2_cert_hab.jsp`                                                             | P02, P05   |
 | Cambio de contraseña                                            | `/portal/empleado/herramientas/contrasena`                       | —                                                                                        | P04        |
 | Árbol de Unidades Organizativas                                 | `/portal/empleado/herramientas/arbol`                            | —                                                                                        | P01, P06   |
 | Árbol de unidades organizativas                                 | `/portal/empleado/herramientas/arbol-menu`                       | —                                                                                        | P01, P06   |
@@ -246,16 +245,18 @@ servicio publicado y una aprobación de escritura (AGENTS.md solo aprueba el alt
 | Valida entrevistas                               | Enviar validaciones                 | Escritura | `SSM_GN_INTERVIEW!SSE_PRINCIPAL.GESTION (generico_actualizar.jsp)`                  | REC · NOD=SSM_GN_INTERVIEW · NIVEL_ACEPTADO                                          | P03, P04   |
 | Consulta vacaciones aceptadas                    | Consultar                           | Consulta  | `SSM_HOLYDAYS!SSM_PRINCIPAL.CARGA`                                                  | —                                                                                    | P02, P05   |
 
-## Objetos Meta4 referenciados (83)
+## Objetos Meta4 referenciados (86)
 
 Entrada de `npm run portal:discover` en la VM.
 
 | Objeto                           | Nodos                                                                                                            | Uso                  | Pantallas |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------- | --------- |
-| `CSP_CERT_DOC`                   | CSP_CERT_DOC                                                                                                     | read                 | 1         |
+| `CSP_CERT_DOC`                   | CSP_CERT_DOC                                                                                                     | read                 | 2         |
+| `CSP_CERTIFICADO_HAB_ANIOS`      | CSP_CERTIFICADO_HAB_ANIOS                                                                                        | read                 | 2         |
 | `CSP_CV`                         | CSP_EXPERIENCIA_PROF_EXTERNA, CSP_FORMACION_INTERNA, CSP_IDIOMAS, CSP_OTROS_TITULOS, CSP_TITULACION              | read                 | 1         |
 | `CSP_PUBLICACIONES_ESS`          | CSP_PUBLICACIONES_ESS                                                                                            | read                 | 1         |
 | `CSP_QUIEN_ES_QUIEN`             | CSP_CUENTA_BENEFICIARIO, CSP_DATOS_PAGO_EMPLEADO, CSP_FAM_IRPF, CSP_GRUPO_NIVEL                                  | read                 | 2         |
+| `CSP_RP_CERT_HAB`                | —                                                                                                                | read                 | 2         |
 | `CSP_RP_ORO_MSS`                 | CSP_CONSULTA_AREAS, CSP_CONSULTA_DIRECCION, CSP_CONSULTA_PUESTO, CSP_RP_ORO_MSS                                  | catalog, read, write | 1         |
 | `CSP_RP_PROYECCIONES`            | CSP_ANIOS_PROYECCIONES, SSE_DATOS_PROYECCION, SSE_EXTRAC_PROYECCION                                              | read                 | 2         |
 | `CSP_SSE_TRAINING_REQUEST`       | SCO_COURSE, SCO_LANGUAGE, SSE_PRINCIPAL                                                                          | catalog, write       | 2         |
@@ -334,4 +335,5 @@ Entrada de `npm run portal:discover` en la VM.
 | `SSM_SET_WORK_UNIT_TO_SEE`       | —                                                                                                                | write                | 1         |
 | `SSM_TRAINING_REQUEST`           | M4T_REQ_DETAIL, SCO_PRODUCT, SCO_TRAINING_TYPE                                                                   | catalog, read, write | 2         |
 | `SSM_VACANT`                     | SCO_JOB, SCO_MOBILITY, SCO_WORK_LOCATION                                                                         | catalog, write       | 1         |
+| `SSP_RP_C_HABERES`               | —                                                                                                                | read                 | 2         |
 | `STD_EMAIL`                      | —                                                                                                                | read                 | 3         |

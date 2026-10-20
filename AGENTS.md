@@ -165,6 +165,22 @@ producto fuera del chat. La sociedad no la elige el navegador.
   informe en PDF (`pdf-lib`) o Excel (`exceljs`) desde Inicio y desde el
   portal: recibe solo formato, ejercicio y matrícula, vuelve a leer con
   `loadProjectionPage` (mismas reglas que la pantalla) y no guarda ficheros.
+- El certificado de retenciones (`sse_g2_cert_hab_cyc.jsp`, «Certificado de
+  Retenciones» en Datos económicos y «Certificado de Haberes» en Aplicaciones
+  internas: misma feature `empleado.retribucion.certificados`) ofrece los
+  ejercicios de `STD_HR_PERIOD` desde 2015 hasta el último cerrado más los PDF
+  guardados en `CSP_CERT_DOC`, que se prefieren al generado del mismo año.
+  `src/lib/portal/certificates` reproduce `CYC_RP_CERT_HAB_<año>` con las
+  plantillas en blanco del original (`assets/cert-hab-p*.jpg`, iguales para
+  todos los ejercicios) y las posiciones medidas de cada casilla.
+  `GET /api/portal/certificates/pdf` (Node.js, requiere sesión) devuelve los
+  mismos bytes para la vista previa (`inline`) y la descarga (`download=1`);
+  recibe solo ejercicio y matrícula y no guarda ficheros. Las casillas de
+  `SSP_RP_C_HABERES` siguen pendientes (`CERTIFICATE_DATA_SQL = null`, P02):
+  sin ellas se muestra el estado pendiente y nunca importes inventados. La
+  acción «Consultar certificado de retenciones» de Inicio
+  (`/tools/reports/certificado-retenciones?employee=`) sigue la misma regla de
+  sociedad que proyecciones (`CERTIFICATE_LOOKUP`).
 - `npm run portal:discover` y `npm run portal:verify` se ejecutan en la VM:
   solo diccionario Meta4, recuentos, presencia de columnas y WSDL; nunca
   valores de empleados.
@@ -196,6 +212,7 @@ Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/tools/users/new`, `/tools/companies`, `/tools/payroll`,
 `/tools/payroll/receipt`, `/tools/reports`, `/tools/reports/quinquenal`,
 `/tools/reports/resultados-nomina`, `/tools/reports/proyecciones`,
+`/tools/reports/certificado-retenciones`,
 `/tools/processes` y el portal del empleado y del responsable bajo `/portal`
 (`/portal`, `/portal/tareas`, `/portal/organizacion/...`,
 `/portal/empleado/...` y `/portal/responsable/...`, resueltas desde el

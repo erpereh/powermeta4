@@ -281,14 +281,11 @@ export function createPortalMenu(baseFeatures: readonly PortalFeature[]) {
         }),
       ),
       single(
-        en(
-          "aplicaciones",
-          "certificado-haberes",
-          "Certificado de Haberes",
-          "El certificado de haberes se genera con SSE_CERT_HAB. No es el certificado fiscal de retenciones; falta la generación de este informe (P02/P08).",
-          "sse_g2/sse_g2_cert_hab.jsp",
-          { estado: "21" },
-        ),
+        e("retribucion.certificados", "Certificado de Haberes", {
+          route: "/portal/empleado/aplicaciones/certificado-haberes",
+          source: "sse_g2/sse_g2_cert_hab.jsp",
+          parameters: { estado: "21" },
+        }),
       ),
       single(
         e("retribucion.proyecciones", "Informe de proyecciones", {

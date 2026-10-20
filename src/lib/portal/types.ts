@@ -292,6 +292,7 @@ export type FeatureView =
   | "my-file"
   | "payslips"
   | "projections"
+  | "certificates"
   | "manager-home"
   | "population"
   | "team";
