@@ -34,7 +34,10 @@ import {
   type Row,
 } from "./meta4-dictionary";
 
-const IDENTIFIER = /^[A-Z0-9_]+$/i;
+// Los nombres del diccionario Meta4 pueden llevar `#` o `$` (`M4RTR_MITEMS#`,
+// `N_REPORT#`): solo proceden de INFORMATION_SCHEMA y siempre van entre corchetes.
+const IDENTIFIER = /^[A-Z0-9_#$]+$/i;
+const SOCIETY = /^[A-Z0-9]{1,8}$/i;
 const BINARY = new Set(["binary", "varbinary", "image", "timestamp", "rowversion"]);
 const TEXTUAL = new Set(["char", "nchar", "varchar", "nvarchar"]);
 const NAME_PATTERNS = ["%CERT[_]HAB%", "%C[_]HABERES%", "%CERTIFICADO[_]HAB%", "%RP[_]CERT%"];
@@ -61,7 +64,7 @@ const safely = async <T>(label: string, run: () => Promise<T>, fallback: T): Pro
 const main = async () => {
   loadEnv();
   const society = (process.argv[2] ?? "CYC").toUpperCase();
-  if (!IDENTIFIER.test(society)) throw new Error("Sociedad no válida.");
+  if (!SOCIETY.test(society)) throw new Error("Sociedad no válida.");
   const pool = await new sql.ConnectionPool(getPeopleNetConfig()).connect();
   try {
     const inventory: Column[] = (
@@ -82,7 +85,7 @@ WHERE TABLE_NAME LIKE 'M4R%' ORDER BY TABLE_NAME, ORDINAL_POSITION`,
       columns.every((name) => tables.get(table)?.some((column) => column.column === name));
     const visible = (table: string) =>
       (tables.get(table) ?? [])
-        .filter((column) => !BINARY.has(column.type))
+        .filter((column) => !BINARY.has(column.type) && IDENTIFIER.test(column.column))
         .map((column) => quote(column.column))
         .join(", ");
 
@@ -162,17 +165,17 @@ WHERE ${likeAny("ID_T3")} OR ${likeAny("ID_NODE")} OR ${likeAny("ID_TI")}`,
         (column) => TEXTUAL.has(column.type) && /REPORT|RPT/i.test(column.column),
       );
       if (reportColumns.length === 0) continue;
-      const where = reportColumns.map((column) => `${quote(column.column)} LIKE @v0`).join(" OR ");
-      const rows = await safely(
-        table,
-        () =>
-          select(
-            pool,
-            `SELECT TOP ${ROW_LIMIT} ${visible(table)} FROM ${quote(table)} WHERE ${where}`,
-            [REPORT_PATTERN],
-          ),
-        [],
-      );
+      // La sentencia se construye dentro de `safely`: una tabla rara solo deja un aviso.
+      const rows = await safely(table, () => {
+        const where = reportColumns
+          .map((column) => `${quote(column.column)} LIKE @v0`)
+          .join(" OR ");
+        return select(
+          pool,
+          `SELECT TOP ${ROW_LIMIT} ${visible(table)} FROM ${quote(table)} WHERE ${where}`,
+          [REPORT_PATTERN],
+        );
+      }, []);
       if (rows.length > 0) report[table] = rows;
     }
     console.log(`Tablas con definición del informe: ${Object.keys(report).length}`);
@@ -183,7 +186,12 @@ WHERE ${likeAny("ID_T3")} OR ${likeAny("ID_NODE")} OR ${likeAny("ID_TI")}`,
       (table) => table.startsWith("M4RCH_") && has(table, "ID_TI"),
     );
     for (const candidate of candidates.values()) {
-      const node = await resolveNode(pool, candidate.object, candidate.node);
+      const node = await safely(
+        `${candidate.object}!${candidate.node}`,
+        () => resolveNode(pool, candidate.object, candidate.node),
+        null,
+      );
+      if (!node) continue;
       const byTable: Record<string, Row[]> = {};
       if (node.ti) {
         for (const table of tiTables) {
