@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-10-20 - Ocultación de textos de desarrollo desde Apariencia
+
+- Nuevo interruptor «Ocultar textos de desarrollo» en el diálogo de Ajustes y
+  `/settings`, activado por defecto, persistente por navegador e inicializado
+  antes del primer pintado, sin APIs ni migraciones nuevas.
+- Los bloques técnicos del portal y de los módulos, avisos de conexión,
+  referencias Meta4, dependencias P01–P09, detalles de escrituras bloqueadas,
+  notas y controles de prueba se ocultan también del foco y del árbol
+  accesible. Los originales se recuperan al desactivar la preferencia.
+- Ayudas funcionales y columnas técnicas identificadas explícitamente;
+  errores, validación, acceso, avisos de información incompleta y muestras
+  ficticias conservados. Las acciones futuras siguen bloqueadas. Retirada la
+  descripción del color de acento y corregido el cierre del menú al abrir
+  Ajustes para que no interfiera con el diálogo.
+- Pruebas de preferencia, formularios, columnas, teclado, persistencia,
+  almacenamiento inaccesible, SSR, hidratación y Strict Mode correctas;
+  typecheck y build correctos. Lint global ejecutado con siete avisos previos y
+  formato pendiente del repositorio (incluidos CRLF).
+- Suite completa detenida por el bloqueo existente de Excel COM; sin ese
+  archivo, pase final con 177 archivos correctos, 982 pruebas pasadas y 2
+  omitidas, incluida la apertura y uso del diálogo desde el menú.
+- Revisión con base temporal y sesión debug: certificado limpio y recuperación
+  de sus detalles, persistencia tras recarga, Ajustes en diálogo y ruta,
+  formulario que valida sin habilitar el envío y proyecciones identificadas
+  como ejemplos. Apariencia sin overflow a 390/768/1440 px, formulario a 390 px
+  y certificado en móvil/escritorio; sin avisos ni errores de consola en el
+  pase final. Diff y estado Git revisados, `git diff --check` correcto.
+  Sin lectura de datos reales ni comprobación en la VM.
+
 ## 2026-10-19 - Presentación y comprobación de exportaciones de proyecciones
 
 - PDF siempre A4 apaisado, con todas las secciones y cifras del informe.

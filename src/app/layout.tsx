@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import { AccentInitScript } from "@/components/theme/accent-init-script";
+import { DevelopmentTextInitScript } from "@/components/theme/development-text-init-script";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/system/toast";
 import { DEFAULT_ACCENT } from "@/lib/theme/accent";
@@ -27,10 +28,12 @@ export default function RootLayout({
       lang="es"
       className={inter.variable}
       data-accent={DEFAULT_ACCENT}
+      data-hide-development-text="true"
       suppressHydrationWarning
     >
       <head>
         <AccentInitScript />
+        <DevelopmentTextInitScript />
       </head>
       <body className="antialiased">
         <ThemeProvider

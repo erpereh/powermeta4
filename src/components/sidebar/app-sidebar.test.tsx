@@ -212,6 +212,7 @@ describe("app sidebar tools group", () => {
   });
 
   it("keeps society and development labels in the header", () => {
+    document.documentElement.setAttribute("data-hide-development-text", "false");
     const { unmount } = renderSidebar();
     expect(screen.getByText("CYC")).toBeTruthy();
     unmount();
@@ -225,6 +226,7 @@ describe("app sidebar tools group", () => {
     };
     renderSidebar();
     expect(screen.getByText("Modo desarrollo")).toBeTruthy();
+    document.documentElement.removeAttribute("data-hide-development-text");
   });
 
   it("selects the employee section for a nested portal URL", () => {

@@ -61,6 +61,7 @@ export async function PopulationPanel({ context }: { context: PortalContext }) {
       </Section>
       <Section
         title="Tu equipo"
+        data-development-only={peopleResult.status === "unavailable" || undefined}
         description={
           peopleResult.status === "ok"
             ? `${people.length} ${people.length === 1 ? "persona" : "personas"} en tu población.`

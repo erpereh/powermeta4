@@ -12,8 +12,10 @@ import { ToolCard } from "@/components/tools/tool-card";
 import { ToolsModuleDock, type ModuleFilter } from "@/components/tools/tools-module-dock";
 import { ToolsRecentActivity } from "@/components/tools/tools-recent-activity";
 import { ToolsSearchTrigger } from "@/components/tools/tools-search-trigger";
+import { useDevelopmentText } from "@/hooks/use-development-text";
 
 export function ToolsLaunchpad() {
+  const [hideDevelopmentText] = useDevelopmentText();
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
   const workspace = useWorkspaceStore((state) =>
     state.activeCompanyId ? state.workspaces[state.activeCompanyId] : undefined,
@@ -43,7 +45,10 @@ export function ToolsLaunchpad() {
     });
   };
 
-  const showUnavailable = () => setFeedback("Esta acción estará disponible próximamente.");
+  const showUnavailable = () =>
+    setFeedback(
+      hideDevelopmentText ? "Acción no disponible." : "Esta acción estará disponible próximamente.",
+    );
 
   return (
     <main className="flex min-h-svh flex-col bg-background">

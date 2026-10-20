@@ -73,6 +73,7 @@ export function DevTestDataControls({
 
   return (
     <aside
+      data-development-only
       aria-label="Datos de prueba de desarrollo"
       className="mb-5 flex flex-col gap-3 rounded-xl border border-dashed border-border bg-muted/50 p-3 sm:flex-row sm:items-start sm:justify-between"
     >

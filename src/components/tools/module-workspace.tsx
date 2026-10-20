@@ -26,8 +26,10 @@ import { TOOL_ICONS, type ToolModuleDefinition } from "@/lib/tools/registry";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import { getWorkspaceScopeLabel } from "@/lib/workspaces/scope-label";
+import { useDevelopmentText } from "@/hooks/use-development-text";
 
 export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
+  const [hideDevelopmentText] = useDevelopmentText();
   const auth = useWorkspaceStore((state) => state.auth);
   const activeCompanyId = useWorkspaceStore((state) => state.activeCompanyId);
   const scopeLabel = getWorkspaceScopeLabel(auth);
@@ -45,7 +47,12 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
     });
   };
 
-  const showUnavailable = () => setFeedback("Esta herramienta estará disponible próximamente.");
+  const showUnavailable = () =>
+    setFeedback(
+      hideDevelopmentText
+        ? "Acción no disponible."
+        : "Esta herramienta estará disponible próximamente.",
+    );
 
   return (
     <main className="flex min-h-svh flex-col bg-background">
@@ -74,11 +81,13 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
           tone={MODULE_TONES[module.id]}
           title={module.name}
           badge={
-            <Badge status="neutral" size="sm" showIcon={false}>
-              Sin conexión ERP
-            </Badge>
+            <span data-development-only>
+              <Badge status="neutral" size="sm" showIcon={false}>
+                Sin conexión ERP
+              </Badge>
+            </span>
           }
-          description={module.description}
+          description={hideDevelopmentText ? undefined : module.description}
         />
 
         <Section title="Acciones disponibles" headingId={headingId}>
@@ -97,7 +106,7 @@ export function ModuleWorkspace({ module }: { module: ToolModuleDefinition }) {
           </Surface>
         </Section>
 
-        <Section title="Estado" headingId={`${module.id}-status-heading`}>
+        <Section title="Estado" headingId={`${module.id}-status-heading`} data-development-only>
           <PropertyList
             aria-label={`Estado de ${module.name}`}
             items={[

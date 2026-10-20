@@ -72,7 +72,9 @@ export async function TasksView({
               },
               { label: "Fecha límite", value: line.deadline ? formatDate(line.deadline) : "—" },
               ...(line.tooltip ? [{ label: "Descripción", value: line.tooltip }] : []),
-              ...(line.source ? [{ label: "Origen", value: line.source }] : []),
+              ...(line.source
+                ? [{ label: "Origen", value: line.source, developmentOnly: true }]
+                : []),
             ],
           }));
           return (
@@ -96,6 +98,7 @@ export async function TasksView({
         return (
           <Section
             key={group.kind}
+            data-development-only={result.status === "unavailable" || undefined}
             title={group.title}
             description={compact ? undefined : group.description}
           >

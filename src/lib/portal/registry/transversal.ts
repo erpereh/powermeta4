@@ -183,6 +183,7 @@ export const TRANSVERSAL: readonly PortalFeature[] = [
       note(
         "Contraseña",
         "powermeta4 no guarda tu contraseña. El cambio se hace en Meta4; el portal lo ofrecerá cuando exista un servicio publicado y aprobado.",
+        { presentationBody: "powermeta4 no guarda tu contraseña. El cambio se realiza en Meta4." },
       ),
     ],
     writes: [

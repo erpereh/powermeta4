@@ -25,11 +25,13 @@ import {
   PropertyList,
   Skeleton,
   StatefulButton,
+  Switch,
   ThemeModeControl,
 } from "@/components/system";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { useDevelopmentText } from "@/hooks/use-development-text";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 import type { Meta4ProfileView } from "@/types/meta4-profile";
 
@@ -117,7 +119,7 @@ function SettingRow({
   children,
 }: {
   title: string;
-  description: string;
+  description?: string;
   headingId?: string;
   children: ReactNode;
 }) {
@@ -130,7 +132,7 @@ function SettingRow({
         <h2 id={headingId} className="text-sm font-semibold text-foreground">
           {title}
         </h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
       </div>
       <div className="min-w-0 space-y-3 lg:shrink-0">{children}</div>
     </section>
@@ -146,6 +148,7 @@ export type SettingsContentProps = {
 };
 
 export function SettingsContent({ variant = "page", className }: SettingsContentProps) {
+  const [hideDevelopmentText, setHideDevelopmentText] = useDevelopmentText();
   const auth = useWorkspaceStore((state) => state.auth);
   const isDebugMode = auth?.mode === "debug";
   const backupFileRef = useRef<HTMLInputElement>(null);
@@ -346,12 +349,19 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                 >
                   <ThemeModeControl />
                 </SettingRow>
-                <SettingRow
-                  headingId="settings-accent-heading"
-                  title="Color de acento"
-                  description="Se aplica a botones, selección, foco y gráficas en claro y oscuro. Se guarda en este navegador."
-                >
+                <SettingRow headingId="settings-accent-heading" title="Color de acento">
                   <AccentControl />
+                </SettingRow>
+                <SettingRow
+                  headingId="settings-development-text-heading"
+                  title="Ocultar textos de desarrollo"
+                  description="Oculta avisos técnicos y de funciones pendientes. Se guarda en este navegador."
+                >
+                  <Switch
+                    ariaLabel="Ocultar textos de desarrollo"
+                    checked={hideDevelopmentText}
+                    onCheckedChange={setHideDevelopmentText}
+                  />
                 </SettingRow>
               </div>
             ) : activeSection === "backups" ? (
@@ -424,7 +434,7 @@ export function SettingsContent({ variant = "page", className }: SettingsContent
                 <Skeleton className="h-20 w-full" />
               </div>
             ) : isDebugMode || profile?.debugMode ? (
-              <Alert className="border-border bg-muted/40">
+              <Alert data-development-only className="border-border bg-muted/40">
                 <AlertCircle />
                 <AlertTitle>Modo de desarrollo</AlertTitle>
                 <AlertDescription>

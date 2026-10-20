@@ -100,6 +100,8 @@ export function originalPageSections(
         title: "Cuenta bancaria en otro formato",
         description:
           "Los formatos de sucursal y cuenta dependen del país. La validación bancaria del original necesita su catálogo; no se aplica el formato numérico español a cuentas extranjeras.",
+        presentationDescription:
+          "Los formatos de sucursal y cuenta dependen del país. El formato numérico español no se aplica a cuentas extranjeras.",
         fields: [
           date("STD_DT_START", "Inicio", { required: true }),
           pendingSelect("SCO_ID_PERSON", "Beneficiario", "SSE_OTHER_PDATA!M4T_FAMILY_LIST", {
@@ -169,6 +171,8 @@ export function originalPageSections(
         title: simulation ? "Simular beneficios" : "Solicitar beneficios",
         description:
           "El original permite seleccionar opciones del periodo del plan, cobertura y familiares; los precios y la elegibilidad los resuelve Meta4.",
+        presentationDescription:
+          "Selecciona las opciones del periodo del plan, la cobertura y los familiares. Los precios y la elegibilidad dependen del plan.",
         mode: simulation ? "query" : "request",
         fields: [
           pendingSelect("SSE_P_ID_PLAN", "Plan", "SSE_BFT_EE_BNFT_ELEC!M4T_EE_BNFT_ELEC", {

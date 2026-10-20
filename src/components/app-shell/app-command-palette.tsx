@@ -7,6 +7,7 @@ import { recordToolVisitAction, selectConversationAction } from "@/app/actions/w
 import { CommandPalette, type CommandItem, useToast } from "@/components/system";
 import { usePortalCommandItems } from "@/components/portal/use-portal-command-items";
 import { createToolsCommandItems } from "@/components/tools/tools-command-palette";
+import { useDevelopmentText } from "@/hooks/use-development-text";
 import { CHAT_ICONS, DEFAULT_CHAT_ICON } from "@/lib/chat-customization";
 import { createClientMutationId } from "@/lib/client-mutation-id";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
@@ -30,6 +31,7 @@ export const useAppCommandPalette = () => {
 export const useOptionalAppCommandPalette = () => useContext(AppCommandPaletteContext);
 
 export function AppCommandPaletteProvider({ children }: { children: ReactNode }) {
+  const [hideDevelopmentText] = useDevelopmentText();
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
@@ -102,12 +104,14 @@ export function AppCommandPaletteProvider({ children }: { children: ReactNode })
         onUnavailable: () => {
           toast({
             title: "Acción no disponible",
-            description: "Esta acción estará disponible próximamente.",
+            description: hideDevelopmentText
+              ? undefined
+              : "Esta acción estará disponible próximamente.",
             status: "info",
           });
         },
       }),
-    [activeCompanyId, recordToolVisit, router, toast],
+    [activeCompanyId, recordToolVisit, router, toast, hideDevelopmentText],
   );
 
   const chatItems = useMemo<CommandItem[]>(

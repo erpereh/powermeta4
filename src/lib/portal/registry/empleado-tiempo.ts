@@ -119,6 +119,8 @@ export const EMPLEADO_TIEMPO: readonly PortalFeature[] = [
         ),
         notice:
           "El original solo comprueba formato, orden de fechas, fecha de alta y tipo. Saldo, solapes y permisos los resuelve Meta4 al enviar.",
+        presentationNotice:
+          "La comprobación de datos revisa el formato, el orden de fechas, la fecha de alta y el tipo. No comprueba saldo, solapes ni permisos.",
       }),
       note(
         "Visualización gráfica",

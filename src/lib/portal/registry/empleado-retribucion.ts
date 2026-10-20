@@ -76,6 +76,10 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
       note(
         "Pagas retroactivas",
         "El original marca la retroactividad de cada paga (SSE_LAST_PAYS). La consulta de pagas retroactivas sigue pendiente de las SELECT que usa Meta4 para ese modo; hoy se muestran las pagas actuales.",
+        {
+          presentationBody:
+            "Se muestran las pagas actuales. Las pagas retroactivas no están incluidas.",
+        },
       ),
     ],
   },
@@ -169,6 +173,8 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
         ),
         notice:
           "El original avisa: «El cambio será efectivo a partir del día 1 del próximo mes» (BASE) o «se calculará en función de los procesos de nómina calculados» (IBER y COLL).",
+        presentationNotice:
+          "El cambio será efectivo a partir del día 1 del próximo mes o según los procesos de nómina calculados, dependiendo de tu sociedad.",
       }),
     ],
   },
@@ -372,6 +378,7 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
       note(
         "Cálculo",
         "La proyección conserva sus fórmulas y métodos de Meta4; no se sustituye por una suma genérica ni se presenta como nómina real.",
+        { presentationBody: "La proyección es una estimación y no equivale a una nómina abonada." },
       ),
     ],
   },
@@ -573,6 +580,10 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
       note(
         "Selección de beneficios",
         "La selección marca y bloquea los beneficios obligatorios o «core» del plan; la cobertura familiar se elige por persona dependiente (SSE_DEP_BENE_COV) con fechas de inicio y fin. La simulación no es un beneficio contratado.",
+        {
+          presentationBody:
+            "Los beneficios obligatorios del plan quedan seleccionados. La cobertura familiar se elige por persona dependiente, con fechas de inicio y fin. La simulación no es un beneficio contratado.",
+        },
       ),
       form({
         id: "baja-beneficio",

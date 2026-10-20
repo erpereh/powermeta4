@@ -30,6 +30,7 @@ import {
   CompositionChart,
 } from "@/components/system";
 import type { ProjectionPageData, ProjectionSegment } from "@/lib/portal/projections/types";
+import { DevelopmentText } from "@/components/system/development-text";
 import { projectionGraphTotal } from "@/lib/portal/projections/core";
 import { PROJECTION_LOOKUP } from "@/lib/portal/projections/types";
 import { formatProjectionMoney as money } from "@/lib/portal/projections/format";
@@ -210,26 +211,37 @@ export function ProjectionReportView({
   return (
     <div className="flex min-w-0 flex-col gap-6" aria-busy={pending} data-projection-report>
       {debug ? (
-        <Callout status="info" title="Vista de desarrollo · Datos ficticios">
+        <Callout
+          status="info"
+          title={
+            <DevelopmentText presentation="Datos de ejemplo">
+              Vista de desarrollo · Datos ficticios
+            </DevelopmentText>
+          }
+        >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p>
-              Esta muestra permite revisar el informe sin consultar Meta4 ni guardar datos de
-              empleado.
+              <DevelopmentText presentation="Este informe contiene datos ficticios.">
+                Esta muestra permite revisar el informe sin consultar Meta4 ni guardar datos de
+                empleado.
+              </DevelopmentText>
             </p>
-            <Select
-              value={params.get("scenario") ?? "full"}
-              onValueChange={(value) => navigate("scenario", value)}
-            >
-              <SelectTrigger aria-label="Escenario de desarrollo" className="w-40">
-                <span>{scenarioLabel}</span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="full">Completo</SelectItem>
-                <SelectItem value="partial">Datos parciales</SelectItem>
-                <SelectItem value="empty">Sin datos</SelectItem>
-                <SelectItem value="many-pays">20 pagas</SelectItem>
-              </SelectContent>
-            </Select>
+            <div data-development-only>
+              <Select
+                value={params.get("scenario") ?? "full"}
+                onValueChange={(value) => navigate("scenario", value)}
+              >
+                <SelectTrigger aria-label="Escenario de desarrollo" className="w-40">
+                  <span>{scenarioLabel}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full">Completo</SelectItem>
+                  <SelectItem value="partial">Datos parciales</SelectItem>
+                  <SelectItem value="empty">Sin datos</SelectItem>
+                  <SelectItem value="many-pays">20 pagas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </Callout>
       ) : null}

@@ -32,6 +32,7 @@ async function FeatureData({
     return (
       <DependencyState
         title="No se ha podido identificar tu ficha"
+        essential
         message={context.identity.status === "unresolved" ? context.identity.message : ""}
         pending={["P03"]}
       />
@@ -56,6 +57,7 @@ async function FeatureData({
     return (
       <DependencyState
         title="Sin ficha en PeopleNet"
+        essential
         message="No hay una ficha ORO única para tu matrícula en la sociedad activa."
         pending={["P03"]}
       />
@@ -83,6 +85,7 @@ export async function FeatureView({
         <FeatureHeader feature={feature} variant={variant} />
         <DependencyState
           title="No disponible en tu sociedad"
+          essential
           message={`La copia del portal solo contiene esta pantalla para ${feature.availableIn?.join(", ")}.`}
           pending={["P01"]}
         />

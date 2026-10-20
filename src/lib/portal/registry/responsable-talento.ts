@@ -65,6 +65,10 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
       note(
         "Roles y fases",
         "El responsable actúa como evaluador, validador o jerárquico según el plan. Guardar no cierra la evaluación; el cálculo de notas y el cierre son de Meta4. La validación de objetivos tras la valoración del empleado es una fase propia.",
+        {
+          presentationBody:
+            "Tu papel como evaluador, validador o responsable depende del plan. Guardar no cierra la evaluación. La validación de objetivos es una fase independiente.",
+        },
       ),
       validationForm(
         "validar-evaluadores",
@@ -167,6 +171,7 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
       note(
         "Eficacia",
         "La valoración de eficacia del responsable (CSP_MNG_VALORA_EFICA) se registra por curso realizado.",
+        { presentationBody: "La valoración de eficacia se registra por curso realizado." },
       ),
     ],
     writes: [
@@ -211,7 +216,9 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
         ],
         RESPONSABLE_SQL.carrera,
       ),
-      note("No valorado", "«No valorado» no equivale a cero ni a ausencia de competencia."),
+      note("No valorado", "«No valorado» no equivale a cero ni a ausencia de competencia.", {
+        developmentOnly: false,
+      }),
     ],
   },
   {
@@ -259,6 +266,8 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
         title: "Definición de la vacante",
         description:
           "El asistente original sigue con experiencia profesional, certificados y licencias, historial académico, obligaciones, idiomas y competencias (pasos 2 a 7).",
+        presentationDescription:
+          "La solicitud comprende experiencia profesional, certificados y licencias, historial académico, obligaciones, idiomas y competencias.",
         fields: [
           pendingSelect("SCO_ID_JOB", "Puesto", "SSM_VACANT!SCO_JOB", { required: true }),
           {
@@ -420,6 +429,7 @@ export const RESPONSABLE_TALENTO: readonly PortalFeature[] = [
       note(
         "Cancelación y archivo",
         "Una solicitud se cancela antes de la respuesta de RRHH y se archiva después de resolverse; las archivadas pueden mostrarse a petición.",
+        { developmentOnly: false },
       ),
       validationForm(
         "validar-movilidad",

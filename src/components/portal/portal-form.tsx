@@ -24,6 +24,8 @@ import {
 import { isFieldVisible, validatePortalForm, type FormIssues } from "@/lib/portal/forms/validate";
 import type { ConnectedCatalog, FieldOption, FormFieldSpec, FormSpec } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
+import { DevelopmentText } from "@/components/system/development-text";
+import { useDevelopmentText } from "@/hooks/use-development-text";
 
 import { WriteBlockedNotice } from "./portal-states";
 
@@ -133,7 +135,11 @@ function FieldControl({
   );
   const help = field.help ? (
     <p id={helpId} className="text-xs text-muted-foreground">
-      {field.help}
+      {field.presentationHelp ? (
+        <DevelopmentText presentation={field.presentationHelp}>{field.help}</DevelopmentText>
+      ) : (
+        field.help
+      )}
     </p>
   ) : null;
   const error = issue ? (
@@ -167,7 +173,9 @@ function FieldControl({
           role="group"
           className="flex min-h-10 min-w-0 items-center rounded-xl border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground [overflow-wrap:anywhere]"
         >
-          Catálogo pendiente{source?.kind === "pending" ? ` (${source.meta4})` : ""}
+          <DevelopmentText presentation="No disponible">
+            Catálogo pendiente{source?.kind === "pending" ? ` (${source.meta4})` : ""}
+          </DevelopmentText>
         </div>
       );
     } else if (source.kind === "static") {
@@ -197,7 +205,7 @@ function FieldControl({
           aria-labelledby={labelId}
           className="flex min-h-10 min-w-0 items-center rounded-xl border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground [overflow-wrap:anywhere]"
         >
-          {catalogs.message}
+          <DevelopmentText presentation="No disponible">{catalogs.message}</DevelopmentText>
         </div>
       );
     } else {
@@ -297,6 +305,7 @@ export function PortalForm({
   hireDate?: string | null;
 }) {
   const noticeId = useId();
+  const [hideDevelopmentText] = useDevelopmentText();
   const [values, setValues] = useState<Record<string, string>>({});
   const [issues, setIssues] = useState<FormIssues>({});
   const [checked, setChecked] = useState(false);
@@ -341,7 +350,15 @@ export function PortalForm({
       }}
     >
       {spec.description ? (
-        <p className="text-sm text-muted-foreground">{spec.description}</p>
+        <p className="text-sm text-muted-foreground">
+          {spec.presentationDescription ? (
+            <DevelopmentText presentation={spec.presentationDescription}>
+              {spec.description}
+            </DevelopmentText>
+          ) : (
+            spec.description
+          )}
+        </p>
       ) : null}
       <div className="grid min-w-0 gap-4 sm:grid-cols-2">
         {visible.map((field) => (
@@ -356,7 +373,18 @@ export function PortalForm({
           </div>
         ))}
       </div>
-      {spec.notice ? <p className="text-xs text-muted-foreground">{spec.notice}</p> : null}
+      {spec.notice ? (
+        <p
+          data-development-only={spec.developmentNotice || undefined}
+          className="text-xs text-muted-foreground"
+        >
+          {spec.presentationNotice ? (
+            <DevelopmentText presentation={spec.presentationNotice}>{spec.notice}</DevelopmentText>
+          ) : (
+            spec.notice
+          )}
+        </p>
+      ) : null}
       <div aria-live="polite" className="text-sm">
         {checked ? (
           issueCount > 0 ? (
@@ -376,7 +404,12 @@ export function PortalForm({
         <Button type="submit" variant="secondary" size="sm">
           Comprobar datos
         </Button>
-        <Button type="button" size="sm" disabled aria-describedby={noticeId}>
+        <Button
+          type="button"
+          size="sm"
+          disabled
+          aria-describedby={hideDevelopmentText ? undefined : noticeId}
+        >
           {spec.write.label}
         </Button>
       </div>

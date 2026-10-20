@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { Badge, PropertyList, Surface, Table, type TableProps } from "@/components/system";
 import { cn } from "@/lib/utils";
+import { useDevelopmentText } from "@/hooks/use-development-text";
 
 /** Presentation data only: readers and their contracts stay on the server. */
 export type PortalFieldTone = "neutral" | "info" | "warning" | "success" | "danger";
@@ -14,6 +15,7 @@ export type PortalField = {
   value: string;
   tone?: PortalFieldTone;
   numeric?: boolean;
+  developmentOnly?: boolean;
 };
 export type PortalRow = {
   id: string;
@@ -84,13 +86,18 @@ function DownloadLink({ row }: { row: PortalRow }) {
 
 export function PortalDataTable({
   title,
-  rows,
+  rows: sourceRows,
   framed = true,
 }: {
   title: string;
   rows: PortalRow[];
   framed?: boolean;
 }) {
+  const [hideDevelopmentText] = useDevelopmentText();
+  const rows = sourceRows.map((row) => ({
+    ...row,
+    fields: row.fields.filter((field) => !hideDevelopmentText || !field.developmentOnly),
+  }));
   const container = useRef<HTMLDivElement>(null);
   const hintId = useId();
   const [availableWidth, setAvailableWidth] = useState<number | null>(null);

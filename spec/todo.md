@@ -1,5 +1,33 @@
 # powermeta4 - estado de tareas
 
+## Apariencia: ocultar textos de desarrollo — 2026-10-20
+
+- [x] Interruptor compartido por Ajustes en diálogo y `/settings`, activado por
+      defecto, persistente por navegador y aplicado antes del primer pintado.
+      Sin cambios en SQLite, autenticación, consultas ni operaciones ERP.
+- [x] Avisos y detalles de conexión, referencias técnicas, P01–P09, notas de
+      implementación, columnas de estado/origen técnico, indicadores futuros
+      y controles de prueba ocultables sin borrar sus textos originales.
+- [x] Formularios y bloqueos conservados; ayudas funcionales separadas de la
+      documentación técnica. Errores, validación, límites de acceso, información
+      incompleta y datos ficticios siguen identificados. Descripción de color
+      de acento retirada. Ajustes cierra el menú de usuario al abrir el diálogo.
+- [x] Pruebas de preferencia, alternancia, teclado, columnas, formularios,
+      persistencia, almacenamiento inaccesible, SSR/hidratación y Strict Mode.
+- [x] Typecheck y build correctos. Lint global ejecutado: siete avisos previos y
+      formato pendiente en el repositorio, incluidos finales CRLF conservados.
+- [x] Suite completa ejecutada y detenida al volver a bloquearse en Excel COM.
+      Sin `src/lib/meta4/hire/excel.test.ts`, pase final: 177 archivos, 982
+      pruebas pasadas y 2 omitidas, incluida la apertura del menú y Ajustes.
+- [x] Navegador local con base temporal y sesión debug: certificado con detalles
+      originales y ocultos, persistencia tras recarga, Ajustes en diálogo y ruta,
+      formulario con error visible/envío bloqueado y proyecciones identificadas
+      como datos de ejemplo. Apariencia sin overflow a 390, 768 y 1440 px;
+      formulario comprobado a 390 px y certificado en móvil y escritorio.
+      Sin errores/avisos de consola en el pase final. Diff/estado Git revisados
+      y `git diff --check` correcto. Sin comprobar datos reales en Meta4/VM.
+
+
 ## Proyecciones: descargas y presentación PDF/Excel — 2026-10-19
 
 - [x] Descargas compartidas comprobadas con servidor dev recién iniciado y

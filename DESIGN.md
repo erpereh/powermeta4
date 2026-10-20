@@ -72,6 +72,19 @@ de forma global además del respeto que ya traen los componentes beUI.
 
 ## Contratos de componentes (fachada)
 
+La preferencia **Ocultar textos de desarrollo** de Ajustes > Apariencia está
+activada por defecto. Se guarda por navegador en
+`powermeta4-hide-development-text`, independiente del workspace, y se aplica en
+`<html data-hide-development-text>` antes del primer pintado. Los bloques con
+`data-development-only` se retiran del layout, del foco y del árbol accesible;
+`data-presentation-only` permite conservar una ayuda funcional sin referencias
+técnicas. No se buscan palabras en los datos: las notas, ayudas y columnas
+técnicas se identifican explícitamente. Desactivar la preferencia recupera el
+contenido original. Los errores reales, validaciones, restricciones de acceso,
+avisos sobre datos incompletos y la identificación de muestras ficticias siguen
+visibles; las operaciones bloqueadas nunca se habilitan. La fila de color de
+acento conserva únicamente su título y selector.
+
 - **Un Button** (`Button` / `StatefulButton`). Prohibidos MagneticButton,
   MetallicButton y efectos magnetic / metallic / tilt / bloom / shader /
   marquee / goo.

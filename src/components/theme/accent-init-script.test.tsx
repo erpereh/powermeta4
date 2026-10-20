@@ -37,11 +37,44 @@ vi.mock("react-dom/server", () => {
 });
 
 import { AccentInitScript } from "./accent-init-script";
+import { DevelopmentTextInitScript } from "./development-text-init-script";
+import {
+  DEVELOPMENT_TEXT_ATTRIBUTE,
+  DEVELOPMENT_TEXT_STORAGE_KEY,
+  DEVELOPMENT_TEXT_INIT_SCRIPT,
+} from "@/lib/theme/development-text";
 
 let root: Root | undefined;
 const errors: unknown[][] = [];
 const recoverableErrors: unknown[] = [];
 const beforePaintAccents: (string | null)[] = [];
+const beforePaintHidden: (string | null)[] = [];
+
+function DevelopmentPaintProbe() {
+  useLayoutEffect(() => {
+    beforePaintHidden.push(document.documentElement.getAttribute(DEVELOPMENT_TEXT_ATTRIBUTE));
+  }, []);
+  return (
+    <main>
+      <p data-development-only>Datos pendientes de conexión</p>
+    </main>
+  );
+}
+
+function DevelopmentTestDocument() {
+  return (
+    <StrictMode>
+      <html lang="es" data-hide-development-text="true" suppressHydrationWarning>
+        <head>
+          <DevelopmentTextInitScript />
+        </head>
+        <body>
+          <DevelopmentPaintProbe />
+        </body>
+      </html>
+    </StrictMode>
+  );
+}
 
 function PaintProbe() {
   useLayoutEffect(() => {
@@ -70,6 +103,7 @@ beforeEach(() => {
   errors.length = 0;
   recoverableErrors.length = 0;
   beforePaintAccents.length = 0;
+  beforePaintHidden.length = 0;
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.spyOn(console, "error").mockImplementation((...args) => errors.push(args));
   vi.spyOn(console, "warn").mockImplementation((...args) => errors.push(args));
@@ -135,6 +169,58 @@ describe("accent initialization before paint", () => {
       expect(document.documentElement.getAttribute("data-accent")).toBe(expected);
       expect(beforePaintAccents.length).toBeGreaterThan(0);
       expect(beforePaintAccents.every((accent) => accent === expected)).toBe(true);
+      expect(recoverableErrors).toEqual([]);
+      expect(errors).toEqual([]);
+    },
+  );
+});
+
+describe("development text initialization before paint", () => {
+  it.each([
+    { name: "absent", saved: null, inaccessible: false, expected: "true" },
+    { name: "hidden", saved: "true", inaccessible: false, expected: "true" },
+    { name: "visible", saved: "false", inaccessible: false, expected: "false" },
+    { name: "invalid", saved: "invalid", inaccessible: false, expected: "true" },
+    { name: "inaccessible", saved: null, inaccessible: true, expected: "true" },
+  ])(
+    "handles $name storage during SSR parsing, hydration and Strict Mode remount",
+    async ({ saved, inaccessible, expected }) => {
+      if (saved !== null) localStorage.setItem(DEVELOPMENT_TEXT_STORAGE_KEY, saved);
+      if (inaccessible)
+        vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+          throw new DOMException("Unavailable", "SecurityError");
+        });
+      const browserWindow = window;
+      vi.stubGlobal("window", undefined);
+      let html: string;
+      try {
+        html = `<!DOCTYPE html>${renderToString(<DevelopmentTestDocument />)}`;
+      } finally {
+        vi.stubGlobal("window", browserWindow);
+      }
+      document.open();
+      document.write(html);
+      document.close();
+      expect(document.head.querySelector("script")?.textContent).toBe(DEVELOPMENT_TEXT_INIT_SCRIPT);
+      expect(document.documentElement.getAttribute(DEVELOPMENT_TEXT_ATTRIBUTE)).toBe(expected);
+      const onRecoverableError = (error: unknown) => recoverableErrors.push(error);
+      await act(async () => {
+        root = hydrateRoot(document, <DevelopmentTestDocument />, { onRecoverableError });
+      });
+      expect(beforePaintHidden.every((value) => value === expected)).toBe(true);
+      expect(beforePaintHidden.length).toBeGreaterThan(0);
+      await act(() => root?.unmount());
+      root = undefined;
+      beforePaintHidden.length = 0;
+      document.documentElement.setAttribute(DEVELOPMENT_TEXT_ATTRIBUTE, "true");
+      await act(() => {
+        root = createRoot(document, { onRecoverableError });
+        root.render(<DevelopmentTestDocument />);
+      });
+      expect(document.head.querySelector("script")?.getAttribute("type")).toBe("text/plain");
+      expect(document.documentElement.getAttribute(DEVELOPMENT_TEXT_ATTRIBUTE)).toBe(expected);
+      expect(beforePaintHidden.every((value) => value === expected)).toBe(true);
+      expect(beforePaintHidden.length).toBeGreaterThan(0);
       expect(recoverableErrors).toEqual([]);
       expect(errors).toEqual([]);
     },

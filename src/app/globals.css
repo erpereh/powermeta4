@@ -1,7 +1,9 @@
 @import "tailwindcss";
+
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "../features/registro-retributivo/styles.css";
+@import "../lib/theme/development-text.css";
 
 /* Copias, fuentes y documentación versionadas: no contienen clases de la app
    y su tamaño bloquea el escaneo de Tailwind. */

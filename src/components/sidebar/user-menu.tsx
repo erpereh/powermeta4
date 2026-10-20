@@ -52,15 +52,20 @@ export function UserMenu() {
                     {username}
                   </span>
                   {isDebugMode ? (
-                    <span className="block truncate text-xs text-muted-foreground">
+                    <span
+                      data-development-only
+                      className="block truncate text-xs text-muted-foreground"
+                    >
                       Modo de desarrollo
                     </span>
                   ) : null}
                 </span>
                 {isDebugMode && !collapsed ? (
-                  <Badge status="neutral" size="sm" showIcon={false} className="ml-auto shrink-0">
-                    Debug
-                  </Badge>
+                  <span data-development-only>
+                    <Badge status="neutral" size="sm" showIcon={false} className="ml-auto shrink-0">
+                      Debug
+                    </Badge>
+                  </span>
                 ) : null}
               </button>
             </MenuTrigger>
@@ -69,25 +74,25 @@ export function UserMenu() {
             <MenuLabel className="font-normal">
               <span className="block truncate text-sm font-medium">{username}</span>
               {isDebugMode ? (
-                <span className="block truncate text-xs text-muted-foreground">
+                <span
+                  data-development-only
+                  className="block truncate text-xs text-muted-foreground"
+                >
                   Modo de desarrollo
                 </span>
               ) : null}
             </MenuLabel>
             <MenuSeparator />
-            <MenuItem
-              onSelect={(event) => {
-                event.preventDefault();
-                openSettings();
-              }}
-            >
+            <MenuItem onSelect={openSettings}>
               <Settings />
               <span>Ajustes</span>
             </MenuItem>
             <MenuItem disabled>
               <FileText />
               <span>Docs</span>
-              <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
+              <span data-development-only className="ml-auto text-xs text-muted-foreground">
+                Próximamente
+              </span>
             </MenuItem>
             <MenuSeparator />
             <div className="px-2 py-2">

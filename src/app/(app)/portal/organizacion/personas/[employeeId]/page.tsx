@@ -73,6 +73,7 @@ export default async function PortalPersonPage({
         {back}
         <DependencyState
           title="Persona no encontrada"
+          essential
           message="No hay ninguna persona con esa matrícula en tu sociedad."
           pending={[]}
         />
@@ -105,7 +106,7 @@ export default async function PortalPersonPage({
         </p>
       ) : null}
       <FileSections sections={file.sections} />
-      <p className="text-xs text-muted-foreground">
+      <p data-development-only className="text-xs text-muted-foreground">
         Teléfonos y fotografía del dossier original quedan pendientes de su contrato de lectura
         (P02, P08).
       </p>

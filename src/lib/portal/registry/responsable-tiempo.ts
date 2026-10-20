@@ -88,6 +88,10 @@ export const RESPONSABLE_TIEMPO: readonly PortalFeature[] = [
       note(
         "Leyenda",
         "Días aceptados, pendientes de aceptar, pendientes de cancelar y festivos se distinguen con texto e icono, no solo por color. El calendario real no se calcula a partir de las peticiones visibles.",
+        {
+          presentationBody:
+            "El calendario distingue días aceptados, pendientes de aceptar, pendientes de cancelar y festivos.",
+        },
       ),
       validationForm(
         "validar-vacaciones",
@@ -97,6 +101,8 @@ export const RESPONSABLE_TIEMPO: readonly PortalFeature[] = [
         {
           description:
             "Peticiones del nodo SSE_REAL_TIME_PRD con su nivel aceptado. El tipo puede ser de presencia o de ausencia. Envía las decisiones de cada página.",
+          presentationDescription:
+            "El tipo de petición puede ser de presencia o de ausencia. Envía las decisiones de cada página.",
         },
       ),
     ],
@@ -166,6 +172,7 @@ export const RESPONSABLE_TIEMPO: readonly PortalFeature[] = [
       note(
         "Saldos",
         "Una bolsa sin definir es distinta de saldo cero; los ajustes manuales pueden ser positivos o negativos.",
+        { developmentOnly: false },
       ),
       form({
         id: "ajuste",

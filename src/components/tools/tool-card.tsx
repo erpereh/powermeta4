@@ -28,7 +28,12 @@ export function ToolCard({ tool, onVisit, onUnavailable }: ToolCardProps) {
       />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium text-foreground">{tool.name}</span>
-        <span className="block truncate text-xs text-muted-foreground">{tool.description}</span>
+        <span
+          data-development-only={!tool.implemented || undefined}
+          className="block truncate text-xs text-muted-foreground"
+        >
+          {tool.description}
+        </span>
       </span>
       {tool.implemented ? (
         <ChevronRight
@@ -36,9 +41,11 @@ export function ToolCard({ tool, onVisit, onUnavailable }: ToolCardProps) {
           aria-hidden="true"
         />
       ) : (
-        <Badge status="neutral" size="sm" showIcon={false} className="shrink-0">
-          Próximamente
-        </Badge>
+        <span data-development-only>
+          <Badge status="neutral" size="sm" showIcon={false} className="shrink-0">
+            Próximamente
+          </Badge>
+        </span>
       )}
     </>
   );
@@ -50,7 +57,7 @@ export function ToolCard({ tool, onVisit, onUnavailable }: ToolCardProps) {
 
   if (!tool.implemented) {
     return (
-      <button type="button" onClick={onUnavailable} className={className}>
+      <button type="button" aria-disabled="true" onClick={onUnavailable} className={className}>
         {content}
       </button>
     );

@@ -66,23 +66,25 @@ export function HomeView({ context }: { context: PortalContext }) {
           <TeamProjections context={context} />
         </Suspense>
       ) : null}
-      <Accordion
-        items={[
-          {
-            id: "help",
-            title: "Cómo funciona este portal",
-            description: (
-              <p className="text-sm text-muted-foreground">
-                Cada pantalla reproduce el portal Meta4 de tu sociedad. Los datos que ya tienen una
-                conexión real se muestran directamente; el resto indica qué lectura o servicio
-                falta. Las solicitudes preparan el formulario completo, pero su envío queda
-                bloqueado hasta que exista un servicio de escritura aprobado: nada se envía ni se
-                simula.
-              </p>
-            ),
-          },
-        ]}
-      />
+      <div data-development-only>
+        <Accordion
+          items={[
+            {
+              id: "help",
+              title: "Cómo funciona este portal",
+              description: (
+                <p className="text-sm text-muted-foreground">
+                  Cada pantalla reproduce el portal Meta4 de tu sociedad. Los datos que ya tienen
+                  una conexión real se muestran directamente; el resto indica qué lectura o servicio
+                  falta. Las solicitudes preparan el formulario completo, pero su envío queda
+                  bloqueado hasta que exista un servicio de escritura aprobado: nada se envía ni se
+                  simula.
+                </p>
+              ),
+            },
+          ]}
+        />
+      </div>
     </div>
   );
 }

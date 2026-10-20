@@ -164,6 +164,8 @@ export type FormFieldSpec = {
   readonly min?: number;
   readonly max?: number;
   readonly help?: string;
+  /** Nontechnical help shown when development text is hidden. Original help is preserved. */
+  readonly presentationHelp?: string;
   readonly placeholder?: string;
   /** Formato exigido por el validador del original. */
   readonly pattern?: { readonly regex: string; readonly message: string };
@@ -200,6 +202,7 @@ export type FormSpec = {
   readonly id: string;
   readonly title: string;
   readonly description?: string;
+  readonly presentationDescription?: string;
   readonly fields: readonly FormFieldSpec[];
   readonly rules?: readonly FormRule[];
   /** Operación que ejecutaría el envío. */
@@ -208,6 +211,8 @@ export type FormSpec = {
   readonly mode?: "request" | "query";
   /** Aviso literal del original (p. ej. fecha efectiva). */
   readonly notice?: string;
+  readonly presentationNotice?: string;
+  readonly developmentNotice?: boolean;
 };
 
 /** Columna o dato que muestra una consulta del original. */
@@ -269,7 +274,13 @@ export type ConsultData = {
 export type FeatureSection =
   | { readonly kind: "consult"; readonly consult: ConsultSpec }
   | { readonly kind: "form"; readonly form: FormSpec }
-  | { readonly kind: "note"; readonly title: string; readonly body: string };
+  | {
+      readonly kind: "note";
+      readonly title: string;
+      readonly body: string;
+      readonly developmentOnly?: boolean;
+      readonly presentationBody?: string;
+    };
 
 /** Vistas con implementación propia (contrato real conectado). */
 export type FeatureView =

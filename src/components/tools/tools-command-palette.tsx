@@ -1,12 +1,7 @@
 "use client";
 
 import { type CommandItem } from "@/components/system";
-import {
-  TOOL_ICONS,
-  TOOL_MODULES,
-  TOOL_REGISTRY,
-  type ToolDefinition,
-} from "@/lib/tools/registry";
+import { TOOL_ICONS, TOOL_MODULES, TOOL_REGISTRY, type ToolDefinition } from "@/lib/tools/registry";
 
 export function createToolsCommandItems({
   onSelectTool,
@@ -24,7 +19,9 @@ export function createToolsCommandItems({
       keywords: [...tool.keywords, tool.description, module?.name ?? ""],
       icon: TOOL_ICONS[tool.icon],
       badge: tool.implemented ? undefined : (
-        <span className="text-xs text-muted-foreground">Próximamente</span>
+        <span data-development-only className="text-xs text-muted-foreground">
+          Próximamente
+        </span>
       ),
       onSelect: () => {
         if (!tool.implemented) {

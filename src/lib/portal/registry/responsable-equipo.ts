@@ -47,6 +47,10 @@ export const RESPONSABLE_ALCANCE: readonly PortalFeature[] = [
       note(
         "Árbol activo",
         "En el SSM se marca un árbol activo por tipo de responsabilidad (SSM_SET_WORK_UNIT_TO_SEE): marcar unidades cambia la población de las consultas, exige al menos un empleado y no acumula árboles. La revisión salarial usa sus propias responsabilidades y no participa en esta selección.",
+        {
+          presentationBody:
+            "Seleccionar unidades cambia la población de las consultas y exige al menos un empleado. La revisión salarial usa sus propias responsabilidades.",
+        },
       ),
     ],
     writes: [
@@ -354,6 +358,10 @@ export const RESPONSABLE_EQUIPO: readonly PortalFeature[] = [
       note(
         "Acuse del Modelo 145",
         "El estándar distingue los estados de entrega de documentación 01, 02 y 03 con fechas condicionadas; no equivalen a una autorización fiscal automática.",
+        {
+          presentationBody:
+            "Los estados de entrega de documentación no equivalen a una autorización fiscal automática.",
+        },
       ),
       validationForm(
         "validar-documentos",

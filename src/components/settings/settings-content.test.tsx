@@ -2,9 +2,24 @@
 
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AuthView } from "@/types/session";
+import {
+  DEVELOPMENT_TEXT_ATTRIBUTE,
+  DEVELOPMENT_TEXT_STORAGE_KEY,
+} from "@/lib/theme/development-text";
+import { DevelopmentTextInitScript } from "@/components/theme/development-text-init-script";
+import { DependencyState, PortalError, SensitiveLocked } from "@/components/portal/portal-states";
+import { FeatureSections } from "@/components/portal/feature-sections";
+import { getPortalFeatureByRoute } from "@/lib/portal/registry";
+import { PortalDataTable } from "@/components/portal/portal-data";
+import { ToolCard } from "@/components/tools/tool-card";
+import { TOOL_REGISTRY } from "@/lib/tools/registry";
+
+const appearanceCss = readFileSync("src/lib/theme/development-text.css", "utf8");
+let appearanceStyle: HTMLStyleElement;
 
 const mocks = vi.hoisted(() => ({
   getMeta4ProfileViewAction: vi.fn(),
@@ -32,9 +47,16 @@ import { SettingsDialog } from "./settings-dialog";
 
 afterEach(() => {
   cleanup();
+  appearanceStyle.remove();
+  vi.restoreAllMocks();
 });
 
 beforeEach(() => {
+  localStorage.clear();
+  document.documentElement.removeAttribute(DEVELOPMENT_TEXT_ATTRIBUTE);
+  appearanceStyle = document.createElement("style");
+  appearanceStyle.textContent = appearanceCss;
+  document.head.append(appearanceStyle);
   vi.clearAllMocks();
   vi.stubGlobal(
     "matchMedia",
@@ -179,6 +201,7 @@ describe("settings content", () => {
     await user.click(screen.getByRole("button", { name: "Apariencia" }));
 
     expect(screen.getByRole("group", { name: "Tema de la interfaz" })).toBeTruthy();
+    expect(screen.queryByText(/Se aplica a botones/)).toBeNull();
     const accents = screen.getByRole("group", { name: "Color de acento" });
     expect(within(accents).getByRole("radio", { name: "Azul" })).toHaveProperty("checked", true);
 
@@ -187,6 +210,108 @@ describe("settings content", () => {
     expect(within(accents).getByRole("radio", { name: "Violeta" })).toHaveProperty("checked", true);
     expect(document.documentElement.getAttribute("data-accent")).toBe("violet");
     expect(localStorage.getItem("powermeta4-accent")).toBe("violet");
+  });
+
+  it.each(["page", "dialog"] as const)(
+    "toggles development copy, tables and blocked forms together from %s settings",
+    async (variant) => {
+      const user = userEvent.setup();
+      const feature = getPortalFeatureByRoute("/portal/empleado/datos/correo");
+      if (!feature) throw new Error("Missing email feature");
+      const unavailableTool = TOOL_REGISTRY.find((tool) => !tool.implemented);
+      if (!unavailableTool) throw new Error("Missing future action");
+      const visit = vi.fn();
+      const unavailable = vi.fn();
+      const view = render(
+        <>
+          <SettingsContent variant={variant} />
+          <h1>Certificado de Haberes</h1>
+          <DependencyState
+            message="Generación SSE_CERT_HAB pendiente"
+            pending={["P02"]}
+            meta4={["sse_g2_cert_hab.jsp"]}
+          />
+          <FeatureSections feature={feature} catalogs={{ status: "ready", options: {} }} />
+          <PortalDataTable
+            title="Disponibilidad"
+            rows={[
+              {
+                id: "a",
+                fields: [
+                  { label: "Pantalla", value: "Mi ficha" },
+                  { label: "Estado técnico", value: "Por verificar", developmentOnly: true },
+                ],
+              },
+            ]}
+          />
+          <PortalError message="La sesión ha caducado" />
+          <SensitiveLocked message="Detalles técnicos del alcance" />
+          <ToolCard tool={unavailableTool} onVisit={visit} onUnavailable={unavailable} />
+        </>,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Apariencia" }));
+      const toggle = screen.getByRole("switch", { name: "Ocultar textos de desarrollo" });
+      expect(toggle.getAttribute("aria-checked")).toBe("true");
+      expect(screen.getByRole("heading", { name: "Certificado de Haberes" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Ver detalles" })).toBeNull();
+      expect(screen.queryByRole("heading", { name: "Correos electrónicos" })).toBeNull();
+      expect(screen.queryByRole("columnheader", { name: "Estado técnico" })).toBeNull();
+      expect(screen.getByRole("alert").textContent).toContain("La sesión ha caducado");
+      expect(screen.getByRole("status").textContent).toContain("Acceso restringido");
+      const send = screen.getByRole("button", { name: "Enviar petición" });
+      expect(send).toHaveProperty("disabled", true);
+      expect(send.hasAttribute("aria-describedby")).toBe(false);
+      await user.click(screen.getByRole("button", { name: "Comprobar datos" }));
+      expect(screen.getByText(/Se han encontrado/)).toBeTruthy();
+      const futureAction = screen.getByText(unavailableTool.name).closest("button");
+      if (!futureAction) throw new Error("Missing future action button");
+      await user.click(futureAction);
+      expect(unavailable).toHaveBeenCalledOnce();
+      expect(visit).not.toHaveBeenCalled();
+
+      toggle.focus();
+      await user.keyboard(" ");
+      expect(toggle.getAttribute("aria-checked")).toBe("false");
+      expect(localStorage.getItem(DEVELOPMENT_TEXT_STORAGE_KEY)).toBe("false");
+      expect(screen.getAllByRole("button", { name: "Ver detalles" }).length).toBeGreaterThan(1);
+      expect(screen.getByRole("columnheader", { name: "Estado técnico" })).toBeTruthy();
+      expect(screen.getByRole("heading", { name: "Correos electrónicos" })).toBeTruthy();
+      expect(send).toHaveProperty("disabled", true);
+      expect(send.getAttribute("aria-describedby")).toBeTruthy();
+      const dependency = screen
+        .getByText("Datos pendientes de conexión")
+        .closest('[role="status"]');
+      if (!(dependency instanceof HTMLElement)) throw new Error("Missing dependency block");
+      await user.click(within(dependency).getByRole("button", { name: "Ver detalles" }));
+      expect(screen.getByText("sse_g2_cert_hab.jsp")).toBeTruthy();
+      await user.click(toggle);
+      expect(screen.queryByRole("button", { name: "Ver detalles" })).toBeNull();
+      expect(send).toHaveProperty("disabled", true);
+      expect(localStorage.getItem(DEVELOPMENT_TEXT_STORAGE_KEY)).toBe("true");
+      view.unmount();
+    },
+  );
+
+  it("restores the stored preference on a fresh mount and works without writable storage", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem(DEVELOPMENT_TEXT_STORAGE_KEY, "false");
+    const view = render(
+      <>
+        <DevelopmentTextInitScript />
+        <SettingsContent />
+      </>,
+    );
+    await user.click(screen.getByRole("button", { name: "Apariencia" }));
+    const toggle = screen.getByRole("switch", { name: "Ocultar textos de desarrollo" });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("Unavailable", "SecurityError");
+    });
+    await user.click(toggle);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(document.documentElement.getAttribute(DEVELOPMENT_TEXT_ATTRIBUTE)).toBe("true");
+    view.unmount();
   });
 });
 

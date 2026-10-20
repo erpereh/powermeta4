@@ -1,6 +1,7 @@
 import { Info } from "lucide-react";
 
 import { Accordion, Section } from "@/components/system";
+import { DevelopmentText } from "@/components/system/development-text";
 import type { ConsultData, ConsultSpec, PortalFeature } from "@/lib/portal/types";
 import type { ConsultResults } from "@/lib/portal/data/consults";
 import type { PortalResult } from "@/lib/portal/result";
@@ -98,12 +99,28 @@ export function FeatureSections({
       {sections.map((section) => {
         if (section.kind === "note") {
           return (
-            <div key={section.title} className="flex min-w-0 items-start gap-3 text-sm">
+            <div
+              data-development-only={section.developmentOnly || undefined}
+              key={section.title}
+              className="flex min-w-0 items-start gap-3 text-sm"
+            >
               <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div className="min-w-0 space-y-1">
                 <p className="font-medium text-foreground">{section.title}</p>
                 <Accordion
-                  items={[{ id: "details", title: "Ver detalles", description: section.body }]}
+                  items={[
+                    {
+                      id: "details",
+                      title: "Ver detalles",
+                      description: section.presentationBody ? (
+                        <DevelopmentText presentation={section.presentationBody}>
+                          {section.body}
+                        </DevelopmentText>
+                      ) : (
+                        section.body
+                      ),
+                    },
+                  ]}
                   classNames={{
                     item: "border-0 bg-transparent",
                     trigger: "px-0 py-2 text-xs",
@@ -127,6 +144,7 @@ export function FeatureSections({
           return (
             <Section
               key={section.consult.id}
+              data-development-only={!result || result.status === "unavailable" ? true : undefined}
               title={section.consult.title}
               description={section.consult.description}
             >
@@ -141,7 +159,7 @@ export function FeatureSections({
         );
       })}
       {feature.writes && feature.writes.length > 0 ? (
-        <Section title="Otras operaciones">
+        <Section title="Otras operaciones" data-development-only>
           <ul className="flex min-w-0 flex-col gap-4">
             {feature.writes.map((write) => (
               <li key={write.id} className="min-w-0 space-y-1.5">

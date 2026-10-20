@@ -117,10 +117,15 @@ export const sqlRead = (tables: readonly string[]): ReadContract => ({
 
 export const form = (spec: FormSpec): FeatureSection => ({ kind: "form", form: spec });
 
-export const note = (title: string, body: string): FeatureSection => ({
+export const note = (
+  title: string,
+  body: string,
+  options: { developmentOnly?: boolean; presentationBody?: string } = { developmentOnly: true },
+): FeatureSection => ({
   kind: "note",
   title,
   body,
+  ...options,
 });
 
 export const text = (
@@ -184,7 +189,11 @@ export const validationForm = (
   title: string,
   tag: string,
   nod: string,
-  options: { reasonMaxLength?: number; description?: string } = {},
+  options: {
+    reasonMaxLength?: number;
+    description?: string;
+    presentationDescription?: string;
+  } = {},
 ): FeatureSection =>
   form({
     id,
@@ -192,6 +201,7 @@ export const validationForm = (
     description:
       options.description ??
       "Recuerda enviar la aceptación o cancelación de las solicitudes de cada página. Una aceptación puede ser solo un nivel intermedio de validación.",
+    presentationDescription: options.presentationDescription,
     fields: [
       staticSelect(
         "DECISION",
@@ -244,5 +254,6 @@ export const ADDRESS_FIELDS: readonly FormFieldSpec[] = [
       message: "El distrito postal es obligatorio. Es un numérico de 5 cifras.",
     },
     help: "Numérico de 5 cifras. El original completa país, comunidad, provincia y población desde el código postal (CSP_CARGA_CP).",
+    presentationHelp: "Introduce un código postal de 5 cifras.",
   },
 ];

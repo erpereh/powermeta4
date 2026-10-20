@@ -18,7 +18,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/stores/use-workspace-store", () => ({
   useWorkspaceStore: (
-    selector: (state: { auth: typeof mocks.auth; applySnapshot: typeof mocks.applySnapshot }) => unknown,
+    selector: (state: {
+      auth: typeof mocks.auth;
+      applySnapshot: typeof mocks.applySnapshot;
+    }) => unknown,
   ) => selector({ auth: mocks.auth, applySnapshot: mocks.applySnapshot }),
 }));
 
@@ -102,6 +105,7 @@ describe("society header", () => {
   });
 
   it("shows development mode for debug auth", () => {
+    document.documentElement.setAttribute("data-hide-development-text", "false");
     mocks.auth = {
       mode: "debug",
       username: "DEBUG",
@@ -117,5 +121,14 @@ describe("society header", () => {
     expect(screen.queryByText("IBER")).toBeNull();
     expect(screen.queryByText("COLL")).toBeNull();
     expect(document.querySelector(`img[src="${POWERMETA_MARK_SRC}"]`)).toBeTruthy();
+    document.documentElement.removeAttribute("data-hide-development-text");
+  });
+  it("hides debug text from the label and tooltip by default", () => {
+    mocks.auth.mode = "debug";
+    mocks.auth.societyCode = null;
+    renderHeader();
+    expect(screen.queryByText("Modo desarrollo")).toBeNull();
+    expect(document.querySelector('[aria-label*="Modo desarrollo"]')).toBeNull();
+    expect(screen.queryByText("CYC")).toBeNull();
   });
 });

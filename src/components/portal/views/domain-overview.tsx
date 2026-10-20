@@ -40,6 +40,7 @@ export function DomainOverview({
               { label: "Descripción", value: feature.summary },
               {
                 label: "Estado",
+                developmentOnly: true,
                 tone:
                   feature.read.kind === "pending"
                     ? "warning"

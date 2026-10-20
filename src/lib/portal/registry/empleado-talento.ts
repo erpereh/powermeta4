@@ -330,6 +330,10 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
       note(
         "Criterios y cálculo",
         "Cada criterio conserva peso, nivel esperado y obtenido, magnitud, resultado y comentarios según su tipo; los objetivos cuantitativos y cualitativos se separan. Las notas las calcula Meta4 con sus ponderaciones: no se hacen medias simples ni se cierra una evaluación al guardar un borrador.",
+        {
+          presentationBody:
+            "Los criterios y objetivos se valoran con sus ponderaciones. Guardar un borrador no cierra la evaluación.",
+        },
       ),
     ],
     writes: [
@@ -385,6 +389,10 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
       note(
         "Fase",
         "El estándar solo permite elegir evaluadores en la fase de fijación de criterios; la fase la determina el proceso en Meta4.",
+        {
+          presentationBody:
+            "Solo puedes elegir evaluadores durante la fase de fijación de criterios.",
+        },
       ),
       form({
         id: "evaluador",
@@ -488,6 +496,7 @@ export const EMPLEADO_TALENTO: readonly PortalFeature[] = [
       note(
         "Estados",
         "Las peticiones aceptadas quedan incluidas o por incluir en un proceso de selección y el Departamento de Selección se pondrá en contacto contigo.",
+        { developmentOnly: false },
       ),
       form({
         id: "movilidad",

@@ -44,6 +44,7 @@ import {
 } from "@/components/system";
 import { getChatStatusLabel, isChatSendDisabled, type ChatStatus } from "@/lib/chat/chat-status";
 import { cn } from "@/lib/utils";
+import { DevelopmentText } from "@/components/system/development-text";
 
 type ThreadProps = {
   chatStatus: ChatStatus;
@@ -187,7 +188,12 @@ const Composer = ({ inputRef, chatStatus }: ComposerProps) => {
             </AuiIf>
             <AuiIf condition={(state) => state.thread.isRunning}>
               <ComposerPrimitive.Cancel asChild>
-                <Button type="button" size="icon" variant="secondary" aria-label="Detener respuesta">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="secondary"
+                  aria-label="Detener respuesta"
+                >
                   <Square className="size-3.5 fill-current" />
                 </Button>
               </ComposerPrimitive.Cancel>
@@ -215,7 +221,9 @@ const AttachmentButton: FC = () => {
       </TooltipIconButton>
       {noticeVisible && (
         <span role="status" className="max-w-44 text-xs text-muted-foreground">
-          La carga de archivos estará disponible próximamente.
+          <DevelopmentText presentation="La carga de archivos no está disponible.">
+            La carga de archivos estará disponible próximamente.
+          </DevelopmentText>
         </span>
       )}
     </div>

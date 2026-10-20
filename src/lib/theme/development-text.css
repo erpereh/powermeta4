@@ -1,0 +1,5 @@
+/* Hidden blocks leave layout, keyboard navigation and the accessibility tree together. */
+html:not([data-hide-development-text="false"]) [data-development-only],
+html[data-hide-development-text="false"] [data-presentation-only] {
+  display: none !important;
+}

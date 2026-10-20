@@ -2,6 +2,7 @@ import { CircleAlert, Lock, PlugZap } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Accordion, Callout, IconChip } from "@/components/system";
+import { DevelopmentText } from "@/components/system/development-text";
 import { PENDING_LABELS } from "@/lib/portal/pending";
 import type { PendingId, WriteOperation } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function DependencyState({
   meta4 = [],
   className,
   children,
+  essential = false,
 }: {
   title?: string;
   message: string;
@@ -40,45 +42,61 @@ export function DependencyState({
   meta4?: readonly string[];
   className?: string;
   children?: ReactNode;
+  /** Identity/access restrictions remain visible; implementation dependencies do not. */
+  essential?: boolean;
 }) {
   return (
-    <div role="status" className={cn("flex min-w-0 flex-col gap-2", className)}>
+    <div
+      data-development-only={essential ? undefined : true}
+      role="status"
+      className={cn("flex min-w-0 flex-col gap-2", className)}
+    >
       <div className="flex min-w-0 items-start gap-3">
         <IconChip icon={PlugZap} tone="amber" size="sm" appearance="plain" />
         <div className="min-w-0 space-y-1">
           <p className="text-sm font-medium text-foreground">{title}</p>
           <p className="text-sm text-muted-foreground">
-            La conexión necesaria todavía no está disponible.
+            <DevelopmentText
+              presentation={
+                essential
+                  ? "No se puede consultar esta información con la sesión actual."
+                  : undefined
+              }
+            >
+              La conexión necesaria todavía no está disponible.
+            </DevelopmentText>
           </p>
         </div>
       </div>
-      <Accordion
-        items={[
-          {
-            id: "details",
-            title: "Ver detalles",
-            description: (
-              <div className="space-y-3 text-sm text-muted-foreground [overflow-wrap:anywhere]">
-                <p>{message}</p>
-                {meta4.length > 0 ? (
-                  <p className="min-w-0 break-words text-xs text-muted-foreground [overflow-wrap:anywhere]">
-                    <span className="font-medium text-foreground">Lectura original: </span>
-                    <code className="font-mono">{meta4.join(" · ")}</code>
-                  </p>
-                ) : null}
-                <PendingChips pending={pending} />
-                {children}
-              </div>
-            ),
-          },
-        ]}
-        classNames={{
-          item: "border-0 bg-transparent",
-          trigger: "px-0 py-2",
-          content: "px-0",
-          description: "text-sm",
-        }}
-      />
+      <div data-development-only>
+        <Accordion
+          items={[
+            {
+              id: "details",
+              title: "Ver detalles",
+              description: (
+                <div className="space-y-3 text-sm text-muted-foreground [overflow-wrap:anywhere]">
+                  <p>{message}</p>
+                  {meta4.length > 0 ? (
+                    <p className="min-w-0 break-words text-xs text-muted-foreground [overflow-wrap:anywhere]">
+                      <span className="font-medium text-foreground">Lectura original: </span>
+                      <code className="font-mono">{meta4.join(" · ")}</code>
+                    </p>
+                  ) : null}
+                  <PendingChips pending={pending} />
+                  {children}
+                </div>
+              ),
+            },
+          ]}
+          classNames={{
+            item: "border-0 bg-transparent",
+            trigger: "px-0 py-2",
+            content: "px-0",
+            description: "text-sm",
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -94,7 +112,11 @@ export function WriteBlockedNotice({
   mode?: "request" | "query";
 }) {
   return (
-    <div id={id} className="flex min-w-0 items-start gap-2.5 text-xs text-muted-foreground">
+    <div
+      data-development-only
+      id={id}
+      className="flex min-w-0 items-start gap-2.5 text-xs text-muted-foreground"
+    >
       <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
       <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
         <p>
@@ -153,18 +175,26 @@ export function SensitiveLocked({ message }: { message: string }) {
     <div role="status" className="flex min-w-0 items-start gap-3 text-sm">
       <CircleAlert className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       <div className="min-w-0 space-y-1">
-        <p className="font-medium text-foreground">Alcance pendiente de verificación</p>
-        <p className="text-muted-foreground">
-          Los datos sensibles están bloqueados mientras se verifica el equipo.
+        <p className="font-medium text-foreground">
+          <DevelopmentText presentation="Acceso restringido">
+            Alcance pendiente de verificación
+          </DevelopmentText>
         </p>
-        <Accordion
-          items={[{ id: "details", title: "Ver detalles", description: message }]}
-          classNames={{
-            item: "border-0 bg-transparent",
-            trigger: "px-0 py-2 text-xs",
-            description: "text-sm",
-          }}
-        />
+        <p className="text-muted-foreground">
+          <DevelopmentText presentation="No tienes acceso a estos datos del equipo.">
+            Los datos sensibles están bloqueados mientras se verifica el equipo.
+          </DevelopmentText>
+        </p>
+        <div data-development-only>
+          <Accordion
+            items={[{ id: "details", title: "Ver detalles", description: message }]}
+            classNames={{
+              item: "border-0 bg-transparent",
+              trigger: "px-0 py-2 text-xs",
+              description: "text-sm",
+            }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -5,12 +5,14 @@ import { SidebarMenu, SidebarMenuItem, Tooltip, useSidebar } from "@/components/
 import { META4_SOCIETY_LEGAL_NAMES, type Meta4Society } from "@/lib/meta4/societies";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import { useDevelopmentText } from "@/hooks/use-development-text";
 
 const isMeta4Society = (value: string | null | undefined): value is Meta4Society =>
   value === "CYC" || value === "IBER" || value === "COLL";
 
 /** Identidad fija de la sidebar: muestra la sociedad activa sin permitir seleccionarla. */
 export function SocietyHeader() {
+  const [hideDevelopmentText] = useDevelopmentText();
   const { isMobile, state } = useSidebar();
   const auth = useWorkspaceStore((store) => store.auth);
   const collapsed = !isMobile && state === "collapsed";
@@ -18,14 +20,12 @@ export function SocietyHeader() {
   const isDebugMode = auth?.mode === "debug";
   const societyCode = auth?.societyCode ?? null;
 
-  const title = isDebugMode
-    ? "powermeta4"
-    : isMeta4Society(societyCode)
-      ? societyCode
-      : "Meta4";
-  const subtitle = isDebugMode ? "Modo desarrollo" : null;
+  const title = isDebugMode ? "powermeta4" : isMeta4Society(societyCode) ? societyCode : "Meta4";
+  const subtitle = isDebugMode && !hideDevelopmentText ? "Modo desarrollo" : null;
   const tooltip = isDebugMode
-    ? "powermeta4 · Modo desarrollo"
+    ? hideDevelopmentText
+      ? "powermeta4"
+      : "powermeta4 · Modo desarrollo"
     : isMeta4Society(societyCode)
       ? `powermeta4 · ${societyCode} · ${META4_SOCIETY_LEGAL_NAMES[societyCode]}`
       : "powermeta4";
@@ -40,10 +40,7 @@ export function SocietyHeader() {
           >
             <PowermetaLogo compact markClassName="size-7" />
             <span
-              className={cn(
-                "grid min-w-0 flex-1 text-left leading-tight",
-                collapsed && "sr-only",
-              )}
+              className={cn("grid min-w-0 flex-1 text-left leading-tight", collapsed && "sr-only")}
             >
               <span className="truncate text-sm font-semibold text-foreground">{title}</span>
               {subtitle ? (

@@ -1105,6 +1105,8 @@ export const EMPLEADO_DATOS: readonly PortalFeature[] = [
         ),
         notice:
           "El original añade descendientes y ascendientes por filas (año de nacimiento, adopción o acogimiento, discapacidad, cómputo por entero y convivencia).",
+        presentationNotice:
+          "Añade descendientes y ascendientes con su año de nacimiento, adopción o acogimiento, discapacidad, cómputo por entero y convivencia.",
       }),
       form({
         id: "documento",

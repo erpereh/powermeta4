@@ -11,6 +11,7 @@ export async function PayslipsView({ context }: { context: PortalContext }) {
     return (
       <DependencyState
         title="No se ha podido identificar tu ficha"
+        essential
         message={context.identity.message}
         pending={["P03"]}
       />
