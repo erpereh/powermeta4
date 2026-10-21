@@ -6,5 +6,5 @@ export const HOLIDAY_READ_CONTRACT = {
   meta4: ["SSE_CARGA_FESTIVOS!SSE_FESTIVOS.CARGA", "SSE_CARGA_FESTIVOS!SSE_BUSCA_CALENDARIO"],
   pending: ["P02", "P05"],
   detail:
-    "Falta confirmar en el diccionario la asignación del calendario y el filtro de festivos de SSE_FESTIVOS.CARGA. Ejecutar portal:holidays-discover en la VM; no se usa la consulta anterior basada en GTA.",
+    "El descubrimiento confirma CARGA y GENERADIAS, pero falta completar la asignación delegada en SCO_APPLYVAL_CALEN (rol, centro, país y vigencias). Ejecutar portal:holidays-discover de formato 2 en la VM; no se usa la consulta anterior basada en GTA.",
 } as const satisfies ReadContract;

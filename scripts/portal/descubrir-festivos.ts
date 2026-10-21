@@ -32,13 +32,29 @@ async function main() {
       "",
       `Sociedad para contraste: ${society}.`,
       "",
-      `Nodos: ${result.counts.nodes} · TI: ${result.counts.tis} · filas de metadatos: ${result.counts.metadataRows}.`,
+      `Formato: ${result.formatVersion} · objetos: ${result.counts.objects} · nodos: ${result.counts.nodes} · TI: ${result.counts.tis} · filas de metadatos: ${result.counts.metadataRows}.`,
       "",
       "## Advertencias",
       "",
       ...(result.warnings.length
         ? result.warnings.map((warning) => `- ${warning}`)
-        : ["- Sin truncamientos detectados."]),
+        : [
+            "- Sin omisiones detectadas por las comprobaciones del extractor; requiere revisión del contrato.",
+          ]),
+      "",
+      "## Asignación del calendario",
+      "",
+      `Objeto auxiliar: ${result.assignment.object}.`,
+      `Nodos requeridos ausentes: ${result.assignment.missingNodes.join(", ") || "ninguno"}.`,
+      `Metadatos por clave de dimensión/grupo: ${result.assignment.dimensionKeys.length}.`,
+      `Dimensiones/grupos sin metadatos: ${result.assignment.missingDimensions.join(", ") || "ninguno"}.`,
+      `Reglas LN4 requeridas ausentes: ${result.missingSources.join(", ") || "ninguna"}.`,
+      "",
+      "Se incluyen todos los nodos de los objetos recorridos, también los de rol, centro, país e históricos citados por APPLYTABLE. Las metarreglas nativas se enumeran como dependencias; no se ejecutan ni se interpreta su prioridad a partir del orden de llamadas.",
+      "",
+      "## Metarreglas nativas",
+      "",
+      ...result.nativeMethods.map((entry) => `- ${entry.ti}.${entry.item}: ${entry.method}`),
       "",
       "## Nodos y sentencias originales",
       "",
@@ -68,7 +84,7 @@ async function main() {
     );
     writeFileSync(path.join(directory, "festivos-descubrimiento.md"), `${lines.join("\n")}\n`);
     console.log(
-      `Nodos: ${result.counts.nodes} · TI: ${result.counts.tis} · metadatos: ${result.counts.metadataRows}`,
+      `Objetos: ${result.counts.objects} · nodos: ${result.counts.nodes} · TI: ${result.counts.tis} · metadatos: ${result.counts.metadataRows}`,
     );
     console.log("Escrito docs/portal/implementacion/festivos-descubrimiento.{md,json}");
     if (result.warnings.length > 0) {

@@ -1,5 +1,30 @@
 # powermeta4 - estado de tareas
 
+## Descubrimiento de asignación del calendario — 2026-10-21
+
+- [x] Revisado el commit de la VM `4fd97f2d`: CARGA/BUSQUEDA/GENERADIAS/APPLY
+      disponibles; faltan los nodos de `SCO_APPLYVAL_CALEN` y los metadatos
+      por clave de `DMD_TA`/`DMD_GROUP_TA`.
+- [x] Extractor de formato 2: objetos auxiliares, todos sus nodos hermanos,
+      TI heredadas/usadas, referencias LN4 y metarreglas nativas como texto.
+      Consultas parametrizadas y protegidas, exclusivamente al diccionario
+      y al esquema de columnas; sin valores de empleados ni cambios en PeopleNet.
+- [x] Detección de ciclos, consultas repetidas, consumidores ajenos, claves
+      numéricas, nodos/reglas/columnas/campos ausentes y límites con advertencias.
+- [x] Reproducción local con el volcado recibido: detecta la asignación ausente
+      y conserva las cuatro reglas principales. CLI con sociedad inválida:
+      error de uso antes de abrir una conexión.
+- [x] Verificación de la ampliación: 38 pruebas dirigidas correctas (5 archivos),
+      typecheck y build correctos; lint y formato dirigidos correctos. Lint
+      global ejecutado: siete avisos de oxlint y fallo de formato del repositorio.
+      Suite completa detenida sin finalizar con Excel COM incluida; repetición
+      excluyendo únicamente `hire/excel.test.ts`, dos workers y límites de 20 s:
+      187 archivos correctos, 1056 pruebas pasadas y 2 omitidas. Diff y estado
+      Git revisados; sin nueva comprobación de navegador ni acceso real a la VM.
+- [ ] Ejecutar de nuevo `npm run portal:holidays-discover -- CYC` en la VM y
+      devolver los dos archivos de formato 2. Implementar la lectura de la
+      asignación acreditada y contrastar el calendario con sesión Meta4 real.
+
 ## Calendario de festivos — 2026-10-21
 
 - [x] Vista anual `holidays` en «Mi tiempo de trabajo», doce meses de domingo
@@ -27,8 +52,10 @@
       calendario, recarga, claro/oscuro y 1440/1024/768/390 px. Doce meses
       visibles, sin overflow ni errores/avisos de consola; muestra identificada
       también con textos de desarrollo ocultos. Sin acceso a Meta4/PeopleNet.
-- [ ] Ejecutar el extractor en la VM, recibir sus archivos, implementar las
-      reglas confirmadas y contrastar los festivos con el portal real.
+- [x] Recibida la primera extracción de la VM (`4fd97f2d`); pendiente completar
+      la asignación mediante formato 2, como se detalla arriba.
+- [ ] Implementar la lectura con la asignación confirmada y contrastar los
+      festivos con el portal real.
 
 ## Certificado de retenciones (CYC_RP_CERT_HAB) — 2026-10-20
 

@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-10-21 - Extracción de la asignación del calendario
+
+- Revisada la salida de la VM (`4fd97f2d`): confirma CARGA, BUSQUEDA,
+  GENERADIAS y APPLY, pero omite los nodos auxiliares de `SCO_APPLYVAL_CALEN`.
+  GENERADIAS marca las fechas de calendario dentro de la asignación sin
+  añadir un filtro por tipo de día; falta acreditar la asignación y vigencias.
+- Extractor de formato 2 con recorrido de objetos auxiliares y todos sus nodos,
+  TI heredadas/usadas, metadatos de dimensión/grupo y métodos nativos.
+  Los ciclos y las consultas repetidas se controlan; los consumidores ajenos
+  y las claves numéricas no amplían la lectura. Las omisiones de nodos,
+  reglas, campos, columnas o límites se advierten y producen código de error.
+- Se mantiene exclusivamente SELECT parametrizada de diccionario/esquema,
+  sin ejecutar LN4 ni leer valores de empleados. Conservada la salida recibida;
+  pendiente ejecutar de nuevo en la VM y cerrar la integración real.
+- Verificación: 38 pruebas dirigidas (5 archivos), typecheck y build correctos;
+  lint/formato dirigidos y diff correctos. Lint global ejecutado con siete
+  avisos y formato previo pendiente. Suite completa detenida sin finalizar
+  con Excel COM incluida; sin `hire/excel.test.ts`, con dos workers y timeout
+  de 20 s: 187 archivos, 1056 pruebas correctas y 2 omitidas. CLI con sociedad
+  inválida y reproducción del volcado recibido comprobados. Sin nueva revisión
+  de navegador ni consultas reales a PeopleNet.
+
 ## 2026-10-21 - Calendario anual de festivos
 
 - Vista propia en «Mi tiempo de trabajo»: doce meses del año actual en
