@@ -78,7 +78,7 @@ describe("carga del calendario", () => {
       status: "unavailable",
       pending: ["P02"],
     });
-    expect(mocks.read).toHaveBeenCalledExactlyOnceWith(context);
+    expect(mocks.read).toHaveBeenCalledExactlyOnceWith(context, new Date("2026-10-21T12:00:00Z"));
   });
   it("distingue lectura vacía, ausencia comprobada de calendario y error", async () => {
     mocks.read.mockResolvedValue({

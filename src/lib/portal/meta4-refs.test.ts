@@ -22,5 +22,13 @@ describe("referencias Meta4 del registro", () => {
       getPortalFeatureByRoute("/portal/responsable/tiempo/vacaciones-aceptadas")?.id,
     );
     expect(refs.every((ref) => ref.features.length > 0)).toBe(true);
+    expect(refs.find((ref) => ref.object === "SSE_CARGA_FESTIVOS")).toMatchObject({
+      nodes: ["SSE_BUSCA_CALENDARIO", "SSE_FESTIVOS"],
+      features: ["empleado.tiempo.festivos"],
+      usage: ["read"],
+    });
+    expect(refs.find((ref) => ref.object === "SCO_APPLYVAL_CALEN")?.nodes).toContain(
+      "SCO_INTERMEDIATE_NODE_CALENDAR",
+    );
   });
 });

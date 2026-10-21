@@ -135,11 +135,13 @@ Contrato y verificación: [Informe de proyecciones](docs/portal/implementacion/p
 
 El calendario de festivos de «Mi tiempo de trabajo» muestra los doce meses del
 año actual y una muestra ficticia únicamente con sesión debug de desarrollo.
-La primera salida de la VM confirma las reglas principales; falta completar
-la asignación de `SCO_APPLYVAL_CALEN` y sus vigencias. La versión de formato 2 de
-`npm run portal:holidays-discover -- CYC` incluye los nodos auxiliares y extrae
-solo metadatos del diccionario y columnas físicas, sin leer valores de empleados
-ni escribir en PeopleNet.
+La lectura real usa las asignaciones de rol, centro y país confirmadas en el
+diccionario de la VM, con SELECT parametrizadas por sociedad y matrícula propia
+del servidor. Los solapes con calendarios incompatibles se bloquean porque la
+prioridad nativa de Meta4 no está documentada. `npm run portal:verify -- festivos
+CYC <matrícula>` comprueba el lector y emite solo recuentos; falta contrastarlo
+con el portal real. El extractor `portal:holidays-discover` conserva metadatos
+y columnas, sin valores de empleados ni escrituras en PeopleNet.
 Uso y cierre de la integración: [Calendario de festivos](docs/portal/implementacion/calendario-festivos.md).
 
 El informe de proyecciones del portal y «Consultar proyecciones» de Inicio

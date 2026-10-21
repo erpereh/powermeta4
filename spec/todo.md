@@ -1,5 +1,38 @@
 # powermeta4 - estado de tareas
 
+## Lectura real del calendario — 2026-10-21
+
+- [x] Revisado `4ecf5815`: nodos de asignación y reglas principales presentes,
+      campos físicos acreditados y componente Calendar `TA001` de DMD_TA.
+      Conservadas las advertencias de truncamiento de dependencias adicionales.
+- [x] Lectura real con SELECT parametrizadas, sin GTA, SOAP ni persistencia:
+      identidad, sociedad y matrícula propias del contexto del servidor;
+      asignaciones de rol, centro y país con vigencias y fechas civiles.
+- [x] Resolución de cambios de calendario sin solape y duplicados compatibles;
+      los conflictos de roles, centros o calendarios devuelven error visible.
+      No se ha inventado la prioridad del método nativo APPLYTABLE.
+- [x] `portal:verify -- festivos <sociedad> <matrícula>` usa el lector real,
+      imprime solo recuentos/estado y cierra su conexión. Verificación de columnas
+      de las nueve tablas incorporada a `portal:verify -- sql`.
+- [x] 72 pruebas dirigidas correctas (9 archivos): lector, resolución, contrato
+      físico contra el volcado, año, debug, estados, tablas y registro. Referencias
+      Meta4 conservadas en el contrato SQL y en la documentación generada.
+- [x] Navegador con SQLite temporal y sesión debug: sidebar → Mi tiempo de
+      trabajo → calendario, recarga, claro/oscuro y 1440/1024/768/390 px;
+      doce meses, 4/3/2/1 columnas, sin overflow ni errores/avisos de consola.
+      Aviso de muestra visible con textos de desarrollo ocultos.
+- [x] Typecheck, build, lint/formato de los archivos modificados y diff correctos;
+      documentación regenerada (192 pantallas). Lint global ejecutado: siete
+      avisos anteriores y formato del repositorio pendiente. Suite final sin
+      `hire/excel.test.ts` (bloqueo Excel COM ya documentado), dos workers y límites
+      de 20 s: 189 archivos correctos, 1080 pruebas pasadas y 2 omitidas.
+- [x] CLI comprobada con sociedad inválida y sin configuración PeopleNet:
+      rechazo controlado, sin consultas ni credenciales. Lector compartido por
+      la página y la CLI sin dependencias de Next.js en la verificación.
+- [ ] Ejecutar el lector y comparar las fechas con el original en la VM.
+      Acreditar la prioridad nativa si aparecen asignaciones incompatibles;
+      el contrato conserva `verified: false` hasta ese contraste.
+
 ## Descubrimiento de asignación del calendario — 2026-10-21
 
 - [x] Revisado el commit de la VM `4fd97f2d`: CARGA/BUSQUEDA/GENERADIAS/APPLY
@@ -21,9 +54,9 @@
       excluyendo únicamente `hire/excel.test.ts`, dos workers y límites de 20 s:
       187 archivos correctos, 1056 pruebas pasadas y 2 omitidas. Diff y estado
       Git revisados; sin nueva comprobación de navegador ni acceso real a la VM.
-- [ ] Ejecutar de nuevo `npm run portal:holidays-discover -- CYC` en la VM y
-      devolver los dos archivos de formato 2. Implementar la lectura de la
-      asignación acreditada y contrastar el calendario con sesión Meta4 real.
+- [x] Recibida la segunda extracción de la VM (`4ecf5815`) e implementada la
+      lectura para asignaciones unívocas. Contraste y prioridad nativa pendientes
+      según el apartado de lectura real anterior.
 
 ## Calendario de festivos — 2026-10-21
 
@@ -54,8 +87,9 @@
       también con textos de desarrollo ocultos. Sin acceso a Meta4/PeopleNet.
 - [x] Recibida la primera extracción de la VM (`4fd97f2d`); pendiente completar
       la asignación mediante formato 2, como se detalla arriba.
-- [ ] Implementar la lectura con la asignación confirmada y contrastar los
-      festivos con el portal real.
+- [x] Lectura de asignaciones confirmadas conectada a la vista.
+- [ ] Contrastar los festivos con el portal real y resolver prioridades nativas
+      si los datos contienen asignaciones incompatibles.
 
 ## Certificado de retenciones (CYC_RP_CERT_HAB) — 2026-10-20
 

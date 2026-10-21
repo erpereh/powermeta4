@@ -35,8 +35,8 @@ export const collectMeta4References = (features: readonly PortalFeature[]): Meta
     }
   };
   for (const feature of features) {
-    if (feature.read.kind === "pending")
-      for (const ref of feature.read.meta4) add(ref, feature.id, "read");
+    if (feature.read.kind === "pending" || feature.read.kind === "sql")
+      for (const ref of feature.read.meta4 ?? []) add(ref, feature.id, "read");
     for (const write of feature.writes ?? []) add(write.meta4Method, feature.id, "write");
     for (const section of feature.sections ?? []) {
       if (section.kind === "consult") add(section.consult.meta4, feature.id, "read");

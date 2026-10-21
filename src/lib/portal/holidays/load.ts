@@ -21,7 +21,8 @@ export async function loadHolidayPage(
   auth: ResolvedAuthSession,
   context: PortalContext,
 ): Promise<HolidayLoad> {
-  const year = currentHolidayYear();
+  const now = new Date();
+  const year = currentHolidayYear(now);
   if (
     isDebugAuthEnabled() &&
     auth.authContext.mode === "debug" &&
@@ -37,7 +38,7 @@ export async function loadHolidayPage(
       message: "El calendario necesita una sesión Meta4 válida.",
       pending: ["P03"],
     };
-  const result = await getHolidayCalendar(context);
+  const result = await getHolidayCalendar(context, now);
   if (result.status !== "ok") return result;
   if (context.mode !== "meta4" || result.society !== context.society)
     return {

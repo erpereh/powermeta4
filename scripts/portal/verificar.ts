@@ -13,6 +13,12 @@ import { getPeopleNetConfig } from "../../src/lib/peoplenet/client";
 import { ORO_PORTAL_COLUMNS } from "../../src/lib/portal/data/organization";
 import { PAYMENT_COLUMNS } from "../../src/lib/portal/data/payments";
 import { withTeamScope } from "../../src/lib/portal/data/team-scope";
+import { readHolidayCalendar } from "../../src/lib/portal/holidays/reader";
+import {
+  HolidayAssignmentError,
+  HolidayReadContractError,
+} from "../../src/lib/portal/holidays/real-calendar";
+import { HOLIDAY_COLUMNS } from "../../src/lib/portal/registry/sql/holidays";
 import { PORTAL_FEATURES } from "../../src/lib/portal/registry";
 import { assertReadOnlySql } from "../../src/lib/portal/peoplenet/query";
 import { SOAP_CATALOG } from "../../src/lib/portal/soap/catalog.generated";
@@ -22,6 +28,12 @@ import { inspectPortalWsdl } from "../../src/lib/portal/soap/wsdl";
 const SQL_CONTRACTS: Readonly<
   Record<string, { columns: readonly string[]; organization: boolean }>
 > = {
+  ...Object.fromEntries(
+    Object.entries(HOLIDAY_COLUMNS).map(([table, columns]) => [
+      table,
+      { columns, organization: true },
+    ]),
+  ),
   M4ORO_EMPLEADOS: { columns: ORO_PORTAL_COLUMNS, organization: true },
   M4SCO_PAYMENT_DATA: { columns: PAYMENT_COLUMNS.M4SCO_PAYMENT_DATA, organization: true },
   M4SCO_PERSON_BANK: { columns: PAYMENT_COLUMNS.M4SCO_PERSON_BANK, organization: false },
@@ -262,10 +274,36 @@ const verifyConsults = async (society: string, employeeId: string) => {
 const main = async () => {
   loadEnv();
   const target = process.argv[2] ?? "todo";
-  if (!["todo", "sql", "soap", "consultas"].includes(target)) {
+  if (!["todo", "sql", "soap", "consultas", "festivos"].includes(target)) {
     throw new Error(
-      "Uso: npm run portal:verify -- [todo|sql|soap] | consultas <sociedad> <matrícula>",
+      "Uso: npm run portal:verify -- [todo|sql|soap] | [consultas|festivos] <sociedad> <matrícula>",
     );
+  }
+  if (target === "festivos") {
+    const society = META4_SOCIETIES.find((entry) => entry === process.argv[3]);
+    const employeeId = process.argv[4] ?? "";
+    if (!society || !/^\d{1,10}$/.test(employeeId) || process.argv.length !== 5)
+      throw new Error("Parámetros de verificación de festivos no válidos.");
+    const { getPeopleNetPool } = await import("../../src/lib/peoplenet/client");
+    const pool = await getPeopleNetPool();
+    try {
+      const result = await readHolidayCalendar(society, employeeId);
+      console.log(
+        result
+          ? `Calendario: ${result.year} · ${result.holidays.length} festivos.`
+          : "Calendario: sin asignación.",
+      );
+    } catch (error) {
+      if (error instanceof HolidayAssignmentError || error instanceof HolidayReadContractError) {
+        console.log(
+          `Calendario: error · ${error instanceof HolidayAssignmentError ? "AMBIGUOUS" : "CONTRACT_INCOMPATIBLE"}.`,
+        );
+        process.exitCode = 1;
+      } else throw error;
+    } finally {
+      await pool.close();
+    }
+    return;
   }
   if (target === "consultas") {
     await verifyConsults(process.argv[3] ?? "", process.argv[4] ?? "");

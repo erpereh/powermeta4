@@ -1,7 +1,7 @@
 import { Callout } from "@/components/system/callout";
 import { requireAuthContext } from "@/lib/auth/session";
 import type { PortalContext } from "@/lib/portal/context";
-import { HOLIDAY_READ_CONTRACT } from "@/lib/portal/holidays/contract";
+import { HOLIDAY_META4 } from "@/lib/portal/holidays/contract";
 import { loadHolidayPage, type HolidayLoad } from "@/lib/portal/holidays/load";
 import { DependencyState, PortalError } from "../portal-states";
 import { HolidayCalendarView } from "./holidays/calendar-view";
@@ -20,11 +20,7 @@ export function HolidayResult({ result }: { result: HolidayLoad }) {
             ? result.message
             : "Todavía no se puede consultar tu calendario de festivos. Esto no significa que no tengas festivos asignados."}
         </Callout>
-        <DependencyState
-          message={result.message}
-          pending={result.pending}
-          meta4={HOLIDAY_READ_CONTRACT.meta4}
-        />
+        <DependencyState message={result.message} pending={result.pending} meta4={HOLIDAY_META4} />
       </div>
     );
   }

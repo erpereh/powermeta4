@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-10-21 - Lectura real del calendario de festivos
+
+- El volcado de la VM `4ecf5815` confirma los nodos auxiliares, correspondencias
+  físicas y el componente de calendario `TA001`. Se conecta la lectura SQL de
+  asignaciones de rol, centro y país a la vista anual existente, sin GTA.
+- Sociedad y matrícula propia proceden del servidor; SELECT parametrizadas,
+  fechas civiles, corrección y vigencias de asignaciones, ubicaciones y dirección.
+  Sin SOAP, escrituras en PeopleNet ni persistencia de resultados.
+- Se aceptan asignaciones idénticas o cambios sin solape. Roles principales
+  múltiples, centros sin resolver y calendarios incompatibles producen error
+  visible: la prioridad nativa de APPLYTABLE sigue sin código documentado y no
+  se sustituye por una regla supuesta. Contraste real pendiente (`verified: false`).
+- Nuevo modo `portal:verify -- festivos <sociedad> <matrícula>`: mismo lector,
+  solo recuentos/estado, sin valores personales ni ficheros. Columnas añadidas
+  a la verificación SQL general. Se mantienen los archivos recibidos de la VM.
+- 72 pruebas dirigidas correctas en 9 archivos y revisión de navegador con sesión debug y
+  SQLite temporal: navegación, recarga, claro/oscuro y cuatro tamaños, sin
+  overflow ni errores/avisos de consola; muestra visible al ocultar textos técnicos.
+- Typecheck, build, lint/formato dirigidos y diff correctos. Suite final sin
+  `hire/excel.test.ts` (bloqueo Excel COM previo), dos workers y límites de 20 s:
+  189 archivos, 1080 correctas y 2 omitidas. Lint global ejecutado con siete
+  avisos y formato anterior pendiente. Documentación regenerada, manteniendo
+  las referencias Meta4 también en el contrato SQL. CLI comprobada con argumentos
+  inválidos y sin configuración; comparte el lector sin cargar Next.js.
+
 ## 2026-10-21 - Extracción de la asignación del calendario
 
 - Revisada la salida de la VM (`4fd97f2d`): confirma CARGA, BUSQUEDA,

@@ -90,6 +90,8 @@ export type ReadContract =
       readonly kind: "sql";
       readonly tables: readonly string[];
       readonly verified: boolean;
+      /** Métodos originales de una vista SQL específica, para trazabilidad. */
+      readonly meta4?: readonly string[];
     }
   | {
       /** Sin contrato real disponible: se muestra el estado de dependencia. */

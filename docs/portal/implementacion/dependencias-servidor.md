@@ -26,7 +26,6 @@ servicio publicado y una aprobación de escritura (AGENTS.md solo aprueba el alt
 | --------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------- |
 | Cambio de contraseña                                            | `/portal/organizacion/contrasena`                                | —                                                                                        | P04        |
 | Life events                                                     | `/portal/empleado/datos/eventos`                                 | —                                                                                        | P01, P05   |
-| Calendario de festivos                                          | `/portal/empleado/tiempo/festivos`                               | `SSE_CARGA_FESTIVOS!SSE_FESTIVOS.CARGA`, `SSE_CARGA_FESTIVOS!SSE_BUSCA_CALENDARIO`       | P02, P05   |
 | Actividad                                                       | `/portal/empleado/tiempo/actividad`                              | `SSE_H_HR_VENT_ACTIV_INDIV!SSE_H_HR_VENT_ACTIV_INDIV_ROOT.SSM_H_HR_VENT_ACTIV_MAIN_LOAD` | P02, P05   |
 | Mi conocimiento                                                 | `/portal/empleado/conocimiento`                                  | —                                                                                        | P01, P07   |
 | Solicita una vacante                                            | `/portal/responsable/talento/vacantes`                           | —                                                                                        | P02, P05   |
@@ -246,7 +245,7 @@ servicio publicado y una aprobación de escritura (AGENTS.md solo aprueba el alt
 | Valida entrevistas                               | Enviar validaciones                 | Escritura | `SSM_GN_INTERVIEW!SSE_PRINCIPAL.GESTION (generico_actualizar.jsp)`                  | REC · NOD=SSM_GN_INTERVIEW · NIVEL_ACEPTADO                                          | P03, P04   |
 | Consulta vacaciones aceptadas                    | Consultar                           | Consulta  | `SSM_HOLYDAYS!SSM_PRINCIPAL.CARGA`                                                  | —                                                                                    | P02, P05   |
 
-## Objetos Meta4 referenciados (86)
+## Objetos Meta4 referenciados (87)
 
 Entrada de `npm run portal:discover` en la VM.
 
@@ -263,6 +262,7 @@ Entrada de `npm run portal:discover` en la VM.
 | `CSP_TRAINING_EVAL`              | —                                                                                                                      | write                | 1         |
 | `M4ORO_EMPLEADOS`                | —                                                                                                                      | read                 | 1         |
 | `MSS_DELEGATION`                 | MSS_DELEGATION, SCO_PROCESS                                                                                            | catalog, read, write | 1         |
+| `SCO_APPLYVAL_CALEN`             | SCO_INTERMEDIATE_NODE_CALENDAR                                                                                         | read                 | 1         |
 | `SCO_CLOCK_INOUT_API`            | —                                                                                                                      | write                | 1         |
 | `SCO_GTA_EMPLOYEE_PRESENCE_REPR` | SCO_GTA_SSE_VISUAL_INTERFACE                                                                                           | read, write          | 2         |
 | `SCO_GTA_VIEW_ALERTS`            | —                                                                                                                      | write                | 1         |
