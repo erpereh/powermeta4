@@ -20,6 +20,7 @@ import { PayslipsView } from "./payslips-view";
 import { TasksView } from "./tasks-view";
 import { ProjectionsView } from "./projections-view";
 import { CertificatesView } from "./certificates-view";
+import { HolidaysView } from "./holidays-view";
 import type { ProjectionSearchParams } from "@/lib/portal/projections/types";
 
 async function OrgChart({
@@ -173,6 +174,22 @@ export function FeatureDispatch({
             }
           >
             <CertificatesView context={context} params={projectionSearchParams} />
+          </Suspense>
+        </div>
+      );
+    case "holidays":
+      return (
+        <div className="flex min-w-0 flex-col gap-6">
+          {header}
+          <Suspense
+            fallback={
+              <div role="status" className="space-y-3">
+                <p className="text-sm text-muted-foreground">Cargando el calendario de festivos…</p>
+                <div aria-hidden>{fallback}</div>
+              </div>
+            }
+          >
+            <HolidaysView context={context} />
           </Suspense>
         </div>
       );

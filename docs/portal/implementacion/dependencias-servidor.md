@@ -26,6 +26,7 @@ servicio publicado y una aprobación de escritura (AGENTS.md solo aprueba el alt
 | --------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------- |
 | Cambio de contraseña                                            | `/portal/organizacion/contrasena`                                | —                                                                                        | P04        |
 | Life events                                                     | `/portal/empleado/datos/eventos`                                 | —                                                                                        | P01, P05   |
+| Calendario de festivos                                          | `/portal/empleado/tiempo/festivos`                               | `SSE_CARGA_FESTIVOS!SSE_FESTIVOS.CARGA`, `SSE_CARGA_FESTIVOS!SSE_BUSCA_CALENDARIO`       | P02, P05   |
 | Actividad                                                       | `/portal/empleado/tiempo/actividad`                              | `SSE_H_HR_VENT_ACTIV_INDIV!SSE_H_HR_VENT_ACTIV_INDIV_ROOT.SSM_H_HR_VENT_ACTIV_MAIN_LOAD` | P02, P05   |
 | Mi conocimiento                                                 | `/portal/empleado/conocimiento`                                  | —                                                                                        | P01, P07   |
 | Solicita una vacante                                            | `/portal/responsable/talento/vacantes`                           | —                                                                                        | P02, P05   |
@@ -285,7 +286,7 @@ Entrada de `npm run portal:discover` en la VM.
 | `SSE_BFT_H_EE_IN_BNFT`           | M4T_H_EE_IN_BNFT, SSE_H_EE_IN_BNFT                                                                                     | read                 | 2         |
 | `SSE_BFT_H_EE_IN_BNFT_MOD`       | SCO_BENEFIT, SSE_PRINCIPAL                                                                                             | catalog, write       | 3         |
 | `SSE_CAREER_PLAN`                | SSE_CR_PLAN_HT                                                                                                         | read                 | 1         |
-| `SSE_CARGA_FESTIVOS`             | SSE_FESTIVOS                                                                                                           | read                 | 1         |
+| `SSE_CARGA_FESTIVOS`             | SSE_BUSCA_CALENDARIO, SSE_FESTIVOS                                                                                     | read                 | 1         |
 | `SSE_CERTIFICATION_LICEN`        | M4T_CERTIFICATION_LICEN, SCO_CERTIF_TYPE, SCO_ISSUE_ENTIT, SSE_CERTIFICATION_LICEN_VAL, SSE_PRINCIPAL                  | catalog, read, write | 4         |
 | `SSE_CR_PREFERENC`               | M4T_COUNTRY, M4T_GEO_DIV, M4T_JOB, M4T_SUB_GEO_DIV, M4T_WORK_UNIT, SSE_CR_PREFERENC, SSE_PRINCIPAL                     | catalog, read, write | 2         |
 | `SSE_E_MAIL`                     | SSE_E_MAIL_VAL, SSE_PRINCIPAL                                                                                          | read, write          | 3         |

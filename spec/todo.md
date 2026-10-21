@@ -1,5 +1,35 @@
 # powermeta4 - estado de tareas
 
+## Calendario de festivos — 2026-10-21
+
+- [x] Vista anual `holidays` en «Mi tiempo de trabajo», doce meses de domingo
+      a sábado, seis semanas, tokens del tema y etiquetas accesibles.
+- [x] Año actual en Europe/Madrid, sin selector; muestra sintética protegida
+      por entorno, flag y sesión debug, sin SOAP/PeopleNet ni persistencia.
+- [x] Retirada la consulta no acreditada basada en GTA; contrato real pendiente
+      explícito y estados distintos de identidad, asignación, vacío y error.
+- [x] `portal:holidays-discover -- <CYC|IBER|COLL>`: SELECT de diccionario y
+      columnas, código LN4 como texto, herencia y límites advertidos; archivos
+      locales sin valores de empleados ni escrituras en la BD.
+- [x] 36 pruebas dirigidas correctas en 5 archivos de festivos; calendario
+      civil, puerta debug, estados, aislamiento y extracción simulada de solo
+      lectura. `portal:docs` regenerado y extractor comprobado sin configuración
+      PeopleNet y con sociedad inválida: fallo controlado, sin credenciales.
+- [x] Typecheck y build correctos. Lint ejecutado: oxlint sin errores, siete
+      avisos previos y fallo global de formato ajeno; formato y lint dirigidos
+      de los archivos nuevos correctos. Diff y estado Git revisados.
+- [x] Suite completa detenida tras más de seis minutos sin finalizar, con la
+      integración Excel COM incluida (bloqueo previo documentado); apareció un
+      fallo en el formulario de alta sin cambios. Repetición sin
+      `src/lib/meta4/hire/excel.test.ts`, con dos
+      workers y margen de 20 s: 187 archivos, 1054 correctas y 2 omitidas.
+- [x] Navegador con sesión debug y SQLite temporal: navegación desde la sidebar,
+      calendario, recarga, claro/oscuro y 1440/1024/768/390 px. Doce meses
+      visibles, sin overflow ni errores/avisos de consola; muestra identificada
+      también con textos de desarrollo ocultos. Sin acceso a Meta4/PeopleNet.
+- [ ] Ejecutar el extractor en la VM, recibir sus archivos, implementar las
+      reglas confirmadas y contrastar los festivos con el portal real.
+
 ## Certificado de retenciones (CYC_RP_CERT_HAB) — 2026-10-20
 
 - [x] Pantalla «Mis certificados de retenciones» compartida por «Certificado de

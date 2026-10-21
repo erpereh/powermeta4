@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-10-21 - Calendario anual de festivos
+
+- Vista propia en «Mi tiempo de trabajo»: doce meses del año actual en
+  Europe/Madrid, domingo primero, seis semanas y estados accesibles de festivo
+  y fin de semana. Presentación adaptable con los tokens claros/oscuros.
+- Muestra ficticia exclusivamente con sesión debug de desarrollo; sin consultas
+  SOAP/PeopleNet ni persistencia. El aviso no se oculta con los textos técnicos.
+- Retirada la lectura genérica basada en GTA, que no reproduce la asignación
+  acreditada del original. La integración real queda como dependencia visible.
+- Nuevo extractor `portal:holidays-discover`: exclusivamente SELECT sobre el
+  diccionario Meta4 y metadatos de columnas. Guarda código LN4 sin ejecutarlo,
+  herencia, conectores y correspondencias en archivos locales; sin valores de
+  empleados, escrituras ni cambios de esquema. Pendiente ejecución en la VM.
+- Verificación: 36 pruebas dirigidas de festivos, typecheck y build correctos;
+  navegador en claro/oscuro a 1440/1024/768/390 px, navegación y recarga con
+  sesión debug y SQLite temporal, sin overflow ni errores de consola.
+- Suite global detenida tras más de seis minutos sin finalizar (Excel COM
+  incluido, bloqueo previo documentado), con un fallo del formulario de alta
+  sin cambios. Repetición excluyendo únicamente `hire/excel.test.ts`,
+  con dos workers y timeout de 20 s: 187 archivos, 1054 correctas y 2 omitidas.
+  Lint global conserva siete avisos y formato previo pendiente; lint/formato
+  dirigidos correctos. Documentación generada, diff y estado Git revisados.
+
 ## 2026-10-20 - Importes reales del certificado de retenciones
 
 - El certificado se genera con los datos de PeopleNet: registros tipo 2 del

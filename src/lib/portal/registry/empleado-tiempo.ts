@@ -1,4 +1,5 @@
 import type { PortalFeature } from "../types";
+import { HOLIDAY_READ_CONTRACT } from "../holidays/contract";
 import {
   check,
   date,
@@ -287,23 +288,8 @@ export const EMPLEADO_TIEMPO: readonly PortalFeature[] = [
     ficha: `${TIE}/sse_g4--sse_g4_p3.md`,
     keywords: ["festivos", "calendario laboral"],
     sensitive: false,
-    read: sqlRead(TIEMPO_SQL.festivos.tables),
-    view: "generic",
-    sections: [
-      sqlConsult(
-        "festivos",
-        "Festivos del año",
-        "SSE_CARGA_FESTIVOS!SSE_FESTIVOS",
-        "list",
-        [
-          ["SCO_DT_DAY", "Día"],
-          ["SCO_NM_DAYCALEN_TYPE", "Tipo"],
-          ["SCO_COMMENT", "Comentario"],
-        ],
-        TIEMPO_SQL.festivos,
-        "Días del calendario laboral asignado en tus días de trabajo (GTA). Si tu sociedad no gestiona el calendario en Meta4, no hay registros.",
-      ),
-    ],
+    read: HOLIDAY_READ_CONTRACT,
+    view: "holidays",
   },
   {
     id: "empleado.tiempo.planificacion",

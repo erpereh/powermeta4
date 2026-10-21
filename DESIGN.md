@@ -523,6 +523,17 @@ importes ausentes no son cero y los porcentajes parciales se identifican.
 En debug autenticado de desarrollo hay muestras ficticias completa, parcial
 y vacía, con aviso visible. La descarga sigue siendo el PDF original.
 
+## Calendario de festivos
+
+En «Mi tiempo de trabajo», doce meses del año actual con domingo primero y
+seis semanas fijas por mes. Tablas nativas de consulta, sin selección de días
+ni navegación anual; cuatro columnas en escritorio, tres en portátil, dos en
+tablet y una en móvil. Fondo atenuado para fines de semana; festivos con tokens
+`selected`/`selected-foreground`, borde de acento y marca, más fecha y estado accesibles. Un festivo
+en fin de semana conserva ambos estados. Año y leyenda encima del calendario,
+sin cabeceras ni controles duplicados. La muestra debug permanece identificada;
+una lectura pendiente no se presenta como calendario sin festivos.
+
 ## Certificado de retenciones
 
 Reproduce «Mis Certificados de retenciones»: un `Surface` con el texto del

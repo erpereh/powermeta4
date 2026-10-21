@@ -282,7 +282,7 @@ export type FeatureSection =
       readonly presentationBody?: string;
     };
 
-/** Vistas con implementación propia (contrato real conectado). */
+/** Vistas con implementación propia; `read` declara el estado de su contrato real. */
 export type FeatureView =
   | "generic"
   | "home"
@@ -293,6 +293,7 @@ export type FeatureView =
   | "payslips"
   | "projections"
   | "certificates"
+  | "holidays"
   | "manager-home"
   | "population"
   | "team";

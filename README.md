@@ -133,6 +133,13 @@ PeopleNet, no guarda cifras y no está disponible en producción. La sesión
 Meta4 usa las lecturas propias del servidor y conserva los PDF originales.
 Contrato y verificación: [Informe de proyecciones](docs/portal/implementacion/proyecciones-visual.md).
 
+El calendario de festivos de «Mi tiempo de trabajo» muestra los doce meses del
+año actual y una muestra ficticia únicamente con sesión debug de desarrollo.
+La lectura real espera confirmar la asignación y los tipos de día del original;
+`npm run portal:holidays-discover -- CYC` extrae solo metadatos del diccionario
+y columnas físicas, sin leer valores de empleados ni escribir en PeopleNet.
+Uso y cierre de la integración: [Calendario de festivos](docs/portal/implementacion/calendario-festivos.md).
+
 El informe de proyecciones del portal y «Consultar proyecciones» de Inicio
 comparten la descarga mediante `POST /api/portal/projections/export`. El PDF
 conserva sus secciones en A4 apaisado, distribuye los bloques pequeños en dos

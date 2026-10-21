@@ -2,7 +2,7 @@ import type { PortalSqlQuery } from "../../types";
 
 /**
  * Lecturas de «Tiempo» reproducidas desde `SSE_HOLYDAYS`, `SSE_REAL_TIME`,
- * `SSE_CARGA_FESTIVOS`, `SSE_GTA_PLAN` y `SSE_GTA_VIRTUAL_CLOCK_IN_OUT`
+ * `SSE_GTA_PLAN` y `SSE_GTA_VIRTUAL_CLOCK_IN_OUT`
  * (`docs/portal/implementacion/lecturas-sql.md`). Las incidencias y sus
  * catálogos viven en la organización compartida `0000`.
  */
@@ -72,20 +72,6 @@ ${INCIDENCE_JOINS}
 WHERE A.ID_ORGANIZATION = @organization AND A.STD_ID_HR = @employeeId
   AND YEAR(A.SCO_DT_START) = YEAR(@today)
 ORDER BY A.SCO_DT_START DESC`,
-  ),
-  /** `SSE_CARGA_FESTIVOS!SSE_FESTIVOS`: festivos del año del calendario del empleado. */
-  festivos: own(
-    ["M4SCO_HR_REAL_WORK_DAYS", "M4SCO_CALENDAR_REP", "M4SCO_DAYCALEN_TP"],
-    `SELECT R.SCO_DT_DAY AS SCO_DT_DAY, T.SCO_DAYCALEN_TESP AS SCO_NM_DAYCALEN_TYPE,
-  R.SCO_COMMENT AS SCO_COMMENT
-FROM M4SCO_CALENDAR_REP R
-LEFT JOIN M4SCO_DAYCALEN_TP T ON T.ID_ORGANIZATION IN ('0000', R.ID_ORGANIZATION)
-  AND T.SCO_ID_DAYCALEN_TY = R.SCO_ID_DAYCALEN_TY
-WHERE R.ID_ORGANIZATION = @organization AND YEAR(R.SCO_DT_DAY) = YEAR(@today)
-  AND R.SCO_ID_CALENDAR = (SELECT TOP 1 W.SCO_ID_CALENDAR FROM M4SCO_HR_REAL_WORK_DAYS W
-    WHERE W.ID_ORGANIZATION = @organization AND W.STD_ID_HR = @employeeId AND W.DT_START <= @today
-    ORDER BY W.DT_START DESC)
-ORDER BY R.SCO_DT_DAY`,
   ),
   /** `SSE_GTA_PLAN!SSE_GTA_PLAN`: planificación de los próximos días. */
   planificacion: own(
