@@ -1,5 +1,14 @@
 # powermeta4 - estado de tareas
 
+## Registro Retributivo sin IA — 2026-10-22
+
+- [x] Eliminada la IA (Gemini) del Registro Retributivo: panel, etiqueta, rutas,
+      ajustes, campos del análisis, filas del Excel y `@google/genai`.
+- [x] Eliminada la pestaña Privacidad de sus Ajustes y la fila del Excel.
+- [x] Inicio respeta «Ocultar textos de desarrollo»: sin interruptor y solo
+      acciones implementadas.
+- [ ] Revisión manual en navegador pendiente.
+
 ## Lectura real del calendario — 2026-10-21
 
 - [x] Revisado `4ecf5815`: nodos de asignación y reglas principales presentes,

@@ -50,6 +50,7 @@ vi.mock("@/stores/use-workspace-store", () => ({
 }));
 
 import { SidebarProvider } from "@/components/system";
+import { DEVELOPMENT_TEXT_ATTRIBUTE } from "@/lib/theme/development-text";
 import { ToolsLaunchpad } from "./tools-launchpad";
 
 afterEach(() => {
@@ -57,6 +58,7 @@ afterEach(() => {
 });
 
 beforeEach(() => {
+  document.documentElement.setAttribute(DEVELOPMENT_TEXT_ATTRIBUTE, "false");
   vi.stubGlobal(
     "matchMedia",
     vi.fn().mockImplementation((query: string) => ({
@@ -115,6 +117,17 @@ describe("tools launchpad", () => {
     await user.click(toggle);
 
     expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(launcher.queryByText("Modificar un usuario")).toBeNull();
+    expect(launcher.queryByText("Próximamente")).toBeNull();
+    expect(launcher.getByText("Listado de usuarios")).toBeTruthy();
+  });
+
+  it("hides the switch and unfinished actions when development text is hidden", () => {
+    document.documentElement.setAttribute(DEVELOPMENT_TEXT_ATTRIBUTE, "true");
+    renderLaunchpad();
+
+    const launcher = within(screen.getByRole("main"));
+    expect(launcher.queryByRole("switch", { name: "Mostrar solo acciones disponibles" })).toBeNull();
     expect(launcher.queryByText("Modificar un usuario")).toBeNull();
     expect(launcher.queryByText("Próximamente")).toBeNull();
     expect(launcher.getByText("Listado de usuarios")).toBeTruthy();

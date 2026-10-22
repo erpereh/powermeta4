@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-10-22 - Registro Retributivo sin IA e Inicio sin acciones pendientes
+
+- Registro Retributivo: se elimina toda la IA (Gemini). Fuera el panel
+  «Explicación IA» de Personas y Cuadre Reg., la etiqueta «IA disponible», las
+  rutas `/api/registro-retributivo/{explain,ai/status,ai/test}`, `ai/`, los
+  ajustes `enableAIByDefault`/`autoExplainOnOpen`/`aiModel`, `enableAI`/`aiModel`
+  del análisis, el criterio IA del resumen y la dependencia `@google/genai`.
+  El chat global no cambia.
+- Ajustes del Registro Retributivo: se elimina la pestaña Privacidad. El Excel
+  exportado ya no lleva las filas «IA» ni «Privacidad».
+- Inicio: con «Ocultar textos de desarrollo» se oculta el interruptor «Solo
+  disponibles» y solo se listan las acciones implementadas.
+- Pruebas dirigidas: 19 archivos, 132 correctas y 2 omitidas. Suite completa
+  antes del ajuste de la prueba del launchpad: 187 archivos correctos y uno
+  corregido después. Build correcto; oxlint sin errores (avisos previos);
+  `oxfmt --check` sigue fallando en todo el repo, como antes. Typecheck solo
+  falla en `.next/dev/types`, generado por el servidor de desarrollo y obsoleto.
+
 ## 2026-10-21 - Lectura real del calendario de festivos
 
 - El volcado de la VM `4ecf5815` confirma los nodos auxiliares, correspondencias

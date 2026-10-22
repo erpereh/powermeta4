@@ -24,15 +24,16 @@ export function ToolsLaunchpad() {
   const [moduleFilter, setModuleFilter] = useState<ModuleFilter>("all");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const showOnlyAvailable = hideDevelopmentText || onlyAvailable;
 
   const filteredTools = useMemo(
     () =>
       TOOL_REGISTRY.filter(
         (tool) =>
           (moduleFilter === "all" || tool.moduleId === moduleFilter) &&
-          (!onlyAvailable || tool.implemented),
+          (!showOnlyAvailable || tool.implemented),
       ),
-    [moduleFilter, onlyAvailable],
+    [moduleFilter, showOnlyAvailable],
   );
 
   const handleToolVisit = (toolId: string) => {
@@ -56,13 +57,15 @@ export function ToolsLaunchpad() {
         <div className="md:hidden">
           <SidebarToggle wrapperClassName="-ml-1" />
         </div>
-        <Switch
-          checked={onlyAvailable}
-          onCheckedChange={setOnlyAvailable}
-          label="Solo disponibles"
-          ariaLabel="Mostrar solo acciones disponibles"
-          className="ml-auto text-sm text-muted-foreground"
-        />
+        {hideDevelopmentText ? null : (
+          <Switch
+            checked={onlyAvailable}
+            onCheckedChange={setOnlyAvailable}
+            label="Solo disponibles"
+            ariaLabel="Mostrar solo acciones disponibles"
+            className="ml-auto text-sm text-muted-foreground"
+          />
+        )}
       </div>
 
       <div className="mx-auto w-full max-w-3xl space-y-8 px-4 pb-10 pt-4 sm:px-6 sm:pt-10">

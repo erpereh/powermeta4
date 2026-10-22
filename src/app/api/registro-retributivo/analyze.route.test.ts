@@ -88,7 +88,6 @@ const filledForm = (pdfCount = 1): FormData => {
   const formData = new FormData();
   formData.append("registro", buildRegistroFile());
   formData.append("tolerance", "1");
-  formData.append("enableAI", "false");
   formData.append("reviewThreshold", "1");
   formData.append("incidentThreshold", "50");
   formData.append("conceptMap", "[]");

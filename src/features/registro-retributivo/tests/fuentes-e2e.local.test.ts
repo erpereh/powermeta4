@@ -4,7 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 
 import { describe, expect, test } from "vitest";
 
-import { DEFAULT_SETTINGS, STORAGE_SCHEMA_VERSION } from "@/features/registro-retributivo/settings/defaults";
+import { STORAGE_SCHEMA_VERSION } from "@/features/registro-retributivo/settings/defaults";
 import { runRetributivoAnalyze } from "@/features/registro-retributivo/server/run-analyze";
 import { bootstrapDatabase } from "@/server/database/bootstrap";
 import { runMigrations } from "@/server/database/migrations";
@@ -67,8 +67,6 @@ describe.skipIf(!hasLocalFuentes)("local fuentes analyze", () => {
             result,
             config: {
               tolerance: 1,
-              enableAI: false,
-              aiModel: DEFAULT_SETTINGS.aiModel,
               thresholds: { reviewThreshold: 1, incidentThreshold: 50 },
             },
           },

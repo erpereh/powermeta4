@@ -212,7 +212,6 @@ describe("concept mapping and comparison", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: map as readonly ConceptMappingRule[],
       },
     );
@@ -242,7 +241,6 @@ describe("concept mapping and comparison", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         excludedEmployeeIds: ["10048"],
       },
     );

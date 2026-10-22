@@ -55,8 +55,6 @@ const sampleAnalysis = (id: string): StoredAnalysis => ({
   result: emptyResult,
   config: {
     tolerance: 1,
-    enableAI: false,
-    aiModel: DEFAULT_SETTINGS.aiModel,
     thresholds: {
       reviewThreshold: DEFAULT_SETTINGS.reviewThreshold,
       incidentThreshold: DEFAULT_SETTINGS.incidentThreshold,

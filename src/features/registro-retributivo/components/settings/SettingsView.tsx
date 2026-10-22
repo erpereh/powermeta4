@@ -1,6 +1,6 @@
 "use client";
 
-import { BookMarked, Check, ShieldCheck, SlidersHorizontal, UserMinus, type LucideIcon } from "lucide-react";
+import { BookMarked, SlidersHorizontal, UserMinus, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { EmployeeExclusionsCard } from "@/features/registro-retributivo/components/settings/EmployeeExclusionsCard";
@@ -11,7 +11,7 @@ import { Callout, HoverList, Input, Surface } from "@/components/system";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
 import { cn } from "@/lib/utils";
 
-type SettingsSection = "general" | "exclusions" | "concepts" | "privacy";
+type SettingsSection = "general" | "exclusions" | "concepts";
 
 const SETTINGS_SECTIONS: ReadonlyArray<{
   readonly value: SettingsSection;
@@ -23,15 +23,7 @@ const SETTINGS_SECTIONS: ReadonlyArray<{
   { value: "general", label: "Diferencias", hint: "Tolerancia y umbral", icon: SlidersHorizontal, panelId: "settings-general-panel" },
   { value: "exclusions", label: "Exclusiones", hint: "Personas fuera del análisis", icon: UserMinus, panelId: "settings-exclusions-panel" },
   { value: "concepts", label: "Conceptos", hint: "Recibo → Registro", icon: BookMarked, panelId: "settings-concepts-panel" },
-  { value: "privacy", label: "Privacidad", hint: "Qué datos se usan", icon: ShieldCheck, panelId: "settings-privacy-panel" },
 ];
-
-const PRIVACY_ITEMS = [
-  { title: "Todo se guarda en este equipo", detail: "Los análisis viven en la base SQLite local de powermeta4." },
-  { title: "Sin datos bancarios", detail: "Las exportaciones no incluyen IBAN ni otros datos bancarios." },
-  { title: "La IA solo actúa cuando la pides", detail: "Nunca se ejecuta sola; los cálculos terminan antes de pedir una explicación." },
-  { title: "La IA no ve nombres ni documentos", detail: "Recibe importes y conceptos, no nombres, documentos completos ni datos bancarios." },
-] as const;
 
 function MoneyField({
   id,
@@ -146,32 +138,6 @@ function GeneralSection() {
   );
 }
 
-function PrivacySection() {
-  return (
-    <>
-      <SettingsSectionHeader
-        title="Privacidad"
-        description="Qué datos usa el Registro Retributivo y qué no sale nunca de este equipo."
-      />
-      <Surface className="rounded-xl">
-        <ul className="divide-y divide-border">
-          {PRIVACY_ITEMS.map((item) => (
-            <li key={item.title} className="flex items-start gap-3 py-3.5 first:pt-0 last:pb-0">
-              <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                <Check className="size-3.5" aria-hidden="true" />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-medium text-foreground">{item.title}</span>
-                <span className="block text-sm text-muted-foreground">{item.detail}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Surface>
-    </>
-  );
-}
-
 function SettingsPanel({
   id,
   label,
@@ -245,14 +211,6 @@ export function SettingsView() {
         {visited.has("concepts") ? (
           <SettingsPanel id="settings-concepts-panel" label="Conceptos" active={activeSection === "concepts"}>
             <ConceptMapEditor />
-          </SettingsPanel>
-        ) : null}
-
-        {visited.has("privacy") ? (
-          <SettingsPanel id="settings-privacy-panel" label="Privacidad" active={activeSection === "privacy"}>
-            <div className="max-w-3xl">
-              <PrivacySection />
-            </div>
           </SettingsPanel>
         ) : null}
       </div>

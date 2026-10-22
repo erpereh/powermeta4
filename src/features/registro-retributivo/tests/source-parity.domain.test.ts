@@ -436,7 +436,6 @@ describe.skipIf(!hasSourceFixtures)("concept mapping", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: map,
       },
     );
@@ -467,7 +466,6 @@ describe.skipIf(!hasSourceFixtures)("concept mapping", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: [
           testRule({
             pdfConcept: "Abono teletrabajo",
@@ -506,7 +504,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
     ];
     const options = {
       tolerance: 1,
-      enableAI: false,
       conceptMap: [testRule({ pdfConcept: "Salario Test", block: "Salario", blockKey: "salary", registroCode: "SAL_TEST", status: "Incluido" })],
     };
 
@@ -567,7 +564,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
     ];
     const result = await compareAnalysis(payrollRecords, [matched, registroOnly, kept], {
       tolerance: 1,
-      enableAI: false,
       excludedEmployeeIds: ["MATCH1", "BC6", " REG 1 "],
       conceptMap: [testRule({ pdfConcept: "Salario Test", block: "Salario", blockKey: "salary", registroCode: "SAL_TEST", status: "Incluido" })],
     });
@@ -612,7 +608,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       {
         tolerance: 1,
         conceptMap: buildDefaultConceptMap(registro.conceptCodes),
-        enableAI: false,
       },
     );
 
@@ -665,7 +660,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       {
         tolerance: 1,
         conceptMap: [],
-        enableAI: false,
       },
     );
 
@@ -724,7 +718,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: [
           testRule({
             pdfConcept: "Seguro Médico",
@@ -778,7 +771,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: [
           testRule({
             pdfConcept: "Plan de Pensiones Mensual",
@@ -824,7 +816,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: [
           testRule({
             pdfConcept: "Abono teletrabajo",
@@ -894,7 +885,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: [
           testRule({
             pdfConcept: "Abono teletrabajo",
@@ -936,7 +926,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: [
           testRule({
             pdfConcept: "Abono teletrabajo",
@@ -984,7 +973,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: [
           testRule({
             pdfConcept: "Salario Test",
@@ -1022,7 +1010,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
     const result = await compareAnalysis(payrollRecords, registro.records, {
       tolerance: 1,
       conceptMap: buildDefaultConceptMap(registro.conceptCodes),
-      enableAI: false,
     });
 
     expect(result.people.length).toBeGreaterThan(0);
@@ -1062,7 +1049,6 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
     const filtered = await compareAnalysis(payrollRecords, registro.records, {
       tolerance: 1,
       conceptMap: buildDefaultConceptMap(registro.conceptCodes),
-      enableAI: false,
       excludedEmployeeIds: pdfOnlyIds,
     });
     const filteredIds = new Set([
@@ -1096,13 +1082,11 @@ describe.skipIf(!hasSourceFixtures)("Excel export", () => {
     const analysis = await compareAnalysis([], [registro.records[0]], {
       tolerance: 1,
       conceptMap: buildDefaultConceptMap(registro.conceptCodes),
-      enableAI: false,
     });
     const workbook = await exportAnalysisToWorkbook(analysis, {
       registroFileName: "registro.xlsx",
       pdfFileCount: 12,
       exportedAt: "2026-07-07T10:00:00.000Z",
-      aiEnabled: false,
       schemaVersion: 2,
     });
 
@@ -1200,7 +1184,7 @@ describe.skipIf(!hasSourceFixtures)("Excel export", () => {
   });
 
   test("adds current normalized concepts only to Criterios with neutral and historical notes", async () => {
-    const analysis = await compareAnalysis([], [], { tolerance: 1, conceptMap: [], enableAI: false });
+    const analysis = await compareAnalysis([], [], { tolerance: 1, conceptMap: [] });
     const exportedAt = "2026-07-10T12:00:00.000Z";
     const normalizedConcepts = [
       {
@@ -1262,7 +1246,6 @@ describe.skipIf(!hasSourceFixtures)("Excel export", () => {
       [employee],
       {
         tolerance: 1,
-        enableAI: false,
         conceptMap: [
           testRule({ pdfConcept: "Salario Test", block: "Salario", blockKey: "salary", registroCode: "SAL_TEST", status: "Incluido", includedInComparison: true }),
           testRule({ pdfConcept: "Complemento Test", block: "C. Salarial", blockKey: "salaryComplement", registroCode: "COMP_TEST", status: "Incluido", includedInComparison: true }),
@@ -1296,7 +1279,6 @@ describe.skipIf(!hasSourceFixtures)("Excel export", () => {
     const analysis = await compareAnalysis([], [], {
       tolerance: 1,
       conceptMap: [],
-      enableAI: false,
     });
     const workbook = await exportAnalysisToWorkbook({
       ...analysis,
@@ -1338,7 +1320,6 @@ describe.skipIf(!hasSourceFixtures)("Excel export", () => {
     const analysis = await compareAnalysis([], [], {
       tolerance: 1,
       conceptMap: [],
-      enableAI: false,
     });
     const workbook = await exportAnalysisToWorkbook({
       ...analysis,
@@ -1403,7 +1384,6 @@ describe.skipIf(!hasSourceFixtures)("Excel export", () => {
     const analysis = await compareAnalysis([], [registro.records[0]], {
       tolerance: 1,
       conceptMap: buildDefaultConceptMap(registro.conceptCodes),
-      enableAI: false,
     });
     const groupings = enrichRegistroGroupingsWithPdf(groupingResult.rows, registro.records, analysis.people, analysis.pdfWithoutRegistro, {
       tolerance: 1,
@@ -1440,7 +1420,6 @@ describe.skipIf(!hasSourceFixtures)("Excel export", () => {
     const analysis = await compareAnalysis([], [], {
       tolerance: 1,
       conceptMap: [],
-      enableAI: false,
     });
     const workbook = await exportAnalysisToWorkbook({
       ...analysis,

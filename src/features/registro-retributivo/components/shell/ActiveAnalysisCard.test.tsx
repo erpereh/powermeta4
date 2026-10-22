@@ -10,17 +10,13 @@ afterEach(() => {
   state.mockReset();
 });
 describe("indicador del análisis", () => {
-  it.each([false, true])(
-    "conserva la fecha y muestra IA disponible solo cuando procede (%s)",
-    (configured) => {
-      state.mockReturnValue({
-        activeAnalysis: { createdAt: "2026-10-08T13:28:00.000Z" },
-        aiStatus: { configured, enabled: configured },
-      });
-      render(<ActiveAnalysisCard />);
-      expect(screen.queryByText("IA no configurada")).toBeNull();
-      expect(Boolean(screen.queryByText("IA disponible"))).toBe(configured);
-      expect(screen.getByText(/8 oct 2026/)).toBeTruthy();
-    },
-  );
+  it("conserva la fecha sin indicador de IA", () => {
+    state.mockReturnValue({
+      activeAnalysis: { createdAt: "2026-10-08T13:28:00.000Z" },
+    });
+    render(<ActiveAnalysisCard />);
+    expect(screen.queryByText("IA no configurada")).toBeNull();
+    expect(screen.queryByText("IA disponible")).toBeNull();
+    expect(screen.getByText(/8 oct 2026/)).toBeTruthy();
+  });
 });

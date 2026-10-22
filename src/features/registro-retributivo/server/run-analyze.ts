@@ -1,6 +1,5 @@
 import "server-only";
 
-import { getGeminiModel } from "@/features/registro-retributivo/ai/geminiClient";
 import { compareAnalysis } from "@/features/registro-retributivo/compare/comparePeople";
 import {
   buildDefaultConceptMap,
@@ -74,8 +73,6 @@ export async function runRetributivoAnalyze(formData: FormData): Promise<Analysi
     formData.get("incidentThreshold"),
     DEFAULT_INCIDENT_THRESHOLD,
   );
-  const aiModel = getGeminiModel();
-  const enableAI = false;
   const excludedEmployeeIds = parseExcludedEmployeeIds(formData.get("excludedEmployeeIds"));
   const errors: AnalysisError[] = [];
 
@@ -114,8 +111,6 @@ export async function runRetributivoAnalyze(formData: FormData): Promise<Analysi
 
   const result = await compareAnalysis(payrollRecords, registroParsed.records, {
     tolerance,
-    enableAI,
-    aiModel,
     reviewThreshold,
     incidentThreshold,
     conceptMap,

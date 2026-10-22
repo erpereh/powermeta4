@@ -20,8 +20,6 @@ export interface ExportWorkbookMetadata {
   readonly registroFileName?: string;
   readonly pdfFileCount?: number;
   readonly exportedAt?: string;
-  readonly aiEnabled?: boolean;
-  readonly aiModel?: string;
   readonly schemaVersion?: number;
   readonly normalizedConcepts?: readonly NormalizedConcept[];
   readonly exportOrigin?: "active" | "history";
@@ -233,11 +231,9 @@ function addDashboard(workbook: ExcelJS.Workbook, analysis: AnalysisResult, meta
 
   sheet.mergeCells("B4:C4");
   sheet.mergeCells("E4:F4");
-  sheet.mergeCells("H4:I4");
   sheet.getCell("B4").value = `Generado: ${formatDateTime(metadata.exportedAt ?? analysis.summary.generatedAt)}`;
   sheet.getCell("E4").value = `Reg. Retrib.: ${metadata.registroFileName ?? "No disponible"}`;
-  sheet.getCell("H4").value = `IA: ${analysis.summary.aiEnabled || metadata.aiEnabled ? `Activa (${metadata.aiModel ?? analysis.summary.aiModel ?? "modelo configurado"})` : "No activa"}`;
-  ["B4", "E4", "H4"].forEach((address) => {
+  ["B4", "E4"].forEach((address) => {
     const cell = sheet.getCell(address);
     cell.font = { bold: true, color: { argb: `FF${COLORS.mutedText}` }, size: 10 };
     cell.alignment = { wrapText: true, vertical: "middle" };
@@ -346,7 +342,6 @@ function addResumen(workbook: ExcelJS.Workbook, analysis: AnalysisResult, metada
     ["Cuadre Reg.", "Cuadres internos con diferencias", analysis.summary.internalExcelDifferences, internalExcelStatus(analysis)],
     ["Agrupaciones", "Hojas agrupadas leidas", groupedReadySheetCount(analysis), NOTE_GROUPED_SHEETS],
     ["Agrupaciones", "Filas visibles en hojas agrupadas", groupedVisibleRowCount(analysis), "Datos originales del Excel Reg. Retrib."],
-    ["Criterios principales", "IA", analysis.summary.aiEnabled || metadata.aiEnabled ? "Activa" : "No activa", "Sin API key ni solicitudes/respuestas IA"],
   ].forEach((row) => sheet.addRow(row));
   finalizeTableSheet(sheet, {
     headerRow: 3,
@@ -841,11 +836,9 @@ function addCriterios(workbook: ExcelJS.Workbook, analysis: AnalysisResult, meta
     ["Fecha generacion", formatDateTime(analysis.summary.generatedAt), ""],
     ["Fecha exportacion", formatDateTime(metadata.exportedAt), ""],
     ["Version schema", metadata.schemaVersion ?? "", ""],
-    ["Privacidad", "No se exportan NIF, IBAN, cuentas bancarias ni datos bancarios.", ""],
     ["Clave principal", "Matricula / ID RH.", ""],
     ["Recibo", "Importe comparativo calculado como suma de conceptos incluidos por mapa editable.", ""],
     ["Mapa de conceptos", "Las reglas por defecto solo incluyen codigos que existen en el Excel cargado.", ""],
-    ["IA", analysis.summary.aiEnabled || metadata.aiEnabled ? `Activa (${metadata.aiModel ?? analysis.summary.aiModel ?? "modelo configurado"})` : "No activa", "No se exportan solicitudes/respuestas IA ni API keys"],
     ["Conceptos pendientes de decision", pendingConcepts.slice(0, 25).join("; ") || "Sin pendientes", pendingConcepts.length > 25 ? `${pendingConcepts.length - 25} adicionales no listados` : ""],
     ["Conceptos ignorados relevantes", ignoredConcepts.slice(0, 25).join("; ") || "Sin ignorados", ignoredConcepts.length > 25 ? `${ignoredConcepts.length - 25} adicionales no listados` : ""],
     ...analysis.criteria.map((criterion) => ["Criterio adicional", criterion, ""]),

@@ -34,12 +34,6 @@ export const EMPTY_FILTERS: DashboardFilters = {
   status: "",
 };
 
-export interface AiStatus {
-  readonly configured: boolean;
-  readonly enabled: boolean;
-  readonly model: string;
-}
-
 interface AppStateValue {
   readonly view: AppView;
   readonly pdfFiles: readonly File[];
@@ -56,7 +50,6 @@ interface AppStateValue {
   readonly analyzing: boolean;
   readonly exporting: boolean;
   readonly hydrating: boolean;
-  readonly aiStatus?: AiStatus;
   readonly setView: (view: AppView) => void;
   readonly setPdfFiles: (files: readonly File[]) => void;
   readonly setRegistroFile: (file?: File) => void;
@@ -73,7 +66,6 @@ interface AppStateValue {
   readonly openStoredAnalysis: (id: string) => Promise<void>;
   readonly removeStoredAnalysis: (id: string) => Promise<void>;
   readonly clearStoredHistory: () => Promise<void>;
-  readonly refreshAiStatus: () => Promise<void>;
 }
 
 const AppStateContext = createContext<AppStateValue | undefined>(undefined);
@@ -94,11 +86,8 @@ function normalizeSettingsPatch(current: AppSettings, patch: Partial<AppSettings
 
   return {
     defaultTolerance: Math.max(0, defaultTolerance),
-    enableAIByDefault: next.enableAIByDefault,
-    autoExplainOnOpen: next.autoExplainOnOpen,
     reviewThreshold: Math.max(0, reviewThreshold),
     incidentThreshold: Math.max(Math.max(0, reviewThreshold), incidentThreshold),
-    aiModel: next.aiModel || DEFAULT_SETTINGS.aiModel,
     excludedEmployeeIds: Array.isArray(next.excludedEmployeeIds)
       ? [...new Set(next.excludedEmployeeIds.map(normalizeEmployeeId).filter(Boolean))]
       : DEFAULT_SETTINGS.excludedEmployeeIds,
@@ -125,8 +114,6 @@ function buildExportMetadata(analysis: StoredAnalysis, settings: AppSettings, ex
     registroFileName: analysis.registroFileName,
     pdfFileCount: analysis.pdfCount,
     exportedAt: new Date().toISOString(),
-    aiEnabled: analysis.config.enableAI,
-    aiModel: analysis.config.aiModel,
     schemaVersion: analysis.schemaVersion,
     normalizedConcepts: settings.normalizedConcepts,
     exportOrigin,
@@ -148,7 +135,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
   const [analyzing, setAnalyzing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [hydrating, setHydrating] = useState(true);
-  const [aiStatus, setAiStatus] = useState<AiStatus | undefined>();
 
   const dismissToast = useCallback((id: string) => {
     setToasts((current) => current.filter((toast) => toast.id !== id));
@@ -178,19 +164,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
     setHistory(await listAnalyses());
   }, []);
 
-  const refreshAiStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/registro-retributivo/ai/status");
-      if (response.ok) {
-        const payload = (await response.json()) as AiStatus;
-        setAiStatus(payload);
-        setSettings((current) => normalizeSettingsPatch(current, { aiModel: payload.model }));
-      }
-    } catch {
-      setAiStatus(undefined);
-    }
-  }, []);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -208,7 +181,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
         setActiveAnalysis(active);
         setStatus(active ? "Análisis activo cargado desde el historial" : "Pendiente de archivos");
         setSuccess(undefined);
-        void refreshAiStatus();
       } catch {
         if (!cancelled) setError("No se pudo recuperar el contenido local. Puedes volver a intentarlo.");
       } finally {
@@ -221,7 +193,7 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
     return () => {
       cancelled = true;
     };
-  }, [refreshAiStatus]);
+  }, []);
 
   const updateSettings = useCallback((patch: Partial<AppSettings>) => {
     setSettings((current) => {
@@ -244,7 +216,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
     const formData = new FormData();
     formData.append("registro", registroFile);
     formData.append("tolerance", String(config.tolerance));
-    formData.append("enableAI", String(config.enableAI));
     formData.append("reviewThreshold", String(config.thresholds.reviewThreshold));
     formData.append("incidentThreshold", String(config.thresholds.incidentThreshold));
     formData.append("conceptMap", JSON.stringify(config.conceptMap ?? []));
@@ -457,7 +428,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
       analyzing,
       exporting,
       hydrating,
-      aiStatus,
       setView,
       setPdfFiles,
       setRegistroFile,
@@ -474,11 +444,9 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
       openStoredAnalysis,
       removeStoredAnalysis,
       clearStoredHistory,
-      refreshAiStatus,
     }),
     [
       activeAnalysis,
-      aiStatus,
       analyze,
       saveConceptMapAndRefresh,
       saveExclusionsAndRefresh,
@@ -495,7 +463,6 @@ export function AppStateProvider({ children }: Readonly<{ children: ReactNode }>
       openStoredAnalysis,
       pdfFiles,
       pushToast,
-      refreshAiStatus,
       registroFile,
       removeStoredAnalysis,
       resetForNewAnalysis,

@@ -2,13 +2,11 @@
 
 import { AlertTriangle, CheckCircle2, FileCheck2, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { AiExplanationPanel } from "@/features/registro-retributivo/components/ai/AiExplanationPanel";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { StatusPill } from "@/features/registro-retributivo/components/common/StatusPill";
 import { DetailField, MoneyTable } from "@/features/registro-retributivo/components/common/DetailParts";
 import { countPeopleByStatus } from "@/features/registro-retributivo/components/common/personStatus";
 import { Callout, Drawer, EmptyState, Input, Table, type TableProps } from "@/components/system";
-import { buildInternalExcelExplainPayload } from "@/features/registro-retributivo/ai/explainPayload";
 import type { AnalysisStatus, InternalExcelCheckRow, InternalExcelNormalizedVariablesCheckRow } from "@/features/registro-retributivo/types";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
 import { toleranceDiffClass } from "@/features/registro-retributivo/ui/statusStyles";
@@ -293,8 +291,6 @@ function CuadreDrawer({
             rows={[...row.blocks, row.total].map((block) => ({ label: block.label, left: block.period, right: block.other, diff: block.difference }))}
           />
         </section>
-
-        {row.breakdownSource ? <AiExplanationPanel type="internalExcelCheck" payload={buildInternalExcelExplainPayload(row.breakdownSource)} /> : null}
       </div>
     </Drawer>
   );

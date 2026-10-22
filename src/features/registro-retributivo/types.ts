@@ -39,8 +39,6 @@ export interface AnalysisThresholds {
 
 export interface AnalysisConfig {
   readonly tolerance: number;
-  readonly enableAI: boolean;
-  readonly aiModel: string;
   readonly thresholds: AnalysisThresholds;
   readonly conceptMap?: readonly ConceptMappingRule[];
   readonly excludedEmployeeIds?: readonly string[];
@@ -440,8 +438,6 @@ export interface AnalysisSummary {
   readonly internalExcelDifferences: number;
   readonly groupingDifferences: number;
   readonly tolerance: number;
-  readonly aiEnabled?: boolean;
-  readonly aiModel?: string;
   readonly reviewThreshold?: number;
   readonly incidentThreshold?: number;
 }

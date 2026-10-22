@@ -2,7 +2,6 @@
 
 import { ChevronDown, Search, Table2, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { AiExplanationPanel } from "@/features/registro-retributivo/components/ai/AiExplanationPanel";
 import { useAppState, type DashboardFilters, EMPTY_FILTERS, matchesQuery } from "@/features/registro-retributivo/state/AppState";
 import { StatusBadge } from "@/features/registro-retributivo/components/common/StatusBadge";
 import { StatusPill } from "@/features/registro-retributivo/components/common/StatusPill";
@@ -31,7 +30,6 @@ import {
   type TableProps,
 } from "@/components/system";
 import { AgrupacionesView } from "@/features/registro-retributivo/components/groupings/AgrupacionesView";
-import { buildPersonExplainPayload } from "@/features/registro-retributivo/ai/explainPayload";
 import type { AppView, ConceptComparisonRow, PersonComparisonRow, UnmappedConceptRow } from "@/features/registro-retributivo/types";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
 import { describeConceptCause, describePersonCause, type ProbableCause } from "@/features/registro-retributivo/ui/probableCause";
@@ -382,7 +380,6 @@ function PersonDrawer({
 }: Readonly<{ row: PersonComparisonRow; tolerance: number; concepts: readonly ConceptComparisonRow[]; unmappedConcepts: readonly UnmappedConceptRow[]; onClose: () => void }>) {
   const cause = describePersonCause(row, tolerance);
   const profile = selectPersonProfileFromRow(row);
-  const aiPayload = buildPersonExplainPayload(row, cause, concepts, unmappedConcepts);
   const comparable = isComparableStatus(row.status);
 
   return (
@@ -430,7 +427,6 @@ function PersonDrawer({
         </section>
 
         <PersonConcepts person={row} concepts={concepts} unmappedConcepts={unmappedConcepts} tolerance={tolerance} />
-        <AiExplanationPanel type="person" payload={aiPayload} />
       </div>
     </Drawer>
   );

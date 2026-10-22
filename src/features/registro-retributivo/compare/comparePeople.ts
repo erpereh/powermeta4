@@ -22,8 +22,6 @@ import { normalizeComparableText, normalizeEmployeeId, normalizeEmployeeNumber }
 
 export interface CompareOptions {
   readonly tolerance: number;
-  readonly enableAI?: boolean;
-  readonly aiModel?: string;
   readonly reviewThreshold?: number;
   readonly incidentThreshold?: number;
   readonly conceptMap?: readonly ConceptMappingRule[];
@@ -834,8 +832,6 @@ export async function compareAnalysis(
       internalExcelDifferences: filteredInternalExcelChecks.filter((row) => row.status !== "OK").length,
       groupingDifferences: 0,
       tolerance: options.tolerance,
-      aiEnabled: options.enableAI !== false,
-      aiModel: options.aiModel,
       reviewThreshold,
       incidentThreshold,
     },
@@ -864,9 +860,6 @@ export async function compareAnalysis(
       excludedEmployeeIdsApplied.length
         ? `Exclusiones por matricula aplicadas: ${excludedEmployeeIdsApplied.length}.`
         : "Sin exclusiones por matricula aplicadas.",
-      options.enableAI === false
-        ? "IA desactivada; explicaciones deterministas."
-        : "Gemini solo puede sugerir textos y mapeos, nunca calcular importes.",
     ],
   };
 }

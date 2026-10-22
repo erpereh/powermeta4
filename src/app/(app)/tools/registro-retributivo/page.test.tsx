@@ -109,11 +109,8 @@ beforeEach(() => {
           data: {
             settings: {
               defaultTolerance: 1,
-              enableAIByDefault: true,
-              autoExplainOnOpen: false,
               reviewThreshold: 1,
               incidentThreshold: 50,
-              aiModel: "gemini-3.1-flash-lite",
               excludedEmployeeIds: [],
               conceptMap: [],
               normalizedConcepts: [],
@@ -150,11 +147,8 @@ function stubAnalysisFetch(resultOverrides: Record<string, unknown> = {}) {
           data: {
             settings: {
               defaultTolerance: 1,
-              enableAIByDefault: true,
-              autoExplainOnOpen: false,
               reviewThreshold: 1,
               incidentThreshold: 50,
-              aiModel: "gemini-3.1-flash-lite",
               excludedEmployeeIds: [],
               conceptMap: [],
               normalizedConcepts: [],
@@ -167,8 +161,6 @@ function stubAnalysisFetch(resultOverrides: Record<string, unknown> = {}) {
                 pdfCount: 1,
                 config: {
                   tolerance: 1,
-                  enableAI: false,
-                  aiModel: "gemini-3.1-flash-lite",
                   conceptMap: [],
                   excludedEmployeeIds: [],
                   thresholds: { reviewThreshold: 1, incidentThreshold: 50 },

@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/system";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import { cn } from "@/lib/utils";
 
@@ -16,10 +15,9 @@ type ActiveAnalysisCardProps = {
   readonly className?: string;
 };
 
-/** Estado compacto: análisis activo e IA, alineado a la derecha de la nav. */
+/** Estado compacto: análisis activo, alineado a la derecha de la nav. */
 export function ActiveAnalysisCard({ className }: ActiveAnalysisCardProps) {
-  const { activeAnalysis, aiStatus } = useAppState();
-  const aiConfigured = Boolean(aiStatus?.configured && aiStatus.enabled);
+  const { activeAnalysis } = useAppState();
 
   return (
     <section
@@ -39,11 +37,6 @@ export function ActiveAnalysisCard({ className }: ActiveAnalysisCardProps) {
           {formatDate(activeAnalysis?.createdAt)}
         </span>
       </p>
-      {aiConfigured ? (
-        <Badge status="success" size="sm">
-          IA disponible
-        </Badge>
-      ) : null}
     </section>
   );
 }

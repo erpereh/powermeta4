@@ -245,8 +245,6 @@ describe("backup safety and exact format", () => {
         },
         config: {
           tolerance: 1,
-          enableAI: false,
-          aiModel: DEFAULT_SETTINGS.aiModel,
           thresholds: {
             reviewThreshold: DEFAULT_SETTINGS.reviewThreshold,
             incidentThreshold: DEFAULT_SETTINGS.incidentThreshold,
