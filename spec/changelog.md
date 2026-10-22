@@ -8,6 +8,11 @@
   búsqueda, vuelve a leer con `listMeta4Users`, aplica el mismo filtro
   (`list-filter.ts`) y no guarda ficheros.
 - Pruebas dirigidas: 7 archivos, 28 correctas. Typecheck correcto.
+- Segunda hoja «Detalle»: una fila por persona filtrada con todos los campos
+  del diálogo de detalle (mismas SELECT de `getPeopleNetEmployeeDetail`, 8 en
+  paralelo), correos y una columna «Incidencia» si la ficha no se pudo leer.
+  El formato de la ficha se mueve a `employee-detail-view.ts`, compartido con
+  la acción del diálogo. 15 archivos de prueba, 97 correctas; typecheck correcto.
 
 ## 2026-10-22 - Registro Retributivo sin IA e Inicio sin acciones pendientes
 

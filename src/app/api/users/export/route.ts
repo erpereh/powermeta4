@@ -5,13 +5,57 @@ import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
 import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
 import { compareEmployeeIds } from "@/lib/meta4/users/employee-id";
 import { isMeta4UsersError } from "@/lib/meta4/users/errors";
-import { exportUsersToXlsx, usersFileName } from "@/lib/meta4/users/export-xlsx";
+import type { Meta4Society } from "@/lib/meta4/societies";
+import { buildEmployeeEmails, buildEmployeeSections } from "@/lib/meta4/users/employee-detail-view";
+import {
+  exportUsersToXlsx,
+  usersFileName,
+  type UserDetailExport,
+} from "@/lib/meta4/users/export-xlsx";
 import { USERS_SEARCH_MAX_LENGTH, filterUsers } from "@/lib/meta4/users/list-filter";
 import { listMeta4Users } from "@/lib/meta4/users/service";
+import {
+  getPeopleNetEmployeeDetail,
+  PeopleNetEmployeeDetailError,
+} from "@/lib/peoplenet/employee-detail";
 
 export const runtime = "nodejs";
 
 const XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+/** Lecturas de detalle simultáneas contra PeopleNet (dos SELECT por persona). */
+const DETAIL_CONCURRENCY = 8;
+
+const readDetail = async (employeeId: string, society: Meta4Society): Promise<UserDetailExport> => {
+  try {
+    const result = await getPeopleNetEmployeeDetail(employeeId, society);
+    return {
+      employeeId,
+      sections: buildEmployeeSections(result.fields),
+      emails: buildEmployeeEmails(result),
+    };
+  } catch (error) {
+    return {
+      employeeId,
+      error:
+        error instanceof PeopleNetEmployeeDetailError
+          ? error.message
+          : "No se ha podido cargar el detalle del empleado.",
+    };
+  }
+};
+
+const readDetails = async (
+  employeeIds: readonly string[],
+  society: Meta4Society,
+): Promise<UserDetailExport[]> => {
+  const results: UserDetailExport[] = [];
+  for (let start = 0; start < employeeIds.length; start += DETAIL_CONCURRENCY) {
+    const chunk = employeeIds.slice(start, start + DETAIL_CONCURRENCY);
+    results.push(...(await Promise.all(chunk.map((id) => readDetail(id, society)))));
+  }
+  return results;
+};
 
 const badRequest = (message: string) => NextResponse.json({ ok: false, message }, { status: 400 });
 
@@ -26,7 +70,8 @@ const parseQuery = (body: unknown): string | null => {
 /**
  * Descarga en Excel del listado de usuarios. El navegador solo envía el texto
  * de búsqueda: los usuarios se vuelven a leer con la sociedad de la sesión y no
- * se guarda ningún fichero.
+ * se guarda ningún fichero. La hoja «Detalle» lee en servidor la ficha de
+ * cada persona filtrada, con la sociedad de la sesión.
  */
 export async function POST(request: Request) {
   const authSession = await getCurrentAuthContext();
@@ -54,7 +99,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const file = await exportUsersToXlsx(rows);
+    const details = await readDetails(
+      rows.map((row) => row.id),
+      society,
+    );
+    const file = await exportUsersToXlsx(rows, details);
     const fileName = usersFileName(society, new Date().toISOString().slice(0, 10));
     return new NextResponse(new Uint8Array(file), {
       headers: {

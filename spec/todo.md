@@ -3,6 +3,8 @@
 ## Excel del listado de usuarios — 2026-10-22
 
 - [x] Exportación a Excel de `/tools/users/list` con el filtro de búsqueda.
+- [x] Hoja «Detalle» con la ficha de cada persona exportada.
+- [ ] Medir el tiempo de exportación de los ~650 usuarios con PeopleNet real.
 - [ ] Revisión manual en navegador con Meta4 real pendiente.
 
 ## Registro Retributivo sin IA — 2026-10-22
