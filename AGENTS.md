@@ -230,6 +230,9 @@ y backups usan runtime Node.js y validan la sesión, la empresa y la
 conversación en servidor. `POST /api/chat/run` es el runtime de chat
 (SSE, Node.js): valida sesión, empresa y conversación, reconstruye la rama
   por `parentMessageId` y llama al endpoint OpenAI-compatible global.
+`POST /api/users/export` (Node.js, requiere sesión) descarga en Excel el
+listado de usuarios filtrado: recibe solo el texto de búsqueda y vuelve a leer
+en servidor, sin guardar ficheros.
 `/tools/users/new` es el alta de personas Meta4 (`SRTC_LAUNCH_IMPORT`). Las
 rutas antiguas `/tools/users/search` y `/tools/users/[userId]` solo redirigen
 a `/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.

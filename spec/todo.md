@@ -1,5 +1,10 @@
 # powermeta4 - estado de tareas
 
+## Excel del listado de usuarios — 2026-10-22
+
+- [x] Exportación a Excel de `/tools/users/list` con el filtro de búsqueda.
+- [ ] Revisión manual en navegador con Meta4 real pendiente.
+
 ## Registro Retributivo sin IA — 2026-10-22
 
 - [x] Eliminada la IA (Gemini) del Registro Retributivo: panel, etiqueta, rutas,

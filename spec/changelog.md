@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-22 - Excel del listado de usuarios
+
+- `/tools/users/list`: botón «Exportar a Excel» que descarga lo filtrado por la
+  búsqueda (sin búsqueda, todos los usuarios de la sociedad activa).
+  `POST /api/users/export` (Node.js, requiere sesión) recibe solo el texto de
+  búsqueda, vuelve a leer con `listMeta4Users`, aplica el mismo filtro
+  (`list-filter.ts`) y no guarda ficheros.
+- Pruebas dirigidas: 7 archivos, 28 correctas. Typecheck correcto.
+
 ## 2026-10-22 - Registro Retributivo sin IA e Inicio sin acciones pendientes
 
 - Registro Retributivo: se elimina toda la IA (Gemini). Fuera el panel
