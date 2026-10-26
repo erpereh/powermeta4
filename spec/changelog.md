@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-10-26 - Análisis de reunión y especificación del cuadre de nómina
+
+- Documentación únicamente: `docs/automatizacion-reunion/{SPEC,AS_IS,TO_BE,
+  WORKFLOW,ARCHITECTURE,ROADMAP,OPEN_QUESTIONS}.md`. Reconstrucción con
+  evidencias E01–E26, quince controles, contratos pendientes y propuesta
+  `payroll.reconcile` en Nóminas. No se ha registrado ni implementado la acción.
+- Reunión de 70:40 transcrita con Whisper local en GPU y revisada visualmente:
+  15 segmentos, 848 capturas periódicas, 169 cambios y 46 detalles. Entorno
+  aislado; sin servicios externos de análisis ni consultas reales a PeopleNet.
+  `/revision_video/` excluido antes de generar derivados; sin material privado
+  versionado. Manifiesto, huella y avances conservados allí.
+- Suite completa `npm test -- --maxWorkers=2`: 191 archivos correctos,
+  1.097 pruebas pasadas y 2 omitidas. Formato de los siete documentos y enlaces
+  comprobados; `git diff --check` correcto. Exclusión comprobada con
+  `git check-ignore` y `git ls-files revision_video` vacío.
+- `npm run lint` ejecutado: siete avisos anteriores de oxlint; falla formato
+  global en 631 archivos, también antes de añadir estos documentos.
+  `npm run typecheck` falla por tres referencias generadas obsoletas en
+  `.next/dev/types/validator.ts` a rutas IA eliminadas del Registro Retributivo.
+  `npm run build` compila y falla después en esas mismas referencias. No se
+  alteró código ni la caché de desarrollo para ocultar esos fallos previos.
+- Pendientes reales: originales externos, fórmulas/vigencias completas,
+  autorización de acceso de la nueva acción y contraste en VM. El diseño
+  mantiene SQL en SELECT, sociedad del servidor, revisión humana, datos
+  operativos fuera del chat y nuevas escrituras ERP fuera del alcance.
+
 ## 2026-10-22 - Excel del listado de usuarios
 
 - `/tools/users/list`: botón «Exportar a Excel» que descarga lo filtrado por la

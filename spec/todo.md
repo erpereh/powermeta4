@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Especificación del cuadre de nómina desde reunión — 2026-10-26
+
+- [x] Reunión de 70:40 analizada por segmentos: transcripción local íntegra,
+      848 capturas periódicas, 169 de cambios y 46 de detalle revisadas;
+      manifiesto y notas reanudables privados. `/revision_video/` fuera de Git.
+- [x] Siete documentos en `docs/automatizacion-reunion/`: proceso con tiempos,
+      SPEC, automatización, flujos, arquitectura, roadmap y dudas. Quince
+      controles; hechos, inferencias y propuestas separados. Sin implementar
+      la acción ni modificar el comportamiento del producto.
+- [x] Suite completa: 191 archivos, 1.097 pruebas correctas y 2 omitidas.
+      Formato de los siete documentos y enlaces correctos. Lint global
+      ejecutado: siete avisos anteriores y 631 archivos con formato pendiente.
+      Typecheck y build ejecutados: fallan por tres referencias obsoletas de
+      `.next/dev/types` a rutas IA eliminadas del Registro Retributivo.
+- [ ] Recibir originales y validar perfiles, población, reglas económicas y
+      acceso (Q01–Q14). No declarar paridad completa sin esos contratos.
+- [ ] Implementación futura de «Cuadrar nómina» según SPEC y ROADMAP;
+      escrituras ERP e histórico propio quedan fuera de v1.
+
 ## Excel del listado de usuarios — 2026-10-22
 
 - [x] Exportación a Excel de `/tools/users/list` con el filtro de búsqueda.
