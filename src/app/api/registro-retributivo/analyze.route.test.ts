@@ -111,7 +111,8 @@ describe("registro-retributivo analyze FormData", () => {
       "utf8",
     );
     expect(source).toContain('fetch("/api/registro-retributivo/analyze", { method: "POST", body: formData })');
-    expect(source).not.toMatch(/registro-retributivo\/analyze[\s\S]{0,200}content-type/i);
+    // La llamada multipart no fija Content-Type; la de PeopleNet (`analyze-peoplenet`) es JSON.
+    expect(source).not.toMatch(/registro-retributivo\/analyze"[\s\S]{0,200}content-type/i);
   });
 
   it("parses Excel plus one PDF without a FormData TypeError", async () => {

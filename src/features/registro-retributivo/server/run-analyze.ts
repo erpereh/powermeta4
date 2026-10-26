@@ -13,8 +13,14 @@ import {
 import { extractGroupedExcelSheets } from "@/features/registro-retributivo/groupings/groupedExcelSheets";
 import { parsePayrollPdf } from "@/features/registro-retributivo/parsers/payrollPdfParser";
 import { parseRegistroRetributivo } from "@/features/registro-retributivo/parsers/registroRetributivoParser";
-import type { AnalysisError, AnalysisResult, PayrollRecord } from "@/features/registro-retributivo/types";
-import type { ConceptMappingRule } from "@/features/registro-retributivo/types";
+import type {
+  AnalysisError,
+  AnalysisResult,
+  ConceptMappingRule,
+  GroupedExcelSheet,
+  PayrollRecord,
+  RegistroParseResult,
+} from "@/features/registro-retributivo/types";
 import { validationError } from "@/features/registro-retributivo/utils/fileValidation";
 import { normalizeEmployeeId } from "@/features/registro-retributivo/utils/normalize";
 
@@ -87,11 +93,6 @@ export async function runRetributivoAnalyze(formData: FormData): Promise<Analysi
   const registroParsed = await parseRegistroRetributivo(registroBuffer);
   errors.push(...registroParsed.warnings.map((message) => validationError(registro.name, message)));
   const groupedExcelSheets = extractGroupedExcelSheets(registroBuffer);
-  const userConceptMap = parseConceptMap(formData.get("conceptMap"));
-  const conceptMap = validateConceptMapForCodes(
-    mergeConceptMap([...buildDefaultConceptMap(registroParsed.conceptCodes), ...userConceptMap]),
-    registroParsed.conceptCodes,
-  );
 
   const payrollRecords: PayrollRecord[] = [];
   for (const pdf of pdfs) {
@@ -109,30 +110,73 @@ export async function runRetributivoAnalyze(formData: FormData): Promise<Analysi
     }
   }
 
-  const result = await compareAnalysis(payrollRecords, registroParsed.records, {
-    tolerance,
-    reviewThreshold,
-    incidentThreshold,
+  return finishAnalysis({
+    payrollRecords,
+    registroParsed,
+    options: {
+      tolerance,
+      reviewThreshold,
+      incidentThreshold,
+      userConceptMap: parseConceptMap(formData.get("conceptMap")),
+      excludedEmployeeIds,
+    },
+    errors,
+    groupedExcelSheets,
+    criteria: [
+      `Hoja Registro detectada: ${registroParsed.sheetName}.`,
+      `Hojas agrupadas Registro leídas: ${groupedExcelSheets.filter((sheet) => sheet.status === "ready").length} hojas.`,
+    ],
+    extra: { source: "files" },
+  });
+}
+
+export interface FinishAnalysisInput {
+  readonly payrollRecords: readonly PayrollRecord[];
+  readonly registroParsed: RegistroParseResult;
+  readonly options: {
+    readonly tolerance: number;
+    readonly reviewThreshold: number;
+    readonly incidentThreshold: number;
+    readonly userConceptMap: readonly ConceptMappingRule[];
+    readonly excludedEmployeeIds: readonly string[];
+  };
+  readonly errors: readonly AnalysisError[];
+  readonly groupedExcelSheets: readonly GroupedExcelSheet[];
+  readonly criteria: readonly string[];
+  readonly extra?: Pick<AnalysisResult, "source" | "period" | "employeeIdsFilter">;
+}
+
+/** Tramo común a los dos orígenes: mapa de conceptos, comparación y resultado. */
+export async function finishAnalysis(input: FinishAnalysisInput): Promise<AnalysisResult> {
+  const { registroParsed, options } = input;
+  const conceptMap = validateConceptMapForCodes(
+    mergeConceptMap([...buildDefaultConceptMap(registroParsed.conceptCodes), ...options.userConceptMap]),
+    registroParsed.conceptCodes,
+  );
+  const normalizedAvailable = registroParsed.normalizedAvailable !== false;
+
+  const result = await compareAnalysis(input.payrollRecords, registroParsed.records, {
+    tolerance: options.tolerance,
+    reviewThreshold: options.reviewThreshold,
+    incidentThreshold: options.incidentThreshold,
     conceptMap,
     internalExcelChecks: registroParsed.internalChecks,
-    excludedEmployeeIds,
+    excludedEmployeeIds: options.excludedEmployeeIds,
+    normalizedAvailable,
   });
 
   return {
     ...result,
     summary: {
       ...result.summary,
-      pdfsFailed: errors.filter((error) => error.type === "pdf").length,
+      pdfsFailed: input.errors.filter((error) => error.type === "pdf").length,
       groupingDifferences: 0,
     },
     groupings: [],
-    groupedExcelSheets,
-    errors: [...result.errors, ...errors],
-    criteria: [
-      ...result.criteria,
-      `Hoja Registro detectada: ${registroParsed.sheetName}.`,
-      `Hojas agrupadas Registro leídas: ${groupedExcelSheets.filter((sheet) => sheet.status === "ready").length} hojas.`,
-      ...registroParsed.warnings,
-    ],
+    groupedExcelSheets: [...input.groupedExcelSheets],
+    errors: [...result.errors, ...input.errors],
+    criteria: [...result.criteria, ...input.criteria, ...registroParsed.warnings],
+    ...input.extra,
+    normalizedAvailable,
   };
 }

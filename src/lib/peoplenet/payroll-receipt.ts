@@ -389,6 +389,169 @@ type RangeInputs = Omit<QueryInputs, "paymentDate"> & {
   payFilter: PayrollPayFilter;
 };
 
+/** Máximo de días por consulta de toda la sociedad (un año natural, bisiesto incluido). */
+export const SOCIETY_RECEIPTS_MAX_DAYS = 366;
+
+export type SocietyPayrollReceipt = {
+  employeeId: string;
+  paymentDate: string;
+  payName: string;
+  receipt: PayrollReceipt;
+};
+
+/** Columna física de la que sale el devengo de cada línea de la plantilla RECIBO. */
+export type ReceiptLineSource = {
+  concept: string;
+  table: string;
+  column: string;
+  informative: boolean;
+};
+
+const ACCRUAL_TABLES = {
+  period: { A: "M4SCO_AC_HR_PERIOD", B: "M4CSP_AC_HR_PERIOD" },
+  role: { A: "M4SCO_AC_HR_ROLE", B: "M4CSP_AC_HR_ROLE" },
+} as const;
+
+const receiptLineSources = (template: ReceiptTemplate): ReceiptLineSource[] =>
+  template.lines.flatMap((line) => {
+    const cell = line.earning;
+    const alias = cell ? template.columns[cell.level].get(cell.column) : undefined;
+    if (!cell || !alias) return [];
+    return [
+      {
+        concept: line.concept,
+        table: ACCRUAL_TABLES[cell.level][alias],
+        column: cell.column,
+        informative: line.section === "informative",
+      },
+    ];
+  });
+
+const employeeFilter = (employeeIds: readonly string[]): string =>
+  employeeIds.length
+    ? `AND B.SCO_ID_HR IN (${employeeIds.map((_, index) => `@employee${index}`).join(", ")})`
+    : "";
+
+/**
+ * Recibos por mes imputado (`SCO_DT_ALLOC`) en lugar de por paga: es el mismo
+ * criterio que el Registro Retributivo, así una regularización abonada después
+ * del periodo cuenta en el mes al que se imputa.
+ */
+const societyPeriodQuery = (template: ReceiptTemplate, employeeIds: readonly string[]) => `SELECT ${selectList(
+  template,
+  "period",
+  [...PERIOD_EXTRA_COLUMNS, "SCO_ID_HR", "SCO_DT_PAYMENT"],
+)}
+${accrualJoin("PERIOD")}
+WHERE A.ID_ORGANIZATION = @organization AND B.ID_ORGANIZATION = @organization
+  AND B.SCO_DT_ALLOC >= @fromDate AND B.SCO_DT_ALLOC <= @toDate
+  AND A.SCO_IND_MAIN_CURR = 1
+  ${employeeFilter(employeeIds)}`;
+
+const societyRoleQuery = (template: ReceiptTemplate, employeeIds: readonly string[]) => `SELECT ${selectList(
+  template,
+  "role",
+  [...ROLE_EXTRA_COLUMNS, "SCO_ID_HR", "SCO_DT_PAYMENT", "SCO_OR_HR_PERIOD"],
+)}
+${accrualJoin("ROLE")}
+WHERE A.ID_ORGANIZATION = @organization AND B.ID_ORGANIZATION = @organization
+  AND B.SCO_DT_ALLOC >= @fromDate AND B.SCO_DT_ALLOC <= @toDate
+  AND A.SCO_IND_MAIN_CURR = 1
+  ${employeeFilter(employeeIds)}`;
+
+const PAY_NAMES_QUERY = `SELECT SCO_DT_ACCRUED, ISNULL(SCO_NM_PAYESP, SCO_NM_PAYENG) AS PAY_NAME,
+  SCO_DT_START, SCO_DATE_END, SCO_ID_PAY_TYPE
+FROM M4SCO_HT_PAYS
+WHERE ID_ORGANIZATION = @organization AND SCO_DT_ACCRUED >= @fromDate`;
+
+const daysBetween = (from: string, to: string): number =>
+  Math.round((toSqlDate(to).getTime() - toSqlDate(from).getTime()) / 86_400_000) + 1;
+
+/**
+ * Recibos de toda la sociedad (o de las matrículas indicadas) con meses imputados
+ * entre dos fechas: uno por persona, fecha de pago y periodo de alta. Solo se
+ * leen los acumulados del recibo; los datos bancarios y de cabecera que no
+ * hacen falta para comparar importes no se consultan.
+ */
+export const getPayrollReceiptsForSociety = async (inputs: {
+  organization: Meta4Society;
+  fromAllocDate: string;
+  toAllocDate: string;
+  employeeIds?: readonly string[];
+}): Promise<{ receipts: SocietyPayrollReceipt[]; lineSources: ReceiptLineSource[] }> => {
+  const days = daysBetween(inputs.fromAllocDate, inputs.toAllocDate);
+  if (days < 1 || days > SOCIETY_RECEIPTS_MAX_DAYS) {
+    throw new PayrollReceiptError(
+      "RANGE_TOO_LARGE",
+      `El periodo debe tener entre 1 y ${SOCIETY_RECEIPTS_MAX_DAYS} días.`,
+    );
+  }
+  const employeeIds = inputs.employeeIds ?? [];
+  const [pool, template] = await Promise.all([
+    getPeopleNetPool(),
+    loadReceiptTemplate(inputs.organization),
+  ]);
+  const run = async (statement: string): Promise<PeopleNetRow[]> => {
+    const request = pool
+      .request()
+      .input("organization", sql.VarChar(4), inputs.organization)
+      .input("fromDate", sql.Date, toSqlDate(inputs.fromAllocDate))
+      .input("toDate", sql.Date, toSqlDate(inputs.toAllocDate));
+    employeeIds.forEach((employeeId, index) =>
+      request.input(`employee${index}`, sql.VarChar(64), employeeId),
+    );
+    const result = await request.query<PeopleNetRow>(statement);
+    return result.recordset;
+  };
+
+  const [periodRows, roleRows, payRows] = await Promise.all([
+    run(societyPeriodQuery(template, employeeIds)),
+    run(societyRoleQuery(template, employeeIds)),
+    run(PAY_NAMES_QUERY),
+  ]);
+  const payNames = new Map(mapPayrollPays(payRows).map((pay) => [pay.paymentDate, pay.name]));
+
+  const keyOf = (row: PeopleNetRow) =>
+    [row.SCO_ID_HR, row.SCO_DT_PAYMENT, row.SCO_OR_HR_PERIOD].map(toText).join("|");
+  const periodsByKey = new Map<string, PeopleNetRow[]>();
+  for (const row of periodRows) {
+    const key = keyOf(row);
+    periodsByKey.set(key, [...(periodsByKey.get(key) ?? []), row]);
+  }
+  const rolesByKey = new Map<string, PeopleNetRow[]>();
+  for (const row of roleRows) {
+    const key = keyOf(row);
+    rolesByKey.set(key, [...(rolesByKey.get(key) ?? []), row]);
+  }
+
+  const receipts = [...periodsByKey].map(([key, periods]) => {
+    const [first = {}] = periods;
+    const employeeId = toText(first.SCO_ID_HR);
+    const paymentDate = toText(first.SCO_DT_PAYMENT);
+    return {
+      employeeId,
+      paymentDate,
+      payName: payNames.get(paymentDate) ?? paymentDate,
+      receipt: mapPayrollReceipt({
+        template,
+        paymentType: "current-and-retroactive",
+        periods,
+        roles: rolesByKey.get(key) ?? [],
+        hrPeriod: null,
+        person: null,
+        legalEntity: null,
+        contributionAccount: null,
+        contributionGroup: null,
+        category: null,
+        workLocation: null,
+        payments: [],
+        employeeId,
+      }),
+    };
+  });
+  return { receipts, lineSources: receiptLineSources(template) };
+};
+
 /** Consultas de recibo en paralelo por rango; acotadas para no saturar el pool. */
 const RANGE_CONCURRENCY = 3;
 

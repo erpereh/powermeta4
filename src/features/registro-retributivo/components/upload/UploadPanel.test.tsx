@@ -2,12 +2,23 @@
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Drawer } from "@/components/system";
 import { UploadPanel } from "./UploadPanel";
 
 const mockState = vi.hoisted(() => vi.fn());
 vi.mock("@/features/registro-retributivo/state/AppState", () => ({ useAppState: mockState }));
+beforeEach(() => {
+  // Las pestañas de origen miden su lista con ResizeObserver, que jsdom no trae.
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+});
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -35,6 +46,8 @@ function Harness({
   );
   const [drawerOpen, setDrawerOpen] = useState(true);
   mockState.mockReturnValue({
+    sourceMode: "files",
+    setSourceMode: vi.fn(),
     pdfFiles,
     setPdfFiles,
     registroFile,
@@ -128,4 +141,66 @@ describe("lista compacta de recibos", () => {
       );
     },
   );
+});
+
+function PeopleNetHarness({
+  analyze = vi.fn(),
+  setSourceMode = vi.fn(),
+  initialPeriod = { from: "2025-01-01", to: "2025-12-31" },
+}: {
+  analyze?: () => void;
+  setSourceMode?: (mode: string) => void;
+  initialPeriod?: { from: string; to: string };
+}) {
+  const [peopleNetPeriod, setPeopleNetPeriod] = useState(initialPeriod);
+  const [peopleNetEmployeeIds, setPeopleNetEmployeeIds] = useState("");
+  mockState.mockReturnValue({
+    sourceMode: "peoplenet",
+    setSourceMode,
+    peopleNetPeriod,
+    setPeopleNetPeriod,
+    peopleNetEmployeeIds,
+    setPeopleNetEmployeeIds,
+    pdfFiles: [],
+    setPdfFiles: vi.fn(),
+    registroFile: undefined,
+    setRegistroFile: vi.fn(),
+    settings: { defaultTolerance: 1 },
+    updateSettings: vi.fn(),
+    analyzing: false,
+    error: undefined,
+    status: "Pendiente de archivos",
+    analyze,
+  });
+  return <UploadPanel />;
+}
+
+describe("análisis desde PeopleNet", () => {
+  it("sustituye la subida por el periodo y las matrículas, y analiza sin ficheros", async () => {
+    const user = userEvent.setup();
+    const analyze = vi.fn();
+    render(<PeopleNetHarness analyze={analyze} />);
+    expect(screen.queryByRole("button", { name: "Seleccionar recibos" })).toBeNull();
+    expect((screen.getByLabelText("Desde") as HTMLInputElement).value).toBe("2025-01");
+    expect((screen.getByLabelText("Hasta") as HTMLInputElement).value).toBe("2025-12");
+    await user.type(screen.getByLabelText("Matrículas (opcional)"), "1023, 1045");
+    expect(screen.getByRole("status").textContent).toBe("Listo para leer de PeopleNet.");
+    await user.click(screen.getByRole("button", { name: "Analizar" }));
+    expect(analyze).toHaveBeenCalledTimes(1);
+  });
+
+  it("bloquea un periodo de más de un año con un motivo visible", () => {
+    render(<PeopleNetHarness initialPeriod={{ from: "2024-01-01", to: "2025-12-31" }} />);
+    expect(screen.getByRole("button", { name: "Analizar" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("status").textContent).toBe("El periodo no puede superar doce meses.");
+  });
+
+  it("cambia de origen desde las pestañas sin perder la subida de ficheros", async () => {
+    const user = userEvent.setup();
+    const setSourceMode = vi.fn();
+    render(<PeopleNetHarness setSourceMode={setSourceMode} />);
+    expect(screen.getByRole("tab", { name: "Desde PeopleNet" }).getAttribute("aria-selected")).toBe("true");
+    await user.click(screen.getByRole("tab", { name: "Subir ficheros" }));
+    expect(setSourceMode).toHaveBeenCalledWith("files");
+  });
 });

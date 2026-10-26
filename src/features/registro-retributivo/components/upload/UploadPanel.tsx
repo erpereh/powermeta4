@@ -2,7 +2,15 @@
 
 import { FolderOpen, Play } from "lucide-react";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  PEOPLENET_MAX_EMPLOYEE_IDS,
+  PEOPLENET_MAX_PERIOD_DAYS,
+  lastDayOfMonth,
+  parseEmployeeIdsInput,
+  periodDays,
+} from "@/features/registro-retributivo/peoplenet/request";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
+import type { AnalysisPeriod, AnalysisSource } from "@/features/registro-retributivo/types";
 import {
   Button,
   FileUpload,
@@ -10,11 +18,34 @@ import {
   Modal,
   Input,
   StatefulButton,
+  Tabs,
+  TabsList,
+  TabsTrigger,
   createFileUploadItem,
   type ButtonState,
   type FileUploadItem,
 } from "@/components/system";
 import { cn } from "@/lib/utils";
+
+const SOURCE_OPTIONS: ReadonlyArray<{ value: AnalysisSource; label: string }> = [
+  { value: "files", label: "Subir ficheros" },
+  { value: "peoplenet", label: "Desde PeopleNet" },
+];
+
+const isAnalysisSource = (value: string): value is AnalysisSource =>
+  SOURCE_OPTIONS.some((option) => option.value === value);
+
+/** Motivo por el que no se puede lanzar el análisis desde PeopleNet, o `null`. */
+function peopleNetProblem(period: AnalysisPeriod, employeeIdsText: string): string | null {
+  const days = periodDays(period.from, period.to);
+  if (days === null) return "Indica los meses desde y hasta.";
+  if (days < 1) return "El mes hasta debe ser igual o posterior al mes desde.";
+  if (days > PEOPLENET_MAX_PERIOD_DAYS) return "El periodo no puede superar doce meses.";
+  if (parseEmployeeIdsInput(employeeIdsText).length > PEOPLENET_MAX_EMPLOYEE_IDS) {
+    return `Indica como máximo ${PEOPLENET_MAX_EMPLOYEE_IDS} matrículas.`;
+  }
+  return null;
+}
 
 function toUploadItems(files: readonly File[], prefix: string): FileUploadItem[] {
   return files.map((file, index) => ({
@@ -68,11 +99,17 @@ type UploadPanelProps = {
 
 export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
   const {
+    sourceMode,
+    peopleNetPeriod,
+    peopleNetEmployeeIds,
     pdfFiles,
     registroFile,
     settings,
     analyzing,
     error,
+    setSourceMode,
+    setPeopleNetPeriod,
+    setPeopleNetEmployeeIds,
     setPdfFiles,
     setRegistroFile,
     updateSettings,
@@ -80,12 +117,19 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
     status,
   } = useAppState();
   const disabled = analyzing;
-  const canAnalyze = pdfFiles.length > 0 && Boolean(registroFile) && !analyzing;
-  const missingReason = !pdfFiles.length
-    ? "Faltan recibos."
-    : !registroFile
-      ? "Falta el Excel Reg. Retrib."
-      : "Listo para analizar.";
+  const fromPeopleNet = sourceMode === "peoplenet";
+  const peopleNetIssue = fromPeopleNet ? peopleNetProblem(peopleNetPeriod, peopleNetEmployeeIds) : null;
+  const canAnalyze = fromPeopleNet
+    ? !peopleNetIssue && !analyzing
+    : pdfFiles.length > 0 && Boolean(registroFile) && !analyzing;
+  const missingReason = fromPeopleNet
+    ? (peopleNetIssue ?? "Listo para leer de PeopleNet.")
+    : !pdfFiles.length
+      ? "Faltan recibos."
+      : !registroFile
+        ? "Falta el Excel Reg. Retrib."
+        : "Listo para analizar.";
+  const idPrefix = layout === "stacked" ? "drawer-" : "";
 
   const pdfItems = useMemo(() => toUploadItems(pdfFiles, "pdf"), [pdfFiles]);
   const excelItems = useMemo(
@@ -126,6 +170,28 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
       }}
       className={cn(!stacked && "rounded-xl border border-border bg-card p-4 sm:p-6")}
     >
+      <div className="mb-6 flex min-w-0 flex-col gap-1.5">
+        <p id={`${idPrefix}analysis-source-label`} className="text-sm font-medium text-foreground">
+          Origen de los datos
+        </p>
+        <div role="group" aria-labelledby={`${idPrefix}analysis-source-label`} className="min-w-0 self-start">
+          <Tabs
+            value={sourceMode}
+            onValueChange={(value) => {
+              if (isAnalysisSource(value) && !analyzing) setSourceMode(value);
+            }}
+            variant="segment"
+          >
+            <TabsList>
+              {SOURCE_OPTIONS.map((option) => (
+                <TabsTrigger key={option.value} value={option.value}>
+                  {option.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
       <ol
         className={cn(
           "grid gap-6",
@@ -133,6 +199,63 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
             "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,18rem)] lg:gap-0 lg:divide-x lg:divide-border",
         )}
       >
+        {fromPeopleNet ? (
+          <>
+            <Step
+              index={1}
+              title="Periodo"
+              hint="Meses imputados de las nóminas, completos como en el Registro Retributivo de PeopleNet. Como máximo doce."
+              done={!peopleNetIssue}
+              className={cn(!stacked && "lg:pr-6")}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  id={`${idPrefix}peoplenet-from`}
+                  label="Desde"
+                  type="month"
+                  value={peopleNetPeriod.from.slice(0, 7)}
+                  max={peopleNetPeriod.to.slice(0, 7) || undefined}
+                  disabled={disabled}
+                  onChange={(value) =>
+                    setPeopleNetPeriod({ ...peopleNetPeriod, from: value ? `${value}-01` : "" })
+                  }
+                />
+                <Input
+                  id={`${idPrefix}peoplenet-to`}
+                  label="Hasta"
+                  type="month"
+                  value={peopleNetPeriod.to.slice(0, 7)}
+                  min={peopleNetPeriod.from.slice(0, 7) || undefined}
+                  disabled={disabled}
+                  onChange={(value) =>
+                    setPeopleNetPeriod({ ...peopleNetPeriod, to: value ? lastDayOfMonth(value) : "" })
+                  }
+                />
+              </div>
+            </Step>
+            <Step
+              index={2}
+              title="Personas"
+              hint="Se leen las nóminas y el Registro Retributivo de la sociedad activa. Sin matrículas se analiza toda la sociedad."
+              done={!peopleNetIssue}
+              className={cn(!stacked && "lg:px-6")}
+            >
+              <Input
+                id={`${idPrefix}peoplenet-employees`}
+                label="Matrículas (opcional)"
+                value={peopleNetEmployeeIds}
+                placeholder="Ej.: 1023, 1045"
+                autoComplete="off"
+                disabled={disabled}
+                onChange={setPeopleNetEmployeeIds}
+              />
+              <p className="text-xs text-muted-foreground">
+                Separa las matrículas con comas o espacios. Nada se sube ni se guarda en ficheros.
+              </p>
+            </Step>
+          </>
+        ) : (
+          <>
         <Step
           index={1}
           title="Recibos de nómina"
@@ -228,6 +351,8 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
             className="min-w-0"
           />
         </Step>
+          </>
+        )}
 
         <Step
           index={3}
@@ -261,7 +386,15 @@ export function UploadPanel({ layout = "setup" }: UploadPanelProps) {
             Analizar
           </StatefulButton>
           <p className="text-sm text-muted-foreground" aria-live="polite" role="status">
-            {analyzing ? "Analizando recibos..." : canAnalyze ? status : missingReason}
+            {analyzing
+              ? fromPeopleNet
+                ? "Leyendo PeopleNet..."
+                : "Analizando recibos..."
+              : canAnalyze
+                ? fromPeopleNet
+                  ? missingReason
+                  : status
+                : missingReason}
           </p>
         </Step>
       </ol>

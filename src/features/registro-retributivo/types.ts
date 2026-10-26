@@ -200,6 +200,19 @@ export interface RegistroParseResult {
   readonly records: readonly RegistroEmployee[];
   readonly internalChecks: readonly InternalExcelCheckRow[];
   readonly warnings: readonly string[];
+  /**
+   * `false` cuando los bloques normalizados no se conocen: el registro leído de
+   * PeopleNet no reproduce la normalización LN4 y no se inventan esos importes.
+   */
+  readonly normalizedAvailable?: boolean;
+}
+
+/** Origen del análisis: ficheros subidos o lectura de PeopleNet por fechas. */
+export type AnalysisSource = "files" | "peoplenet";
+
+export interface AnalysisPeriod {
+  readonly from: string;
+  readonly to: string;
 }
 
 export interface ConceptMappingRule {
@@ -501,6 +514,13 @@ export interface AnalysisResult {
   readonly excludedEmployeeIdsApplied: readonly string[];
   readonly errors: readonly AnalysisError[];
   readonly criteria: readonly string[];
+  /** Ausente en los análisis guardados antes de existir el origen PeopleNet: ficheros. */
+  readonly source?: AnalysisSource;
+  readonly period?: AnalysisPeriod;
+  readonly employeeIdsFilter?: readonly string[];
+  readonly normalizedAvailable?: boolean;
+  /** Códigos del Registro por bloque cuando `registroEmployees` omite los conceptos a cero. */
+  readonly registroConceptCodes?: AvailableConceptCodes;
 }
 
 export interface StoredAnalysis {

@@ -269,6 +269,29 @@ con tabuladores). `POST /api/reports/payroll-results/export` (Node.js, requiere
 sesión) recibe solo la clave de la ejecución, vuelve a leerla y devuelve el
 Excel con las hojas «Datos» e «informe» (tabla de `plantilla_infconnom.xls`
 ya calculada), sin guardar ficheros ni datos personales.
+El Registro Retributivo (`/tools/registro-retributivo`) admite, además de subir
+recibos PDF y el Excel, el origen «Desde PeopleNet»:
+`POST /api/registro-retributivo/analyze-peoplenet` (Node.js, requiere sesión)
+recibe solo meses completos (del día 1 al último, máx. 12), matrículas
+opcionales y ajustes; la sociedad sale del contexto operativo. PeopleNet no
+guarda el registro (`CYC_IR_CALC_RETRIB` escribe `M4SSP_IR_AC_RETRIB` y
+`CYC_IR_GEN_REG_RET` lo borra, `fuentes/registro retrib`), así que se
+recalcula con `SELECT` (`src/features/registro-retributivo/peoplenet`)
+reproduciendo el LN4 de `SSP_PROCESS_ACUM` (versión CYC/IBER, leído de
+`M4RCH_RULES3`): población de `SRSP_IR_HR_PERIODS_TO_PROCESS`, registro a
+registro de alta, rol y SS con sus horas, reglas de `M4SSP_IR_ITEM_MAP_ACUM`
+(organización `0000`, secuencia por casilla), normas de
+`M4SSP_IR_X_TIPO_NORMA` traducidas en `normas.ts` (se avisa si su LN4
+cambia), última paga mensual ordinaria, `COEF_A` por meses de
+`CYC_APORTACION_DEFINIDA` y columnas de concepto por casilla con los
+desplazamientos de CYC/IBER. Contraste con `reg.xlsx` (CYC, 2025, 1023):
+18/18 bloques y 84/84 conceptos. «Última situación» y Agrupaciones (hojas de
+análisis) no se reproducen. Los recibos son los de la plantilla `RECIBO` con
+los mismos meses imputados y sus líneas se enlazan con el Registro por
+columna física antes que el mapa del usuario. El resultado se compacta y por
+encima de 9 MiB se pide acotar (el proxy admite 10 MB por petición).
+`npm run retributivo:verify` lo contrasta con un Excel de PeopleNet y solo
+imprime recuentos y códigos.
 El endpoint OpenAI-compatible global
 se configura mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL` en el entorno
 server-side; nunca se documentan credenciales ni se exponen claves al cliente.

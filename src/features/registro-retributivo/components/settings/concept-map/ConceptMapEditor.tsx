@@ -229,6 +229,11 @@ function formToRule(form: RuleForm): ConceptMappingRule {
 function availableCodesFromResult(result: ReturnType<typeof useAppState>["result"]): readonly string[] {
   const codes = new Set<string>();
   result?.registroEmployees.forEach((employee) => employee.concepts.forEach((concept) => codes.add(concept.code)));
+  // El análisis de PeopleNet no guarda los conceptos a cero de cada persona.
+  const registroCodes = result?.registroConceptCodes;
+  if (registroCodes) {
+    [...registroCodes.salary, ...registroCodes.salaryComplement, ...registroCodes.extraSalary].forEach((code) => codes.add(code));
+  }
   return [...codes].sort((left, right) => left.localeCompare(right, "es"));
 }
 

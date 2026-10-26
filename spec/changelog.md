@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-10-22 - Registro Retributivo desde PeopleNet por periodo
+
+- Registro Retributivo: nuevo origen «Desde PeopleNet» junto a la subida de
+  ficheros (que no cambia). Se eligen meses y matrículas opcionales y se
+  analizan las nóminas y el registro de la sociedad activa sin subir nada.
+- El registro se reproduce en servidor solo con `SELECT`
+  (`src/features/registro-retributivo/peoplenet`): el LN4 de
+  `SSP_PROCESS_ACUM` y de las normas se leyó del diccionario de PeopleNet
+  (`M4RCH_RULES3`, `M4SSP_IR_X_TIPO_NORMA`) y se tradujo (horas de convenio,
+  última paga, `COEF_A`, reglas por casilla y columnas por objeto). Los recibos
+  salen de la plantilla `RECIBO` (`getPayrollReceiptsForSociety`) con los
+  mismos meses imputados y se enlazan con los conceptos por columna física.
+- Contraste con `reg.xlsx` (CYC, 2025, 1023) con `npm run retributivo:verify`,
+  que solo imprime recuentos: 18/18 bloques y 84/84 conceptos idénticos.
+  Cuadre Reg. y la comparativa de normalizados funcionan en este modo;
+  Agrupaciones y «Última situación» siguen saliendo solo del Excel.
+- Typecheck y build correctos. `npm run lint`: oxlint sin errores (quedan
+  avisos de funciones sin usar en `export/exportExcel.ts`); `oxfmt --check`
+  sigue fallando en el repo como antes. `npm test`: 1085 pruebas correctas y 5
+  fallos en `meta4/config.test.ts`, `meta4/hire/excel.test.ts` (3) y
+  `meta4/hire/hire-path.test.ts`, zona ajena al Registro, no revisada aún.
+
 ## 2026-10-22 - Registro Retributivo sin IA e Inicio sin acciones pendientes
 
 - Registro Retributivo: se elimina toda la IA (Gemini). Fuera el panel

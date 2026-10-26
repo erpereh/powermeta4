@@ -305,6 +305,15 @@ Los mensajes operativos de la explicación IA y el chat conservan su comportamie
   el modal superior y devuelve el foco a «Ver todos» o a «Seleccionar carpeta»
   si el recuento ya no necesita el botón. Excel, carpeta y análisis conservan
   sus manejadores actuales.
+- **Origen de los datos**: encima de los pasos, `Tabs segment` «Subir ficheros»
+  (por defecto) / «Desde PeopleNet». En PeopleNet los pasos 1 y 2 pasan a
+  «Periodo» (Desde/Hasta con `Input type="month"`, meses completos como
+  PeopleNet, por defecto el último año cerrado, como máximo doce) y «Personas»
+  (matrículas opcionales; vacío = toda la sociedad activa). El paso 3 no
+  cambia; el estado bajo «Analizar» explica por qué no se puede lanzar. Inicio
+  e Historial muestran «N recibos de PeopleNet» y el periodo en lugar del
+  nombre del Excel. Cuadre Reg. funciona igual que con el Excel; Agrupaciones
+  explica con un `EmptyState` que sus hojas solo salen del Excel.
 - **Inicio con análisis** (orden: cabecera, veredicto, «Importes» como fila de
   tres `StatTile`, y debajo «Estado de las personas» junto a «Pendiente de
   revisar»): se lee de arriba abajo y todo queda visible (sin

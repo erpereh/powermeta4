@@ -69,7 +69,7 @@ function isResidualConceptName(name: string): boolean {
   );
 }
 
-function classifyConcept(name: string, isInformativeSection = false): PayrollConcept["type"] {
+export function classifyConcept(name: string, isInformativeSection = false): PayrollConcept["type"] {
   const normalized = normalizeComparableText(name);
   if (
     /\bcoste empresa\b|cotiz.*empresa|contingencias comunes empresa|desempleo empresa|fogasa empresa|formacion profesional empresa|it ims|mei empresa/.test(

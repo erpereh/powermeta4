@@ -135,7 +135,7 @@ function blockConceptHeaders(headers: readonly HeaderInfo[], blockKey: ConceptBl
   return headers.filter((header) => header.group === block.header && Boolean(header.subheader));
 }
 
-function createInternalCheck(input: {
+export function createInternalCheck(input: {
   readonly employee: RegistroEmployee;
   readonly salaryBreakdown: number;
   readonly salaryComplementBreakdown: number;

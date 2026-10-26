@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileSpreadsheet, History, MoreHorizontal, Trash2 } from "lucide-react";
+import { Database, Download, FileSpreadsheet, History, MoreHorizontal, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppState } from "@/features/registro-retributivo/state/AppState";
 import {
@@ -45,6 +45,7 @@ function HistoryRow({
   const date = new Date(analysis.createdAt);
   const difference = summary?.matchedTotalDifference ?? summary?.totalGlobalDifference ?? 0;
   const fileName = displayText(analysis.registroFileName) || "Excel Reg. Retrib.";
+  const SourceIcon = analysis.result?.source === "peoplenet" ? Database : FileSpreadsheet;
 
   return (
     <li data-surface="history-row" className="group/history flex min-w-0 items-center gap-1 rounded-lg">
@@ -67,7 +68,7 @@ function HistoryRow({
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex min-w-0 items-center gap-2">
-            <FileSpreadsheet className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <SourceIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
             <span className="truncate text-sm font-medium text-foreground">{fileName}</span>
             {active ? (
               <Badge status="success" size="sm" className="shrink-0">

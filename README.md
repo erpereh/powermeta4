@@ -229,7 +229,10 @@ del proyecto jamás puedan compilar código nativo.
 - `/tools`, `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
   `/tools/companies`, `/tools/payroll`, `/tools/reports` y `/tools/processes`:
   catálogo local de herramientas; `/tools/registro-retributivo` analiza el
-  Registro Retributivo y los recibos en local; `/tools/users/list` consulta
+  Registro Retributivo y los recibos en local, subiendo los ficheros o
+  leyéndolos de PeopleNet por periodo (`POST /api/registro-retributivo/analyze-peoplenet`,
+  solo `SELECT`; `npm run retributivo:verify -- <excel> <sociedad> <desde> <hasta> [matrícula…]`
+  lo contrasta con un Excel de PeopleNet imprimiendo solo recuentos); `/tools/users/list` consulta
   usuarios Meta4 por sociedad.
 - `/tools/reports/quinquenal`: «Consultar quinquenal» reproduce en solo
   lectura el Meta4Object `CYC_CONSULTA_QUINQUENAL` de PeopleNet (todos los

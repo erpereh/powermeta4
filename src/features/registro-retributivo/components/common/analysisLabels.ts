@@ -16,6 +16,15 @@ export function pdfSourceLabel(fileCount: number | undefined, payslipCount: numb
   return `${plural(files, "fichero PDF", "ficheros PDF")} · ${plural(payslips, "recibo", "recibos")}`;
 }
 
+/** Recibos del análisis: ficheros PDF subidos o recibos leídos de PeopleNet. */
+export function payrollSourceLabel(analysis: Pick<StoredAnalysis, "pdfCount" | "result"> | undefined): string {
+  const summary = analysis?.result?.summary;
+  if (analysis?.result?.source === "peoplenet") {
+    return `${plural(summary?.pdfsAnalyzed ?? 0, "recibo", "recibos")} de PeopleNet`;
+  }
+  return pdfSourceLabel(analysis?.pdfCount, summary?.pdfsAnalyzed);
+}
+
 /** Resumen de una fila del historial con los mismos estados que Inicio y Personas. */
 export function historySummary(analysis: StoredAnalysis): string {
   // Análisis antiguos pueden llegar incompletos desde SQLite.
@@ -23,7 +32,7 @@ export function historySummary(analysis: StoredAnalysis): string {
   const summary = analysis.result?.summary;
   const byStatus = new Map(countPeopleByStatus(people).map((item) => [item.status, item.count]));
   const parts = [
-    pdfSourceLabel(analysis.pdfCount, summary?.pdfsAnalyzed),
+    payrollSourceLabel(analysis),
     plural(people.length, "persona", "personas"),
     `${byStatus.get("Diferencia") ?? 0} con diferencia`,
   ];

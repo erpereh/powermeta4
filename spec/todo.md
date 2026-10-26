@@ -1,5 +1,38 @@
 # powermeta4 - estado de tareas
 
+## Registro Retributivo desde PeopleNet — 2026-10-22
+
+- [x] Origen «Desde PeopleNet» en Inicio (`Tabs segment`), además de subir
+      ficheros: meses completos Desde/Hasta (máx. 12) y matrículas opcionales;
+      la sociedad sale del servidor. `POST /api/registro-retributivo/analyze-peoplenet`.
+- [x] Registro reproducido con `SELECT` como `CYC_IR_CALC_RETRIB`: el LN4 de
+      `SSP_PROCESS_ACUM` (versión CYC/IBER) y de las normas se leyó de
+      `M4RCH_RULES3`/`M4SSP_IR_X_TIPO_NORMA` (solo diccionario). Registro a
+      registro de alta, rol y SS con horas, última paga mensual ordinaria,
+      `COEF_A` por meses y columnas de concepto por casilla.
+- [x] Contraste `npm run retributivo:verify` con `fuentes/registro retrib/reg.xlsx`
+      (CYC, 2025, 1023): 18/18 bloques (normalizado + variables, normalizado,
+      no normalizada y periodo completo) y 84/84 conceptos idénticos.
+- [x] Cuadre Reg. y comparativa de normalizados disponibles en modo PeopleNet.
+- [x] Recibos de toda la sociedad con la plantilla `RECIBO` por meses imputados
+      y enlace automático línea↔concepto por columna física (el mapa del usuario
+      prevalece).
+- [x] CYC completo 2025: 568 personas, ~52 s, resultado 8,8 MB (límite de 9 MiB
+      por el proxy de 10 MB; por encima se pide acotar con matrículas).
+- [x] Comprobaciones: typecheck, build y `git diff --check` correctos; oxlint
+      sin avisos en lo nuevo; `oxfmt` aplicado a los ficheros nuevos (el
+      `--check` global sigue fallando como antes). Suite sin `hire/excel.test.ts`
+      y dos workers: 1078 pruebas correctas y 2 fallos por tiempo de espera
+      (`meta4/config.test.ts`, `hire/hire-path.test.ts`) que pasan aislados (5/5).
+- [ ] «Última situación» y Agrupaciones (hojas «Análisis por …») en modo PeopleNet.
+- [ ] Contrastar con un Excel de PeopleNet de toda una sociedad, no solo 1023.
+- [ ] Revisión manual en navegador del nuevo origen.
+- [ ] Limpiar avisos de oxlint: funciones sin usar en `export/exportExcel.ts`
+      (`groupingExcelDifferenceCount`, `groupingPdfDifferenceCount`,
+      `groupingPdfAffectedCount`, `maxGroupedPdfDifference`).
+- [ ] `fuentes/registro retrib/` (`reg.xlsx`, `trazas registro.txt`) sin
+      confirmar: contiene datos de personas reales y no debe subirse al repo.
+
 ## Registro Retributivo sin IA — 2026-10-22
 
 - [x] Eliminada la IA (Gemini) del Registro Retributivo: panel, etiqueta, rutas,

@@ -48,6 +48,8 @@ type GroupedSheetName = (typeof GROUPED_SHEETS)[number]["fullName"];
 const MISSING_SHEET_MESSAGE = "No se ha encontrado esta hoja en el Excel Reg. Retrib.";
 const EMPTY_SHEET_MESSAGE = "No hay datos visibles en esta hoja.";
 const LEGACY_ANALYSIS_MESSAGE = "Este análisis no contiene datos de hojas agrupadas. Vuelve a analizar el Excel para visualizarlas.";
+const PEOPLENET_ANALYSIS_MESSAGE =
+  "Las agrupaciones salen de las hojas «Análisis por …» del Excel del Registro, que este análisis leído de PeopleNet todavía no genera. Sube el Excel para verlas.";
 const TRUNCATED_HISTORY_MESSAGE = "Esta hoja se guardó parcialmente en Historial para mantener el rendimiento. Vuelve a analizar el Excel para ver todos los datos.";
 const HEADER_ROW_HEIGHT = 36;
 const SHEET_PANEL_ID = "agrupaciones-sheet-panel";
@@ -597,6 +599,10 @@ export function AgrupacionesView() {
     ],
     [measure, sheetMeta.nameLabel, stat],
   );
+
+  if (result?.source === "peoplenet") {
+    return <EmptyState icon={<Table2 />} title="Agrupaciones" description={PEOPLENET_ANALYSIS_MESSAGE} />;
+  }
 
   if (!groupedExcelSheets) {
     return <EmptyState icon={<Table2 />} title="Agrupaciones" description={LEGACY_ANALYSIS_MESSAGE} />;

@@ -27,6 +27,8 @@ export interface CompareOptions {
   readonly conceptMap?: readonly ConceptMappingRule[];
   readonly internalExcelChecks?: readonly InternalExcelCheckRow[];
   readonly excludedEmployeeIds?: readonly string[];
+  /** `false` omite las comparativas que dependen de los bloques normalizados. */
+  readonly normalizedAvailable?: boolean;
 }
 
 interface IncludedConceptAggregate {
@@ -632,7 +634,10 @@ export async function compareAnalysis(
   const filteredPayrollRecords = payrollRecords.filter((record) => !isExcludedEmployee(record.employeeNumber, excludedSet));
   const filteredRegistroRecords = registroRecords.filter((record) => !isExcludedEmployee(record.employeeNumber, excludedSet));
   const filteredInternalExcelChecks = (options.internalExcelChecks ?? []).filter((row) => !isExcludedEmployee(row.employeeNumber, excludedSet));
-  const internalExcelNormalizedVariablesChecks = createInternalNormalizedVariablesChecks(filteredRegistroRecords, options);
+  const normalizedAvailable = options.normalizedAvailable !== false;
+  const internalExcelNormalizedVariablesChecks = normalizedAvailable
+    ? createInternalNormalizedVariablesChecks(filteredRegistroRecords, options)
+    : [];
   const payrollByEmployee = groupPayroll(filteredPayrollRecords);
   const registroByEmployee = new Map(filteredRegistroRecords.map((record) => [normalizeEmployeeNumber(record.employeeNumber), record]));
   const allEmployeeNumbers = new Set([...registroByEmployee.keys(), ...payrollByEmployee.keys()]);
@@ -721,7 +726,7 @@ export async function compareAnalysis(
       files: [...new Set(records.map((record) => `${record.sourceFile}${record.pageNumber ? ` p.${record.pageNumber}` : ""}`))],
     });
 
-    if (employee) {
+    if (employee && normalizedAvailable) {
       const normalizedPlusVariables = employee.normalizedPlusVariables.total;
       const normalized = employee.normalized.total;
       const periodComplete = employee.periodComplete.total;
