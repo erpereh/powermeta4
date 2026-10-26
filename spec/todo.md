@@ -1,5 +1,32 @@
 # powermeta4 - estado de tareas
 
+## Contratos del cuadre con los Excel del cliente — 2026-10-26
+
+- [x] Diez originales excluidos de Git antes de generar derivados; 39 hojas
+      inspeccionadas, huellas antes/después idénticas, 42 vistas/rangos nativos
+      revisados. Excel en solo lectura, cálculo manual, sin actualizar vínculos
+      ni guardar los originales. Scripts, snapshots y logs privados excluidos.
+- [x] Siete documentos actualizados y anexos SOURCES, CONTROL_CONTRACTS y
+      VALIDATION: dieciséis controles, incluidos Gimnasio y ambos anticipos;
+      correspondencias, fórmulas, bloques, ocurrencias, signos y casos sintéticos.
+- [x] Decisión del usuario: herramienta standalone `cuadre-nomina` en sidebar,
+      como Registro Retributivo; nóminas desde SQL existente. Sin registrar
+      herramienta, implementar APIs, cambiar dependencias ni comportamiento.
+- [x] Contrastadas fuentes originales y snapshots; conservadas diferencias,
+      filas sin identidad y rangos incompletos. PPSE embebido identificado;
+      causas automáticas y reglas no demostradas siguen pendientes.
+- [x] Suite final sin solapar inspección Excel: 191 archivos, 1.097 pruebas
+      correctas y 2 omitidas. Primera ejecución con interferencia de otra
+      instancia Excel repetida y superada. Diez documentos con formato y
+      enlaces comprobados; typecheck/build siguen fallando por los tres tipos
+      obsoletos de `.next/dev/types` ya documentados. Lint global ejecutado:
+      siete avisos y formato previo pendiente en 631 archivos; formato
+      específico de esta entrega correcto.
+- [ ] Cerrar únicamente pendientes concretos de OPEN_QUESTIONS: anterior y
+      ejecuciones SQL identificadas, excesos y cuotas de anticipos, vigencias,
+      proporcionalidades y discrepancias de los originales. Después, piloto
+      en VM y aceptación por control; no declarar paridad completa ahora.
+
 ## Especificación del cuadre de nómina desde reunión — 2026-10-26
 
 - [x] Reunión de 70:40 analizada por segmentos: transcripción local íntegra,

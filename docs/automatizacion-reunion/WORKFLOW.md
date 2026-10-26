@@ -31,7 +31,7 @@ herramienta no ejecutará B, C ni M en su primera versión.
 
 ```mermaid
 flowchart TD
-  A[Inicio - Nóminas - Cuadrar nómina] --> B[Validar sesión y sociedad en servidor]
+  A[Sidebar - Herramientas - Cuadre de nómina] --> B[Validar sesión y sociedad en servidor]
   B --> C[Elegir periodo y ejecuciones]
   C --> D{¿Hay actual válido?}
   D -->|No| E[Explicar que falta informe guardado]
@@ -132,9 +132,31 @@ cobertura. No implica, por sí sola, una baja laboral ni un importe cero.
 | Calendario anticipos                    | C12.                                                        |
 | Lista anual/referencia de aniversarios  | C13.                                                        |
 | Calendario personal de pensiones        | C14.                                                        |
+| Altas/cuota mensual de gimnasio         | C16.                                                        |
 | Regla, perfil o tolerancia              | Controles dependientes; revisar su huella de evidencia.     |
 | Sociedad o sesión                       | Vaciar la visita y descartar todas las respuestas en curso. |
 
 Los cambios de fuente no hacen que un resultado antiguo cambie de forma
 invisible. Una anotación se reutiliza únicamente si su hallazgo y la evidencia
 siguen siendo idénticos.
+
+## Validación de originales propuesta
+
+```mermaid
+flowchart TD
+  A[Fuente original con perfil y hash] --> B{¿Bloque y periodo reconocidos?}
+  B -->|No| C[Contrato pendiente o formato cambiado]
+  B -->|Sí| D[Leer entradas primitivas y todas las filas del bloque]
+  D --> E{¿Identidad autorizada y regla completa?}
+  E -->|No| F[Conservar fila sin vincular o regla pendiente]
+  E -->|Sí| G[Calcular esperado con signo y unidad del perfil]
+  G --> H[Comparar con ejecución SQL seleccionada]
+  H --> I[Mostrar delta y diferencia con el snapshot manual si existe]
+  F --> J[Resultado parcial con cobertura explícita]
+  C --> J
+  I --> J
+```
+
+Ni el color, ni una celda «OK», ni la coincidencia con una copia de nómina
+convierten una fuente derivada en independiente. Las excepciones de
+[VALIDATION](VALIDATION.md) deben mantenerse visibles hasta resolverlas.

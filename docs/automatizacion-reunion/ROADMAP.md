@@ -13,9 +13,10 @@ Los criterios funcionales están en [SPEC](SPEC.md); las puertas Q en
   privado. Audio íntegro transcrito localmente en 15 segmentos con solape.
 - Revisadas 848 capturas periódicas, 169 cambios y 46 capturas exactas,
   incluidos el inicio y final. Referencias E01–E26 en [AS_IS](AS_IS.md).
-- Siete documentos versionables sin datos personales del vídeo. Originales,
-  transcripciones, modelos, scripts y notas en `/revision_video/`, excluido
-  de Git. Entorno Python aislado fuera del proyecto.
+- Diez documentos versionables sin datos personales. Vídeo, transcripciones,
+  modelos, scripts y notas en `/revision_video/`; originales Excel en su carpeta
+  de fuentes bajo docs. Ambas ubicaciones excluidas de Git. Entorno Python
+  aislado fuera del proyecto.
 - No se abrió una conexión a PeopleNet, ejecutó una operación ERP ni envió
   el material a servicios externos de análisis. Las descargas fueron de
   herramientas/modelos; la inferencia de transcripción fue local.
@@ -23,12 +24,15 @@ Los criterios funcionales están en [SPEC](SPEC.md); las puertas Q en
 El OCR automático no se utilizó: la lectura visual directa permitió comprobar
 los campos y fórmulas citados. Muestreo y detección cubren toda la duración,
 pero no equivalen a revisar individualmente cada fotograma ni a recuperar
-las fórmulas completas de los libros ausentes.
+las fórmulas de cualquier libro no recibido. La ampliación posterior analizó
+los diez originales disponibles: 39 hojas y 42 vistas/rangos nativos. Contratos
+y resultados en SOURCES, CONTROL_CONTRACTS y VALIDATION.
 
 ## Fase 1 — Contratos y corpus de referencia
 
-1. Recibir originales y libro resuelto de Q01, guardarlos fuera de Git y
-   confeccionar equivalentes sintéticos que mantengan estructura y errores.
+1. Partir de los diez originales ya inspeccionados y los contratos acreditados.
+   Obtener únicamente los pendientes Q01 (anterior, excesos y anticipos) y
+   confeccionar fixtures sintéticos con la estructura y errores observados.
 2. Validar claves/población Q02, signos/precisión Q03 y acceso Q10.
 3. Acreditar por control cabeceras, ocurrencias, hojas, periodos, unidades,
    entidad y agregación. Documentar ejemplos esperados y excepciones.
@@ -50,15 +54,16 @@ motivos automáticos.
 
 Salida: pruebas unitarias sintéticas y contraste de resultados contra libro
 manual; ningún porcentaje sumado, fila perdida o ausencia convertida en cero.
-No registrar una acción navegable hasta disponer de una pantalla operativa.
+No registrar una herramienta navegable hasta disponer de una pantalla operativa.
 
 ## Fase 3 — Fuentes independientes y cálculos condicionados
 
-Entregar progresivamente C03/C05/C06/C07/C09/C10/C11/C12/C13/C14 y C04,
+Entregar progresivamente C03/C05/C06/C07/C09/C10/C11/C12/C13/C14/C16 y C04,
 con vista previa, límites y errores aislados. Priorizar los perfiles recibidos
 y de mayor volumen; no hay evidencia para fijar un orden económico universal.
 
-- Q05: Mercer por producto y mensualidad.
+- Q05: aplicar las nueve correspondencias Mercer acreditadas; validar variantes.
+- C16: adaptar la cuota mensual de Gimnasio acreditada por el correo y S02.
 - Q06/Q12: extras y aniversarios con casos de vigencia/proporcionalidad;
   no extrapolar CYC a otros convenios.
 - Q07/Q09: colectivo, tarifas, calendarios, ausencias y reparto de tarjeta.
@@ -79,8 +84,9 @@ Exportar valores y revisión en memoria; volver a leer y recalcular antes de
 descargar. No añadir persistencia SQLite ni estado sensible a stores globales.
 
 Salida: flujo completo elegir → aportar → revisar → exportar, sin simular
-fuentes o controles ausentes. Registrar `payroll.reconcile` en el módulo de
-Nóminas cuando sea utilizable y haya autorización de acceso Q10.
+fuentes o controles ausentes. Registrar `cuadre-nomina` en `STANDALONE_TOOLS`
+cuando sea utilizable y haya autorización de acceso Q10. No crear una acción
+duplicada en Inicio.
 
 ## Fase 5 — Piloto en VM y aceptación operativa
 
@@ -126,17 +132,12 @@ el entorno autorizado y no se imprimen en logs de pruebas.
 
 ## Comprobaciones de esta entrega documental
 
-- Suite completa ejecutada con `npm test -- --maxWorkers=2`: **191 archivos,
-  1.097 pruebas correctas y 2 omitidas**. No se añadieron pruebas de producto
-  porque no se implementó funcionalidad.
-- `npm run lint`: ejecutado; siete avisos anteriores de oxlint y formato
-  pendiente del repositorio. La comprobación inicial señaló 631 archivos.
-- `npm run typecheck`: ejecutado; falla por tres referencias obsoletas de
-  `.next/dev/types/validator.ts` a rutas eliminadas del Registro Retributivo.
-- `npm run build`: compilación correcta, posterior fallo de TypeScript por
-  esas mismas referencias generadas. No se modificó código para ocultarlo.
-- Exclusión, enlaces, formato de los documentos nuevos y diff: se registran
-  con su resultado final en `spec/changelog.md`.
+La revisión anterior del vídeo y la ampliación con fuentes tienen ejecuciones
+de validación distintas. El registro vigente y sus resultados reales están
+en `spec/changelog.md`; no presentar el resultado anterior como si validara
+esta ampliación. La matriz de dieciséis controles y los escenarios de
+[VALIDATION](VALIDATION.md) son los criterios para implementar y pilotar.
 
-Estas comprobaciones verifican el checkout y la documentación. No acreditan
-una integración real con PeopleNet ni el cumplimiento de las pruebas futuras.
+No se añadieron pruebas de producto porque no se implementó funcionalidad.
+Las comparaciones locales del análisis son scripts privados, no una nueva
+API de conciliación ni prueba de acceso operativo a PeopleNet.

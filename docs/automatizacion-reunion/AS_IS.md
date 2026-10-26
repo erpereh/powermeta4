@@ -1,6 +1,7 @@
 # Proceso actual: cuadre mensual de nómina
 
-Fecha del análisis: 2026-10-26. Fuente: `revision_video/reunion.mp4`,
+Fecha del análisis: 2026-10-26. Ampliado con el correo y diez Excel originales
+el mismo día; el recorrido E01–E26 conserva la evidencia del vídeo. Fuente: `revision_video/reunion.mp4`,
 duración **01:10:40.333**. Los tiempos de este documento empiezan en el
 primer fotograma del fichero, no en el contador de la reunión de Teams.
 
@@ -19,8 +20,9 @@ fotogramas individualmente. No se ejecutó OCR automático: rótulos y fórmulas
 se leyeron directamente en los fotogramas ampliados.
 
 La grabación permite reconstruir la operación, pero no recuperar un libro
-Excel completo ni todas sus fórmulas. No se han recibido los ficheros originales
-que se solicitan al final de la reunión. Una explicación del operador no
+Excel completo ni todas sus fórmulas. En la primera revisión no estaban los ficheros originales. Ahora se han
+recibido diez libros, inventariados en [SOURCES](SOURCES.md); la lista de
+fuentes que aún faltan se concreta allí. Una explicación del operador no
 equivale a una regla fiscal o de convenio validada.
 
 ## Contexto, actores y aplicaciones
@@ -66,7 +68,7 @@ muestreo manual (45:25–46:01). No hay una medición independiente del tiempo.
 | E20 | 55:28–01:00:24        | «Anticipos»: solicitudes firmadas, PDF escaneado y textual; descuento ya informado por periodo. Se propone Excel estructurado o PDF textual. A 56:15 se ven cuotas dobles en meses de extras; a 01:00:15, cuotas solo en meses concretos.                                                              | H-A/H-V. No hay cuota uniforme ni división automática del total por doce.                                              |
 | E21 | 01:00:28–01:02:24     | «25-40»: lista anual de beneficiarios, empresa y antigüedad; se compara pago de 25/40 años con salario base. PeopleNet lo calcula automáticamente.                                                                                                                                                     | H-A/H-V. Lista visual incluye entidades ES/PT. No confundir antigüedad con nacimiento o fecha de alta.                 |
 | E22 | 01:02:28–01:03:34     | Fichero de aportaciones personales extraordinarias, preparado en febrero, columnas marzo–diciembre. Compara la columna del mes con «Aportación plan pensiones» del 01. Libro rotulado «Fichero PPSE»/«PPSE»; audio dice PPC.                                                                           | H-A/H-V. Conservar calendario aportado, incluido diciembre distinto; aclarar siglas.                                   |
-| E23 | 01:03:38–01:06:08     | Se solicitan los originales externos sin alterar estructura/cabeceras, y el libro de cuadre terminado.                                                                                                                                                                                                 | H-A. Esos adjuntos no acompañan al vídeo disponible.                                                                   |
+| E23 | 01:03:38–01:06:08     | Se solicitan los originales externos sin alterar estructura/cabeceras, y el libro de cuadre terminado.                                                                                                                                                                                                 | H-A. No acompañaban al vídeo inicial; la ampliación analiza diez Excel recibidos después.                              |
 | E24 | 01:06:24–01:07:02     | «Conceptos varios»: comparar con mes anterior las columnas pertinentes; las de carga externa, con su fuente. Se ven cuota grupo empresa, anticipo vehículo y ayudas/complementos.                                                                                                                      | H-A/H-V. No comparar indiscriminadamente columnas de texto, fechas, porcentajes e importes.                            |
 | E25 | 01:07:14–01:09:56     | Quedan para otras reuniones seguros sociales, 111, 190 y contabilidad. A 01:08:40 se confirma empezar por nómina. Se reiteran los adjuntos pendientes y se despiden.                                                                                                                                   | H-A. Estos otros procesos quedan fuera de la especificación.                                                           |
 | E26 | 01:10:00–01:10:40.333 | Termina la compartición; Teams/chat y conversación residual sin operación nueva de nómina.                                                                                                                                                                                                             | H-A/H-V. Incluido en cobertura, sin requisitos adicionales.                                                            |
@@ -149,3 +151,27 @@ conserva los tiempos de los 169 cambios. Todo ese material queda excluido de
 Git. Solo se versiona esta reconstrucción anonimizada. Las evidencias E01–E26
 son la referencia común para [SPEC](SPEC.md), [TO_BE](TO_BE.md) y
 [preguntas pendientes](OPEN_QUESTIONS.md).
+
+## Ampliación con correo y originales
+
+El correo confirma el objetivo del cuadre y añade Gimnasio explícitamente.
+Precisa dos conceptos de anticipos, dos fuentes para tarjeta comida y el
+nombre PPSE. El libro permite leer fórmulas completas, pero incluye versiones,
+copias, errores y ajustes; no es una referencia uniforme libre de incidencias.
+
+| Evidencia nueva                            | Relación con vídeo/correo       | Efecto en la especificación                                                                            |
+| ------------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| S08 y S09/Flex                             | E09–E10 y punto Flex del correo | Nueve correspondencias y signos acreditados.                                                           |
+| S09/Comp.comida y S06                      | E16 y punto Compensación comida | Días base distintos y excepciones manuales; fuente D identificada.                                     |
+| S10/S07 y S09/Tarjeta comida               | E17 y punto Tarjeta comida      | Reparto recuperado; entradas Eurest incluidas/adicionales, una identidad inválida y discrepancia real. |
+| S09/Anticipos y cabeceras DT/DU            | E20 y punto Anticipos           | Dos subcontroles; sigue faltando calendario independiente.                                             |
+| S09/Fichero PPSE y PPSE                    | E22 y punto PPSE                | Meses presentes, búsqueda histórica de M, filas finales y diferencias pendientes.                      |
+| S02 y S09/Gimnasio                         | Punto Gimnasio del correo       | Nuevo control C16; cuota explícita mensual.                                                            |
+| S09/Conceptos varios                       | E24 y último punto del correo   | Once conceptos, ocurrencia específica de Ayuda vehículo y cuota duplicada como referencia.             |
+| S09/Datos, Datos2, Datos3 y pivots nativos | E06/E07                         | Copias con distinta información del mismo periodo; no unirlas ni tratarlas como anterior/actual.       |
+
+Los detalles de columnas, fórmulas, reglas propuestas y casos pendientes
+están en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md); los recuentos y errores
+comprobados, en [VALIDATION](VALIDATION.md). La ubicación futura cambia por
+instrucción expresa del usuario a herramienta independiente en la sidebar;
+esa decisión de producto no modifica lo observado en la reunión.

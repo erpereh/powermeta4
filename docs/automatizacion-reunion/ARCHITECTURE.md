@@ -30,17 +30,23 @@ entrega ni se afirma que las columnas físicas nuevas estén verificadas.
 
 ## 2. Ubicación y separación de responsabilidades propuestas
 
-Nombre **Cuadrar nómina**, acción **`payroll.reconcile`**, ruta
-**`/tools/payroll/cuadre`**, módulo **`payroll`**, icono semántico del registro
-(propuesta: `payroll-incidents`, ya existente). Es un control operativo de
-nómina dependiente de PeopleNet; corresponde a Acciones de Inicio, no a
-`STANDALONE_TOOLS`. El hecho de que use archivos externos no lo convierte en
-una utilidad aislada. El chat y sus recomendaciones no ejecutarán el proceso.
+Decisión expresa del usuario: **Cuadre de nómina**, herramienta standalone
+**`cuadre-nomina`**, ruta **`/tools/cuadre-nomina`**, junto a Registro
+Retributivo en la sidebar. Declararla únicamente en `STANDALONE_TOOLS` y
+añadir su clave de icono semántico tipado al registro. No añadirla a
+`TOOL_MODULES`, actividad ERP, recomendaciones ni búsqueda de Inicio.
+No se modifica el registro en esta entrega documental.
+
+Las nóminas se leen mediante SQL existente, decisión confirmada por el usuario.
+Ser standalone describe navegación y autonomía de la utilidad, no un permiso
+para elegir sociedad en el navegador ni para duplicar autenticación.
+Usar `PageHeader` de la fachada, como una herramienta, sin breadcrumb de
+Acciones/Módulo de `ToolsPageHeader`. Mantener shell y sidebar existentes.
 
 Estructura futura propuesta, sin crearla en esta entrega:
 
 ```text
-src/app/(app)/tools/payroll/cuadre/page.tsx    página de servidor y contexto seguro
+src/app/(app)/tools/cuadre-nomina/page.tsx    página de servidor y contexto seguro
 src/features/payroll-reconciliation/          componentes y estado local de visita
 src/lib/payroll-reconciliation/               contratos, perfiles y motor puro
 src/lib/peoplenet/                            lectores server-only existentes/nuevos acreditados
@@ -142,7 +148,7 @@ sería una evolución separada (Q15).
   límites, sin extraer a rutas proporcionadas por el documento.
 - No importar servicios de conciliación desde `/api/chat/run` ni enviar sus
   datos al endpoint `AI_*`. Ningún modelo ni proveedor externo participa en v1.
-- Usar `ToolsPageHeader` y componentes de `@/components/system`, Inter y tokens
+- Usar `PageHeader` y componentes de `@/components/system`, Inter y tokens
   actuales, estados con texto e icono, foco visible, controles separados y
   tablas con scroll contenido. Conservar shell, Sheet y trigger de sidebar.
 - `workspaceStore` continúa siendo el único snapshot global. El estado efímero
@@ -157,5 +163,31 @@ Handlers/Server Functions que correspondan a la versión del checkout.
 
 Pruebas de regresión: Resultados de nómina y sus exportaciones conservan
 valores y contrato; alta Excel COM, portal, sesión, workspace, backups y chat
-mantienen su comportamiento. El nuevo registro solo debe hacerse navegable
+mantienen su comportamiento. La nueva herramienta solo debe hacerse navegable
 cuando exista una pantalla operativa con estados honestos y pase su aceptación.
+
+## 7. Perfiles acreditados y alcance de los archivos
+
+Los anexos SOURCES y CONTROL_CONTRACTS definen fuentes/bloques y selectores
+por cabecera/ocurrencia. Preservar `PayrollReportRunDetail.headers/rows` y
+añadir adaptadores propios; no cambiar la regla de cabeceras repetidas del
+resumen actual para resolver el nuevo control de IRPF.
+
+Los parsers separan fuente, snapshot ERP, cálculo y nota. `SourceManifest`
+incluye versión de perfil, hoja/bloque, periodo efectivo, procedencia,
+referencias de filas, diagnósticos y confirmación de cobertura. Perfiles
+iniciales: Mercer, colectivo teletrabajo, carga comisiones, cuotas comité,
+ausencias comidas, recarga, Eurest, aniversarios, PPSE embebido y gimnasio;
+plantillas normalizadas separadas de excesos, anticipos y excepciones.
+
+Preview/analyze/export reciben también las reglas de periodo permitidas y
+excepciones declaradas. Validarlas en servidor y añadirlas a la huella: una
+anotación de revisión nunca sustituye un operando. Mismas entradas y versión
+producen las mismas cifras. Los perfiles no ejecutan las fórmulas del libro.
+
+Se propone 16 MiB por archivo y 32 MiB por petición para admitir S09 como
+contenedor PPSE, leyendo solo esa hoja para ese control. El informe operativo
+sigue siendo SQL; no mezclar sus copias Datos/2/3 con la ejecución elegida.
+No incorporar Excel COM, Poppler ni scripts privados al runtime del producto:
+se usaron solo para inspección documental. Conservar límites de celdas y ZIP,
+la excepción específica del proxy y el reanálisis antes de exportar.

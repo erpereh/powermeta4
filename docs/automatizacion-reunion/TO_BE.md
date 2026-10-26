@@ -1,11 +1,12 @@
 # Proceso propuesto: revisar el cuadre sin copiar y pegar
 
-Todo este documento describe **propuestas (P)**. Las evidencias del proceso
+Todo este documento describe **propuestas (P)**. La ubicación standalone y
+la lectura SQL de las nóminas son decisiones expresas del usuario. Las evidencias del proceso
 actual están en [AS_IS](AS_IS.md); el contrato funcional es [SPEC](SPEC.md).
 
 ## Experiencia operativa
 
-1. **Abrir «Cuadrar nómina» desde Inicio → Nóminas.** La sesión y sociedad son
+1. **Abrir «Cuadre de nómina» desde Herramientas en la sidebar.** La sesión y sociedad son
    las actuales de powermeta4. La pantalla no añade un selector de sociedad ERP
    independiente ni utiliza la identidad del portal para conceder acceso.
 2. **Elegir periodo y ejecuciones.** Mostrar las ejecuciones normales
@@ -33,6 +34,11 @@ actual están en [AS_IS](AS_IS.md); el contrato funcional es [SPEC](SPEC.md).
    referencias y revisión. Si la fuente cambió desde el análisis, bloquear
    la exportación obsoleta y pedir revisar la nueva comparación.
 
+Los contratos de los dieciséis controles están en
+[CONTROL_CONTRACTS](CONTROL_CONTRACTS.md). El informe S09 sirve de
+referencia de análisis y puede aportar su hoja PPSE; las nóminas operativas
+se leen por SQL, no de sus copias Datos/Datos2/Datos3.
+
 El resultado puede estar **parcialmente evaluado**. Fijos e IRPF no esperan
 al fichero Mercer; un control sin fuente no se interpreta como coincidente.
 
@@ -59,11 +65,12 @@ al fichero Mercer; un control sin fuente no se interpreta como coincidente.
 | Comisiones de servicio         | Consultar el origen real del generador, si se demuestra lectura y contrato.            | Aportar Excel generado. Investigar SQL/servicio en fase posterior; no pulsar «Generar» ni asumir que «Solo consulta» garantiza ausencia de efectos. |
 | Apartamentos y otras cuotas    | Originales del comité, todos los bloques/estancias y cuota del mes.                    | Subida múltiple con control de duplicación por documento, no por persona.                                                                           |
 | Comidas por nómina             | Fichero independiente de ausencias y regla validada de valoración.                     | Subida manual; no sustituirlo por GTA o un sistema de fichajes supuesto.                                                                            |
-| Tarjetas de comida             | Pedido/recarga y descargas/correcciones del proveedor.                                 | Contrastar neto y conceptos ERP; reparto exento/no exento pendiente de fórmula vigente.                                                             |
+| Tarjetas de comida             | Pedido/recarga y descargas/correcciones del proveedor.                                 | Contrastar neto y conceptos ERP; reparto observado recuperado; confirmar parámetros/vigencia y procedencia de solapes.                              |
 | Excesos                        | Registro externo de recálculos y saldo esperado del mes destino.                       | Fuente estructurada. Si no conserva el original, señalarlo y no inferir diferencias históricas.                                                     |
 | Anticipos                      | Calendario explícito de cuotas por solicitud y mes.                                    | Excel estructurado; PDF textual/OCR local como mejora posterior con validación humana.                                                              |
 | Aniversarios                   | Lista anual de beneficiarios y referencia salarial acreditada.                         | Subida anual, filtrado por periodo/entidad. Antigüedad ERP solo como evidencia adicional validada.                                                  |
-| Aportación personal al plan    | Calendario externo mensual autorizado.                                                 | Leer la celda del mes, sin repartir de nuevo el total anual ni copiar límites de proyecciones.                                                      |
+| Aportación personal al plan    | Calendario externo mensual autorizado.                                                 | Leer la hoja PPSE embebida, columna del mes y registros finales; mostrar discrepancia con la búsqueda de M. No recalcular límites.                  |
+| Gimnasio                       | Fichero mensual independiente de altas/cuotas.                                         | Leer cuota explícita, conservar altas sin pago y pagos sin fuente; no deducir importe de Inscripción/Clases.                                        |
 
 ## Datos, independencia y reproducibilidad
 

@@ -1,8 +1,10 @@
-# SPEC — Cuadrar nómina
+# SPEC — Cuadre de nómina
 
 Estado: **especificación documental; funcionalidad no implementada**.
-Fecha: 2026-10-26. Propuesta de acción `payroll.reconcile`,
-ruta `/tools/payroll/cuadre`, módulo **Nóminas** de Inicio.
+Fecha: 2026-10-26. Herramienta independiente propuesta `cuadre-nomina`,
+ruta `/tools/cuadre-nomina`, sección **Herramientas** de la sidebar, como
+Registro Retributivo. Decisión expresa del usuario; sustituye la ubicación
+anterior en Inicio. No se ha cambiado el registro de producto.
 
 ## 1. Objetivo y lectura para la implementación
 
@@ -15,14 +17,17 @@ datos y motivos acreditados o pendientes. No calcula ni corrige la nómina ERP.
 Orden de lectura: [AS_IS](AS_IS.md), esta SPEC, [TO_BE](TO_BE.md),
 [WORKFLOW](WORKFLOW.md), [ARCHITECTURE](ARCHITECTURE.md),
 [ROADMAP](ROADMAP.md) y [OPEN_QUESTIONS](OPEN_QUESTIONS.md).
+Anexos de esta ampliación: [fuentes](SOURCES.md),
+[contratos por control](CONTROL_CONTRACTS.md) y [validación](VALIDATION.md).
+Los contratos detallados concretan las correspondencias del catálogo resumido.
 
-**H** designa un hecho de vídeo/código, **I** una inferencia y **P** una decisión
+**H** designa un hecho de vídeo/código/archivo, **I** una inferencia y **P** una decisión
 de diseño propuesta en esta entrega. Los identificadores E remiten a la matriz
 temporal de AS_IS; C identifica controles y Q dependencias pendientes.
 
 La especificación permite implementar el núcleo y los controles cuyo contrato
-se acredite. **No permite dar por cerrados los adaptadores de originales,
-devengos proporcionales o motivos automáticos todavía desconocidos.** Esos
+se acredite. **Las variantes no acreditadas, los devengos proporcionales y los
+motivos automáticos desconocidos conservan sus pendientes.** Esos
 controles deben conservar el estado pendiente hasta cumplir su puerta de
 aceptación; no se rellenarán con aproximaciones silenciosas.
 
@@ -43,7 +48,7 @@ aceptación; no se rellenarán con aproximaciones silenciosas.
 Usuario operativo de RRHH con sesión Meta4 válida y sociedad activa validada
 por el servidor. Reutilizar el mismo modelo de acceso que Resultados de nómina;
 no derivar permisos de ser responsable del portal ni inventar roles. Confirmar
-con el propietario el acceso a esta nueva acción antes de habilitarla (Q10).
+con el propietario el acceso a esta nueva herramienta antes de habilitarla (Q10).
 
 ### Ejecuciones de nómina
 
@@ -73,9 +78,9 @@ con el propietario el acceso a esta nueva acción antes de habilitarla (Q10).
 
 ### Fuentes externas
 
-P: categorías independientes: Mercer, colectivo de teletrabajo, comisiones,
+P: categorías de referencia: Mercer, colectivo de teletrabajo, comisiones,
 apartamentos/grupo empresa, ausencias/compensación de comidas, tarjetas,
-excesos, calendario de anticipos, aniversarios y aportación personal al plan.
+excesos, calendario de anticipos, aniversarios, aportación personal al plan y Gimnasio.
 Una categoría puede incluir varios ficheros o bloques de un mismo libro.
 
 P: admitir lectura `.xls`, `.xlsx` y `.csv` mediante las dependencias actuales;
@@ -100,10 +105,13 @@ Una nueva versión de un mismo documento sustituye a la anterior tras
 confirmación; no se añade automáticamente.
 
 P: límites iniciales, configurados en constantes y probados: 20 ficheros,
-8 MiB por fichero, 32 MiB por petición, 100.000 filas por fichero y dos millones
+16 MiB por fichero, 32 MiB por petición, 100.000 filas por fichero y dos millones
 de celdas en el conjunto. Rechazar antes de calcular si se exceden. Controlar
 también la expansión descomprimida de XLSX (128 MiB total por petición).
-Son límites de implementación propuestos, no necesidades expresadas en vídeo.
+Son límites de implementación propuestos: el libro que contiene PPSE ocupa
+12.203.008 bytes y debe poder leerse directamente como fuente de esa hoja,
+sin exigir copiarla a otro archivo. No se usa ese libro como nómina de entrada.
+El límite anterior de 8 MiB queda sustituido; validar recursos en VM.
 
 ## 3. Motor común de comparación
 
@@ -166,29 +174,31 @@ Las anotaciones manuales se diferencian de las evidencias del servidor.
 
 ## 4. Catálogo funcional de controles
 
-Todos los nombres de columnas siguientes proceden de las capturas; su índice,
-ocurrencia y correspondencia completa necesitan el original/perfil validado.
+Los perfiles iniciales y las ocurrencias están acreditados en los originales
+y detallados en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md). Los parámetros
+económicos o históricos pendientes no se deducen por proximidad de columnas.
 
-| ID  | Control y fuentes                      | Operación de v1 / condiciones                                                                                                                                                                                                                                       | Evidencia y dependencia                                                       |
-| --- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| C01 | Fijos, actual/anterior                 | Comparar «Total conceptos fijos» por persona; altas, bajas e importes distintos conservan estado de revisión. No recalcular el salario teórico.                                                                                                                     | E03–E06; Q02/Q04.                                                             |
-| C02 | IRPF, actual/anterior                  | Comparar «Porcentaje I.R.P.F.» en puntos porcentuales; destacar magnitud sin umbral de anomalía inventado. Multiplicidad de porcentajes queda no comparable.                                                                                                        | E08; Q01/Q03.                                                                 |
-| C03 | Mercer/Flex                            | Contrastar mensuales del proveedor con seguro empresa, descuento médico, especie, guardería, transporte, renting y ahorro según perfiles separados. Nunca anual contra mensual ni todos los seguros contra una sola columna.                                        | E09–E10; Q01/Q05. Sin perfil validado: pendiente por producto.                |
-| C04 | Pagas extras                           | En CYC comparar base + experiencia + CAI del mes con extra correspondiente para casos de devengo completo acreditado. Mostrar prorrata y casos excepcionales; sin histórico suficiente, no aprobar proporcionalidades. IBER/COLL requieren fórmula propia validada. | E11; Q06. Junio 1ª/diciembre 2ª/octubre 3ª solo como regla observada de CYC.  |
-| C05 | Teletrabajo                            | Comparar «Importe abono teletrabajo» con esperado del colectivo externo en periodo devengado anterior. Mantener colectivo independiente del indicador ERP. Si fuente solo acredita pertenencia, comprobar cobertura y dejar importe pendiente de tarifa/calendario. | E12; Q07. No fijar 44,8 ni 2,24 como constantes universales.                  |
-| C06 | Comisiones                             | Comparar kilometraje exento/no exento y «Cancelacion Prov (Dieta y KM) Importe» con fichero generado en ventana acordada. Carga de Valores aporta matrícula/artículo/importes; no comparar cantidad de kilómetros con dinero.                                       | E13; Q08. V1 usa fichero hasta acreditar servicio/SQL de origen.              |
-| C07 | Apartamentos                           | Sumar cuotas del mes por persona en todos los bloques/archivos válidos y contrastar con «Apartamentos grupo empresa». Detectar duplicación de archivo y conservar varias estancias.                                                                                 | E14; Q01. No fraccionar de nuevo el coste total.                              |
-| C08 | Turnos/festivos                        | Comparar ambos complementos entre meses, con unión de personas y revisión de cambios de adscripción.                                                                                                                                                                | E15; Q04. No inferir que toda variación es error.                             |
-| C09 | Compensación comida                    | Contrastar importe del 01 con esperado de ausencias/días/tarifa del mes vencido, únicamente al acreditar regla. Sin tarifa o selección de columna de ausencias: control de cobertura/unidades, importe no comparable.                                               | E16; Q09. No restar días directamente a euros.                                |
-| C10 | Tarjeta comida                         | Comparar exento + no exento con neto de carga/descarga del fichero. La validación adicional del reparto exige fórmula original y parámetros vigentes; mantenerla pendiente por separado.                                                                            | E17; Q09. Fórmula visible `L9/12,1` no acredita todos los cálculos.           |
-| C11 | Excesos                                | Comparar «Exceso líquido paga anterior» con anotación independiente del periodo afectado, signo y destino.                                                                                                                                                          | E18; Q03/Q01. No reconstruir saldo anterior sobrescrito.                      |
-| C12 | Anticipos                              | Sumar cuotas expresamente previstas para el mes en calendario estructurado y comparar «Anticipos a descontar»; mantener anticipo de vehículo como concepto distinto.                                                                                                | E20; Q01/Q11. Admitir cuotas no uniformes y meses sin cuota.                  |
-| C13 | Aniversarios                           | Cruzar lista anual, aniversario 25/40 y mes debido con «Paga 25 años» / «Paga 40 Años»; contrastar salario base de referencia cuando esté acreditado. Detectar esperado sin pago y pago sin beneficiario.                                                           | E21; Q12. Fecha antigüedad, no nacimiento; validar entidades/convenios.       |
-| C14 | Plan de pensiones, aportación personal | Contrastar «Aportación plan pensiones» con celda del mes del calendario externo; respetar marzo–diciembre y ajustes aportados.                                                                                                                                      | E22; Q13. No recalcular límite anual ni aportación de empresa.                |
-| C15 | Otros conceptos mensuales              | Comparar lista tipada y validada de columnas monetarias del 01 con anterior. Incluir cada columna una sola vez y declarar cobertura.                                                                                                                                | E24; Q14. No inferir algoritmo de «Gimnasio» o «Fuera nómina» por su pestaña. |
+| ID  | Control y fuentes         | Operación de v1 / condiciones                                                                                                                                                                                                                                       | Evidencia y dependencia                                                                                             |
+| --- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| C01 | Fijos, actual/anterior    | Comparar «Total conceptos fijos» por persona; altas, bajas e importes distintos conservan estado de revisión. No recalcular el salario teórico.                                                                                                                     | E03–E06; Q02/Q04.                                                                                                   |
+| C02 | IRPF, actual/anterior     | Comparar «Porcentaje I.R.P.F.» en puntos porcentuales; destacar magnitud sin umbral de anomalía inventado. Multiplicidad de porcentajes queda no comparable.                                                                                                        | E08; Q01/Q03.                                                                                                       |
+| C03 | Mercer/Flex               | Nueve correspondencias y signos acreditados contra el original mensual, con perfil por producto; sin sumar copias ni importar totales anuales.                                                                                                                      | E09–E10; S08, S09/Flex; contrato C03. Q03 para precisión y Q05 para otras variantes.                                |
+| C04 | Pagas extras              | En CYC comparar base + experiencia + CAI del mes con extra correspondiente para casos de devengo completo acreditado. Mostrar prorrata y casos excepcionales; sin histórico suficiente, no aprobar proporcionalidades. IBER/COLL requieren fórmula propia validada. | E11; Q06. Junio 1ª/diciembre 2ª/octubre 3ª solo como regla observada de CYC.                                        |
+| C05 | Teletrabajo               | Colectivo independiente y esperado con tarifa/días/vigencias confirmados. Conservar miembros sin fórmula y casos anotados como pendientes.                                                                                                                          | E12; S05; Q07. BP no acredita una tarifa universal y BQ es nómina copiada.                                          |
+| C06 | Comisiones                | Contrastar G/H/I de Carga de Valores con BH/BI/DS del informe, sin duplicar detalle/desglose.                                                                                                                                                                       | E13; S03; Q08 solo mantiene pendiente integración directa, ventana y variantes.                                     |
+| C07 | Apartamentos              | Sumar cuotas del mes por persona en todos los bloques/archivos válidos y contrastar con «Apartamentos grupo empresa». Detectar duplicación de archivo y conservar varias estancias.                                                                                 | E14; Q01. No fraccionar de nuevo el coste total.                                                                    |
+| C08 | Turnos/festivos           | Comparar ambos complementos entre meses, con unión de personas y revisión de cambios de adscripción.                                                                                                                                                                | E15; Q04. No inferir que toda variación es error.                                                                   |
+| C09 | Compensación comida       | Fuente de ausencias identificada; fórmulas generales y excepciones recuperadas. Valorar solo con días, tarifa y excepciones confirmados.                                                                                                                            | E16; S06; Q09. No aplicar nueve días ni deducirlos del centro sin regla.                                            |
+| C10 | Tarjeta comida            | Leer recarga y Eurest, reconstruir neto/reparto acreditado con parámetros vigentes; conservar discrepancias e identidad inválida.                                                                                                                                   | E17; S07/S10; Q09 para parámetros. No duplicar Eurest ya incluido ni sustituir fórmula por min/max fiscal supuesto. |
+| C11 | Excesos                   | Comparar «Exceso líquido paga anterior» con anotación independiente del periodo afectado, signo y destino.                                                                                                                                                          | E18; Q03/Q01. No reconstruir saldo anterior sobrescrito.                                                            |
+| C12 | Anticipos                 | Dos subcontroles: DT Anticipo Prorrateado Importe y DU Anticipos a descontar, contra cuotas confirmadas por solicitud/mes. DV vehículo queda en C15.                                                                                                                | E20 y correo; S09/Anticipos solo es resultado. Q11: calendario/carta no recibidos.                                  |
+| C13 | Aniversarios              | Cruzar lista anual, aniversario 25/40 y mes debido con «Paga 25 años» / «Paga 40 Años»; contrastar salario base de referencia cuando esté acreditado. Detectar esperado sin pago y pago sin beneficiario.                                                           | E21; Q12. Fecha antigüedad, no nacimiento; validar entidades/convenios.                                             |
+| C14 | PPSE, aportación personal | Leer la columna del mes de Fichero PPSE embebido, con todos los registros; mostrar contradicción con búsqueda histórica de M. No sustituir esperado para forzar igualdad.                                                                                           | E22 y correo; S09/Fichero PPSE; Q13 para diferencias/calendario.                                                    |
+| C15 | Otros conceptos mensuales | Once conceptos inventariados, incluidos cuota, vehículo y ayudas; seleccionar Ayuda vehículo ocurrencia 2. Comparar con anterior, sin duplicar columnas de referencia.                                                                                              | E24 y correo; S09/Conceptos varios; contrato C15. Q14 resuelta para esta versión.                                   |
+| C16 | Gimnasio                  | GJ Cuota Gimnasio Importe frente a pago mensual F del original, por matrícula; alta sin importe no se convierte en tarifa fija.                                                                                                                                     | Correo; S02 y S09/Gimnasio; contrato C16.                                                                           |
 
 P: C01/C02/C08/C15 son informes de cambios; C03/C05/C06/C07/C09/C10/C11/C12/C14
-son contrastes independientes; C04/C13 añaden cálculo condicionado. Cada
+y C16 son contrastes independientes; C04/C13 añaden cálculo condicionado. Cada
 subcomprobación informa su cobertura. Una coincidencia en el total no
 compensa diferencias de signo contrario entre personas.
 
@@ -207,7 +217,7 @@ del vídeo ni reglas aprobadas de nómina:
 ## 5. Flujo, interfaz y resultados
 
 P: una pantalla con tres pasos: **Elegir nóminas → Aportar fuentes → Revisar
-cuadre**. Cabecera «Cuadrar nómina», alcance de sociedad existente, resumen
+cuadre**. Cabecera `PageHeader` «Cuadre de nómina», alcance de sociedad existente, resumen
 del periodo y botón de análisis explícito. Mostrar los controles pendientes
 con su dependencia; no ocultarlos tras una apariencia de éxito.
 
@@ -242,14 +252,14 @@ Son interfaces futuras, **no endpoints existentes**. Mantener intactos los
 tipos públicos de Resultados de nómina; añadir tipos propios de conciliación.
 Implementación y transporte concretos: [ARCHITECTURE](ARCHITECTURE.md).
 
-| Tipo                    | Contenido mínimo                                                                                                                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ReconciliationRequest` | Periodo `YYYY-MM`, claves actual/anterior opcional, categorías de fuentes y perfil/versiones permitidos, tolerancias y confirmación de población. No sociedad, usuario, ruta del sistema ni SQL. |
-| `SourceManifest`        | Hash servidor, origen ERP/archivo, periodo efectivo, versión de perfil, hoja/bloque/filas y columnas por índice/ocurrencia.                                                                      |
-| `ReconciliationValue`   | Decimal como string, unidad `EUR`/`percentage-point`/`day`/`unit`, presencia explícita y referencias a operandos.                                                                                |
-| `ReconciliationFinding` | ID determinista, C01–C15/subcontrol, matrícula textual, operandos/delta, estado de cálculo, evidencias y motivo contextual separado de revisión.                                                 |
-| `ReconciliationResult`  | Huella/versiones, periodo y contexto seguro, cobertura, fuentes, hallazgos y recuentos. Sin tokens ni filas personales innecesarias.                                                             |
-| `ReviewAnnotation`      | ID de hallazgo + huella de evidencia, estado manual y comentario; el servidor añade actor/fecha al exportar. No permite cambiar importes ni resultado calculado.                                 |
+| Tipo                    | Contenido mínimo                                                                                                                                                                                                                                                                    |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ReconciliationRequest` | Periodo `YYYY-MM`, claves actual/anterior opcional, categorías de fuentes y perfil/versiones permitidos, tolerancias y confirmación de población. Confirmación de periodo/cobertura, reglas por vigencia y excepciones documentadas. No sociedad, usuario, ruta del sistema ni SQL. |
+| `SourceManifest`        | Hash servidor, origen ERP/archivo, periodo efectivo, versión de perfil, hoja/bloque/filas y columnas por índice/ocurrencia, alcance independiente o derivado, errores/filas sin vincular.                                                                                           |
+| `ReconciliationValue`   | Decimal como string, unidad `EUR`/`percentage-point`/`day`/`unit`, presencia explícita y referencias a operandos.                                                                                                                                                                   |
+| `ReconciliationFinding` | ID determinista, C01–C16/subcontrol, matrícula textual, operandos/delta, estado de cálculo, evidencias y motivo contextual separado de revisión.                                                                                                                                    |
+| `ReconciliationResult`  | Huella/versiones, periodo y contexto seguro, cobertura, fuentes, hallazgos y recuentos. Sin tokens ni filas personales innecesarias.                                                                                                                                                |
+| `ReviewAnnotation`      | ID de hallazgo + huella de evidencia, estado manual y comentario; el servidor añade actor/fecha al exportar. No permite cambiar importes ni resultado calculado.                                                                                                                    |
 
 P: sin migraciones SQLite ni nuevo store global. Las entradas se mantienen
 solo en memoria durante la visita/petición. El servidor vuelve a validar sesión,
@@ -266,11 +276,11 @@ y obliga a revisar el análisis nuevo.
 3. Casos sintéticos incluyen orden diferente, ceros iniciales, altas/bajas de
    población, varias filas por persona, porcentajes duplicados contradictorios,
    precisión decimal, signo y ausencia de fuente. No se pierden filas.
-4. Los quince controles aparecen con cobertura explícita; solo los acreditados
+4. Los dieciséis controles aparecen con cobertura explícita; solo los acreditados
    se presentan como evaluados. Errores/casos desconocidos nunca se aprueban.
 5. Un expediente revisado contra originales reproduce los cruces manuales y
    conserva discrepancias conocidas, incluidas excepciones, sin ajustar valores
-   para que cuadren. C04 proporcional, C09 y reparto C10 no se aceptan sin Q06/Q09.
+   para que cuadren. C04 proporcional y C09 no se aceptan sin Q06/Q09; C10 conserva la fórmula observada y requiere vigencia confirmada. C14 conserva discrepancias de calendario.
 6. Excel coincide con la pantalla y no exporta datos sensibles ajenos al cuadre.
    Fuentes cambiadas invalidan la revisión y bloquean exportación obsoleta.
 7. Interfaz clara/oscura, teclado y 1440/1024/768/390 px, sin overflow de página;
@@ -280,5 +290,6 @@ y obliga a revisar el análisis nuevo.
    de prometerlo. No es un benchmark obtenido con este análisis.
 
 El cierre de cada fase requiere las pruebas de [ROADMAP](ROADMAP.md).
-Esta entrega documental no acredita acceso real a PeopleNet ni validación
-contra los libros originales que siguen pendientes.
+Esta entrega documental acredita lectura y contraste local de los libros
+recibidos, según VALIDATION. No acredita acceso real a PeopleNet ni paridad
+completa de todos los controles: quedan fuentes y reglas concretas pendientes.

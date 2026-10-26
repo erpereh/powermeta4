@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-10-26 - Contratos del cuadre a partir de los Excel originales
+
+- Ampliación documental de `docs/automatizacion-reunion/`: diez originales,
+  39 hojas y 42 vistas/rangos nativos revisados; inventario con hashes,
+  correspondencias y fórmulas en SOURCES, CONTROL_CONTRACTS y VALIDATION.
+  Actualizados los siete documentos anteriores con estados reales de Q01–Q15.
+- Por decisión expresa del usuario, la ubicación propuesta pasa a herramienta
+  standalone `cuadre-nomina`, `/tools/cuadre-nomina`, en sidebar como Registro
+  Retributivo. Las nóminas actual/anterior seguirán leyendo SQL existente.
+  No se han registrado rutas, APIs, herramientas, migraciones ni código de producto.
+- Dieciséis controles: Gimnasio C16, dos conceptos DT/DU de anticipos, nueve
+  cruces Mercer, tres métricas de comisiones, ambos orígenes de tarjeta y PPSE
+  embebido. Casos sintéticos por control, perfiles de bloques/ocurrencias y
+  plantillas propuestas para excesos, cuotas y excepciones pendientes.
+- No se ocultan diferencias: copias distintas del mismo periodo, rangos
+  incompletos, errores, una identidad inválida, fórmulas de comidas con
+  excepciones y discrepancias del calendario PPSE. El diseño declara cobertura
+  parcial hasta confirmar las fuentes/reglas concretas; no se inventan causas.
+- Carpeta de originales añadida a `.gitignore` antes del análisis; derivados
+  en `/revision_video/`, ya excluido. Lectura estática y Excel nativo en modo
+  manual/solo lectura, sin refrescar vínculos, recalcular ni guardar. Huellas
+  de los diez originales verificadas sin cambios. Sin consultas ERP reales
+  ni envío de archivos a servicios externos de análisis.
+- Suite final `npm test -- --maxWorkers=2`: 191 archivos, 1.097 pruebas pasadas
+  y 2 omitidas. Primera ejecución: un fallo de detección de procesos en
+  `hire/excel.test.ts` al solaparse con la inspección Excel; cerrada la instancia,
+  suite completa repetida correctamente. No se modificaron pruebas ni código.
+- `npm run typecheck` y `npm run build` ejecutados: build compila y falla
+  después, como typecheck, por tres referencias obsoletas de
+  `.next/dev/types/validator.ts` a rutas IA eliminadas del Registro Retributivo.
+  Formato de los diez documentos, enlaces, huellas y `git diff --check`
+  comprobados. `npm run lint` ejecutado: siete avisos anteriores de oxlint
+  y fallo de formato global en los mismos 631 archivos pendientes; los diez
+  documentos de esta entrega pasan su comprobación de formato específica.
+
 ## 2026-10-26 - Análisis de reunión y especificación del cuadre de nómina
 
 - Documentación únicamente: `docs/automatizacion-reunion/{SPEC,AS_IS,TO_BE,
