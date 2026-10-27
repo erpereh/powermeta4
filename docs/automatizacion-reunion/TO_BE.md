@@ -10,8 +10,9 @@ actual están en [AS_IS](AS_IS.md); el contrato funcional es [SPEC](SPEC.md).
 1. **Abrir «Cuadre de nómina» desde Herramientas en la sidebar.** La sesión y sociedad son
    las actuales de powermeta4. La pantalla no añade un selector de sociedad ERP
    independiente ni utiliza la identidad del portal para conceder acceso.
-2. **Crear o abrir un expediente; elegir periodo y ejecuciones.** Mostrar todos los informes y ejecuciones
-   disponibles del actual y anterior, con paga, frecuencia, fecha de ejecución,
+2. **Crear o abrir un expediente; elegir informe y ejecución.** El mes se deriva
+   de la fecha de acumulación seleccionada. Mostrar ejecuciones de todos los
+   periodos, con frecuencia, tipo de paga y fecha de ejecución,
    filas y personas. Ofrecer candidatos recientes y exigir confirmar su
    población. Si el informe todavía no existe, pedir generarlo por el proceso
    habitual en PeopleNet: esta versión no lo ejecuta.

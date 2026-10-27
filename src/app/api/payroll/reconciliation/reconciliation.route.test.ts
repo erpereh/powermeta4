@@ -39,6 +39,7 @@ import { GET, POST, PATCH } from "./route";
 import { POST as exportRoute } from "./export/route";
 import { POST as previewRoute } from "./preview/route";
 import { matchesProxyMatcher } from "@/proxy";
+import { runKey } from "@/features/payroll-reconciliation/selection";
 
 const request = (method: string, body?: unknown, extra: Record<string, string> = {}) =>
   new Request("http://localhost/api/payroll/reconciliation", {
@@ -81,6 +82,57 @@ beforeEach(() => {
   mocks.save.mockImplementation((_scope, record) => record);
 });
 describe("reconciliation boundaries", () => {
+  it.each(["2015-04", "2026-09"])(
+    "creates and analyzes a real-mode dossier using the selected execution's actual period %s",
+    async (period) => {
+      mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+      mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+      const current = demoReport(period),
+        previous = demoReport(period, true);
+      current.run.reportId = "01_C";
+      previous.run.reportId = "01_C";
+      mocks.read.mockImplementation((_society, key) =>
+        key.accruedOn === current.run.accruedOn ? current : previous,
+      );
+      const response = await POST(
+        request("POST", {
+          ...create(),
+          period: current.run.accruedOn.slice(0, 7),
+          demo: false,
+          currentKey: runKey(current.run),
+          previousKey: runKey(previous.run),
+        }),
+      );
+      expect(response.status).toBe(200);
+      const result = await response.json();
+      expect(result.data.period).toBe(period);
+      expect(result.data.result.controls).toHaveLength(16);
+      expect(
+        result.data.result.findings.some(
+          (row: { control: string; delta: string | null }) =>
+            row.control === "C01" && row.delta !== null,
+        ),
+      ).toBe(true);
+      expect(mocks.save).toHaveBeenCalledOnce();
+    },
+  );
+  it("keeps server protection against relabeling a historical execution as a newer month", async () => {
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+    const historical = demoReport("2015-04");
+    historical.run.reportId = "01_C";
+    mocks.read.mockResolvedValue(historical);
+    const response = await POST(
+      request("POST", {
+        ...create(),
+        period: "2026-09",
+        demo: false,
+        currentKey: runKey(historical.run),
+      }),
+    );
+    expect(response.status).toBe(422);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
   it("requires auth on all routes, including proxy exceptions", async () => {
     mocks.auth.mockResolvedValue(null);
     for (const handler of [POST, exportRoute, previewRoute])

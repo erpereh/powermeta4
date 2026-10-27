@@ -2,7 +2,15 @@
 import { useState, type ReactNode } from "react";
 import {
   Button,
+  ButtonLink,
   Checkbox,
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
   Input,
   Select,
   SelectContent,
@@ -12,6 +20,16 @@ import {
 } from "@/components/system";
 import type { PayrollReportRun, PayrollReportRunKey } from "@/types/payroll-report";
 import type { Parameters } from "@/lib/payroll-reconciliation/types";
+import {
+  ALL_REPORTS,
+  NO_RUN,
+  periodLabel,
+  previousCandidate,
+  reportRunLabel,
+  runId,
+  runKey,
+  sortRuns,
+} from "./selection";
 
 export function Choice({
   label,
@@ -52,30 +70,68 @@ export function Panel({ title, children }: { title: string; children: ReactNode 
     </section>
   );
 }
-const keyOf = ({
-  reportId,
-  runAt,
-  accruedOn,
-  payFrequency,
-}: PayrollReportRun): PayrollReportRunKey => ({ reportId, runAt, accruedOn, payFrequency });
-const sameRun = (a: PayrollReportRun, b?: PayrollReportRunKey) =>
-  b && JSON.stringify(keyOf(a)) === JSON.stringify(b);
-const precedingMonth = (period: string) => {
-  const date = new Date(`${period}-01T00:00:00Z`);
-  date.setUTCMonth(date.getUTCMonth() - 1);
-  return date.toISOString().slice(0, 7);
-};
+function ExecutionChoice({
+  label,
+  value,
+  onChange,
+  items,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  items: { id: string; name: string; disabled?: boolean }[];
+  disabled: boolean;
+}) {
+  return (
+    <div className="min-w-0 space-y-1">
+      <span className="text-sm font-medium">{label}</span>
+      <Combobox
+        value={value}
+        onValueChange={(next) => onChange(next || NO_RUN)}
+        disabled={disabled}
+      >
+        <ComboboxTrigger>
+          <ComboboxInput aria-label={label} placeholder={`Buscar ${label.toLocaleLowerCase()}`} />
+        </ComboboxTrigger>
+        <ComboboxContent>
+          <ComboboxList ariaLabel={label}>
+            {items.map((item) => (
+              <ComboboxItem
+                key={item.id}
+                value={item.id}
+                textValue={item.name}
+                keywords={[item.name]}
+                disabled={item.disabled}
+                className="whitespace-normal break-words"
+              >
+                {item.name}
+              </ComboboxItem>
+            ))}
+            <ComboboxEmpty>Sin ejecuciones que coincidan con la búsqueda.</ComboboxEmpty>
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+    </div>
+  );
+}
 
 export function SelectionForm({
   runs,
   demo,
   busy,
   initial,
+  catalogLoading = false,
+  catalogError = "",
+  onRetryCatalog,
   onSubmit,
 }: {
   runs: PayrollReportRun[];
   demo: boolean;
   busy: boolean;
+  catalogLoading?: boolean;
+  catalogError?: string;
+  onRetryCatalog?: () => void;
   initial?: {
     title: string;
     period: string;
@@ -91,59 +147,54 @@ export function SelectionForm({
     demo: boolean;
   }) => void;
 }) {
-  const [period, setPeriod] = useState(initial?.period ?? new Date().toISOString().slice(0, 7));
+  const [demoPeriod, setDemoPeriod] = useState(
+    initial?.period ?? new Date().toISOString().slice(0, 7),
+  );
   const [title, setTitle] = useState(initial?.title ?? "Cuadre mensual");
-  const [report, setReport] = useState(initial?.current.reportId ?? "all");
-  const [current, setCurrent] = useState(
-    initial ? String(runs.findIndex((run) => sameRun(run, initial.current))) : "none",
+  const [report, setReport] = useState(initial?.current.reportId ?? ALL_REPORTS);
+  const [currentId, setCurrentId] = useState(runId(initial?.current));
+  const [previousId, setPreviousId] = useState(runId(initial?.previous));
+  const [confirmedFor, setConfirmedFor] = useState<string | null>(null);
+  const catalogReady = !catalogLoading && !catalogError;
+  const reportRuns = sortRuns(
+    runs.filter((run) => report === ALL_REPORTS || report === run.reportId),
   );
-  const [previous, setPrevious] = useState(
-    initial?.previous ? String(runs.findIndex((run) => sameRun(run, initial.previous))) : "none",
+  const current = reportRuns.find((run) => runId(run) === currentId && run.hasData);
+  const period = demo ? demoPeriod : (current?.accruedOn.slice(0, 7) ?? "");
+  const priorRuns = sortRuns(runs.filter((run) => current && run.accruedOn.slice(0, 7) < period));
+  const previous = priorRuns.find((run) => runId(run) === previousId && run.hasData);
+  const samePeriod = !initial || !current || period === initial.period;
+  const validSelection = demo
+    ? Boolean(period)
+    : Boolean(catalogReady && current && samePeriod && (previousId === NO_RUN || previous));
+  const confirmationKey = JSON.stringify({ report, current, previous, period, previousId });
+  const confirmed = validSelection && confirmedFor === confirmationKey;
+  const reportIds = [...new Set(runs.map((run) => run.reportId))].sort((a, b) =>
+    a.localeCompare(b, "es"),
   );
-  const [confirmed, setConfirmed] = useState(false);
-  const reportIds = [...new Set(runs.map((run) => run.reportId))];
-  const options = (predicate: (run: PayrollReportRun) => boolean) =>
-    runs.flatMap((run, index) =>
-      predicate(run)
-        ? [
-            {
-              id: String(index),
-              name: `${run.reportId} · ${run.reportName ?? "Informe"} · paga ${run.accruedOn} · ${run.payFrequency} · ${run.payKind ?? "Tipo no informado"} · ejecución ${run.runAt}`,
-            },
-          ]
-        : [],
-    );
+  const options = (candidates: PayrollReportRun[]) =>
+    candidates.map((run) => ({
+      id: runId(run),
+      name: reportRunLabel(run),
+      disabled: !run.hasData,
+    }));
   const chooseCurrent = (value: string) => {
-    setCurrent(value);
-    setConfirmed(false);
-    const run = runs[Number(value)];
-    if (run) {
-      const found = runs.findIndex(
-        (candidate) =>
-          candidate.hasData &&
-          candidate.reportId === run.reportId &&
-          candidate.payFrequency === run.payFrequency &&
-          candidate.accruedOn.slice(0, 7) === precedingMonth(period),
-      );
-      setPrevious(found < 0 ? "none" : String(found));
-    }
+    setCurrentId(value);
+    setConfirmedFor(null);
+    const run = reportRuns.find((candidate) => runId(candidate) === value && candidate.hasData);
+    setPreviousId(run ? runId(previousCandidate(runs, run)) : NO_RUN);
   };
   return (
     <form
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (confirmed)
+        if (confirmed && !busy)
           onSubmit({
             title,
             period,
-            currentKey: runs[Number(current)] ? keyOf(runs[Number(current)]) : undefined,
-            previousKey:
-              previous === "none"
-                ? null
-                : runs[Number(previous)]
-                  ? keyOf(runs[Number(previous)])
-                  : undefined,
+            currentKey: current ? runKey(current) : undefined,
+            previousKey: previous ? runKey(previous) : null,
             populationConfirmed: true,
             demo,
           });
@@ -156,20 +207,21 @@ export function SelectionForm({
           onChange={setTitle}
           required
           maxLength={140}
+          readOnly={Boolean(initial)}
         />
-        <Input
-          label="Mes de nómina"
-          type="month"
-          value={period}
-          onChange={(value) => {
-            setPeriod(value);
-            setCurrent("none");
-            setPrevious("none");
-            setConfirmed(false);
-          }}
-          required
-          disabled={Boolean(initial)}
-        />
+        {demo && (
+          <Input
+            label="Mes de nómina"
+            type="month"
+            value={demoPeriod}
+            onChange={(value) => {
+              setDemoPeriod(value);
+              setConfirmedFor(null);
+            }}
+            required
+            disabled={Boolean(initial)}
+          />
+        )}
       </div>
       {demo ? (
         <p className="rounded-lg bg-muted p-3 text-sm">
@@ -177,54 +229,124 @@ export function SelectionForm({
         </p>
       ) : (
         <>
-          <Choice
+          {catalogLoading && (
+            <p role="status">Cargando las ejecuciones disponibles de PeopleNet…</p>
+          )}
+          {catalogError && (
+            <p role="alert" className="text-sm text-destructive">
+              {catalogError}
+            </p>
+          )}
+          {catalogReady && !runs.length && (
+            <p role="status">
+              No hay ejecuciones guardadas en la sociedad activa. Consulta Resultados de nómina o
+              genera el informe en PeopleNet y actualiza el catálogo.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink href="/tools/reports/resultados-nomina" variant="outline" size="sm">
+              Abrir Resultados de nómina
+            </ButtonLink>
+            {onRetryCatalog && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={busy || catalogLoading}
+                onClick={() => {
+                  setConfirmedFor(null);
+                  onRetryCatalog();
+                }}
+              >
+                {catalogError ? "Reintentar catálogo" : "Actualizar catálogo"}
+              </Button>
+            )}
+          </div>
+          <ExecutionChoice
             label="Informe"
             value={report}
             onChange={(value) => {
-              setReport(value);
-              setCurrent("none");
-              setPrevious("none");
-              setConfirmed(false);
+              setReport(value === NO_RUN ? ALL_REPORTS : value);
+              setCurrentId(NO_RUN);
+              setPreviousId(NO_RUN);
+              setConfirmedFor(null);
             }}
+            disabled={busy || !catalogReady || !runs.length}
             items={[
-              { id: "all", name: "Todos los informes" },
+              { id: ALL_REPORTS, name: "Todos los informes" },
               ...reportIds.map((id) => ({
                 id,
                 name: `${id} · ${runs.find((run) => run.reportId === id)?.reportName ?? "Informe"}`,
               })),
             ]}
           />
-          <Choice
+          <ExecutionChoice
             label="Ejecución actual"
-            value={current}
+            value={currentId}
             onChange={chooseCurrent}
-            items={[
-              { id: "none", name: "Selecciona una ejecución" },
-              ...options(
-                (run) =>
-                  run.hasData &&
-                  run.accruedOn.startsWith(period) &&
-                  (report === "all" || report === run.reportId),
-              ),
-            ]}
+            disabled={busy || !catalogReady || !reportRuns.some((run) => run.hasData)}
+            items={[{ id: NO_RUN, name: "Selecciona una ejecución" }, ...options(reportRuns)]}
           />
-          <Choice
+          {catalogReady && runs.length > 0 && !reportRuns.some((run) => run.hasData) && (
+            <p role="status">
+              No hay ejecuciones con datos de este informe. Las ejecuciones vacías no pueden
+              analizarse. Consulta Resultados de nómina o genera el informe en PeopleNet y actualiza
+              el catálogo.
+            </p>
+          )}
+          {reportRuns.some((run) => !run.hasData) && (
+            <p className="text-sm text-muted-foreground">
+              Las ejecuciones marcadas «Sin datos» no se pueden seleccionar.
+            </p>
+          )}
+          <Input
+            label="Mes de nómina"
+            value={periodLabel(period)}
+            readOnly
+            placeholder="Se completa al elegir la ejecución actual"
+          />
+          <p className="text-sm text-muted-foreground">
+            El mes se obtiene de la fecha de acumulación de la ejecución elegida; no de la fecha en
+            que se generó el informe.
+          </p>
+          {!samePeriod && initial && (
+            <p role="alert" className="text-sm text-destructive">
+              Este expediente corresponde a {periodLabel(initial.period)}. Selecciona una ejecución
+              de ese mes; para otro periodo crea un expediente nuevo. Las instantáneas guardadas se
+              conservan.
+            </p>
+          )}
+          {catalogReady && currentId !== NO_RUN && !current && (
+            <p role="alert">
+              La ejecución guardada ya no está disponible con datos en el catálogo. Selecciona otra;
+              el expediente no se modificará hasta confirmar.
+            </p>
+          )}
+          <ExecutionChoice
             label="Ejecución anterior"
-            value={previous}
+            value={previousId}
             onChange={(value) => {
-              setPrevious(value);
-              setConfirmed(false);
+              setPreviousId(value);
+              setConfirmedFor(null);
             }}
+            disabled={busy || !catalogReady || !current}
             items={[
-              { id: "none", name: "Sin anterior: dejar controles mensuales pendientes" },
-              ...options(
-                (run) =>
-                  run.hasData &&
-                  run.accruedOn.slice(0, 7) < period &&
-                  !sameRun(run, runs[Number(current)]),
-              ),
+              { id: NO_RUN, name: "Sin anterior: dejar controles mensuales pendientes" },
+              ...options(priorRuns),
             ]}
           />
+          {current && previousId === NO_RUN && (
+            <p className="text-sm text-muted-foreground">
+              Sin ejecución anterior seleccionada. Puedes continuar: los controles mensuales
+              quedarán pendientes.
+            </p>
+          )}
+          {current && previousId !== NO_RUN && !previous && (
+            <p role="alert">
+              La ejecución anterior ya no está disponible o no corresponde a un mes anterior. Elige
+              otra o continúa sin anterior.
+            </p>
+          )}
           <p className="text-sm text-muted-foreground">
             Comprueba tipo de paga, frecuencia, fechas y población. El resultado guardado puede
             contener filtros que no constan en el catálogo. La propuesta de anterior no se confirma
@@ -234,19 +356,15 @@ export function SelectionForm({
       )}
       <Checkbox
         checked={confirmed}
-        onCheckedChange={setConfirmed}
+        onCheckedChange={(checked) => setConfirmedFor(checked ? confirmationKey : null)}
+        disabled={busy || !validSelection}
         label={
           demo
             ? "Confirmo que trabajaré con datos ficticios"
             : "Confirmo las ejecuciones y el alcance de su población"
         }
       />
-      <Button
-        type="submit"
-        disabled={
-          busy || !confirmed || !period || !title.trim() || (!demo && !runs[Number(current)])
-        }
-      >
+      <Button type="submit" disabled={busy || !confirmed || !title.trim()}>
         {initial ? "Actualizar instantáneas" : "Crear expediente y analizar"}
       </Button>
     </form>

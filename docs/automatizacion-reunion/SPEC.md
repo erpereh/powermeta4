@@ -70,9 +70,17 @@ con el propietario el acceso a esta nueva herramienta antes de habilitarla (Q10)
   Proponer la más reciente compatible, **exigir confirmación explícita** y
   permitir elegir otra. No elegir por fecha de creación global ni unir varias
   ejecuciones del mismo periodo.
+- Decisión implementada tras corregir el selector: primero informe y ejecución
+  actual; el mes se deriva de `accruedOn` y es de solo lectura. La lista actual
+  no se filtra por el mes del reloj ni por un calendario manual. Las claves
+  de ejecución son estables, sin índices de array. Los estados de carga,
+  error, vacío y ejecuciones sin datos se explican dentro del diálogo.
 - P: anterior por defecto es el mes natural anterior al elegido, incluido
   diciembre al cambiar de año. Las fechas reales se obtienen del catálogo:
   no fijar día 20/25 ni equiparar mes con identificador de paga.
+  La propuesta exige igual informe, frecuencia y tipo de paga conocido y elige
+  la ejecución más reciente de ese mes. Sin candidato compatible, se ofrece
+  continuar sin anterior. Cambiar informe/actual/anterior invalida la confirmación.
 - P: un informe no vacío no acredita que esté completo. Mostrar personas
   distintas, filas, diferencias de población y advertencia de filtros no
   recuperables; confirmar alcance de ambas fuentes. No inferir altas/bajas

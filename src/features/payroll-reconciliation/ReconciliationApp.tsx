@@ -67,6 +67,8 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
     [view, setView] = useState("resumen");
   const [error, setError] = useState(""),
     [catalogError, setCatalogError] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const catalogRequest = useRef(0);
   const [busy, setBusy] = useState(false),
     [newOpen, setNewOpen] = useState(false),
     [refreshOpen, setRefreshOpen] = useState(false);
@@ -96,26 +98,33 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
     const rows = await api<DossierSummary[]>();
     if (mounted.current) setList(rows);
   }, [api]);
+  const loadCatalog = useCallback(async () => {
+    const requestId = ++catalogRequest.current;
+    setCatalogLoading(true);
+    setCatalogError("");
+    try {
+      const rows = await api<PayrollReportRun[]>("?catalog=1");
+      if (mounted.current && requestId === catalogRequest.current) setRuns(rows);
+    } catch {
+      if (mounted.current && requestId === catalogRequest.current)
+        setCatalogError(
+          "No se ha podido leer el catálogo de PeopleNet. Reintenta la conexión para crear o actualizar las nóminas; los expedientes guardados se conservan.",
+        );
+    } finally {
+      if (mounted.current && requestId === catalogRequest.current) setCatalogLoading(false);
+    }
+  }, [api]);
   useEffect(() => {
     mounted.current = true;
     void loadList().catch((reason: unknown) => {
       if (mounted.current)
         setError(reason instanceof Error ? reason.message : "No se pudo cargar el historial.");
     });
-    void api<PayrollReportRun[]>("?catalog=1")
-      .then((rows) => {
-        if (mounted.current) setRuns(rows);
-      })
-      .catch(() => {
-        if (mounted.current)
-          setCatalogError(
-            "No se ha podido leer el catálogo de PeopleNet. Puedes abrir expedientes guardados y añadir fuentes; reintenta la conexión para crear o actualizar nóminas.",
-          );
-      });
+    void loadCatalog();
     return () => {
       mounted.current = false;
     };
-  }, [api, loadList]);
+  }, [loadCatalog, loadList]);
   const perform = async (operation: () => Promise<void>) => {
     if (busy) return;
     setBusy(true);
@@ -249,16 +258,8 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
             <Button
               variant="ghost"
               size="sm"
-              disabled={busy}
-              onClick={() =>
-                void perform(async () => {
-                  const catalog = await api<PayrollReportRun[]>("?catalog=1");
-                  if (mounted.current) {
-                    setRuns(catalog);
-                    setCatalogError("");
-                  }
-                })
-              }
+              disabled={busy || catalogLoading}
+              onClick={() => void loadCatalog()}
             >
               Reintentar catálogo
             </Button>
@@ -338,7 +339,7 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={busy || (!demo && !runs.length)}
+                  disabled={busy}
                   onClick={() => setRefreshOpen(true)}
                 >
                   <RefreshCw className="size-4" />
@@ -564,6 +565,9 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
           runs={runs}
           demo={demo}
           busy={busy}
+          catalogLoading={catalogLoading}
+          catalogError={catalogError}
+          onRetryCatalog={() => void loadCatalog()}
           onSubmit={(input) =>
             void perform(async () => {
               await accept(await api<Dossier>("", { method: "POST", body: JSON.stringify(input) }));
@@ -593,6 +597,9 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
             runs={runs}
             demo={demo}
             busy={busy}
+            catalogLoading={catalogLoading}
+            catalogError={catalogError}
+            onRetryCatalog={() => void loadCatalog()}
             initial={{
               title: dossier.title,
               period: dossier.period,

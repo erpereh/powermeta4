@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Selección de ejecuciones del cuadre — 2026-10-27
+
+- [x] Corregido el bloqueo del selector: informe y ejecución actual de cualquier
+      periodo; mes derivado de acumulación y de solo lectura. Identificadores
+      estables, fechas legibles y ejecuciones vacías deshabilitadas; `01` y
+      `01_C` siguen separados.
+- [x] Propuesta de anterior: última ejecución del mes natural anterior con igual
+      informe, frecuencia y tipo de paga conocido. Cambiar la selección exige
+      confirmar de nuevo. Carga tardía, error, vacío y reintento dentro del diálogo.
+- [x] Actualización de expedientes con el mismo selector y protección de su mes;
+      las instantáneas se conservan hasta confirmar. Sin cambios en SQLite,
+      lectores SQL, motor ni validaciones de periodo del servidor.
+- [x] Doce pruebas del formulario real y tres de creación/validación API nuevas.
+      Suite completa: 197 archivos, 1.137 pruebas correctas y 2 omitidas.
+      Typecheck, build y diff check correctos. Lint global ejecutado: siete
+      avisos previos y 618 archivos con formato pendiente; formato dirigido correcto.
+- [x] Navegador con formulario real, catálogo y servidor simulados: selección,
+      mes derivado y análisis con dieciséis controles. Formulario aislado sin
+      overflow horizontal a 390/768/1024/1440 px; no equivale a validar toda la
+      aplicación en esas resoluciones. Guía y flujos actualizados.
+- [ ] Confirmar en el catálogo corporativo qué ejecuciones existen, incluido
+      septiembre de 2026. No hay conexión PeopleNet configurada en este entorno.
+
 ## Cuadre de nómina con expedientes reanudables — 2026-10-27
 
 - [x] Herramienta standalone en sidebar, `/tools/cuadre-nomina`, con selección

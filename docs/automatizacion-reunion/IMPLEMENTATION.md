@@ -32,10 +32,12 @@ habilitado; producción nunca la habilita.
 
 ## Trabajar por entregas
 
-1. Crea un expediente y elige mes, informe y ejecución actual. Se ofrecen todos
-   los informes del catálogo existente. La anterior es opcional; se propone
-   una ejecución del mes anterior con igual informe y frecuencia y se exige
-   confirmar el alcance.
+1. Crea un expediente, elige el informe y después su ejecución actual. El
+   selector permite buscar entre sus ejecuciones de todos los periodos; las
+   vacías aparecen deshabilitadas. El mes se deriva de la fecha de acumulación
+   de la ejecución elegida y no se introduce manualmente. La anterior es
+   opcional: se propone la más reciente del mes natural anterior con igual
+   informe, frecuencia y tipo de paga conocido, y se exige confirmar el alcance.
 2. Consulta los resultados mensuales sin esperar a los Excel. Los controles
    externos aparecen pendientes hasta incorporar sus fuentes.
 3. En Fuentes, elige categoría y mes de devengo, comprueba el archivo y confirma
@@ -60,6 +62,23 @@ La lista permite eliminar expedientes con confirmación. Se conservan hasta
 eliminación explícita; los backups anteriores mantienen sus datos. El acceso
 sigue el contexto operacional de Resultados de nómina, sin roles nuevos.
 La instalación y sus copias deben custodiarse como datos de nómina.
+
+### Si no aparecen ejecuciones
+
+El diálogo distingue carga en curso, error de conexión, catálogo vacío e
+informe sin resultados utilizables. «Actualizar catálogo»/«Reintentar catálogo»
+vuelve a consultar; «Abrir Resultados de nómina» permite contrastar el listado
+existente en la misma sociedad. No hace falta cerrar el diálogo para ver el error.
+
+Si solo hay ejecuciones antiguas, pueden seleccionarse con su mes real; no se
+convierten en nóminas del año actual. Para un periodo que no existe, hay que
+generar el informe en PeopleNet o comprobar que se está utilizando el entorno
+correcto y actualizar el catálogo. No hay generación automática en esta herramienta.
+
+Al actualizar un expediente, su periodo se conserva. Elegir una ejecución de
+otro mes muestra una explicación y bloquea la actualización: para ese otro mes
+se crea un expediente nuevo. Una carga fallida o una selección sin confirmar no
+modifica las instantáneas guardadas.
 
 ## Contratos implementados
 

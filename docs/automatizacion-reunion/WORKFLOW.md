@@ -33,7 +33,7 @@ herramienta no ejecutará B, C ni M en su primera versión.
 ```mermaid
 flowchart TD
   A[Sidebar - Herramientas - Cuadre de nómina] --> B[Validar sesión y sociedad en servidor]
-  B --> C[Elegir periodo y ejecuciones]
+  B --> C[Elegir informe y ejecución actual - derivar mes]
   C --> D{¿Hay actual válido?}
   D -->|No| E[Explicar que falta informe guardado]
   D -->|Sí| F[Confirmar población y aportar fuentes]

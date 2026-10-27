@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-27 - Selección de ejecuciones y mes derivado en Cuadre de nómina
+
+- Eliminado el filtro del actual por un mes introducido manualmente, que dejaba
+  el selector vacío con catálogos históricos. Se elige informe y ejecución de
+  todos sus periodos; el mes procede de la fecha de acumulación. Las claves
+  estables sustituyen a los índices del array y mantienen separados `01`/`01_C`.
+- Fechas legibles, frecuencia y tipo de paga; resultados vacíos deshabilitados.
+  Carga, error, catálogo vacío, reintento y enlace a Resultados de nómina visibles
+  dentro del diálogo. Las respuestas obsoletas de carga no sustituyen al catálogo.
+- Anterior sugerida: última ejecución del mes natural anterior con igual informe,
+  frecuencia y tipo de paga conocido. Se puede cambiar o continuar sin anterior;
+  los cambios invalidan la confirmación. Actualizar un expediente conserva su
+  periodo e instantáneas hasta confirmar. No cambian esquema, SQL ni motor.
+- Doce pruebas nuevas de formulario en modo real y tres de API con lectores
+  simulados: históricos/recientes, informes separados, carga tardía, reordenación,
+  resultados vacíos, anterior compatible, cambio de año y periodos incompatibles.
+  Suite completa: 197 archivos, 1.137 pruebas correctas y 2 omitidas. Typecheck,
+  build y diff check correctos; lint global conserva siete avisos previos y
+  618 archivos con formato pendiente. Formato de archivos de la corrección verificado
+  por separado, conservando el formato histórico de todo/changelog.
+- Prueba de navegador del formulario real con catálogo y servidor simulados:
+  selección de septiembre, propuesta de agosto y creación/análisis con dieciséis
+  controles. Formulario aislado medido a 390/768/1024/1440 px sin overflow
+  horizontal. No valida conexión corporativa, persistencia en ese servidor
+  simulado ni toda la aplicación en esos tamaños. Guía y documentos actualizados;
+  capturas, harness y logs permanecen excluidos de Git.
+
 ## 2026-10-27 - Cuadre de nómina con expedientes locales reanudables
 
 - Nueva herramienta standalone `cuadre-nomina` en sidebar y ruta privada
