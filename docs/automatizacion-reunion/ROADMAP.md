@@ -1,7 +1,10 @@
 # Roadmap de implementación y validación
 
-Esta entrega analiza y diseña. Las fases de producto siguientes están
-**pendientes**; no se han implementado rutas, adaptadores ni controles.
+Núcleo, perfiles acreditados, interfaz, persistencia y scripts locales
+implementados. La validación real de PeopleNet y las reglas Q no resueltas
+siguen pendientes. El estado operativo y las limitaciones están en
+[IMPLEMENTATION](IMPLEMENTATION.md). Las fases siguientes conservan sus
+criterios de aceptación, sin afirmar que el piloto corporativo se haya ejecutado.
 Los criterios funcionales están en [SPEC](SPEC.md); las puertas Q en
 [OPEN_QUESTIONS](OPEN_QUESTIONS.md).
 
@@ -80,8 +83,9 @@ escaneados ni generar correcciones ERP en esta versión.
 Crear pantalla y handlers propuestos en [ARCHITECTURE](ARCHITECTURE.md),
 con sesión/contexto del servidor, validación de origen, límites propios e
 invalidación por sociedad. Reutilizar `@/components/system` y shell existente.
-Exportar valores y revisión en memoria; volver a leer y recalcular antes de
-descargar. No añadir persistencia SQLite ni estado sensible a stores globales.
+Exportar valores y revisión en memoria; recalcular fuentes guardadas antes de
+descargar. La persistencia SQLite por empresa/sociedad está aprobada; no añadir
+estado sensible a stores globales. Solo la actualización explícita relee SQL.
 
 Salida: flujo completo elegir → aportar → revisar → exportar, sin simular
 fuentes o controles ausentes. Registrar `cuadre-nomina` en `STANDALONE_TOOLS`
@@ -138,6 +142,8 @@ en `spec/changelog.md`; no presentar el resultado anterior como si validara
 esta ampliación. La matriz de dieciséis controles y los escenarios de
 [VALIDATION](VALIDATION.md) son los criterios para implementar y pilotar.
 
-No se añadieron pruebas de producto porque no se implementó funcionalidad.
-Las comparaciones locales del análisis son scripts privados, no una nueva
-API de conciliación ni prueba de acceso operativo a PeopleNet.
+El análisis documental original no añadió pruebas de producto. La implementación
+posterior incorpora pruebas de motor, perfiles, límites de API, persistencia y
+backup/restauración, además de contraste local con los diez originales.
+Los resultados ejecutados están en `spec/changelog.md`. No constituyen prueba
+de acceso operativo ni piloto de aceptación en PeopleNet.

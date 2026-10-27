@@ -1,7 +1,8 @@
 # Validación de fuentes y criterios de aceptación
 
-Estado: análisis documental y comprobaciones locales, **no implementación
-ni validación operativa en PeopleNet**. Los originales no se han guardado
+Estado de esta evidencia: análisis documental y comprobaciones locales;
+la implementación posterior y sus pruebas están en [IMPLEMENTATION](IMPLEMENTATION.md)
+y `spec/changelog.md`. **No acredita validación operativa en PeopleNet**. Los originales no se han guardado
 desde Excel ni recalculado. Datos, resultados y logs privados permanecen
 excluidos; este documento publica recuentos y ejemplos sintéticos.
 

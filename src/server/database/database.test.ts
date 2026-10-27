@@ -38,10 +38,7 @@ describe("node:sqlite database kernel", () => {
         .prepare(
           "INSERT INTO schema_migrations (version, name, checksum, applied_at) VALUES (1, '001_initial', ?, ?)",
         )
-        .run(
-          checksumMigrationSql(initialSql),
-          new Date().toISOString(),
-        );
+        .run(checksumMigrationSql(initialSql), new Date().toISOString());
       database
         .prepare(
           "INSERT INTO local_browser_sessions (id, cookie_hash, username, created_at, last_seen_at, expires_at, revoked_at) VALUES (?, ?, 'legacy-user', 'now', 'now', '2099-01-01T00:00:00.000Z', NULL)",
@@ -50,7 +47,7 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 10 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 11 });
       expect(database.prepare("SELECT version, name FROM schema_migrations").all()).toEqual([
         { version: 1, name: "001_initial" },
         { version: 2, name: "002_debug_auth_mode" },
@@ -62,6 +59,7 @@ describe("node:sqlite database kernel", () => {
         { version: 8, name: "008_meta4_multi_society" },
         { version: 9, name: "009_remove_agent_and_provider_configs" },
         { version: 10, name: "010_knowledge_base" },
+        { version: 11, name: "011_payroll_reconciliation" },
       ]);
       const migrated = database
         .prepare(
@@ -176,6 +174,7 @@ describe("node:sqlite database kernel", () => {
         { version: 8, name: "008_meta4_multi_society" },
         { version: 9, name: "009_remove_agent_and_provider_configs" },
         { version: 10, name: "010_knowledge_base" },
+        { version: 11, name: "011_payroll_reconciliation" },
       ]);
 
       const tables = database
@@ -202,6 +201,7 @@ describe("node:sqlite database kernel", () => {
         "local_browser_sessions",
         "messages",
         "meta4_user_profile",
+        "payroll_reconciliation_dossiers",
         "pending_backup_imports",
         "retributivo_analyses",
         "retributivo_settings",
@@ -216,7 +216,7 @@ describe("node:sqlite database kernel", () => {
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 10,
+        count: 11,
       });
     } finally {
       database.close();
@@ -274,7 +274,9 @@ describe("node:sqlite database kernel", () => {
         )
         .run(timestamp, timestamp);
       database
-        .prepare("UPDATE conversations SET head_message_id = 'migration-assistant' WHERE id = 'migration-chat'")
+        .prepare(
+          "UPDATE conversations SET head_message_id = 'migration-assistant' WHERE id = 'migration-chat'",
+        )
         .run();
       database
         .prepare(
@@ -294,11 +296,9 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 10 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 11 });
       expect(
-        database
-          .prepare("SELECT id, company_id, title, head_message_id FROM conversations")
-          .all(),
+        database.prepare("SELECT id, company_id, title, head_message_id FROM conversations").all(),
       ).toEqual([
         {
           id: "migration-chat",
@@ -309,7 +309,9 @@ describe("node:sqlite database kernel", () => {
       ]);
       expect(
         database
-          .prepare("SELECT id, parent_message_id, role, content_json, status, sequence FROM messages ORDER BY sequence")
+          .prepare(
+            "SELECT id, parent_message_id, role, content_json, status, sequence FROM messages ORDER BY sequence",
+          )
           .all(),
       ).toEqual([
         {
@@ -349,7 +351,9 @@ describe("node:sqlite database kernel", () => {
       ]);
       expect(
         database
-          .prepare("SELECT value_json FROM workspace_settings WHERE key = 'selectedProviderConfigId'")
+          .prepare(
+            "SELECT value_json FROM workspace_settings WHERE key = 'selectedProviderConfigId'",
+          )
           .get(),
       ).toBeUndefined();
       for (const table of [
@@ -359,7 +363,9 @@ describe("node:sqlite database kernel", () => {
         "ai_provider_configs",
       ]) {
         expect(
-          database.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table),
+          database
+            .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+            .get(table),
         ).toBeUndefined();
       }
       expect(database.prepare("PRAGMA integrity_check").get()).toEqual({ integrity_check: "ok" });
@@ -405,12 +411,10 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 10 });
-      expect(
-        database
-          .prepare("SELECT society, username FROM meta4_user_profile")
-          .all(),
-      ).toEqual([{ society: "IBER", username: "usuario" }]);
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 11 });
+      expect(database.prepare("SELECT society, username FROM meta4_user_profile").all()).toEqual([
+        { society: "IBER", username: "usuario" },
+      ]);
       const columns = (
         database.prepare("PRAGMA table_info(meta4_user_profile)").all() as Array<{ name: string }>
       ).map((column) => column.name);
@@ -608,6 +612,10 @@ describe("node:sqlite database kernel", () => {
         migrationPath(directory, "010_test.sql"),
         "CREATE TABLE migration_test_v10 (id TEXT PRIMARY KEY); PRAGMA user_version = 10;",
       );
+      writeFileSync(
+        migrationPath(directory, "011_test.sql"),
+        "CREATE TABLE migration_test_v11 (id TEXT PRIMARY KEY); PRAGMA user_version = 11;",
+      );
       runMigrations(database, directory);
       writeFileSync(
         firstMigrationPath,
@@ -634,13 +642,14 @@ describe("node:sqlite database kernel", () => {
       writeFileSync(migrationPath(directory, "008_test.sql"), "CREATE TABLE eighth (id TEXT);");
       writeFileSync(migrationPath(directory, "009_test.sql"), "CREATE TABLE ninth (id TEXT);");
       writeFileSync(migrationPath(directory, "010_test.sql"), "CREATE TABLE tenth (id TEXT);");
+      writeFileSync(migrationPath(directory, "011_test.sql"), "CREATE TABLE eleventh (id TEXT);");
       runMigrations(database, directory);
       writeFileSync(migrationPath(directory, "002_future.sql"), "CREATE TABLE future (id TEXT);");
       expect(() => runMigrations(database, directory)).toThrow(/versión|migraciones|duplicad/i);
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 10,
+        count: 11,
       });
       expect(database.prepare("SELECT name FROM sqlite_master WHERE name = 'future'").get()).toBe(
         undefined,

@@ -1,7 +1,8 @@
 # Flujos del cuadre de nómina
 
 Los diagramas actuales sintetizan hechos E02–E24 de [AS_IS](AS_IS.md).
-Los diagramas futuros son propuestas; no representan rutas ya implementadas.
+El flujo implementado añade expedientes SQLite y actualización explícita de
+instantáneas, según [IMPLEMENTATION](IMPLEMENTATION.md).
 
 ## Proceso manual observado
 
@@ -38,7 +39,10 @@ flowchart TD
   D -->|Sí| F[Confirmar población y aportar fuentes]
   F --> G[Vista previa de estructura, periodo y cobertura]
   G --> H[Analizar con reglas acreditadas]
-  H --> I[Mostrar resultados y pendientes por control]
+  H --> SAVE[Guardar expediente local y revisión]
+  SAVE --> I[Mostrar resultados y pendientes por control]
+  I --> MORE[Retomar y añadir nuevas fuentes]
+  MORE --> H
   I --> J[Revisar diferencias y añadir notas]
   J --> K{¿Requiere actuación ERP?}
   K -->|Sí| L[Corrección manual fuera de la herramienta]
@@ -61,6 +65,7 @@ sequenceDiagram
   participant SQL as Lectores PeopleNet
   participant PAR as Perfiles de archivos
   participant ENG as Motor puro
+  participant DB as Expediente SQLite
   U->>UI: Seleccionar ejecuciones y ficheros
   UI->>API: Preview con fuentes y metadatos
   API->>CTX: Validar sesión, contexto y origen
@@ -76,17 +81,22 @@ sequenceDiagram
   PAR-->>API: Valores y evidencia de origen
   API->>ENG: Comparar entradas acreditadas
   ENG-->>API: Hallazgos y cobertura
+  API->>DB: Guardar instantáneas, fuentes normalizadas y revisión
   API->>CTX: Comprobar vigencia del contexto
   API-->>UI: Resultado seguro y huellas
   U->>UI: Anotar revisión y exportar
-  UI->>API: Entradas, huella y anotaciones
-  API->>SQL: Releer con contexto válido
+  UI->>API: ID, revisión esperada y anotaciones
+  API->>DB: Leer instantáneas y fuentes guardadas
   API->>ENG: Recalcular y verificar huella
   alt Datos o contexto cambiados
     API-->>UI: Resultado obsoleto; revisar de nuevo
   else Evidencia idéntica
     API-->>UI: Excel en memoria, no-store
   end
+  U->>UI: Actualizar desde PeopleNet (opcional, explícito)
+  UI->>API: Nuevas claves y confirmación de población
+  API->>SQL: Releer ejecuciones en sociedad autorizada
+  API->>DB: Recalcular, invalidar revisiones afectadas y guardar
 ```
 
 No hay flecha hacia el chat, un modelo de lenguaje, escrituras SQL, servicios

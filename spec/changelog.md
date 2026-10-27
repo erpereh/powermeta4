@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-10-27 - Cuadre de nómina con expedientes locales reanudables
+
+- Nueva herramienta standalone `cuadre-nomina` en sidebar y ruta privada
+  `/tools/cuadre-nomina`. Reutiliza catálogo y lectura de ejecuciones SQL
+  existentes; admite informes distintos del 001 y activa controles según sus
+  columnas, sin cambiar Resultados de nómina ni su exportación.
+- Implementados C01–C16 y perfiles acreditados, decimales con 24 posiciones,
+  signos/ocurrencias/periodos explícitos, fuentes parciales y pendientes honestos.
+  Se mantienen las discrepancias originales y la identidad inválida de Eurest.
+- Decisión de persistencia aprobada: migración 011, esquema 11 y repositorio
+  por empresa/sociedad para instantáneas mínimas, fuentes normalizadas, parámetros,
+  resultados y revisión. No conserva originales; actualización ERP solo explícita,
+  conflictos 409, invalidación de notas afectadas y borrado confirmado. Los backups
+  incluyen expedientes y mantienen la política existente de versión exacta.
+- Interfaces autenticadas para expedientes, vista previa, incorporación de fuentes
+  y exportación Excel. Libro con 23 hojas y evidencia de ejecuciones/entradas;
+  sin NIF/cuentas bancarias. Cuerpos y ZIP limitados, comprobación de origen y
+  solo tres exclusiones específicas del proxy. Sin llamadas al modelo ni nuevas
+  escrituras en PeopleNet.
+- Scripts de descubrimiento/verificación de solo lectura con salidas saneadas;
+  guía `docs/automatizacion-reunion/IMPLEMENTATION.md` y actualización de los siete
+  documentos y anexos para sustituir el diseño efímero por el flujo reanudable.
+- Comprobaciones ejecutadas: setup en base aislada; typecheck y build correctos;
+  suite completa de 196 archivos con 1.121 pruebas correctas y 2 omitidas.
+  Primera suite: una expectativa anterior de sidebar falló al añadir la nueva
+  herramienta; corregida y suite completa repetida con éxito. Tras últimos
+  ajustes se ejecutaron siete archivos dirigidos: 40 pruebas correctas.
+- Contraste sin BD con diez originales y hashes inalterados: nueve métricas
+  Mercer con 484 coincidencias cada una; kilómetros 24; apartamentos 57 coincidencias
+  y una diferencia; tarjeta 335 coincidencias y una diferencia en cada métrica;
+  PPSE mensual 239 coincidencias y cuatro diferencias; gimnasio 42 coincidencias.
+- Prueba real en navegador local con datos ficticios: crear, revisar sin cambiar
+  delta, recargar/reabrir, añadir fuente de 11.646.303 bytes y descargar libro
+  de 23 hojas sin fórmulas ni cabeceras NIF/cuenta bancaria. Temas claro/oscuro;
+  viewport 1305 × 703 sin overflow de página. Matriz móvil y piloto PeopleNet
+  pendientes; no se ejecutaron los scripts de SQL contra la BD corporativa.
+- Lint global sigue fallando por siete avisos previos y formato pendiente en
+  618 archivos. Formato dirigido correcto en 51 archivos; se conserva el formato
+  histórico de todo/changelog. No se hace limpieza general del repositorio. Fuentes privadas,
+  SQLite de prueba, logs, capturas y derivados permanecen excluidos de Git.
+
 ## 2026-10-26 - Contratos del cuadre a partir de los Excel originales
 
 - Ampliación documental de `docs/automatizacion-reunion/`: diez originales,

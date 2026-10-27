@@ -1,5 +1,41 @@
 # powermeta4 - estado de tareas
 
+## Cuadre de nómina con expedientes reanudables — 2026-10-27
+
+- [x] Herramienta standalone en sidebar, `/tools/cuadre-nomina`, con selección
+      de todos los informes y ejecuciones disponibles, anterior opcional y
+      confirmación de población. Los lectores de Resultados de nómina conservan
+      su implementación y contrato.
+- [x] Motor decimal determinista, C01–C16, perfiles de los diez originales,
+      plantillas de excesos/anticipos/excepciones y parámetros por periodo.
+      No se inventan reglas proporcionales, causas históricas ni fuentes ausentes.
+- [x] Expedientes SQLite por empresa/sociedad, migración 011/esquema 11,
+      instantáneas conservadas hasta actualización explícita, carga progresiva,
+      revisión optimista, notas invalidadas por cambios y borrado confirmado.
+      Integrados en backups; no se guardan originales ni NIF/cuentas bancarias.
+- [x] Vista previa, análisis, revisión y libro de 23 hojas; límites de archivo,
+      cuerpo y expansión ZIP. Sesión/contexto/origen validados en servidor y
+      separación completa respecto al chat y las escrituras ERP.
+- [x] Scripts `cuadre:discover`, `cuadre:verify` y `cuadre:verify-local`, guía
+      IMPLEMENTATION y actualización de la documentación funcional/técnica.
+- [x] `npm run setup` aplicado en un directorio de prueba excluido, sin tocar
+      la base de producto del usuario. Typecheck y build correctos. Suite completa:
+      196 archivos, 1.121 pruebas correctas y 2 omitidas; tras los últimos ajustes,
+      repetición dirigida de siete archivos con 40 pruebas correctas.
+- [x] Contraste local con diez originales intactos: Mercer 484 coincidencias
+      por métrica; kilómetros 24 por métrica; apartamentos 57/1 diferencias;
+      tarjeta 335/1 por métrica; PPSE 239/4; gimnasio 42 coincidencias.
+      Navegador: creación, revisión, recarga/reapertura, fuente posterior de
+      11.646.303 bytes y descarga real del libro, con tema claro/oscuro.
+- [x] Lint global ejecutado: siete avisos previos y 618 archivos con formato
+      pendiente; 51 archivos de la entrega pasan el formato dirigido. Se conserva
+      el formato histórico de todo/changelog, sin una limpieza ajena a la tarea.
+      Originales, derivados, capturas, logs y SQLite de prueba excluidos de Git.
+- [ ] Piloto real en PeopleNet, reglas económicas Q pendientes y medición en VM.
+- [ ] Completar matriz visual de 1440/1024/768/390 px; revisión ejecutada a
+      1305 × 703, sin overflow horizontal de página. No se afirma cobertura móvil
+      completa ni un benchmark corporativo.
+
 ## Contratos del cuadre con los Excel del cliente — 2026-10-26
 
 - [x] Diez originales excluidos de Git antes de generar derivados; 39 hojas

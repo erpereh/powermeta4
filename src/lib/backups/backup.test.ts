@@ -147,10 +147,14 @@ describe("backup safety and exact format", () => {
         expect(database.prepare("SELECT COUNT(*) AS count FROM messages").get()).toMatchObject({
           count: 1,
         });
-        expect(database.prepare("SELECT title FROM conversations WHERE id = 'conversation-backup'").get()).toEqual({
+        expect(
+          database
+            .prepare("SELECT title FROM conversations WHERE id = 'conversation-backup'")
+            .get(),
+        ).toEqual({
           title: "Copia",
         });
-        expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 10 });
+        expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 11 });
         for (const table of [
           "agent_pending_disambiguation",
           "agent_privacy_bindings",
@@ -158,7 +162,9 @@ describe("backup safety and exact format", () => {
           "ai_provider_configs",
         ]) {
           expect(
-            database.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table),
+            database
+              .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+              .get(table),
           ).toBeUndefined();
         }
       } finally {
@@ -198,14 +204,14 @@ describe("backup safety and exact format", () => {
 
   it("preserves a registro-retributivo analysis through backup and restore", async () => {
     await createFixture();
-    const { createRetributivoStateRepository } = await import(
-      "@/server/database/repositories/retributivo-analysis-repository"
-    );
-    const { DEFAULT_SETTINGS, STORAGE_SCHEMA_VERSION } = await import(
-      "@/features/registro-retributivo/settings/defaults"
-    );
+    const { createRetributivoStateRepository } =
+      await import("@/server/database/repositories/retributivo-analysis-repository");
+    const { DEFAULT_SETTINGS, STORAGE_SCHEMA_VERSION } =
+      await import("@/features/registro-retributivo/settings/defaults");
     const liveDatabase = getDatabase();
-    const company = liveDatabase.prepare("SELECT id FROM companies LIMIT 1").get() as { id: string };
+    const company = liveDatabase.prepare("SELECT id FROM companies LIMIT 1").get() as {
+      id: string;
+    };
     await createRetributivoStateRepository(liveDatabase).applyPatch(company.id, {
       analysis: {
         id: "analysis-backup",
@@ -269,6 +275,49 @@ describe("backup safety and exact format", () => {
     } finally {
       closeDatabase();
     }
+  });
+
+  it("restores a resumable payroll reconciliation with its snapshots and review", async () => {
+    await createFixture();
+    const { reconciliationRepository } =
+      await import("@/server/database/repositories/payroll-reconciliation-repository");
+    const { demoReport } = await import("@/lib/payroll-reconciliation/demo");
+    const { snapshot } = await import("@/lib/payroll-reconciliation/snapshot");
+    const { reconcile } = await import("@/lib/payroll-reconciliation/engine");
+    const { DEFAULT_PARAMETERS } = await import("@/lib/payroll-reconciliation/types");
+    const db = getDatabase();
+    const company = db.prepare("SELECT id FROM companies LIMIT 1").get() as { id: string };
+    const scope = { companyId: company.id, society: "DEBUG" };
+    const base = {
+      period: "2026-10",
+      current: snapshot(demoReport("2026-10"), true),
+      previous: null,
+      sources: [],
+      parameters: DEFAULT_PARAMETERS,
+    };
+    await reconciliationRepository(db).save(
+      scope,
+      {
+        ...base,
+        id: "cuadre-backup",
+        title: "Prueba sintética",
+        revision: 1,
+        createdAt: "2026-10-26",
+        updatedAt: "2026-10-26",
+        demo: true,
+        annotations: [],
+        result: reconcile(base),
+      },
+      null,
+    );
+    const { exportBackup, restoreBackup, validateBackup } = await import("@/lib/backups/service");
+    const exported = await exportBackup();
+    const validation = await validateBackup(exported.bytes, "browser-session-hash");
+    await restoreBackup(validation.importId, "browser-session-hash");
+    const restored = reconciliationRepository(getDatabase()).get(scope, "cuadre-backup");
+    expect(restored.current.hash).toBe(base.current.hash);
+    expect(restored.result.controls).toHaveLength(16);
+    expect(restored.parameters).toEqual(DEFAULT_PARAMETERS);
   });
 
   it("rejects a version mismatch before restoring", async () => {

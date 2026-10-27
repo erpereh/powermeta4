@@ -4,7 +4,8 @@ Este anexo concreta [SPEC](SPEC.md). S01–S10 y sus rangos están en
 [SOURCES](SOURCES.md); E remite al vídeo de [AS_IS](AS_IS.md).
 **H** identifica fórmula/dato observado; **P**, decisión de implementación;
 las Q siguen en [OPEN_QUESTIONS](OPEN_QUESTIONS.md). No hay código de producto
-implementado en esta entrega.
+implementado en el análisis documental original. La implementación posterior
+de perfiles y sus límites se recoge en [IMPLEMENTATION](IMPLEMENTATION.md).
 
 ## Contrato común
 
@@ -115,6 +116,8 @@ Q07: completar 40 %, ausencias y vigencias mediante la plantilla de excepciones.
 
 H: correo/E13. S03/Carga de Valores, cabecera fila 2: A matrícula, B artículo,
 G `imp_totexekm_c`, H `imp_totdeckm_c`, I `imp_totcocpro_c`.
+El artículo acreditado en este perfil es `GV-KILOM01`; otros artículos quedan
+no comparables hasta acreditar su contrato.
 Nómina BH exento, BI no exento, DS cancelación. `Kms!Q2=C2-M2` y
 `R2=D2-N2`; el libro también muestra cancelación en E e I del origen copiado
 en O, sin fórmula de contraste adicional.

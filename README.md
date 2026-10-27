@@ -78,7 +78,7 @@ partes no textuales, system prompts, tools, function calling y cualquier dato
 de Meta4. El cliente compatible normaliza la raíz de `AI_BASE_URL` a
 `/chat/completions`, envía `{ model, messages, stream: true }`, procesa SSE y
 persiste contenido incremental y estados `complete`, `cancelled` o `failed`.
-El esquema actual es `DATABASE_SCHEMA_VERSION = 9`; la migración 009 elimina
+El esquema actual es `DATABASE_SCHEMA_VERSION = 11`; la migración 009 elimina
 la infraestructura exclusiva del agente y las configuraciones de proveedor,
 sin tocar conversaciones, mensajes, attachments ni el grafo de padres.
 
@@ -167,6 +167,21 @@ ejecuta la aplicación con `npm ci`; después reiniciar `npm run dev` o ejecutar
 producción incluidas en `package-lock.json`; copiar solo el código no instala
 esas librerías.
 
+## Cuadre de nómina
+
+La herramienta de la sidebar `/tools/cuadre-nomina` guarda expedientes locales
+reanudables: permite elegir informes y ejecuciones de Resultados de nómina,
+comparar con anterior, añadir Excel externos por entregas, revisar diferencias
+y exportar el libro de cuadres. Las instantáneas solo se actualizan cuando se
+solicita expresamente. No escribe en PeopleNet ni envía datos al chat.
+
+Tras actualizar, ejecutar `npm run setup` con el servidor detenido para aplicar
+la migración 011 (esquema 11). Los expedientes se incluyen en backups y se
+conservan hasta borrado explícito; no se conservan los originales subidos.
+Las copias de esquemas anteriores requieren una instalación compatible.
+Uso, pruebas, reglas pendientes y comandos `cuadre:discover`, `cuadre:verify`
+y `cuadre:verify-local`: [Guía de Cuadre de nómina](docs/automatizacion-reunion/IMPLEMENTATION.md).
+
 ## Copias locales
 
 El ZIP contiene exclusivamente:
@@ -182,7 +197,7 @@ El manifest tiene exactamente estas cinco propiedades:
 ```json
 {
   "backupVersion": 1,
-  "databaseSchemaVersion": 9,
+  "databaseSchemaVersion": 11,
   "appVersion": "...",
   "createdAt": "...",
   "databasePath": "database/powermeta4.db"
@@ -194,7 +209,7 @@ saneamiento de la copia, la lectura de uploads y la compresión se realizan sin
 ese lock. Sesiones, imports pendientes, recibos de idempotencia y el perfil Meta4
 cifrado se eliminan de la copia temporal; la base activa no se modifica al
 exportar. Los backups de esquema 8 no se restauran directamente: la política
-vigente exige coincidencia exacta con el esquema 9.
+vigente exige coincidencia exacta con el esquema 11.
 
 La restauración exige coincidencia exacta de `backupVersion` y
 `databaseSchemaVersion` antes de adquirir mantenimiento. Valida seguridad del

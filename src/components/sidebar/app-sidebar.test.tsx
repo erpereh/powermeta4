@@ -161,6 +161,7 @@ describe("app sidebar tools group", () => {
     expect(tools.getByRole("button", { name: "Reg. Retrib." })).toBeTruthy();
     expect(tools.getByRole("button", { name: "Portal" })).toBeTruthy();
     expect(tools.getAllByRole("button").map((button) => button.textContent?.trim())).toEqual([
+      "Cuadre de nómina",
       "Reg. Retrib.",
       "Portal",
     ]);

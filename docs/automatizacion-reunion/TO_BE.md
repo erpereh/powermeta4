@@ -1,6 +1,7 @@
 # Proceso propuesto: revisar el cuadre sin copiar y pegar
 
-Todo este documento describe **propuestas (P)**. La ubicación standalone y
+Este documento describe el flujo funcional; el estado implementado y los límites
+operativos se detallan en [IMPLEMENTATION](IMPLEMENTATION.md). La ubicación standalone y
 la lectura SQL de las nóminas son decisiones expresas del usuario. Las evidencias del proceso
 actual están en [AS_IS](AS_IS.md); el contrato funcional es [SPEC](SPEC.md).
 
@@ -9,7 +10,7 @@ actual están en [AS_IS](AS_IS.md); el contrato funcional es [SPEC](SPEC.md).
 1. **Abrir «Cuadre de nómina» desde Herramientas en la sidebar.** La sesión y sociedad son
    las actuales de powermeta4. La pantalla no añade un selector de sociedad ERP
    independiente ni utiliza la identidad del portal para conceder acceso.
-2. **Elegir periodo y ejecuciones.** Mostrar las ejecuciones normales
+2. **Crear o abrir un expediente; elegir periodo y ejecuciones.** Mostrar todos los informes y ejecuciones
    disponibles del actual y anterior, con paga, frecuencia, fecha de ejecución,
    filas y personas. Ofrecer candidatos recientes y exigir confirmar su
    población. Si el informe todavía no existe, pedir generarlo por el proceso
@@ -19,7 +20,7 @@ actual están en [AS_IS](AS_IS.md); el contrato funcional es [SPEC](SPEC.md).
    hoja/bloque, filas y conceptos reconocidos. No exige copiar una hoja a otra
    ni usar un nombre de fichero exacto. Un formato no reconocido queda pendiente
    de validar el adaptador, sin adivinar columnas.
-4. **Analizar.** El servidor valida las entradas, vuelve a leer las ejecuciones
+4. **Analizar.** El servidor valida las entradas, conserva las instantáneas elegidas
    y cruza matrículas. Compara lo disponible y muestra cada dependencia
    ausente. Las fuentes subidas para el análisis no se importan en Meta4.
 5. **Revisar las excepciones.** La persona consulta operandos, fuentes y regla,
@@ -30,7 +31,10 @@ actual están en [AS_IS](AS_IS.md); el contrato funcional es [SPEC](SPEC.md).
    herramienta, RRHH realiza la corrección ERP y obtiene un resultado nuevo.
    Elegir esa nueva ejecución invalida los cuadres afectados; se analizan y
    revisan otra vez. No hay botón que escriba ni recalcule en PeopleNet.
-7. **Descargar el expediente Excel.** Contiene resultados, cobertura,
+7. **Guardar y continuar más adelante.** SQLite conserva el expediente por
+   empresa/sociedad. Subir nuevas fuentes recalcula los controles; reabrir no
+   cambia las nóminas. Actualizarlas requiere la acción explícita del usuario.
+8. **Descargar el expediente Excel.** Contiene resultados, cobertura,
    referencias y revisión. Si la fuente cambió desde el análisis, bloquear
    la exportación obsoleta y pedir revisar la nueva comparación.
 
@@ -44,15 +48,15 @@ al fichero Mercer; un control sin fuente no se interpreta como coincidente.
 
 ## Qué se automatiza y qué conserva intervención humana
 
-| Parte                      | Automatización propuesta                                                                    | Intervención que permanece                                                              |
-| -------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Selección de nóminas       | Consultar historial, presentar candidatos y validar claves/contexto.                        | Confirmar que las ejecuciones contienen la población y alcance deseados.                |
-| Tablas dinámicas y BUSCARV | Agregar importes por persona, cruzar por clave y generar diferencias sin depender de filas. | Resolver identificadores ambiguos o fuentes incompletas.                                |
-| Conceptos mensuales        | Comparar Fijos, porcentaje IRPF, Turnos y lista validada de Otros.                          | Juzgar si el cambio es correcto y aportar causa cuando no está acreditada.              |
-| Ficheros externos          | Leer perfiles validados, seleccionar periodo y contrastar conceptos.                        | Descargar/obtener originales y aportarlos; confirmar su periodo y cobertura.            |
-| Cálculos acreditados       | Aplicar fórmulas expresamente validadas y conservar operandos.                              | Validar devengos, tarifas, excepciones y políticas antes de habilitar cada regla.       |
-| Motivos                    | Adjuntar evidencia histórica cuando exista contrato y correspondencia temporal.             | Confirmar relación causal y decidir la actuación.                                       |
-| Expediente                 | Exportar el resultado calculado, sus pendientes y notas.                                    | Custodiarlo según el procedimiento corporativo; v1 no crea archivo histórico adicional. |
+| Parte                      | Automatización propuesta                                                                    | Intervención que permanece                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Selección de nóminas       | Consultar historial, presentar candidatos y validar claves/contexto.                        | Confirmar que las ejecuciones contienen la población y alcance deseados.          |
+| Tablas dinámicas y BUSCARV | Agregar importes por persona, cruzar por clave y generar diferencias sin depender de filas. | Resolver identificadores ambiguos o fuentes incompletas.                          |
+| Conceptos mensuales        | Comparar Fijos, porcentaje IRPF, Turnos y lista validada de Otros.                          | Juzgar si el cambio es correcto y aportar causa cuando no está acreditada.        |
+| Ficheros externos          | Leer perfiles validados, seleccionar periodo y contrastar conceptos.                        | Descargar/obtener originales y aportarlos; confirmar su periodo y cobertura.      |
+| Cálculos acreditados       | Aplicar fórmulas expresamente validadas y conservar operandos.                              | Validar devengos, tarifas, excepciones y políticas antes de habilitar cada regla. |
+| Motivos                    | Adjuntar evidencia histórica cuando exista contrato y correspondencia temporal.             | Confirmar relación causal y decidir la actuación.                                 |
+| Expediente                 | Guardar y reabrir fuentes normalizadas, instantáneas, resultados y notas; exportar Excel.   | Custodiar instalación y backups; eliminar expedientes cuando corresponda.         |
 
 ## Estrategia de integración por fuente
 
@@ -101,7 +105,8 @@ un filtro de entidad acreditado dentro de la sociedad autorizada.
 - Fuente nueva o modificada: recalcular dependencias e invalidar revisiones cuyo
   identificador, operandos o evidencia hayan cambiado.
 - Cambio de sociedad/logout: vaciar datos y descartar respuestas en curso.
-- Recarga: v1 vuelve a la selección; no prometer recuperación de ficheros/notas.
+- Recarga: abrir el expediente guardado; recupera fuentes normalizadas y notas,
+  sin requerir volver a subir los originales.
 
 No se declara «todo cuadrado» si hay controles pendientes, errores, fuentes
 sin vincular o diferencias sin revisar. Incluso un expediente completo es

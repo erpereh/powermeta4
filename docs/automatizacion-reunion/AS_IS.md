@@ -1,5 +1,9 @@
 # Proceso actual: cuadre mensual de nómina
 
+Este documento conserva la evidencia del procedimiento manual. La herramienta
+implementada y sus diferencias respecto a este proceso están en
+[IMPLEMENTATION](IMPLEMENTATION.md); no modifica retrospectivamente los hechos observados.
+
 Fecha del análisis: 2026-10-26. Ampliado con el correo y diez Excel originales
 el mismo día; el recorrido E01–E26 conserva la evidencia del vídeo. Fuente: `revision_video/reunion.mp4`,
 duración **01:10:40.333**. Los tiempos de este documento empiezan en el

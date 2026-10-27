@@ -1,10 +1,12 @@
 # SPEC — Cuadre de nómina
 
-Estado: **especificación documental; funcionalidad no implementada**.
+Estado: **implementación local del núcleo, expedientes y perfiles acreditados;
+validación operativa en PeopleNet pendiente**. Las decisiones vigentes de
+persistencia, interfaces y puesta en marcha están en [IMPLEMENTATION](IMPLEMENTATION.md).
 Fecha: 2026-10-26. Herramienta independiente propuesta `cuadre-nomina`,
 ruta `/tools/cuadre-nomina`, sección **Herramientas** de la sidebar, como
 Registro Retributivo. Decisión expresa del usuario; sustituye la ubicación
-anterior en Inicio. No se ha cambiado el registro de producto.
+anterior en Inicio. La herramienta está registrada en la sidebar.
 
 ## 1. Objetivo y lectura para la implementación
 
@@ -40,8 +42,10 @@ aceptación; no se rellenarán con aproximaciones silenciosas.
   login a proveedores, publicación de ficheros ni tareas programadas.
 - H: contabilidad, seguros sociales, modelos 111/190 y proceso completo de
   remisión del plan de pensiones no están explicados; quedan fuera (E25).
-- P: no persistir nuevos datos personales ni resultados en SQLite en v1.
-  El historial disponible es el de ejecuciones ERP; el expediente se descarga.
+- Decisión posterior aprobada: guardar expedientes reanudables en SQLite local,
+  con instantáneas mínimas, fuentes normalizadas, resultados y revisión por
+  empresa/sociedad. No se guardan originales. Se incluyen en backups y se
+  conservan hasta eliminación explícita; las copias anteriores los mantienen.
 
 ## 2. Actores, entradas y selección de fuentes
 
@@ -59,7 +63,7 @@ con el propietario el acceso a esta nueva herramienta antes de habilitarla (Q10)
   `PayrollReportRunKey` y la decodificación existente del BLOB. La clave contiene
   informe, instante de ejecución, fecha de paga y frecuencia; la sociedad sale
   del contexto operacional, nunca del cuerpo de la petición.
-- P: el usuario selecciona una ejecución actual y una anterior ordinarias,
+- El usuario selecciona cualquier informe y una ejecución actual/anterior,
   con detalle de fecha de paga, frecuencia, ejecución y población. Mostrar
   tipo/filtros solo cuando se acrediten; en otro caso, indicar que no constan
   y pedir confirmación del alcance (Q02).
@@ -261,11 +265,12 @@ Implementación y transporte concretos: [ARCHITECTURE](ARCHITECTURE.md).
 | `ReconciliationResult`  | Huella/versiones, periodo y contexto seguro, cobertura, fuentes, hallazgos y recuentos. Sin tokens ni filas personales innecesarias.                                                                                                                                                |
 | `ReviewAnnotation`      | ID de hallazgo + huella de evidencia, estado manual y comentario; el servidor añade actor/fecha al exportar. No permite cambiar importes ni resultado calculado.                                                                                                                    |
 
-P: sin migraciones SQLite ni nuevo store global. Las entradas se mantienen
-solo en memoria durante la visita/petición. El servidor vuelve a validar sesión,
-sociedad, claves, ficheros y perfiles en cada operación. Al exportar vuelve a
-calcular y exige que las huellas coincidan; si cambió la fuente, responde 409
-y obliga a revisar el análisis nuevo.
+Implementado: migración 011 y repositorio de expedientes, sin nuevo store global.
+El servidor valida sesión, empresa, sociedad, revisiones, ficheros y perfiles.
+Al reabrir se conservan las instantáneas; solo «Actualizar desde PeopleNet»
+las relee. Exportar recalcula las fuentes guardadas y comprueba versión/revisión;
+responde 409 si cambió el expediente o el motor exige recalcular. No relee SQL
+silenciosamente. Las revisiones manuales cuya evidencia cambie se invalidan.
 
 ## 7. Aceptación
 

@@ -1,5 +1,8 @@
 # Integración técnica con powermeta4
 
+Estado de implementación y comandos: [IMPLEMENTATION](IMPLEMENTATION.md).
+La decisión posterior de expedientes persistidos sustituye el diseño efímero.
+
 ## 1. Arquitectura existente comprobada
 
 | Pieza                 | Código existente                                                    | Uso acreditado y límite                                                                                                                            |
@@ -35,7 +38,7 @@ Decisión expresa del usuario: **Cuadre de nómina**, herramienta standalone
 Retributivo en la sidebar. Declararla únicamente en `STANDALONE_TOOLS` y
 añadir su clave de icono semántico tipado al registro. No añadirla a
 `TOOL_MODULES`, actividad ERP, recomendaciones ni búsqueda de Inicio.
-No se modifica el registro en esta entrega documental.
+La herramienta ya está declarada en el registro; no se incorpora a las acciones ERP.
 
 Las nóminas se leen mediante SQL existente, decisión confirmada por el usuario.
 Ser standalone describe navegación y autonomía de la utilidad, no un permiso
@@ -43,11 +46,11 @@ para elegir sociedad en el navegador ni para duplicar autenticación.
 Usar `PageHeader` de la fachada, como una herramienta, sin breadcrumb de
 Acciones/Módulo de `ToolsPageHeader`. Mantener shell y sidebar existentes.
 
-Estructura futura propuesta, sin crearla en esta entrega:
+Estructura implementada:
 
 ```text
 src/app/(app)/tools/cuadre-nomina/page.tsx    página de servidor y contexto seguro
-src/features/payroll-reconciliation/          componentes y estado local de visita
+src/features/payroll-reconciliation/          componentes y estado local de presentación
 src/lib/payroll-reconciliation/               contratos, perfiles y motor puro
 src/lib/peoplenet/                            lectores server-only existentes/nuevos acreditados
 src/app/api/payroll/reconciliation/           preview, analyze y export, Node.js
@@ -65,14 +68,17 @@ las funciones compartidas para hacer coincidir un nuevo control.
 
 ## 3. Operaciones HTTP futuras
 
-Estas rutas son **propuestas**, no servicios existentes de Meta4.
+Estas rutas son locales de powermeta4; no son servicios de Meta4.
+`GET/POST/PATCH/DELETE /api/payroll/reconciliation` ofrecen listado, catálogo,
+creación, apertura, actualización y borrado de expedientes. Ver contratos
+vigentes y control de revisión optimista en IMPLEMENTATION.
 
-| Operación                                  | Entrada                                                                                             | Salida y comportamiento                                                                                                                             |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Listado inicial de página                  | Sesión; periodo en URL no autoritativo.                                                             | Ejecuciones desde lector existente y contratos de perfiles disponibles, sin tokens.                                                                 |
-| `POST /api/payroll/reconciliation/preview` | Multipart con metadatos y archivos de categorías permitidas.                                        | Huellas, periodo, perfil reconocido, hojas/bloques, recuentos, vista previa mínima y errores de estructura. Sin guardar ficheros.                   |
-| `POST /api/payroll/reconciliation/analyze` | Multipart: `ReconciliationRequest` validado y archivos; solo IDs/versiones de perfiles server-side. | Releer claves ERP, validar población/contexto, normalizar y devolver `ReconciliationResult`; sin confiar en una vista previa calculada por cliente. |
-| `POST /api/payroll/reconciliation/export`  | Mismas entradas, huella del análisis y anotaciones vinculadas a hallazgos.                          | Recalcular, verificar huellas y generar `.xlsx`. 409 si cambian entradas; no aceptar importes o estados calculados enviados por cliente.            |
+| Operación                                  | Entrada                                                                      | Salida y comportamiento                                                                                                           |
+| ------------------------------------------ | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Listado inicial de página                  | Sesión; periodo en URL no autoritativo.                                      | Ejecuciones desde lector existente y contratos de perfiles disponibles, sin tokens.                                               |
+| `POST /api/payroll/reconciliation/preview` | Multipart con metadatos y archivos de categorías permitidas.                 | Huellas, periodo, perfil reconocido, hojas/bloques, recuentos, vista previa mínima y errores de estructura. Sin guardar ficheros. |
+| `POST /api/payroll/reconciliation/analyze` | Multipart: archivo, ID/revisión, categoría, periodo y cobertura confirmados. | Incorporar/sustituir fuente, normalizar y recalcular las instantáneas guardadas; no releer SQL silenciosamente.                   |
+| `POST /api/payroll/reconciliation/export`  | ID y revisión esperada.                                                      | Recalcular fuentes guardadas, comprobar huella/revisión y generar `.xlsx`; 409 si cambia el expediente o motor.                   |
 
 `runtime = "nodejs"`, sesión validada en cada handler y respuestas `no-store`.
 401 sin sesión; 403 sin contexto operacional Meta4; 400 entrada inválida;
@@ -92,11 +98,10 @@ y autenticar/limitar en cada handler antes de procesar datos. No aumentar el
 límite global ni excluir todo `/api/payroll`. Probar paso real por proxy con
 multipart mayor de 10 MB y rechazo de petición anónima.
 
-En v1 el servidor no crea trabajos persistidos ni identificadores que pretendan
-guardar resultados. Preview/analyze/export vuelven a recibir lo necesario;
-el navegador conserva los objetos File solo durante la visita. Si los límites
-de memoria/tiempo del piloto requieren cola o temporales, esa ampliación
-necesitará contrato propio antes de implementarse.
+El servidor guarda expedientes en SQLite, sin trabajos en segundo plano ni
+originales en disco. Preview no persiste; analyze guarda entradas normalizadas
+y recalcula. Los File del navegador solo viven durante la carga. El listado
+permite retomar el resultado tras cerrar/reiniciar. No hay cola ni temporales.
 
 ## 4. SQL, perfiles e historial
 
@@ -127,11 +132,12 @@ fuente, formatos de matrícula, signos, unidades, meses y errores. ExcelJS
 escribe el resultado; `xlsx` ya instalado permite leer BIFF `.xls`. No añadir
 Excel COM al análisis ni modificar el writer del alta.
 
-No hay migración nueva en v1. Las huellas y notas viven en la visita y el
-Excel descargado. Las ejecuciones anteriores se leen del historial ERP;
-una ejecución posterior no reemplaza el artefacto usado en un expediente
-exportado. Un histórico propio con ficheros/PII y política de copias/retención
-sería una evolución separada (Q15).
+La migración 011 añade una tabla propia por empresa/sociedad con instantáneas
+mínimas, fuentes normalizadas, parámetros, hallazgos y anotaciones. El esquema
+pasa a 11. Los expedientes entran en backups y se conservan hasta borrado
+explícito; las copias anteriores los mantienen. La actualización de nóminas es
+explícita y las revisiones concurrentes obsoletas se rechazan con 409. Q15 queda
+sustituida por esta decisión aprobada del usuario.
 
 ## 5. Seguridad, contexto y diseño
 
@@ -180,8 +186,8 @@ iniciales: Mercer, colectivo teletrabajo, carga comisiones, cuotas comité,
 ausencias comidas, recarga, Eurest, aniversarios, PPSE embebido y gimnasio;
 plantillas normalizadas separadas de excesos, anticipos y excepciones.
 
-Preview/analyze/export reciben también las reglas de periodo permitidas y
-excepciones declaradas. Validarlas en servidor y añadirlas a la huella: una
+Los parámetros se guardan mediante PATCH; las excepciones se incorporan con
+su plantilla y confirmación. Validarlas en servidor y añadirlas a la huella: una
 anotación de revisión nunca sustituye un operando. Mismas entradas y versión
 producen las mismas cifras. Los perfiles no ejecutan las fórmulas del libro.
 

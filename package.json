@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "cuadre:discover": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/cuadre/discover.ts",
+    "cuadre:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/cuadre/verify.ts",
+    "cuadre:verify-local": "node --conditions=react-server --import tsx scripts/cuadre/verify-local.ts",
     "dev": "cross-env NODE_OPTIONS=--use-system-ca next dev --turbopack",
     "build": "next build",
     "start": "cross-env NODE_OPTIONS=--use-system-ca next start",

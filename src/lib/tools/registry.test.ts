@@ -140,7 +140,7 @@ describe("tool registry", () => {
     expect(searchTools("empresas").tools.some((tool) => tool.moduleId === "companies")).toBe(true);
   });
 
-  it("keeps Registro Retributivo as the only sidebar standalone tool", () => {
+  it("keeps Registro Retributivo and Cuadre de nómina as sidebar standalone tools", () => {
     const registro = STANDALONE_TOOLS.find((tool) => tool.id === "registro-retributivo");
 
     expect(TOOL_MODULES.map((module) => module.name)).toEqual([
@@ -150,7 +150,15 @@ describe("tool registry", () => {
       "Informes",
       "Procesos",
     ]);
-    expect(SIDEBAR_TOOL_ITEMS.map((item) => item.name)).toEqual(["Reg. Retrib."]);
+    expect(SIDEBAR_TOOL_ITEMS.map((item) => item.name)).toEqual([
+      "Cuadre de nómina",
+      "Reg. Retrib.",
+    ]);
+    expect(STANDALONE_TOOLS.find((tool) => tool.id === "cuadre-nomina")).toMatchObject({
+      route: "/tools/cuadre-nomina",
+      implemented: true,
+    });
+    expect(searchTools("cuadre").tools).toEqual([]);
     expect(
       SIDEBAR_TOOL_ITEMS.every((item) => !TOOL_MODULES.some((module) => module.id === item.id)),
     ).toBe(true);
