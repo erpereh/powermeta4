@@ -1,7 +1,7 @@
 import "server-only";
 import ExcelJS from "exceljs";
 import { METRICS } from "./catalogue";
-import type { Dossier } from "./types";
+import type { CalculationStatus, Dossier } from "./types";
 
 /** Static, typed export palette follows the existing payroll workbook convention. */
 const PALETTE = {
@@ -13,7 +13,12 @@ const PALETTE = {
 export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "powermeta4";
-  const table = (name: string, headers: string[], rows: (string | number | null)[][]) => {
+  const table = (
+    name: string,
+    headers: string[],
+    rows: (string | number | null)[][],
+    statuses: readonly CalculationStatus[] = [],
+  ) => {
     const sheet = workbook.addWorksheet(name.replace(/[\\/*?:[\]]/g, "-").slice(0, 31), {
       views: [{ state: "frozen", ySplit: 1 }],
     });
@@ -34,8 +39,15 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
     };
     sheet.eachRow((row, index) => {
       row.alignment = { vertical: "top", wrapText: true };
-      if (index > 1 && Array.isArray(row.values) && row.values.includes("Con diferencia"))
-        row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: PALETTE.difference } };
+      const status = statuses[index - 2];
+      const color =
+        status === "Con diferencia"
+          ? PALETTE.difference
+          : status === "Falta fuente" || status === "No comparable"
+            ? PALETTE.pending
+            : undefined;
+      if (index > 1 && color)
+        row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
     });
     return sheet;
   };
@@ -160,13 +172,10 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
         "Matrícula",
         "Persona",
         "Concepto",
-        "Actual",
-        "Anterior / esperado",
-        "Diferencia",
-        "Unidad",
-        "Resultado",
+        control.id === "C02" ? "Actual (%)" : "Actual",
+        control.id === "C02" ? "Anterior / esperado (%)" : "Anterior / esperado",
+        control.id === "C02" ? "Diferencia (pp)" : "Diferencia",
         "Motivo / pendiente",
-        "Evidencias",
       ],
       rows.length
         ? rows.map((finding) => [
@@ -176,10 +185,7 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
             finding.actual,
             finding.expected,
             finding.delta,
-            finding.unit,
-            finding.status,
             finding.reason,
-            finding.evidence.join(" | "),
           ])
         : [
             [
@@ -189,12 +195,10 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
               null,
               null,
               null,
-              "",
-              "No comparable",
               "Revisar identidad y estructura del informe",
-              "",
             ],
           ],
+      rows.length ? rows.map((finding) => finding.status) : ["No comparable"],
     );
   }
   table(

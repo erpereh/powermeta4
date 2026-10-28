@@ -1,5 +1,21 @@
 # powermeta4 - estado de tareas
 
+## Excel de cuadre simplificado — 2026-10-28
+
+- [x] C01–C16 exportan siete columnas, sin Unidad, Resultado ni Evidencias.
+      IRPF identifica % y pp en sus cabeceras. Diferencias en naranja suave;
+      falta de fuente/no comparable en gris y coincidencias sin relleno especial.
+      El color procede del estado del motor, respetando sus tolerancias.
+- [x] Cuatro pruebas nuevas del XLSX reabierto: estructura de dieciséis controles,
+      signos/tolerancias EUR y pp, cuatro estados, vacíos y contenido auxiliar.
+      Comparación sintética con HEAD: siete hojas auxiliares idénticas en modelo.
+      Excel nativo en solo lectura: C01–C04 revisadas, ceros iniciales, cabeceras,
+      colores y motivos completos; originales corporativos sin modificar.
+- [x] Suite completa: 198 archivos, 1.141 pruebas correctas y 2 omitidas.
+      Typecheck, build y diff check correctos. Lint global ejecutado: siete
+      avisos previos y 618 archivos con formato pendiente; formato dirigido
+      correcto. Guía actualizada; muestras, PDF, vistas y logs excluidos de Git.
+
 ## Selección de ejecuciones del cuadre — 2026-10-27
 
 - [x] Corregido el bloqueo del selector: informe y ejecución actual de cualquier

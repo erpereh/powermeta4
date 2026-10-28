@@ -58,6 +58,15 @@ habilitado; producción nunca la habilita.
    Entradas externas, C01–C16 y Revisión. Los pendientes se conservan; no hay aprobación automática
    del cierre ni reproducción de fórmulas rotas.
 
+Las hojas C01–C16 contienen siete columnas: Matrícula, Persona, Concepto,
+Actual, Anterior / esperado, Diferencia y Motivo / pendiente. Las diferencias
+superiores a la tolerancia se marcan en naranja suave; las filas sin fuente o
+no comparables, en gris; las coincidencias no llevan relleno especial. No se
+exportan las columnas Unidad, Resultado ni Evidencias en estas hojas. En IRPF,
+las cabeceras indican porcentajes (%) y diferencia en puntos porcentuales (pp).
+Los cálculos y las evidencias del expediente se conservan en la aplicación;
+el resto de hojas del libro mantiene su contenido.
+
 La lista permite eliminar expedientes con confirmación. Se conservan hasta
 eliminación explícita; los backups anteriores mantienen sus datos. El acceso
 sigue el contexto operacional de Resultados de nómina, sin roles nuevos.

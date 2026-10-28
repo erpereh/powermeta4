@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-10-28 - Simplificación del Excel de Cuadre de nómina
+
+- Las dieciséis hojas de controles conservan Matrícula, Persona, Concepto,
+  Actual, Anterior / esperado, Diferencia y Motivo / pendiente. Se retiran
+  Unidad, Resultado y Evidencias; IRPF expresa % y pp en las cabeceras.
+- Colores basados en el estado calculado: naranja suave para diferencias,
+  gris para falta de fuente/no comparable y sin relleno especial si coincide.
+  Se respetan las tolerancias y no se deducen estados del texto de las celdas.
+  Sin cambios en motor, datos persistidos ni interfaces HTTP.
+- Cuatro pruebas nuevas sobre XLSX reabierto cubren las dieciséis hojas,
+  filtros/paneles, cuatro estados, signos, tolerancias EUR/pp, motivos y vacíos.
+  Comparación sintética contra HEAD: siete hojas auxiliares idénticas en modelo
+  completo. Vistas de C01–C04 contrastadas con Excel nativo en solo lectura,
+  incluidos ceros iniciales, cabeceras y motivos completos. La vista auxiliar
+  renderizada por artifact-tool no preservaba algunos textos; se verificó el
+  fichero real con Excel, sin modificar el libro ni los originales corporativos.
+- Validación ejecutada: typecheck y build correctos; suite completa de 198
+  archivos, 1.141 pruebas correctas y 2 omitidas; diff check correcto. Lint
+  global mantiene siete avisos previos y formato pendiente en 618 archivos;
+  formato dirigido correcto. Guía actualizada; libro sintético, PDF, imágenes,
+  scripts auxiliares y logs permanecen excluidos de Git.
+
 ## 2026-10-27 - Selección de ejecuciones y mes derivado en Cuadre de nómina
 
 - Eliminado el filtro del actual por un mes introducido manualmente, que dejaba
