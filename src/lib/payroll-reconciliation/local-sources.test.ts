@@ -3,7 +3,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import * as XLSX from "xlsx";
 import { describe, expect, it } from "vitest";
-import { importSource } from "./import";
+import { importAutoSource, importSource } from "./import";
 import { reconcile } from "./engine";
 import { DEFAULT_PARAMETERS, type Category } from "./types";
 import { demoReport } from "./demo";
@@ -14,6 +14,43 @@ const directory = path.join(
   "docs/automatizacion-reunion/fuentes_cuadres_cierre_de_nómina",
 );
 describe.skipIf(!existsSync(directory))("private local originals, no personal output", () => {
+  it("recognizes all ten renamed originals, reads October, and explains incompatible July inputs", async () => {
+    const expected: [RegExp, Category][] = [
+      [/^25 40/i, "aniversarios"],
+      [/^Altas Gimnasio/i, "gimnasio"],
+      [/^CYC_COMISION/i, "comisiones"],
+      [/^Cobro/i, "apartamentos"],
+      [/^Colectivo/i, "teletrabajo"],
+      [/^Descuento comida/i, "comida"],
+      [/^Eurest/i, "eurest"],
+      [/^FPS_/i, "mercer"],
+      [/^Normal_/i, "ppse"],
+      [/^Recarga/i, "recarga"],
+    ];
+    let count = 0;
+    for (const filename of readdirSync(directory)) {
+      const category = expected.find(([pattern]) => pattern.test(filename))?.[1];
+      if (!category) continue;
+      const file = path.join(directory, filename),
+        bytes = readFileSync(file),
+        before = createHash("sha256").update(bytes).digest("hex");
+      const source = await importAutoSource(
+        bytes,
+        "renombrado.xlsx".replace(".xlsx", path.extname(filename)),
+        "2026-10",
+      );
+      expect(source.category).toBe(category);
+      expect(source.complete).toBe(false);
+      if (["gimnasio", "apartamentos", "comida"].includes(category))
+        await expect(importAutoSource(bytes, filename, "2026-07")).rejects.toMatchObject({
+          status: 422,
+          category,
+        });
+      expect(createHash("sha256").update(readFileSync(file)).digest("hex")).toBe(before);
+      count++;
+    }
+    expect(count).toBe(10);
+  }, 30_000);
   it("reads all ten profiles intact and preserves independently known discrepancies", async () => {
     const categories: [RegExp, Category][] = [
       [/^25 40/i, "aniversarios"],

@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-11-03 - Fuentes automáticas por lotes y formulario simplificado
+
+- La carga admite múltiples Excel/CSV y una única acción Comprobar. Cada válido
+  se guarda antes del siguiente y un error de archivo no revierte ni bloquea los
+  demás. Reintento individual y cola conservada ante errores globales mientras
+  la pantalla permanece abierta; recuperación mediante recarga del expediente.
+- Detección estructural centralizada en un registro tipado de trece perfiles,
+  independiente del nombre. Normal solo aporta PPSE. Gimnasio y Apartamentos
+  resuelven columnas por cabecera y muestran los meses disponibles; los originales
+  de octubre no se aplican a julio. Devengo/nómina diferenciados y periodos
+  declarados validados; no se presentan fechas de creación como meses de nómina.
+- Analyze admite `{ id, revision, auto: true }` y resuelve periodo/categoría en
+  servidor, conservando el contrato manual. Omite los archivos idénticos sin duplicarlos
+  y sustituye automáticamente las fuentes de su categoría si cambian; el último
+  válido del lote prevalece. Filename opcional persistido en el JSON, sin migración
+  SQL. Nuevas fuentes parciales y ausencias pendientes, conservando los estados
+  existentes hasta sustitución y la invalidación selectiva de revisiones.
+- Retirados de Fuentes los selectores, campos de devengo/ventana, confirmaciones
+  y doble guardado. Lista con archivo, categoría, periodo, devengo disponible y
+  registros; sin Perfil/Cobertura/Huella. Retirar y Expedientes son iconos con
+  tooltip/nombre accesible y retirada confirmada. Subtítulo sin Guardado local;
+  debug sigue identificado. Ajuste de la zona de carga en móvil y plantillas conservadas.
+- Comprobaciones: setup aislado, typecheck y build correctos; suite completa de
+  201 archivos con 1.175 pruebas correctas y 2 omitidas. Pase dirigido final tras
+  el ajuste móvil: seis archivos, 49 pruebas correctas. Reconocimiento automático
+  de los diez originales renombrados para octubre y rechazo de meses incompatibles,
+  manteniendo sus bytes y los contrastes económicos anteriores.
+- Navegador real con sesión debug y SQLite aislada: lote mixto de cinco archivos,
+  duplicado sin incremento de revisión, sustitución, persistencia tras recargar,
+  errores de julio con otro archivo compatible incorporado, recuperación de un
+  503 simulado conservando cola y confirmación de retirada. Fuentes a
+  1440/1024/768/390 px, sin overflow de página ni errores JavaScript.
+- Lint global conserva siete avisos anteriores y formato pendiente en 618 archivos;
+  código modificado y guía pasan sus comprobaciones dirigidas. Todo/changelog
+  conservan su formato histórico; diff check y estado Git revisados. Guía de uso y
+  contratos actualizada. Sin conexiones remotas, escrituras ERP ni cambios en
+  motor, exportación o revisión manual. Originales, SQLite, capturas y logs excluidos.
+
 ## 2026-11-03 - Excel de cuadre legible, ordenado y revisiones editables
 
 - C01–C16 priorizan Con diferencia, Falta fuente, No comparable y Coincide,

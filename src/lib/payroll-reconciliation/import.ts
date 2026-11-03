@@ -4,6 +4,12 @@ import { BlobReader, ZipReader } from "@zip.js/zip.js";
 import { identity, METRICS, MONTHS, normalizeHeader } from "./catalogue";
 import { decimal, textDecimal } from "./decimal";
 import type { Category, Source, SourceFact } from "./types";
+import {
+  detectSourceProfile,
+  monthlyColumns,
+  selectMonthColumn,
+  sourceAccrualPeriod,
+} from "./source-profiles";
 
 export const LIMITS = {
   files: 20,
@@ -17,14 +23,15 @@ export class ReconciliationError extends Error {
   constructor(
     message: string,
     readonly status = 400,
+    readonly category?: Category,
   ) {
     super(message);
     this.name = "ReconciliationError";
   }
 }
-const fail = (message: string): never => {
+function fail(message: string): never {
   throw new ReconciliationError(message, 422);
-};
+}
 
 async function guardPackage(bytes: Uint8Array): Promise<void> {
   if (bytes[0] !== 0x50 || bytes[1] !== 0x4b) return;
@@ -50,6 +57,36 @@ export async function importSource(
   period: string,
   complete: boolean,
 ): Promise<Source> {
+  const { workbook, cellCount } = await readWorkbook(bytes, filename);
+  return parseSource(workbook, bytes, filename, category, period, complete, cellCount);
+}
+
+export async function importAutoSource(
+  bytes: Uint8Array,
+  filename: string,
+  period: string,
+): Promise<Source> {
+  const { workbook, cellCount } = await readWorkbook(bytes, filename);
+  const detected = detectSourceProfile(workbook);
+  if (!detected.ok) fail(detected.message);
+  const category = detected.value;
+  try {
+    const accrual = sourceAccrualPeriod(workbook, category, period, filename);
+    if (!accrual.ok) fail(accrual.message);
+    const source = parseSource(workbook, bytes, filename, category, period, false, cellCount);
+    source.accrualPeriod = accrual.value;
+    return source;
+  } catch (error) {
+    if (error instanceof ReconciliationError)
+      throw new ReconciliationError(error.message, error.status, category);
+    throw error;
+  }
+}
+
+async function readWorkbook(
+  bytes: Uint8Array,
+  filename: string,
+): Promise<{ workbook: XLSX.WorkBook; cellCount: number }> {
   if (!/\.(xlsx|xls|csv)$/i.test(filename)) fail("Formato admitido: .xls, .xlsx o .csv.");
   if (!bytes.length || bytes.length > LIMITS.fileBytes)
     throw new ReconciliationError("Archivo vacío o superior a 16 MiB.", 413);
@@ -81,6 +118,18 @@ export async function importSource(
     if (cellCount > LIMITS.cells)
       throw new ReconciliationError("El libro supera dos millones de celdas.", 413);
   }
+  return { workbook, cellCount };
+}
+
+function parseSource(
+  workbook: XLSX.WorkBook,
+  bytes: Uint8Array,
+  filename: string,
+  category: Category,
+  period: string,
+  complete: boolean,
+  cellCount: number,
+): Source {
   const facts: SourceFact[] = [],
     diagnostics: string[] = [];
   const month = MONTHS[Number(period.slice(5)) - 1];
@@ -198,8 +247,11 @@ export async function importSource(
   } else if (category === "gimnasio") {
     const s = sheet("Hoja1");
     header(s, "A", 1, "Id Empleado");
-    header(s, "F", 1, `Pago de ${month}`);
-    sequential(s, "A", 2, (row) => push(s, "Hoja1", "A", row, { gym: numeric(s, "F", row) }));
+    const selected = selectMonthColumn(monthlyColumns(s, 1, "pago de "), period);
+    if (!selected.ok) fail(selected.message);
+    sequential(s, "A", 2, (row) =>
+      push(s, "Hoja1", "A", row, { gym: numeric(s, selected.value, row) }),
+    );
   } else if (category === "teletrabajo") {
     const s = sheet("80-20");
     header(s, "A", 1, "Matr.");
@@ -262,12 +314,8 @@ export async function importSource(
     header(s, "A", 1, "EMPRESA");
     header(s, "B", 1, "MATRICULA");
     header(s, "M", 1, "Aportacion Personal");
-    const monthCol = Object.entries(s)
-      .find(
-        ([address, c]) => /^[A-Z]+1$/.test(address) && normalizeHeader(String(c.v)) === month,
-      )?.[0]
-      .replace(/1$/, "");
-    if (!monthCol) fail(`No hay columna mensual «${month}» en PPSE.`);
+    const selected = selectMonthColumn(monthlyColumns(s, 1), period);
+    if (!selected.ok) fail(selected.message);
     for (let row = 2; row <= lastRow(s); row++) {
       if (!/^\d+$/.test(identity(value(s, "B", row))) || !value(s, "A", row)) continue;
       push(
@@ -275,7 +323,7 @@ export async function importSource(
         name,
         "B",
         row,
-        { ppse: numeric(s, monthCol!, row), personalReference: numeric(s, "M", row) },
+        { ppse: numeric(s, selected.value, row), personalReference: numeric(s, "M", row) },
         { entity: value(s, "A", row) },
       );
     }
@@ -285,15 +333,18 @@ export async function importSource(
   } else if (category === "apartamentos") {
     const s = sheet("Bonos disfrute");
     const blocks = [
-      { id: "A", first: 3, last: 25, months: { 10: "D", 11: "E" } },
-      { id: "I", first: 3, last: 25, months: { 10: "L", 11: "M", 12: "N" } },
-      { id: "P", first: 3, last: 15, months: { 10: "S", 11: "T", 12: "U", 1: "V" } },
+      { id: "A", first: 3, last: 25, columns: ["D", "E", "F", "G", "H"] },
+      { id: "I", first: 3, last: 25, columns: ["L", "M", "N"] },
+      { id: "P", first: 3, last: 15, columns: ["S", "T", "U", "V"] },
     ];
+    const months = monthlyColumns(s, 2);
     let recognized = false;
     for (const block of blocks) {
-      const col = (block.months as Record<number, string>)[Number(period.slice(5))];
-      if (!col) continue;
-      if (!normalizeHeader(value(s, col, 2)).includes(month)) continue;
+      const columns = months.filter((item) => block.columns.includes(item.column));
+      if (!columns.some((item) => item.month === Number(period.slice(5)))) continue;
+      const selected = selectMonthColumn(columns, period);
+      if (!selected.ok) fail(selected.message);
+      const col = selected.value;
       recognized = true;
       for (let row = block.first; row <= block.last; row++) {
         if (!/^\d+$/.test(identity(value(s, block.id, row)))) continue;
@@ -307,7 +358,11 @@ export async function importSource(
       }
     }
     if (!recognized)
-      fail("No se reconoce el bloque mensual de cuotas; no se utilizará el coste total.");
+      fail(
+        selectMonthColumn(months, period).ok
+          ? "No se reconoce el bloque de cuotas del mes seleccionado."
+          : `El archivo no contiene cuotas para ${month} de ${period.slice(0, 4)}. Meses disponibles: ${[...new Set(months.map((item) => MONTHS[item.month - 1]))].join(", ") || "ninguno"}.`,
+      );
     diagnostics.push(
       "Perfil de tres bloques acreditados (filas 3:25/15); confirmar año de las cuotas y cobertura del documento.",
     );
@@ -438,6 +493,7 @@ export async function importSource(
   const id = `${idHash.slice(0, 8)}-${idHash.slice(8, 12)}-5${idHash.slice(13, 16)}-a${idHash.slice(17, 20)}-${idHash.slice(20, 32)}`;
   return {
     id,
+    filename: filename.split(/[\\/]/).at(-1)?.slice(0, 255),
     hash: fileHash,
     category,
     period,

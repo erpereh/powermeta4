@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as XLSX from "xlsx";
 import type { Dossier } from "@/lib/payroll-reconciliation/types";
 import { DEFAULT_PARAMETERS } from "@/lib/payroll-reconciliation/types";
 import { snapshot } from "@/lib/payroll-reconciliation/snapshot";
@@ -38,6 +39,7 @@ vi.mock("@/server/database/repositories/payroll-reconciliation-repository", () =
 import { GET, POST, PATCH } from "./route";
 import { POST as exportRoute } from "./export/route";
 import { POST as previewRoute } from "./preview/route";
+import { POST as analyzeRoute } from "./analyze/route";
 import { matchesProxyMatcher } from "@/proxy";
 import { runKey } from "@/features/payroll-reconciliation/selection";
 
@@ -54,6 +56,33 @@ const create = () => ({
   demo: true,
 });
 let dossier: Dossier;
+function uploadBytes(amount = 15) {
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(
+    book,
+    XLSX.utils.aoa_to_sheet([
+      ["Id Empleado", "", "", "", "", "Pago de octubre"],
+      ["009001", "", "", "", "", amount],
+    ]),
+    "Hoja1",
+  );
+  return new Uint8Array(XLSX.write(book, { type: "buffer", bookType: "xlsx" }));
+}
+function upload(metadata: unknown, bytes = uploadBytes(), filename = "renombrado.xlsx") {
+  const body = new FormData();
+  body.append("file", new Blob([Uint8Array.from(bytes)]), filename);
+  body.append("metadata", JSON.stringify(metadata));
+  return new Request("http://localhost/api/payroll/reconciliation/analyze", {
+    method: "POST",
+    body,
+  });
+}
+function persistUploads() {
+  mocks.save.mockImplementation((_scope, record: Dossier) => {
+    dossier = { ...record, revision: record.revision + 1 };
+    return structuredClone(dossier);
+  });
+}
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.auth.mockResolvedValue({ authContext: { mode: "debug" } });
@@ -135,7 +164,7 @@ describe("reconciliation boundaries", () => {
   });
   it("requires auth on all routes, including proxy exceptions", async () => {
     mocks.auth.mockResolvedValue(null);
-    for (const handler of [POST, exportRoute, previewRoute])
+    for (const handler of [POST, exportRoute, previewRoute, analyzeRoute])
       expect((await handler(request("POST", {}))).status).toBe(401);
     expect(mocks.read).not.toHaveBeenCalled();
   });
@@ -201,6 +230,141 @@ describe("reconciliation boundaries", () => {
     expect(response.headers.get("content-type")).toContain("spreadsheetml");
     expect(mocks.read).not.toHaveBeenCalled();
     expect((await exportRoute(request("POST", { id: dossier.id, revision: 2 }))).status).toBe(409);
+  });
+  it("automatically imports a renamed file, preserves its name and leaves unlisted people pending", async () => {
+    persistUploads();
+    const fixed = dossier.result.findings.find((item) => item.control === "C01")!;
+    const gym = dossier.result.findings.find((item) => item.control === "C16")!;
+    dossier.annotations = [fixed, gym].map((item) => ({
+      findingId: item.id,
+      fingerprint: item.fingerprint,
+      state: "Pendiente",
+      comment: "Comentario",
+      actor: "TEST",
+      at: dossier.updatedAt,
+    }));
+    const response = await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(response.status).toBe(200);
+    const result = (await response.json()).data;
+    expect(result).toMatchObject({
+      category: "gimnasio",
+      status: "incorporado",
+      records: 1,
+      filename: "renombrado.xlsx",
+    });
+    expect(dossier.sources[0]).toMatchObject({
+      category: "gimnasio",
+      complete: false,
+      period: "2026-10",
+      filename: "renombrado.xlsx",
+    });
+    expect(dossier.annotations.find((item) => item.findingId === fixed.id)?.invalidated).toBe(
+      false,
+    );
+    expect(dossier.annotations.find((item) => item.findingId === gym.id)?.invalidated).toBe(true);
+    expect(
+      dossier.result.findings
+        .filter((item) => item.control === "C16" && item.employeeId !== "009001")
+        .every((item) => item.delta === null && item.status === "No comparable"),
+    ).toBe(true);
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+  it("omits an identical source without changing revision or its previously declared coverage", async () => {
+    persistUploads();
+    await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    dossier.sources[0].complete = true;
+    mocks.save.mockClear();
+    const response = await analyzeRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, uploadBytes(), "otra-copia.xlsx"),
+    );
+    expect(response.status).toBe(200);
+    expect((await response.json()).data.status).toBe("ya_incorporado");
+    expect(dossier.sources).toHaveLength(1);
+    expect(dossier.sources[0].complete).toBe(true);
+    expect(dossier.revision).toBe(2);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("preserves successful uploads after a rejected file, then replaces the category with the next valid file", async () => {
+    persistUploads();
+    await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    const saved = structuredClone(dossier);
+    const failed = await analyzeRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, new Uint8Array([1, 2, 3]), "roto.xlsx"),
+    );
+    expect(failed.status).toBe(422);
+    expect(dossier).toEqual(saved);
+    const response = await analyzeRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, uploadBytes(30), "nuevo.xlsx"),
+    );
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).toMatchObject({
+      status: "sustituido",
+      replacedFiles: ["renombrado.xlsx"],
+    });
+    expect(dossier.sources).toHaveLength(1);
+    expect(dossier.sources[0].facts[0].values.gym).toBe("30");
+    expect(dossier.revision).toBe(3);
+  });
+  it("returns the detected category and available months for an incompatible file without saving", async () => {
+    dossier.period = "2026-07";
+    const response = await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({
+      category: "gimnasio",
+      message: expect.stringMatching(/julio.*octubre/),
+    });
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("rejects stale revisions and browser category/period overrides in automatic mode", async () => {
+    expect((await analyzeRoute(upload({ id: dossier.id, revision: 2, auto: true }))).status).toBe(
+      409,
+    );
+    expect(
+      (
+        await analyzeRoute(
+          upload({
+            id: dossier.id,
+            revision: 1,
+            auto: true,
+            category: "mercer",
+            period: "2026-07",
+          }),
+        )
+      ).status,
+    ).toBe(400);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("retains the legacy analyze contract and rejects a whole-workbook resource overflow", async () => {
+    const legacy = await analyzeRoute(
+      upload({
+        id: dossier.id,
+        revision: 1,
+        category: "gimnasio",
+        period: "2026-10",
+        complete: true,
+        confirmed: true,
+      }),
+    );
+    expect(legacy.status).toBe(200);
+    expect((await legacy.json()).data.sources[0].complete).toBe(true);
+    mocks.save.mockClear();
+    dossier.sources = [
+      {
+        id: "other-source",
+        category: "teletrabajo",
+        period: dossier.period,
+        hash: "other-hash",
+        profile: "teletrabajo-v1",
+        complete: false,
+        facts: [],
+        diagnostics: [],
+        cellCount: 2_000_000,
+      },
+    ];
+    const response = await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(response.status).toBe(413);
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(dossier.sources[0].category).toBe("teletrabajo");
   });
   it("updates an existing invalidated review and reopens it without changing calculated results", async () => {
     const finding = dossier.result.findings.find((item) => item.status === "Con diferencia")!;

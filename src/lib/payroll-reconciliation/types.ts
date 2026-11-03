@@ -36,6 +36,7 @@ export type SourceFact = {
 };
 export type Source = {
   id: string;
+  filename?: string;
   hash: string;
   category: Category;
   period: string;
@@ -133,3 +134,12 @@ export type DossierSummary = Pick<
   Dossier,
   "id" | "title" | "period" | "revision" | "updatedAt" | "demo"
 >;
+
+export type SourceImportResult = {
+  dossier: Dossier;
+  category: Category;
+  filename: string;
+  status: "incorporado" | "sustituido" | "ya_incorporado";
+  records: number;
+  replacedFiles: string[];
+};

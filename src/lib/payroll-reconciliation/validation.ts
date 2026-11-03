@@ -95,6 +95,8 @@ export const previewSchema = sourceSchema.omit({
   replaceId: true,
   confirmed: true,
 });
+export const autoSourceSchema = identitySchema.extend({ auto: z.literal(true) }).strict();
+export const analyzeSourceSchema = z.union([autoSourceSchema, sourceSchema]);
 export function validRunKey(value: unknown) {
   const parsed = parsePayrollReportRunKey(value);
   if (!parsed.ok) throw new ReconciliationError(parsed.message);

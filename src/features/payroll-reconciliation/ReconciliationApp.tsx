@@ -1,10 +1,8 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, Plus, Download, RefreshCw } from "lucide-react";
+import { FileSpreadsheet, Plus, Download, RefreshCw, FolderOpen } from "lucide-react";
 import {
   Button,
-  Checkbox,
-  FileUpload,
   Input,
   Modal,
   PageHeader,
@@ -13,10 +11,10 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-  type FileUploadItem,
+  Tooltip,
 } from "@/components/system";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
-import { CATEGORIES, METRICS } from "@/lib/payroll-reconciliation/catalogue";
+import { METRICS } from "@/lib/payroll-reconciliation/catalogue";
 import { metricLabel, reconciliationDate } from "@/lib/payroll-reconciliation/presentation";
 import type {
   Annotation,
@@ -28,6 +26,8 @@ import type {
 } from "@/lib/payroll-reconciliation/types";
 import type { PayrollReportRun } from "@/types/payroll-report";
 import { Choice, Panel, ParametersForm, SelectionForm } from "./forms";
+import { SourcesView } from "./SourcesView";
+import { ReconciliationRequestError } from "./request-error";
 
 const ROOT = "/api/payroll/reconciliation";
 function download(blob: Blob, name: string) {
@@ -38,14 +38,6 @@ function download(blob: Blob, name: string) {
   anchor.click();
   URL.revokeObjectURL(url);
 }
-const templates: Partial<Record<Category, string>> = {
-  excesos:
-    "registro_id;matricula;periodo_origen;periodo_compensacion;importe_firmado;moneda;motivo;referencia_documental",
-  anticipos:
-    "solicitud_id;cuota_id;matricula;tipo;periodo_cuota;importe_nomina_firmado;moneda;estado;referencia_documental",
-  excepciones:
-    "registro_id;control;metrica;matricula;periodo_devengo;vigencia_desde;vigencia_hasta;importe_esperado_firmado;motivo;referencia_documental;confirmada",
-};
 
 export function ReconciliationApp({ demo }: { demo: boolean }) {
   const companyId = useWorkspaceStore((state) => state.activeCompanyId);
@@ -92,12 +84,19 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
       if (companyId) headers.set("x-powermeta4-company", companyId);
       if (typeof init?.body === "string") headers.set("content-type", "application/json");
       const response = await fetch(`${ROOT}${path}`, { ...init, headers, cache: "no-store" });
-      const body = (await response.json()) as { ok?: boolean; message?: string; data: T };
+      const body = (await response.json()) as {
+        ok?: boolean;
+        message?: string;
+        category?: Category;
+        data: T;
+      };
       if (!response.ok || !body.ok)
-        throw new Error(
+        throw new ReconciliationRequestError(
           response.status === 409
             ? `${body.message ?? "El expediente ha cambiado."} Vuelve a cargar el expediente antes de guardar.`
             : (body.message ?? "No se ha podido completar la operación."),
+          response.status,
+          body.category,
         );
       return body.data;
     },
@@ -349,14 +348,21 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
               <div>
                 <h1 className="text-xl font-semibold">{dossier.title}</h1>
                 <p className="text-sm text-muted-foreground">
-                  {dossier.period} · revisión {dossier.revision} ·{" "}
-                  {dossier.demo ? "Muestra ficticia" : "Guardado local"}
+                  {dossier.period} · revisión {dossier.revision}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setDossier(null)}>
-                  Expedientes
-                </Button>
+                <Tooltip content="Expedientes">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={busy}
+                    aria-label="Expedientes"
+                    onClick={() => setDossier(null)}
+                  >
+                    <FolderOpen className="size-4" />
+                  </Button>
+                </Tooltip>
                 <Button
                   variant="outline"
                   size="sm"
@@ -368,7 +374,13 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                 </Button>
               </div>
             </div>
-            <Tabs value={view} onValueChange={setView} variant="underline">
+            <Tabs
+              value={view}
+              onValueChange={(value) => {
+                if (!busy) setView(value);
+              }}
+              variant="underline"
+            >
               <TabsList>
                 {[
                   ["resumen", "Resumen"],
@@ -447,7 +459,14 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                   dossier={dossier}
                   busy={busy}
                   api={api}
-                  onSave={async (operation) => perform(async () => accept(await operation()))}
+                  onBatch={(operation) =>
+                    perform(async () => {
+                      await operation((saved) => {
+                        if (mounted.current) setDossier(saved);
+                      });
+                      await loadList();
+                    })
+                  }
                   onRemove={(sourceId) => void mutate({ action: "removeSource", sourceId })}
                 />
               </TabsContent>
@@ -877,327 +896,6 @@ function SnapshotTable({ dossier, previous }: { dossier: Dossier; previous: bool
           width: "180px",
           cell: (row: { cells: string[] }) => row.cells[index],
         }))}
-      />
-    </div>
-  );
-}
-
-function SourcesView({
-  dossier,
-  busy,
-  api,
-  onSave,
-  onRemove,
-}: {
-  dossier: Dossier;
-  busy: boolean;
-  api: <T>(path?: string, init?: RequestInit) => Promise<T>;
-  onSave: (operation: () => Promise<Dossier>) => Promise<void>;
-  onRemove: (sourceId: string) => void;
-}) {
-  const [category, setCategory] = useState<Category>("mercer"),
-    [items, setItems] = useState<FileUploadItem[]>([]);
-  const [complete, setComplete] = useState(false),
-    [confirmed, setConfirmed] = useState(false),
-    [replaceId, setReplaceId] = useState("none");
-  const [accrualPeriod, setAccrualPeriod] = useState(dossier.period);
-  const [windowStart, setWindowStart] = useState("");
-  const [windowEnd, setWindowEnd] = useState("");
-  const [preview, setPreview] = useState<{
-      hash: string;
-      profile: string;
-      count: number;
-      diagnostics: string[];
-      references: string[];
-    } | null>(null),
-    [error, setError] = useState(""),
-    [checking, setChecking] = useState(false),
-    [removeId, setRemoveId] = useState<string | null>(null);
-  const form = (metadata: unknown) => {
-    const body = new FormData();
-    const file = items[0]?.file;
-    if (!file) throw new Error("Selecciona un archivo.");
-    body.append("file", file);
-    body.append("metadata", JSON.stringify(metadata));
-    return body;
-  };
-  const clear = () => {
-    setPreview(null);
-    setConfirmed(false);
-    setError("");
-  };
-  return (
-    <div className="space-y-5 pt-4">
-      <Panel title="Añadir o sustituir una fuente">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Choice
-            label="Categoría"
-            value={category}
-            onChange={(value) => {
-              setCategory(value as Category);
-              setReplaceId("none");
-              clear();
-            }}
-            items={CATEGORIES}
-          />
-          <Choice
-            label="Sustitución"
-            value={replaceId}
-            onChange={(value) => {
-              setReplaceId(value);
-              setConfirmed(false);
-            }}
-            items={[
-              { id: "none", name: "Añadir documento nuevo" },
-              ...dossier.sources
-                .filter((source) => source.category === category)
-                .map((source) => ({
-                  id: source.id,
-                  name: `Sustituir ${source.profile} · ${source.hash.slice(0, 10)}`,
-                })),
-            ]}
-          />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Input
-            label="Mes de devengo de la fuente"
-            type="month"
-            value={accrualPeriod}
-            onChange={(value) => {
-              setAccrualPeriod(value);
-              clear();
-            }}
-          />
-          {category === "comisiones" && (
-            <>
-              <Input
-                label="Ventana de comisiones: desde"
-                type="date"
-                value={windowStart}
-                onChange={(value) => {
-                  setWindowStart(value);
-                  clear();
-                }}
-              />
-              <Input
-                label="Ventana de comisiones: hasta"
-                type="date"
-                value={windowEnd}
-                onChange={(value) => {
-                  setWindowEnd(value);
-                  clear();
-                }}
-              />
-            </>
-          )}
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Periodo de nómina: {dossier.period}. Confirma que el devengo del archivo corresponde a
-          este pago, aunque sea del mes anterior. Máximo 16 MiB por archivo; veinte fuentes por
-          expediente.
-        </p>
-        <FileUpload
-          value={items}
-          onValueChange={(value) => {
-            setItems(value.map((item) => ({ ...item, status: "queued", progress: 0 })));
-            clear();
-          }}
-          accept=".xls,.xlsx,.csv"
-          multiple={false}
-          maxFiles={1}
-          disabled={busy || checking}
-          title="Selecciona el archivo de contraste"
-          browseLabel="Seleccionar archivo"
-          description="El original no se conserva; se guardarán los datos necesarios para el cuadre."
-        />
-        <Checkbox
-          checked={complete}
-          onCheckedChange={(value) => {
-            setComplete(value);
-            clear();
-          }}
-          label="Confirmo cobertura completa para esta categoría y periodo (si no, se tratará como parcial)"
-        />
-        {templates[category] && (
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                download(
-                  new Blob(["\uFEFF", templates[category]!, "\r\n"], {
-                    type: "text/csv;charset=utf-8",
-                  }),
-                  `${category}_plantilla.csv`,
-                )
-              }
-            >
-              Descargar plantilla CSV
-            </Button>
-            {category === "excepciones" && (
-              <p className="text-xs text-muted-foreground">
-                Métricas admitidas:{" "}
-                {METRICS.filter((metric) => !metric.monthly)
-                  .map((metric) => metric.id)
-                  .join(", ")}
-                . confirmada debe ser SI. Las excepciones no se sustituyen mediante comentarios de
-                revisión.
-              </p>
-            )}
-          </div>
-        )}
-        <Button
-          variant="outline"
-          disabled={busy || checking || !items[0]?.file}
-          onClick={() => {
-            setChecking(true);
-            setError("");
-            setItems((current) =>
-              current.map((item) => ({ ...item, status: "uploading", progress: 0 })),
-            );
-            void api<typeof preview>("/preview", {
-              method: "POST",
-              body: form({
-                category,
-                period: dossier.period,
-                accrualPeriod,
-                ...(category === "comisiones" && windowStart && windowEnd
-                  ? { windowStart, windowEnd }
-                  : {}),
-                complete,
-              }),
-            })
-              .then((value) => {
-                setPreview(value);
-                setItems((current) =>
-                  current.map((item) => ({ ...item, status: "success", progress: 100 })),
-                );
-              })
-              .catch((reason: unknown) => {
-                const message =
-                  reason instanceof Error ? reason.message : "No se pudo previsualizar.";
-                setError(message);
-                setItems((current) =>
-                  current.map((item) => ({ ...item, status: "error", error: message })),
-                );
-              })
-              .finally(() => setChecking(false));
-          }}
-        >
-          Comprobar archivo
-        </Button>
-        {error && (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
-        )}
-        {preview && (
-          <div className="space-y-3 rounded-lg bg-muted p-3 text-sm">
-            <p>
-              {preview.profile} · {preview.count} registros · huella {preview.hash.slice(0, 12)}
-            </p>
-            {preview.diagnostics.map((message, index) => (
-              <p key={index}>{message}</p>
-            ))}
-            <p className="text-xs">Referencias: {preview.references.join(" · ")}</p>
-            <Checkbox
-              checked={confirmed}
-              onCheckedChange={setConfirmed}
-              label={
-                replaceId === "none"
-                  ? "Confirmo categoría, periodo y cobertura; incorporar esta fuente"
-                  : "Confirmo sustituir la fuente seleccionada y recalcular"
-              }
-            />
-            <Button
-              disabled={busy || !confirmed}
-              onClick={() =>
-                void onSave(async () => {
-                  const saved = await api<Dossier>("/analyze", {
-                    method: "POST",
-                    body: form({
-                      id: dossier.id,
-                      revision: dossier.revision,
-                      category,
-                      period: dossier.period,
-                      accrualPeriod,
-                      ...(category === "comisiones" && windowStart && windowEnd
-                        ? { windowStart, windowEnd }
-                        : {}),
-                      complete,
-                      confirmed: true,
-                      ...(replaceId !== "none" ? { replaceId } : {}),
-                    }),
-                  });
-                  setItems([]);
-                  clear();
-                  setReplaceId("none");
-                  return saved;
-                })
-              }
-            >
-              Guardar fuente y recalcular
-            </Button>
-          </div>
-        )}
-      </Panel>
-      <Panel title="Fuentes incorporadas">
-        <Table
-          data={dossier.sources}
-          getRowId={(row) => row.id}
-          scrollAreaLabel="Fuentes del expediente"
-          columns={[
-            {
-              key: "category",
-              header: "Categoría",
-              cell: (row) => CATEGORIES.find((item) => item.id === row.category)?.name,
-            },
-            { key: "period", header: "Mes de nómina" },
-            { key: "accrualPeriod", header: "Devengo declarado" },
-            { key: "profile", header: "Perfil" },
-            { key: "facts", header: "Registros", cell: (row) => row.facts.length },
-            {
-              key: "complete",
-              header: "Cobertura",
-              cell: (row) => (row.complete ? "Completa declarada" : "Parcial"),
-            },
-            { key: "hash", header: "Huella", cell: (row) => row.hash.slice(0, 12) },
-            {
-              key: "actions",
-              header: "Acciones",
-              cell: (row) => (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={busy}
-                  onClick={() => setRemoveId(row.id)}
-                >
-                  Retirar
-                </Button>
-              ),
-            },
-          ]}
-          emptyState="Sin archivos externos. Los controles mensuales pueden calcularse con las ejecuciones elegidas."
-        />
-      </Panel>
-      <Modal
-        open={Boolean(removeId)}
-        onOpenChange={(open) => {
-          if (!open) setRemoveId(null);
-        }}
-        title="Retirar fuente"
-        description="Se recalcularán los controles y se invalidarán las revisiones cuya evidencia cambie."
-        footer={
-          <Button
-            disabled={busy}
-            onClick={() => {
-              if (removeId) onRemove(removeId);
-              setRemoveId(null);
-            }}
-          >
-            Retirar fuente
-          </Button>
-        }
       />
     </div>
   );

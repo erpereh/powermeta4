@@ -1,5 +1,36 @@
 # powermeta4 - estado de tareas
 
+## Carga múltiple automática de Fuentes — 2026-11-03
+
+- [x] Seleccionar o arrastrar varios archivos y pulsar Comprobar incorpora cada
+      válido, con errores independientes por archivo y reintento individual.
+      Cola secuencial, revisión encadenada, guardado parcial real, omisión de
+      duplicados y sustitución automática; prevalece el último válido de cada
+      categoría. Errores globales conservan la cola mientras la pantalla siga abierta.
+- [x] Registro tipado por hojas/cabeceras para los trece perfiles, sin clasificación
+      por nombre. Normal importa solo PPSE. Gimnasio y Apartamentos eligen columnas
+      por mes y explican los meses disponibles. Validación de devengo/nómina,
+      incluido septiembre para octubre y cambio de año; no se inventa devengo.
+- [x] Modalidad automática en analyze con ID/revisión/auto, periodo y categoría
+      del servidor; contrato manual compatible. Filename opcional en el JSON
+      existente, sin migración. Nuevas fuentes parciales, ausencias pendientes;
+      fuentes anteriores intactas hasta sustituirlas. Límites y aislamiento conservados.
+- [x] Fuentes sin selectores, casillas, vista previa ni segundo guardado; columnas
+      sin Perfil/Cobertura/Huella. Retirar y Expedientes con iconos accesibles y
+      tooltip; retirada confirmada. Subtítulo solo con mes/revisión y debug identificado.
+- [x] Suite completa: 201 archivos, 1.175 pruebas correctas y 2 omitidas. Tras
+      ajustar el diseño móvil, 49 pruebas dirigidas correctas en seis archivos.
+      Los diez originales se reconocen renombrados para octubre, sin modificar
+      sus hashes; julio rechaza los originales incompatibles con mensajes claros.
+- [x] Navegador real con base debug aislada: lote de cinco archivos (tres válidos,
+      corrupto y desconocido), duplicado, sustitución, recarga/reapertura, lote
+      de julio, recuperación de 503 simulado y confirmación de retirada. Fuentes
+      a 1440/1024/768/390 px sin overflow de página ni errores JavaScript.
+- [x] Setup aislado, typecheck y build correctos; lint global ejecutado conserva
+      siete avisos previos y 618 archivos con formato pendiente. Lint/formato
+      dirigido y diff check correctos; estado Git revisado. Guía actualizada,
+      originales y artefactos privados fuera de Git; sin acceso remoto ni escrituras ERP.
+
 ## Excel de cuadre legible y revisión editable — 2026-11-03
 
 - [x] C01–C16 ordenadas por Con diferencia, Falta fuente, No comparable y

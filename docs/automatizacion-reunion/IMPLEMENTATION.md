@@ -40,10 +40,11 @@ habilitado; producción nunca la habilita.
    informe, frecuencia y tipo de paga conocido, y se exige confirmar el alcance.
 2. Consulta los resultados mensuales sin esperar a los Excel. Los controles
    externos aparecen pendientes hasta incorporar sus fuentes.
-3. En Fuentes, elige categoría y mes de devengo, comprueba el archivo y confirma
-   periodo de nómina, cobertura y sustitución cuando corresponda. Para comisiones
-   puedes declarar su ventana. Las categorías usan perfiles acreditados;
-   no se adivinan equivalencias para estructuras desconocidas.
+3. En **Fuentes**, selecciona o arrastra todos los Excel/CSV y pulsa **Comprobar**.
+   La categoría se detecta por hojas y cabeceras. Cada archivo válido se guarda
+   inmediatamente; los errores aparecen junto al archivo y no impiden incorporar
+   los demás. Puedes reintentar solo un fallido. No hay selectores ni casillas de
+   confirmación de fuentes. Los originales pueden estar renombrados.
 4. Añade fuentes más adelante o abre el expediente después de reiniciar.
    Los originales no se conservan: se guardan las entradas normalizadas,
    referencias y huellas necesarias para reproducir el resultado.
@@ -64,6 +65,30 @@ habilitado; producción nunca la habilita.
 8. Exporta el libro con Resumen, Expediente, Fuentes, Datos actual/anterior,
    Entradas externas, C01–C16 y Revisión. Los pendientes se conservan; no hay aprobación automática
    del cierre ni reproducción de fórmulas rotas.
+
+Un archivo idéntico ya incorporado se omite. Uno diferente sustituye las fuentes
+anteriores de su categoría; si hay varios de esa categoría en el lote, prevalece
+el último válido en el orden de la lista y se muestra qué archivo sustituye.
+Las nuevas fuentes son parciales: una persona ausente queda pendiente, sin asumir
+importe cero. Las fuentes existentes conservan su estado hasta sustituirlas.
+
+El mes de nómina procede del expediente. Se validan los periodos declarados y las
+columnas mensuales del documento: el gimnasio de octubre o las cuotas de octubre
+no se aplican a julio. El error muestra los meses disponibles. Comida, recarga y
+Eurest distinguen el devengo del mes anterior de la nómina; por ejemplo, septiembre
+de 2026 corresponde a la nómina de octubre. Cuando no hay un periodo acreditado,
+se usa el contexto del expediente y no se inventa un devengo confirmado. Las
+fechas de creación o las fechas de reserva de apartamentos no se toman por meses
+de nómina. El libro Normal se reconoce únicamente como fuente PPSE.
+
+Los problemas de sesión, contexto, revisión o conexión detienen la cola sin
+deshacer los éxitos. Mientras permanezcas en la pantalla, la lista queda disponible
+para volver a cargar el expediente y continuar. Los archivos seleccionados no
+se guardan en el navegador ni se recuperan después de cerrar o recargar la página.
+
+Fuentes incorporadas muestra archivo, categoría, mes, devengo disponible y registros,
+con un icono para retirar y su confirmación. No muestra Perfil, Cobertura ni Huella.
+El acceso a Expedientes es un icono y el subtítulo conserva solo el mes y la revisión.
 
 Las hojas C01–C16 contienen siete columnas: Matrícula, Persona, Concepto,
 Actual, Anterior / esperado, Diferencia y Motivo / pendiente. Las diferencias
@@ -93,8 +118,10 @@ expediente permanecen intactos en la aplicación.
 ### Qué archivo importar
 
 Los diez originales locales de `fuentes_cuadres_cierre_de_nómina` se utilizan
-sin modificarlos. Confirma el mes de nómina y el devengo de cada documento:
-un archivo de septiembre puede corresponder a la nómina de octubre.
+sin modificarlos. La categoría de la tabla se detecta automáticamente; no hay
+que elegirla. Un archivo de septiembre puede corresponder a la nómina de octubre.
+Los originales de Gimnasio, Apartamentos y Comida se leen para octubre y se
+rechazan con una explicación en un expediente de julio.
 
 | Archivo                                           | Categoría en Fuentes            | Qué comprobar                                                                                   |
 | ------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
@@ -143,27 +170,39 @@ modifica las instantáneas guardadas.
 Las rutas usan Node.js, sesión y contexto validados en servidor, comprobación
 de origen y respuestas `no-store`:
 
-| Interfaz                             | Operación                                                                                   |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `GET /api/payroll/reconciliation`    | Lista resumida; `?id=` abre expediente; `?catalog=1` consulta ejecuciones.                  |
-| `POST /api/payroll/reconciliation`   | Crea expediente desde claves ERP confirmadas, o muestra debug autorizada.                   |
-| `PATCH /api/payroll/reconciliation`  | Parámetros, revisión, actualización explícita de instantáneas, retirada de fuente o nombre. |
-| `DELETE /api/payroll/reconciliation` | Elimina por ID y revisión esperada dentro del contexto actual.                              |
-| `POST .../preview`                   | Multipart `file` y `metadata`: valida perfil y devuelve recuentos/referencias. No guarda.   |
-| `POST .../analyze`                   | Incorpora o sustituye una fuente confirmada y recalcula el expediente.                      |
-| `POST .../export`                    | ID y revisión; recalcula desde fuentes guardadas y descarga Excel.                          |
+| Interfaz                             | Operación                                                                                                                |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `GET /api/payroll/reconciliation`    | Lista resumida; `?id=` abre expediente; `?catalog=1` consulta ejecuciones.                                               |
+| `POST /api/payroll/reconciliation`   | Crea expediente desde claves ERP confirmadas, o muestra debug autorizada.                                                |
+| `PATCH /api/payroll/reconciliation`  | Parámetros, revisión, actualización explícita de instantáneas, retirada de fuente o nombre.                              |
+| `DELETE /api/payroll/reconciliation` | Elimina por ID y revisión esperada dentro del contexto actual.                                                           |
+| `POST .../preview`                   | Multipart `file` y `metadata`: valida perfil y devuelve recuentos/referencias. No guarda.                                |
+| `POST .../analyze`                   | Modalidad automática: detecta, incorpora/sustituye u omite una fuente y recalcula. Conserva el contrato manual anterior. |
+| `POST .../export`                    | ID y revisión; recalcula desde fuentes guardadas y descarga Excel.                                                       |
 
 Las mutaciones usan revisión optimista. Un `409` exige volver a abrir el
 expediente: no se sobreescribe trabajo concurrente ni se exporta una revisión
-obsoleta. El servidor no acepta resultados, sociedad, SQL ni rutas del cliente.
+obsoleta. La cola conserva los archivos para recargar el expediente y reintentarlos.
+El servidor no acepta resultados, sociedad, SQL ni rutas del cliente.
 El identificador interno de empresa en cabecera solo permite detectar cambios
 de contexto, nunca autoriza otra sociedad.
 
 Límites: 16 MiB/archivo, 32 MiB/petición, veinte fuentes, 100.000 filas por
 libro, dos millones de celdas del conjunto y 128 MiB de expansión XLSX por
-petición. Una carga incorpora un archivo; pueden añadirse más sucesivamente.
+petición. El selector admite múltiples archivos sin un máximo artificial de uno;
+la cola envía una petición por archivo. El total del lote no se concentra en una
+única petición. La modalidad automática mantiene una fuente activa por categoría.
 Solo preview/analyze/export se excluyen del clonado del proxy; mantienen
 autenticación y lectura de cuerpo limitada en su handler.
+
+La modalidad automática recibe multipart `file` y `metadata` con
+`{ id, revision, auto: true }`; categoría y periodo salen del servidor. Devuelve
+el expediente actualizado y `category`, `filename`, `records`, `replacedFiles`
+y `status` (`incorporado`, `sustituido` o `ya_incorporado`). La copia idéntica no
+incrementa la revisión. Los errores de archivo pueden incluir la categoría
+detectada. La siguiente petición usa la revisión de la respuesta anterior.
+`Source.filename` es opcional y se conserva en el JSON existente: los expedientes
+antiguos siguen abriendo y no necesitan una nueva migración SQL.
 
 El motor suma importes antes de comparar y consolida porcentajes idénticos,
 sin sumarlos. Usa enteros escalados a 24 decimales; divisiones truncadas a esa
@@ -251,20 +290,31 @@ auténtico. Las pruebas sintéticas sí cubren meses distintos y el cambio de a�
 
 ## Validación ejecutada y pendiente
 
-Actualización 2026-11-03: typecheck y build correctos. Suite completa de 199
-archivos, 1.153 pruebas correctas y dos omitidas. Tras simplificar los últimos
-avisos, pase dirigido final de tres archivos con 27 pruebas correctas. La prueba
-local de los diez originales conserva los recuentos, diferencias y hashes.
-Setup ejecutado en una base aislada para las comprobaciones de depuración.
+Actualización 2026-11-03: carga múltiple automática, typecheck y build correctos.
+Suite completa de 201 archivos, 1.175 pruebas correctas y dos omitidas. Tras el
+ajuste móvil, pase dirigido final de seis archivos con 49 pruebas correctas.
+Los diez originales se reconocen renombrados, se leen para octubre y conservan
+los recuentos, diferencias y hashes. Gimnasio, Apartamentos y Comida rechazan
+el expediente de julio con la explicación del periodo. Setup ejecutado en una
+base aislada para las comprobaciones de depuración.
 
-En navegador local con sesión debug se comprobó creación, revisión, edición
+En navegador con sesión debug se comprobó un lote de cinco archivos: tres
+incorporados y dos errores independientes (corrupto y desconocido). Copias
+idénticas sin duplicado ni incremento de revisión, sustitución automática,
+reapertura con nombres persistidos, lote de julio con archivos incompatibles y
+otro incorporado, 503 simulado y continuación conservando la cola. Iconos y
+confirmación de retirada comprobados. Fuentes se revisó a 1440/1024/768/390 px,
+sin overflow horizontal de página ni errores JavaScript; la zona de carga se
+ajustó para que sus textos se lean completos en móvil.
+
+En la entrega anterior, con sesión debug se comprobó creación, revisión, edición
 desde Revisión, cancelación, guardado y reapertura después de recargar,
 invalidación por cambio de evidencia y bloqueo de hallazgos antiguos. El modal
 se comprobó a 1440/1024/768/390 px, con nombres largos, sin overflow horizontal
 de página ni errores JavaScript. Se descargó el Excel real de 23 hojas con
 fuentes ficticias y precisión decimal completa.
 
-Excel nativo abrió la descarga en solo lectura: nombres y conceptos sin ajuste,
+En esa entrega, Excel nativo abrió la descarga en solo lectura: nombres y conceptos sin ajuste,
 fila de 20 puntos y motivo «Fuera del listado»; un comentario de 915 caracteres
 se ajustó a una fila de 180 puntos. El archivo mantuvo sus bytes después de
 cerrarlo. Los originales corporativos no se modificaron.
