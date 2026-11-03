@@ -202,6 +202,69 @@ describe("reconciliation boundaries", () => {
     expect(mocks.read).not.toHaveBeenCalled();
     expect((await exportRoute(request("POST", { id: dossier.id, revision: 2 }))).status).toBe(409);
   });
+  it("updates an existing invalidated review and reopens it without changing calculated results", async () => {
+    const finding = dossier.result.findings.find((item) => item.status === "Con diferencia")!;
+    const original = structuredClone(dossier.result);
+    dossier.annotations = [
+      {
+        findingId: finding.id,
+        fingerprint: "0".repeat(64),
+        state: "Pendiente",
+        comment: "Anterior",
+        actor: "OLD",
+        at: "2026-10-01",
+        invalidated: true,
+      },
+    ];
+    mocks.save.mockImplementation((_scope, record: Dossier) => {
+      dossier = { ...record, revision: record.revision + 1 };
+      return dossier;
+    });
+    const response = await PATCH(
+      request("PATCH", {
+        id: dossier.id,
+        revision: dossier.revision,
+        action: "review",
+        findingId: finding.id,
+        fingerprint: finding.fingerprint,
+        state: "Diferencia justificada",
+        comment: "Comentario actualizado",
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(dossier.annotations).toHaveLength(1);
+    expect(dossier.annotations[0]).toMatchObject({
+      state: "Diferencia justificada",
+      comment: "Comentario actualizado",
+      fingerprint: finding.fingerprint,
+      invalidated: false,
+    });
+    const reopened = await GET(
+      new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`),
+    );
+    expect((await reopened.json()).data.annotations).toEqual(dossier.annotations);
+    expect(dossier.result).toEqual(original);
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+  it.each(["Diferencia justificada", "Requiere corrección manual"])(
+    "requires a nonblank comment for %s on the server",
+    async (state) => {
+      const finding = dossier.result.findings[0];
+      const response = await PATCH(
+        request("PATCH", {
+          id: dossier.id,
+          revision: dossier.revision,
+          action: "review",
+          findingId: finding.id,
+          fingerprint: finding.fingerprint,
+          state,
+          comment: "  ",
+        }),
+      );
+      expect(response.status).toBe(400);
+      expect(mocks.save).not.toHaveBeenCalled();
+    },
+  );
   it("uses only the server society for real report reads", async () => {
     mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
     mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });

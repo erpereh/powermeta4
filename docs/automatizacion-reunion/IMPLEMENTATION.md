@@ -51,7 +51,14 @@ habilitado; producción nunca la habilita.
    Los valores de octubre no se precargan como reglas universales.
 6. Abre un hallazgo para revisar operandos, referencias y comentarios. La
    revisión manual nunca cambia el delta. Nuevas evidencias invalidan las
-   revisiones afectadas.
+   revisiones afectadas. Desde **Revisión → Editar revisión** puedes cambiar
+   la decisión y el comentario guardados. Las decisiones «Diferencia justificada»
+   y «Requiere corrección manual» necesitan comentario. Cancelar descarta el
+   borrador. Una revisión invalidada abre el resultado actual como Pendiente,
+   con el comentario anterior editable y un aviso para revisarla de nuevo.
+   Un hallazgo que ya no existe se identifica como «Hallazgo anterior» y no se
+   puede editar. Ante un conflicto, el formulario conserva el borrador y permite
+   volver a cargar el expediente antes de guardar.
 7. «Actualizar desde PeopleNet» relee o cambia las ejecuciones tras confirmación.
    Abrir, añadir fuentes o exportar no actualiza silenciosamente las nóminas.
 8. Exporta el libro con Resumen, Expediente, Fuentes, Datos actual/anterior,
@@ -64,8 +71,50 @@ superiores a la tolerancia se marcan en naranja suave; las filas sin fuente o
 no comparables, en gris; las coincidencias no llevan relleno especial. No se
 exportan las columnas Unidad, Resultado ni Evidencias en estas hojas. En IRPF,
 las cabeceras indican porcentajes (%) y diferencia en puntos porcentuales (pp).
-Los cálculos y las evidencias del expediente se conservan en la aplicación;
-el resto de hojas del libro mantiene su contenido.
+Las filas se ordenan por resultado: Con diferencia, Falta fuente, No comparable
+y Coincide, conservando su orden dentro de cada grupo. Justificar una diferencia
+no cambia su posición ni su color calculado.
+
+Todo el libro usa anchuras adaptadas al contenido, con un máximo de 80 caracteres
+y columnas amplias de personas, conceptos y motivos. Los nombres, conceptos e
+importes se mantienen en una línea; los comentarios largos permiten varias líneas
+sin recortar su contenido. Los motivos automáticos se abrevian solo en la descarga
+(por ejemplo, «Fuera del listado»), conservando las causas relevantes y los textos
+de excepciones y referencias documentales escritos por el usuario.
+
+Las 23 hojas omiten hashes, huellas, perfiles y versiones internas. Los campos,
+categorías y parámetros tienen etiquetas legibles; cada parámetro aparece una vez.
+Las fechas son legibles en horario de Madrid. Revisión identifica matrícula,
+persona, control y concepto; los hallazgos antiguos no exponen su ID interno.
+Se conservan las referencias de hoja/fila, documento, solicitud o cuota, los ceros
+iniciales y la precisión decimal completa. Los cálculos y las evidencias del
+expediente permanecen intactos en la aplicación.
+
+### Qué archivo importar
+
+Los diez originales locales de `fuentes_cuadres_cierre_de_nómina` se utilizan
+sin modificarlos. Confirma el mes de nómina y el devengo de cada documento:
+un archivo de septiembre puede corresponder a la nómina de octubre.
+
+| Archivo                                           | Categoría en Fuentes            | Qué comprobar                                                                                   |
+| ------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `25 40 Aniversario 2026.xlsx`                     | Aniversarios 25/40              | Entidad, antigüedad, elegibilidad y base del periodo.                                           |
+| `Altas Gimnasio 2026.xlsx`                        | Gimnasio                        | Columna de pago mensual y cobertura del listado.                                                |
+| `CYC_COMISION_SERVICIOS_20261015_162723.xlsx`     | Comisiones / kilómetros         | Se lee Carga de Valores; confirmar devengo y ventana. No sumar Detalle/Desglose.                |
+| `Cobro nomnas 13 junio-18 julio.xlsx`             | Apartamentos                    | Se leen cuotas del mes de Bonos disfrute; confirmar año y cobertura de los bloques.             |
+| `Colectivo afectado tecnología teletrabajo.xlsx`  | Colectivo teletrabajo           | Confirma tarifa, días y excepciones del periodo; el colectivo no acredita esos parámetros.      |
+| `Descuento comida septiembre nómina octubre.xlsx` | Ausencias / compensación comida | Confirmar días de derecho, tarifa y excepciones; no duplicar las dos hojas.                     |
+| `Eurest nómina septiembre.xlsx`                   | Eurest                          | Tiene una matrícula inválida que debe corregirse en el original; no se vincula por nombre.      |
+| `FPS_Crédito_y_Caución_2026-10.xlsx`              | Flex / Mercer                   | Se leen las nueve métricas mensuales; confirmar cobertura y devengo.                            |
+| `Normal_Inf 0001_C_202610161141 cuadres.xls`      | PPSE (hoja embebida)            | Se lee Fichero PPSE para el mes elegido; criterio y calendario siguen pendientes de validación. |
+| `Recarga comida ACYC septiembre.xlsx`             | Recarga tarjeta comida          | Combinar con Eurest y confirmar tarifa/base y cobertura; los solapes quedan pendientes.         |
+
+El libro Normal no sustituye las ejecuciones actual/anterior seleccionadas en
+PeopleNet. Sus hojas Datos, Datos2 y Datos3 son de octubre de 2026 y no acreditan
+un mes anterior; sus copias de fuentes tampoco deben cargarse como documentos
+independientes. Siguen faltando el registro independiente de excesos y las
+cartas/calendario de anticipos; pueden prepararse con las plantillas de esas
+categorías. La ejecución anterior debe seleccionarse del catálogo de PeopleNet.
 
 La lista permite eliminar expedientes con confirmación. Se conservan hasta
 eliminación explícita; los backups anteriores mantienen sus datos. El acceso
@@ -202,18 +251,25 @@ auténtico. Las pruebas sintéticas sí cubren meses distintos y el cambio de a�
 
 ## Validación ejecutada y pendiente
 
-Typecheck y build correctos. Suite completa: 196 archivos, 1.121 pruebas
-correctas y dos omitidas; comprobación dirigida posterior: siete archivos,
-40 pruebas correctas. Se probó backup/restauración con el servicio real de
-copias locales y la migración mediante setup en una base aislada.
+Actualización 2026-11-03: typecheck y build correctos. Suite completa de 199
+archivos, 1.153 pruebas correctas y dos omitidas. Tras simplificar los últimos
+avisos, pase dirigido final de tres archivos con 27 pruebas correctas. La prueba
+local de los diez originales conserva los recuentos, diferencias y hashes.
+Setup ejecutado en una base aislada para las comprobaciones de depuración.
 
-En navegador local se comprobó creación, revisión, reapertura después de
-recargar, carga progresiva de un Excel sintético de 11.646.303 bytes y descarga
-real del libro de 23 hojas. Se revisaron los temas claro/oscuro a 1305 × 703,
-sin overflow horizontal de página. La matriz visual 1440/1024/768/390 y el
-benchmark en la VM quedan pendientes; no se presentan como pruebas realizadas.
+En navegador local con sesión debug se comprobó creación, revisión, edición
+desde Revisión, cancelación, guardado y reapertura después de recargar,
+invalidación por cambio de evidencia y bloqueo de hallazgos antiguos. El modal
+se comprobó a 1440/1024/768/390 px, con nombres largos, sin overflow horizontal
+de página ni errores JavaScript. Se descargó el Excel real de 23 hojas con
+fuentes ficticias y precisión decimal completa.
 
-El contraste contra los diez originales conserva los recuentos y diferencias
-documentados. El lint global falla por formato pendiente en archivos previos;
-el registro exacto está en `spec/changelog.md`. La conexión y aceptación
-operativa en PeopleNet requieren ejecutar los scripts anteriores en tu entorno.
+Excel nativo abrió la descarga en solo lectura: nombres y conceptos sin ajuste,
+fila de 20 puntos y motivo «Fuera del listado»; un comentario de 915 caracteres
+se ajustó a una fila de 180 puntos. El archivo mantuvo sus bytes después de
+cerrarlo. Los originales corporativos no se modificaron.
+
+Lint global ejecutado: siete avisos previos y formato pendiente en 618 archivos.
+Lint/formato dirigido correcto en el código modificado y esta guía; el registro
+está en `spec/changelog.md`. El benchmark, la conexión y la aceptación operativa
+en PeopleNet requieren ejecutar los scripts anteriores en tu entorno.

@@ -17,6 +17,7 @@ import {
 } from "@/components/system";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 import { CATEGORIES, METRICS } from "@/lib/payroll-reconciliation/catalogue";
+import { metricLabel, reconciliationDate } from "@/lib/payroll-reconciliation/presentation";
 import type {
   Annotation,
   Category,
@@ -76,6 +77,10 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
   const [selected, setSelected] = useState<Finding | null>(null),
     [reviewState, setReviewState] = useState<Annotation["state"]>("Pendiente"),
     [comment, setComment] = useState("");
+  const [reviewInvalidated, setReviewInvalidated] = useState(false);
+  const changeReviewOpen = useCallback((open: boolean) => {
+    if (!open) setSelected(null);
+  }, []);
   const [search, setSearch] = useState(""),
     [status, setStatus] = useState("all"),
     [control, setControl] = useState("all");
@@ -89,7 +94,11 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
       const response = await fetch(`${ROOT}${path}`, { ...init, headers, cache: "no-store" });
       const body = (await response.json()) as { ok?: boolean; message?: string; data: T };
       if (!response.ok || !body.ok)
-        throw new Error(body.message ?? "No se ha podido completar la operación.");
+        throw new Error(
+          response.status === 409
+            ? `${body.message ?? "El expediente ha cambiado."} Vuelve a cargar el expediente antes de guardar.`
+            : (body.message ?? "No se ha podido completar la operación."),
+        );
       return body.data;
     },
     [companyId],
@@ -177,13 +186,25 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
       ) ?? [],
     [dossier, search, status, control],
   );
-  const showFinding = (finding: Finding) => {
-    const annotation = dossier?.annotations.find(
-      (item) => item.findingId === finding.id && !item.invalidated,
+  const reviews = useMemo(() => {
+    const byId = new Map(dossier?.result.findings.map((finding) => [finding.id, finding]));
+    return (
+      dossier?.annotations.map((annotation) => ({
+        ...annotation,
+        finding: byId.get(annotation.findingId),
+      })) ?? []
     );
+  }, [dossier]);
+  const showFinding = (finding: Finding) => {
+    const annotation = dossier?.annotations.find((item) => item.findingId === finding.id);
+    const invalidated = Boolean(
+      annotation && (annotation.invalidated || annotation.fingerprint !== finding.fingerprint),
+    );
+    setError("");
     setSelected(finding);
-    setReviewState(annotation?.state ?? "Pendiente");
+    setReviewState(invalidated ? "Pendiente" : (annotation?.state ?? "Pendiente"));
     setComment(annotation?.comment ?? "");
+    setReviewInvalidated(invalidated);
   };
   const exportCurrent = () =>
     void perform(async () => {
@@ -234,7 +255,7 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
         }
       />
       <div className="mx-auto w-full min-w-0 max-w-7xl space-y-5 p-4 sm:p-6" aria-busy={busy}>
-        {error && (
+        {error && !selected && (
           <div
             role="alert"
             className="rounded-lg border border-destructive p-3 text-sm text-destructive"
@@ -526,25 +547,70 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                     invalida su revisión.
                   </p>
                   <Table
-                    data={dossier.annotations}
+                    data={reviews}
                     getRowId={(row) => row.findingId}
+                    autoHeight={reviews.length <= 7}
+                    variableRowHeight
                     scrollAreaLabel="Revisiones guardadas"
                     columns={[
                       {
                         key: "findingId",
                         header: "Hallazgo",
+                        width: "280px",
                         cell: (row) =>
-                          dossier.result.findings.find((finding) => finding.id === row.findingId)
-                            ?.employeeId ?? "Hallazgo anterior",
+                          row.finding ? (
+                            <div className="space-y-1">
+                              <p>
+                                {row.finding.employeeId} · {row.finding.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {row.finding.control} · {metricLabel(row.finding.metric)}
+                              </p>
+                            </div>
+                          ) : (
+                            "Hallazgo anterior"
+                          ),
                       },
-                      { key: "state", header: "Decisión" },
-                      { key: "comment", header: "Comentario" },
-                      { key: "at", header: "Fecha" },
+                      { key: "state", header: "Decisión", width: "180px" },
+                      { key: "comment", header: "Comentario", width: "240px" },
+                      {
+                        key: "at",
+                        header: "Fecha",
+                        width: "180px",
+                        cell: (row) => reconciliationDate(row.at),
+                      },
                       {
                         key: "invalidated",
                         header: "Vigencia",
+                        width: "180px",
                         cell: (row) =>
-                          row.invalidated ? "Invalidada: revisar de nuevo" : "Vigente",
+                          !row.finding
+                            ? "Hallazgo anterior"
+                            : row.invalidated
+                              ? "Invalidada: revisar de nuevo"
+                              : "Vigente",
+                      },
+                      {
+                        key: "actions",
+                        header: "Acciones",
+                        width: "180px",
+                        cell: (row) => (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busy || !row.finding}
+                            aria-label={
+                              row.finding
+                                ? `Editar revisión de ${row.finding.employeeId}, ${row.finding.control}, ${metricLabel(row.finding.metric)}`
+                                : "Editar revisión de hallazgo anterior"
+                            }
+                            onClick={() => {
+                              if (row.finding) showFinding(row.finding);
+                            }}
+                          >
+                            Editar revisión
+                          </Button>
+                        ),
                       },
                     ]}
                     emptyState="Sin revisiones guardadas. Abre un resultado desde Controles."
@@ -657,19 +723,54 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
       </Modal>
       <Modal
         open={Boolean(selected)}
-        onOpenChange={(value) => {
-          if (!value) setSelected(null);
-        }}
+        onOpenChange={changeReviewOpen}
         title="Revisar resultado"
         size="lg"
+        dismissible={!busy}
       >
         {error && (
           <p role="alert" className="mb-3 text-sm text-destructive">
             {error}
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                void perform(async () => {
+                  if (!dossier || !selected) return;
+                  const saved = await api<Dossier>(`?id=${encodeURIComponent(dossier.id)}`);
+                  await accept(saved);
+                  if (!mounted.current) return;
+                  const current = saved.result.findings.find(
+                    (finding) => finding.id === selected.id,
+                  );
+                  if (!current) {
+                    setSelected(null);
+                    setError(
+                      "El hallazgo ya no existe en el resultado actual. Su revisión se conserva como hallazgo anterior.",
+                    );
+                    return;
+                  }
+                  if (current.fingerprint !== selected.fingerprint) {
+                    setReviewState("Pendiente");
+                    setReviewInvalidated(true);
+                  }
+                  setSelected(current);
+                })
+              }
+            >
+              Volver a cargar expediente
+            </Button>
           </p>
         )}
         {selected && (
           <div className="space-y-4">
+            {reviewInvalidated && (
+              <p role="status" className="rounded-lg bg-muted p-3 text-sm">
+                La evidencia ha cambiado. Revisa el resultado actual y confirma de nuevo la
+                decisión. Se conserva el comentario anterior para que puedas editarlo.
+              </p>
+            )}
             <p className="font-medium">
               {selected.employeeId} · {selected.name} ·{" "}
               {METRICS.find((metric) => metric.id === selected.metric)?.header}
@@ -690,37 +791,56 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
             <Choice
               label="Decisión de revisión"
               value={reviewState}
-              onChange={(value) => setReviewState(value as Annotation["state"])}
+              disabled={busy}
+              onChange={(value) => {
+                if (
+                  value === "Pendiente" ||
+                  value === "Diferencia justificada" ||
+                  value === "Requiere corrección manual"
+                )
+                  setReviewState(value);
+              }}
               items={["Pendiente", "Diferencia justificada", "Requiere corrección manual"].map(
                 (name) => ({ id: name, name }),
               )}
             />
-            <Input label="Comentario" value={comment} onChange={setComment} maxLength={2000} />
-            <Button
-              disabled={busy || (reviewState !== "Pendiente" && !comment.trim())}
-              onClick={() =>
-                void perform(async () => {
-                  if (!dossier) return;
-                  await accept(
-                    await api<Dossier>("", {
-                      method: "PATCH",
-                      body: JSON.stringify({
-                        id: dossier.id,
-                        revision: dossier.revision,
-                        action: "review",
-                        findingId: selected.id,
-                        fingerprint: selected.fingerprint,
-                        state: reviewState,
-                        comment,
+            <Input
+              label="Comentario"
+              value={comment}
+              onChange={setComment}
+              maxLength={2000}
+              disabled={busy}
+            />
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button variant="outline" disabled={busy} onClick={() => setSelected(null)}>
+                Cancelar
+              </Button>
+              <Button
+                disabled={busy || (reviewState !== "Pendiente" && !comment.trim())}
+                onClick={() =>
+                  void perform(async () => {
+                    if (!dossier) return;
+                    await accept(
+                      await api<Dossier>("", {
+                        method: "PATCH",
+                        body: JSON.stringify({
+                          id: dossier.id,
+                          revision: dossier.revision,
+                          action: "review",
+                          findingId: selected.id,
+                          fingerprint: selected.fingerprint,
+                          state: reviewState,
+                          comment,
+                        }),
                       }),
-                    }),
-                  );
-                  if (mounted.current) setSelected(null);
-                })
-              }
-            >
-              Guardar revisión
-            </Button>
+                    );
+                    if (mounted.current) setSelected(null);
+                  })
+                }
+              >
+                Guardar revisión
+              </Button>
+            </div>
           </div>
         )}
       </Modal>

@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-11-03 - Excel de cuadre legible, ordenado y revisiones editables
+
+- C01–C16 priorizan Con diferencia, Falta fuente, No comparable y Coincide,
+  conservando el orden interno, colores y valores exactos. Motivos automáticos
+  breves («Fuera del listado») y avisos sin referencias de desarrollo. La
+  transformación solo afecta a la exportación; no invalida notas guardadas.
+- Las 23 hojas eliminan hashes, huellas, perfiles, versiones y claves internas.
+  Etiquetas legibles para categorías, conceptos y parámetros sin duplicados;
+  fechas de Madrid y revisión por matrícula/persona/control/concepto. Mantiene
+  referencias documentales y de origen, ceros iniciales y precisión decimal.
+  Anchuras calculadas con límite 80, nombres/conceptos sin ajuste y comentarios
+  extensos con altura natural. Comentarios y excepciones declaradas intactos.
+- Revisión permite editar decisión y comentario mediante el PATCH existente,
+  cancelar y reabrir; una revisión invalidada comienza como Pendiente con aviso
+  y comentario anterior editable. Hallazgos desaparecidos sin edición. Borrador
+  conservado en errores/conflictos, con recarga del expediente. Callback de
+  cierre estable para conservar el foco al escribir. Sin nuevos endpoints,
+  estados, migraciones ni cambios en motor, SOAP o PeopleNet.
+- Verificación: setup en base aislada; suite completa de 199 archivos con
+  1.153 pruebas correctas y 2 omitidas. Después de simplificar los últimos avisos,
+  pase dirigido final de tres archivos con 27 pruebas correctas. Prueba local de
+  los diez originales correcta, con hashes inalterados. Typecheck y build correctos.
+- Navegador real en debug: creación, revisión, edición, cancelación, persistencia
+  tras recargar, invalidación, hallazgo anterior y descarga de 23 hojas. Modal
+  con nombres largos a 1440/1024/768/390 px sin overflow de página ni errores
+  JavaScript. Excel nativo en solo lectura confirma fila de 20 puntos para nombres
+  y conceptos sin ajuste, motivo breve, ceros iniciales y comentario ficticio de
+  915 caracteres ajustado a 180 puntos; el archivo descargado conserva sus bytes.
+- Lint global ejecutado: siete avisos previos y formato pendiente en 618 archivos.
+  Lint y formato dirigidos correctos en los seis archivos de código y la guía;
+  se conserva el formato histórico de todo/changelog. Diff check y estado Git
+  revisados. Guía con categorías y limitaciones de los diez Excel originales;
+  muestras, SQLite, capturas y logs excluidos de Git. Sin validación remota.
+
 ## 2026-10-28 - Simplificación del Excel de Cuadre de nómina
 
 - Las dieciséis hojas de controles conservan Matrícula, Persona, Concepto,

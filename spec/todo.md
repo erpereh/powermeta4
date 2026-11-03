@@ -1,5 +1,38 @@
 # powermeta4 - estado de tareas
 
+## Excel de cuadre legible y revisión editable — 2026-11-03
+
+- [x] C01–C16 ordenadas por Con diferencia, Falta fuente, No comparable y
+      Coincide, con orden estable dentro del grupo y colores asociados al resultado.
+      Motivos automáticos breves solo al exportar; «Fuera del listado» conserva
+      cálculos, huellas y revisiones anteriores sin cambios.
+- [x] Las 23 hojas omiten hashes, perfiles, versiones e identificadores internos;
+      categorías, campos y parámetros legibles, sin parámetros duplicados. Se
+      conservan referencias operativas, ceros iniciales y precisión decimal.
+      Anchuras por contenido hasta 80 caracteres; nombres/conceptos en una línea
+      y comentarios extensos ajustables. Revisión identifica persona y concepto.
+- [x] Editar decisión y comentario desde Revisión, cancelar sin guardar,
+      comentario obligatorio para decisiones no pendientes, reapertura de
+      revisiones invalidadas como Pendiente con comentario anterior y bloqueo
+      de hallazgos antiguos. Conflictos conservan el borrador y permiten recargar.
+      Corregida la devolución de foco del modal mientras se escribe.
+- [x] Setup en base aislada de depuración; navegador real con creación, edición,
+      guardado, recarga, invalidación, cancelación y descarga. Modal con nombres
+      largos a 1440/1024/768/390 px, sin overflow de página ni errores JavaScript.
+      Excel nativo en solo lectura: 23 hojas, nombres/conceptos sin ajuste y fila
+      de 20 puntos; comentario de 915 caracteres ajustado a 180 puntos. Fichero intacto.
+- [x] Suite completa: 199 archivos, 1.153 pruebas correctas y 2 omitidas.
+      Tras la última simplificación de avisos, pase dirigido de tres archivos
+      con 27 pruebas correctas. Prueba local de diez originales correcta y
+      hashes inalterados. Typecheck y build correctos; lint global ejecutado
+      conserva siete avisos y 618 archivos con formato previo pendiente.
+      Lint/formato dirigido correcto; diff y estado Git comprobados.
+- [x] Guía con los diez archivos, categoría de carga y limitaciones: periodos,
+      tarifas, cobertura, identidad inválida de Eurest y fuentes pendientes de
+      excesos/anticipos. Originales privados, muestras y logs fuera de Git.
+- [ ] Piloto y reglas económicas pendientes de PeopleNet, sin conexión remota
+      durante esta entrega. No se modifican motor, esquema ni interfaces HTTP.
+
 ## Excel de cuadre simplificado — 2026-10-28
 
 - [x] C01–C16 exportan siete columnas, sin Unidad, Resultado ni Evidencias.
