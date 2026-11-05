@@ -143,3 +143,10 @@ export type SourceImportResult = {
   records: number;
   replacedFiles: string[];
 };
+
+export type SourceCheckResult = Omit<SourceImportResult, "dossier" | "status"> & {
+  operation: "add" | "replace" | "skip";
+  hash: string;
+  cellCount: number;
+  diagnostics: string[];
+};

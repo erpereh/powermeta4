@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, Plus, Download, RefreshCw, FolderOpen } from "lucide-react";
+import { FileSpreadsheet, Plus, Download, RefreshCw, FolderOpen, Trash2 } from "lucide-react";
 import {
   Button,
   Input,
@@ -326,14 +326,17 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                       >
                         Abrir
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setDeleteTarget(row)}
-                        disabled={busy}
-                      >
-                        Eliminar
-                      </Button>
+                      <Tooltip content="Eliminar expediente">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Eliminar expediente ${row.title}`}
+                          onClick={() => setDeleteTarget(row)}
+                          disabled={busy}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </Tooltip>
                     </div>
                   ),
                 },

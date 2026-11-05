@@ -269,6 +269,80 @@ describe("reconciliation boundaries", () => {
     ).toBe(true);
     expect(mocks.read).not.toHaveBeenCalled();
   });
+  it("previews automatic new/replacement/duplicate sources without changing any dossier state", async () => {
+    persistUploads();
+    const original = structuredClone(dossier);
+    const preview = await previewRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(preview.status).toBe(200);
+    const check = (await preview.json()).data;
+    expect(check).toMatchObject({
+      operation: "add",
+      category: "gimnasio",
+      filename: "renombrado.xlsx",
+      records: 1,
+      replacedFiles: [],
+      diagnostics: [],
+    });
+    expect(check.hash).toHaveLength(64);
+    expect(check.cellCount).toBeGreaterThan(0);
+    expect(dossier).toEqual(original);
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.get).toHaveBeenCalledWith(
+      { companyId: "company-a", society: "DEBUG", demo: true, actor: "DEBUG" },
+      dossier.id,
+    );
+
+    await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    const applied = structuredClone(dossier);
+    mocks.save.mockClear();
+    const replacement = await previewRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, uploadBytes(30), "nuevo.xlsx"),
+    );
+    expect((await replacement.json()).data).toMatchObject({
+      operation: "replace",
+      records: 1,
+      replacedFiles: ["renombrado.xlsx"],
+    });
+    const duplicate = await previewRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, uploadBytes(), "otra-copia.xlsx"),
+    );
+    expect((await duplicate.json()).data).toMatchObject({
+      operation: "skip",
+      records: 1,
+      replacedFiles: [],
+    });
+    expect(dossier).toEqual(applied);
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+  it("keeps the manual preview contract without persisting", async () => {
+    const response = await previewRoute(
+      upload({ category: "gimnasio", period: "2026-10", complete: true }),
+    );
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).toMatchObject({ count: 1, diagnostics: [] });
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("rejects stale, out-of-scope and invalid-month automatic previews without saving", async () => {
+    expect((await previewRoute(upload({ id: dossier.id, revision: 2, auto: true }))).status).toBe(
+      409,
+    );
+    dossier.period = "2026-07";
+    const invalidMonth = await previewRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(invalidMonth.status).toBe(422);
+    expect(await invalidMonth.json()).toMatchObject({
+      category: "gimnasio",
+      message: expect.stringMatching(/julio.*octubre/),
+    });
+    const otherCompany = upload({ id: dossier.id, revision: 1, auto: true });
+    otherCompany.headers.set("x-powermeta4-company", "company-b");
+    expect((await previewRoute(otherCompany)).status).toBe(409);
+    expect(
+      (await previewRoute(upload({ id: dossier.id, revision: 1, auto: true, period: "2026-10" })))
+        .status,
+    ).toBe(400);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
   it("omits an identical source without changing revision or its previously declared coverage", async () => {
     persistUploads();
     await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));

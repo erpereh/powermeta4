@@ -121,6 +121,18 @@ async function chooseDecision(user: ReturnType<typeof userEvent.setup>, name: st
 }
 
 describe("saved reconciliation review editing", () => {
+  it("opens deletion confirmation with an accessible icon and leaves deletion pending until confirmed", async () => {
+    const user = userEvent.setup();
+    render(<ReconciliationApp demo />);
+    const trigger = await screen.findByRole("button", {
+      name: "Eliminar expediente Cuadre de prueba",
+    });
+    expect(trigger.textContent).toBe("");
+    trigger.focus();
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("dialog", { name: "Eliminar expediente" })).toBeTruthy();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(false);
+  });
   it("edits from Revisión, sends the current revision/fingerprint and reopens persisted decisions without changing results", async () => {
     const user = userEvent.setup();
     const { unmount } = render(<ReconciliationApp demo />);

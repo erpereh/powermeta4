@@ -7,11 +7,8 @@ import type { TableProps } from "@/components/system/table";
 import { demoReport } from "@/lib/payroll-reconciliation/demo";
 import { snapshot } from "@/lib/payroll-reconciliation/snapshot";
 import { reconcile } from "@/lib/payroll-reconciliation/engine";
-import {
-  DEFAULT_PARAMETERS,
-  type Dossier,
-  type SourceImportResult,
-} from "@/lib/payroll-reconciliation/types";
+import { sourceChange, sourceLimitError } from "@/lib/payroll-reconciliation/source-plan";
+import { DEFAULT_PARAMETERS, type Dossier, type Source } from "@/lib/payroll-reconciliation/types";
 import { ReconciliationRequestError } from "./request-error";
 vi.mock("@/components/system/table", async (importOriginal) => {
   const { Table } = await importOriginal<typeof import("@/components/system/table")>();
@@ -19,68 +16,72 @@ vi.mock("@/components/system/table", async (importOriginal) => {
 });
 import { SourcesView } from "./SourcesView";
 
-let saved: Dossier, failOnce: boolean;
-const requests: { filename: string; revision: number }[] = [];
+let saved: Dossier;
+let failure: { path: string; filename: string; status: number } | undefined;
+let pause: Promise<void> | undefined;
+const requests: { path: string; filename: string; revision: number }[] = [];
 const remove = vi.fn();
-const backend = vi.fn(
-  async (path = "", init?: RequestInit): Promise<Dossier | SourceImportResult> => {
-    if (path.startsWith("?id=")) return structuredClone(saved);
-    if (!(init?.body instanceof FormData)) throw new Error("Expected multipart");
-    const file = init.body.get("file");
-    if (!(file instanceof File)) throw new Error("Expected file");
-    const metadata: unknown = JSON.parse(String(init.body.get("metadata")));
-    if (
-      !metadata ||
-      typeof metadata !== "object" ||
-      !("revision" in metadata) ||
-      typeof metadata.revision !== "number"
-    )
-      throw new Error("Expected revision");
-    requests.push({ filename: file.name, revision: metadata.revision });
-    if (failOnce) {
-      failOnce = false;
-      saved.revision++;
-      throw new ReconciliationRequestError("El expediente ha cambiado.", 409);
-    }
-    if (file.name.startsWith("bad"))
-      throw new ReconciliationRequestError(
-        "El archivo no contiene datos para julio. Meses disponibles: octubre.",
-        422,
-        "comida",
-      );
-    const category = file.name.startsWith("meal") ? "comida" : "gimnasio";
-    const previous = saved.sources.filter((source) => source.category === category);
-    const duplicate = previous.some((source) => source.filename === file.name);
-    if (!duplicate)
-      saved = {
-        ...saved,
-        revision: saved.revision + 1,
-        sources: [
-          ...saved.sources.filter((source) => source.category !== category),
-          {
-            id: category,
-            category,
-            filename: file.name,
-            hash: "internal-hash",
-            profile: "internal-profile",
-            period: saved.period,
-            complete: false,
-            facts: [{ employeeId: "009001", values: { gym: "15" }, reference: "Hoja1!A2" }],
-            diagnostics: [],
-            cellCount: 2,
-          },
-        ],
-      };
-    return {
-      dossier: structuredClone(saved),
-      category,
-      filename: file.name,
-      records: 1,
-      status: duplicate ? "ya_incorporado" : previous.length ? "sustituido" : "incorporado",
-      replacedFiles: duplicate ? [] : previous.map((source) => source.filename ?? "Anterior"),
-    };
-  },
-);
+function source(filename: string, cellCount = 2): Source {
+  return {
+    id: filename,
+    category: filename.startsWith("meal") ? "comida" : "gimnasio",
+    filename,
+    hash: filename,
+    profile: "test",
+    period: saved.period,
+    complete: false,
+    facts: [{ employeeId: "009001", values: { gym: "15" }, reference: "Hoja1!A2" }],
+    diagnostics: [],
+    cellCount,
+  };
+}
+const backend = vi.fn(async (path = "", init?: RequestInit) => {
+  if (path.startsWith("?id=")) return structuredClone(saved);
+  if (!(init?.body instanceof FormData)) throw new Error("Expected multipart");
+  const file = init.body.get("file");
+  if (!(file instanceof File)) throw new Error("Expected file");
+  const metadata: unknown = JSON.parse(String(init.body.get("metadata")));
+  if (
+    !metadata ||
+    typeof metadata !== "object" ||
+    !("revision" in metadata) ||
+    typeof metadata.revision !== "number"
+  )
+    throw new Error("Expected revision");
+  requests.push({ path, filename: file.name, revision: metadata.revision });
+  await pause;
+  if (failure && failure.path === path && failure.filename === file.name)
+    throw new ReconciliationRequestError("Operación interrumpida.", failure.status);
+  if (metadata.revision !== saved.revision)
+    throw new ReconciliationRequestError("El expediente ha cambiado.", 409);
+  if (file.name.startsWith("bad"))
+    throw new ReconciliationRequestError(
+      "El archivo no contiene datos para julio. Meses disponibles: octubre.",
+      422,
+      "comida",
+    );
+  const next = source(file.name, file.name.includes("large") ? 1_100_000 : 2);
+  const change = sourceChange(saved.sources, next);
+  if (path === "/preview") return change.check;
+  if (path !== "/analyze") throw new Error("Unexpected endpoint");
+  const limitError = sourceLimitError(change.sources);
+  if (limitError) throw new ReconciliationRequestError(limitError, 413);
+  if (change.check.operation !== "skip")
+    saved = { ...saved, revision: saved.revision + 1, sources: change.sources };
+  return {
+    dossier: structuredClone(saved),
+    category: next.category,
+    filename: file.name,
+    records: 1,
+    status:
+      change.check.operation === "skip"
+        ? "ya_incorporado"
+        : change.check.operation === "replace"
+          ? "sustituido"
+          : "incorporado",
+    replacedFiles: change.check.replacedFiles,
+  };
+});
 const api: ComponentProps<typeof SourcesView>["api"] = async <T,>(
   path?: string,
   init?: RequestInit,
@@ -89,20 +90,23 @@ function Harness() {
   const [dossier, setDossier] = useState(saved),
     [busy, setBusy] = useState(false);
   return (
-    <SourcesView
-      dossier={dossier}
-      busy={busy}
-      api={api}
-      onRemove={remove}
-      onBatch={async (operation) => {
-        setBusy(true);
-        try {
-          await operation(setDossier);
-        } finally {
-          setBusy(false);
-        }
-      }}
-    />
+    <>
+      <button onClick={() => setDossier(structuredClone(saved))}>Actualizar externo</button>
+      <SourcesView
+        dossier={dossier}
+        busy={busy}
+        api={api}
+        onRemove={remove}
+        onBatch={async (operation) => {
+          setBusy(true);
+          try {
+            await operation(setDossier);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      />
+    </>
   );
 }
 beforeEach(() => {
@@ -124,7 +128,8 @@ beforeEach(() => {
     annotations: [],
     result: reconcile(input),
   };
-  failOnce = false;
+  failure = undefined;
+  pause = undefined;
   requests.length = 0;
   backend.mockClear();
   remove.mockClear();
@@ -147,85 +152,219 @@ const file = (name: string) =>
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 const input = () => screen.getByLabelText("Upload files");
+const button = (name: string) => screen.getByRole("button", { name });
+const disabled = (name: string) => button(name).hasAttribute("disabled");
+async function check(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(button("Comprobar"));
+  await waitFor(() => expect(screen.queryByRole("button", { name: "Comprobando…" })).toBeNull());
+}
 
-describe("automatic multi-file source upload", () => {
-  it("has one action and no category, period, coverage or confirmation controls", () => {
+describe("source checking and explicit application", () => {
+  it("offers both disabled actions initially without manual source selectors", () => {
     render(<Harness />);
+    expect(disabled("Comprobar")).toBe(true);
+    expect(disabled("Aplicar")).toBe(true);
     expect(input().hasAttribute("multiple")).toBe(true);
-    expect(screen.getByRole("button", { name: "Comprobar" }).hasAttribute("disabled")).toBe(true);
     expect(screen.queryByRole("checkbox")).toBeNull();
     expect(screen.queryByRole("combobox")).toBeNull();
     expect(screen.queryByText("Huella")).toBeNull();
-    expect(screen.queryByText("Cobertura")).toBeNull();
-    expect(screen.queryByText("Perfil")).toBeNull();
   });
-  it("persists valid files around a failed file and chains only successful revisions", async () => {
+  it("checks without saving, then applies only valid files and chains write revisions", async () => {
     const user = userEvent.setup();
     render(<Harness />);
     await user.upload(input(), [file("gym.xlsx"), file("bad.xlsx"), file("meal.xlsx")]);
-    await user.click(screen.getByRole("button", { name: "Comprobar" }));
-    await waitFor(() => expect(requests).toHaveLength(3));
-    expect(requests).toEqual([
-      { filename: "gym.xlsx", revision: 1 },
-      { filename: "bad.xlsx", revision: 2 },
-      { filename: "meal.xlsx", revision: 2 },
+    const original = structuredClone(saved);
+    await check(user);
+    expect(saved).toEqual(original);
+    expect(requests.map((r) => [r.path, r.revision])).toEqual([
+      ["/preview", 1],
+      ["/preview", 1],
+      ["/preview", 1],
     ]);
-    expect(saved.sources.map((source) => source.category)).toEqual(["gimnasio", "comida"]);
-    expect(screen.getAllByText(/Meses disponibles: octubre/).length).toBeGreaterThan(0);
-    expect(screen.getByRole("status").textContent).toContain("2 archivos procesados");
-    await user.click(screen.getByRole("button", { name: "Reintentar bad.xlsx" }));
-    await waitFor(() => expect(requests).toHaveLength(4));
-    expect(requests[3]).toEqual({ filename: "bad.xlsx", revision: 3 });
-    expect(requests.filter((request) => request.filename === "gym.xlsx")).toHaveLength(1);
-  });
-  it("processes multiple same-category files in queue order and displays which one replaced the other", async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-    await user.upload(input(), [file("gym-a.xlsx"), file("gym-b.xlsx")]);
-    await user.click(screen.getByRole("button", { name: "Comprobar" }));
-    await waitFor(() => expect(saved.sources[0]?.filename).toBe("gym-b.xlsx"));
-    expect(saved.sources).toHaveLength(1);
-    expect(screen.getByText("Sustituido por gym-b.xlsx")).toBeTruthy();
-    expect(screen.getByText(/Reemplaza: gym-a.xlsx/)).toBeTruthy();
-  });
-  it("stops on a revision conflict, retains pending files, then reloads and continues", async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-    failOnce = true;
-    await user.upload(input(), [file("gym.xlsx"), file("meal.xlsx")]);
-    await user.click(screen.getByRole("button", { name: "Comprobar" }));
-    expect((await screen.findByRole("alert")).textContent).toContain(
-      "Los archivos incorporados están guardados",
+    expect(screen.getAllByText(/Nuevo · se añadirá/)).toHaveLength(2);
+    expect(screen.getByRole("status").textContent).toContain(
+      "2 archivos para aplicar · 1 pendiente",
     );
-    expect(requests).toHaveLength(1);
-    await user.click(screen.getByRole("button", { name: "Volver a cargar expediente" }));
-    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
-    await user.click(screen.getByRole("button", { name: "Comprobar" }));
+    expect(screen.getByText(/Meses disponibles: octubre/)).toBeTruthy();
+    await user.click(button("Aplicar"));
     await waitFor(() => expect(saved.sources).toHaveLength(2));
-    expect(requests.map((request) => request.revision)).toEqual([1, 2, 3]);
+    expect(requests.filter((r) => r.path === "/analyze").map((r) => r.revision)).toEqual([1, 2]);
+    await waitFor(() =>
+      expect(screen.getByRole("status").textContent).toContain("2 archivos aplicados"),
+    );
+    expect(disabled("Aplicar")).toBe(true);
+    await user.click(button("Reintentar bad.xlsx"));
+    await waitFor(() => expect(requests).toHaveLength(6));
+    expect(requests[5]).toEqual({ path: "/preview", filename: "bad.xlsx", revision: 3 });
   });
-  it("shows legacy sources without technical columns and retains icon-triggered removal confirmation", async () => {
-    saved.sources = [
-      {
-        id: "legacy",
-        hash: "internal-hash",
-        profile: "gimnasio-v1",
-        category: "gimnasio",
-        period: saved.period,
-        complete: true,
-        facts: [],
-        diagnostics: [],
-        cellCount: 1,
-      },
-    ];
+  it("previews a replacement by name and preserves the old source until Apply", async () => {
+    saved.sources = [source("old.xlsx")];
     const user = userEvent.setup();
     render(<Harness />);
-    expect(screen.queryByText("internal-hash")).toBeNull();
-    expect(screen.queryByText("gimnasio-v1")).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Retirar fuente Gimnasio" }));
+    await user.upload(input(), file("new.xlsx"));
+    await check(user);
+    expect(screen.getByText(/Sustitución · sustituirá: old.xlsx/)).toBeTruthy();
+    expect(saved.sources[0].filename).toBe("old.xlsx");
+    await user.click(button("Aplicar"));
+    await waitFor(() => expect(saved.sources[0].filename).toBe("new.xlsx"));
+    expect(await screen.findByText(/Sustituido · reemplaza: old.xlsx/)).toBeTruthy();
+  });
+  it("skips an already incorporated file without enabling Apply or changing revision", async () => {
+    saved.sources = [source("gym.xlsx")];
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.upload(input(), file("gym.xlsx"));
+    await check(user);
+    expect(screen.getByText(/Ya incorporado · no se harán cambios/)).toBeTruthy();
+    expect(disabled("Aplicar")).toBe(true);
+    expect(saved.revision).toBe(1);
+    expect(requests.every((r) => r.path === "/preview")).toBe(true);
+  });
+  it("excludes conflicting categories, applies the rest, and rechecks after choosing one", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.upload(input(), [file("gym-a.xlsx"), file("gym-b.xlsx"), file("meal.xlsx")]);
+    await check(user);
+    expect(screen.getAllByText(/Conflicto de categoría · gym-a.xlsx, gym-b.xlsx/)).toHaveLength(2);
+    await user.click(button("Aplicar"));
+    await waitFor(() => expect(saved.sources.map((s) => s.category)).toEqual(["comida"]));
+    await waitFor(() => expect(disabled("Comprobar")).toBe(false));
+    await user.click(button("Quitar de la lista gym-b.xlsx"));
+    expect(disabled("Aplicar")).toBe(true);
+    await check(user);
+    expect(screen.queryByText(/Conflicto de categoría/)).toBeNull();
+    await user.click(button("Aplicar"));
+    await waitFor(() => expect(saved.sources).toHaveLength(2));
+    expect(saved.sources.some((s) => s.filename === "gym-a.xlsx")).toBe(true);
+  });
+  it("invalidates previews after adding files or receiving an external dossier revision", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.upload(input(), file("gym.xlsx"));
+    await check(user);
+    expect(disabled("Aplicar")).toBe(false);
+    await user.upload(input(), file("meal.xlsx"));
+    expect(disabled("Aplicar")).toBe(true);
+    await check(user);
+    saved.revision++;
+    await user.click(button("Actualizar externo"));
+    expect(disabled("Aplicar")).toBe(true);
+    await check(user);
+    expect(disabled("Aplicar")).toBe(false);
+  });
+  it("blocks combined resource overflow even when each file fits separately", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.upload(input(), [file("gym-large.xlsx"), file("meal-large.xlsx")]);
+    await check(user);
+    expect(screen.getByRole("alert").textContent).toContain("dos millones de celdas");
+    expect(disabled("Aplicar")).toBe(true);
+    expect(saved.sources).toHaveLength(0);
+    await user.click(button("Quitar de la lista meal-large.xlsx"));
+    await check(user);
+    expect(disabled("Aplicar")).toBe(false);
+  });
+  it("applies shrinking replacements before additions to respect intermediate limits", async () => {
+    saved.sources = [source("old.xlsx", 1_500_000)];
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.upload(input(), [file("meal-large.xlsx"), file("gym.xlsx")]);
+    await check(user);
+    await user.click(button("Aplicar"));
+    await waitFor(() => expect(saved.sources).toHaveLength(2));
+    expect(requests.filter((r) => r.path === "/analyze").map((r) => r.filename)).toEqual([
+      "gym.xlsx",
+      "meal-large.xlsx",
+    ]);
+  });
+  it("frees legacy file slots with replacements before adding a new category", async () => {
+    saved.sources = Array.from({ length: 20 }, (_, index) => source(`old-${index}.xlsx`, 1));
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.upload(input(), [file("meal.xlsx"), file("gym-large.xlsx")]);
+    await check(user);
+    await user.click(button("Aplicar"));
+    await waitFor(() => expect(saved.sources).toHaveLength(2));
+    expect(requests.filter((r) => r.path === "/analyze").map((r) => r.filename)).toEqual([
+      "gym-large.xlsx",
+      "meal.xlsx",
+    ]);
+  });
+  it.each([409, 503])(
+    "keeps partial writes after HTTP %s and requires new checks after reload",
+    async (status) => {
+      const user = userEvent.setup();
+      render(<Harness />);
+      await user.upload(input(), [file("gym.xlsx"), file("meal.xlsx")]);
+      await check(user);
+      failure = { path: "/analyze", filename: "meal.xlsx", status };
+      await user.click(button("Aplicar"));
+      expect((await screen.findByRole("alert")).textContent).toContain(
+        "Los archivos ya aplicados están guardados",
+      );
+      expect(saved.sources.map((s) => s.category)).toEqual(["gimnasio"]);
+      expect(disabled("Aplicar")).toBe(true);
+      failure = undefined;
+      await user.click(button("Volver a cargar expediente"));
+      await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+      expect(disabled("Aplicar")).toBe(true);
+      await check(user);
+      await user.click(button("Aplicar"));
+      await waitFor(() => expect(saved.sources).toHaveLength(2));
+      expect(
+        requests.filter((r) => r.path === "/analyze" && r.filename === "gym.xlsx"),
+      ).toHaveLength(1);
+    },
+  );
+  it("stops a failed preview without applying and recovers after reload", async () => {
+    failure = { path: "/preview", filename: "gym.xlsx", status: 503 };
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.upload(input(), [file("gym.xlsx"), file("meal.xlsx")]);
+    await check(user);
+    expect(saved.sources).toHaveLength(0);
+    expect(requests).toHaveLength(1);
+    expect(disabled("Aplicar")).toBe(true);
+    failure = undefined;
+    await user.click(button("Volver a cargar expediente"));
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    await check(user);
+    expect(disabled("Aplicar")).toBe(false);
+  });
+  it("locks the selection and actions while checking or applying", async () => {
+    let release = () => {};
+    pause = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.upload(input(), file("gym.xlsx"));
+    await user.click(button("Comprobar"));
+    expect(disabled("Quitar de la lista gym.xlsx")).toBe(true);
+    expect(input().hasAttribute("disabled")).toBe(true);
+    expect(disabled("Aplicar")).toBe(true);
+    release();
+    await waitFor(() => expect(disabled("Aplicar")).toBe(false));
+    pause = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await user.click(button("Aplicar"));
+    expect(button("Aplicando…")).toBeTruthy();
+    expect(disabled("Comprobar")).toBe(true);
+    expect(disabled("Quitar de la lista gym.xlsx")).toBe(true);
+    release();
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Aplicando…" })).toBeNull());
+  });
+  it("retains icon removal and its confirmation for legacy sources", async () => {
+    const legacy = source("legacy.xlsx");
+    delete legacy.filename;
+    saved.sources = [legacy];
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(button("Retirar fuente Gimnasio"));
     expect(screen.getByRole("dialog", { name: "Retirar fuente" })).toBeTruthy();
     expect(remove).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("button", { name: "Retirar fuente" }));
-    expect(remove).toHaveBeenCalledWith("legacy");
+    await user.click(button("Retirar fuente"));
+    expect(remove).toHaveBeenCalledWith("legacy.xlsx");
   });
 });

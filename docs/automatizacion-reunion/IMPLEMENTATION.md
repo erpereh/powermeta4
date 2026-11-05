@@ -41,10 +41,12 @@ habilitado; producción nunca la habilita.
 2. Consulta los resultados mensuales sin esperar a los Excel. Los controles
    externos aparecen pendientes hasta incorporar sus fuentes.
 3. En **Fuentes**, selecciona o arrastra todos los Excel/CSV y pulsa **Comprobar**.
-   La categoría se detecta por hojas y cabeceras. Cada archivo válido se guarda
-   inmediatamente; los errores aparecen junto al archivo y no impiden incorporar
-   los demás. Puedes reintentar solo un fallido. No hay selectores ni casillas de
-   confirmación de fuentes. Los originales pueden estar renombrados.
+   La categoría se detecta por hojas y cabeceras. Se muestran los errores, los
+   archivos nuevos y los nombres de las fuentes que se sustituirían, sin guardar
+   cambios. **Aplicar** incorpora únicamente los válidos comprobados; los errores
+   y conflictos quedan pendientes. Puedes quitar o cambiar archivos, pero debes
+   comprobar de nuevo antes de aplicar. Puedes reintentar solo un fallido cuando
+   la comprobación sigue vigente. Los originales pueden estar renombrados.
 4. Añade fuentes más adelante o abre el expediente después de reiniciar.
    Los originales no se conservan: se guardan las entradas normalizadas,
    referencias y huellas necesarias para reproducir el resultado.
@@ -67,8 +69,11 @@ habilitado; producción nunca la habilita.
    del cierre ni reproducción de fórmulas rotas.
 
 Un archivo idéntico ya incorporado se omite. Uno diferente sustituye las fuentes
-anteriores de su categoría; si hay varios de esa categoría en el lote, prevalece
-el último válido en el orden de la lista y se muestra qué archivo sustituye.
+anteriores de su categoría solo al aplicar. Si hay varios válidos de esa categoría
+en el lote, se señala el conflicto: quita los sobrantes y comprueba de nuevo para
+elegir uno. Las demás categorías válidas sí se pueden aplicar. Los límites se
+comprueban también sobre el expediente resultante del lote completo; si se superan,
+Aplicar queda bloqueado hasta reducir la selección y volver a comprobar.
 Las nuevas fuentes son parciales: una persona ausente queda pendiente, sin asumir
 importe cero. Las fuentes existentes conservan su estado hasta sustituirlas.
 
@@ -85,10 +90,15 @@ Los problemas de sesión, contexto, revisión o conexión detienen la cola sin
 deshacer los éxitos. Mientras permanezcas en la pantalla, la lista queda disponible
 para volver a cargar el expediente y continuar. Los archivos seleccionados no
 se guardan en el navegador ni se recuperan después de cerrar o recargar la página.
+Después de recuperar un fallo o cambiar la revisión del expediente hay que
+comprobar los pendientes antes de aplicar. Las aplicaciones encadenan revisiones;
+las sustituciones que reducen celdas se guardan primero para respetar también los
+límites durante el lote. Comprobar no cambia revisión, fecha, resultados ni notas.
 
 Fuentes incorporadas muestra archivo, categoría, mes, devengo disponible y registros,
 con un icono para retirar y su confirmación. No muestra Perfil, Cobertura ni Huella.
 El acceso a Expedientes es un icono y el subtítulo conserva solo el mes y la revisión.
+En la lista de expedientes, el icono de papelera abre la confirmación de borrado.
 
 Las hojas C01–C16 contienen siete columnas: Matrícula, Persona, Concepto,
 Actual, Anterior / esperado, Diferencia y Motivo / pendiente. Las diferencias
@@ -170,15 +180,15 @@ modifica las instantáneas guardadas.
 Las rutas usan Node.js, sesión y contexto validados en servidor, comprobación
 de origen y respuestas `no-store`:
 
-| Interfaz                             | Operación                                                                                                                |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| `GET /api/payroll/reconciliation`    | Lista resumida; `?id=` abre expediente; `?catalog=1` consulta ejecuciones.                                               |
-| `POST /api/payroll/reconciliation`   | Crea expediente desde claves ERP confirmadas, o muestra debug autorizada.                                                |
-| `PATCH /api/payroll/reconciliation`  | Parámetros, revisión, actualización explícita de instantáneas, retirada de fuente o nombre.                              |
-| `DELETE /api/payroll/reconciliation` | Elimina por ID y revisión esperada dentro del contexto actual.                                                           |
-| `POST .../preview`                   | Multipart `file` y `metadata`: valida perfil y devuelve recuentos/referencias. No guarda.                                |
-| `POST .../analyze`                   | Modalidad automática: detecta, incorpora/sustituye u omite una fuente y recalcula. Conserva el contrato manual anterior. |
-| `POST .../export`                    | ID y revisión; recalcula desde fuentes guardadas y descarga Excel.                                                       |
+| Interfaz                             | Operación                                                                                                                                                                                                          |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /api/payroll/reconciliation`    | Lista resumida; `?id=` abre expediente; `?catalog=1` consulta ejecuciones.                                                                                                                                         |
+| `POST /api/payroll/reconciliation`   | Crea expediente desde claves ERP confirmadas, o muestra debug autorizada.                                                                                                                                          |
+| `PATCH /api/payroll/reconciliation`  | Parámetros, revisión, actualización explícita de instantáneas, retirada de fuente o nombre.                                                                                                                        |
+| `DELETE /api/payroll/reconciliation` | Elimina por ID y revisión esperada dentro del contexto actual.                                                                                                                                                     |
+| `POST .../preview`                   | Multipart `file` y `metadata`: modo automático con ID/revisión/auto; devuelve categoría, operación prevista, registros, nombres a sustituir, huella, celdas y diagnósticos. Mantiene el preview manual. No guarda. |
+| `POST .../analyze`                   | Invocado por Aplicar: revalida, incorpora/sustituye u omite una fuente y recalcula con revisión encadenada. Conserva el contrato manual anterior.                                                                  |
+| `POST .../export`                    | ID y revisión; recalcula desde fuentes guardadas y descarga Excel.                                                                                                                                                 |
 
 Las mutaciones usan revisión optimista. Un `409` exige volver a abrir el
 expediente: no se sobreescribe trabajo concurrente ni se exporta una revisión

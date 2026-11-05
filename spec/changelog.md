@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-11-05 - Comprobación de fuentes y aplicación explícita
+
+- Fuentes separa Comprobar (solo lectura) de Aplicar (guardado). Preview automático
+  valida expediente/revisión en su contexto y comparte detección de duplicados y
+  sustituciones con analyze; devuelve categoría, registros, operación prevista,
+  nombres a sustituir, huella, celdas y diagnósticos. Contratos manuales conservados.
+  Comprobar no modifica fechas, revisión, fuentes, resultados ni notas guardadas.
+- Aplicar incluye solo válidos comprobados, dejando errores y categorías en
+  conflicto pendientes. No prevalece el último archivo: hay que quitar los
+  sobrantes y comprobar de nuevo. Cambiar la selección o revisión invalida el
+  resultado previo; los botones y la selección se bloquean durante el trabajo.
+  Duplicados sin cambios, límites conjuntos y sustituciones antes de altas para
+  respetar límites intermedios, revisiones encadenadas y guardados parciales
+  conservados. Fallos globales requieren recargar y comprobar pendientes.
+- Eliminar expediente pasa a papelera con nombre accesible y tooltip, conservando
+  el diálogo de confirmación. Guía actualizada. Sin migraciones, persistencia de
+  originales, escrituras ERP ni cambios en el motor de cálculo.
+- Verificación: suite completa de 201 archivos, 1.187 pruebas correctas y 2
+  omitidas (`--maxWorkers=2 --testTimeout=20000`); pase dirigido posterior de
+  tres archivos con 43 pruebas correctas y 14 pruebas de Fuentes tras el último
+  ajuste textual. Dos pases iniciales agotaron el límite de cinco segundos en
+  distintas pruebas anteriores de revisión. Setup aislado, typecheck y build
+  correctos. Lint conserva siete avisos previos y formato pendiente en 618 archivos;
+  formato dirigido correcto en los 13 archivos de código/guía, diff check y
+  estado Git revisados, conservando formato histórico de todo/changelog.
+- Chrome headless y SQLite debug aislada: comprobación sin escritura, errores por
+  archivo, aplicación parcial, sustitución revisada, selección invalidada,
+  conflictos, duplicados, persistencia al recargar y confirmación de papelera.
+  Fuentes a 1440/1024/768/390 px sin overflow de página ni excepciones JavaScript.
+  Material de prueba y capturas permanecen ignorados en data. Sin acceso corporativo.
+
 ## 2026-11-03 - Fuentes automáticas por lotes y formulario simplificado
 
 - La carga admite múltiples Excel/CSV y una única acción Comprobar. Cada válido

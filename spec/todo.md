@@ -1,5 +1,35 @@
 # powermeta4 - estado de tareas
 
+## Comprobar y aplicar fuentes por separado — 2026-11-05
+
+- [x] Comprobar usa preview automático por ID/revisión, sin guardar ni alterar
+      resultados, notas, revisión o fecha. Resultado por archivo: nuevo,
+      sustitución con nombres, ya incorporado o error; diagnósticos conservados.
+- [x] Aplicar guarda solo los válidos revisados, encadena revisiones y conserva
+      los éxitos ante fallos posteriores. Errores globales exigen recargar y
+      comprobar de nuevo. Selección y controles bloqueados durante las operaciones.
+- [x] Categorías coincidentes quedan pendientes hasta quitar los sobrantes y
+      comprobar. Añadir/quitar archivos o cambiar la revisión invalida la revisión
+      de fuentes. Los límites conjuntos bloquean Aplicar; sustituciones primero
+      (las que reducen celdas antes) para respetar límites intermedios.
+- [x] Papelera accesible con tooltip en Expedientes guardados, manteniendo el
+      diálogo de confirmación. Sin migración, originales persistidos ni cambios ERP.
+- [x] Suite completa: 201 archivos, 1.187 pruebas correctas y 2 omitidas, con
+      `--maxWorkers=2 --testTimeout=20000`. Dos pases iniciales dirigidos agotaron
+      cinco segundos en distintas pruebas previas de revisión; el pase completo
+      con mayor margen y el dirigido final de tres archivos (43 pruebas) pasan.
+      Último ajuste de textos: 14 pruebas de Fuentes correctas.
+- [x] Setup en SQLite aislada, typecheck y build correctos. Navegador Chrome
+      headless con datos ficticios: comprobación sin cambios, lote con errores,
+      aplicación parcial, sustitución, invalidación de selección, conflicto,
+      duplicado, recarga persistida y confirmación de papelera. Cuatro anchuras
+      (1440/1024/768/390), sin overflow de página ni excepciones JavaScript.
+- [x] Lint global ejecutado: siete avisos anteriores y formato pendiente en
+      618 archivos. Los 13 archivos de código/guía modificados pasan formato
+      dirigido; todo/changelog mantienen su formato histórico. Diff y estado Git
+      revisados. Base, muestras, capturas y script de navegador quedan en data
+      ignorado. Guía de uso y contratos actualizada.
+
 ## Carga múltiple automática de Fuentes — 2026-11-03
 
 - [x] Seleccionar o arrastrar varios archivos y pulsar Comprobar incorpora cada

@@ -96,6 +96,7 @@ export const previewSchema = sourceSchema.omit({
   confirmed: true,
 });
 export const autoSourceSchema = identitySchema.extend({ auto: z.literal(true) }).strict();
+export const checkSourceSchema = z.union([autoSourceSchema, previewSchema]);
 export const analyzeSourceSchema = z.union([autoSourceSchema, sourceSchema]);
 export function validRunKey(value: unknown) {
   const parsed = parsePayrollReportRunKey(value);

@@ -17,12 +17,13 @@ import { demoReport } from "./demo";
 import { reconcile, retainAnnotations } from "./engine";
 import { LIMITS, importAutoSource, importSource, ReconciliationError } from "./import";
 import { snapshot } from "./snapshot";
+import { sourceChange, sourceLimitError } from "./source-plan";
 import {
   creationSchema,
   identitySchema,
   mutationSchema,
   parse,
-  previewSchema,
+  checkSourceSchema,
   analyzeSourceSchema,
   validRunKey,
 } from "./validation";
@@ -290,9 +291,19 @@ async function multipart(request: Request) {
   }
   return { file, metadata };
 }
-export async function previewSource(request: Request): Promise<Response> {
+export async function previewSource(request: Request, context: Context): Promise<Response> {
   const { file, metadata } = await multipart(request);
-  const input = parse(previewSchema, metadata);
+  const input = parse(checkSourceSchema, metadata);
+  if ("auto" in input) {
+    const dossier = repository().get(context, input.id);
+    requireRevision(dossier, input.revision);
+    const source = await importAutoSource(
+      new Uint8Array(await file.arrayBuffer()),
+      file.name,
+      dossier.period,
+    );
+    return jsonResponse(sourceChange(dossier.sources, source).check);
+  }
   const source = await importSource(
     new Uint8Array(await file.arrayBuffer()),
     file.name,
@@ -322,43 +333,31 @@ export async function analyzeSource(request: Request, context: Context): Promise
       file.name,
       dossier.period,
     );
-    const existing = dossier.sources.filter((item) => item.category === source.category);
-    const duplicate = existing.find((item) => item.hash === source.hash);
-    if (duplicate) {
+    const { check, sources } = sourceChange(dossier.sources, source);
+    if (check.operation === "skip") {
       const result: SourceImportResult = {
         dossier,
-        category: source.category,
-        filename: source.filename ?? file.name,
+        category: check.category,
+        filename: check.filename,
         status: "ya_incorporado",
-        records: duplicate.facts.length,
+        records: check.records,
         replacedFiles: [],
       };
       return jsonResponse(result);
     }
-    const sources = [
-      ...dossier.sources.filter((item) => item.category !== source.category),
-      source,
-    ];
-    if (
-      sources.length > LIMITS.files ||
-      sources.reduce((sum, item) => sum + item.cellCount, 0) > LIMITS.cells
-    )
-      throw new ReconciliationError(
-        "El expediente supera el límite de archivos o de dos millones de celdas.",
-        413,
-        source.category,
-      );
+    const limitError = sourceLimitError(sources);
+    if (limitError) throw new ReconciliationError(limitError, 413, source.category);
     dossier.sources = sources;
     dossier.result = reconcile(dossier);
     dossier.annotations = retainAnnotations(dossier.annotations, dossier.result);
     const saved = await repository().save(context, dossier, input.revision);
     const result: SourceImportResult = {
       dossier: saved,
-      category: source.category,
-      filename: source.filename ?? file.name,
-      status: existing.length ? "sustituido" : "incorporado",
-      records: source.facts.length,
-      replacedFiles: existing.map((item) => item.filename ?? item.category),
+      category: check.category,
+      filename: check.filename,
+      status: check.operation === "replace" ? "sustituido" : "incorporado",
+      records: check.records,
+      replacedFiles: check.replacedFiles,
     };
     return jsonResponse(result);
   }
