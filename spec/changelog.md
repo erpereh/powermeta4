@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-11-05 - Formularios de expedientes de cuadre simplificados
+
+- Nuevo expediente y Actualizar instantáneas eliminan el enlace a Resultados de
+  nómina y la casilla de confirmación. El envío del formulario confirma las
+  ejecuciones y mantiene `populationConfirmed: true`, sin cambiar APIs ni esquema.
+  Permanecen las validaciones de nombre, catálogo, datos y mes del expediente,
+  el aviso ficticio debug y las confirmaciones de parámetros y reglas.
+- Actualizar catálogo se sitúa junto al nombre, a la derecha, con salto de fila
+  en móvil. Pasa a Reintentar catálogo si falla la carga y queda deshabilitado
+  durante carga u operación. Ayudas y guía reflejan la confirmación mediante envío.
+- Diecisiete pruebas dirigidas correctas; typecheck y build correctos. Lint global
+  conserva siete avisos anteriores y formato pendiente en 618 archivos;
+  lint/formato del código modificado y guía
+  correctos. Todo/changelog mantienen su formato histórico.
+- Suite general con dos workers y timeout de 20 s: 201 archivos, 1.192 pruebas
+  correctas, 2 omitidas y un fallo por timeout de 180 s en la prueba de integración
+  Excel COM de fórmulas de moneda del alta de personas. Ese código no se modifica.
+  Pase sin ese archivo: 200 archivos, 1.183 pruebas correctas y 2 omitidas.
+  Diff check correcto y estado Git revisado, limitado a cinco archivos de la tarea.
+- Chrome headless con SelectionForm y Modal reales, fuente Inter de la build y
+  catálogo ficticio: selección y envío directo al crear/actualizar, carga, error
+  y reintento. Ambos diálogos medidos a 1440/1024/768/390 px sin overflow de página
+  ni de formulario y sin excepciones JavaScript. Prueba aislada; no acredita
+  persistencia ni conexión PeopleNet. Capturas, harness y logs ignorados en data.
+
 ## 2026-11-05 - Comprobación de fuentes y aplicación explícita
 
 - Fuentes separa Comprobar (solo lectura) de Aplicar (guardado). Preview automático

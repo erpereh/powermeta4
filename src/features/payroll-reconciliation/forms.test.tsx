@@ -43,10 +43,6 @@ async function choose(user: ReturnType<typeof userEvent.setup>, label: string, n
   await user.click(screen.getByRole("combobox", { name: label }));
   await user.click(await screen.findByRole("option", { name }));
 }
-const confirm = async (user: ReturnType<typeof userEvent.setup>) =>
-  user.click(
-    screen.getByRole("checkbox", { name: "Confirmo las ejecuciones y el alcance de su población" }),
-  );
 const submit = () => screen.getByRole("button", { name: "Crear expediente y analizar" });
 
 describe("real payroll execution selection", () => {
@@ -59,7 +55,6 @@ describe("real payroll execution selection", () => {
       screen.getByRole("textbox", { name: "Mes de nómina" }).getAttribute("readonly"),
     ).not.toBeNull();
     expect(screen.getByDisplayValue("abril de 2015")).toBeTruthy();
-    await confirm(user);
     await user.click(submit());
     expect(onSubmit).toHaveBeenCalledWith({
       title: "Cuadre mensual",
@@ -79,7 +74,7 @@ describe("real payroll execution selection", () => {
     expect(screen.getByRole("option", { name: reportRunLabel(CURRENT) })).toBeTruthy();
     expect(screen.queryByRole("option", { name: reportRunLabel(OTHER_REPORT) })).toBeNull();
   });
-  it("proposes the most recent compatible previous run and requires confirmation", async () => {
+  it("proposes the most recent compatible previous run and confirms it on submission", async () => {
     const user = userEvent.setup(),
       onSubmit = vi.fn();
     const incompatible = run({
@@ -100,8 +95,8 @@ describe("real payroll execution selection", () => {
     expect(screen.getByRole("combobox", { name: "Ejecución anterior" }).getAttribute("value")).toBe(
       reportRunLabel(PREVIOUS),
     );
-    expect(submit().hasAttribute("disabled")).toBe(true);
-    await confirm(user);
+    expect(submit().hasAttribute("disabled")).toBe(false);
+    expect(onSubmit).not.toHaveBeenCalled();
     await user.click(submit());
     expect(onSubmit.mock.calls[0][0].previousKey).toEqual(runKey(PREVIOUS));
   });
@@ -112,7 +107,6 @@ describe("real payroll execution selection", () => {
     const { rerender } = render(<SelectionForm {...props} />);
     await choose(user, "Ejecución actual", reportRunLabel(CURRENT));
     rerender(<SelectionForm {...props} runs={[...RUNS].reverse()} />);
-    await confirm(user);
     await user.click(submit());
     expect(onSubmit.mock.calls[0][0]).toMatchObject({
       period: "2026-09",
@@ -120,27 +114,25 @@ describe("real payroll execution selection", () => {
       previousKey: runKey(PREVIOUS),
     });
   });
-  it("clears the prior selection and confirmation when the report changes", async () => {
+  it("clears the prior selection and blocks submission until a run of the new report is selected", async () => {
     const user = userEvent.setup();
     render(<SelectionForm runs={RUNS} demo={false} busy={false} onSubmit={vi.fn()} />);
     await choose(user, "Ejecución actual", reportRunLabel(CURRENT));
-    await confirm(user);
     await choose(user, "Informe", "01 · Informe Normal");
     expect(submit().hasAttribute("disabled")).toBe(true);
-    expect(screen.getByRole("checkbox").getAttribute("aria-checked")).toBe("false");
+    expect(screen.queryByRole("checkbox")).toBeNull();
     expect(screen.queryByDisplayValue("septiembre de 2026")).toBeNull();
     await choose(user, "Ejecución actual", reportRunLabel(OTHER_REPORT));
     expect(screen.getByText(/Sin ejecución anterior seleccionada/)).toBeTruthy();
+    expect(submit().hasAttribute("disabled")).toBe(false);
   });
-  it("clears confirmation and recomputes the prior suggestion when the current run changes", async () => {
+  it("recomputes the prior suggestion and submits the new current run directly", async () => {
     const user = userEvent.setup(),
       onSubmit = vi.fn();
     render(<SelectionForm runs={RUNS} demo={false} busy={false} onSubmit={onSubmit} />);
     await choose(user, "Ejecución actual", reportRunLabel(CURRENT));
-    await confirm(user);
     await choose(user, "Ejecución actual", reportRunLabel(HISTORICAL));
-    expect(submit().hasAttribute("disabled")).toBe(true);
-    await confirm(user);
+    expect(submit().hasAttribute("disabled")).toBe(false);
     await user.click(submit());
     expect(onSubmit.mock.calls[0][0]).toMatchObject({ period: "2015-04", previousKey: null });
   });
@@ -162,11 +154,10 @@ describe("real payroll execution selection", () => {
       />,
     );
     await choose(user, "Ejecución actual", reportRunLabel(CURRENT));
-    await confirm(user);
     await user.click(submit());
     expect(onSubmit.mock.calls[0][0].currentKey).toEqual(runKey(CURRENT));
   });
-  it("shows loading errors and retries inside the form, with a real results link", async () => {
+  it("shows loading errors and retries inside the form without a results link", async () => {
     const user = userEvent.setup(),
       retry = vi.fn();
     render(
@@ -180,9 +171,7 @@ describe("real payroll execution selection", () => {
       />,
     );
     expect(screen.getByRole("alert").textContent).toBe("Conexión no disponible");
-    expect(
-      screen.getByRole("link", { name: "Abrir Resultados de nómina" }).getAttribute("href"),
-    ).toBe("/tools/reports/resultados-nomina");
+    expect(screen.queryByRole("link", { name: "Abrir Resultados de nómina" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Reintentar catálogo" }));
     expect(retry).toHaveBeenCalledOnce();
     expect(submit().hasAttribute("disabled")).toBe(true);
@@ -207,7 +196,6 @@ describe("real payroll execution selection", () => {
       screen.getByRole("option", { name: reportRunLabel(EMPTY) }).hasAttribute("disabled"),
     ).toBe(true);
     await user.click(screen.getByRole("option", { name: reportRunLabel(CURRENT) }));
-    await confirm(user);
     rerender(
       <SelectionForm
         runs={[{ ...CURRENT, hasData: false }]}
@@ -250,9 +238,101 @@ describe("real payroll execution selection", () => {
       screen.getByRole("button", { name: "Actualizar instantáneas" }).hasAttribute("disabled"),
     ).toBe(true);
     await choose(user, "Ejecución actual", reportRunLabel(CURRENT));
-    await confirm(user);
     await user.click(screen.getByRole("button", { name: "Actualizar instantáneas" }));
     expect(onSubmit.mock.calls[0][0].currentKey).toEqual(runKey(CURRENT));
+  });
+  it.each([false, true])(
+    "preserves selection after catalog refresh and blocks concurrent operations, with initial=%s",
+    async (saved) => {
+      const user = userEvent.setup(),
+        retry = vi.fn(),
+        onSubmit = vi.fn();
+      const initial = saved
+        ? { title: "Cuadre guardado", period: "2026-09", current: runKey(CURRENT) }
+        : undefined;
+      const props = {
+        runs: RUNS,
+        demo: false,
+        busy: false,
+        initial,
+        onRetryCatalog: retry,
+        onSubmit,
+      };
+      const { rerender } = render(<SelectionForm {...props} />);
+      if (!saved) await choose(user, "Ejecución actual", reportRunLabel(CURRENT));
+      const refresh = screen.getByRole("button", { name: "Actualizar catálogo" });
+      expect(screen.queryByRole("checkbox")).toBeNull();
+      expect(screen.queryByRole("link", { name: "Abrir Resultados de nómina" })).toBeNull();
+      await user.click(refresh);
+      expect(retry).toHaveBeenCalledOnce();
+      expect(onSubmit).not.toHaveBeenCalled();
+      rerender(<SelectionForm {...props} catalogLoading />);
+      expect(refresh.hasAttribute("disabled")).toBe(true);
+      const action = screen.getByRole("button", {
+        name: saved ? "Actualizar instantáneas" : "Crear expediente y analizar",
+      });
+      expect(action.hasAttribute("disabled")).toBe(true);
+      fireEvent.submit(action.closest("form")!);
+      expect(onSubmit).not.toHaveBeenCalled();
+      rerender(<SelectionForm {...props} runs={[...RUNS].reverse()} />);
+      expect(refresh.hasAttribute("disabled")).toBe(false);
+      expect(action.hasAttribute("disabled")).toBe(false);
+      rerender(<SelectionForm {...props} busy />);
+      expect(refresh.hasAttribute("disabled")).toBe(true);
+      expect(action.hasAttribute("disabled")).toBe(true);
+      fireEvent.submit(action.closest("form")!);
+      expect(onSubmit).not.toHaveBeenCalled();
+    },
+  );
+  it("submits an explicitly changed previous run or no previous run without another confirmation", async () => {
+    const user = userEvent.setup(),
+      onSubmit = vi.fn();
+    render(<SelectionForm runs={RUNS} demo={false} busy={false} onSubmit={onSubmit} />);
+    await choose(user, "Ejecución actual", reportRunLabel(CURRENT));
+    await choose(user, "Ejecución anterior", reportRunLabel(OLDER_PREVIOUS));
+    await user.click(submit());
+    expect(onSubmit.mock.calls[0][0].previousKey).toEqual(runKey(OLDER_PREVIOUS));
+    await choose(user, "Ejecución anterior", "Sin anterior: dejar controles mensuales pendientes");
+    await user.click(submit());
+    expect(onSubmit.mock.calls[1][0].previousKey).toBeNull();
+  });
+  it("blocks an empty name and a previous run removed from the catalog, including direct submit events", async () => {
+    const user = userEvent.setup(),
+      onSubmit = vi.fn();
+    const props = { runs: RUNS, demo: false, busy: false, onSubmit };
+    const { rerender } = render(<SelectionForm {...props} />);
+    await choose(user, "Ejecución actual", reportRunLabel(CURRENT));
+    const name = screen.getByRole("textbox", { name: "Nombre del expediente" });
+    await user.clear(name);
+    await user.type(name, "   ");
+    expect(submit().hasAttribute("disabled")).toBe(true);
+    fireEvent.submit(submit().closest("form")!);
+    expect(onSubmit).not.toHaveBeenCalled();
+    await user.type(name, "Cuadre");
+    rerender(<SelectionForm {...props} runs={[CURRENT]} />);
+    expect(submit().hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("alert").textContent).toContain(
+      "La ejecución anterior ya no está disponible",
+    );
+    fireEvent.submit(submit().closest("form")!);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+  it("keeps the demo notice and submits a valid demo period without a checkbox", async () => {
+    const user = userEvent.setup(),
+      onSubmit = vi.fn();
+    render(<SelectionForm runs={[]} demo busy={false} onSubmit={onSubmit} />);
+    expect(screen.getByText(/Muestra ficticia de desarrollo/)).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Mes de nómina"), { target: { value: "2026-10" } });
+    await user.click(submit());
+    expect(onSubmit).toHaveBeenCalledWith({
+      title: "Cuadre mensual",
+      period: "2026-10",
+      currentKey: undefined,
+      previousKey: null,
+      populationConfirmed: true,
+      demo: true,
+    });
   });
   it("handles December/January and never proposes an unknown or incompatible pay kind", () => {
     const january = run({ accruedOn: "2027-01-25" });

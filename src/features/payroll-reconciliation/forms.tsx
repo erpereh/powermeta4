@@ -2,7 +2,6 @@
 import { useState, type ReactNode } from "react";
 import {
   Button,
-  ButtonLink,
   Checkbox,
   Combobox,
   ComboboxContent,
@@ -154,7 +153,6 @@ export function SelectionForm({
   const [report, setReport] = useState(initial?.current.reportId ?? ALL_REPORTS);
   const [currentId, setCurrentId] = useState(runId(initial?.current));
   const [previousId, setPreviousId] = useState(runId(initial?.previous));
-  const [confirmedFor, setConfirmedFor] = useState<string | null>(null);
   const catalogReady = !catalogLoading && !catalogError;
   const reportRuns = sortRuns(
     runs.filter((run) => report === ALL_REPORTS || report === run.reportId),
@@ -167,8 +165,7 @@ export function SelectionForm({
   const validSelection = demo
     ? Boolean(period)
     : Boolean(catalogReady && current && samePeriod && (previousId === NO_RUN || previous));
-  const confirmationKey = JSON.stringify({ report, current, previous, period, previousId });
-  const confirmed = validSelection && confirmedFor === confirmationKey;
+  const canSubmit = validSelection && Boolean(title.trim()) && !busy;
   const reportIds = [...new Set(runs.map((run) => run.reportId))].sort((a, b) =>
     a.localeCompare(b, "es"),
   );
@@ -180,7 +177,6 @@ export function SelectionForm({
     }));
   const chooseCurrent = (value: string) => {
     setCurrentId(value);
-    setConfirmedFor(null);
     const run = reportRuns.find((candidate) => runId(candidate) === value && candidate.hasData);
     setPreviousId(run ? runId(previousCandidate(runs, run)) : NO_RUN);
   };
@@ -189,7 +185,7 @@ export function SelectionForm({
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (confirmed && !busy)
+        if (canSubmit)
           onSubmit({
             title,
             period,
@@ -200,8 +196,9 @@ export function SelectionForm({
           });
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="flex flex-wrap items-end gap-4">
         <Input
+          className="min-w-0 flex-1 basis-64"
           label="Nombre del expediente"
           value={title}
           onChange={setTitle}
@@ -209,15 +206,25 @@ export function SelectionForm({
           maxLength={140}
           readOnly={Boolean(initial)}
         />
+        {!demo && onRetryCatalog && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-auto shrink-0"
+            disabled={busy || catalogLoading}
+            onClick={onRetryCatalog}
+          >
+            {catalogError ? "Reintentar catálogo" : "Actualizar catálogo"}
+          </Button>
+        )}
         {demo && (
           <Input
+            className="min-w-0 flex-1 basis-64"
             label="Mes de nómina"
             type="month"
             value={demoPeriod}
-            onChange={(value) => {
-              setDemoPeriod(value);
-              setConfirmedFor(null);
-            }}
+            onChange={setDemoPeriod}
             required
             disabled={Boolean(initial)}
           />
@@ -243,25 +250,6 @@ export function SelectionForm({
               genera el informe en PeopleNet y actualiza el catálogo.
             </p>
           )}
-          <div className="flex flex-wrap gap-2">
-            <ButtonLink href="/tools/reports/resultados-nomina" variant="outline" size="sm">
-              Abrir Resultados de nómina
-            </ButtonLink>
-            {onRetryCatalog && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={busy || catalogLoading}
-                onClick={() => {
-                  setConfirmedFor(null);
-                  onRetryCatalog();
-                }}
-              >
-                {catalogError ? "Reintentar catálogo" : "Actualizar catálogo"}
-              </Button>
-            )}
-          </div>
           <ExecutionChoice
             label="Informe"
             value={report}
@@ -269,7 +257,6 @@ export function SelectionForm({
               setReport(value === NO_RUN ? ALL_REPORTS : value);
               setCurrentId(NO_RUN);
               setPreviousId(NO_RUN);
-              setConfirmedFor(null);
             }}
             disabled={busy || !catalogReady || !runs.length}
             items={[
@@ -319,16 +306,13 @@ export function SelectionForm({
           {catalogReady && currentId !== NO_RUN && !current && (
             <p role="alert">
               La ejecución guardada ya no está disponible con datos en el catálogo. Selecciona otra;
-              el expediente no se modificará hasta confirmar.
+              el expediente no se modificará hasta actualizar las instantáneas.
             </p>
           )}
           <ExecutionChoice
             label="Ejecución anterior"
             value={previousId}
-            onChange={(value) => {
-              setPreviousId(value);
-              setConfirmedFor(null);
-            }}
+            onChange={setPreviousId}
             disabled={busy || !catalogReady || !current}
             items={[
               { id: NO_RUN, name: "Sin anterior: dejar controles mensuales pendientes" },
@@ -349,22 +333,11 @@ export function SelectionForm({
           )}
           <p className="text-sm text-muted-foreground">
             Comprueba tipo de paga, frecuencia, fechas y población. El resultado guardado puede
-            contener filtros que no constan en el catálogo. La propuesta de anterior no se confirma
-            automáticamente.
+            contener filtros que no constan en el catálogo.
           </p>
         </>
       )}
-      <Checkbox
-        checked={confirmed}
-        onCheckedChange={(checked) => setConfirmedFor(checked ? confirmationKey : null)}
-        disabled={busy || !validSelection}
-        label={
-          demo
-            ? "Confirmo que trabajaré con datos ficticios"
-            : "Confirmo las ejecuciones y el alcance de su población"
-        }
-      />
-      <Button type="submit" disabled={busy || !confirmed || !title.trim()}>
+      <Button type="submit" disabled={!canSubmit}>
         {initial ? "Actualizar instantáneas" : "Crear expediente y analizar"}
       </Button>
     </form>

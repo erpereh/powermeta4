@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Formularios de expedientes simplificados — 2026-11-05
+
+- [x] Nuevo expediente y Actualizar instantáneas sin enlace a Resultados de
+      nómina ni casilla de confirmación. El botón principal confirma la selección
+      con el contrato `populationConfirmed: true`; parámetros y reglas conservados.
+- [x] Actualizar catálogo junto al nombre, a la derecha; Reintentar catálogo
+      en caso de error. Bloqueo durante carga u operación y adaptación móvil.
+      Se conservan las validaciones de nombre, ejecuciones con datos y periodo.
+- [x] Diecisiete pruebas dirigidas del formulario correctas; typecheck y build
+      correctos. Lint/formato dirigidos correctos. Lint global ejecutado: siete
+      avisos previos y formato pendiente en los mismos 618 archivos.
+- [x] Chrome headless con formulario y Modal reales, Inter de la build y catálogo
+      ficticio: creación/actualización, carga, error y reintento a cuatro anchuras
+      (1440/1024/768/390), sin overflow horizontal ni excepciones JavaScript.
+      Es una prueba aislada del formulario, sin conexión corporativa ni persistencia.
+- [x] Suite general ejecutada con dos workers y timeout de 20 s: 201 archivos,
+      1.192 pruebas correctas, 2 omitidas y un fallo por timeout propio de 180 s
+      en la integración Excel COM de fórmulas de moneda del alta de personas.
+      Pase sin ese archivo: 200 archivos, 1.183 pruebas correctas y 2 omitidas.
+      Diff check correcto y estado Git revisado; solo cinco archivos de la tarea.
+- [ ] Repetir la integración Excel COM de fórmulas de moneda del alta; el archivo
+      de integración y el código del alta no se modifican en esta tarea.
+
 ## Comprobar y aplicar fuentes por separado — 2026-11-05
 
 - [x] Comprobar usa preview automático por ID/revisión, sin guardar ni alterar

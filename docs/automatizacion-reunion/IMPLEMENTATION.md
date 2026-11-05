@@ -37,7 +37,8 @@ habilitado; producción nunca la habilita.
    vacías aparecen deshabilitadas. El mes se deriva de la fecha de acumulación
    de la ejecución elegida y no se introduce manualmente. La anterior es
    opcional: se propone la más reciente del mes natural anterior con igual
-   informe, frecuencia y tipo de paga conocido, y se exige confirmar el alcance.
+   informe, frecuencia y tipo de paga conocido. Pulsar «Crear expediente y
+   analizar» confirma la selección y su alcance, sin una casilla adicional.
 2. Consulta los resultados mensuales sin esperar a los Excel. Los controles
    externos aparecen pendientes hasta incorporar sus fuentes.
 3. En **Fuentes**, selecciona o arrastra todos los Excel/CSV y pulsa **Comprobar**.
@@ -62,7 +63,8 @@ habilitado; producción nunca la habilita.
    Un hallazgo que ya no existe se identifica como «Hallazgo anterior» y no se
    puede editar. Ante un conflicto, el formulario conserva el borrador y permite
    volver a cargar el expediente antes de guardar.
-7. «Actualizar desde PeopleNet» relee o cambia las ejecuciones tras confirmación.
+7. «Actualizar desde PeopleNet» abre el mismo selector; «Actualizar instantáneas»
+   confirma las ejecuciones y relee sus datos, sin una casilla adicional.
    Abrir, añadir fuentes o exportar no actualiza silenciosamente las nóminas.
 8. Exporta el libro con Resumen, Expediente, Fuentes, Datos actual/anterior,
    Entradas externas, C01–C16 y Revisión. Los pendientes se conservan; no hay aprobación automática
@@ -161,9 +163,11 @@ La instalación y sus copias deben custodiarse como datos de nómina.
 ### Si no aparecen ejecuciones
 
 El diálogo distingue carga en curso, error de conexión, catálogo vacío e
-informe sin resultados utilizables. «Actualizar catálogo»/«Reintentar catálogo»
-vuelve a consultar; «Abrir Resultados de nómina» permite contrastar el listado
-existente en la misma sociedad. No hace falta cerrar el diálogo para ver el error.
+informe sin resultados utilizables. «Actualizar catálogo», situado a la derecha
+del nombre del expediente y adaptado al ancho disponible, vuelve a consultar.
+Si falla la carga, ese botón pasa a «Reintentar catálogo». Durante la carga o
+una operación queda deshabilitado. No hace falta cerrar el diálogo para ver
+el error. El acceso a Resultados de nómina se realiza desde Inicio.
 
 Si solo hay ejecuciones antiguas, pueden seleccionarse con su mes real; no se
 convierten en nóminas del año actual. Para un periodo que no existe, hay que
@@ -172,8 +176,9 @@ correcto y actualizar el catálogo. No hay generación automática en esta herra
 
 Al actualizar un expediente, su periodo se conserva. Elegir una ejecución de
 otro mes muestra una explicación y bloquea la actualización: para ese otro mes
-se crea un expediente nuevo. Una carga fallida o una selección sin confirmar no
-modifica las instantáneas guardadas.
+se crea un expediente nuevo. Cambiar los selectores o actualizar el catálogo
+no modifica las instantáneas guardadas: solo se sustituyen al pulsar
+«Actualizar instantáneas» con una selección válida.
 
 ## Contratos implementados
 
@@ -299,6 +304,17 @@ Usa Datos como referencia de octubre; no considera Datos2/Datos3 un septiembre
 auténtico. Las pruebas sintéticas sí cubren meses distintos y el cambio de año.
 
 ## Validación ejecutada y pendiente
+
+Actualización 2026-11-05 del formulario: diecisiete pruebas dirigidas correctas;
+typecheck y build correctos. Prueba aislada en Chrome con el formulario/Modal
+reales, Inter y catálogo ficticio: crear/actualizar sin casilla, carga, error y
+reintento, a 1440/1024/768/390 px sin overflow ni excepciones JavaScript. No valida
+persistencia ni conexión corporativa. La suite general pasa 1.192 pruebas y
+omite dos; falla una integración Excel COM de fórmulas de moneda del alta por
+timeout de 180 s. El pase sin ese archivo termina con 200 archivos correctos,
+1.183 pruebas correctas y 2 omitidas. Lint global mantiene siete avisos y 618 archivos con formato
+previo pendiente; los archivos de código modificados y esta guía pasan los
+controles dirigidos. Diff y estado Git revisados.
 
 Actualización 2026-11-03: carga múltiple automática, typecheck y build correctos.
 Suite completa de 201 archivos, 1.175 pruebas correctas y dos omitidas. Tras el
