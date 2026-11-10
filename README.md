@@ -281,5 +281,15 @@ con acceso a PeopleNet/Meta4, `npm run portal:discover` (diccionario Meta4 a
 `data/portal-discovery/`) y `npm run portal:verify -- [todo|sql|soap]`
 (columnas, recuentos y WSDL, sin valores personales).
 
+Para cerrar las consultas de solo lectura en dos sesiones, la orden única de la VM es
+`npm run portal:readonly-audit`, sin parámetros interactivos. Guarda seis archivos
+de metadatos saneados y recuentos en `docs/portal/implementacion/evidencias-vm/`,
+con fallos parciales y límites explícitos; no inicia sesiones SOAP ni ejecuta LN4
+o escrituras. La [guía de continuidad](docs/portal/implementacion/continuidad-solo-lectura.md)
+y la [matriz completa](docs/portal/implementacion/matriz-solo-lectura.md) separan
+código, muestras DEBUG y validación VM. En sesión DEBUG de desarrollo, el portal
+permite seleccionar persona ficticia, variante y escenario mediante URL, sin
+nueva persistencia ni alternativa ficticia ante un fallo real.
+
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.

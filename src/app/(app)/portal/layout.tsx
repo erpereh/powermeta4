@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 
 import { PortalShell, type PortalShellContext } from "@/components/portal/portal-shell";
 import { getRequestPortalContext } from "@/lib/portal/server";
+import { requireAuthContext } from "@/lib/auth/session";
+import { canUsePortalDebug } from "@/lib/portal/read-provider";
+import { PortalDebugPanel } from "@/components/portal/debug-panel";
 
 export const metadata = { title: "Portal del empleado · powermeta4" };
 
@@ -29,5 +32,6 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         }
       : { mode: "unavailable", message: context.message };
 
-  return <PortalShell context={shell}>{children}</PortalShell>;
+  const debug = canUsePortalDebug(await requireAuthContext(), context);
+  return <PortalShell context={shell} debugEnabled={debug}>{debug ? <PortalDebugPanel /> : null}{children}</PortalShell>;
 }

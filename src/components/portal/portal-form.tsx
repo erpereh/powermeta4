@@ -22,12 +22,18 @@ import {
   type ComboboxFilter,
 } from "@/components/system";
 import { isFieldVisible, validatePortalForm, type FormIssues } from "@/lib/portal/forms/validate";
-import type { ConnectedCatalog, FieldOption, FormFieldSpec, FormSpec } from "@/lib/portal/types";
+import type {
+  ConnectedCatalog,
+  FieldOption,
+  FormFieldSpec,
+  FormSpec,
+  PendingQueryFormSpec,
+} from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
 import { DevelopmentText } from "@/components/system/development-text";
 import { useDevelopmentText } from "@/hooks/use-development-text";
 
-import { WriteBlockedNotice } from "./portal-states";
+import { DependencyState, WriteBlockedNotice } from "./portal-states";
 
 export type CatalogOptions = Partial<Record<ConnectedCatalog, readonly FieldOption[]>>;
 
@@ -300,7 +306,7 @@ export function PortalForm({
   catalogs,
   hireDate,
 }: {
-  spec: FormSpec;
+  spec: FormSpec | PendingQueryFormSpec;
   catalogs: CatalogAvailability;
   hireDate?: string | null;
 }) {
@@ -399,7 +405,22 @@ export function PortalForm({
           )
         ) : null}
       </div>
-      <WriteBlockedNotice write={spec.write} id={noticeId} mode={spec.mode} />
+      {"write" in spec ? (
+        <WriteBlockedNotice write={spec.write} id={noticeId} mode={spec.mode} />
+      ) : (
+        <div id={noticeId}>
+          <p className="text-sm text-muted-foreground">
+            Este cálculo necesita las reglas originales y todavía no está disponible.
+          </p>
+          <DependencyState
+            title="Consulta pendiente"
+            essential
+            message="No se ejecutan métodos Meta4 ni se inventa una fórmula alternativa."
+            meta4={[spec.dependency.method]}
+            pending={spec.dependency.pending}
+          />
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-end gap-2">
         <Button type="submit" variant="secondary" size="sm">
           Comprobar datos
@@ -410,7 +431,7 @@ export function PortalForm({
           disabled
           aria-describedby={hideDevelopmentText ? undefined : noticeId}
         >
-          {spec.write.label}
+          {"write" in spec ? spec.write.label : spec.dependency.label}
         </Button>
       </div>
     </form>

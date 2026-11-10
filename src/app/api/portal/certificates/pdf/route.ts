@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     const result = await loadCertificatePage(authSession, context, {
       year,
       employee: optional(search.get("employee")),
+      debugActor: optional(search.get("debugActor")), debugVariant: optional(search.get("debugVariant")), debugScenario: optional(search.get("debugScenario")),
     });
     if (result.status === "unavailable") return failure(result.message, 503);
     if (result.status === "error") return failure(result.message, 400);

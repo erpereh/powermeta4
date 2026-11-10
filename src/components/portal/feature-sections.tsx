@@ -4,7 +4,7 @@ import { Accordion, Section } from "@/components/system";
 import { DevelopmentText } from "@/components/system/development-text";
 import type { ConsultData, ConsultSpec, PortalFeature } from "@/lib/portal/types";
 import type { ConsultResults } from "@/lib/portal/data/consults";
-import type { PortalResult } from "@/lib/portal/result";
+import type { PortalReadResult } from "@/lib/portal/read-model";
 
 import { PortalForm, type CatalogAvailability } from "./portal-form";
 import { PortalDataTable, PortalRecord } from "./portal-data";
@@ -15,7 +15,7 @@ export function ConsultContent({
   result,
 }: {
   consult: ConsultSpec;
-  result?: PortalResult<ConsultData>;
+  result?: PortalReadResult<ConsultData>;
 }) {
   if (result?.status === "error") return <PortalError message={result.message} />;
   if (result?.status === "ok") {
@@ -26,6 +26,7 @@ export function ConsultContent({
       return {
         id: String(index),
         fields,
+        href: result.data.personLinks?.[index] ?? undefined,
         download: href && consult.download ? { href, label: consult.download.label } : undefined,
       };
     });
@@ -97,6 +98,7 @@ export function FeatureSections({
   return (
     <div className="flex min-w-0 flex-col gap-8">
       {sections.map((section) => {
+        if (section.kind === "query") return section.query.form ? <Section key={section.query.id} title={section.query.title}><PortalForm spec={section.query.form} catalogs={catalogs} hireDate={hireDate} /></Section> : null;
         if (section.kind === "note") {
           return (
             <div

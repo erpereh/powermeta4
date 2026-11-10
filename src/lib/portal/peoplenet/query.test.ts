@@ -18,6 +18,19 @@ describe("guardia de solo lectura de PeopleNet", () => {
     "SELECT * FROM T WHERE 1 = 1 EXEC sp_x",
     "DELETE FROM T",
     "INSERT INTO T VALUES (1)",
+    "SELECT 1 AS value INTO destination",
+    "WITH x AS (SELECT 1 AS value) SELECT value INTO destination FROM x",
+    "WITH x AS (SELECT 1 AS value) UPDATE T SET a = 1",
+    "SELECT * FROM OPENROWSET('provider', 'secret', 'query')",
+    "SELECT * FROM OPENQUERY(linked, 'query')",
+    "SELECT 1 EXECUTE sp_x",
+    "SELECT 1 SET NOCOUNT ON",
+    "SELECT 1 /* comment */ INTO destination",
+    "SELECT 1 -- comment\nINTO destination",
+    "SELECT 1 SELECT 2",
+    "SELECT 1 WITH x AS (SELECT 2 AS b) SELECT b FROM x",
+    "SELECT * FROM linked.database.dbo.people",
+    "SELECT * FROM [other_db]..[people]",
   ])("rechaza %s", (statement) => {
     expect(() => assertReadOnlySql(statement)).toThrow(PortalSqlGuardError);
   });

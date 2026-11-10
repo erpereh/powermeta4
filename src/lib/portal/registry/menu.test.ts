@@ -329,7 +329,7 @@ describe("navegación original del portal", () => {
   });
   it("separa contenido y formularios sin reemplazar funciones por datos ajenos", () => {
     const ids = (route: string) =>
-      getPortalFeatureByRoute(route)?.sections?.map((s) =>
+      getPortalFeatureByRoute(route)?.sections?.filter((s) => s.kind !== "query").map((s) =>
         s.kind === "note"
           ? s.title
           : s.kind === "form"
@@ -355,11 +355,11 @@ describe("navegación original del portal", () => {
     for (const route of [
       "/portal/empleado/talento/procesos-evaluador",
       "/portal/empleado/talento/conocimientos",
-      "/portal/empleado/talento/objetivos",
       "/portal/empleado/talento/entrevistas-candidatos",
     ]) {
       expect(getPortalFeatureByRoute(route)?.read.kind).toBe("pending");
     }
+    expect(getPortalFeatureByRoute("/portal/empleado/talento/objetivos")?.read.kind).toBe("sql");
     const validation = getPortalFeatureByRoute("/portal/responsable/equipo/validar-idiomas");
     const query = validation?.sections?.find((section) => section.kind === "consult");
     expect(query?.kind === "consult" && query.consult.rowFilter).toEqual({

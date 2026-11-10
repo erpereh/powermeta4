@@ -37,6 +37,7 @@ import {
 } from "@/app/actions/workspace";
 import { getPortalSidebarItems, isPortalSidebarItemActive } from "@/lib/portal/navigation";
 import { getProfileForRoute } from "@/lib/portal/registry";
+import { copyPortalDebugParams } from "@/lib/portal/read-model";
 import { SIDEBAR_TOOL_ITEMS, TOOL_ICONS } from "@/lib/tools/registry";
 import { getStandaloneToolTone, PORTAL_ICON_TONES } from "@/lib/theme/icon-tones";
 import { DEFAULT_CHAT_COLOR, DEFAULT_CHAT_ICON } from "@/lib/chat-customization";
@@ -319,7 +320,8 @@ export function AppSidebar() {
                           }
                           isActive={isPortalSidebarItemActive(pathname, item)}
                           onSelect={() => {
-                            router.push(item.route);
+                            const debug = process.env.NODE_ENV === "development" ? copyPortalDebugParams(new URLSearchParams(window.location.search), new URLSearchParams()) : new URLSearchParams();
+                            router.push(debug.size ? `${item.route}?${debug}` : item.route);
                             closeMobileSidebar();
                           }}
                         >

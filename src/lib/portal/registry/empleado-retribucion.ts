@@ -75,11 +75,11 @@ export const EMPLEADO_RETRIBUCION: readonly PortalFeature[] = [
     view: "payslips",
     sections: [
       note(
-        "Pagas retroactivas",
-        "El original marca la retroactividad de cada paga (SSE_LAST_PAYS). La consulta de pagas retroactivas sigue pendiente de las SELECT que usa Meta4 para ese modo; hoy se muestran las pagas actuales.",
+        "Tipos de paga",
+        "Elige paga actual, retroactiva o ambas con el lector común de recibos (SSE_LAST_PAYS).",
         {
           presentationBody:
-            "Se muestran las pagas actuales. Las pagas retroactivas no están incluidas.",
+            "Puedes consultar pagas actuales, retroactivas o ambas y descargar el rango consultado.",
         },
       ),
     ],

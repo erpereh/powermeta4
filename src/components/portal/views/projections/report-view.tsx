@@ -1,4 +1,5 @@
 "use client";
+import { copyPortalDebugParams } from "@/lib/portal/read-model";
 
 import {
   ArrowLeft,
@@ -193,11 +194,12 @@ export function ProjectionReportView({
           ? "20 pagas"
           : "Completo";
   const navigate = (name: "year" | "scenario", value: string) => {
-    const next = new URLSearchParams();
+    const next = copyPortalDebugParams(params, new URLSearchParams());
     const year = name === "year" ? value : params.get("year");
     if (year) next.set("year", year);
     const scenario = name === "scenario" ? value : params.get("scenario");
     if (debug && scenario && scenario !== "full") next.set("scenario", scenario);
+    if (name === "scenario" && params.has("debugScenario")) next.set("debugScenario", value === "many-pays" ? "full" : value);
     // La matrícula del equipo se conserva al cambiar de ejercicio; el servidor la vuelve a validar.
     const employee = params.get("employee");
     if (data.member && employee) next.set("employee", employee);

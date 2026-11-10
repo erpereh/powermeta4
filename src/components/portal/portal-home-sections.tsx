@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PortalLink as Link } from "./portal-link";
 import { ChevronDown, Wrench } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 

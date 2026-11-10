@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PortalLink as Link } from "./portal-link";
 import { Download } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 

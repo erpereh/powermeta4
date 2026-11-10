@@ -17,6 +17,7 @@ import { RESPONSABLE_TALENTO } from "./responsable-talento";
 import { RESPONSABLE_TIEMPO } from "./responsable-tiempo";
 import { TRANSVERSAL } from "./transversal";
 import { availableMenuPages, createPortalMenu } from "./menu";
+import { extendPortalReads } from "./read-extensions";
 
 export { PORTAL_DOMAINS } from "./domains";
 
@@ -36,7 +37,7 @@ const BASE_FEATURES: readonly PortalFeature[] = [
 ];
 
 const menu = createPortalMenu(BASE_FEATURES);
-export const PORTAL_FEATURES: readonly PortalFeature[] = menu.features;
+export const PORTAL_FEATURES: readonly PortalFeature[] = menu.features.map(extendPortalReads);
 export const PORTAL_MENU = menu.sections;
 export const getPortalSections = (profile: PortalProfile) =>
   PORTAL_MENU.filter((section) => section.profile === profile);

@@ -58,7 +58,7 @@ const fieldIssue = (field: FormFieldSpec, raw: string | undefined): string | nul
 
 /** Reproduce las comprobaciones visibles del JavaScript original. */
 export const validatePortalForm = (
-  spec: FormSpec,
+  spec: Pick<FormSpec, "fields" | "rules">,
   values: FormValues,
   context: ValidationContext = {},
 ): FormIssues => {

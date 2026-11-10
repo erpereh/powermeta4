@@ -7,14 +7,15 @@ import { getPortalHomeSections } from "@/lib/portal/home-sections";
 import { PROJECTION_LOOKUP } from "@/lib/portal/projections/types";
 import { getPortalFeature } from "@/lib/portal/registry";
 import type { PortalProfile } from "@/lib/portal/types";
+import type { PortalDebugSelection } from "@/lib/portal/read-model";
 
 import { PortalHomeSections } from "../portal-home-sections";
 import { DependencyState } from "../portal-states";
 import { TeamProjectionLookup } from "./projections/team-lookup";
 import { TasksView } from "./tasks-view";
 
-function DomainGrid({ profile, context }: { profile: PortalProfile; context: PortalContext }) {
-  const variant = context.mode === "meta4" ? context.variant : undefined;
+function DomainGrid({ profile, context, debug }: { profile: PortalProfile; context: PortalContext; debug?: PortalDebugSelection | null }) {
+  const variant = context.mode === "meta4" ? context.variant : debug?.variant;
   return <PortalHomeSections sections={getPortalHomeSections(profile, variant)} />;
 }
 
@@ -29,7 +30,7 @@ async function TeamProjections({ context }: { context: PortalContext }) {
 }
 
 /** Inicio del portal del empleado: apartados, tareas y estado de conexión. */
-export function HomeView({ context }: { context: PortalContext }) {
+export function HomeView({ context, debug }: { context: PortalContext; debug?: PortalDebugSelection | null }) {
   return (
     <div className="flex min-w-0 flex-col gap-8">
       <header className="space-y-1">
@@ -38,7 +39,7 @@ export function HomeView({ context }: { context: PortalContext }) {
         </h1>
         <p className="text-sm text-muted-foreground">Consulta tu información y tus tareas.</p>
       </header>
-      {context.mode !== "meta4" ? (
+      {context.mode !== "meta4" && !debug ? (
         <DependencyState
           title="Portal sin sesión Meta4"
           message={context.message}
@@ -49,15 +50,15 @@ export function HomeView({ context }: { context: PortalContext }) {
         <h2 id="portal-apartados" className="text-sm font-semibold text-foreground">
           Apartados
         </h2>
-        <DomainGrid profile="empleado" context={context} />
+        <DomainGrid profile="empleado" context={context} debug={debug} />
       </section>
-      {context.mode === "meta4" ? (
+      {context.mode === "meta4" || debug ? (
         <section aria-labelledby="portal-tareas" className="flex min-w-0 flex-col gap-3">
           <h2 id="portal-tareas" className="text-sm font-semibold text-foreground">
             Mis tareas
           </h2>
           <Suspense fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
-            <TasksView context={context} compact />
+            <TasksView context={context} compact debug={debug} />
           </Suspense>
         </section>
       ) : null}

@@ -4,6 +4,7 @@ import { FileSpreadsheet, FileText } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/system";
+import { copyPortalDebugParams } from "@/lib/portal/read-model";
 
 type Format = "pdf" | "xlsx";
 
@@ -49,6 +50,7 @@ export function ProjectionExport({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           format,
+          ...Object.fromEntries(copyPortalDebugParams(new URLSearchParams(window.location.search), new URLSearchParams())),
           ...(year === null ? {} : { year: String(year) }),
           ...(employee ? { employee } : {}),
           ...(scenario ? { scenario } : {}),

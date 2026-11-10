@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-11-10 - Consultas del portal, DEBUG y diagnóstico de continuidad
+
+- Capa de lectura real y DEBUG independiente, con origen explícito, escenario
+  completo/parcial/vacío/error y selección de persona/variante mediante URL.
+  Sesión, entorno y flag se validan en servidor; un fallo real nunca usa muestras.
+- Consultas tipadas y filtros de texto/mes/campo/persona; formularios de consulta
+  separados de `FormSpec.write`. Simulaciones sin reglas conservan controles,
+  validación y dependencia explícita, con cálculo deshabilitado.
+- Lectores preparados para conocimientos vigentes, preferencias y objetivos
+  registrados/pendientes, días de presencia calculada y dossier del equipo por
+  contratos, puestos, formación, evaluaciones, salario y tiempo. Nómina propia
+  ofrece actual, retroactiva y ambas, con descargas PDF/Excel que resuelven la
+  identidad en servidor. La revisión salarial exige sus propias responsabilidades.
+- Informes genéricos registrados con relectura/autorización y generación en memoria.
+  Se reutilizan los lectores y exportadores anteriores de documentos e informes;
+  las inscripciones no se equiparan a convocatorias, ni entrevistas de empleados
+  a entrevistas de candidatos. No se añaden escrituras ni persistencia del portal.
+- `portal:readonly-audit` recoge esquema/diccionario, herencia, reglas saneadas,
+  contratos y agregados del código, más GET WSDL. Seis salidas versionables,
+  errores independientes y límites explícitos; no ejecuta APISQL extraído,
+  métodos LN4, sesiones SOAP, procedimientos ni escrituras. Guardia SQL compartida
+  reforzada y pruebas de privacidad/continuación con conexiones simuladas.
+- Documentación generada con matriz de 192 funciones y 154 apartados, guía de
+  continuidad, pasos de VM y mensaje de segunda sesión. Código, muestra y VM
+  mantienen estados distintos; aún no hay evidencias corporativas nuevas.
+- Typecheck y build correctos. Playwright: cuatro vistas a cuatro anchuras,
+  filtros, exportaciones, escenarios, denegación de alcance, selector por teclado,
+  modos de nómina y navegación de personas correctos, sin excepciones JavaScript.
+  Suite general ejecutada; mantiene el timeout previo de Excel COM. Corregidas
+  dos expectativas de interfaz; pase sin ese archivo: 205 archivos, 1.222 pruebas
+  correctas y 2 omitidas. Lint conserva siete avisos previos y formato global
+  pendiente en 618 archivos; no se reformatea el repositorio ni se cambia la rama.
+  Pruebas posteriores: 69 de informes/proveedor y 19 de auditoría/proveedor
+  correctas. Diff check sin errores y estado revisado; inventario de 82 archivos
+  de la entrega en continuidad.
+
 ## 2026-11-05 - Formularios de expedientes de cuadre simplificados
 
 - Nuevo expediente y Actualizar instantáneas eliminan el enlace a Resultados de

@@ -11,6 +11,7 @@ import { PENDING_LABELS } from "../../src/lib/portal/pending";
 import { PORTAL_DOMAINS, PORTAL_FEATURES, PORTAL_MENU } from "../../src/lib/portal/registry";
 import type { PortalFeature, ReadContract, WriteOperation } from "../../src/lib/portal/types";
 import { formatGenerated } from "./format";
+import { readonlyMatrix } from "./readonly-matrix";
 
 const OUT = path.resolve("docs/portal/implementacion");
 
@@ -253,11 +254,13 @@ writeFileSync(path.join(OUT, "navegacion.md"), navigation());
 writeFileSync(path.join(OUT, "dependencias-servidor.md"), dependencies());
 writeFileSync(path.join(OUT, "estado.md"), status());
 writeFileSync(path.join(OUT, "auditoria-fuentes.md"), sourceAudit());
+writeFileSync(path.join(OUT, "matriz-solo-lectura.md"), readonlyMatrix());
 formatGenerated([
   path.join(OUT, "navegacion.md"),
   path.join(OUT, "dependencias-servidor.md"),
   path.join(OUT, "estado.md"),
   path.join(OUT, "auditoria-fuentes.md"),
+  path.join(OUT, "matriz-solo-lectura.md"),
 ]);
 console.log(
   `Generados dependencias-servidor.md y estado.md (${PORTAL_FEATURES.length} pantallas).`,

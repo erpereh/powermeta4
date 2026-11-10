@@ -3,7 +3,7 @@
 import { ReceiptText } from "lucide-react";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 
-import { getOwnPayslipsAction } from "@/app/actions/portal";
+import { getOwnPayslipsAction, type OwnPayslipsRequest } from "@/app/actions/portal";
 import {
   Button,
   Callout,
@@ -16,6 +16,8 @@ import {
   Skeleton,
 } from "@/components/system";
 import { PayrollReceiptRange } from "@/components/tools/payroll/payroll-receipt-range";
+import { PAYROLL_PAYMENT_TYPES, type PayrollPaymentType } from "@/types/payroll-receipt";
+import type { PortalReadParams } from "@/lib/portal/read-model";
 import {
   PAYROLL_RANGE_MAX_PAYS,
   type PayrollMissingReceipt,
@@ -32,6 +34,7 @@ type State =
       key: number;
       receipts: readonly PayrollReceiptEntry[];
       missing: readonly PayrollMissingReceipt[];
+      parameters: OwnPayslipsRequest;
     };
 
 const formatDate = (iso: string): string => {
@@ -76,20 +79,28 @@ function PaySelect({
  * «Últimos recibos de salarios» del propio empleado. Al entrar se consulta la
  * paga más reciente; la matrícula nunca sale del navegador.
  */
-export function OwnPayslips({ pays }: { pays: readonly PayrollPayOption[] }) {
+export function OwnPayslips({ pays, debugParams }: { pays: readonly PayrollPayOption[]; debugParams?: PortalReadParams }) {
   const latest = pays[0]?.paymentDate ?? "";
   const [from, setFrom] = useState(latest);
   const [to, setTo] = useState(latest);
   const [state, setState] = useState<State>({ status: "idle" });
   const [pending, startTransition] = useTransition();
   const requested = useRef(false);
+  const sequence = useRef(0);
+  const [paymentType, setPaymentType] = useState<PayrollPaymentType>("current");
+  const [exporting, setExporting] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
 
   const inRange = pays.filter((pay) => pay.paymentDate >= from && pay.paymentDate <= to).length;
 
   const consult = (fromPaymentDate: string, toPaymentDate: string) => {
+    const current = ++sequence.current;
+    const parameters = { fromPaymentDate, toPaymentDate, paymentType, ...(debugParams ? { debug: debugParams } : {}) };
+    setDownloadError("");
     setState({ status: "loading" });
     startTransition(async () => {
-      const result = await getOwnPayslipsAction({ fromPaymentDate, toPaymentDate });
+      const result = await getOwnPayslipsAction(parameters);
+      if (current !== sequence.current) return;
       if (!result.ok) setState({ status: "error", message: result.message });
       else if (result.receipts.length === 0)
         setState({
@@ -102,6 +113,7 @@ export function OwnPayslips({ pays }: { pays: readonly PayrollPayOption[] }) {
           key: Date.now(),
           receipts: result.receipts,
           missing: result.missing,
+          parameters,
         });
     });
   };
@@ -111,6 +123,18 @@ export function OwnPayslips({ pays }: { pays: readonly PayrollPayOption[] }) {
     requested.current = true;
     consult(latest, latest);
   }, [latest]);
+
+  const download = async (format: "pdf" | "xlsx") => {
+    if (state.status !== "ready") return;
+    setExporting(true); setDownloadError("");
+    try {
+      const response = await fetch("/api/portal/payslips/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ format, ...state.parameters }) });
+      if (!response.ok) throw new Error("No se ha podido descargar el rango consultado.");
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a"); link.href = url; link.download = `recibos-portal.${format}`; link.click(); URL.revokeObjectURL(url);
+    } catch (error) { setDownloadError(error instanceof Error ? error.message : "No se ha podido descargar."); }
+    finally { setExporting(false); }
+  };
 
   if (pays.length === 0) {
     return (
@@ -134,6 +158,12 @@ export function OwnPayslips({ pays }: { pays: readonly PayrollPayOption[] }) {
         }}
       >
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+          <div className="min-w-0 space-y-1.5"><span id="own-pay-mode" className="text-sm font-medium">Tipo de pagas</span>
+            <Select value={paymentType} onValueChange={(value) => { const mode = PAYROLL_PAYMENT_TYPES.find((option) => option.value === value); if (mode) setPaymentType(mode.value); }}>
+              <SelectTrigger aria-labelledby="own-pay-mode"><SelectValue /></SelectTrigger>
+              <SelectContent>{PAYROLL_PAYMENT_TYPES.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
           <PaySelect
             label="Desde la paga"
             pays={pays}
@@ -173,6 +203,11 @@ export function OwnPayslips({ pays }: { pays: readonly PayrollPayOption[] }) {
           </Button>
         </div>
       </form>
+      {state.status === "ready" ? <div className="flex flex-wrap gap-2" aria-busy={exporting}>
+        <Button variant="outline" size="sm" disabled={exporting || pending} onClick={() => void download("xlsx")}>Descargar Excel</Button>
+        <Button variant="outline" size="sm" disabled={exporting || pending} onClick={() => void download("pdf")}>Descargar PDF</Button>
+      </div> : null}
+      {downloadError ? <p role="alert" className="text-sm text-destructive">{downloadError}</p> : null}
       <section aria-label="Tus recibos" aria-busy={pending} className="min-w-0">
         {state.status === "loading" ? <Skeleton className="h-96 w-full rounded-xl" /> : null}
         {state.status === "error" ? (

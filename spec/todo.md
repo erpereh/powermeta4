@@ -1,5 +1,43 @@
 # powermeta4 - estado de tareas
 
+## Consultas del portal y continuidad con la VM — 2026-11-10
+
+- [x] Proveedores real/DEBUG separados, resultado ficticio identificado y activación
+      restringida por sesión, desarrollo y flag. Selector de persona, variante y
+      escenario por URL; aviso visible y navegación conservada, sin persistencia nueva.
+- [x] Consultas tipadas separadas de escrituras, filtros combinados y descargas
+      PDF/Excel con relectura/autorización en servidor. Equipo ORO revalidado en
+      pantalla, enlaces directos y exportaciones. Revisión salarial cerrada cuando
+      falta acreditar sus responsabilidades específicas.
+- [x] Lectores preparados de conocimientos, preferencias pendientes/registradas,
+      objetivos pendientes/vigentes, presencia calculada y apartados del dossier
+      del responsable; modos actual/retroactivo/combinado de nómina propia.
+      Beneficios consulta opciones/costes guardados; no inventa reglas de simulación.
+- [x] Guardia SQL reforzada: SELECT INTO, CTE de escritura, lotes, procedimientos
+      y referencias externas rechazados. Diagnóstico único `portal:readonly-audit`
+      con metadatos saneados, recuentos, GET WSDL, cobertura y fallos independientes.
+- [x] Matriz generada de 192 entradas y 154 apartados; menú/URL, controles, fuentes,
+      permisos, DEBUG y validación VM separados. Guía de continuidad y seis archivos
+      de evidencia previstos dentro del repositorio, sin commit/push automático.
+- [x] Playwright/Chrome: 16 medidas a 1440/1024/768/390 sin overflow; filtros,
+      escenarios, persona ajena, teclado, descargas de consultas y nómina,
+      modos retroactivo/combinado, ficha pública y jerarquía DEBUG: correctos.
+- [x] Typecheck y build correctos. Suite general ejecutada: el timeout previo de
+      Excel COM se mantiene; dos expectativas afectadas por interfaces nuevas se
+      corrigieron. Pase sin ese archivo: 205 archivos, 1.222 pruebas correctas y
+      2 omitidas. No se modifica código del alta de personas.
+- [x] Lint ejecutado: siete avisos previos; continúa formato global pendiente.
+      No se aplica reformateo general. Los archivos nuevos TypeScript se formatean.
+- [x] Pruebas posteriores de informes/proveedor: 69 correctas en siete archivos;
+      19 de auditoría/proveedor correctas tras los ajustes finales. Diff check
+      correcto y estado Git revisado; inventario de 82 archivos en continuidad.
+- [ ] Ejecutar una vez `npm run portal:readonly-audit` en la VM y versionar los seis
+      resultados de `docs/portal/implementacion/evidencias-vm/`.
+- [ ] Segunda sesión: leer primero manifiesto/errores y cerrar solo contratos
+      afectados, permisos y reglas virtuales acreditados; mantener pendientes
+      explícitos los destinos sin estructura y las simulaciones sin reglas LN4.
+- [ ] Repetir la integración Excel COM del alta en un entorno donde termine.
+
 ## Formularios de expedientes simplificados — 2026-11-05
 
 - [x] Nuevo expediente y Actualizar instantáneas sin enlace a Resultados de
