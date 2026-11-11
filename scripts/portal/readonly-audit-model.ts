@@ -75,6 +75,26 @@ export class AuditFailure extends Error {
     this.name = "AuditFailure";
   }
 }
+export const AUDIT_FILES = [
+  "dictionary.json",
+  "contracts.json",
+  "probes.json",
+  "errors.json",
+  "resumen.md",
+  "manifest.json",
+] as const;
+export type AuditFile = (typeof AUDIT_FILES)[number];
+export function auditStorageError(error: unknown): AuditFailure {
+  if (error instanceof AuditFailure) return error;
+  const code = error && typeof error === "object" && "code" in error ? error.code : null;
+  return new AuditFailure(
+    code === "ENOSPC"
+      ? "DISK_FULL"
+      : code === "EACCES" || code === "EPERM"
+        ? "OUTPUT_ACCESS_DENIED"
+        : "OUTPUT_IO_FAILED",
+  );
+}
 export const digest = (value: string | Uint8Array): string =>
   createHash("sha256").update(value).digest("hex");
 export const identifier = /^[A-Z][A-Z0-9_#$]{0,127}$/i;

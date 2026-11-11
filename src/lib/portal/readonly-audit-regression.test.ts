@@ -207,14 +207,14 @@ describe("regresiones de la ejecución VM de 2026-11-11", () => {
     });
     expect(partial.coverage.unvisited.length).toBeGreaterThan(0);
   });
-  it("rechaza una publicación insegura antes de sustituir una generación válida", () => {
+  it("rechaza una publicación insegura antes de sustituir una generación válida", async () => {
     const root = temp();
     const store = new AuditStore(path.join(root, "cache"), path.join(root, "output"), () => {});
-    store.publish(emptyAuditState(), info(store.runId));
+    await store.publish(emptyAuditState(), info(store.runId));
     const previous = readFileSync(path.join(root, "output/manifest.json"), "utf8");
     const state = emptyAuditState();
     state.dictionary.invalid = [{ PASSWORD: "PRIVATE_PASSWORD" }];
-    expect(() => store.publish(state, info(store.runId))).toThrow("UNSAFE_PUBLICATION");
+    await expect(store.publish(state, info(store.runId))).rejects.toThrow("UNSAFE_PUBLICATION");
     expect(readFileSync(path.join(root, "output/manifest.json"), "utf8")).toBe(previous);
     store.close();
   });
@@ -456,15 +456,16 @@ describe("estados de evidencia y fuentes originales", () => {
   });
   it("interpreta las tareas diferidas y el recorte histórico sin alterar la generación", () => {
     const state = emptyAuditState();
+    const queryHash = digest("deferred-query");
     state.tasks.push(
       { id: "reference-closure", status: "incomplete", code: "REFERENCE_LIMIT" },
-      { id: "probe/IBER/abcdef123456", status: "incomplete", code: "FAMILY_DEFERRED" },
+      { id: `probe/IBER/${queryHash.slice(0, 12)}`, status: "incomplete", code: "FAMILY_DEFERRED" },
     );
     state.probes.push({
       feature: "fixture",
       consult: "test",
       organization: "IBER",
-      queryHash: "abcdef123456",
+      queryHash,
       status: "error",
       records: null,
     });

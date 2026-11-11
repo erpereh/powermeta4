@@ -2,89 +2,121 @@
 
 Primera sesión, 2026-11-10. Se conserva la rama actual. No se han ejecutado escrituras ERP, consultas corporativas, operaciones SOAP ni métodos LN4. La sesión DEBUG usa únicamente la autenticación SQLite existente; sus muestras no crean una sesión Meta4 ni una sociedad conectada. No se guarda información del portal.
 
-## Nueva evidencia y cierre local — 2026-11-11
+## Cierre local con la captura disponible — 2026-11-11
 
-Generación `f08d12cd-b90c-4291-8f34-7089a7b2c8ea`, revisión
-`9c4e8773d52028d37fdcc1a080cff3822f042907`: 98,2 segundos, 2.740 consultas,
-819 contratos de tablas y nueve WSDL compatibles mediante GET. Los cinco hashes
-y los identificadores de generación coinciden. `dictionary.json` está completo:
-111.792.981 bytes, con tamaño y SHA-256 coincidentes con el objeto Git LFS.
-Se conservan los seis archivos de evidencia y la configuración LFS sin cambios.
+Este apartado sustituye las instrucciones históricas de repetir la auditoría VM.
+No se solicita ni se ejecuta otra extracción corporativa. Se conserva la rama
+`davidev`, las evidencias originales y la autorización existente, sin commits/push.
 
-De 291 combinaciones únicas de consulta y sociedad, 276 son correctas, cinco
-fallaron y diez se difirieron. Sus 435 atribuciones a apartados se interpretan
-desde las tareas: 414 correctas, siete fallidas y catorce diferidas. No se han
-ejecutado servicios corporativos en esta máquina. Los sondeos no acreditan
-permisos efectivos ni paridad visual; los WSDL solo acreditan el contrato GET.
+La generación actual `539b018e-7e10-4ac3-9549-84299856cf09` analiza la revisión
+`39e89dde548ac15680c2cfc29c180a667dbfd162`. El diccionario completo Git LFS tiene
+283.170.405 bytes y SHA-256
+`b8be1fb2304b7a8e30d478f146ef3c7829bc72b3bdbb43e76bf8ae455511039f`, coincidente
+con el objeto LFS. Los cinco hashes y los identificadores de generación coinciden.
+Los seis archivos originales permanecen intactos.
 
-El diagnóstico anterior descartó referencias tras llegar a 5.000: el cero de
-pendientes guardado no permite conocer cuántas faltan. El ejecutor corregido
-conserva todas las referencias descubiertas, sujeto a los presupuestos de
-20 minutos de diccionario y 30 minutos totales. Los lotes consolidados permiten
-reanudar con la misma orden; los contratos explícitos se priorizan sobre los
-candidatos heurísticos. Las tareas diferidas se registran como incompletas.
+Es la última captura válida anterior a la interrupción: estado guardado `running`,
+193,8 s de captura, 1.153 consultas iniciadas/1.151 completadas, dos activas,
+6.028 lotes reutilizados, 20.256 referencias procesadas y 8.537 pendientes.
+Contiene 1.990 contratos de tablas, nueve WSDL compatibles por GET y cero sondeos.
+Sus tres errores guardados son dos QUERY_TIMEOUT y un UNSAFE_CHECKPOINT. El lote
+rechazado no está disponible: la regresión ficticia de idempotencia es compatible
+con ese rechazo, pero no permite atribuirle la causa con certeza. Los errores
+terminales mostrados en consola no se inventan dentro de esta captura anterior.
 
-| Contrato                          | Corrección local                                            | DEBUG                        | Validación VM                                                             |
-| --------------------------------- | ----------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------- |
-| Contratos del equipo              | `SCO_DT_PROBA_END` y `SCO_DT_EXPECT_END`, alias conservados | Muestra existente conservada | Nuevo sondeo pendiente; jerarquía ORO sin cambios                         |
-| Preferencias registradas          | `SCO_CK_DISCART_PRE`, filtros conservados                   | Muestra existente conservada | Nuevo sondeo pendiente                                                    |
-| Objetivos registrados             | `SCO_NM_OBJECTESP` / `SCO_NM_MAGNITESP`, alias conservados  | Muestra existente conservada | Nuevo sondeo pendiente                                                    |
-| Objetivos pendientes / valoración | Misma corrección en la consulta compartida                  | Muestra existente conservada | Nuevo sondeo pendiente                                                    |
-| Población del certificado         | `STD_N_GEO_PLACESP`; dependencia de direcciones visible     | Muestra existente conservada | Resolver `SSP_LG_ENT_ADDRESS`; no se ha confirmado `M4SSP_LG_ENT_ADDRESS` |
+| Funcionalidad | Implementación y contraste físico | DEBUG | Evidencia SQL |
+| --- | --- | --- | --- |
+| Contratos del equipo | SCO_DT_PROBA_END / SCO_DT_EXPECT_END, alias conservados | Muestra conservada | Sin sondeo coincidente de la sentencia corregida |
+| Preferencias registradas | SCO_CK_DISCART_PRE, filtros conservados | Muestra conservada | Sin sondeo coincidente de la sentencia corregida |
+| Objetivos registrados | SCO_NM_OBJECTESP / SCO_NM_MAGNITESP, alias conservados | Muestra conservada | Sin sondeo coincidente de la sentencia corregida |
+| Objetivos pendientes / valoración | Misma consulta física compartida | Muestra conservada | Sin sondeo coincidente de la sentencia corregida |
+| Población del certificado | SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD; STD_N_GEO_PLACESP; sociedad y SSP_FEC_FIN conservados | PDF y descarga con persona ficticia vigente | Correspondencia y columnas disponibles; sin ejecución SQL actual |
 
-Experiencia de conocimientos, criterios, competencias/GAP y presupuesto siguen
-pendientes de sus contratos completos. No se infieren cálculos o permisos a partir
-de nodos ni se reescriben los lectores confirmados. La matriz conserva menú exacto,
-URL, persona, escenarios, filtros y resultado esperado de cada funcionalidad.
+La revisión generada contrasta tablas y columnas calificadas de las 97 sentencias
+únicas y registra CTE, alias ambiguos y columnas sin calificar como no verificables.
+No equivale a compilar SQL. El historial conserva la generación
+`f08d12cd-b90c-4291-8f34-7089a7b2c8ea` (98,2 s, 291 combinaciones de consulta y
+sociedad: 276 correctas, cinco fallidas y diez diferidas). Su número real de
+referencias pendientes era desconocido por el recorte antiguo. Solo se atribuyen
+sondeos históricos con la misma función, apartado, sociedad y huella de sentencia
+más alcance, con revisión y generación explícitas; nunca se copian a probes.json
+actual ni validan las cinco sentencias corregidas.
 
-La carga verifica y analiza cada documento JSON una vez y reutiliza un índice de
-referencias. Detecta punteros LFS sin descargar con una indicación explícita.
-Las pruebas unitarias usan generaciones ficticias pequeñas; la comprobación del
-archivo real está separada. Pasan 82 pruebas dirigidas en ocho archivos y
-typecheck; `portal:docs` se ha ejecutado. La revisión inicial con el código anterior
-dio 66 pruebas correctas y dos fallos ligados al tamaño/expectativas de la nueva
-evidencia. No se cambian las expectativas de certificados/proyecciones ajenas.
+Experiencia de conocimientos es el nodo/TI SSE_H_HR_KNC_EXP de SSE_H_HR_KNC_LVL,
+no un T3 independiente. Su resultado virtual, los criterios, GAP y presupuesto
+conservan dependencias explícitas: faltan reglas o literales documentados y
+comportamientos completos. Los originales y metadatos disponibles no permiten
+reconstruirlos sin conjeturas. Los nueve WSDL solo prueban accesibilidad del contrato
+GET; no prueban operaciones, permisos efectivos ni paridad visual.
+
+El diagnóstico usa un saneamiento léxico separado para SQL/LN4, idempotente y
+compartido por diario, publicación y recuperación. Los lotes conservan sus símbolos
+aprobados usados; comentarios y fragmentos sin cerrar se omiten conservadoramente.
+La política nueva está versionada y la lectura de evidencias antiguas mantiene su
+verificador original. Los métodos ajenos de TI compartidas quedan inventariados;
+los despachadores ambiguos se declaran incompletos y no expanden ramas desconocidas.
+
+La publicación serializa por fragmentos con hashes incrementales desde una
+instantánea estable, en un único trabajo asíncrono que agrupa solicitudes. Antes
+de escribir exige el tamaño de la generación, el mayor temporal y 64 MiB de reserva.
+Conserva generaciones válidas, limpia únicamente temporales propios incompletos y
+no reintenta inmediatamente todo el diccionario tras un fallo. Distingue espacio,
+permisos, serialización y lectura mediante códigos técnicos sin mensajes crudos.
+Se mantienen los seis archivos, formato 2, comando, concurrencia y límites.
+
+DEBUG rechaza personas inexistentes, producción y activación incompleta, con
+exportadores PDF/Excel reales. Cuadre mantiene el borrador dentro del diálogo y
+preserva revisión/fingerprint, cancelación, invalidación y errores 409/500 sin
+reconstruir las tablas al escribir. Controles y Datos se montan al visitarlos;
+el contenedor de pestañas mantiene su tipo para conservar filtros y borradores
+al ocultarse. La prueba de navegación comprueba esa conservación. Excel y los preparadores de fixtures comparten
+el control de ejecución: Hwnd → PID, nombre e instante de creación comprobados,
+salida de PowerShell y cierre de su instancia antes de resolver. Nunca se cierra
+una instancia ajena. Los casos nativos van en serie con 180 s por caso compartidos
+entre preparación, edición y limpieza y cinco segundos reservados para cierre;
+el timeout de interfaz permanece en 5 s. Las pruebas generales, de interfaz y
+nativas se ejecutan en grupos consecutivos; las de interfaz y Excel van en serie.
 
 Comprobaciones finales ejecutadas:
 
-- `npm test` se inició con la concurrencia predeterminada y se interrumpió tras
-  varios tiempos de espera de interfaz. La repetición completa
-  `npm test -- --maxWorkers=2` terminó: 213 archivos, **1.303 pruebas correctas,
-  nueve fallidas y dos omitidas** (1.314 en total). No se presenta como correcta.
-- Se reproducen los tres fallos ya documentados de certificados/proyecciones
-  DEBUG. Los otros seis son cuatro timeouts de 5 s en
-  `src/features/payroll-reconciliation/ReconciliationApp.test.tsx` y dos casos
-  de `src/lib/meta4/hire/excel.test.ts` (una instancia de Excel que permanecía
-  abierta y un timeout de 180 s). Esos módulos y sus pruebas no se han modificado.
-  La prueba nativa de Excel consumió 824,3 s. Se cerraron las instancias sin
-  ventana que dejaron estas comprobaciones; no quedan procesos Excel de ellas.
-- Repetición aislada de Cuadre con un proceso y timeout de 15 s: seis pruebas
-  correctas y una que también agota el límite. No se cambia la configuración
-  del proyecto ni se ocultan las incidencias aumentando sus tiempos.
-- Las 82 pruebas dirigidas vuelven a pasar con dos procesos; incluyen la
-  recuperación de más de 5.000 referencias y el contenido LFS real.
-- `npm run typecheck` y `npm run build` correctos; 44 páginas generadas. Build
-  avisa de un pnpm-lock.yaml fuera del repositorio, que no se modifica.
-- `npm run lint` y su repetición con un hilo mantienen siete avisos previos y
-  formato pendiente en 620 archivos. No se aplican reformateos generales ni se
-  alteran las evidencias para resolver el formato.
-- `npm run portal:docs` ejecutado y revisado; `git diff --check` correcto. Estado
-  Git revisado: los 20 archivos del inventario siguiente, rama `davidev`, sin
-  commits/push. Los cinco hashes originales y el objeto LFS siguen coincidiendo.
+- `npm test`: **215 archivos correctos; 1.339 pruebas correctas y dos omitidas
+  preexistentes**, 1.341 en total, sin fallos. Duración 851,4 s. Incluye los diez
+  casos nativos Excel, los ocho recorridos de Cuadre y los exportadores DEBUG.
+  No se ejecuta el alta Meta4; las copias nativas son temporales y ficticias.
+- Después de los últimos refuerzos léxicos y de lectura fragmentada del identificador
+  Excel, **101 pruebas dirigidas correctas en diez archivos**. Incluyen el contenido
+  LFS real, diario Unicode, recuperación, falta de espacio, saneamiento idempotente,
+  rechazo de datos privados y propiedad/cierre de procesos.
+- `npm run typecheck` correcto y `npm run build` correcto, con 44 páginas.
+  Build conserva el aviso de un pnpm-lock.yaml fuera del repositorio, sin modificarlo.
+- `npm run portal:docs` ejecutado: 192 pantallas, 97 sentencias distintas,
+  cero nombres físicos ausentes detectados y siete sentencias con referencias no
+  verificables por el análisis limitado. No equivale a ejecución SQL ni permisos.
+- `npm run lint` mantiene los siete avisos previos y formato pendiente en 619
+  archivos (620 en el estado anterior); no hay avisos nuevos de código. No se
+  aplican reformateos generales ni se alteran los resultados VM para resolver formato.
+- `git diff --check` correcto, estado Git revisado, rama davidev conservada,
+  37 archivos modificados/nuevos y sin commits/push. Los cinco hashes, identificadores
+  y el objeto LFS permanecen coincidentes; las seis evidencias originales no cambian.
+  No quedan instancias Excel creadas por estas comprobaciones.
 
-**Cierre que requiere la VM:** actualizar esta corrección y ejecutar desde la raíz
-`npm run portal:readonly-audit`. No borrar cachés ni evidencias. La huella nueva
-rechazará automáticamente el diario incompatible; después, la misma orden
-reutilizará los metadatos compatibles. Revisar la próxima generación, sus errores,
-los sondeos modificados y la correspondencia de direcciones. La integración
-completa del portal continúa pendiente hasta resolver esos contratos y las
-comprobaciones efectivas de acceso y presentación.
+Los nueve fallos originales de DEBUG/Cuadre/Excel quedan resueltos localmente.
+Durante la implementación hubo expectativas ficticias y tiempos de espera que
+se corrigieron; no se presentan como fallos previos ni se ocultan aumentando el
+límite de interfaz. La agrupación serial de interfaz y Excel conserva todos los
+casos y las dos omisiones anteriores. No se solicita otra auditoría VM.
 
-Además de ese cierre VM, siguen abiertas las incidencias de la suite global
-descritas arriba. No se atribuyen a una integración real ni se mezclan con la
-validación de las consultas corregidas.
+Queda deuda local de formato previa, y quedan sin acreditar las validaciones que
+esta captura no contiene: ejecución real de las sentencias corregidas, permisos
+efectivos, paridad visual y reglas nativas incompletas. Estas limitaciones no se
+convierten en una aprobación de integración ni en un paso VM obligatorio para
+esta entrega. Las secciones siguientes
+son historial de entregas anteriores; sus instrucciones de VM quedan sustituidas
+por el cierre local de este apartado.
 
-Archivos de esta entrega (20; inventario separado de las entregas históricas):
+## Inventario de esta entrega local
+
+37 archivos modificados o nuevos. Los seis resultados VM originales no están en este inventario porque no se modifican. No hay cambios de rama ni commits/push automáticos.
 
 ```text
 README.md
@@ -93,26 +125,38 @@ docs/portal/implementacion/estado.md
 docs/portal/implementacion/evidencias-vm/README.md
 docs/portal/implementacion/matriz-solo-lectura.md
 docs/portal/implementacion/revision-evidencias-vm.md
+scripts/portal/dependencias.ts
 scripts/portal/readonly-audit-engine.ts
+scripts/portal/readonly-audit-methods.ts
 scripts/portal/readonly-audit-model.ts
+scripts/portal/readonly-audit-publication.ts
+scripts/portal/readonly-audit-safety.ts
 scripts/portal/readonly-audit-store.ts
+scripts/portal/readonly-audit.ts
 scripts/portal/readonly-matrix.ts
+scripts/portal/readonly-sql-review.ts
 scripts/portal/readonly-vm-evidence.ts
 spec/changelog.md
 spec/todo.md
-src/lib/portal/readonly-audit-engine.test.ts
-src/lib/portal/readonly-audit-evidence.integration.test.ts
+src/app/api/portal/certificates/pdf/route.test.ts
+src/app/api/portal/projections/export/route.integration.test.ts
+src/components/motion/tabs.tsx
+src/features/payroll-reconciliation/ReconciliationApp.test.tsx
+src/features/payroll-reconciliation/ReconciliationApp.tsx
+src/lib/meta4/hire/excel-files.test.ts
+src/lib/meta4/hire/excel-lifecycle.test.ts
+src/lib/meta4/hire/excel-lifecycle.ts
+src/lib/meta4/hire/excel.test.ts
+src/lib/meta4/hire/excel.ts
 src/lib/portal/readonly-audit-regression.test.ts
+src/lib/portal/readonly-audit-runner.test.ts
+src/lib/portal/readonly-audit-store.test.ts
 src/lib/portal/readonly-contracts.test.ts
+src/lib/portal/readonly-local-closure.test.ts
 src/lib/portal/registry/read-extensions.ts
 src/lib/portal/registry/sql/certificates.ts
-src/lib/portal/registry/sql/readonly.ts
+vitest.config.mts
 ```
-
-No se versionan datos de `data/`, temporales o credenciales. Los seis archivos
-de evidencia, `.gitattributes`, la rama y las dependencias se conservan. No se
-han realizado commits ni push. Tras la próxima ejecución VM, versionar juntos
-sus seis resultados, incluido el contenido LFS de dictionary.json.
 
 ## Primera ejecución y corrección — 2026-11-11 (histórico)
 
@@ -246,7 +290,7 @@ La tabla completa por URL está en la matriz. Estas son las ampliaciones y sus l
 
 No se consideran cerradas por esta entrega las funcionalidades que necesitan reglas virtuales, autorizaciones específicas, documentos sin contrato o menús dinámicos. Permanecen en la matriz y en el diagnóstico. Todas las solicitudes, guardados, fichajes, validaciones, propuestas, aprobaciones, importaciones y delegaciones siguen bloqueados.
 
-## Una orden en la VM
+## Una orden en la VM (histórico; no requerida en este cierre)
 
 Corrección del diagnóstico, 2026-11-10: se modifica únicamente el ejecutor,
 planificador, almacenamiento, pruebas y documentación. Las integraciones del
@@ -306,7 +350,7 @@ El script `scripts/portal/readonly-audit.ts` escribe automáticamente estos seis
 | errors.json     | Identificadores técnicos de tarea, estado y código permitido; sin mensajes de servidor                                  |
 | resumen.md      | Resumen legible, límites y tareas pendientes                                                                            |
 
-Se leen referencias del registro y de las fuentes originales, los siete pendientes explícitos, menús, informes y objetos relacionados. Se recorren herencia, objetos lógicos y referencias verificadas en reglas. Las páginas de metadatos tienen límite explícito de 2000 filas, 100 páginas por tarea y 5000 referencias: alcanzar un límite produce estado incompleto, nunca un truncamiento silencioso. Las fuentes binarias sin extractor conocido se declaran inaccesibles.
+Se leen referencias del registro y de las fuentes originales, los siete pendientes explícitos, menús, informes y objetos relacionados. Se recorren herencia, objetos lógicos y referencias verificadas en reglas. Las páginas de metadatos tienen límite explícito de 2000 filas y 100 páginas por tarea. El corte histórico de 5000 referencias resultó incompleto y se eliminó; el ejecutor actual conserva las referencias descubiertas bajo los presupuestos temporales. Las fuentes binarias sin extractor conocido se declaran inaccesibles.
 
 Se publican generaciones al iniciar, cada 60 s, al terminar fases y al interrumpir.
 Los archivos temporales se sustituyen y el manifiesto se publica al final; los
@@ -493,7 +537,7 @@ src/lib/portal/report-export.ts
 src/lib/portal/types.ts
 ```
 
-## Segunda sesión después del pull
+## Segunda sesión después del pull (histórico)
 
 1. Leer AGENTS, DESIGN, todo, changelog, README, package y components en el orden del proyecto; después esta guía y la matriz.
 2. Leer primero `evidencias-vm/manifest.json` y `errors.json`. Confirmar revisión, formato, cobertura y límites antes de usar recuentos como evidencia. No atribuir a una consulta el resultado de otra sociedad/versión.

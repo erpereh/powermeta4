@@ -1,6 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { setTimeout as ioTick } from "node:timers/promises";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   runReadonlyAudit,
@@ -9,6 +10,13 @@ import {
 } from "../../../scripts/portal/readonly-audit";
 import { digest, type AuditRow } from "../../../scripts/portal/readonly-audit-model";
 const roots: string[] = [];
+async function until(predicate: () => boolean) {
+  for (let index = 0; index < 1000; index++) {
+    if (predicate()) return;
+    await ioTick(2);
+  }
+  throw new Error("The asynchronous phase did not start");
+}
 afterEach(() => {
   vi.useRealTimers();
   for (const root of roots.splice(0)) {
@@ -66,6 +74,7 @@ describe("ejecución completa observable y recuperable", () => {
       const f = fixture();
       const original = f.connection.request;
       const cancel = vi.fn();
+      let waiting = false;
       f.connection.request = (timeout) => {
         const request = original(timeout);
         let reject: (error: Error) => void = () => {};
@@ -81,6 +90,7 @@ describe("ejecución completa observable y recuperable", () => {
               )
             )
               return new Promise<AuditRow[]>((_, fail) => {
+                waiting = true;
                 reject = fail;
               });
             return request.query(statement, params, meta);
@@ -91,6 +101,7 @@ describe("ejecución completa observable y recuperable", () => {
         f.deps,
         phase === "dictionary" ? { dictionaryMs: 50 } : { probesMs: 50 },
       );
+      await until(() => waiting);
       await vi.advanceTimersByTimeAsync(1000);
       const result = await work;
       expect(result.forceExit).toBe(false);
@@ -225,19 +236,25 @@ describe("ejecución completa observable y recuperable", () => {
     vi.useFakeTimers();
     const f = fixture();
     const original = f.connection.request;
+    let waiting = false;
     f.connection.request = (timeout) => {
       const request = original(timeout);
       return {
         cancel: vi.fn(),
         query: (statement, params, meta) =>
           statement.includes("INFORMATION_SCHEMA.COLUMNS")
-            ? new Promise(() => {})
+            ? new Promise(() => {
+                waiting = true;
+              })
             : request.query(statement, params, meta),
       };
     };
     f.connection.close = () => new Promise(() => {});
     const work = runReadonlyAudit(f.deps, { totalMs: 100 });
+    await until(() => waiting);
     await vi.advanceTimersByTimeAsync(10_000);
+    await until(() => f.logs.some((line) => line.includes("Cierre de conexiones")));
+    await vi.advanceTimersByTimeAsync(6000);
     const result = await work;
     expect(result).toMatchObject({ exitCode: 1, forceExit: true });
     expect(f.manifest().status).toBe("partial");
@@ -249,6 +266,8 @@ describe("ejecución completa observable y recuperable", () => {
     const f = fixture();
     f.deps.wsdl = vi.fn(() => new Promise<never>(() => {}));
     const work = runReadonlyAudit(f.deps, { wsdlMs: 10 });
+    await until(() => vi.mocked(f.deps.wsdl).mock.calls.length === 2);
+    await ioTick(30);
     await vi.advanceTimersByTimeAsync(5000);
     const result = await work;
     expect(result.forceExit).toBe(true);
@@ -263,9 +282,14 @@ describe("ejecución completa observable y recuperable", () => {
   it("acota una conexión que no responde sin iniciar consultas", async () => {
     vi.useFakeTimers();
     const f = fixture();
-    f.deps.connect = () => new Promise(() => {});
+    let waiting = false;
+    f.deps.connect = () =>
+      new Promise(() => {
+        waiting = true;
+      });
     const work = runReadonlyAudit(f.deps, { connectionMs: 10 });
-    await vi.advanceTimersByTimeAsync(100);
+    await until(() => waiting);
+    await vi.advanceTimersByTimeAsync(5000);
     const result = await work;
     expect(result.forceExit).toBe(true);
     expect(f.requests).toHaveLength(0);
@@ -281,6 +305,7 @@ describe("ejecución completa observable y recuperable", () => {
       vi.useFakeTimers();
       const f = fixture();
       const original = f.connection.request;
+      let waiting = false;
       f.connection.monitor = vi.fn(async () => {
         if (!allowed) throw Object.assign(new Error("PRIVATE_DENIED"), { number: 300 });
         return { categories: ["io"], blocked: false };
@@ -290,13 +315,16 @@ describe("ejecución completa observable y recuperable", () => {
         return {
           ...request,
           query: async (statement, params, meta) => {
-            if (statement.includes("INFORMATION_SCHEMA.COLUMNS"))
+            if (statement.includes("INFORMATION_SCHEMA.COLUMNS")) {
+              waiting = true;
               await new Promise((resolve) => setTimeout(resolve, 5100));
+            }
             return request.query(statement, params, meta);
           },
         };
       };
       const work = runReadonlyAudit(f.deps);
+      await until(() => waiting);
       await vi.advanceTimersByTimeAsync(6000);
       await work;
       expect(f.connection.monitor).toHaveBeenCalledOnce();

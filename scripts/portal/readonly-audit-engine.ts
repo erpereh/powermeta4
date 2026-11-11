@@ -29,6 +29,7 @@ import {
   safeMetadataText,
 } from "./readonly-audit-safety";
 import { auditBindingIssue } from "./readonly-audit-bindings";
+import { AuditMethodScope, type AuditMethod } from "./readonly-audit-methods";
 
 export type AuditCoreOptions = {
   signal?: AbortSignal;
@@ -39,9 +40,10 @@ export type AuditCoreOptions = {
     primary?: readonly AuditRow[],
   ) => Promise<ReadonlyMap<string, AuditCacheEntry>>;
   onBatch?: (entry: AuditCacheEntry) => void;
-  onPhase?: (phase: string) => void;
+  onPhase?: (phase: string) => void | Promise<void>;
   onProgress?: (value: { processed: number; pending: number; reused: number }) => void;
   onState?: (state: AuditState) => void;
+  methods?: readonly AuditMethod[];
 };
 type Column = AuditBinding & { name: string };
 type Table = { schema: string; name: string; columns: Column[]; order: string[] };
@@ -71,6 +73,7 @@ export async function collectReadonlyAudit(
   options: AuditCoreOptions = {},
 ): Promise<AuditState> {
   const state = emptyAuditState();
+  const methodScope = new AuditMethodScope(options.methods ?? [], state.tasks);
   const references = new Map<
     string,
     { ref: AuditReference; status: "pending" | "processing" | "complete" | "failed" }
@@ -198,7 +201,7 @@ export async function collectReadonlyAudit(
   const dictSignal = options.signal
     ? AbortSignal.any([options.signal, dictController.signal])
     : dictController.signal;
-  options.onPhase?.("esquema");
+  await options.onPhase?.("esquema");
   const inventory =
     (await execute(
       `SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH
@@ -247,7 +250,7 @@ FROM INFORMATION_SCHEMA.COLUMNS ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSIT
     ]),
   );
   publish();
-  if (inventory.length) options.onPhase?.("contratos de columnas");
+  if (inventory.length) await options.onPhase?.("contratos de columnas");
   if (inventory.length) {
     const primary = await execute(
       `SELECT K.TABLE_SCHEMA, K.TABLE_NAME, K.COLUMN_NAME, K.ORDINAL_POSITION, C.CONSTRAINT_NAME
@@ -287,12 +290,19 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
       : { type: "nvarchar", length: 128 };
   };
   const apply = (entry: AuditCacheEntry) => {
+    methodScope.observe(entry.rows);
     for (const symbol of entry.symbols) symbols.add(symbol);
     const context = new Set(entry.symbols);
     for (const row of entry.rows)
       for (const field of ["SOURCE_CODE", "APISQL"]) {
         const code = row[field];
-        if (typeof code === "string") safeMetadataText(code, context, publishedSymbols);
+        if (typeof code === "string")
+          safeMetadataText(
+            code,
+            context,
+            publishedSymbols,
+            field === "SOURCE_CODE" ? "ln4" : "sql",
+          );
       }
     state.metadataSymbols = [...publishedSymbols].sort();
     for (const ref of entry.references) enqueue(ref);
@@ -405,7 +415,7 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
     return next;
   };
   state.coverage.seedObjects = seeds.sort();
-  options.onPhase?.("diccionario");
+  await options.onPhase?.("diccionario");
   publish();
 
   const processJob = async (job: Job) => {
@@ -486,7 +496,7 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
         code: "BINARY_SOURCE_UNAVAILABLE",
       });
     for (let page = 0; page < L.maxPages; page++) {
-      const rows = await execute(
+      const resultRows = await execute(
         `${base} ORDER BY ${[...new Set(order)].map(quote).join(", ")} OFFSET @offset ROWS FETCH NEXT @size ROWS ONLY`,
         { ...params, offset: page * L.pageSize, size: L.pageSize },
         {
@@ -499,10 +509,11 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
           ),
         },
       );
-      if (!rows) {
+      if (!resultRows) {
         complete = false;
         break;
       }
+      const rows = methodScope.select(resultRows);
       const add = (refKey: AuditReference["key"], value: unknown) => {
         const id = technicalText(value);
         if (id) entry.references.push({ key: refKey, value: id });
@@ -643,7 +654,7 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
     if (!tablesByName.has(name))
       state.tasks.push({ id: `physical/${name}`, status: "incomplete", code: "TABLE_NOT_FOUND" });
   }
-  options.onPhase?.("sondeos");
+  await options.onPhase?.("sondeos");
   publish();
   const probeController = new AbortController();
   const probeTimer = setTimeout(() => probeController.abort(), options.probesMs ?? L.probesMs);

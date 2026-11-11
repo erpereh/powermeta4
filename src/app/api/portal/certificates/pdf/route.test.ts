@@ -14,6 +14,7 @@ vi.mock("@/lib/portal/context", () => ({
 }));
 
 import { GET } from "./route";
+import { DEBUG_ACTORS } from "@/lib/portal/read-model";
 
 beforeEach(() => {
   vi.stubEnv("NODE_ENV", "development");
@@ -49,15 +50,24 @@ describe("PDF del certificado de retenciones", () => {
   });
 
   it("acepta otra matrícula y cualquier ejercicio de la lista", async () => {
-    expect((await get("year=2023&employee=0042")).status).toBe(200);
+    expect((await get(`year=2023&employee=${DEBUG_ACTORS[1].id}`)).status).toBe(200);
   });
 
   it("rechaza peticiones sin sesión, sin ejercicio o con parámetros inválidos", async () => {
     expect((await get("")).status).toBe(400);
     expect((await get("year=otro")).status).toBe(400);
     expect((await get("year=2025&employee=../x")).status).toBe(400);
+    expect((await get("year=2025&employee=0042")).status).toBe(400);
     expect((await get("year=2026")).status).toBe(400);
     session.current = null;
     expect((await get("year=2025")).status).toBe(401);
+  });
+  it.each(["production", "test"])("no sirve muestras en %s", async (environment) => {
+    vi.stubEnv("NODE_ENV", environment);
+    expect((await get("year=2025")).status).not.toBe(200);
+  });
+  it("no sirve muestras con el flag desactivado", async () => {
+    vi.stubEnv("POWERMETA4_DEBUG_AUTH", "false");
+    expect((await get("year=2025")).status).not.toBe(200);
   });
 });

@@ -70,6 +70,20 @@ const open = (root: string, notices: string[] = [], now?: () => number) =>
   );
 
 describe("diario saneado y reanudación", () => {
+  it("recupera registros Unicode que cruzan fragmentos sin cargar el diario entero", () => {
+    const root = directory();
+    const first = open(root);
+    first.resume(...fingerprints);
+    const large = {
+      ...entry,
+      rows: [{ ID_TI: "TI_A", SOURCE_CODE: 'LOAD("[DIRECCIÓN OMITIDA]")\n'.repeat(4000) }],
+    };
+    first.append(large);
+    first.close();
+    const second = open(root);
+    expect(second.resume(...fingerprints).get(entry.key)?.rows).toEqual(large.rows);
+    second.close();
+  });
   it("recupera lotes completos y una cola truncada no elimina el trabajo válido", () => {
     const root = directory();
     const first = open(root);
@@ -156,46 +170,47 @@ describe("diario saneado y reanudación", () => {
 });
 
 describe("generaciones coherentes", () => {
-  it("conserva las dos generaciones recientes y no elimina directorios ajenos", () => {
+  it("conserva las dos generaciones recientes y no elimina directorios ajenos", async () => {
     const root = directory();
     const store = open(root);
     mkdirSync(path.join(root, "cache/generations/ajeno"), { recursive: true });
     writeFileSync(path.join(root, "cache/generations/ajeno/conservar.txt"), "test");
-    for (let index = 0; index < 4; index++) store.publish(emptyAuditState(), publication(store));
+    for (let index = 0; index < 4; index++)
+      await store.publish(emptyAuditState(), publication(store));
     expect(readdirSync(path.join(root, "cache/generations"))).toHaveLength(3);
     expect(readFileSync(path.join(root, "cache/generations/ajeno/conservar.txt"), "utf8")).toBe(
       "test",
     );
     store.close();
   });
-  it("publica seis archivos con hashes y restaura un archivo canónico dañado", () => {
+  it("publica seis archivos con hashes y restaura un archivo canónico dañado", async () => {
     const root = directory();
     const store = open(root);
-    store.publish(emptyAuditState(), publication(store));
+    await store.publish(emptyAuditState(), publication(store));
     const manifest = JSON.parse(readFileSync(path.join(root, "output/manifest.json"), "utf8"));
     for (const file of AUDIT_FILES.filter((file) => file !== "manifest.json"))
       expect(digest(readFileSync(path.join(root, "output", file), "utf8"))).toBe(
         manifest.files[file],
       );
     writeFileSync(path.join(root, "output/probes.json"), "broken");
-    expect(store.restorePublished()).toBe(true);
+    expect(await store.restorePublished()).toBe(true);
     expect(
       JSON.parse(readFileSync(path.join(root, "output/probes.json"), "utf8")).generationId,
     ).toBe(manifest.generationId);
     store.close();
   });
-  it("un fallo entre archivos conserva una generación completa recuperable", () => {
+  it("un fallo entre archivos conserva una generación completa recuperable", async () => {
     const root = directory();
     const store = open(root);
-    store.publish(emptyAuditState(), publication(store));
+    await store.publish(emptyAuditState(), publication(store));
     renameSync(
       path.join(root, "output/contracts.json"),
       path.join(root, "output/contracts.backup"),
     );
     mkdirSync(path.join(root, "output/contracts.json"));
-    expect(() => store.publish(emptyAuditState(), publication(store))).toThrow();
+    await expect(store.publish(emptyAuditState(), publication(store))).rejects.toThrow();
     rmdirSync(path.join(root, "output/contracts.json"));
-    expect(store.restorePublished()).toBe(true);
+    expect(await store.restorePublished()).toBe(true);
     const manifest = JSON.parse(readFileSync(path.join(root, "output/manifest.json"), "utf8"));
     for (const file of AUDIT_FILES.filter((file) => file !== "manifest.json"))
       expect(digest(readFileSync(path.join(root, "output", file), "utf8"))).toBe(

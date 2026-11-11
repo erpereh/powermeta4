@@ -87,7 +87,7 @@ export function extendPortalReads(feature: PortalFeature): PortalFeature {
               meta4: [section.consult.meta4],
             },
             description:
-              "Pendiente de resolver el objeto lógico SSP_LG_ENT_ADDRESS en la VM; la tabla física de direcciones aún no está confirmada.",
+              "Correspondencia SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD confirmada por el diccionario y las columnas disponibles. La sentencia preparada no tiene un sondeo VM de esta versión.",
           },
         };
       const entry = Object.entries(TIEMPO_SQL).find(

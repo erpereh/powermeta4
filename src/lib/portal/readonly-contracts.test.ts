@@ -104,8 +104,11 @@ describe("consultas corregidas con el esquema VM", () => {
     expect(statement).toContain("@organization");
     expect(() => assertReadOnlySql(statement)).not.toThrow();
   });
-  it("el certificado conserva la dependencia de direcciones sin inventar una tabla", () => {
+  it("el certificado usa la correspondencia física confirmada sin atribuirse un sondeo", () => {
     expect(CERTIFICATE_SQL.places.statement).toContain("C.STD_N_GEO_PLACESP AS STD_N_GEO_PLACE");
+    expect(CERTIFICATE_SQL.places.statement).toContain("FROM M4SSP_LG_ENT_ADD B");
+    expect(CERTIFICATE_SQL.places.statement).toContain("B.ID_ORGANIZATION = @organization");
+    expect(CERTIFICATE_SQL.places.statement).toContain("ORDER BY B.SSP_FEC_FIN DESC");
     const feature = PORTAL_FEATURES.find((item) => item.id === "empleado.retribucion.certificados");
     const section = feature?.sections?.find(
       (item) => item.kind === "consult" && item.consult.id === "poblacion",
@@ -113,6 +116,6 @@ describe("consultas corregidas con el esquema VM", () => {
     if (section?.kind !== "consult") throw new Error("Missing certificate contract");
     expect(section.consult.read).toMatchObject({ verified: false });
     expect(section.consult.description).toContain("SSP_LG_ENT_ADDRESS");
-    expect(section.consult.description).toContain("no está confirmada");
+    expect(section.consult.description).toContain("no tiene un sondeo VM");
   });
 });

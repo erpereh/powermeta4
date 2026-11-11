@@ -4,6 +4,7 @@ import { extractText } from "unpdf";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "./route";
+import { DEBUG_ACTORS } from "@/lib/portal/read-model";
 
 // Solo sustituye la sesión/contexto: carga debug, generadores y respuesta son reales.
 vi.mock("@/lib/auth/session", () => ({
@@ -30,37 +31,49 @@ const post = (body: unknown) =>
   );
 
 describe("descarga de proyecciones con generadores reales", () => {
-  it.each([undefined, "0042"])("descarga ambos formatos para la selección %s", async (employee) => {
-    const id = employee ?? "DEMO-01";
-    for (const format of ["pdf", "xlsx"]) {
-      const response = await post({ format, year: "2025", employee });
-      expect(response.status).toBe(200);
-      expect(response.headers.get("cache-control")).toBe("no-store");
-      expect(response.headers.get("content-disposition")).toBe(
-        `attachment; filename="Proyeccion_${id}_2025.${format}"`,
-      );
-      const bytes = await response.arrayBuffer();
-      if (format === "pdf") {
-        expect(response.headers.get("content-type")).toBe("application/pdf");
-        const document = await PDFDocument.load(bytes);
-        expect(document.getPageCount()).toBeGreaterThan(0);
-        const { text } = await extractText(new Uint8Array(bytes), { mergePages: true });
-        expect(text).toContain(id);
-        expect(text).toContain("Informe de compensación total 2025");
-      } else {
-        expect(response.headers.get("content-type")).toContain("spreadsheetml");
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(bytes);
-        expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(["Resumen", "Desglose"]);
-        expect(workbook.worksheets[0].getCell("A1").value).toContain("2025");
-        expect(workbook.worksheets[0].getCell("A2").value).toContain(id);
+  it.each([undefined, DEBUG_ACTORS[1].id])(
+    "descarga ambos formatos para la selección %s",
+    async (employee) => {
+      const id = employee ?? DEBUG_ACTORS[0].id;
+      for (const format of ["pdf", "xlsx"]) {
+        const response = await post({ format, year: "2025", employee });
+        expect(response.status).toBe(200);
+        expect(response.headers.get("cache-control")).toBe("no-store");
+        expect(response.headers.get("content-disposition")).toBe(
+          `attachment; filename="Proyeccion_${id}_2025.${format}"`,
+        );
+        const bytes = await response.arrayBuffer();
+        if (format === "pdf") {
+          expect(response.headers.get("content-type")).toBe("application/pdf");
+          const document = await PDFDocument.load(bytes);
+          expect(document.getPageCount()).toBeGreaterThan(0);
+          const { text } = await extractText(new Uint8Array(bytes), { mergePages: true });
+          expect(text).toContain(id);
+          expect(text).toContain("Informe de compensación total 2025");
+        } else {
+          expect(response.headers.get("content-type")).toContain("spreadsheetml");
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(bytes);
+          expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(["Resumen", "Desglose"]);
+          expect(workbook.worksheets[0].getCell("A1").value).toContain("2025");
+          expect(workbook.worksheets[0].getCell("A2").value).toContain(id);
+        }
       }
-    }
-  });
+    },
+  );
 
   it("rechaza ejercicios o matrículas inválidos y la muestra vacía sin generar archivos", async () => {
     expect((await post({ format: "pdf", year: "otro" })).status).toBe(400);
     expect((await post({ format: "xlsx", employee: "../otro" })).status).toBe(400);
+    expect((await post({ format: "pdf", employee: "0042" })).status).toBe(400);
     expect((await post({ format: "pdf", scenario: "empty" })).status).toBe(404);
+  });
+  it.each(["production", "test"])("no sirve muestras en %s", async (environment) => {
+    vi.stubEnv("NODE_ENV", environment);
+    expect((await post({ format: "pdf", year: "2025" })).status).not.toBe(200);
+  });
+  it("no sirve muestras con el flag desactivado", async () => {
+    vi.stubEnv("POWERMETA4_DEBUG_AUTH", "false");
+    expect((await post({ format: "pdf", year: "2025" })).status).not.toBe(200);
   });
 });

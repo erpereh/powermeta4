@@ -1,5 +1,50 @@
 # Changelog
 
+## 2026-11-11 - Cierre local con captura parcial y correcciones de DEBUG, Cuadre y Excel
+
+- Conservada la captura running 539b018e-7e10-4ac3-9549-84299856cf09: diccionario
+  LFS completo de 283.170.405 bytes, cinco hashes coherentes, 1.990 contratos,
+  nueve WSDL, 8.537 referencias pendientes y cero sondeos. No se solicita ni
+  ejecuta otra auditoría VM. Los seis archivos originales no se modifican.
+- Correspondencia confirmada SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD aplicada al
+  certificado con STD_N_GEO_PLACESP, alias, sociedad y SSP_FEC_FIN conservados.
+  Contraste estático de 97 sentencias y sondeos históricos con procedencia desde
+  Git, separados de la validación actual y sin acreditar contratos modificados.
+- Saneamiento léxico idempotente SQL/LN4, símbolos autocontenidos y fragmentos
+  malformados omitidos conservadoramente; verificador antiguo para capturas
+  anteriores. Las TI compartidas no expanden métodos ajenos o ambiguos.
+- Publicación única asíncrona, instantáneas estables, serialización por fragmentos,
+  hashes incrementales y solicitudes agrupadas. Espacio de generación y sustitución
+  más 64 MiB de reserva; limpieza solo de temporales propios, última generación
+  válida conservada y códigos técnicos sin mensajes crudos. Diario leído por
+  fragmentos y recuperación normal mediante hashes en streaming.
+- DEBUG usa las personas ficticias vigentes con exportadores reales y rechazos
+  de activación/personas inválidas. Cuadre mantiene el borrador en el diálogo
+  sin reconstruir tablas al escribir; conserva revisión, conflictos y errores.
+  Tablas de Cuadre montadas al visitarlas y contenedor de pestañas estable que
+  conserva filtros y borradores al ocultarse, con regresión de navegación.
+- Editor y fixtures Excel comparten presupuesto y cierre identificado por Hwnd,
+  PID, nombre e instante de creación. Se espera PowerShell y la instancia propia;
+  no se seleccionan procesos por diferencias globales. Casos nativos en serie,
+  180 s compartidos con cinco reservados para cierre y timeout de interfaz intacto.
+  Pruebas generales, de interfaz y nativas en grupos consecutivos, sin omisiones;
+  interfaz y Excel en serie. Confirmación de cierre Node cuando PowerShell deja
+  pendiente la salida de la misma instancia tras guardar el libro.
+  Cálculo manual tras abrir el libro y escritura por rangos contiguos autorizados
+  reducen llamadas COM conservando fórmulas y celdas fuera de alcance.
+- Validación final: `npm test` correcto, 215 archivos, 1.339 pruebas correctas
+  y dos omisiones preexistentes (1.341 total), sin fallos, 851,4 s. Incluye diez
+  casos nativos Excel y ocho de Cuadre. Tras los últimos refuerzos, 101 pruebas
+  dirigidas correctas en diez archivos, incluido LFS real y recuperación segura.
+- Typecheck y build correctos (44 páginas); documentación regenerada para 192
+  pantallas y 97 sentencias. Cero nombres físicos ausentes detectados y siete
+  sentencias con referencias no verificables, sin atribuir ejecución ni permisos.
+- Lint mantiene siete avisos previos y formato pendiente en 619 archivos; no hay
+  avisos nuevos ni reformateos generales. Diff/estado y hashes comprobados, rama
+  davidev y 37 archivos en inventario, sin cambios en las seis evidencias ni
+  commits/push. Los nueve fallos locales originales quedan resueltos; permanecen
+  explícitos los contratos y validaciones reales que esta captura no acredita.
+
 ## 2026-11-11 - Nueva evidencia VM, contratos SQL y cobertura sin descarte
 
 - Verificado el diccionario Git LFS completo (111.792.981 bytes, tamaño y SHA-256

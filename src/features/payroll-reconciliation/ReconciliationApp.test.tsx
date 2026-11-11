@@ -8,6 +8,7 @@ import { reconcile } from "@/lib/payroll-reconciliation/engine";
 import { snapshot } from "@/lib/payroll-reconciliation/snapshot";
 import { DEFAULT_PARAMETERS, type Dossier } from "@/lib/payroll-reconciliation/types";
 import { mutationSchema } from "@/lib/payroll-reconciliation/validation";
+const tableRenders = vi.hoisted(() => ({ count: 0 }));
 
 vi.mock("@/stores/use-workspace-store", () => ({
   useWorkspaceStore: <T,>(selector: (state: { activeCompanyId: string; auth: null }) => T) =>
@@ -17,7 +18,12 @@ vi.mock("@/components/system/sidebar-toggle", () => ({ SidebarToggle: () => null
 // jsdom has no viewport measurements. Render every row using the real Table's supported mode.
 vi.mock("@/components/system/table", async (importOriginal) => {
   const { Table } = await importOriginal<typeof import("@/components/system/table")>();
-  return { Table: <T,>(props: TableProps<T>) => <Table {...props} autoHeight /> };
+  return {
+    Table: <T,>(props: TableProps<T>) => {
+      tableRenders.count++;
+      return <Table {...props} autoHeight />;
+    },
+  };
 });
 import { ReconciliationApp } from "./ReconciliationApp";
 
@@ -91,6 +97,7 @@ beforeEach(() => {
     ],
   };
   patches.mockClear();
+  tableRenders.count = 0;
   fetchMock.mockClear();
   failure = undefined;
   vi.stubGlobal("fetch", fetchMock);
@@ -112,15 +119,35 @@ afterEach(() => {
 async function openReviewList(user: ReturnType<typeof userEvent.setup>) {
   await user.click(await screen.findByRole("button", { name: "Abrir" }));
   await user.click(await screen.findByRole("tab", { name: "Revisión" }));
-  return screen.findByRole("button", { name: /^Editar revisión de 009002/ });
+  return within(await screen.findByRole("region", { name: "Revisiones guardadas" })).findByRole(
+    "button",
+    { name: /^Editar revisión de 009002/ },
+  );
 }
+const reviewEditor = () => within(screen.getByRole("dialog", { name: "Revisar resultado" }));
+const reviewPanel = () => within(screen.getByRole("region", { name: "Revisiones guardadas" }));
 async function chooseDecision(user: ReturnType<typeof userEvent.setup>, name: string) {
   const dialog = screen.getByRole("dialog", { name: "Revisar resultado" });
   await user.click(within(dialog).getByRole("button", { name: "Decisión de revisión" }));
-  await user.click(await screen.findByRole("option", { name }));
+  const list = await screen.findByRole("listbox");
+  await user.click(within(list).getByRole("option", { name }));
 }
 
 describe("saved reconciliation review editing", () => {
+  it("mounts data tables on demand and retains their search after leaving the tab", async () => {
+    const user = userEvent.setup();
+    render(<ReconciliationApp demo />);
+    await user.click(await screen.findByRole("button", { name: "Abrir" }));
+    expect(screen.queryByLabelText("Buscar en los datos")).toBeNull();
+    await user.click(screen.getByRole("tab", { name: "Datos" }));
+    await user.type(screen.getByRole("textbox", { name: "Buscar en los datos" }), "009001");
+    await user.click(screen.getByRole("tab", { name: "Revisión" }));
+    await user.click(screen.getByRole("tab", { name: "Datos" }));
+    expect(screen.getByRole("textbox", { name: "Buscar en los datos" }).getAttribute("value")).toBe(
+      "009001",
+    );
+    expect(patches).not.toHaveBeenCalled();
+  });
   it("opens deletion confirmation with an accessible icon and leaves deletion pending until confirmed", async () => {
     const user = userEvent.setup();
     render(<ReconciliationApp demo />);
@@ -142,8 +169,10 @@ describe("saved reconciliation review editing", () => {
     expect(within(dialog).getByDisplayValue("Comentario anterior")).toBeTruthy();
     await chooseDecision(user, "Diferencia justificada");
     const comment = within(dialog).getByRole("textbox", { name: "Comentario" });
+    const beforeTyping = tableRenders.count;
     await user.clear(comment);
     await user.type(comment, "Justificación actualizada");
+    expect(tableRenders.count).toBe(beforeTyping);
     await user.click(within(dialog).getByRole("button", { name: "Guardar revisión" }));
     await waitFor(() =>
       expect(screen.queryByRole("dialog", { name: "Revisar resultado" })).toBeNull(),
@@ -159,37 +188,37 @@ describe("saved reconciliation review editing", () => {
       }),
     );
     expect(saved.result).toEqual(original);
-    expect(screen.getByText("Justificación actualizada")).toBeTruthy();
+    expect(reviewPanel().getByText("Justificación actualizada")).toBeTruthy();
     unmount();
     render(<ReconciliationApp demo />);
     await user.click(await openReviewList(user));
-    expect(screen.getByDisplayValue("Justificación actualizada")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Decisión de revisión" }).textContent).toContain(
-      "Diferencia justificada",
-    );
+    expect(reviewEditor().getByDisplayValue("Justificación actualizada")).toBeTruthy();
+    expect(
+      reviewEditor().getByRole("button", { name: "Decisión de revisión" }).textContent,
+    ).toContain("Diferencia justificada");
   });
   it("cancels edits and keeps mandatory comments for non-pending decisions", async () => {
     const user = userEvent.setup();
     render(<ReconciliationApp demo />);
     await user.click(await openReviewList(user));
     await chooseDecision(user, "Requiere corrección manual");
-    const comment = screen.getByRole("textbox", { name: "Comentario" });
+    const comment = reviewEditor().getByRole("textbox", { name: "Comentario" });
     await user.clear(comment);
-    expect(screen.getByRole("button", { name: "Guardar revisión" }).hasAttribute("disabled")).toBe(
-      true,
-    );
+    expect(
+      reviewEditor().getByRole("button", { name: "Guardar revisión" }).hasAttribute("disabled"),
+    ).toBe(true);
     await chooseDecision(user, "Pendiente");
-    expect(screen.getByRole("button", { name: "Guardar revisión" }).hasAttribute("disabled")).toBe(
-      false,
-    );
+    expect(
+      reviewEditor().getByRole("button", { name: "Guardar revisión" }).hasAttribute("disabled"),
+    ).toBe(false);
     await user.type(comment, "Borrador sin guardar");
-    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    await user.click(reviewEditor().getByRole("button", { name: "Cancelar" }));
     await waitFor(() =>
       expect(screen.queryByRole("dialog", { name: "Revisar resultado" })).toBeNull(),
     );
     expect(patches).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("button", { name: /^Editar revisión de 009002/ }));
-    expect(screen.getByDisplayValue("Comentario anterior")).toBeTruthy();
+    await user.click(reviewPanel().getByRole("button", { name: /^Editar revisión de 009002/ }));
+    expect(reviewEditor().getByDisplayValue("Comentario anterior")).toBeTruthy();
   });
   it("reopens invalidated reviews as pending, keeping the comment and using the current evidence", async () => {
     saved.annotations[0] = {
@@ -201,12 +230,12 @@ describe("saved reconciliation review editing", () => {
     const user = userEvent.setup();
     render(<ReconciliationApp demo />);
     await user.click(await openReviewList(user));
-    expect(screen.getByRole("status").textContent).toContain("La evidencia ha cambiado");
-    expect(screen.getByRole("button", { name: "Decisión de revisión" }).textContent).toContain(
-      "Pendiente",
-    );
-    expect(screen.getByDisplayValue("Comentario anterior")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Guardar revisión" }));
+    expect(reviewEditor().getByRole("status").textContent).toContain("La evidencia ha cambiado");
+    expect(
+      reviewEditor().getByRole("button", { name: "Decisión de revisión" }).textContent,
+    ).toContain("Pendiente");
+    expect(reviewEditor().getByDisplayValue("Comentario anterior")).toBeTruthy();
+    await user.click(reviewEditor().getByRole("button", { name: "Guardar revisión" }));
     await waitFor(() => expect(patches).toHaveBeenCalledOnce());
     expect(patches.mock.calls[0][0].fingerprint).not.toBe("0".repeat(64));
     expect(saved.annotations[0].invalidated).toBeUndefined();
@@ -219,10 +248,10 @@ describe("saved reconciliation review editing", () => {
     await user.click(await screen.findByRole("tab", { name: "Revisión" }));
     expect(
       (
-        await screen.findByRole("button", { name: "Editar revisión de hallazgo anterior" })
+        await reviewPanel().findByRole("button", { name: "Editar revisión de hallazgo anterior" })
       ).hasAttribute("disabled"),
     ).toBe(true);
-    expect(screen.getAllByText("Hallazgo anterior").length).toBeGreaterThan(0);
+    expect(reviewPanel().getAllByText("Hallazgo anterior").length).toBeGreaterThan(0);
     expect(patches).not.toHaveBeenCalled();
   });
   it.each([409, 500])(
@@ -231,21 +260,21 @@ describe("saved reconciliation review editing", () => {
       const user = userEvent.setup();
       render(<ReconciliationApp demo />);
       await user.click(await openReviewList(user));
-      const comment = screen.getByRole("textbox", { name: "Comentario" });
+      const comment = reviewEditor().getByRole("textbox", { name: "Comentario" });
       await user.clear(comment);
       await user.type(comment, "Borrador conservado");
       failure = status;
-      await user.click(screen.getByRole("button", { name: "Guardar revisión" }));
-      const alert = await screen.findByRole("alert");
+      await user.click(reviewEditor().getByRole("button", { name: "Guardar revisión" }));
+      const alert = await reviewEditor().findByRole("alert");
       expect(alert.textContent).toContain("El expediente ha cambiado");
       if (status === 409) expect(alert.textContent).toContain("Vuelve a cargar");
-      expect(screen.getByDisplayValue("Borrador conservado")).toBeTruthy();
+      expect(reviewEditor().getByDisplayValue("Borrador conservado")).toBeTruthy();
       saved.revision = 6;
       failure = undefined;
-      await user.click(screen.getByRole("button", { name: "Volver a cargar expediente" }));
-      await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
-      expect(screen.getByDisplayValue("Borrador conservado")).toBeTruthy();
-      await user.click(screen.getByRole("button", { name: "Guardar revisión" }));
+      await user.click(reviewEditor().getByRole("button", { name: "Volver a cargar expediente" }));
+      await waitFor(() => expect(reviewEditor().queryByRole("alert")).toBeNull());
+      expect(reviewEditor().getByDisplayValue("Borrador conservado")).toBeTruthy();
+      await user.click(reviewEditor().getByRole("button", { name: "Guardar revisión" }));
       await waitFor(() => expect(patches).toHaveBeenCalledTimes(2));
       expect(patches.mock.calls[1][0].revision).toBe(6);
     },

@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { z } from "zod";
 import { collectMeta4References, parseMeta4References } from "../../src/lib/portal/meta4-refs";
@@ -6,6 +7,7 @@ import { SOAP_CATALOG } from "../../src/lib/portal/soap/catalog.generated";
 import type { PortalFeature, PortalSqlQuery, ReadContract } from "../../src/lib/portal/types";
 import { AUDIT_FILES, verifyAuditArtifacts } from "./readonly-audit-store";
 import { AuditFailure, digest, identifier, stripOuterOrderBy } from "./readonly-audit-model";
+import { reviewSqlContract } from "./readonly-sql-review";
 
 const technical = z.string().regex(identifier);
 const manifestSchema = z
@@ -27,7 +29,10 @@ const manifestSchema = z
           .object({
             id: z.string(),
             status: z.enum(["ok", "error", "incomplete"]),
-            code: z.string().optional(),
+            code: z
+              .string()
+              .regex(/^[A-Z][A-Z0-9_]*$/)
+              .optional(),
           })
           .passthrough(),
       )
@@ -48,10 +53,13 @@ const probesSchema = z
           feature: z.string(),
           consult: z.string(),
           organization: z.enum(["CYC", "IBER", "COLL"]),
-          queryHash: z.string(),
+          queryHash: z.string().regex(/^[a-f0-9]{64}$/),
           status: z.enum(["ok", "error", "incomplete"]),
           records: z.number().int().nonnegative().nullable(),
-          code: z.string().optional(),
+          code: z
+            .string()
+            .regex(/^[A-Z][A-Z0-9_]*$/)
+            .optional(),
         })
         .strict(),
     ),
@@ -73,7 +81,84 @@ export type ReadonlyVmEvidence = {
   probes: z.infer<typeof probesSchema>["probes"];
   contracts: z.infer<typeof contractsSchema>;
   normalizedLineEndings: boolean;
+  history?: HistoricalProbeRun[];
+  historyIssue?: string;
 };
+
+export type HistoricalProbeRun = {
+  commit: string;
+  generationId: string;
+  revision: string | null;
+  probes: z.infer<typeof probesSchema>["probes"];
+};
+
+/** Verifica la procedencia y los bytes de sondeos históricos sin cargar otro diccionario. */
+export function historicalProbeRun(
+  commit: string,
+  manifestText: string,
+  probesText: string,
+): HistoricalProbeRun {
+  if (!/^[a-f0-9]{40,64}$/.test(commit)) throw new AuditFailure("HISTORY_INVALID");
+  const manifest = manifestSchema
+    .extend({ files: z.record(z.string().regex(/^[a-f0-9]{64}$/)) })
+    .parse(JSON.parse(manifestText));
+  if (
+    ![digest(probesText), digest(probesText.replaceAll("\r\n", "\n"))].includes(
+      manifest.files["probes.json"],
+    )
+  )
+    throw new AuditFailure("HISTORY_HASH_INVALID");
+  const document = probesSchema
+    .extend({ generationId: z.literal(manifest.generationId) })
+    .parse(JSON.parse(probesText));
+  const tasks = new Map(manifest.tasks.map((task) => [task.id, task]));
+  return {
+    commit,
+    generationId: manifest.generationId,
+    revision: manifest.revision,
+    probes: document.probes.map((probe) => {
+      const task = tasks.get(`probe/${probe.organization}/${probe.queryHash.slice(0, 12)}`);
+      return probe.status === "error" && task?.status === "incomplete"
+        ? { ...probe, status: "incomplete" as const, code: task.code ?? "NOT_EXECUTED" }
+        : probe;
+    }),
+  };
+}
+
+export function loadHistoricalProbes(root: string, evidence: ReadonlyVmEvidence): void {
+  const directory = "docs/portal/implementacion/evidencias-vm";
+  const git = (args: string[]) =>
+    execFileSync("git", args, {
+      cwd: root,
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  evidence.history = [];
+  try {
+    const commits = git(["log", "--format=%H", "--", `${directory}/probes.json`])
+      .trim()
+      .split(/\r?\n/);
+    const seen = new Set([evidence.manifest.generationId]);
+    for (const commit of commits) {
+      if (!/^[a-f0-9]{40,64}$/.test(commit)) continue;
+      try {
+        const run = historicalProbeRun(
+          commit,
+          git(["show", `${commit}:${directory}/manifest.json`]),
+          git(["show", `${commit}:${directory}/probes.json`]),
+        );
+        if (seen.has(run.generationId)) continue;
+        seen.add(run.generationId);
+        if (run.probes.length) evidence.history.push(run);
+      } catch {
+        evidence.historyIssue = "HISTORY_ENTRY_UNVERIFIED";
+      }
+    }
+  } catch {
+    evidence.historyIssue = "HISTORY_UNAVAILABLE";
+  }
+}
 
 /** Lee la generación versionada; no inicia SQL, SOAP ni reutiliza sus sondeos como actuales. */
 export function loadReadonlyVmEvidence(directory: string): ReadonlyVmEvidence | null {
@@ -130,12 +215,22 @@ export function vmCoverageLabel(evidence: ReadonlyVmEvidence): string {
 const queryHash = (query: PortalSqlQuery) =>
   digest(query.scope + stripOuterOrderBy(query.statement));
 
+export function staticEvidenceLabel(
+  evidence: ReadonlyVmEvidence | null,
+  query?: PortalSqlQuery,
+): string {
+  if (!query) return "sin sentencia SQL registrada";
+  if (!evidence) return "sin esquema disponible";
+  const review = reviewSqlContract(query, evidence.contracts.columns);
+  return `${review.tables.length} tablas y ${review.checkedColumns} columnas calificadas contrastadas; ${review.missing.length} ausentes; ${review.unresolved.length} referencias no verificables; no acredita ejecución SQL`;
+}
+
 export function vmEvidenceLabel(
   evidence: ReadonlyVmEvidence | null,
   feature: PortalFeature,
   section?: { id: string; meta4: string; read: ReadContract; query?: PortalSqlQuery },
 ): string {
-  if (!evidence) return "pendiente de auditoría nueva";
+  if (!evidence) return "sin evidencia VM disponible";
   const previous = section?.read ?? feature.read;
   const prefix =
     previous.kind !== "pending" && previous.verified ? "Verificación anterior conservada; " : "";
@@ -158,6 +253,24 @@ export function vmEvidenceLabel(
   if (probes.length) {
     const ok = probes.filter((probe) => probe.status === "ok" && probe.records !== null).length;
     return `${prefix}${ok}/${Math.max(probes.length, queryCount * 3)} sondeos SQL correctos; permisos efectivos y paridad visual pendientes`;
+  }
+  const historical = (evidence.history ?? []).flatMap((run) =>
+    run.probes
+      .filter(
+        (probe) =>
+          probe.status === "ok" &&
+          probe.records !== null &&
+          probe.feature === feature.id &&
+          (!section || probe.consult === section.id) &&
+          currentQueries.get(probe.consult) === probe.queryHash,
+      )
+      .map((probe) => ({ run, probe })),
+  );
+  if (historical.length) {
+    const societies = [...new Set(historical.map(({ probe }) => probe.organization))]
+      .sort()
+      .join(", ");
+    return `${prefix}sondeo histórico con sentencia y alcance coincidentes (${societies}; ${[...new Set(historical.map(({ run }) => run.generationId))].join(", ")}); captura actual sin sondeo; permisos efectivos y paridad visual pendientes`;
   }
   if (
     section?.query &&
@@ -206,7 +319,7 @@ export function readonlyEvidenceReview(
     "",
     "> Generado por `npm run portal:docs`. Solo lee metadatos versionados y originales locales.",
     "",
-    `Generación: \`${m.generationId}\`. Revisión analizada: \`${m.revision ?? "desconocida"}\`. Estado: **${m.status}**. Motivo: \`${m.reason ?? (m.tasks.some((task) => task.code === "REFERENCE_LIMIT") ? "REFERENCE_LIMIT y contratos pendientes" : "fin de tareas")}\`. Duración: ${(m.durationMs / 1000).toFixed(1)} s.`,
+    `Generación: \`${m.generationId}\`. Revisión analizada: \`${m.revision ?? "desconocida"}\`. Estado guardado: **${m.status}**. Interpretación: ${m.status === "running" ? "captura parcial anterior a la interrupción; no contiene el cierre de la ejecución" : (m.reason ?? "ver tareas")}. Duración de la captura: ${(m.durationMs / 1000).toFixed(1)} s.`,
     `Los cinco hashes y los identificadores de generación se han verificado${evidence.normalizedLineEndings ? " normalizando exclusivamente CRLF a LF" : " sobre los bytes guardados"}. No se han recalculado hashes ni cambiado las evidencias.`,
     `Referencias procesadas: ${m.coverage.visited.length}; pendientes: ${vmCoverageLabel(evidence)}. Contratos de tablas publicados: ${Object.keys(evidence.contracts.columns).length}; atribuciones de sondeos guardadas: ${evidence.probes.length}.`,
     "",
@@ -352,13 +465,86 @@ export function readonlyEvidenceReview(
     "## Fuentes originales contrastadas",
     "",
     ...sourceDetails,
-    "## Cierre pendiente",
+    "## Contraste estático de las consultas registradas",
     "",
-    "Las cuatro consultas corregidas (contratos, preferencias registradas y las dos lecturas de objetivos) conservan sus alias de presentación. Su estado VM se atribuye por la sentencia actual: una versión modificada sin sondeo coincidente queda pendiente en la matriz. La columna física de localidad del certificado es STD_N_GEO_PLACESP; el lector mantiene la dependencia explícita de SSP_LG_ENT_ADDRESS hasta confirmar su correspondencia física, sin sustituir tablas por semejanza de nombres.",
+    "Se contrastan nombres físicos de tablas y columnas calificadas con el esquema recuperado. Alias reutilizados, CTE y columnas sin calificar se declaran no verificables. Este análisis no compila ni ejecuta SQL y no prueba permisos ni resultados.",
+    "",
+    "| Huella de sentencia y alcance | Apartados | Tablas / columnas contrastadas | Ausentes | No verificables / ambiguas |",
+    "| --- | --- | --- | --- | --- |",
+  );
+  const queries = new Map<string, { query: PortalSqlQuery; sections: string[] }>();
+  for (const feature of features)
+    for (const item of feature.sections ?? []) {
+      if (item.kind !== "consult" || !item.consult.query) continue;
+      const query = item.consult.query;
+      const key = queryHash(query);
+      const entry = queries.get(key) ?? { query, sections: [] };
+      entry.sections.push(`${feature.id}/${item.consult.id}`);
+      queries.set(key, entry);
+    }
+  for (const [hash, entry] of queries) {
+    const review = reviewSqlContract(entry.query, evidence.contracts.columns);
+    lines.push(
+      `| \`${hash}\` / ${entry.query.scope} | ${cell(entry.sections.join(", "))} | ${review.tables.length} / ${review.checkedColumns} | ${cell(review.missing.join(", ") || "ninguna detectada")} | ${cell(review.unresolved.join(", ") || "ninguna detectada en este análisis limitado")} |`,
+    );
+  }
+  lines.push(
+    "",
+    "## Sondeos históricos con procedencia",
+    "",
+    "Los resultados anteriores permanecen separados de los cero sondeos de la captura actual. Solo respaldan una atribución con la misma funcionalidad, apartado, sociedad y huella de sentencia efectiva más alcance. Los contratos modificados quedan sin sondeo coincidente.",
+    "",
+  );
+  if (evidence.historyIssue)
+    lines.push(
+      `Limitación del historial: \`${evidence.historyIssue}\`; no se atribuye validación a entradas no verificadas.`,
+      "",
+    );
+  if (!evidence.history?.length)
+    lines.push("Sin sondeos históricos verificables disponibles localmente.", "");
+  for (const run of evidence.history ?? []) {
+    lines.push(
+      `### Generación ${run.generationId}`,
+      "",
+      `Commit conservado: \`${run.commit}\`; revisión analizada: \`${run.revision ?? "desconocida"}\`. Hash de probes.json e identificador de generación verificados contra su manifiesto.`,
+      "",
+      "| Sentencia efectiva + alcance (SHA-256) | Sociedad / resultado | Atribuciones coincidentes con el código actual |",
+      "| --- | --- | --- |",
+    );
+    const grouped = new Map<string, typeof run.probes>();
+    for (const probe of run.probes)
+      grouped.set(probe.queryHash, [...(grouped.get(probe.queryHash) ?? []), probe]);
+    for (const [hash, probes] of grouped) {
+      const societies = [
+        ...new Map(
+          probes.map((probe) => [
+            probe.organization,
+            `${probe.organization}: ${probe.status}${probe.code ? ` (${probe.code})` : ""}`,
+          ]),
+        ).values(),
+      ].join("; ");
+      const current = queries.get(hash)?.sections ?? [];
+      const matching = [
+        ...new Set(
+          probes
+            .filter((probe) => current.includes(`${probe.feature}/${probe.consult}`))
+            .map((probe) => `${probe.feature}/${probe.consult}`),
+        ),
+      ];
+      lines.push(
+        `| \`${hash}\` | ${cell(societies)} | ${cell(matching.join(", ") || "ninguna; contrato cambiado o no registrado")} |`,
+      );
+    }
+    lines.push("");
+  }
+  lines.push(
+    "## Cierre local y límites de evidencia",
+    "",
+    "Las cuatro consultas corregidas (contratos, preferencias registradas y las dos lecturas de objetivos) conservan sus alias de presentación. La población del certificado usa la correspondencia confirmada SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD, STD_N_GEO_PLACESP y el orden SSP_FEC_FIN, conservando el filtro de sociedad. Implementación y contraste estático no equivalen a sondeos VM de estas sentencias corregidas.",
     "",
     "Experiencia de conocimientos, criterios, competencias/GAP y presupuesto conservan sus dependencias explícitas: disponer de nodos no completa sus reglas, cálculos ni autorizaciones.",
     "",
-    `${m.status !== "complete" || m.coverage.unvisited.length || !evidence.probes.length ? "Repetir `npm run portal:readonly-audit` en la VM con el ejecutor corregido. " : "La ejecución permite revisar los sondeos disponibles; estudiar sus fallos y dependencias antes de decidir otra extracción. "}Mantener los seis archivos de esta generación. Revisar columnas y sondeos por sociedad y alcance; no marcar lectores nuevos como validados a partir de metadatos parciales.`,
+    "Cierre con las fuentes locales disponibles, sin solicitar ni ejecutar otra auditoría VM. Se conservan los seis archivos originales. Las validaciones SQL, permisos efectivos, paridad visual y métodos nativos que esta captura no contiene permanecen sin acreditar; las dependencias desconocidas siguen visibles y bloqueadas.",
     "",
   );
   return lines.join("\n");

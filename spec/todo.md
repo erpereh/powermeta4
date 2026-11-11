@@ -1,6 +1,47 @@
 # powermeta4 - estado de tareas
 
-## Nueva evidencia VM y corrección de contratos — 2026-11-11
+## Cierre local sin nueva ejecución VM — 2026-11-11
+
+Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.
+
+- [x] Captura parcial running 539b018e-7e10-4ac3-9549-84299856cf09 revisada:
+      LFS completo de 283.170.405 bytes, hashes coherentes, 1.990 contratos,
+      nueve WSDL GET, 8.537 referencias pendientes y cero sondeos actuales.
+      Los seis archivos originales permanecen intactos.
+- [x] Certificado corregido con SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD,
+      STD_N_GEO_PLACESP y orden SSP_FEC_FIN; alias y sociedad conservados.
+- [x] Contraste estático de 97 sentencias, con referencias ambiguas/no verificables
+      explícitas. Procedencia histórica desde Git por generación, revisión,
+      sociedad, apartado y huella de sentencia/alcance; sin copiar sondeos actuales.
+- [x] Saneamiento léxico SQL/LN4 idempotente y compartido, símbolos autocontenidos,
+      compatibilidad de evidencias antiguas y alcance limitado de métodos compartidos.
+- [x] Publicación única asíncrona por fragmentos, hashes incrementales, solicitudes
+      agrupadas, comprobación de espacio y reserva de 64 MiB; recuperación y diario
+      por fragmentos sin cargar el archivo completo; códigos técnicos de fallo.
+- [x] DEBUG actualizado al conjunto ficticio vigente y rechazos de personas
+      inexistentes, producción y activación incompleta; PDF/Excel reales.
+- [x] Borrador de Cuadre aislado de las tablas, conservando cancelación,
+      invalidación, revisión/fingerprint y recuperación de errores 409/500. Tablas
+      montadas al visitarlas y pestañas estables que conservan filtros al ocultarse.
+- [x] Excel y fixtures comparten Hwnd/PID/instante de creación, espera y cierre
+      exclusivo de la instancia propia. Casos nativos en serie, presupuesto de
+      180 s compartido y reserva de cierre, sin ampliar el timeout de interfaz.
+      Suite por grupos consecutivos: general, interfaz en serie y Excel en serie.
+      Edición por rangos contiguos solo de celdas autorizadas, sin fórmulas intermedias.
+- [x] Suite completa correcta: 215 archivos, 1.339 pruebas correctas y dos
+      omisiones preexistentes, sin fallos. Diez casos nativos Excel y ocho de
+      Cuadre incluidos; sin aumentar el límite de interfaz ni ejecutar alta Meta4.
+- [x] Revisión final: 101 pruebas dirigidas correctas en diez archivos, typecheck,
+      build (44 páginas), documentación, diff y estado Git comprobados. 97 sentencias
+      contrastadas, cero nombres físicos ausentes y siete con referencias no verificables.
+- [x] Lint ejecutado: siete avisos previos y formato pendiente en 619 archivos;
+      sin avisos nuevos ni reformateos generales. Rama davidev, 37 archivos en el
+      inventario, seis evidencias intactas, sin commits/push ni otra auditoría VM.
+- [ ] Límites que la captura no acredita: SQL corregido en vivo, permisos efectivos,
+      paridad visual y contratos completos de experiencia, criterios, GAP,
+      presupuesto y cálculos virtuales. Dependencias visibles, sin conjeturas.
+
+## Nueva evidencia VM y corrección de contratos — 2026-11-11 (histórico)
 
 - [x] Verificado el contenido completo Git LFS de dictionary.json (111.792.981
       bytes, tamaño y SHA-256 del objeto coincidentes), los cinco hashes y la generación.

@@ -81,14 +81,14 @@ WHERE A.ID_ORGANIZATION = @organization`,
   },
   /**
    * `SSP_RP_EMPRESA`: población de la dirección más reciente (`SSP_NM_POBLACION`, «En …»).
-   * Pendiente: resolver SSP_LG_ENT_ADDRESS; la VM no confirma M4SSP_LG_ENT_ADDRESS.
-   * No sustituir la tabla por semejanza de nombres. La localidad física sí está confirmada.
+   * Diccionario VM: SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD.
+   * Contrato físico confirmado; ejecución de esta sentencia aún sin sondeo VM.
    */
   places: {
     scope: "society",
-    tables: ["M4SSP_LG_ENT_ADDRESS", "STD_GEO_PLACE"],
+    tables: ["M4SSP_LG_ENT_ADD", "STD_GEO_PLACE"],
     statement: `SELECT B.STD_ID_LEG_ENT AS STD_ID_LEG_ENT, C.STD_N_GEO_PLACESP AS STD_N_GEO_PLACE
-FROM M4SSP_LG_ENT_ADDRESS B
+FROM M4SSP_LG_ENT_ADD B
 LEFT JOIN STD_GEO_PLACE C ON B.ID_ORGANIZATION = C.ID_ORGANIZATION
   AND B.SSP_ID_NACION = C.STD_ID_COUNTRY AND B.STD_ID_GEO_DIV = C.STD_ID_GEO_DIV
   AND B.STD_ID_GEO_PLACE = C.STD_ID_GEO_PLACE AND B.STD_ID_SUB_GEO_DIV = C.STD_ID_SUB_GEO_DIV

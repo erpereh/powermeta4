@@ -281,45 +281,63 @@ con acceso a PeopleNet/Meta4, `npm run portal:discover` (diccionario Meta4 a
 `data/portal-discovery/`) y `npm run portal:verify -- [todo|sql|soap]`
 (columnas, recuentos y WSDL, sin valores personales).
 
-Para cerrar las consultas de solo lectura en dos sesiones, la orden única de la VM es
-`npm run portal:readonly-audit`, sin parámetros interactivos. Guarda seis archivos
-de metadatos saneados y recuentos en `docs/portal/implementacion/evidencias-vm/`.
-Muestra progreso desde el inicio y cada cinco segundos, consulta metadatos por
-lotes de hasta 150 claves y limita cada ejecución a 30 minutos. Guarda parciales
-al iniciar, cada minuto y al cambiar de fase; Ctrl+C cancela y consolida el avance.
-La misma orden reutiliza metadatos compatibles de una ejecución incompleta de menos
-de 24 horas desde `data/portal-readonly-audit/`, ignorado por Git; personas de
-comprobación, sondeos y WSDL se obtienen de nuevo. El manifiesto de formato 2
-identifica generaciones, hashes, métricas y pendientes. No inicia sesiones SOAP,
-ejecuta LN4 ni escribe en PeopleNet. Los [pasos de la VM](docs/portal/implementacion/evidencias-vm/README.md)
-y la [guía de continuidad](docs/portal/implementacion/continuidad-solo-lectura.md)
-y la [matriz completa](docs/portal/implementacion/matriz-solo-lectura.md) separan
-código, muestras DEBUG y validación VM. En sesión DEBUG de desarrollo, el portal
-permite seleccionar persona ficticia, variante y escenario mediante URL, sin
-nueva persistencia ni alternativa ficticia ante un fallo real.
+El diagnóstico de solo lectura conserva la orden `npm run portal:readonly-audit`,
+sin parámetros interactivos, con dos consultas SQL simultáneas, progreso cada
+cinco segundos y un presupuesto de 30 minutos. Publica seis archivos de metadatos
+saneados, con hashes y generaciones, en `docs/portal/implementacion/evidencias-vm/`.
+El diario local ignorado permite reutilizar metadatos compatibles; no persiste
+personas ni parámetros. Solo SELECT revisadas y GET WSDL, sin operaciones SOAP,
+LN4 ni escrituras PeopleNet.
 
-La nueva evidencia del 2026-11-11 termina en 98,2 s: 2.740 consultas, 819 contratos
-de tablas y nueve WSDL compatibles por GET. De 291 combinaciones únicas de consulta
-y sociedad, 276 son correctas, cinco fallan y diez se difieren. El estado sigue
-siendo parcial: el ejecutor anterior descartó referencias al llegar a 5.000 y su
-cero de pendientes no acredita cierre. La [revisión de evidencias](docs/portal/implementacion/revision-evidencias-vm.md)
-explica esos resultados sin alterar los seis archivos ni sus hashes.
+El cierre local del 2026-11-11 usa la captura `539b018e-7e10-4ac3-9549-84299856cf09`
+sin solicitar ni ejecutar otra auditoría VM. El diccionario LFS completo ocupa
+**283.170.405 bytes**, con tamaño y SHA-256 coincidentes. Los cinco hashes y la
+generación son coherentes. El estado guardado `running` representa una captura
+parcial de la ejecución interrumpida: 1.990 contratos de tablas, nueve WSDL,
+8.537 referencias pendientes y **cero sondeos actuales**. Los seis archivos
+originales se conservan intactos.
 
-`dictionary.json` se gestiona con Git LFS. Se ha verificado el contenido completo
-(111.792.981 bytes) y su coincidencia con el objeto LFS. El lector detecta punteros
-sin descargar y explica cómo obtenerlos; valida y analiza el diccionario una vez,
-sin duplicar sus filas en memoria. Las pruebas unitarias usan generaciones pequeñas
-y la evidencia real tiene una comprobación independiente.
+La [revisión de evidencias](docs/portal/implementacion/revision-evidencias-vm.md)
+contrasta las 97 sentencias distintas con el esquema y registra referencias
+ambiguas o no verificables. Se incorporan por separado los sondeos históricos
+conservados en Git, con generación, revisión, sociedad y huella de sentencia más
+alcance. Solo respaldan contratos coincidentes; nunca se presentan como sondeos
+actuales. Las [matriz y guía DEBUG](docs/portal/implementacion/matriz-solo-lectura.md)
+y la [continuidad](docs/portal/implementacion/continuidad-solo-lectura.md) separan
+implementación, compatibilidad estática, DEBUG, historia y validación VM.
 
-Se corrigen los campos físicos de contratos, preferencias y las dos consultas de
-objetivos, conservando alias, filtros y autorización. La localidad del certificado
-usa `STD_N_GEO_PLACESP`; falta resolver `SSP_LG_ENT_ADDRESS`, sin suponer una tabla.
-El diagnóstico prioriza ese objeto y los contratos registrados, conserva todas las
-referencias descubiertas bajo los presupuestos temporales y distingue los sondeos
-diferidos de errores ejecutados. Tras actualizar, repetir la misma orden en la VM:
-la nueva huella rechazará la caché incompatible automáticamente, sin borrados
-manuales. Las consultas modificadas requieren nuevos sondeos; los WSDL y recuentos
-no acreditan permisos efectivos ni paridad visual.
+La población del certificado usa la correspondencia confirmada
+`SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD`, `STD_N_GEO_PLACESP` y el orden por
+`SSP_FEC_FIN`, conservando alias y filtro de sociedad. Se mantienen las correcciones
+de contratos, preferencias y objetivos, sin cambios de identidad, equipo o permisos.
+Experiencia, criterios, GAP, presupuesto y cálculos virtuales sin contrato completo
+mantienen una dependencia visible. No se reconstruyen literales eliminados ni
+se inventan fórmulas, escalas o autorizaciones.
+
+El diagnóstico comparte un saneamiento léxico idempotente y símbolos autocontenidos
+entre publicación, diario y recuperación. Las TI compartidas conservan su inventario
+sin expandir métodos ajenos; los despachadores ambiguos quedan pendientes.
+El guardado asíncrono y único serializa por fragmentos, agrupa solicitudes y calcula
+hashes incrementales; comprueba espacio para la generación, su sustitución y 64 MiB
+de reserva. Los fallos usan códigos técnicos, conservan la última generación válida
+y evitan un nuevo intento inmediato de escribir todo el diccionario.
+
+DEBUG usa exclusivamente personas ficticias del conjunto vigente y conserva los
+generadores reales PDF/Excel. La edición de revisiones de Cuadre mantiene su borrador
+sin reconstruir las tablas con cada carácter. Sus tablas se montan al visitarlas
+y las pestañas conservan filtros y borradores al ocultarse. El editor y los fixtures Excel comparten
+un presupuesto de 180 segundos por caso y el cierre de la instancia identificada por
+su ventana, PID e instante de creación; las pruebas generales, de interfaz y nativas se ejecutan en grupos consecutivos;
+la interfaz y Excel van en serie, manteniendo 5 s por prueba de interfaz.
+La validación local termina con 215 archivos y 1.339 pruebas correctas, las dos
+omisiones preexistentes y ningún fallo; incluye los diez casos nativos Excel.
+Typecheck, build (44 páginas) y generación documental correctos. Lint mantiene
+siete avisos y formato pendiente en 619 archivos anteriores, sin reformateo general.
+Los nueve fallos originales se han resuelto; el inventario completo de 37 archivos
+y los límites reales de esta captura están en la guía de continuidad.
+
+Los [detalles del diagnóstico](docs/portal/implementacion/evidencias-vm/README.md)
+describen su operación, sin convertirla en un paso obligatorio de este cierre.
 
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.

@@ -12,7 +12,11 @@ import { PORTAL_DOMAINS, PORTAL_FEATURES, PORTAL_MENU } from "../../src/lib/port
 import type { PortalFeature, ReadContract, WriteOperation } from "../../src/lib/portal/types";
 import { formatGenerated } from "./format";
 import { readonlyMatrix } from "./readonly-matrix";
-import { loadReadonlyVmEvidence, readonlyEvidenceReview } from "./readonly-vm-evidence";
+import {
+  loadReadonlyVmEvidence,
+  loadHistoricalProbes,
+  readonlyEvidenceReview,
+} from "./readonly-vm-evidence";
 
 const OUT = path.resolve("docs/portal/implementacion");
 
@@ -256,6 +260,7 @@ writeFileSync(path.join(OUT, "dependencias-servidor.md"), dependencies());
 writeFileSync(path.join(OUT, "estado.md"), status());
 writeFileSync(path.join(OUT, "auditoria-fuentes.md"), sourceAudit());
 const vmEvidence = loadReadonlyVmEvidence(path.join(OUT, "evidencias-vm"));
+if (vmEvidence) loadHistoricalProbes(process.cwd(), vmEvidence);
 writeFileSync(path.join(OUT, "matriz-solo-lectura.md"), readonlyMatrix(vmEvidence));
 writeFileSync(
   path.join(OUT, "revision-evidencias-vm.md"),

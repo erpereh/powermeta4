@@ -1,6 +1,15 @@
 # Evidencias de la VM
 
-Si sigue abierta la versión anterior del diagnóstico, interrumpirla con Ctrl+C.
+El cierre local actual no solicita ni ejecuta otra auditoría VM. La captura
+`539b018e-7e10-4ac3-9549-84299856cf09` permanece intacta: diccionario LFS completo
+(283.170.405 bytes), cinco hashes coherentes, 1.990 contratos de tablas, nueve
+WSDL GET y cero sondeos. `running` es el estado de una captura parcial anterior
+a la interrupción, con 8.537 referencias pendientes; no acredita una ejecución
+correcta. Los sondeos históricos se documentan por separado en la revisión.
+
+Las instrucciones siguientes describen la operación disponible del diagnóstico;
+no son un paso obligatorio para esta entrega. Si se usa en otra tarea autorizada,
+interrumpir primero con Ctrl+C una versión anterior que siga abierta.
 Su avance en memoria no se puede recuperar si todavía no escribió los resultados.
 Actualizar el repositorio por el procedimiento habitual, conservando las evidencias
 existentes. No han cambiado las dependencias ni el comando npm.
@@ -66,38 +75,30 @@ No versionar `data/`, `.env.local` ni archivos temporales. El script no realiza
 commits ni push y no solicita matrículas. Solo ejecuta SELECT revisadas y GET WSDL;
 no ejecuta APISQL extraído, SOAP, LN4, procedimientos ni escrituras en la base.
 
-La generación actual `f08d12cd-b90c-4291-8f34-7089a7b2c8ea`, de 2026-11-11,
-terminó en 98,2 s: 2.740 consultas, 819 contratos de tablas, nueve WSDL compatibles
-y 435 atribuciones de sondeos a apartados. Hay 291 combinaciones únicas de consulta
-y sociedad: 276 correctas, cinco fallidas y diez diferidas. No reaparecieron
-`UNSAFE_CHECKPOINT`, errores `8016` ni timeouts. Los WSDL solo acreditan GET.
+El saneamiento léxico compartido y versionado es idempotente, diferencia SQL/LN4
+y omite conservadoramente fragmentos sin cerrar. Cada lote se valida con sus
+símbolos usados antes de guardarse. Un rechazo mantiene sus referencias pendientes.
+Las TI compartidas conservan el inventario sin expandir métodos ajenos; los
+métodos ambiguos se señalan. El esquema y el inventario WSDL se conservan aun
+ante fallos posteriores; tipos y longitudes se validan antes de vincular parámetros.
 
-Su estado es parcial: alcanzó el corte anterior de 5.000 referencias. El número
-real de pendientes es desconocido por recorte, aunque el manifiesto guarde cero.
-Las diez tareas diferidas figuran como errores en las atribuciones antiguas; la
-revisión las interpreta mediante sus tareas, sin cambiar los archivos originales.
-Los cinco hashes y los identificadores de generación son coherentes.
+La publicación única y asíncrona agrupa peticiones y escribe por fragmentos, con
+hashes incrementales y una instantánea estable. Comprueba espacio para toda la
+generación, el mayor temporal y 64 MiB de reserva, y lo vuelve a comprobar al
+escribir. DISK_SPACE_LOW/DISK_FULL, OUTPUT_ACCESS_DENIED y
+OUTPUT_SERIALIZATION_FAILED distinguen los fallos sin publicar mensajes crudos.
+Conserva la última generación válida; un fallo no inicia inmediatamente otra
+reescritura completa. Solo limpia temporales propios e incompletos. La recuperación
+normal verifica hashes por streaming, sin volver a cargar el diccionario.
 
-La corrección posterior unifica saneamiento y validación, conserva los símbolos
-aprobados usados por cada lote y valida antes de publicar. Un rechazo aísla el
-lote y mantiene sus referencias pendientes; los errores de almacenamiento sí
-activan el cierre acotado. Se comprueban tipos y longitudes sin truncar claves ni
-convertir columnas. Los candidatos heurísticos incompatibles se cuentan aparte;
-las referencias contractuales incompatibles siguen pendientes. El esquema se
-publica al leerlo y todos los servicios WSDL reciben estado, incluso al fallar.
-
-Después de actualizar **hay que repetir `npm run portal:readonly-audit` en la VM**.
-La huella del código cambiará: la caché anterior se rechazará automáticamente y
-su diario se conservará como anterior. No borrar `data/` ni ejecutar consultas
-auxiliares. Se mantienen los límites temporales, la misma orden y las dependencias.
-Se elimina el descarte a 5.000 referencias: toda referencia descubierta permanece
-en la cola y en la cobertura. Los contratos registrados se recorren antes que los
-candidatos de las fuentes; `SSP_LG_ENT_ADDRESS` tiene prioridad explícita. Las
-consultas corregidas de contratos, preferencias y objetivos necesitan nuevos
-sondeos. La tabla física de direcciones del certificado sigue pendiente.
+La correspondencia del certificado ya está confirmada: SSP_LG_ENT_ADDRESS →
+M4SSP_LG_ENT_ADD, con STD_N_GEO_PLACESP y orden por SSP_FEC_FIN. Se mantienen
+las correcciones de contratos, preferencias y objetivos, sin alterar autorización.
+Sus sentencias corregidas no tienen sondeos en esta captura y no se declaran
+validadas por el contraste de metadatos. No se pide otra ejecución para este cierre.
 
 `dictionary.json` usa Git LFS y conserva la regla específica `-text` de
-`.gitattributes`. Se ha comprobado el archivo completo de 111.792.981 bytes y su
+`.gitattributes`. Se ha comprobado el archivo completo de 283.170.405 bytes y su
 SHA-256 frente al objeto LFS. Si el lector encuentra un puntero, indica que falta
 descargar el contenido mediante `git lfs pull`; no lo interpreta como diccionario.
 Los demás archivos se fijan a LF. El verificador acepta las salidas

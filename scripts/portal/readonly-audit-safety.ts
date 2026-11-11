@@ -63,7 +63,111 @@ const literals = new Set([
   "-1",
   "4000-01-01",
 ]);
+export type MetadataDialect = "sql" | "ln4";
+const redactions = new Set([
+  "[LITERAL OMITIDO]",
+  "[DIRECCIÓN OMITIDA]",
+  "[CORREO OMITIDO]",
+  "[NÚMERO OMITIDO]",
+]);
+
+/** Un único recorrido léxico: el texto saneado es estable al validarlo otra vez. */
 export function safeMetadataText(
+  value: string,
+  symbols: ReadonlySet<string> = new Set(),
+  usedSymbols?: Set<string>,
+  dialect: MetadataDialect = "sql",
+): string {
+  const parts: string[] = [];
+  const url = /(?:https?:\/\/|\\\\)[^\s'"<>]+/iy;
+  const email = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}[A-Z0-9._%+:/-]*/iy;
+  const word = /[A-Z_$#@][A-Z0-9_$#@]*/iy;
+  const number = /(?:0x[A-F0-9]+|\d+(?:\.\d+)?)/iy;
+  let position = 0;
+  let previous = "";
+  const match = (expression: RegExp): string | undefined => {
+    expression.lastIndex = position;
+    return expression.exec(value)?.[0];
+  };
+  while (position < value.length) {
+    const char = value[position];
+    if (value.startsWith("/*", position)) {
+      const end = value.indexOf("*/", position + 2);
+      position = end < 0 ? value.length : end + 2;
+      parts.push(" ");
+      continue;
+    }
+    if (
+      value.startsWith("//", position) ||
+      value.startsWith("--", position) ||
+      (dialect === "ln4" && char === "'" && (!previous || /[A-Z0-9_)]/i.test(previous)))
+    ) {
+      const end = value.indexOf("\n", position);
+      position = end < 0 ? value.length : end;
+      parts.push(" ");
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      const quote = char;
+      const start = ++position;
+      let closed = false;
+      while (position < value.length) {
+        if (dialect === "ln4" && value[position] === "\\") {
+          position += 2;
+          continue;
+        }
+        if (value[position] === quote) {
+          if (value[position + 1] === quote) {
+            position += 2;
+            continue;
+          }
+          closed = true;
+          break;
+        }
+        position++;
+      }
+      const content = value.slice(start, position);
+      const approved = closed && identifier.test(content) && symbols.has(content);
+      if (approved && !literals.has(content)) usedSymbols?.add(content);
+      parts.push(
+        quote +
+          (closed && (literals.has(content) || redactions.has(content) || approved)
+            ? content
+            : "[LITERAL OMITIDO]") +
+          quote,
+      );
+      position = Math.min(value.length, position + 1);
+      previous = quote;
+      continue;
+    }
+    const address = match(url);
+    const mail = address ? undefined : match(email);
+    const token = address ?? mail ?? match(word) ?? match(number);
+    if (token) {
+      const numeric = /^[0-9]/.test(token);
+      parts.push(
+        address
+          ? "[DIRECCIÓN OMITIDA]"
+          : mail
+            ? "[CORREO OMITIDO]"
+            : numeric && !literals.has(token)
+              ? "[NÚMERO OMITIDO]"
+              : token,
+      );
+      position += token.length;
+      previous = token.at(-1) ?? "";
+      continue;
+    }
+    parts.push(char);
+    if (char === "\n" || char === "\r") previous = "";
+    else if (!/\s/.test(char)) previous = char;
+    position++;
+  }
+  return parts.join("");
+}
+
+// Solo verifica capturas de formato 2 anteriores; nunca produce nuevos lotes.
+function legacyMetadataText(
   value: string,
   symbols: ReadonlySet<string> = new Set(),
   usedSymbols?: Set<string>,
@@ -103,7 +207,12 @@ export function sanitizeMetadataRows(
           [
             name,
             name === "SOURCE_CODE" || name === "APISQL"
-              ? safeMetadataText(value, symbols, usedSymbols)
+              ? safeMetadataText(
+                  value,
+                  symbols,
+                  usedSymbols,
+                  name === "SOURCE_CODE" ? "ln4" : "sql",
+                )
               : identifier.test(value.trim()) || /^\d{1,4}$/.test(value.trim())
                 ? value.trim()
                 : "[VALOR OMITIDO]",
@@ -114,7 +223,31 @@ export function sanitizeMetadataRows(
   );
 }
 
-export function isSafeMetadataRow(row: AuditRow, symbols: ReadonlySet<string>): boolean {
+const textProofs = new WeakMap<AuditRow, Map<string, { text: string; required: string[] }>>();
+function safePublishedText(
+  row: AuditRow,
+  field: string,
+  value: string,
+  symbols: ReadonlySet<string>,
+  version: 1 | 2,
+): boolean {
+  if (version === 1) return legacyMetadataText(value, symbols) === value;
+  const proofs = textProofs.get(row) ?? new Map<string, { text: string; required: string[] }>();
+  const proof = proofs.get(field);
+  if (proof?.text === value && proof.required.every((symbol) => symbols.has(symbol))) return true;
+  const used = new Set<string>();
+  if (safeMetadataText(value, symbols, used, field === "SOURCE_CODE" ? "ln4" : "sql") !== value)
+    return false;
+  proofs.set(field, { text: value, required: [...used] });
+  textProofs.set(row, proofs);
+  return true;
+}
+
+export function isSafeMetadataRow(
+  row: AuditRow,
+  symbols: ReadonlySet<string>,
+  version: 1 | 2 = 2,
+): boolean {
   return Object.entries(row).every(
     ([field, value]) =>
       SAFE_FIELDS.has(field) &&
@@ -122,7 +255,7 @@ export function isSafeMetadataRow(row: AuditRow, symbols: ReadonlySet<string>): 
         (typeof value === "number" && Number.isFinite(value)) ||
         (typeof value === "string" &&
           (field === "SOURCE_CODE" || field === "APISQL"
-            ? safeMetadataText(value, symbols) === value
+            ? safePublishedText(row, field, value, symbols, version)
             : identifier.test(value) || /^\d{1,4}$/.test(value) || value === "[VALOR OMITIDO]"))),
   );
 }
@@ -142,6 +275,7 @@ export function assertSafeDictionary(
   roots: readonly string[],
   ruleReferences: readonly string[],
   approvedSymbols: readonly string[] = [],
+  version: 1 | 2 = 2,
 ): void {
   const symbols = new Set(
     [...roots, ...ruleReferences, ...approvedSymbols].filter((value) => identifier.test(value)),
@@ -157,6 +291,6 @@ export function assertSafeDictionary(
         )
           symbols.add(value);
   for (const rows of Object.values(dictionary))
-    if (rows.some((row) => !isSafeMetadataRow(row, symbols)))
+    if (rows.some((row) => !isSafeMetadataRow(row, symbols, version)))
       throw new AuditFailure("UNSAFE_PUBLICATION");
 }

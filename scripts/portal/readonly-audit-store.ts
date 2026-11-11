@@ -6,6 +6,7 @@ import {
   mkdirSync,
   openSync,
   readFileSync,
+  readSync,
   readdirSync,
   renameSync,
   rmdirSync,
@@ -15,9 +16,12 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { StringDecoder } from "node:string_decoder";
 import { z } from "zod";
 import {
   AUDIT_LIMITS,
+  AUDIT_FILES,
+  auditStorageError,
   AuditFailure,
   cacheEntrySchema,
   digest,
@@ -30,14 +34,13 @@ import {
 } from "./readonly-audit-model";
 import { assertSafeDictionary, assertSafeMetadataEntry } from "./readonly-audit-safety";
 
-export const AUDIT_FILES = [
-  "dictionary.json",
-  "contracts.json",
-  "probes.json",
-  "errors.json",
-  "resumen.md",
-  "manifest.json",
-] as const;
+export { AUDIT_FILES } from "./readonly-audit-model";
+import {
+  auditFileHash,
+  copyAuditFile,
+  publishAuditDocuments,
+  type AuditDocuments,
+} from "./readonly-audit-publication";
 export const canonicalAuditText = (value: string): string => value.replace(/\r\n/g, "\n");
 const auditHash = (value: string) => digest(canonicalAuditText(value));
 
@@ -70,6 +73,7 @@ const dictionarySchema = z
     tables: z.custom<Record<string, AuditRow[]>>(isDictionaryTables),
     referencesInRules: z.array(z.string()),
     symbols: z.array(z.string().regex(identifier)).optional(),
+    sanitizerVersion: z.literal(2).optional(),
   })
   .passthrough();
 
@@ -129,6 +133,7 @@ export function verifyAuditArtifacts(bodies: ReadonlyMap<string, string>): {
     manifest.coverage.seedObjects,
     dictionary.referencesInRules,
     dictionary.symbols,
+    dictionary.sanitizerVersion ?? 1,
   );
   return { generationId: manifest.generationId, normalizedLineEndings, documents, dictionary };
 }
@@ -194,10 +199,24 @@ const atomic = (file: string, value: string) => {
     throw error;
   }
 };
-export function auditArtifacts(
-  state: AuditState,
-  info: AuditPublication,
-): Record<(typeof AUDIT_FILES)[number], string> {
+export function auditDocuments(state: AuditState, info: AuditPublication): AuditDocuments {
+  // Los lotes publicados no se mutan; solo se sustituyen sus arrays al añadir filas.
+  state = {
+    ...state,
+    dictionary: { ...state.dictionary },
+    contracts: { ...state.contracts },
+    probes: [...state.probes],
+    tasks: state.tasks.map((task) => ({ ...task })),
+    coverage: {
+      ...state.coverage,
+      seedObjects: [...state.coverage.seedObjects],
+      visited: [...state.coverage.visited],
+      unvisited: [...state.coverage.unvisited],
+    },
+    metadataSymbols: [...state.metadataSymbols],
+    referencesInRules: [...state.referencesInRules],
+  };
+  info = { ...info, tasks: [...info.tasks], metrics: [...info.metrics], soap: [...info.soap] };
   assertSafeDictionary(
     state.dictionary,
     state.coverage.seedObjects,
@@ -236,10 +255,11 @@ export function auditArtifacts(
     "Versionar los seis archivos de esta carpeta. El diario de reanudación se conserva solo en data/portal-readonly-audit/. La misma orden reanuda metadatos compatibles de ejecuciones incompletas de menos de 24 horas. No se hace commit ni push.",
     "",
   ].join("\n");
-  const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
+  const json = (value: unknown) => value;
   const bodies = {
     "dictionary.json": json({
       ...common,
+      sanitizerVersion: 2,
       tables: state.dictionary,
       symbols: state.metadataSymbols,
       referencesInRules: state.referencesInRules,
@@ -249,39 +269,65 @@ export function auditArtifacts(
     "errors.json": json({ ...common, errors }),
     "resumen.md": summary,
   };
+  const manifest = {
+    ...common,
+    generatedAt: new Date().toISOString(),
+    startedAt: new Date(info.startedAt).toISOString(),
+    runId: info.runId,
+    status: info.status,
+    reason: info.reason ?? null,
+    revision: info.revision,
+    durationMs,
+    sources: info.sources,
+    registry: info.registry,
+    coverage: state.coverage,
+    counts: {
+      ok: tasks.length - errors.length,
+      failed: errors.filter((task) => task.status === "error").length,
+      incomplete: errors.filter((task) => task.status === "incomplete").length,
+    },
+    execution: {
+      queriesStarted: info.queriesStarted,
+      queriesCompleted: info.queriesStarted - info.active,
+      active: info.active,
+      reusedMetadataBatches: info.reused,
+    },
+    metrics: info.metrics,
+    tasks,
+    metadataReusedFrom: info.metadataReusedFrom ?? null,
+    hashNormalization: "utf8-lf",
+    files: Object.fromEntries(Object.keys(bodies).map((file) => [file, "0".repeat(64)])),
+  };
   return {
-    ...bodies,
-    "manifest.json": json({
-      ...common,
-      generatedAt: new Date().toISOString(),
-      startedAt: new Date(info.startedAt).toISOString(),
-      runId: info.runId,
-      status: info.status,
-      reason: info.reason ?? null,
-      revision: info.revision,
-      durationMs,
-      sources: info.sources,
-      registry: info.registry,
-      coverage: state.coverage,
-      counts: {
-        ok: tasks.length - errors.length,
-        failed: errors.filter((task) => task.status === "error").length,
-        incomplete: errors.filter((task) => task.status === "incomplete").length,
-      },
-      execution: {
-        queriesStarted: info.queriesStarted,
-        queriesCompleted: info.queriesStarted - info.active,
-        active: info.active,
-        reusedMetadataBatches: info.reused,
-      },
-      metrics: info.metrics,
-      tasks,
-      metadataReusedFrom: info.metadataReusedFrom ?? null,
-      hashNormalization: "utf8-lf",
-      files: Object.fromEntries(
-        Object.entries(bodies).map(([file, value]) => [file, auditHash(value)]),
-      ),
-    }),
+    generationId,
+    values: { ...bodies, "manifest.json": manifest },
+    setHashes: (hashes) => {
+      manifest.files = hashes;
+    },
+  };
+}
+
+/** Serializador pequeño para fixtures; producción escribe los mismos valores por fragmentos. */
+export function auditArtifacts(
+  state: AuditState,
+  info: AuditPublication,
+): Record<(typeof AUDIT_FILES)[number], string> {
+  const documents = auditDocuments(state, info);
+  const result = Object.fromEntries(AUDIT_FILES.map((file) => [file, ""]));
+  const hashes: Record<string, string> = {};
+  for (const file of AUDIT_FILES) {
+    if (file === "manifest.json") documents.setHashes(hashes);
+    const value = documents.values[file];
+    result[file] = file === "resumen.md" ? String(value) : `${JSON.stringify(value, null, 2)}\n`;
+    if (file !== "manifest.json") hashes[file] = auditHash(result[file]);
+  }
+  return {
+    "dictionary.json": result["dictionary.json"],
+    "contracts.json": result["contracts.json"],
+    "probes.json": result["probes.json"],
+    "errors.json": result["errors.json"],
+    "resumen.md": result["resumen.md"],
+    "manifest.json": result["manifest.json"],
   };
 }
 
@@ -297,6 +343,12 @@ export class AuditStore {
   private readonly journal: string;
   private owned = false;
   private readonly now: () => number;
+  private publicationWork: Promise<void> | undefined;
+  private queuedPublication: { documents: AuditDocuments; info: AuditPublication } | undefined;
+  private publicationFailure: unknown;
+  get publishing(): boolean {
+    return this.publicationWork !== undefined;
+  }
   constructor(
     readonly root: string,
     readonly output: string,
@@ -395,22 +447,33 @@ export class AuditStore {
     }
     if (reusable && existsSync(this.journal)) {
       try {
-        if (statSync(this.journal).size > 256 * 1024 * 1024)
-          throw new AuditFailure("CHECKPOINT_TOO_LARGE");
-        const bytes = readFileSync(this.journal);
-        const end = bytes.lastIndexOf(10);
-        validLength = end + 1;
-        if (validLength !== bytes.length) this.notice("JOURNAL_TAIL_IGNORED");
-        for (const line of bytes
-          .subarray(0, validLength)
-          .toString("utf8")
-          .split("\n")
-          .filter(Boolean)) {
-          const record = recordSchema.parse(JSON.parse(line));
-          if (digest(JSON.stringify(record.payload)) !== record.hash)
-            throw new AuditFailure("CHECKPOINT_INVALID");
-          assertSafeMetadataEntry(record.payload);
-          this.entries.set(record.payload.key, record.payload);
+        const fd = openSync(this.journal, "r");
+        const buffer = Buffer.alloc(64 * 1024);
+        const decoder = new StringDecoder("utf8");
+        let pending = "";
+        try {
+          let length: number;
+          while ((length = readSync(fd, buffer)) > 0) {
+            pending += decoder.write(buffer.subarray(0, length));
+            let end: number;
+            while ((end = pending.indexOf("\n")) >= 0) {
+              const line = pending.slice(0, end);
+              pending = pending.slice(end + 1);
+              validLength += Buffer.byteLength(line) + 1;
+              if (!line.trim()) continue;
+              const record = recordSchema.parse(JSON.parse(line));
+              if (digest(JSON.stringify(record.payload)) !== record.hash)
+                throw new AuditFailure("CHECKPOINT_INVALID");
+              assertSafeMetadataEntry(record.payload);
+              this.entries.set(record.payload.key, record.payload);
+            }
+            if (pending.length > 64 * 1024 * 1024)
+              throw new AuditFailure("CHECKPOINT_RECORD_TOO_LARGE");
+          }
+          pending += decoder.end();
+          if (pending.length) this.notice("JOURNAL_TAIL_IGNORED");
+        } finally {
+          closeSync(fd);
         }
         this.notice("CHECKPOINT_REUSED");
       } catch {
@@ -442,29 +505,55 @@ export class AuditStore {
     const safe = assertSafeMetadataEntry(entry);
     if (this.fd === undefined) throw new AuditFailure("JOURNAL_NOT_OPEN");
     const line = `${JSON.stringify({ payload: safe, hash: digest(JSON.stringify(safe)) })}\n`;
-    writeFileSync(this.fd, line);
-    fsyncSync(this.fd);
+    try {
+      writeFileSync(this.fd, line);
+      fsyncSync(this.fd);
+    } catch (error) {
+      throw auditStorageError(error);
+    }
     this.entries.set(safe.key, safe);
   }
   checkpoint(status: AuditRunStatus): void {
     if (!this.metadata) return;
     this.metadata = { ...this.metadata, status, updatedAt: this.now() };
-    atomic(this.metaFile, `${JSON.stringify(this.metadata)}\n`);
+    try {
+      atomic(this.metaFile, `${JSON.stringify(this.metadata)}\n`);
+    } catch (error) {
+      throw auditStorageError(error);
+    }
   }
-  publish(state: AuditState, info: AuditPublication): void {
-    const files = auditArtifacts(state, info);
-    const generation = JSON.parse(files["manifest.json"]);
-    const directory = path.join(this.root, "generations", generation.generationId);
-    mkdirSync(directory, { recursive: true });
-    // Una generación inmutable permite recuperar una publicación interrumpida entre archivos.
-    for (const file of AUDIT_FILES) atomic(path.join(directory, file), files[file]);
-    atomic(
-      path.join(this.root, "last-generation.json"),
-      JSON.stringify({ id: generation.generationId }),
-    );
-    for (const file of AUDIT_FILES) atomic(path.join(this.output, file), files[file]);
-    this.checkpoint(info.status);
-    this.pruneGenerations(generation.generationId);
+  publish(state: AuditState, info: AuditPublication): Promise<void> {
+    if (this.publicationFailure) return Promise.reject(this.publicationFailure);
+    try {
+      this.queuedPublication = { documents: auditDocuments(state, info), info };
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    this.publicationWork ??= (async () => {
+      try {
+        while (this.queuedPublication) {
+          const current = this.queuedPublication;
+          this.queuedPublication = undefined;
+          await publishAuditDocuments(
+            this.root,
+            this.output,
+            current.documents,
+            undefined,
+            this.notice,
+          );
+          this.checkpoint(current.info.status);
+          this.pruneGenerations(current.documents.generationId);
+        }
+      } catch (error) {
+        const safe = auditStorageError(error);
+        this.publicationFailure = safe;
+        this.queuedPublication = undefined;
+        throw safe;
+      } finally {
+        this.publicationWork = undefined;
+      }
+    })();
+    return this.publicationWork;
   }
   private pruneGenerations(currentId: string): void {
     const base = path.resolve(this.root, "generations");
@@ -498,13 +587,31 @@ export class AuditStore {
       }
     }
   }
-  restorePublished(): boolean {
+  async restorePublished(): Promise<boolean> {
     const pointer = path.join(this.root, "last-generation.json");
     if (!existsSync(pointer)) return false;
     try {
       const value: unknown = JSON.parse(readFileSync(pointer, "utf8"));
       const parsed = z.object({ id: z.string().uuid() }).strict().parse(value);
       const directory = path.join(this.root, "generations", parsed.id);
+      // La ruta normal solo calcula hashes en streaming: no carga de nuevo el diccionario.
+      const manifest = z
+        .object({ generationId: z.literal(parsed.id), files: z.record(hash) })
+        .passthrough()
+        .parse(JSON.parse(readFileSync(path.join(directory, "manifest.json"), "utf8")));
+      let coherent = true;
+      for (const file of AUDIT_FILES) {
+        try {
+          const expected =
+            file === "manifest.json"
+              ? await auditFileHash(path.join(directory, file))
+              : manifest.files[file];
+          if ((await auditFileHash(path.join(this.output, file))) !== expected) coherent = false;
+        } catch {
+          coherent = false;
+        }
+      }
+      if (coherent) return true;
       const bodies = new Map(
         AUDIT_FILES.map((file) => [file, readFileSync(path.join(directory, file), "utf8")]),
       );
@@ -512,10 +619,14 @@ export class AuditStore {
       if (verified.generationId !== parsed.id) throw new AuditFailure("GENERATION_INVALID");
       if (verified.normalizedLineEndings) this.notice("GENERATION_EOL_NORMALIZED");
       for (const file of AUDIT_FILES)
-        atomic(path.join(this.output, file), canonicalAuditText(bodies.get(file) ?? ""));
+        await copyAuditFile(path.join(directory, file), path.join(this.output, file));
       return true;
-    } catch {
-      this.notice("GENERATION_INVALID");
+    } catch (error) {
+      this.notice(
+        error && typeof error === "object" && "code" in error
+          ? auditStorageError(error).code
+          : "GENERATION_INVALID",
+      );
       return false;
     }
   }

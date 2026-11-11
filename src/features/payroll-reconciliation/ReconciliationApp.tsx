@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FileSpreadsheet, Plus, Download, RefreshCw, FolderOpen, Trash2 } from "lucide-react";
 import {
   Button,
@@ -66,10 +66,7 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
     [newOpen, setNewOpen] = useState(false),
     [refreshOpen, setRefreshOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DossierSummary | null>(null);
-  const [selected, setSelected] = useState<Finding | null>(null),
-    [reviewState, setReviewState] = useState<Annotation["state"]>("Pendiente"),
-    [comment, setComment] = useState("");
-  const [reviewInvalidated, setReviewInvalidated] = useState(false);
+  const [selected, setSelected] = useState<Finding | null>(null);
   const changeReviewOpen = useCallback((open: boolean) => {
     if (!open) setSelected(null);
   }, []);
@@ -194,17 +191,10 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
       })) ?? []
     );
   }, [dossier]);
-  const showFinding = (finding: Finding) => {
-    const annotation = dossier?.annotations.find((item) => item.findingId === finding.id);
-    const invalidated = Boolean(
-      annotation && (annotation.invalidated || annotation.fingerprint !== finding.fingerprint),
-    );
+  const showFinding = useCallback((finding: Finding) => {
     setError("");
     setSelected(finding);
-    setReviewState(invalidated ? "Pendiente" : (annotation?.state ?? "Pendiente"));
-    setComment(annotation?.comment ?? "");
-    setReviewInvalidated(invalidated);
-  };
+  }, []);
   const exportCurrent = () =>
     void perform(async () => {
       if (!dossier) return;
@@ -474,93 +464,57 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                 />
               </TabsContent>
               <TabsContent value="controles">
-                <div className="space-y-4 pt-4">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <Input label="Buscar persona o motivo" value={search} onChange={setSearch} />
-                    <Choice
-                      label="Control"
-                      value={control}
-                      onChange={setControl}
-                      items={[
-                        { id: "all", name: "Todos" },
-                        ...dossier.result.controls.map((item) => ({
-                          id: item.id,
-                          name: `${item.id} ${item.name}`,
-                        })),
-                      ]}
-                    />
-                    <Choice
-                      label="Estado calculado"
-                      value={status}
-                      onChange={setStatus}
-                      items={[
-                        { id: "all", name: "Todos" },
-                        ...["Coincide", "Con diferencia", "Falta fuente", "No comparable"].map(
-                          (name) => ({ id: name, name }),
-                        ),
-                      ]}
-                    />
+                <RetainedPane active={view === "controles"}>
+                  <div className="space-y-4 pt-4">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <Input label="Buscar persona o motivo" value={search} onChange={setSearch} />
+                      <Choice
+                        label="Control"
+                        value={control}
+                        onChange={setControl}
+                        items={[
+                          { id: "all", name: "Todos" },
+                          ...dossier.result.controls.map((item) => ({
+                            id: item.id,
+                            name: `${item.id} ${item.name}`,
+                          })),
+                        ]}
+                      />
+                      <Choice
+                        label="Estado calculado"
+                        value={status}
+                        onChange={setStatus}
+                        items={[
+                          { id: "all", name: "Todos" },
+                          ...["Coincide", "Con diferencia", "Falta fuente", "No comparable"].map(
+                            (name) => ({ id: name, name }),
+                          ),
+                        ]}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {findings.length} filas. Abre una fila para ver operandos, evidencias y
+                      registrar la revisión.
+                    </p>
+                    <FindingTable findings={findings} showFinding={showFinding} />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {findings.length} filas. Abre una fila para ver operandos, evidencias y
-                    registrar la revisión.
-                  </p>
-                  <Table
-                    data={findings}
-                    getRowId={(row) => row.id}
-                    height={520}
-                    scrollAreaLabel="Resultados del cuadre"
-                    onRowActivate={showFinding}
-                    getRowAriaLabel={(row) =>
-                      `Revisar ${row.employeeId}, ${row.metric}: ${row.status}`
-                    }
-                    columns={[
-                      { key: "employeeId", header: "Matrícula", width: "120px" },
-                      { key: "name", header: "Persona", width: "200px" },
-                      { key: "control", header: "Control", width: "90px" },
-                      {
-                        key: "metric",
-                        header: "Concepto",
-                        width: "230px",
-                        cell: (row) =>
-                          METRICS.find((metric) => metric.id === row.metric)?.header ?? row.metric,
-                      },
-                      {
-                        key: "actual",
-                        header: "Actual",
-                        width: "130px",
-                        cell: (row) => row.actual ?? "Pendiente",
-                      },
-                      {
-                        key: "expected",
-                        header: "Anterior / esperado",
-                        width: "150px",
-                        cell: (row) => row.expected ?? "Pendiente",
-                      },
-                      {
-                        key: "delta",
-                        header: "Diferencia",
-                        width: "130px",
-                        cell: (row) => row.delta ?? "—",
-                      },
-                      { key: "status", header: "Resultado", width: "160px" },
-                    ]}
-                  />
-                </div>
+                </RetainedPane>
               </TabsContent>
               <TabsContent value="datos">
-                <div className="space-y-4 pt-4">
-                  <Choice
-                    label="Instantánea"
-                    value={dataMode}
-                    onChange={setDataMode}
-                    items={[
-                      { id: "actual", name: "Actual" },
-                      { id: "anterior", name: "Anterior" },
-                    ]}
-                  />
-                  <SnapshotTable dossier={dossier} previous={dataMode === "anterior"} />
-                </div>
+                <RetainedPane active={view === "datos"}>
+                  <div className="space-y-4 pt-4">
+                    <Choice
+                      label="Instantánea"
+                      value={dataMode}
+                      onChange={setDataMode}
+                      items={[
+                        { id: "actual", name: "Actual" },
+                        { id: "anterior", name: "Anterior" },
+                      ]}
+                    />
+                    <SnapshotTable dossier={dossier} previous={dataMode === "anterior"} />
+                  </div>
+                </RetainedPane>
               </TabsContent>
               <TabsContent value="revision">
                 <div className="space-y-4 pt-4">
@@ -773,10 +727,6 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                     );
                     return;
                   }
-                  if (current.fingerprint !== selected.fingerprint) {
-                    setReviewState("Pendiente");
-                    setReviewInvalidated(true);
-                  }
                   setSelected(current);
                 })
               }
@@ -786,91 +736,195 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
           </p>
         )}
         {selected && (
-          <div className="space-y-4">
-            {reviewInvalidated && (
-              <p role="status" className="rounded-lg bg-muted p-3 text-sm">
-                La evidencia ha cambiado. Revisa el resultado actual y confirma de nuevo la
-                decisión. Se conserva el comentario anterior para que puedas editarlo.
-              </p>
-            )}
-            <p className="font-medium">
-              {selected.employeeId} · {selected.name} ·{" "}
-              {METRICS.find((metric) => metric.id === selected.metric)?.header}
-            </p>
-            <p>
-              {selected.status} · actual {selected.actual ?? "pendiente"} · esperado{" "}
-              {selected.expected ?? "pendiente"} · diferencia {selected.delta ?? "pendiente"}{" "}
-              {selected.unit}
-            </p>
-            <p className="text-sm">
-              {selected.reason || "Motivo desconocido — pendiente de revisión."}
-            </p>
-            <ul className="max-h-40 list-disc overflow-auto break-all pl-5 text-xs text-muted-foreground">
-              {selected.evidence.map((evidence, index) => (
-                <li key={index}>{evidence}</li>
-              ))}
-            </ul>
-            <Choice
-              label="Decisión de revisión"
-              value={reviewState}
-              disabled={busy}
-              onChange={(value) => {
-                if (
-                  value === "Pendiente" ||
-                  value === "Diferencia justificada" ||
-                  value === "Requiere corrección manual"
-                )
-                  setReviewState(value);
-              }}
-              items={["Pendiente", "Diferencia justificada", "Requiere corrección manual"].map(
-                (name) => ({ id: name, name }),
-              )}
-            />
-            <Input
-              label="Comentario"
-              value={comment}
-              onChange={setComment}
-              maxLength={2000}
-              disabled={busy}
-            />
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button variant="outline" disabled={busy} onClick={() => setSelected(null)}>
-                Cancelar
-              </Button>
-              <Button
-                disabled={busy || (reviewState !== "Pendiente" && !comment.trim())}
-                onClick={() =>
-                  void perform(async () => {
-                    if (!dossier) return;
-                    await accept(
-                      await api<Dossier>("", {
-                        method: "PATCH",
-                        body: JSON.stringify({
-                          id: dossier.id,
-                          revision: dossier.revision,
-                          action: "review",
-                          findingId: selected.id,
-                          fingerprint: selected.fingerprint,
-                          state: reviewState,
-                          comment,
-                        }),
-                      }),
-                    );
-                    if (mounted.current) setSelected(null);
-                  })
-                }
-              >
-                Guardar revisión
-              </Button>
-            </div>
-          </div>
+          <ReviewFields
+            key={selected.id}
+            selected={selected}
+            annotation={dossier?.annotations.find((item) => item.findingId === selected.id)}
+            busy={busy}
+            onCancel={() => setSelected(null)}
+            onSave={(state, comment) =>
+              void perform(async () => {
+                if (!dossier) return;
+                await accept(
+                  await api<Dossier>("", {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      id: dossier.id,
+                      revision: dossier.revision,
+                      action: "review",
+                      findingId: selected.id,
+                      fingerprint: selected.fingerprint,
+                      state,
+                      comment,
+                    }),
+                  }),
+                );
+                if (mounted.current) setSelected(null);
+              })
+            }
+          />
         )}
       </Modal>
     </main>
   );
 }
 
-function SnapshotTable({ dossier, previous }: { dossier: Dossier; previous: boolean }) {
+/** Monta las tablas al visitarlas y conserva sus filtros al cambiar de pestaña. */
+function RetainedPane({ active, children }: { active: boolean; children: ReactNode }) {
+  const [visited, setVisited] = useState(active);
+  useEffect(() => {
+    if (active) setVisited(true);
+  }, [active]);
+  return active || visited ? children : null;
+}
+
+const FindingTable = memo(function FindingTable({
+  findings,
+  showFinding,
+}: {
+  findings: Finding[];
+  showFinding: (finding: Finding) => void;
+}) {
+  return (
+    <Table
+      data={findings}
+      getRowId={(row) => row.id}
+      height={520}
+      scrollAreaLabel="Resultados del cuadre"
+      onRowActivate={showFinding}
+      getRowAriaLabel={(row) => `Revisar ${row.employeeId}, ${row.metric}: ${row.status}`}
+      columns={[
+        { key: "employeeId", header: "Matrícula", width: "120px" },
+        { key: "name", header: "Persona", width: "200px" },
+        { key: "control", header: "Control", width: "90px" },
+        {
+          key: "metric",
+          header: "Concepto",
+          width: "230px",
+          cell: (row) => METRICS.find((metric) => metric.id === row.metric)?.header ?? row.metric,
+        },
+        {
+          key: "actual",
+          header: "Actual",
+          width: "130px",
+          cell: (row) => row.actual ?? "Pendiente",
+        },
+        {
+          key: "expected",
+          header: "Anterior / esperado",
+          width: "150px",
+          cell: (row) => row.expected ?? "Pendiente",
+        },
+        {
+          key: "delta",
+          header: "Diferencia",
+          width: "130px",
+          cell: (row) => row.delta ?? "—",
+        },
+        { key: "status", header: "Resultado", width: "160px" },
+      ]}
+    />
+  );
+});
+
+/** El borrador se actualiza sin volver a renderizar las tablas del expediente. */
+function ReviewFields({
+  selected,
+  annotation,
+  busy,
+  onCancel,
+  onSave,
+}: {
+  selected: Finding;
+  annotation?: Annotation;
+  busy: boolean;
+  onCancel: () => void;
+  onSave: (state: Annotation["state"], comment: string) => void;
+}) {
+  const invalidated = Boolean(
+    annotation && (annotation.invalidated || annotation.fingerprint !== selected.fingerprint),
+  );
+  const [reviewState, setReviewState] = useState<Annotation["state"]>(
+    invalidated ? "Pendiente" : (annotation?.state ?? "Pendiente"),
+  );
+  const [comment, setComment] = useState(annotation?.comment ?? "");
+  const [reviewInvalidated, setReviewInvalidated] = useState(invalidated);
+  const fingerprint = useRef(selected.fingerprint);
+  useEffect(() => {
+    if (fingerprint.current !== selected.fingerprint) {
+      fingerprint.current = selected.fingerprint;
+      setReviewState("Pendiente");
+      setReviewInvalidated(true);
+    }
+  }, [selected.fingerprint]);
+  return (
+    <div className="space-y-4">
+      {reviewInvalidated && (
+        <p role="status" className="rounded-lg bg-muted p-3 text-sm">
+          La evidencia ha cambiado. Revisa el resultado actual y confirma de nuevo la decisión. Se
+          conserva el comentario anterior para que puedas editarlo.
+        </p>
+      )}
+      <p className="font-medium">
+        {selected.employeeId} · {selected.name} ·{" "}
+        {METRICS.find((metric) => metric.id === selected.metric)?.header}
+      </p>
+      <p>
+        {selected.status} · actual {selected.actual ?? "pendiente"} · esperado{" "}
+        {selected.expected ?? "pendiente"} · diferencia {selected.delta ?? "pendiente"}{" "}
+        {selected.unit}
+      </p>
+      <p className="text-sm">{selected.reason || "Motivo desconocido — pendiente de revisión."}</p>
+      <ul className="max-h-40 list-disc overflow-auto break-all pl-5 text-xs text-muted-foreground">
+        {selected.evidence.map((evidence, index) => (
+          <li key={index}>{evidence}</li>
+        ))}
+      </ul>
+      <Choice
+        label="Decisión de revisión"
+        value={reviewState}
+        disabled={busy}
+        onChange={(value) => {
+          if (
+            value === "Pendiente" ||
+            value === "Diferencia justificada" ||
+            value === "Requiere corrección manual"
+          )
+            setReviewState(value);
+        }}
+        items={["Pendiente", "Diferencia justificada", "Requiere corrección manual"].map(
+          (name) => ({ id: name, name }),
+        )}
+      />
+      <Input
+        label="Comentario"
+        value={comment}
+        onChange={setComment}
+        maxLength={2000}
+        disabled={busy}
+      />
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="outline" disabled={busy} onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button
+          disabled={busy || (reviewState !== "Pendiente" && !comment.trim())}
+          onClick={() => onSave(reviewState, comment)}
+        >
+          Guardar revisión
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+const SnapshotTable = memo(function SnapshotTable({
+  dossier,
+  previous,
+}: {
+  dossier: Dossier;
+  previous: boolean;
+}) {
   const [search, setSearch] = useState("");
   const data = previous ? dossier.previous : dossier.current;
   if (!data)
@@ -902,4 +956,4 @@ function SnapshotTable({ dossier, previous }: { dossier: Dossier; previous: bool
       />
     </div>
   );
-}
+});

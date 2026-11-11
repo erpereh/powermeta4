@@ -31,6 +31,7 @@ import {
 } from "./readonly-audit-model";
 import { AuditStore, type AuditPublication, type AuditRunStatus } from "./readonly-audit-store";
 import { assertAuditBindings } from "./readonly-audit-bindings";
+import { auditMethodReferences, type AuditMethod } from "./readonly-audit-methods";
 
 export type AuditConnection = {
   context: readonly string[];
@@ -38,7 +39,12 @@ export type AuditConnection = {
   close: () => Promise<unknown>;
   monitor?: () => Promise<{ categories: string[]; blocked: boolean }>;
 };
-type Sources = { sources: { file: string; sha256: string }[]; candidates: string[]; code: string };
+type Sources = {
+  sources: { file: string; sha256: string }[];
+  candidates: string[];
+  code: string;
+  methods?: AuditMethod[];
+};
 export type AuditRunnerDeps = {
   root: string;
   connect: (appName: string) => Promise<AuditConnection>;
@@ -94,6 +100,7 @@ async function sourceInventory(root: string, signal?: AbortSignal): Promise<Sour
   );
   const sources: Sources["sources"] = [];
   const candidates = new Set<string>();
+  const methods = new Map<string, AuditMethod>();
   const walk = async (directory: string, source: boolean) => {
     for (const file of await readdir(directory, { withFileTypes: true })) {
       if (signal?.aborted) throw new AuditFailure("INTERRUPTED");
@@ -114,6 +121,8 @@ async function sourceInventory(root: string, signal?: AbortSignal): Promise<Sour
       if (source) {
         sources.push({ file: fileName, sha256: digest(bytes) });
         for (const ref of parseMeta4References(bytes.toString("utf8"))) candidates.add(ref.object);
+        for (const method of auditMethodReferences(bytes.toString("utf8")))
+          methods.set(JSON.stringify(method), method);
       } else codeParts.push(`${fileName}:${digest(bytes)}`);
     }
   };
@@ -136,6 +145,7 @@ async function sourceInventory(root: string, signal?: AbortSignal): Promise<Sour
   return {
     sources,
     candidates: [...candidates].sort(),
+    methods: [...methods.values()],
     code: digest(JSON.stringify([codeParts.sort(), sources])),
   };
 }
@@ -431,12 +441,12 @@ export async function runReadonlyAudit(
     soap,
   });
   const persist = () => {
-    store.publish(state, publication());
+    return store.publish(state, publication());
   };
-  const setPhase = (value: string) => {
+  const setPhase = async (value: string) => {
     phase = value;
     log(`Fase: ${value}.`);
-    persist();
+    await persist();
   };
   const heartbeat = setInterval(() => {
     const sql = executor?.progress();
@@ -446,15 +456,19 @@ export async function runReadonlyAudit(
     );
   }, options.heartbeatMs ?? L.heartbeatMs);
   const publisher = setInterval(() => {
-    try {
-      persist();
-      log("Resultados parciales guardados.");
-    } catch {
-      reason = "OUTPUT_WRITE_FAILED";
-      status = "failed";
-      tasks.push({ id: "publication", status: "error", code: reason });
-      control.abort();
-    }
+    if (store.publishing) return;
+    void persist().then(
+      () => {
+        log("Resultados parciales guardados.");
+      },
+      (error: unknown) => {
+        reason = "OUTPUT_WRITE_FAILED";
+        status = "failed";
+        tasks.push({ id: "publication", status: "error", code: reason });
+        log(`Publicación detenida: ${auditErrorCode(error)}.`);
+        control.abort();
+      },
+    );
   }, options.publishMs ?? L.publishMs);
   let monitorRunning: Promise<void> | undefined;
   let lastMonitor = 0;
@@ -489,9 +503,9 @@ export async function runReadonlyAudit(
   let wsdlWork: Promise<void> | undefined;
   let wsdlStopped = false;
   try {
-    store.restorePublished();
-    persist();
-    setPhase("fuentes");
+    await store.restorePublished();
+    await persist();
+    await setPhase("fuentes");
     try {
       sources = await abortable(deps.sources(signal), signal, () => {
         forceExit = true;
@@ -541,7 +555,7 @@ export async function runReadonlyAudit(
       },
       () => signal.aborted || wsdlStopped,
     );
-    setPhase("conexión SQL");
+    await setPhase("conexión SQL");
     const connectTimeout = AbortSignal.timeout(options.connectionMs ?? L.connectionMs);
     const connectSignal = AbortSignal.any([signal, connectTimeout]);
     let connectSettled = signal.aborted;
@@ -622,6 +636,7 @@ export async function runReadonlyAudit(
               context,
             ),
           onBatch: (entry) => store.append(entry),
+          methods: sources.methods,
           onProgress: (value) => {
             progress = value;
           },
@@ -635,7 +650,7 @@ export async function runReadonlyAudit(
     phase = "WSDL";
     log("Fase: WSDL y consolidación de contratos.");
     await wsdlWork;
-    setPhase("guardado");
+    await setPhase("guardado");
     status =
       reason === "OUTPUT_WRITE_FAILED"
         ? "failed"
@@ -691,13 +706,20 @@ export async function runReadonlyAudit(
       reason ??= "CANCEL_UNCONFIRMED";
     }
     try {
-      persist();
-    } catch {
+      await persist();
+    } catch (error) {
       status = "failed";
       reason = "OUTPUT_WRITE_FAILED";
+      log(`Causa de almacenamiento: ${auditErrorCode(error)}.`);
       log("OUTPUT_WRITE_FAILED; se conserva la última generación válida y el diario.");
     } finally {
-      store.close();
+      try {
+        store.close();
+      } catch (error) {
+        status = "failed";
+        reason = "OUTPUT_WRITE_FAILED";
+        log(`Cierre del diario: ${auditErrorCode(error)}.`);
+      }
     }
   }
   const errors = [...tasks, ...state.tasks].filter((task) => task.status === "error").length;

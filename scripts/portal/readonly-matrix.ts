@@ -1,6 +1,11 @@
 import { getPortalMenuLocation, PORTAL_FEATURES } from "../../src/lib/portal/registry";
 import type { PortalFeature } from "../../src/lib/portal/types";
-import { vmCoverageLabel, vmEvidenceLabel, type ReadonlyVmEvidence } from "./readonly-vm-evidence";
+import {
+  staticEvidenceLabel,
+  vmCoverageLabel,
+  vmEvidenceLabel,
+  type ReadonlyVmEvidence,
+} from "./readonly-vm-evidence";
 
 const cell = (value: string) => value.replaceAll("|", " / ").replaceAll("\n", " ");
 const menu = (feature: PortalFeature) => {
@@ -102,7 +107,7 @@ export function readonlyMatrix(evidence: ReadonlyVmEvidence | null = null): stri
     "",
     "## Contratos, lectores, permisos y carencias por apartado",
     "",
-    "| Función / apartado | Fuentes y variante | Ítems / controles | Lector y alcance | Contrato / carencia | Código / DEBUG / VM |",
+    "| Función / apartado | Fuentes y variante | Ítems / controles | Lector y alcance | Contrato / carencia | Implementación / DEBUG / contraste estático / histórico y VM |",
     "| --- | --- | --- | --- | --- | --- |",
   );
   for (const feature of PORTAL_FEATURES) {
@@ -120,7 +125,7 @@ export function readonlyMatrix(evidence: ReadonlyVmEvidence | null = null): stri
           ? spec.read.detail
           : `Tablas: ${spec.read.kind === "sql" ? spec.read.tables.join(", ") : "SOAP"}. Contrastar columnas, filtros y permisos efectivos.`;
       lines.push(
-        `| \`${feature.id}/${spec.id}\` · ${cell(spec.title)} | ${cell(feature.sources.join(", "))}; ${feature.availableIn?.join(", ") ?? "BASE/CYC/IBER/COLL"} | ${cell(spec.fields.map((field) => `${field.label} (${field.item ?? "sin ítem"})`).join("; "))} | ${spec.reader}; ${spec.query?.scope ?? (feature.profile === "responsable" ? "equipo / contrato pendiente" : "identidad propia / contrato pendiente")} | \`${cell(spec.meta4)}\`. ${cell(dependency)} | ${spec.reader === "dependency" ? "Dependencia" : "Preparado"} / ${spec.fields.some((field) => field.item) ? "muestra de presentación" : "sin estructura"} / ${cell(vmEvidenceLabel(evidence, feature, spec))} |`,
+        `| \`${feature.id}/${spec.id}\` · ${cell(spec.title)} | ${cell(feature.sources.join(", "))}; ${feature.availableIn?.join(", ") ?? "BASE/CYC/IBER/COLL"} | ${cell(spec.fields.map((field) => `${field.label} (${field.item ?? "sin ítem"})`).join("; "))} | ${spec.reader}; ${spec.query?.scope ?? (feature.profile === "responsable" ? "equipo / contrato pendiente" : "identidad propia / contrato pendiente")} | \`${cell(spec.meta4)}\`. ${cell(dependency)} | ${spec.reader === "dependency" ? "Dependencia" : "Preparado"} / ${spec.fields.some((field) => field.item) ? "muestra de presentación" : "sin estructura"} / ${cell(staticEvidenceLabel(evidence, spec.query))} / ${cell(vmEvidenceLabel(evidence, feature, spec))} |`,
       );
     }
     if (!specs.length)

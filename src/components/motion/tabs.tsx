@@ -351,21 +351,14 @@ export function TabsContent({ value, children, className }: { value: string; chi
   const { value: current } = useTabs();
   const reduce = useReducedMotion();
   const active = current === value;
-  // Inactive panels stay mounted but hidden, so their content (e.g. source
-  // code) is present in the server-rendered HTML for crawlers and assistive
-  // tech, instead of being dropped from the DOM.
-  if (!active) {
-    return (
-      <div hidden className={className}>
-        {children}
-      </div>
-    );
-  }
+  // Keep the same host type when hidden: switching div/motion.div remounts
+  // descendants and discards drafts, filters and table state.
   return (
     <motion.div
       key={value}
+      hidden={!active}
       initial={{ opacity: 0, y: reduce ? 0 : 4 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: reduce ? 0 : 4 }}
       transition={{ duration: 0.18, ease: EASE_OUT }}
       className={cn("mt-4", className)}
     >
