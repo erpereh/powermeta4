@@ -1,6 +1,34 @@
 # Changelog
 
-## 2026-11-11 - Corrección del diagnóstico con evidencias reales
+## 2026-11-11 - Nueva evidencia VM, contratos SQL y cobertura sin descarte
+
+- Verificado el diccionario Git LFS completo (111.792.981 bytes, tamaño y SHA-256
+  coincidentes) y los hashes de la nueva generación: 98,2 s, 2.740 consultas,
+  819 contratos y nueve WSDL. De 291 combinaciones SQL, 276 correctas, cinco
+  fallidas y diez diferidas; los seis archivos se conservan sin cambios.
+- Correspondencias físicas confirmadas aplicadas a contratos, preferencias y las
+  dos consultas de objetivos, conservando alias, filtros y autorización. La
+  localidad del certificado usa STD_N_GEO_PLACESP; SSP_LG_ENT_ADDRESS permanece
+  pendiente y se prioriza para la siguiente extracción, sin suponer otra tabla.
+- Eliminado el corte que descartaba referencias a partir de 5.000. Se conserva
+  toda referencia descubierta con los presupuestos temporales y la reanudación
+  existente. Los sondeos diferidos se registran como incompletos con su motivo.
+- Revisión y matriz distinguen el recorte histórico, los fallos ejecutados y las
+  tareas diferidas. Las consultas modificadas necesitan un nuevo sondeo VM.
+  Diccionario validado/analizado una vez, sin clonar sus filas, e índice reutilizado;
+  un puntero LFS sin descargar produce un mensaje explícito. Pruebas con fixtures
+  pequeños separadas de la comprobación del archivo completo.
+- 82 pruebas dirigidas en ocho archivos correctas, typecheck y portal:docs
+  ejecutados. Otra ejecución VM y los contratos pendientes siguen siendo necesarios.
+- Suite completa repetida con dos procesos: 213 archivos, 1.303 correctas, nueve
+  fallidas y dos omitidas. Se reproducen tres fallos DEBUG conocidos; además,
+  cuatro timeouts de Cuadre y dos incidencias de Excel nativo en archivos sin cambios.
+  Cuadre aislado con 15 s conserva un timeout (seis correctas); no se altera su configuración.
+- Build correcto (44 páginas); lint conserva siete avisos y formato pendiente
+  en 620 archivos. Diff/estado y hashes revisados, rama davidev conservada, sin
+  commits/push ni cambios en las seis evidencias. Inventario real: 20 archivos.
+
+## 2026-11-11 - Primera corrección del diagnóstico con evidencias reales
 
 - Analizada la generación VM fallida: 24,3 s, 271 consultas, 7.541 apartados y
   3.383 referencias pendientes; sin columnas publicadas ni sondeos. Se mantienen

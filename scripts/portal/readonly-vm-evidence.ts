@@ -21,6 +21,17 @@ const manifestSchema = z
       .regex(/^[A-Z][A-Z0-9_]*$/)
       .nullable(),
     durationMs: z.number(),
+    tasks: z
+      .array(
+        z
+          .object({
+            id: z.string(),
+            status: z.enum(["ok", "error", "incomplete"]),
+            code: z.string().optional(),
+          })
+          .passthrough(),
+      )
+      .default([]),
     sources: z.array(z.object({ file: z.string(), sha256: z.string().regex(/^[a-f0-9]{64}$/) })),
     coverage: z.object({
       seedObjects: z.array(technical),
@@ -28,9 +39,6 @@ const manifestSchema = z
       unvisited: z.array(z.object({ key: z.string(), value: technical })),
     }),
   })
-  .passthrough();
-const dictionarySchema = z
-  .object({ tables: z.record(z.array(z.record(z.unknown()))) })
   .passthrough();
 const probesSchema = z
   .object({
@@ -61,7 +69,7 @@ const contractsSchema = z
   .passthrough();
 export type ReadonlyVmEvidence = {
   manifest: z.infer<typeof manifestSchema>;
-  dictionary: z.infer<typeof dictionarySchema>;
+  dictionary: { tables: Record<string, Record<string, unknown>[]> };
   probes: z.infer<typeof probesSchema>["probes"];
   contracts: z.infer<typeof contractsSchema>;
   normalizedLineEndings: boolean;
@@ -76,13 +84,47 @@ export function loadReadonlyVmEvidence(directory: string): ReadonlyVmEvidence | 
     AUDIT_FILES.map((file) => [file, readFileSync(path.join(directory, file), "utf8")]),
   );
   const checked = verifyAuditArtifacts(files);
+  const manifest = manifestSchema.parse(checked.documents.get("manifest.json"));
+  const taskById = new Map(manifest.tasks.map((task) => [task.id, task]));
+  const probes = probesSchema.parse(checked.documents.get("probes.json")).probes.map((probe) => {
+    const task = taskById.get(`probe/${probe.organization}/${probe.queryHash.slice(0, 12)}`);
+    // Las generaciones anteriores atribuían error a las sociedades diferidas.
+    // Solo se corrige la interpretación: los archivos y hashes siguen intactos.
+    return probe.status === "error" && task?.status === "incomplete"
+      ? { ...probe, status: "incomplete" as const, code: task.code ?? "NOT_EXECUTED" }
+      : probe;
+  });
   return {
-    manifest: manifestSchema.parse(JSON.parse(files.get("manifest.json") ?? "null")),
-    dictionary: dictionarySchema.parse(JSON.parse(files.get("dictionary.json") ?? "null")),
-    probes: probesSchema.parse(JSON.parse(files.get("probes.json") ?? "null")).probes,
-    contracts: contractsSchema.parse(JSON.parse(files.get("contracts.json") ?? "null")),
+    manifest,
+    dictionary: checked.dictionary,
+    probes,
+    contracts: contractsSchema.parse(checked.documents.get("contracts.json")),
     normalizedLineEndings: checked.normalizedLineEndings,
   };
+}
+
+const dictionaryIndexes = new WeakMap<
+  ReadonlyVmEvidence["dictionary"]["tables"],
+  Map<string, number>
+>();
+function t3Index(evidence: ReadonlyVmEvidence): ReadonlyMap<string, number> {
+  const tables = evidence.dictionary.tables;
+  let index = dictionaryIndexes.get(tables);
+  if (!index) {
+    index = new Map();
+    for (const key of Object.keys(tables)) {
+      const object = /\/ID_T3\/([^/]+)$/.exec(key)?.[1];
+      if (object) index.set(object, (index.get(object) ?? 0) + 1);
+    }
+    dictionaryIndexes.set(tables, index);
+  }
+  return index;
+}
+
+export function vmCoverageLabel(evidence: ReadonlyVmEvidence): string {
+  return evidence.manifest.tasks.some((task) => task.code === "REFERENCE_LIMIT")
+    ? "desconocidas por recorte de referencias (REFERENCE_LIMIT); el cero registrado no acredita cierre"
+    : String(evidence.manifest.coverage.unvisited.length);
 }
 
 const queryHash = (query: PortalSqlQuery) =>
@@ -117,6 +159,11 @@ export function vmEvidenceLabel(
     const ok = probes.filter((probe) => probe.status === "ok" && probe.records !== null).length;
     return `${prefix}${ok}/${Math.max(probes.length, queryCount * 3)} sondeos SQL correctos; permisos efectivos y paridad visual pendientes`;
   }
+  if (
+    section?.query &&
+    evidence.probes.some((probe) => probe.feature === feature.id && probe.consult === section.id)
+  )
+    return `${prefix}sentencia modificada; nuevo sondeo VM pendiente; permisos efectivos y paridad visual pendientes`;
   if (previous.kind === "soap") {
     const wsdl = evidence.contracts.soap.find((row) => row.service === previous.service);
     if (wsdl?.status === 200 && !wsdl.issues.length)
@@ -127,9 +174,8 @@ export function vmEvidenceLabel(
     : collectMeta4References([feature])
         .filter((ref) => ref.usage.includes("read"))
         .map((ref) => ref.object);
-  const found = [...new Set(roots)].filter((root) =>
-    Object.keys(evidence.dictionary.tables).some((key) => key.endsWith(`/ID_T3/${root}`)),
-  );
+  const index = t3Index(evidence);
+  const found = [...new Set(roots)].filter((root) => index.has(root));
   return `${prefix}${found.length ? `diccionario parcial de ${found.length} objeto(s)` : "sin contrato confirmado por esta evidencia"}; sondeos de esta función no realizados (${evidence.manifest.status})`;
 }
 
@@ -160,9 +206,9 @@ export function readonlyEvidenceReview(
     "",
     "> Generado por `npm run portal:docs`. Solo lee metadatos versionados y originales locales.",
     "",
-    `Generación: \`${m.generationId}\`. Revisión analizada: \`${m.revision ?? "desconocida"}\`. Estado: **${m.status}**. Motivo: \`${m.reason ?? "fin de tareas"}\`. Duración: ${(m.durationMs / 1000).toFixed(1)} s.`,
+    `Generación: \`${m.generationId}\`. Revisión analizada: \`${m.revision ?? "desconocida"}\`. Estado: **${m.status}**. Motivo: \`${m.reason ?? (m.tasks.some((task) => task.code === "REFERENCE_LIMIT") ? "REFERENCE_LIMIT y contratos pendientes" : "fin de tareas")}\`. Duración: ${(m.durationMs / 1000).toFixed(1)} s.`,
     `Los cinco hashes y los identificadores de generación se han verificado${evidence.normalizedLineEndings ? " normalizando exclusivamente CRLF a LF" : " sobre los bytes guardados"}. No se han recalculado hashes ni cambiado las evidencias.`,
-    `Referencias procesadas: ${m.coverage.visited.length}; pendientes: ${m.coverage.unvisited.length}. Contratos de tablas publicados: ${Object.keys(evidence.contracts.columns).length}; sondeos guardados: ${evidence.probes.length}.`,
+    `Referencias procesadas: ${m.coverage.visited.length}; pendientes: ${vmCoverageLabel(evidence)}. Contratos de tablas publicados: ${Object.keys(evidence.contracts.columns).length}; atribuciones de sondeos guardadas: ${evidence.probes.length}.`,
     "",
     "Una referencia o un nodo encontrados acreditan metadatos. No acreditan compatibilidad SQL, fórmulas, permisos efectivos ni presentación del portal. Las integraciones anteriores se conservan.",
     "",
@@ -171,6 +217,17 @@ export function readonlyEvidenceReview(
     "| Área / objeto | Fuentes originales con la referencia y hash verificado | Nodos / apartados de diccionario | Lecturas registradas / estado |",
     "| --- | --- | --- | --- |",
   ];
+  const uniqueProbes = [
+    ...new Map(
+      evidence.probes.map((probe) => [`${probe.organization}/${probe.queryHash}`, probe]),
+    ).values(),
+  ];
+  lines.splice(
+    9,
+    0,
+    `Combinaciones únicas de consulta y sociedad: ${uniqueProbes.length}; correctas: ${uniqueProbes.filter((probe) => probe.status === "ok").length}; fallidas: ${uniqueProbes.filter((probe) => probe.status === "error").length}; diferidas/no ejecutadas: ${uniqueProbes.filter((probe) => probe.status === "incomplete").length}. La interpretación de las tareas diferidas conserva los seis archivos originales.`,
+    "",
+  );
   const originalBase = path.resolve(root, "clon_portal/portal");
   const sourceDetails: string[] = [];
   const originals = evidence.manifest.sources.flatMap((source) => {
@@ -224,9 +281,7 @@ export function readonlyEvidenceReview(
     const sources = originals.filter((source) => source.objects.has(object));
     const hashed = sources.filter((source) => source.vmHash).length;
     const nodes = evidence.dictionary.tables[`M4RCH_NODES/ID_T3/${object}`] ?? [];
-    const buckets = Object.keys(evidence.dictionary.tables).filter((key) =>
-      key.endsWith(`/ID_T3/${object}`),
-    ).length;
+    const buckets = t3Index(evidence).get(object) ?? 0;
     const sections = features.flatMap((feature) =>
       (feature.sections ?? []).flatMap((section) =>
         section.kind === "consult" &&
@@ -299,7 +354,11 @@ export function readonlyEvidenceReview(
     ...sourceDetails,
     "## Cierre pendiente",
     "",
-    `${["failed", "interrupted", "running"].includes(m.status) || m.coverage.unvisited.length || !evidence.probes.length ? "Repetir `npm run portal:readonly-audit` en la VM con el ejecutor corregido. " : "La ejecución permite revisar los sondeos disponibles; estudiar sus fallos y dependencias antes de decidir otra extracción. "}Mantener los seis archivos de esta generación. Revisar columnas y sondeos por sociedad y alcance; no marcar lectores nuevos como validados a partir de metadatos parciales.`,
+    "Las cuatro consultas corregidas (contratos, preferencias registradas y las dos lecturas de objetivos) conservan sus alias de presentación. Su estado VM se atribuye por la sentencia actual: una versión modificada sin sondeo coincidente queda pendiente en la matriz. La columna física de localidad del certificado es STD_N_GEO_PLACESP; el lector mantiene la dependencia explícita de SSP_LG_ENT_ADDRESS hasta confirmar su correspondencia física, sin sustituir tablas por semejanza de nombres.",
+    "",
+    "Experiencia de conocimientos, criterios, competencias/GAP y presupuesto conservan sus dependencias explícitas: disponer de nodos no completa sus reglas, cálculos ni autorizaciones.",
+    "",
+    `${m.status !== "complete" || m.coverage.unvisited.length || !evidence.probes.length ? "Repetir `npm run portal:readonly-audit` en la VM con el ejecutor corregido. " : "La ejecución permite revisar los sondeos disponibles; estudiar sus fallos y dependencias antes de decidir otra extracción. "}Mantener los seis archivos de esta generación. Revisar columnas y sondeos por sociedad y alcance; no marcar lectores nuevos como validados a partir de metadatos parciales.`,
     "",
   );
   return lines.join("\n");

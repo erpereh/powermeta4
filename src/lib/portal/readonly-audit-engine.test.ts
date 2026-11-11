@@ -48,6 +48,82 @@ function metadataFixture() {
 }
 
 describe("planificación eficiente de metadatos", () => {
+  it("resuelve los contratos explícitos de direcciones antes de confirmar candidatos heurísticos", async () => {
+    const order: string[] = [];
+    const adapter: AuditRead = async (statement, _params, meta) => {
+      if (statement.includes("TABLE_CONSTRAINTS")) return [];
+      if (statement.includes("INFORMATION_SCHEMA"))
+        return [
+          { TABLE_NAME: "M4RDC_LOGIC_OBJECT", COLUMN_NAME: "ID_OBJECT", DATA_TYPE: "varchar" },
+          { TABLE_NAME: "M4RCH_T3S", COLUMN_NAME: "ID_T3", DATA_TYPE: "varchar" },
+        ];
+      order.push(meta?.id ?? "unknown");
+      return [];
+    };
+    const feature = {
+      ...PORTAL_FEATURES[0],
+      id: "empleado.retribucion.certificados",
+      sections: [],
+    };
+    const result = await collectReadonlyAudit([feature], adapter, ["HEURISTIC_OBJECT"]);
+    const contract = order.findIndex((id) => id.includes("M4RDC_LOGIC_OBJECT/ID_OBJECT"));
+    const heuristic = order.findIndex((id) => id.startsWith("confirm/"));
+    expect(contract).toBeGreaterThanOrEqual(0);
+    expect(heuristic).toBeGreaterThan(contract);
+    expect(result.coverage.visited).toContain("ID_OBJECT/SSP_LG_ENT_ADDRESS");
+    expect(result.tasks).toContainEqual({
+      id: "ID_OBJECT/SSP_LG_ENT_ADDRESS",
+      status: "incomplete",
+      code: "DEFINITION_NOT_FOUND",
+    });
+  });
+  it("consolida más de 5000 referencias y recupera la frontera tras una interrupción", async () => {
+    const controller = new AbortController();
+    const entries = new Map<string, AuditCacheEntry>();
+    const adapter: AuditRead = async (statement, params = {}) => {
+      if (statement.includes("TABLE_CONSTRAINTS"))
+        return [{ TABLE_NAME: "M4RCH_NODES", CONSTRAINT_NAME: "PK_NODES", COLUMN_NAME: "ID_NODE" }];
+      if (statement.includes("INFORMATION_SCHEMA"))
+        return [
+          ...["ID_T3", "ID_TI", "ID_NODE"].map((COLUMN_NAME) => ({
+            TABLE_NAME: "M4RCH_NODES",
+            COLUMN_NAME,
+            DATA_TYPE: "varchar",
+          })),
+          { TABLE_NAME: "M4RCH_TIS", COLUMN_NAME: "ID_TI", DATA_TYPE: "varchar" },
+        ];
+      if (
+        statement.includes("[M4RCH_NODES]") &&
+        Object.values(params).includes("SSE_BFT_EE_BNFT_ELEC")
+      ) {
+        const offset = typeof params.offset === "number" ? params.offset : 0;
+        return Array.from({ length: Math.min(2000, Math.max(0, 5005 - offset)) }, (_, index) => ({
+          ID_T3: "SSE_BFT_EE_BNFT_ELEC",
+          ID_NODE: `NODE_${offset + index}`,
+          ID_TI: `TI_${offset + index}`,
+        }));
+      }
+      if (statement.includes("[M4RCH_TIS]"))
+        return Object.values(params).flatMap((value) =>
+          typeof value === "string" && value.startsWith("TI_") ? [{ ID_TI: value }] : [],
+        );
+      return [];
+    };
+    const partial = await collectReadonlyAudit([], adapter, [], {
+      signal: controller.signal,
+      onBatch: (entry) => {
+        entries.set(entry.key, entry);
+        if (entry.references.length > 5000) controller.abort();
+      },
+    });
+    expect(partial.coverage.unvisited.length).toBeGreaterThan(5000);
+    expect(partial.coverage.unvisited).toContainEqual({ key: "ID_TI", value: "TI_5004" });
+    const resumed = await collectReadonlyAudit([], adapter, [], { onSchema: async () => entries });
+    expect(resumed.coverage.visited.length).toBeGreaterThan(5000);
+    expect(resumed.coverage.visited).toContain("ID_TI/TI_5004");
+    expect(resumed.coverage.unvisited).toEqual([]);
+    expect(resumed.tasks.some((task) => task.code === "REFERENCE_LIMIT")).toBe(false);
+  });
   it("un timeout al confirmar T3 no se convierte en una ausencia cacheada", async () => {
     let confirmations = 0;
     const read: AuditRead = async (statement) => {
@@ -170,7 +246,9 @@ describe("planificación eficiente de metadatos", () => {
         entries.push(entry);
       },
     });
-    expect(failedQueries).toBe(2);
+    // Un timeout del contrato prioritario y dos lotes ya activos en la oleada
+    // siguiente. La familia se difiere antes de iniciar el tercer lote.
+    expect(failedQueries).toBe(3);
     expect(result.tasks.some((task) => task.code === "FAMILY_DEFERRED")).toBe(true);
     expect(entries.every((entry) => entry.rows.length > 0)).toBe(true);
     expect(JSON.stringify(result)).not.toContain("PRIVATE_SECRET");
@@ -190,6 +268,38 @@ describe("planificación eficiente de metadatos", () => {
 });
 
 describe("sondeos compartidos y normalización SQL", () => {
+  it("solo atribuye error a consultas ejecutadas y conserva el motivo de las diferidas", async () => {
+    let executions = 0;
+    const adapter: AuditRead = async (statement, _params, meta) => {
+      if (statement.includes("INFORMATION_SCHEMA"))
+        return [
+          { TABLE_NAME: "M4ORO_EMPLEADOS", COLUMN_NAME: "ID_EMPLEADO", DATA_TYPE: "varchar" },
+        ];
+      if (meta?.kind === "private") return [{ ID_EMPLEADO: "PRIVATE_MEMORY_ONLY" }];
+      if (meta?.kind === "probe") {
+        executions++;
+        throw Object.assign(new Error("PRIVATE_SERVER_MESSAGE"), { number: 207 });
+      }
+      return [];
+    };
+    const original = PORTAL_FEATURES.find(
+      (feature) => feature.id === "empleado.talento.formacion-realizada",
+    );
+    if (!original) throw new Error("Missing query fixture");
+    const result = await collectReadonlyAudit([original], adapter);
+    expect(executions).toBe(1);
+    expect(result.probes.find((probe) => probe.organization === "CYC")).toMatchObject({
+      status: "error",
+      code: "SQL_207",
+    });
+    for (const organization of ["IBER", "COLL"])
+      expect(result.probes.find((probe) => probe.organization === organization)).toMatchObject({
+        status: "incomplete",
+        code: "FAMILY_DEFERRED",
+        records: null,
+      });
+    expect(JSON.stringify(result)).not.toMatch(/PRIVATE_MEMORY_ONLY|PRIVATE_SERVER_MESSAGE/);
+  });
   it("ejecuta cada sentencia una vez por sociedad y conserva todas sus pantallas", async () => {
     const counts: string[] = [];
     const cache: AuditCacheEntry[] = [];

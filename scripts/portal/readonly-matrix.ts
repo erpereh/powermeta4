@@ -1,6 +1,6 @@
 import { getPortalMenuLocation, PORTAL_FEATURES } from "../../src/lib/portal/registry";
 import type { PortalFeature } from "../../src/lib/portal/types";
-import { vmEvidenceLabel, type ReadonlyVmEvidence } from "./readonly-vm-evidence";
+import { vmCoverageLabel, vmEvidenceLabel, type ReadonlyVmEvidence } from "./readonly-vm-evidence";
 
 const cell = (value: string) => value.replaceAll("|", " / ").replaceAll("\n", " ");
 const menu = (feature: PortalFeature) => {
@@ -52,6 +52,13 @@ export function readonlyMatrix(evidence: ReadonlyVmEvidence | null = null): stri
     "| Menú exacto | URL reproducible | Persona / escenario | Acciones y filtros | Resultado esperado en DEBUG | Implementación / prueba DEBUG / VM |",
     "| --- | --- | --- | --- | --- | --- |",
   ];
+  if (evidence)
+    lines.splice(
+      4,
+      0,
+      `Evidencia VM: ${evidence.manifest.generationId}; estado ${evidence.manifest.status}; referencias pendientes: ${vmCoverageLabel(evidence)}. Consultar revision-evidencias-vm.md para los sondeos únicos y sus tareas diferidas.`,
+      "",
+    );
   for (const feature of PORTAL_FEATURES) {
     const specs = consults(feature);
     const known = specs.filter((spec) => spec.reader !== "dependency");

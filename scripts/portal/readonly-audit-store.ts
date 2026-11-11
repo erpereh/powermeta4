@@ -41,24 +41,75 @@ export const AUDIT_FILES = [
 export const canonicalAuditText = (value: string): string => value.replace(/\r\n/g, "\n");
 const auditHash = (value: string) => digest(canonicalAuditText(value));
 
+// Valida la forma sin clonar millones de valores del diccionario LFS.
+function isDictionaryTables(value: unknown): value is Record<string, AuditRow[]> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.values(value).every(
+      (rows: unknown) =>
+        Array.isArray(rows) &&
+        rows.every(
+          (row: unknown) =>
+            typeof row === "object" &&
+            row !== null &&
+            !Array.isArray(row) &&
+            Object.values(row).every(
+              (field: unknown) =>
+                field === null ||
+                typeof field === "string" ||
+                (typeof field === "number" && Number.isFinite(field)),
+            ),
+        ),
+    )
+  );
+}
+const dictionarySchema = z
+  .object({
+    tables: z.custom<Record<string, AuditRow[]>>(isDictionaryTables),
+    referencesInRules: z.array(z.string()),
+    symbols: z.array(z.string().regex(identifier)).optional(),
+  })
+  .passthrough();
+
+function parseAuditJson(body: string): unknown {
+  if (body.trimStart().startsWith("version https://git-lfs.github.com/spec/v1")) {
+    const error = new AuditFailure("EVIDENCE_LFS_POINTER");
+    error.message += ": falta descargar el contenido Git LFS; ejecutar git lfs pull y repetir.";
+    throw error;
+  }
+  try {
+    return JSON.parse(body);
+  } catch {
+    throw new AuditFailure("GENERATION_INVALID");
+  }
+}
+
 /** Valida las seis salidas sin convertir diferencias de contenido en hashes nuevos. */
 export function verifyAuditArtifacts(bodies: ReadonlyMap<string, string>): {
   generationId: string;
   normalizedLineEndings: boolean;
+  documents: ReadonlyMap<string, unknown>;
+  dictionary: z.infer<typeof dictionarySchema>;
 } {
+  const documents = new Map<string, unknown>();
   const manifest = z
     .object({
       formatVersion: z.literal(2),
       generationId: z.string().uuid(),
       files: z.record(z.string().regex(/^[a-f0-9]{64}$/)),
-      coverage: z.object({ seedObjects: z.array(z.string()) }),
+      coverage: z.object({ seedObjects: z.array(z.string()) }).passthrough(),
     })
     .passthrough()
-    .parse(JSON.parse(bodies.get("manifest.json") ?? "null"));
+    .parse(parseAuditJson(bodies.get("manifest.json") ?? "null"));
+  documents.set("manifest.json", manifest);
   let normalizedLineEndings = false;
   for (const file of AUDIT_FILES) {
     const body = bodies.get(file);
     if (body === undefined) throw new AuditFailure("GENERATION_INVALID");
+    if (file.endsWith(".json") && file !== "manifest.json")
+      documents.set(file, parseAuditJson(body));
     if (file !== "manifest.json" && digest(body) !== manifest.files[file]) {
       if (auditHash(body) !== manifest.files[file]) throw new AuditFailure("GENERATION_INVALID");
       normalizedLineEndings = true;
@@ -67,26 +118,19 @@ export function verifyAuditArtifacts(bodies: ReadonlyMap<string, string>): {
       const header = z
         .object({ formatVersion: z.literal(2), generationId: z.string().uuid() })
         .passthrough()
-        .parse(JSON.parse(body));
+        .parse(documents.get(file));
       if (header.generationId !== manifest.generationId)
         throw new AuditFailure("GENERATION_INVALID");
     }
   }
-  const dictionary = z
-    .object({
-      tables: z.record(z.array(z.record(z.unknown()))),
-      referencesInRules: z.array(z.string()),
-      symbols: z.array(z.string().regex(identifier)).optional(),
-    })
-    .passthrough()
-    .parse(JSON.parse(bodies.get("dictionary.json") ?? "null"));
+  const dictionary = dictionarySchema.parse(documents.get("dictionary.json"));
   assertSafeDictionary(
     dictionary.tables,
     manifest.coverage.seedObjects,
     dictionary.referencesInRules,
     dictionary.symbols,
   );
-  return { generationId: manifest.generationId, normalizedLineEndings };
+  return { generationId: manifest.generationId, normalizedLineEndings, documents, dictionary };
 }
 export type AuditRunStatus = "running" | "complete" | "partial" | "interrupted" | "failed";
 export type AuditPublication = {

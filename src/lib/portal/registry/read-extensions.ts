@@ -72,6 +72,24 @@ export function extendPortalReads(feature: PortalFeature): PortalFeature {
   let sections: readonly FeatureSection[] = (feature.sections ?? []).map((section) => {
     if (section.kind !== "consult") return section;
     if (section.consult.query) {
+      if (
+        section.consult.meta4 === "SSP_RP_CERT_HAB!SSP_RP_EMPRESA" &&
+        section.consult.id === "poblacion"
+      )
+        return {
+          ...section,
+          consult: {
+            ...section.consult,
+            read: {
+              kind: "sql",
+              tables: section.consult.query.tables,
+              verified: false,
+              meta4: [section.consult.meta4],
+            },
+            description:
+              "Pendiente de resolver el objeto lógico SSP_LG_ENT_ADDRESS en la VM; la tabla física de direcciones aún no está confirmada.",
+          },
+        };
       const entry = Object.entries(TIEMPO_SQL).find(
         ([, query]) => query.statement === section.consult.query?.statement,
       );

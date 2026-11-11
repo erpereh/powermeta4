@@ -66,11 +66,17 @@ No versionar `data/`, `.env.local` ni archivos temporales. El script no realiza
 commits ni push y no solicita matrículas. Solo ejecuta SELECT revisadas y GET WSDL;
 no ejecuta APISQL extraído, SOAP, LN4, procedimientos ni escrituras en la base.
 
-La generación versionada del 2026-11-11 terminó a los 24,3 s con
-`UNSAFE_CHECKPOINT`: 271 consultas, 7.541 apartados de diccionario y 3.383
-referencias pendientes. No llegó a publicar columnas ni ejecutar sondeos. Los
-seis WSDL compatibles acreditan únicamente sus contratos publicados por GET.
-Las seis salidas originales se conservan sin recalcular hashes ni cambiar su estado.
+La generación actual `f08d12cd-b90c-4291-8f34-7089a7b2c8ea`, de 2026-11-11,
+terminó en 98,2 s: 2.740 consultas, 819 contratos de tablas, nueve WSDL compatibles
+y 435 atribuciones de sondeos a apartados. Hay 291 combinaciones únicas de consulta
+y sociedad: 276 correctas, cinco fallidas y diez diferidas. No reaparecieron
+`UNSAFE_CHECKPOINT`, errores `8016` ni timeouts. Los WSDL solo acreditan GET.
+
+Su estado es parcial: alcanzó el corte anterior de 5.000 referencias. El número
+real de pendientes es desconocido por recorte, aunque el manifiesto guarde cero.
+Las diez tareas diferidas figuran como errores en las atribuciones antiguas; la
+revisión las interpreta mediante sus tareas, sin cambiar los archivos originales.
+Los cinco hashes y los identificadores de generación son coherentes.
 
 La corrección posterior unifica saneamiento y validación, conserva los símbolos
 aprobados usados por cada lote y valida antes de publicar. Un rechazo aísla el
@@ -83,9 +89,18 @@ publica al leerlo y todos los servicios WSDL reciben estado, incluso al fallar.
 Después de actualizar **hay que repetir `npm run portal:readonly-audit` en la VM**.
 La huella del código cambiará: la caché anterior se rechazará automáticamente y
 su diario se conservará como anterior. No borrar `data/` ni ejecutar consultas
-auxiliares. Se mantienen todos los límites, la misma orden y las mismas dependencias.
+auxiliares. Se mantienen los límites temporales, la misma orden y las dependencias.
+Se elimina el descarte a 5.000 referencias: toda referencia descubierta permanece
+en la cola y en la cobertura. Los contratos registrados se recorren antes que los
+candidatos de las fuentes; `SSP_LG_ENT_ADDRESS` tiene prioridad explícita. Las
+consultas corregidas de contratos, preferencias y objetivos necesitan nuevos
+sondeos. La tabla física de direcciones del certificado sigue pendiente.
 
-Los archivos se fijan a LF con `.gitattributes`. El verificador acepta las salidas
+`dictionary.json` usa Git LFS y conserva la regla específica `-text` de
+`.gitattributes`. Se ha comprobado el archivo completo de 111.792.981 bytes y su
+SHA-256 frente al objeto LFS. Si el lector encuentra un puntero, indica que falta
+descargar el contenido mediante `git lfs pull`; no lo interpreta como diccionario.
+Los demás archivos se fijan a LF. El verificador acepta las salidas
 anteriores tras normalizar exclusivamente CRLF a LF si coinciden sus hashes
 originales; rechaza diferencias de contenido o mezclas de generaciones. La
 [revisión generada](../revision-evidencias-vm.md) distingue fuentes con hash VM

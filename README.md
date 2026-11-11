@@ -298,15 +298,28 @@ código, muestras DEBUG y validación VM. En sesión DEBUG de desarrollo, el por
 permite seleccionar persona ficticia, variante y escenario mediante URL, sin
 nueva persistencia ni alternativa ficticia ante un fallo real.
 
-La evidencia recibida el 2026-11-11 terminó con `UNSAFE_CHECKPOINT` antes de los
-sondeos. Se conserva íntegra y se contrasta en la
-[revisión de evidencias](docs/portal/implementacion/revision-evidencias-vm.md).
-El ejecutor corregido guarda lotes con símbolos autocontenidos, comprueba tipos y
-longitudes antes de consultar y conserva el esquema desde su lectura. Un lote
-rechazado queda pendiente sin detener los demás. `portal:docs` valida la generación
-y sus hashes con LF, y separa metadatos, sondeos y verificaciones anteriores en la
-matriz. Tras incorporar esta corrección, repetir la misma orden en la VM; el cambio
-de código invalidará automáticamente la caché incompatible, sin borrados manuales.
+La nueva evidencia del 2026-11-11 termina en 98,2 s: 2.740 consultas, 819 contratos
+de tablas y nueve WSDL compatibles por GET. De 291 combinaciones únicas de consulta
+y sociedad, 276 son correctas, cinco fallan y diez se difieren. El estado sigue
+siendo parcial: el ejecutor anterior descartó referencias al llegar a 5.000 y su
+cero de pendientes no acredita cierre. La [revisión de evidencias](docs/portal/implementacion/revision-evidencias-vm.md)
+explica esos resultados sin alterar los seis archivos ni sus hashes.
+
+`dictionary.json` se gestiona con Git LFS. Se ha verificado el contenido completo
+(111.792.981 bytes) y su coincidencia con el objeto LFS. El lector detecta punteros
+sin descargar y explica cómo obtenerlos; valida y analiza el diccionario una vez,
+sin duplicar sus filas en memoria. Las pruebas unitarias usan generaciones pequeñas
+y la evidencia real tiene una comprobación independiente.
+
+Se corrigen los campos físicos de contratos, preferencias y las dos consultas de
+objetivos, conservando alias, filtros y autorización. La localidad del certificado
+usa `STD_N_GEO_PLACESP`; falta resolver `SSP_LG_ENT_ADDRESS`, sin suponer una tabla.
+El diagnóstico prioriza ese objeto y los contratos registrados, conserva todas las
+referencias descubiertas bajo los presupuestos temporales y distingue los sondeos
+diferidos de errores ejecutados. Tras actualizar, repetir la misma orden en la VM:
+la nueva huella rechazará la caché incompatible automáticamente, sin borrados
+manuales. Las consultas modificadas requieren nuevos sondeos; los WSDL y recuentos
+no acreditan permisos efectivos ni paridad visual.
 
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.

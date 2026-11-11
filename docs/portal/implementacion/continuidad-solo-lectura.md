@@ -2,7 +2,119 @@
 
 Primera sesión, 2026-11-10. Se conserva la rama actual. No se han ejecutado escrituras ERP, consultas corporativas, operaciones SOAP ni métodos LN4. La sesión DEBUG usa únicamente la autenticación SQLite existente; sus muestras no crean una sesión Meta4 ni una sociedad conectada. No se guarda información del portal.
 
-## Evidencia recibida y corrección — 2026-11-11
+## Nueva evidencia y cierre local — 2026-11-11
+
+Generación `f08d12cd-b90c-4291-8f34-7089a7b2c8ea`, revisión
+`9c4e8773d52028d37fdcc1a080cff3822f042907`: 98,2 segundos, 2.740 consultas,
+819 contratos de tablas y nueve WSDL compatibles mediante GET. Los cinco hashes
+y los identificadores de generación coinciden. `dictionary.json` está completo:
+111.792.981 bytes, con tamaño y SHA-256 coincidentes con el objeto Git LFS.
+Se conservan los seis archivos de evidencia y la configuración LFS sin cambios.
+
+De 291 combinaciones únicas de consulta y sociedad, 276 son correctas, cinco
+fallaron y diez se difirieron. Sus 435 atribuciones a apartados se interpretan
+desde las tareas: 414 correctas, siete fallidas y catorce diferidas. No se han
+ejecutado servicios corporativos en esta máquina. Los sondeos no acreditan
+permisos efectivos ni paridad visual; los WSDL solo acreditan el contrato GET.
+
+El diagnóstico anterior descartó referencias tras llegar a 5.000: el cero de
+pendientes guardado no permite conocer cuántas faltan. El ejecutor corregido
+conserva todas las referencias descubiertas, sujeto a los presupuestos de
+20 minutos de diccionario y 30 minutos totales. Los lotes consolidados permiten
+reanudar con la misma orden; los contratos explícitos se priorizan sobre los
+candidatos heurísticos. Las tareas diferidas se registran como incompletas.
+
+| Contrato                          | Corrección local                                            | DEBUG                        | Validación VM                                                             |
+| --------------------------------- | ----------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------- |
+| Contratos del equipo              | `SCO_DT_PROBA_END` y `SCO_DT_EXPECT_END`, alias conservados | Muestra existente conservada | Nuevo sondeo pendiente; jerarquía ORO sin cambios                         |
+| Preferencias registradas          | `SCO_CK_DISCART_PRE`, filtros conservados                   | Muestra existente conservada | Nuevo sondeo pendiente                                                    |
+| Objetivos registrados             | `SCO_NM_OBJECTESP` / `SCO_NM_MAGNITESP`, alias conservados  | Muestra existente conservada | Nuevo sondeo pendiente                                                    |
+| Objetivos pendientes / valoración | Misma corrección en la consulta compartida                  | Muestra existente conservada | Nuevo sondeo pendiente                                                    |
+| Población del certificado         | `STD_N_GEO_PLACESP`; dependencia de direcciones visible     | Muestra existente conservada | Resolver `SSP_LG_ENT_ADDRESS`; no se ha confirmado `M4SSP_LG_ENT_ADDRESS` |
+
+Experiencia de conocimientos, criterios, competencias/GAP y presupuesto siguen
+pendientes de sus contratos completos. No se infieren cálculos o permisos a partir
+de nodos ni se reescriben los lectores confirmados. La matriz conserva menú exacto,
+URL, persona, escenarios, filtros y resultado esperado de cada funcionalidad.
+
+La carga verifica y analiza cada documento JSON una vez y reutiliza un índice de
+referencias. Detecta punteros LFS sin descargar con una indicación explícita.
+Las pruebas unitarias usan generaciones ficticias pequeñas; la comprobación del
+archivo real está separada. Pasan 82 pruebas dirigidas en ocho archivos y
+typecheck; `portal:docs` se ha ejecutado. La revisión inicial con el código anterior
+dio 66 pruebas correctas y dos fallos ligados al tamaño/expectativas de la nueva
+evidencia. No se cambian las expectativas de certificados/proyecciones ajenas.
+
+Comprobaciones finales ejecutadas:
+
+- `npm test` se inició con la concurrencia predeterminada y se interrumpió tras
+  varios tiempos de espera de interfaz. La repetición completa
+  `npm test -- --maxWorkers=2` terminó: 213 archivos, **1.303 pruebas correctas,
+  nueve fallidas y dos omitidas** (1.314 en total). No se presenta como correcta.
+- Se reproducen los tres fallos ya documentados de certificados/proyecciones
+  DEBUG. Los otros seis son cuatro timeouts de 5 s en
+  `src/features/payroll-reconciliation/ReconciliationApp.test.tsx` y dos casos
+  de `src/lib/meta4/hire/excel.test.ts` (una instancia de Excel que permanecía
+  abierta y un timeout de 180 s). Esos módulos y sus pruebas no se han modificado.
+  La prueba nativa de Excel consumió 824,3 s. Se cerraron las instancias sin
+  ventana que dejaron estas comprobaciones; no quedan procesos Excel de ellas.
+- Repetición aislada de Cuadre con un proceso y timeout de 15 s: seis pruebas
+  correctas y una que también agota el límite. No se cambia la configuración
+  del proyecto ni se ocultan las incidencias aumentando sus tiempos.
+- Las 82 pruebas dirigidas vuelven a pasar con dos procesos; incluyen la
+  recuperación de más de 5.000 referencias y el contenido LFS real.
+- `npm run typecheck` y `npm run build` correctos; 44 páginas generadas. Build
+  avisa de un pnpm-lock.yaml fuera del repositorio, que no se modifica.
+- `npm run lint` y su repetición con un hilo mantienen siete avisos previos y
+  formato pendiente en 620 archivos. No se aplican reformateos generales ni se
+  alteran las evidencias para resolver el formato.
+- `npm run portal:docs` ejecutado y revisado; `git diff --check` correcto. Estado
+  Git revisado: los 20 archivos del inventario siguiente, rama `davidev`, sin
+  commits/push. Los cinco hashes originales y el objeto LFS siguen coincidiendo.
+
+**Cierre que requiere la VM:** actualizar esta corrección y ejecutar desde la raíz
+`npm run portal:readonly-audit`. No borrar cachés ni evidencias. La huella nueva
+rechazará automáticamente el diario incompatible; después, la misma orden
+reutilizará los metadatos compatibles. Revisar la próxima generación, sus errores,
+los sondeos modificados y la correspondencia de direcciones. La integración
+completa del portal continúa pendiente hasta resolver esos contratos y las
+comprobaciones efectivas de acceso y presentación.
+
+Además de ese cierre VM, siguen abiertas las incidencias de la suite global
+descritas arriba. No se atribuyen a una integración real ni se mezclan con la
+validación de las consultas corregidas.
+
+Archivos de esta entrega (20; inventario separado de las entregas históricas):
+
+```text
+README.md
+docs/portal/implementacion/continuidad-solo-lectura.md
+docs/portal/implementacion/estado.md
+docs/portal/implementacion/evidencias-vm/README.md
+docs/portal/implementacion/matriz-solo-lectura.md
+docs/portal/implementacion/revision-evidencias-vm.md
+scripts/portal/readonly-audit-engine.ts
+scripts/portal/readonly-audit-model.ts
+scripts/portal/readonly-audit-store.ts
+scripts/portal/readonly-matrix.ts
+scripts/portal/readonly-vm-evidence.ts
+spec/changelog.md
+spec/todo.md
+src/lib/portal/readonly-audit-engine.test.ts
+src/lib/portal/readonly-audit-evidence.integration.test.ts
+src/lib/portal/readonly-audit-regression.test.ts
+src/lib/portal/readonly-contracts.test.ts
+src/lib/portal/registry/read-extensions.ts
+src/lib/portal/registry/sql/certificates.ts
+src/lib/portal/registry/sql/readonly.ts
+```
+
+No se versionan datos de `data/`, temporales o credenciales. Los seis archivos
+de evidencia, `.gitattributes`, la rama y las dependencias se conservan. No se
+han realizado commits ni push. Tras la próxima ejecución VM, versionar juntos
+sus seis resultados, incluido el contenido LFS de dictionary.json.
+
+## Primera ejecución y corrección — 2026-11-11 (histórico)
 
 Se ha revisado la generación `6ad58738-2063-46d5-a804-e3a86c660d97`, tomada sobre
 `9af5cf63871cf4d88f839fe501c989def25747ec`: falló en 24,3 s con

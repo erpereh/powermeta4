@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -97,6 +97,14 @@ const info = (runId = "00000000-0000-4000-8000-000000000000"): AuditPublication 
   tasks: [],
   soap: [],
 });
+
+function evidenceFixture(root = temp(), state = emptyAuditState(), publication = info()) {
+  for (const [file, body] of Object.entries(auditArtifacts(state, publication)))
+    writeFileSync(path.join(root, file), body);
+  const evidence = loadReadonlyVmEvidence(root);
+  if (!evidence) throw new Error("Missing synthetic evidence");
+  return evidence;
+}
 
 describe("regresiones de la ejecución VM de 2026-11-11", () => {
   it("conserva solo símbolos aprobados usados y los recupera sin el contexto global", () => {
@@ -210,7 +218,7 @@ describe("regresiones de la ejecución VM de 2026-11-11", () => {
     expect(readFileSync(path.join(root, "output/manifest.json"), "utf8")).toBe(previous);
     store.close();
   });
-  it("valida CRLF y la evidencia real sin recalcular hashes ni aceptar cambios de contenido", () => {
+  it("valida CRLF sin recalcular hashes ni aceptar cambios de contenido", () => {
     const files = auditArtifacts(emptyAuditState(), info());
     const converted = new Map(
       Object.entries(files).map(([file, body]) => [file, body.replace(/\n/g, "\r\n")]),
@@ -218,15 +226,6 @@ describe("regresiones de la ejecución VM de 2026-11-11", () => {
     expect(verifyAuditArtifacts(converted).normalizedLineEndings).toBe(true);
     converted.set("probes.json", converted.get("probes.json") + " ");
     expect(() => verifyAuditArtifacts(converted)).toThrow("GENERATION_INVALID");
-    const real = new Map(
-      AUDIT_FILES.map((file) => [
-        file,
-        readFileSync(path.resolve("docs/portal/implementacion/evidencias-vm", file), "utf8"),
-      ]),
-    );
-    expect(verifyAuditArtifacts(real).generationId).toBe(
-      JSON.parse(real.get("manifest.json") ?? "null").generationId,
-    );
   });
   it("el cierre fatal deja todos los servicios WSDL con resultado o motivo", async () => {
     const root = temp();
@@ -356,10 +355,10 @@ describe("estados de evidencia y fuentes originales", () => {
     expect(() => loadReadonlyVmEvidence(root)).toThrow("EVIDENCE_INCOMPLETE");
   });
   it("la matriz distingue metadatos de sondeos y conserva la verificación anterior", () => {
-    const loaded = loadReadonlyVmEvidence(path.resolve("docs/portal/implementacion/evidencias-vm"));
-    expect(loaded).not.toBeNull();
-    if (!loaded) throw new Error("Missing fixture");
-    const evidence = { ...loaded, probes: [] };
+    const state = emptyAuditState();
+    state.coverage.seedObjects = ["SSE_H_HR_KNC_LVL"];
+    state.dictionary["M4RCH_T3S/ID_T3/SSE_H_HR_KNC_LVL"] = [{ ID_T3: "SSE_H_HR_KNC_LVL" }];
+    const evidence = evidenceFixture(temp(), state);
     const knowledge = PORTAL_FEATURES.find(
       (feature) => feature.route === "/portal/empleado/talento/conocimientos",
     )!;
@@ -389,7 +388,7 @@ describe("estados de evidencia y fuentes originales", () => {
         knowledge,
         section.consult,
       ),
-    ).toContain("sondeos de esta función no realizados");
+    ).toContain("sentencia modificada; nuevo sondeo VM pendiente");
     const verified = PORTAL_FEATURES.find(
       (feature) => feature.read.kind === "sql" && feature.read.verified,
     )!;
@@ -409,21 +408,71 @@ describe("estados de evidencia y fuentes originales", () => {
     expect(criteria.sources).toContain("mss_g3/mss_g3_p16.jsp");
   });
   it("contrasta los originales locales sin atribuirles una huella VM que no tienen", () => {
-    const evidence = loadReadonlyVmEvidence(
-      path.resolve("docs/portal/implementacion/evidencias-vm"),
-    );
-    const report = readonlyEvidenceReview(evidence, PORTAL_FEATURES, process.cwd());
-    expect(report).toContain("sse_g3_p22_body.jsp");
-    expect(report).toContain("mss_g3_p16_obj.jsp");
+    const root = temp();
+    const base = path.join(root, "clon_portal/portal");
+    mkdirSync(base, { recursive: true });
+    const original = "SSE_H_HR_KNC_LVL!SSE_H_HR_KNC_LVL";
+    for (const file of ["confirmed.jsp", "local.jsp", "changed.jsp"])
+      writeFileSync(path.join(base, file), original);
+    const evidence = evidenceFixture(root, emptyAuditState(), {
+      ...info(),
+      sources: [
+        { file: "clon_portal/portal/confirmed.jsp", sha256: digest(original) },
+        { file: "clon_portal/portal/changed.jsp", sha256: digest("previous content") },
+      ],
+    });
+    const features = [
+      { ...PORTAL_FEATURES[0], sources: ["confirmed.jsp", "local.jsp", "changed.jsp"] },
+    ];
+    const report = readonlyEvidenceReview(evidence, features, root);
+    expect(report).toContain("confirmed.jsp) · hash VM coincidente");
+    expect(report).toContain("changed.jsp) · original local;");
+    expect(report).toContain("local.jsp) · original local;");
+    expect(report).toContain("1 con hash VM coincidente, 2 locales añadidas");
     expect(report).toContain("original local; no incluido en la huella VM anterior");
     expect(report).toContain("ninguna operación SOAP ejecutada");
-    if (!evidence) throw new Error("Missing evidence fixture");
     expect(
-      readonlyEvidenceReview(
-        { ...evidence, dictionary: { tables: {} } },
-        PORTAL_FEATURES,
-        process.cwd(),
-      ),
+      readonlyEvidenceReview({ ...evidence, dictionary: { tables: {} } }, features, root),
     ).toContain("Esta generación no recupera el nodo de experiencia");
+  });
+  it("detecta un puntero LFS con instrucciones de descarga antes de interpretar JSON", () => {
+    const root = temp();
+    evidenceFixture(root);
+    writeFileSync(
+      path.join(root, "dictionary.json"),
+      "version https://git-lfs.github.com/spec/v1\noid sha256:" + "a".repeat(64) + "\nsize 1000\n",
+    );
+    expect(() => loadReadonlyVmEvidence(root)).toThrow(/EVIDENCE_LFS_POINTER.*git lfs pull/);
+  });
+  it("analiza cada documento JSON una vez y conserva el diccionario ya validado", () => {
+    const files = new Map(Object.entries(auditArtifacts(emptyAuditState(), info())));
+    const parse = vi.spyOn(JSON, "parse");
+    const checked = verifyAuditArtifacts(files);
+    expect(parse).toHaveBeenCalledTimes(5);
+    const document = checked.documents.get("dictionary.json");
+    if (!document || typeof document !== "object" || !("tables" in document))
+      throw new Error("Missing parsed dictionary");
+    expect(checked.dictionary.tables).toBe(document.tables);
+  });
+  it("interpreta las tareas diferidas y el recorte histórico sin alterar la generación", () => {
+    const state = emptyAuditState();
+    state.tasks.push(
+      { id: "reference-closure", status: "incomplete", code: "REFERENCE_LIMIT" },
+      { id: "probe/IBER/abcdef123456", status: "incomplete", code: "FAMILY_DEFERRED" },
+    );
+    state.probes.push({
+      feature: "fixture",
+      consult: "test",
+      organization: "IBER",
+      queryHash: "abcdef123456",
+      status: "error",
+      records: null,
+    });
+    const root = temp();
+    const evidence = evidenceFixture(root, state);
+    const before = AUDIT_FILES.map((file) => readFileSync(path.join(root, file), "utf8"));
+    expect(evidence.probes[0]).toMatchObject({ status: "incomplete", code: "FAMILY_DEFERRED" });
+    expect(readonlyEvidenceReview(evidence, [], root)).toContain("desconocidas por recorte");
+    expect(AUDIT_FILES.map((file) => readFileSync(path.join(root, file), "utf8"))).toEqual(before);
   });
 });

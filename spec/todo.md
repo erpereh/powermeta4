@@ -1,6 +1,34 @@
 # powermeta4 - estado de tareas
 
-## Corrección tras evidencias VM — 2026-11-11
+## Nueva evidencia VM y corrección de contratos — 2026-11-11
+
+- [x] Verificado el contenido completo Git LFS de dictionary.json (111.792.981
+      bytes, tamaño y SHA-256 del objeto coincidentes), los cinco hashes y la generación.
+- [x] Revisados los resultados: 98,2 s, 2.740 consultas, 819 contratos, nueve WSDL;
+      276 combinaciones SQL correctas, cinco fallidas y diez diferidas de 291.
+- [x] Corregidos los campos físicos de contratos, preferencias y las dos lecturas
+      de objetivos. Alias, filtros, identidad y jerarquía ORO conservados.
+- [x] Localidad del certificado corregida; correspondencia SSP_LG_ENT_ADDRESS
+      priorizada para la VM, sin inventar una tabla física ni marcarla validada.
+- [x] Eliminado el descarte a 5.000 referencias; cobertura y reanudación bajo los
+      presupuestos temporales existentes. Sondeos diferidos como incomplete.
+- [x] Revisión histórica sin alterar evidencias: pendientes desconocidos por recorte,
+      tareas diferidas separadas de fallos y nuevas sentencias pendientes de sondeo.
+- [x] Carga del diccionario sin análisis/clonado repetidos, índice reutilizado y
+      detección explícita de punteros LFS. Fixtures pequeños y comprobación real separada.
+- [x] 82 pruebas dirigidas en ocho archivos, typecheck y portal:docs correctos.
+- [x] Build correcto (44 páginas), diff y estado revisados. Suite completa con
+      dos procesos: 1.303 correctas, nueve fallidas, dos omitidas en 213 archivos.
+      Lint conserva siete avisos y 620 archivos con formato pendiente; sin reformateos generales.
+- [ ] Revisar las incidencias de comprobaciones ajenas al diagnóstico: tres fallos
+      DEBUG ya documentados, cuatro timeouts de Cuadre y dos casos nativos Excel.
+      Cuadre aislado con 15 s: seis correctas y un timeout; configuración sin cambios.
+- [ ] Recibir otra generación VM con la misma orden; revisar nuevos sondeos,
+      direcciones y cierre de referencias. Sin borrar cachés manualmente.
+- [ ] Contratos completos de experiencia, criterios, competencias/GAP y presupuesto;
+      permisos efectivos y paridad visual siguen pendientes por funcionalidad.
+
+## Primera corrección tras evidencias VM — 2026-11-11 (histórico)
 
 - [x] Verificada la generación recibida: fallo `UNSAFE_CHECKPOINT` tras 24,3 s;
       271 consultas, 7.541 apartados, 3.383 referencias pendientes y cero sondeos.

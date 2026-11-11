@@ -114,15 +114,6 @@ export async function collectReadonlyAudit(
   };
   const enqueue = (ref: AuditReference) => {
     if (!identifier.test(ref.value) || references.has(refId(ref))) return;
-    if (references.size >= L.maxReferences) {
-      if (!state.tasks.some((task) => task.id === "reference-closure"))
-        state.tasks.push({
-          id: "reference-closure",
-          status: "incomplete",
-          code: "REFERENCE_LIMIT",
-        });
-      return;
-    }
     references.set(refId(ref), { ref, status: "pending" });
   };
   const execute = async (
@@ -172,6 +163,10 @@ export async function collectReadonlyAudit(
     symbols.add(id);
     enqueue({ key: "ID_T3", value: id });
   }
+  // Contrato explícito aún sin correspondencia física: se consulta antes de
+  // ampliar el grafo por reglas. No se da por válida la tabla supuesta del lector.
+  if (features.some((feature) => feature.id === "empleado.retribucion.certificados"))
+    enqueue({ key: "ID_OBJECT", value: "SSP_LG_ENT_ADDRESS" });
   state.coverage.seedObjects = [...seeds];
   const validateEntry = (entry: AuditCacheEntry, id: string): boolean => {
     try {
@@ -409,9 +404,6 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
     );
     return next;
   };
-  if (inventory.length) await confirm(sourceCandidates);
-  for (const id of knownT3) if (!seeds.includes(id)) seeds.push(id);
-  for (const id of seeds) enqueue({ key: "ID_T3", value: id });
   state.coverage.seedObjects = seeds.sort();
   options.onPhase?.("diccionario");
   publish();
@@ -600,6 +592,8 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
     }
     if (!complete || !accepted) for (const value of job.values) failed.add(`${job.key}/${value}`);
   };
+  let sourceCandidatesQueued = false;
+  let rootWaveComplete = false;
   if (inventory.length)
     while (!dictSignal.aborted && !fatalSql) {
       const wave = [...references.values()]
@@ -617,6 +611,18 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
       await mapAuditWork(jobs, processJob, () => dictSignal.aborted || fatalSql);
       // Mantiene la cobertura del nodo/TI documentado sin confundirlo con un T3.
       for (const node of REQUIRED_READ_NODES) enqueue({ key: "ID_TI", value: node.ti });
+      // Primero los contratos del registro y sus nodos; después, los candidatos
+      // heurísticos de los originales. El presupuesto temporal limita el cierre.
+      if (rootWaveComplete && !sourceCandidatesQueued) {
+        sourceCandidatesQueued = true;
+        await confirm(sourceCandidates);
+        for (const id of knownT3) {
+          if (!seeds.includes(id)) seeds.push(id);
+          enqueue({ key: "ID_T3", value: id });
+        }
+        state.coverage.seedObjects = seeds.sort();
+      }
+      rootWaveComplete = true;
       for (const item of wave) {
         item.status =
           dictSignal.aborted || fatalSql || failed.has(refId(item.ref)) ? "failed" : "complete";
@@ -693,6 +699,7 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
           { organization, today, ...(employeeId ? { employeeId } : {}) },
           { id, family: `probe/${key}`, kind: "probe", signal: probeSignal },
         );
+        const task = state.tasks.findLast((item) => item.id === id);
         const raw = result?.[0]?.TOTAL;
         const total = typeof raw === "string" && /^\d+$/.test(raw) ? Number(raw) : raw;
         for (const use of query.uses)
@@ -700,7 +707,8 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
             ...use,
             organization,
             queryHash: key,
-            status: result ? "ok" : "error",
+            status: result ? "ok" : task?.status === "error" ? "error" : "incomplete",
+            ...(!result ? { code: task?.code ?? "NOT_EXECUTED" } : {}),
             records:
               typeof total === "number" && Number.isSafeInteger(total) && total >= 0 ? total : null,
           });

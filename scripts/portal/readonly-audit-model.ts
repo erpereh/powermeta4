@@ -67,7 +67,6 @@ export const AUDIT_LIMITS = {
   batchSize: 150,
   pageSize: 2000,
   maxPages: 100,
-  maxReferences: 5000,
   checkpointAgeMs: 24 * 60 * 60_000,
 } as const;
 export class AuditFailure extends Error {
