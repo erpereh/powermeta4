@@ -52,6 +52,27 @@ No se consideran cerradas por esta entrega las funcionalidades que necesitan reg
 
 ## Una orden en la VM
 
+Corrección del diagnóstico, 2026-11-10: se modifica únicamente el ejecutor,
+planificador, almacenamiento, pruebas y documentación. Las integraciones del
+portal y sus estados de validación VM se conservan. No se ha conectado a PeopleNet
+durante esta corrección.
+
+La causa del coste era el producto de referencias por tablas compatibles y la
+lectura inversa de nodos por TI. La prueba simulada de 71 referencias y 40 tablas
+pasa de 2.840 a **118 consultas del diccionario** (120 al incluir las dos lecturas
+de esquema), con cobertura equivalente y cero
+lecturas inversas. Se construye un índice de columnas una vez, se recorren oleadas
+deduplicadas y se consultan lotes de 150 claves con tipos/longitudes del esquema.
+Se conservan páginas de 2.000 filas; una página llena sin clave estable de
+paginación se declara incompleta. Confirmaciones T3 fallidas no se guardan como
+ausencias. Las reglas se analizan una vez por huella y nunca se ejecutan.
+
+Las 145 consultas registradas se agrupan en 97 combinaciones de sentencia y
+alcance: **291 sondeos únicos en tres sociedades frente a 435**, conservando la
+atribución a todas las pantallas. Solo se retira el `ORDER BY` exterior; se
+conservan ventanas y subconsultas. Estas cifras corresponden a pruebas locales,
+no a tiempos ni resultados medidos en la VM.
+
 Después de incorporar esta entrega en la VM, con las dependencias npm instaladas y las variables `PEOPLENET_DB_*` y `META4_BASE_URL` habituales, abrir PowerShell en:
 
 ```text
@@ -64,24 +85,104 @@ Ejecutar una sola orden, sin matrícula ni parámetros interactivos:
 npm run portal:readonly-audit
 ```
 
+Si sigue activo el diagnóstico anterior, interrumpirlo primero con Ctrl+C y
+actualizar el código por el procedimiento habitual. Su avance no consolidado en
+memoria no es recuperable. La versión corregida anuncia el inicio antes de leer
+fuentes o conectar y emite progreso cada cinco segundos. Ver los
+[pasos y límites de la VM](evidencias-vm/README.md).
+
+Presupuestos: conexión/metadatos/WSDL de 15 s; sondeos de 30 s; diccionario de
+20 min, sondeos de 8 min y ejecución de 30 min con reserva para el cierre. Dos
+consultas SQL de trabajo y dos GET WSDL concurrentes. Se usa timeout nativo y
+cancelación real: si no se confirma en 2 s, se detiene la planificación SQL;
+el cierre del pool espera como máximo 5 s. Una consulta lenta activa, cuando
+sea posible, observación de esperas limitada al nombre de esta ejecución.
+No se piden permisos, alteran aislamientos ni terminan sesiones.
+
 El script `scripts/portal/readonly-audit.ts` escribe automáticamente estos seis archivos en `docs/portal/implementacion/evidencias-vm/`:
 
-| Archivo         | Contenido permitido                                                                                                        |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| manifest.json   | Versión del formato, revisión Git, fuentes y hashes, registro analizado, cobertura y tareas correctas/fallidas/incompletas |
-| dictionary.json | Metadatos del diccionario, herencia TI, nodos, conectores, parámetros, sentencias y reglas saneadas                        |
-| contracts.json  | Presencia/tipos de columnas y comparación de WSDL publicados mediante GET                                                  |
-| probes.json     | Compatibilidad y recuentos agregados de consultas revisadas por sociedad; sin identidades                                  |
-| errors.json     | Identificadores técnicos de tarea, estado y código permitido; sin mensajes de servidor                                     |
-| resumen.md      | Resumen legible, límites y tareas pendientes                                                                               |
+| Archivo         | Contenido permitido                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| manifest.json   | Formato 2, estado/duración, revisión, fuentes, generación/hashes, métricas, cobertura, tareas y procedencia reutilizada |
+| dictionary.json | Metadatos del diccionario, herencia TI, nodos, conectores, parámetros, sentencias y reglas saneadas                     |
+| contracts.json  | Presencia/tipos de columnas y comparación de WSDL publicados mediante GET                                               |
+| probes.json     | Compatibilidad y recuentos agregados de consultas revisadas por sociedad; sin identidades                               |
+| errors.json     | Identificadores técnicos de tarea, estado y código permitido; sin mensajes de servidor                                  |
+| resumen.md      | Resumen legible, límites y tareas pendientes                                                                            |
 
 Se leen referencias del registro y de las fuentes originales, los siete pendientes explícitos, menús, informes y objetos relacionados. Se recorren herencia, objetos lógicos y referencias verificadas en reglas. Las páginas de metadatos tienen límite explícito de 2000 filas, 100 páginas por tarea y 5000 referencias: alcanzar un límite produce estado incompleto, nunca un truncamiento silencioso. Las fuentes binarias sin extractor conocido se declaran inaccesibles.
+
+Se publican generaciones al iniciar, cada 60 s, al terminar fases y al interrumpir.
+Los archivos temporales se sustituyen y el manifiesto se publica al final; los
+hashes permiten comprobar la coherencia. Se conservan dos generaciones completas
+para recuperación automática. Cada lote de metadatos saneados tiene un diario
+sin parámetros bajo `data/portal-readonly-audit/`, ignorado por Git.
+La misma orden reutiliza metadatos de una ejecución incompleta de menos de 24 h
+si coinciden código/fuentes, esquema actual y una huella opaca del contexto y
+permisos. La consola explica incompatibilidades/corrupción; los fallos se repiten.
+Las personas representativas se obtienen exclusivamente en memoria; los sondeos
+y WSDL se vuelven a ejecutar y conservan el estado de la ejecución actual.
 
 Solo se ejecutan SELECT revisadas/parametrizadas del código y GET de WSDL. Nunca se ejecuta APISQL recibido, procedimientos, reglas LN4, autenticación u operaciones SOAP. `assertReadOnlySql` se comparte con los scripts y rechaza SELECT INTO, DML/DDL, lotes, procedimientos, comentarios y nombres de bases/servidores externos. Los identificadores utilizados para comprobar consultas quedan en memoria. Comentarios, literales libres, correos, direcciones y campos no permitidos se omiten; no se escriben filas de personas, cuentas, importes individuales, blobs o credenciales.
 
 Un fallo parcial conserva los demás resultados. El código de salida es 1 si hay errores o límites: **no significa que deban descartarse los archivos**. Versionar los seis archivos generados, incluso si alguno contiene únicamente estados de error. El script no hace commit ni push. No versionar `.env.local`, `data/`, SQLite, capturas ni archivos personales.
 
-## Comprobaciones realizadas
+## Comprobaciones de la corrección del diagnóstico
+
+Todas las pruebas del diagnóstico usan conexiones y GET simulados, directorios
+temporales y datos ficticios. No se ha ejecutado el CLI contra PeopleNet desde
+este equipo ni se han producido evidencias corporativas nuevas.
+
+| Comprobación                                                          | Resultado                                                                                                                                                                                                   |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auditoría dirigida: cinco archivos                                    | 43 pruebas correctas: lotes/ciclos/paginación, cobertura 118 frente a 2.840, T3 fallido recuperable, sondeos únicos, progreso/lentitud, presupuestos, cancelación/cierre, diario/generaciones y privacidad  |
+| `npm run typecheck`                                                   | Correcto                                                                                                                                                                                                    |
+| `npm run build`                                                       | Correcto; 44 páginas                                                                                                                                                                                        |
+| `npm test -- --maxWorkers=2 --testTimeout=20000`                      | Ejecutado: 210 archivos, 1.264 pruebas correctas, cuatro fallidas y dos omitidas. Incluyó un fallo intermedio de saneamiento corregido durante el trabajo y repetido correctamente en las pruebas dirigidas |
+| Repetición general excluyendo solo `src/lib/meta4/hire/excel.test.ts` | 209 archivos: 1.256 pruebas correctas, seis fallidas y dos omitidas; ninguna de las seis pertenece al diagnóstico                                                                                           |
+| `npm run lint`                                                        | Ejecutado; permanecen siete avisos ajenos al cambio y el formato global pendiente. Sin reformateo general                                                                                                   |
+| Lint/formato de los TypeScript del diagnóstico                        | Correctos, sin avisos nuevos                                                                                                                                                                                |
+| `git diff --check` y `git status --short`                             | Ejecutados; sin errores de espacios, rama conservada e inventario limitado a los 18 archivos siguientes                                                                                                     |
+
+Tres fallos generales se reproducen también de forma aislada en archivos sin
+modificar: certificado DEBUG para `0042` devuelve 400; proyecciones espera
+`DEMO-01` aunque el actor actual es `90000`, y solicita `0042`, ausente de la
+muestra actual. La segunda corrida mostró además un cierre de diálogo que no
+terminó a tiempo en `ReconciliationApp.test.tsx`, y timeouts de 30 s en
+`mapping.contract.test.ts` y `source-parity.domain.test.ts`. Estos tres casos
+habían pasado en la corrida completa anterior. No se modifican esos módulos ni
+se presenta la suite general como correcta. El archivo Excel COM sí terminó en
+la corrida completa de esta corrección; el timeout anotado más abajo corresponde
+a la primera entrega, no a esta comprobación.
+
+## Archivos de la corrección del diagnóstico
+
+Esta corrección cambia los siguientes 18 archivos. No modifica registro,
+lectores de producto, dependencias npm, autenticación ni rama. Los seis archivos
+de evidencia corporativa se generarán después en la VM.
+
+```text
+.gitignore
+README.md
+docs/portal/implementacion/continuidad-solo-lectura.md
+docs/portal/implementacion/evidencias-vm/README.md
+scripts/portal/readonly-audit.ts
+scripts/portal/readonly-audit-core.ts
+scripts/portal/readonly-audit-engine.ts
+scripts/portal/readonly-audit-executor.ts
+scripts/portal/readonly-audit-model.ts
+scripts/portal/readonly-audit-safety.ts
+scripts/portal/readonly-audit-store.ts
+spec/todo.md
+spec/changelog.md
+src/lib/portal/readonly-audit.test.ts
+src/lib/portal/readonly-audit-engine.test.ts
+src/lib/portal/readonly-audit-executor.test.ts
+src/lib/portal/readonly-audit-runner.test.ts
+src/lib/portal/readonly-audit-store.test.ts
+```
+
+## Comprobaciones de la primera entrega
 
 El motor de auditoría se ha probado con conexiones simuladas: continuación tras errores, seguimiento de herencia/referencias, bloqueo de SELECT INTO, ausencia de identificadores/mensajes secretos en su resultado y saneamiento de cadenas con URL, comentarios, cuentas y correos.
 
@@ -103,9 +204,12 @@ Comprobaciones de cierre ejecutadas:
 
 No se ha ejecutado el diagnóstico contra la VM desde este ordenador. Las muestras, pruebas locales y build no acreditan esa integración.
 
-## Archivos de esta entrega
+## Archivos de la primera entrega
 
-Versionar los siguientes 83 archivos de esta entrega (código, pruebas y documentación). El diagnóstico añadirá después sus seis resultados; no se incluyen ficheros de datos locales ni credenciales.
+Inventario histórico de los 83 archivos de la primera entrega, ya presentes antes
+de corregir el diagnóstico. El inventario de la corrección figura en el apartado anterior;
+el diagnóstico añadirá después sus seis resultados. No se incluyen datos locales
+ni credenciales.
 
 ```text
 README.md

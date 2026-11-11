@@ -283,9 +283,16 @@ con acceso a PeopleNet/Meta4, `npm run portal:discover` (diccionario Meta4 a
 
 Para cerrar las consultas de solo lectura en dos sesiones, la orden única de la VM es
 `npm run portal:readonly-audit`, sin parámetros interactivos. Guarda seis archivos
-de metadatos saneados y recuentos en `docs/portal/implementacion/evidencias-vm/`,
-con fallos parciales y límites explícitos; no inicia sesiones SOAP ni ejecuta LN4
-o escrituras. La [guía de continuidad](docs/portal/implementacion/continuidad-solo-lectura.md)
+de metadatos saneados y recuentos en `docs/portal/implementacion/evidencias-vm/`.
+Muestra progreso desde el inicio y cada cinco segundos, consulta metadatos por
+lotes de hasta 150 claves y limita cada ejecución a 30 minutos. Guarda parciales
+al iniciar, cada minuto y al cambiar de fase; Ctrl+C cancela y consolida el avance.
+La misma orden reutiliza metadatos compatibles de una ejecución incompleta de menos
+de 24 horas desde `data/portal-readonly-audit/`, ignorado por Git; personas de
+comprobación, sondeos y WSDL se obtienen de nuevo. El manifiesto de formato 2
+identifica generaciones, hashes, métricas y pendientes. No inicia sesiones SOAP,
+ejecuta LN4 ni escribe en PeopleNet. Los [pasos de la VM](docs/portal/implementacion/evidencias-vm/README.md)
+y la [guía de continuidad](docs/portal/implementacion/continuidad-solo-lectura.md)
 y la [matriz completa](docs/portal/implementacion/matriz-solo-lectura.md) separan
 código, muestras DEBUG y validación VM. En sesión DEBUG de desarrollo, el portal
 permite seleccionar persona ficticia, variante y escenario mediante URL, sin

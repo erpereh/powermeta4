@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-11-10 - Diagnóstico de solo lectura por lotes, observable y reanudable
+
+- Ejecutor, planificador y almacenamiento separados. Esquema indexado una vez,
+  lotes parametrizados de hasta 150 claves con su tipo/longitud, paginación estable
+  y referencias/reglas deduplicadas. Eliminada la búsqueda inversa de nodos por TI.
+  Prueba simulada: 71 referencias/40 tablas, 118 consultas de diccionario frente
+  a 2.840 (120 incluyendo esquema, dentro del máximo de 150). Las 145
+  consultas registradas se resuelven en 97 sondeos distintos por sociedad, sin
+  perder la atribución a pantallas. Solo se retira el ORDER BY exterior.
+- Inicio inmediato y progreso cada 5 s con referencias, consultas, WSDL y errores;
+  aviso de lentitud desde 5 s y observación opcional de esperas de sesiones propias.
+  Nunca se registran SQL completo, parámetros, destinos, mensajes crudos ni datos
+  personales. También se omiten constantes numéricas libres de las reglas.
+- Presupuesto total de 30 min, diccionario 20 min y sondeos 8 min; conexión,
+  metadatos y WSDL de 15 s, sondeos de 30 s. Dos consultas de trabajo y dos GET
+  concurrentes, timeout nativo y request.cancel(), 2 s para confirmar cancelación,
+  corte de planificación ante consultas huérfanas y cierre del pool de hasta 5 s.
+- Diario saneado y consolidado por lote bajo data/portal-readonly-audit/ ignorado
+  por Git. Seis resultados automáticos de formato 2 al iniciar, cada 60 s y por
+  fase/interrupción, con generaciones y hashes. Reanudación automática <24 h solo
+  con huellas compatibles de código/fuentes, esquema actual y contexto/permisos.
+  Personas representativas solo en memoria; sondeos y WSDL se repiten cada proceso.
+- Conservada la orden npm y las dependencias; solo SELECT revisadas y GET WSDL.
+  Sin conexión corporativa, escrituras, procedimientos, SOAP ni LN4 durante esta
+  corrección. README, pasos de VM y continuidad actualizados. 43 pruebas dirigidas
+  correctas, typecheck y build correctos (44 páginas). Suite completa ejecutada;
+  fallo intermedio de saneamiento corregido y repetido. Repetición sin Excel COM:
+  1.256 correctas, seis fallos en módulos ajenos y dos omitidas. Tres fallos de
+  expectativas DEBUG se reproducen aisladamente; los otros tres pasaron antes.
+  Lint conserva siete avisos previos y formato global pendiente; diagnóstico sin
+  avisos nuevos. Detalle e inventario real de 18 archivos en continuidad.
+
 ## 2026-11-10 - Consultas del portal, DEBUG y diagnóstico de continuidad
 
 - Capa de lectura real y DEBUG independiente, con origen explícito, escenario
@@ -576,7 +608,7 @@
 - Nueve pruebas de sidebar, typecheck y build correctos; revisión en modo
   debug con expansión por teclado. Lint dirigido correcto; el global conserva
   siete avisos y problemas de formato previos en 515 archivos.
-- Suite completa correcta: 173 archivos, 942 pruebas aprobadas y 2 omitidas.
+- Suite completa correcta: 173 archivos, 943 pruebas aprobadas y 2 omitidas.
   Comprobados también menú móvil, barra plegada, diff y estado Git.
 
 ## 2026-10-16 - Paneles laterales ajustables y búsqueda del portal

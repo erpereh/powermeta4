@@ -29,6 +29,13 @@ describe("diagnóstico de metadatos y recuentos", () => {
       "ELOGIN",
     );
     expect(auditErrorCode({ code: "PRIVATE_SECRET" })).toBe("READ_FAILED");
+    const numeric = safeMetadataText(
+      "X = 987654321; Y = 1234.56; Z = 0xDEADBEEF; MAIL = 123@private.invalid; FLAG = 1; DATE = '4000-01-01'",
+    );
+    expect(numeric).not.toMatch(/987654321|1234\.56|DEADBEEF|private.invalid/);
+    expect(numeric).toContain("FLAG = 1");
+    expect(numeric).toContain("4000-01-01");
+    expect(safeMetadataText(numeric)).toBe(numeric);
   });
   it("continúa tras errores independientes y mantiene identidades y mensajes solo en memoria", async () => {
     const feature = PORTAL_FEATURES.find(
@@ -97,9 +104,18 @@ describe("diagnóstico de metadatos y recuentos", () => {
           })),
         ];
       if (statement.includes("TOP 1")) return [{ ID_EMPLEADO: "MEMORY_ONLY" }];
-      if (statement.includes("[M4RCH_T3S]") && params?.key === "SSE_BFT_EE_BNFT_ELEC")
+      if (
+        statement.startsWith("SELECT ID_T3") &&
+        Object.values(params ?? {}).includes("OTHER_OBJECT")
+      )
+        return [{ ID_T3: "OTHER_OBJECT" }];
+      if (
+        statement.includes("[M4RCH_T3S]") &&
+        statement.includes("OFFSET") &&
+        Object.values(params ?? {}).includes("SSE_BFT_EE_BNFT_ELEC")
+      )
         return [{ ID_T3: "SSE_BFT_EE_BNFT_ELEC", ID_TI: "TI_TEST" }];
-      if (statement.includes("[M4RCH_RULES3]") && params?.key === "TI_TEST")
+      if (statement.includes("[M4RCH_RULES3]") && Object.values(params ?? {}).includes("TI_TEST"))
         return [
           {
             ID_TI: "TI_TEST",

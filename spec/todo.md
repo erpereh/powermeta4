@@ -1,5 +1,33 @@
 # powermeta4 - estado de tareas
 
+## Diagnóstico de lectura observable y reanudable — 2026-11-10
+
+- [x] Separar planificación por lotes, ejecución cancelable y almacenamiento seguro.
+      Índice de esquema único, lotes de 150 claves tipadas, páginas de 2.000 filas,
+      deduplicación de referencias/reglas y eliminación del índice inverso de nodos.
+- [x] Prueba simulada de 71 referencias/40 tablas: 118 consultas de diccionario
+      frente a 2.840 (120 con esquema, dentro del máximo de 150);
+      sondeos agrupados de 145 a 97 por sociedad, con todas sus pantallas atribuidas.
+- [x] Inicio inmediato, progreso cada 5 s, consultas lentas desde 5 s, esperas propias
+      opcionales y resumen con duración, consultas, cobertura, errores y ruta.
+- [x] Presupuesto total de 30 min; diccionario 20 min y sondeos 8 min. Timeouts
+      nativos, cancelación real, corte tras cancelación no confirmada, circuitos por
+      familia y cierre acotado. Ctrl+C/SIGTERM guardan el avance.
+- [x] Diario saneado por lote bajo data ignorado, seis salidas de formato 2 por
+      generaciones y recuperación de publicación interrumpida. Reanudación <24 h
+      con huellas de código/fuentes, esquema y contexto/permisos; sondeos/WSDL nuevos.
+- [x] 43 pruebas dirigidas correctas en cinco archivos, sin conexión corporativa.
+      Typecheck correcto. Comprobaciones generales y detalle de fallos ajenos en
+      docs/portal/implementacion/continuidad-solo-lectura.md.
+- [x] Build correcto (44 páginas). Suite general ejecutada; saneamiento corregido
+      y repetido. Pase posterior sin Excel COM: 1.256 correctas, seis fallos ajenos
+      al diagnóstico y dos omitidas. Lint conserva siete avisos previos y formato
+      global pendiente; TypeScript del diagnóstico sin avisos ni errores de formato.
+- [ ] Revisar fuera de esta corrección las expectativas antiguas de certificados/
+      proyecciones DEBUG y los tres fallos intermitentes de la segunda corrida.
+- [ ] Ejecutar la versión corregida en la VM con `npm run portal:readonly-audit`;
+      si queda parcial, repetir la misma orden y versionar sus seis resultados.
+
 ## Consultas del portal y continuidad con la VM — 2026-11-10
 
 - [x] Proveedores real/DEBUG separados, resultado ficticio identificado y activación
@@ -31,7 +59,7 @@
 - [x] Pruebas posteriores de informes/proveedor: 69 correctas en siete archivos;
       19 de auditoría/proveedor correctas tras los ajustes finales. Diff check
       correcto y estado Git revisado; inventario de 82 archivos en continuidad.
-- [ ] Ejecutar una vez `npm run portal:readonly-audit` en la VM y versionar los seis
+- [ ] Ejecutar la versión corregida de `npm run portal:readonly-audit` en la VM y versionar los seis
       resultados de `docs/portal/implementacion/evidencias-vm/`.
 - [ ] Segunda sesión: leer primero manifiesto/errores y cerrar solo contratos
       afectados, permisos y reglas virtuales acreditados; mantener pendientes
@@ -569,7 +597,7 @@
       correctos. Revisión visual con sesión debug y expansión por teclado.
 - [x] Lint dirigido correcto en los dos archivos de código; lint global
       ejecutado con siete avisos previos y 515 archivos con formato pendiente.
-- [x] Suite completa: 173 archivos, 942 pruebas correctas y 2 omitidas.
+- [x] Suite completa: 173 archivos, 943 pruebas correctas y 2 omitidas.
       `git diff --check` y `git status --short` revisados.
 
 ## Paneles laterales y buscador del portal — 2026-10-16

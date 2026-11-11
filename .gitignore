@@ -19,6 +19,7 @@
 
 # local runtime data and generated artifacts
 /data/
+/docs/portal/implementacion/evidencias-vm/*.tmp
 
 # Private meeting recording and all audiovisual analysis derivatives
 /revision_video/
