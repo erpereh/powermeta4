@@ -1,0 +1,51 @@
+{
+  "formatVersion": 2,
+  "generationId": "6ad58738-2063-46d5-a804-e3a86c660d97",
+  "columns": {},
+  "soap": [
+    {
+      "service": "CSP_CONSULTA_LIST_EMPL",
+      "status": 200,
+      "issues": []
+    },
+    {
+      "service": "CSP_CONSULTA_ORO_INTRAN_WU",
+      "status": 200,
+      "issues": []
+    },
+    {
+      "service": "CSP_CONSULTA_WORK_UNIT",
+      "status": 200,
+      "issues": []
+    },
+    {
+      "service": "CSP_CONSULTA_ORO_NEW",
+      "status": 200,
+      "issues": []
+    },
+    {
+      "service": "M4_PNET_INITIAL_DATA",
+      "status": 200,
+      "issues": []
+    },
+    {
+      "service": "PGCO_ES_WS_VALIDATIONS",
+      "status": 200,
+      "issues": []
+    },
+    {
+      "service": "CSP_SERVICIO_CV",
+      "status": null,
+      "issues": [
+        "AbortError"
+      ]
+    },
+    {
+      "service": "SNTC_AD_MANAGERS",
+      "status": null,
+      "issues": [
+        "AbortError"
+      ]
+    }
+  ]
+}

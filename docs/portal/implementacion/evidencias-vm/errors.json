@@ -1,0 +1,82 @@
+{
+  "formatVersion": 2,
+  "generationId": "6ad58738-2063-46d5-a804-e3a86c660d97",
+  "errors": [
+    {
+      "id": "runner",
+      "status": "error",
+      "code": "UNSAFE_CHECKPOINT"
+    },
+    {
+      "id": "wsdl/CSP_SERVICIO_CV",
+      "status": "incomplete",
+      "code": "AbortError",
+      "durationMs": 6452
+    },
+    {
+      "id": "wsdl/SNTC_AD_MANAGERS",
+      "status": "incomplete",
+      "code": "AbortError",
+      "durationMs": 371
+    },
+    {
+      "id": "confirm/9c944fd94e2d",
+      "status": "error",
+      "code": "SQL_8016",
+      "durationMs": 9
+    },
+    {
+      "id": "confirm/0a9294725fcd",
+      "status": "error",
+      "code": "SQL_8016",
+      "durationMs": 28
+    },
+    {
+      "id": "ID_T3/M4ORO_EMPLEADOS",
+      "status": "incomplete",
+      "code": "DEFINITION_NOT_FOUND"
+    },
+    {
+      "id": "ID_T3/SCO_MENU",
+      "status": "incomplete",
+      "code": "DEFINITION_NOT_FOUND"
+    },
+    {
+      "id": "ID_T3/SMCO_BUDGET",
+      "status": "incomplete",
+      "code": "DEFINITION_NOT_FOUND"
+    },
+    {
+      "id": "ID_T3/SMCO_EVALUATOR",
+      "status": "incomplete",
+      "code": "DEFINITION_NOT_FOUND"
+    },
+    {
+      "id": "ID_T3/SSE_H_HR_KNC_EXP",
+      "status": "incomplete",
+      "code": "DEFINITION_NOT_FOUND"
+    },
+    {
+      "id": "ID_T3/SSE_H_HR_VENT_ACTIV_INDIV",
+      "status": "incomplete",
+      "code": "DEFINITION_NOT_FOUND"
+    },
+    {
+      "id": "ID_T3/SSM_JOB_COMPETENCES",
+      "status": "incomplete",
+      "code": "DEFINITION_NOT_FOUND"
+    },
+    {
+      "id": "confirm/64fb3ba011df",
+      "status": "error",
+      "code": "SQL_8016",
+      "durationMs": 5
+    },
+    {
+      "id": "dbo.M4RCH_SENT_ITEMS/ID_TI/f949fee84582/page-0",
+      "status": "incomplete",
+      "code": "INTERRUPTED",
+      "durationMs": 6
+    }
+  ]
+}
