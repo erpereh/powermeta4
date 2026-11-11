@@ -66,4 +66,29 @@ No versionar `data/`, `.env.local` ni archivos temporales. El script no realiza
 commits ni push y no solicita matrículas. Solo ejecuta SELECT revisadas y GET WSDL;
 no ejecuta APISQL extraído, SOAP, LN4, procedimientos ni escrituras en la base.
 
-No se han generado evidencias corporativas en la primera sesión. La ausencia actual de esos seis archivos es intencionada. Leer [continuidad](../continuidad-solo-lectura.md) antes de interpretar sus resultados. Los metadatos/recuentos no acreditan por sí solos permisos efectivos, paridad visual ni métodos nativos inaccesibles.
+La generación versionada del 2026-11-11 terminó a los 24,3 s con
+`UNSAFE_CHECKPOINT`: 271 consultas, 7.541 apartados de diccionario y 3.383
+referencias pendientes. No llegó a publicar columnas ni ejecutar sondeos. Los
+seis WSDL compatibles acreditan únicamente sus contratos publicados por GET.
+Las seis salidas originales se conservan sin recalcular hashes ni cambiar su estado.
+
+La corrección posterior unifica saneamiento y validación, conserva los símbolos
+aprobados usados por cada lote y valida antes de publicar. Un rechazo aísla el
+lote y mantiene sus referencias pendientes; los errores de almacenamiento sí
+activan el cierre acotado. Se comprueban tipos y longitudes sin truncar claves ni
+convertir columnas. Los candidatos heurísticos incompatibles se cuentan aparte;
+las referencias contractuales incompatibles siguen pendientes. El esquema se
+publica al leerlo y todos los servicios WSDL reciben estado, incluso al fallar.
+
+Después de actualizar **hay que repetir `npm run portal:readonly-audit` en la VM**.
+La huella del código cambiará: la caché anterior se rechazará automáticamente y
+su diario se conservará como anterior. No borrar `data/` ni ejecutar consultas
+auxiliares. Se mantienen todos los límites, la misma orden y las mismas dependencias.
+
+Los archivos se fijan a LF con `.gitattributes`. El verificador acepta las salidas
+anteriores tras normalizar exclusivamente CRLF a LF si coinciden sus hashes
+originales; rechaza diferencias de contenido o mezclas de generaciones. La
+[revisión generada](../revision-evidencias-vm.md) distingue fuentes con hash VM
+de fragmentos originales locales añadidos al registro. Leer también
+[continuidad](../continuidad-solo-lectura.md). Los metadatos/recuentos no acreditan
+por sí solos permisos efectivos, paridad visual ni métodos nativos inaccesibles.

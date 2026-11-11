@@ -3,7 +3,6 @@ import { z } from "zod";
 export const REQUIRED_READ_OBJECTS = [
   "SSE_BFT_EE_BNFT_ELEC",
   "SSE_H_HR_KNC_LVL",
-  "SSE_H_HR_KNC_EXP",
   "SSE_CR_PREFERENC",
   "SSE_OBJECTIVES",
   "SSM_EV_ROL_LV_OBJ",
@@ -21,6 +20,11 @@ export const REQUIRED_READ_OBJECTS = [
   "SSE_CARGA_FESTIVOS",
   "SSM_R_JOB_COMP",
   "SSCO_OR_RP_BUDGET_SAL_WU",
+] as const;
+
+// Nodo/TI confirmado en el diccionario de la VM, no un T3 independiente.
+export const REQUIRED_READ_NODES = [
+  { object: "SSE_H_HR_KNC_LVL", node: "SSE_H_HR_KNC_EXP", ti: "SSE_H_HR_KNC_EXP" },
 ] as const;
 
 export type AuditRow = Record<string, unknown>;
@@ -136,19 +140,26 @@ export type AuditCacheEntry = z.infer<typeof cacheEntrySchema>;
 export type AuditState = {
   formatVersion: 2;
   dictionary: Record<string, AuditRow[]>;
+  metadataSymbols: string[];
   contracts: Record<string, AuditRow[]>;
   probes: AuditRow[];
   tasks: AuditTask[];
-  coverage: { seedObjects: string[]; visited: string[]; unvisited: AuditReference[] };
+  coverage: {
+    seedObjects: string[];
+    seedNodes: readonly { object: string; node: string; ti: string }[];
+    visited: string[];
+    unvisited: AuditReference[];
+  };
   referencesInRules: string[];
 };
 export const emptyAuditState = (): AuditState => ({
   formatVersion: 2,
   dictionary: {},
+  metadataSymbols: [],
   contracts: {},
   probes: [],
   tasks: [],
-  coverage: { seedObjects: [], visited: [], unvisited: [] },
+  coverage: { seedObjects: [], seedNodes: REQUIRED_READ_NODES, visited: [], unvisited: [] },
   referencesInRules: [],
 });
 export type AuditMetric = {

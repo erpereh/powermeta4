@@ -1,5 +1,6 @@
 import { getPortalMenuLocation, PORTAL_FEATURES } from "../../src/lib/portal/registry";
 import type { PortalFeature } from "../../src/lib/portal/types";
+import { vmEvidenceLabel, type ReadonlyVmEvidence } from "./readonly-vm-evidence";
 
 const cell = (value: string) => value.replaceAll("|", " / ").replaceAll("\n", " ");
 const menu = (feature: PortalFeature) => {
@@ -33,7 +34,7 @@ const custom = new Set([
 ]);
 
 /** Matriz exhaustiva por funcionalidad y apartado; nunca acredita la VM a partir de muestras. */
-export function readonlyMatrix(): string {
+export function readonlyMatrix(evidence: ReadonlyVmEvidence | null = null): string {
   const lines = [
     "# Matriz de consultas y guía DEBUG",
     "",
@@ -44,6 +45,7 @@ export function readonlyMatrix(): string {
     "Persona por defecto: 90000 Clara, responsable de 90001 Ana y 90002 Luis; 90003 Marta depende de Luis. 91001 Eva es ajena a ese equipo. Todas son ficticias. Variantes BASE/CYC/IBER/COLL. Escenarios: full, partial, empty, error. Las URL de la tabla son reproducibles desde una sesión DEBUG válida, con NODE_ENV=development y POWERMETA4_DEBUG_AUTH=true. Sin persistencia nueva.",
     "",
     "Consultar aplica texto, mes, campo y valor exacto; responsable permite persona solo dentro del equipo recalculado en servidor. Excel/PDF vuelve a leer con los mismos filtros. Si un apartado no tiene contrato, la consulta real conserva su dependencia y no ejecuta métodos nativos. Las escrituras siguen bloqueadas.",
+    "Los sondeos VM solo se atribuyen si coinciden funcionalidad, apartado y huella de la sentencia efectiva con su alcance. No se reutilizan resultados de otra consulta. Un WSDL compatible acredita el contrato GET, no sus operaciones ni permisos.",
     "",
     "## Guía funcional completa",
     "",
@@ -86,7 +88,7 @@ export function readonlyMatrix(): string {
         ? "Dependencia"
         : "Vista especializada";
     lines.push(
-      `| ${cell(menu(feature))} | [${feature.route}](${url}) | ${actor} / full; repetir partial, empty, error | ${cell(actions)} | ${cell(expected)} | ${code}; DEBUG: ${samples.length || custom.has(feature.view) ? "muestra disponible, prueba visual individual no implícita" : "sin muestra de contenido desconocido"}; VM: pendiente de auditoría nueva |`,
+      `| ${cell(menu(feature))} | [${feature.route}](${url}) | ${actor} / full; repetir partial, empty, error | ${cell(actions)} | ${cell(expected)} | ${code}; DEBUG: ${samples.length || custom.has(feature.view) ? "muestra disponible, prueba visual individual no implícita" : "sin muestra de contenido desconocido"}; VM: ${cell(vmEvidenceLabel(evidence, feature))} |`,
     );
   }
   lines.push(
@@ -111,12 +113,12 @@ export function readonlyMatrix(): string {
           ? spec.read.detail
           : `Tablas: ${spec.read.kind === "sql" ? spec.read.tables.join(", ") : "SOAP"}. Contrastar columnas, filtros y permisos efectivos.`;
       lines.push(
-        `| \`${feature.id}/${spec.id}\` · ${cell(spec.title)} | ${cell(feature.sources.join(", "))}; ${feature.availableIn?.join(", ") ?? "BASE/CYC/IBER/COLL"} | ${cell(spec.fields.map((field) => `${field.label} (${field.item ?? "sin ítem"})`).join("; "))} | ${spec.reader}; ${spec.query?.scope ?? (feature.profile === "responsable" ? "equipo / contrato pendiente" : "identidad propia / contrato pendiente")} | \`${cell(spec.meta4)}\`. ${cell(dependency)} | ${spec.reader === "dependency" ? "Dependencia" : "Preparado"} / ${spec.fields.some((field) => field.item) ? "muestra de presentación" : "sin estructura"} / pendiente nueva evidencia |`,
+        `| \`${feature.id}/${spec.id}\` · ${cell(spec.title)} | ${cell(feature.sources.join(", "))}; ${feature.availableIn?.join(", ") ?? "BASE/CYC/IBER/COLL"} | ${cell(spec.fields.map((field) => `${field.label} (${field.item ?? "sin ítem"})`).join("; "))} | ${spec.reader}; ${spec.query?.scope ?? (feature.profile === "responsable" ? "equipo / contrato pendiente" : "identidad propia / contrato pendiente")} | \`${cell(spec.meta4)}\`. ${cell(dependency)} | ${spec.reader === "dependency" ? "Dependencia" : "Preparado"} / ${spec.fields.some((field) => field.item) ? "muestra de presentación" : "sin estructura"} / ${cell(vmEvidenceLabel(evidence, feature, spec))} |`,
       );
     }
     if (!specs.length)
       lines.push(
-        `| \`${feature.id}\` | ${cell(feature.sources.join(", ") || "Destino dinámico")}; ${feature.availableIn?.join(", ") ?? "BASE/CYC/IBER/COLL"} | ${cell((feature.sections ?? []).flatMap((section) => (section.kind === "form" ? section.form.fields.map((field) => field.label) : [])).join("; ") || "Vista especializada / sin estructura de consulta")} | ${feature.view} | ${cell(feature.read.kind === "pending" ? feature.read.detail : "Consultar contrato principal y fuentes en estado.md")} | ${feature.read.kind === "pending" ? "Dependencia" : "Código existente"} / ${custom.has(feature.view) ? "muestra especializada" : "dependencia visible"} / pendiente nueva evidencia |`,
+        `| \`${feature.id}\` | ${cell(feature.sources.join(", ") || "Destino dinámico")}; ${feature.availableIn?.join(", ") ?? "BASE/CYC/IBER/COLL"} | ${cell((feature.sections ?? []).flatMap((section) => (section.kind === "form" ? section.form.fields.map((field) => field.label) : [])).join("; ") || "Vista especializada / sin estructura de consulta")} | ${feature.view} | ${cell(feature.read.kind === "pending" ? feature.read.detail : "Consultar contrato principal y fuentes en estado.md")} | ${feature.read.kind === "pending" ? "Dependencia" : "Código existente"} / ${custom.has(feature.view) ? "muestra especializada" : "dependencia visible"} / ${cell(vmEvidenceLabel(evidence, feature))} |`,
       );
   }
   return `${lines.join("\n")}\n`;

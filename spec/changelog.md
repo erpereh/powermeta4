@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-11-11 - Corrección del diagnóstico con evidencias reales
+
+- Analizada la generación VM fallida: 24,3 s, 271 consultas, 7.541 apartados y
+  3.383 referencias pendientes; sin columnas publicadas ni sondeos. Se mantienen
+  intactos los seis archivos y sus hashes, coherentes tras normalizar CRLF a LF.
+- Reproducido y corregido `UNSAFE_CHECKPOINT`: los lotes registran los símbolos
+  aprobados que utilizan, con validación compartida antes de publicar, guardar y
+  recuperar. Un lote rechazado queda aislado y pendiente; no cancela otras tareas.
+- Validación de tipos/longitudes/rangos antes de consultar, exclusiones heurísticas
+  contadas y claves contractuales incompatibles pendientes, sin truncamientos ni
+  conversión de columnas. Esquema publicado desde su lectura y WSDL inventariados
+  también al fallar. Evidencias fijadas a LF, sin recalcular hashes existentes.
+- Experiencia de conocimientos se recorre como nodo/TI de su T3 padre. Añadidas
+  fuentes originales de conocimientos y criterios sin cambiar destinos ni lectores.
+  `portal:docs` valida las evidencias y genera revisión de las áreas pendientes;
+  la matriz separa metadatos de compatibilidad SQL y conserva validaciones previas.
+- 86 pruebas dirigidas correctas. Suite completa: 211 archivos, 1.295 correctas,
+  tres fallos previos de expectativas DEBUG y dos omitidas. Typecheck correcto;
+  comprobaciones y pendientes reales en continuidad. Es necesaria otra ejecución
+  en la VM con la misma orden: no se han
+  conectado servicios corporativos ni cerrado integraciones sin sondeos.
+- Build correcto (44 páginas), generación y diff/estado revisados. Lint mantiene
+  siete avisos previos y formato pendiente en 624 archivos, incluidos los seis
+  resultados VM que se conservan sin cambios. Inventario real: 21 archivos.
+
 ## 2026-11-10 - Diagnóstico de solo lectura por lotes, observable y reanudable
 
 - Ejecutor, planificador y almacenamiento separados. Esquema indexado una vez,

@@ -2,6 +2,90 @@
 
 Primera sesión, 2026-11-10. Se conserva la rama actual. No se han ejecutado escrituras ERP, consultas corporativas, operaciones SOAP ni métodos LN4. La sesión DEBUG usa únicamente la autenticación SQLite existente; sus muestras no crean una sesión Meta4 ni una sociedad conectada. No se guarda información del portal.
 
+## Evidencia recibida y corrección — 2026-11-11
+
+Se ha revisado la generación `6ad58738-2063-46d5-a804-e3a86c660d97`, tomada sobre
+`9af5cf63871cf4d88f839fe501c989def25747ec`: falló en 24,3 s con
+`UNSAFE_CHECKPOINT`, después de 271 consultas. Conserva 7.541 apartados y deja
+3.383 referencias pendientes, sin columnas publicadas ni sondeos ejecutados.
+Los seis contratos WSDL compatibles se conservan como evidencia de GET; los
+otros servicios no quedaron comprobados. Las seis salidas originales permanecen
+sin cambios. Sus hashes coinciden al normalizar únicamente CRLF a LF.
+
+El fallo se ha reproducido sin SQL: una regla conservaba símbolos técnicos del
+contexto global que el diario no podía validar con el contexto incompleto del
+lote. La corrección registra los símbolos aprobados realmente utilizados y
+comparte la misma validación entre motor, diario, recuperación y publicación.
+Los lotes se validan antes de incorporarse a las salidas; un rechazo los aísla y
+deja sus referencias pendientes, sin cancelar otros lotes, sondeos o WSDL.
+Un error de disco conserva el cierre y el guardado acotados.
+
+Los tres errores SQL [`8016`](https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors-8000-to-8999?view=sql-server-ver15) señalan longitudes de datos/metadatos de parámetros;
+la evidencia no conserva el esquema suficiente para atribuirlos a una columna.
+Se añade comprobación de tipo, longitud y rango antes de crear peticiones, sin
+truncamientos ni conversiones de columnas. Las claves heurísticas no
+representables se cuentan aparte; las contractuales permanecen pendientes. El
+esquema se publica inmediatamente después de leerlo y se amplía con los objetos
+físicos descubiertos. El cierre inventaría siempre todos los WSDL.
+
+El vínculo `SSE_H_HR_KNC_LVL!SSE_H_HR_KNC_EXP` está confirmado por el nodo/TI de
+M4RCH_NODES y por `sse_g3/sse_g3_p22_body.jsp`. Se elimina su reclamación errónea
+como T3 independiente, conservando el recorrido por ID_TI. Se añaden al registro
+el cuerpo de conocimientos y las piezas obj/comp/mod/close de criterios: contienen
+las referencias originales que no figuraban en la huella VM anterior. No se
+cambian destinos del menú ni se habilitan lectores sin contrato.
+
+La [revisión generada de evidencias](revision-evidencias-vm.md) contrasta beneficios,
+conocimientos, preferencias, objetivos, valoración, presencia, competencias/GAP y
+presupuesto. Distingue fuentes con hash VM de originales locales incorporados.
+La matriz separa implementación, DEBUG, metadatos disponibles y sondeos SQL;
+conserva verificaciones anteriores. No se han modificado sentencias de producto,
+reglas de autorización ni fórmulas a partir de estos metadatos incompletos.
+
+**Pendiente imprescindible:** incorporar esta corrección en la VM y volver a
+ejecutar `npm run portal:readonly-audit`. La nueva huella rechazará la caché de
+código anterior automáticamente. Mantener las evidencias existentes; no borrar
+archivos ni introducir matrículas o consultas manuales. Revisar después las
+columnas, los sondeos y las referencias que sigan pendientes. La validación
+completa del portal continúa abierta.
+
+Comprobaciones de esta corrección: 86 pruebas dirigidas en ocho archivos correctas
+(68 de auditoría y 18 del registro). Suite completa ejecutada: 211 archivos,
+1.295 pruebas correctas, tres fallidas y dos omitidas. Los tres fallos son las
+expectativas anteriores de certificados/proyecciones DEBUG documentadas más abajo;
+no se han cambiado esos lectores ni sus pruebas. Typecheck y build correctos
+(44 páginas). Generación `portal:docs` ejecutada y revisada. Lint conserva siete
+avisos previos y formato pendiente en 624 archivos, incluidos los seis resultados
+VM inmutables; no se reformatean para ocultar diferencias de hash. Oxlint no
+añade avisos en el código de esta corrección. Diff check correcto y estado Git
+revisado, con los 21 archivos siguientes; rama conservada y sin commits/push.
+
+Archivos de esta corrección (21; los inventarios siguientes corresponden a entregas anteriores):
+
+```text
+.gitattributes
+README.md
+docs/portal/implementacion/auditoria-fuentes.md
+docs/portal/implementacion/continuidad-solo-lectura.md
+docs/portal/implementacion/evidencias-vm/README.md
+docs/portal/implementacion/matriz-solo-lectura.md
+docs/portal/implementacion/revision-evidencias-vm.md
+scripts/portal/dependencias.ts
+scripts/portal/readonly-audit-bindings.ts
+scripts/portal/readonly-audit-engine.ts
+scripts/portal/readonly-audit-executor.ts
+scripts/portal/readonly-audit-model.ts
+scripts/portal/readonly-audit-safety.ts
+scripts/portal/readonly-audit-store.ts
+scripts/portal/readonly-audit.ts
+scripts/portal/readonly-matrix.ts
+scripts/portal/readonly-vm-evidence.ts
+spec/changelog.md
+spec/todo.md
+src/lib/portal/readonly-audit-regression.test.ts
+src/lib/portal/registry/read-extensions.ts
+```
+
 ## Matriz y estado real
 
 La [matriz completa](matriz-solo-lectura.md) contiene las 192 funcionalidades registradas, con menú exacto, URL reproducible, persona, variante, escenario, controles, resultado esperado y estados independientes. Su segunda tabla detalla cada apartado, ítems, fuente, lector, alcance y carencia. Se regenera con `npm run portal:docs`, junto a [estado](estado.md), [dependencias](dependencias-servidor.md), [navegación](navegacion.md) y [contraste BASE/CYC/IBER/COLL](auditoria-fuentes.md).

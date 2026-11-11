@@ -3,3 +3,7 @@
 
 # Preserve the reference portal byte-for-byte, including original whitespace.
 clon_portal/** -text -whitespace
+
+# Los hashes de las evidencias se calculan sobre texto UTF-8 con LF.
+docs/portal/implementacion/evidencias-vm/*.json text eol=lf
+docs/portal/implementacion/evidencias-vm/*.md text eol=lf

@@ -1,4 +1,5 @@
 import { assertReadOnlySql } from "../../src/lib/portal/peoplenet/query";
+import { assertAuditBindings } from "./readonly-audit-bindings";
 import {
   AUDIT_LIMITS,
   AuditFailure,
@@ -97,6 +98,7 @@ export function createAuditExecutor(
     meta = { id: `query/${digest(statement).slice(0, 12)}`, family: "query", kind: "metadata" },
   ) => {
     assertReadOnlySql(statement);
+    assertAuditBindings(params, meta);
     const combined = meta.signal ? AbortSignal.any([signal, meta.signal]) : signal;
     await acquire(combined);
     if (combined.aborted) {

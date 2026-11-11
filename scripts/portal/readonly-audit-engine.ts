@@ -5,6 +5,7 @@ import type { PortalFeature } from "../../src/lib/portal/types";
 import {
   AUDIT_LIMITS as L,
   REQUIRED_READ_OBJECTS,
+  REQUIRED_READ_NODES,
   auditErrorCode,
   digest,
   emptyAuditState,
@@ -21,7 +22,13 @@ import {
   type AuditRow,
   type AuditState,
 } from "./readonly-audit-model";
-import { SAFE_FIELDS, sanitizeMetadataRows } from "./readonly-audit-safety";
+import {
+  SAFE_FIELDS,
+  sanitizeMetadataRows,
+  assertSafeMetadataEntry,
+  safeMetadataText,
+} from "./readonly-audit-safety";
+import { auditBindingIssue } from "./readonly-audit-bindings";
 
 export type AuditCoreOptions = {
   signal?: AbortSignal;
@@ -69,8 +76,10 @@ export async function collectReadonlyAudit(
     { ref: AuditReference; status: "pending" | "processing" | "complete" | "failed" }
   >();
   const symbols = new Set<string>();
+  const publishedSymbols = new Set<string>();
   const knownT3 = new Set<string>();
   const absentT3 = new Set<string>();
+  const incompatibleT3 = new Set<string>();
   const parsedCode = new Map<string, { objects: string[]; logical: string[] }>();
   const ruleReferences = new Set<string>();
   const physical = new Set(
@@ -153,6 +162,38 @@ export async function collectReadonlyAudit(
       return null;
     }
   };
+  const seeds = [
+    ...new Set([
+      ...REQUIRED_READ_OBJECTS,
+      ...collectMeta4References(features).map((ref) => ref.object),
+    ]),
+  ].sort();
+  for (const id of seeds) {
+    symbols.add(id);
+    enqueue({ key: "ID_T3", value: id });
+  }
+  state.coverage.seedObjects = [...seeds];
+  const validateEntry = (entry: AuditCacheEntry, id: string): boolean => {
+    try {
+      assertSafeMetadataEntry(entry);
+      return true;
+    } catch (error) {
+      if (auditErrorCode(error) !== "UNSAFE_CHECKPOINT") throw error;
+      state.tasks.push({ id, status: "error", code: "UNSAFE_CHECKPOINT" });
+      return false;
+    }
+  };
+  const saveEntry = (entry: AuditCacheEntry, id: string): boolean => {
+    if (!validateEntry(entry, id)) return false;
+    try {
+      options.onBatch?.(entry);
+      return true;
+    } catch (error) {
+      if (auditErrorCode(error) !== "UNSAFE_CHECKPOINT") throw error;
+      state.tasks.push({ id, status: "error", code: "UNSAFE_CHECKPOINT" });
+      return false;
+    }
+  };
   const dictController = new AbortController();
   const dictTimer = setTimeout(
     () => dictController.abort(),
@@ -171,6 +212,7 @@ FROM INFORMATION_SCHEMA.COLUMNS ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSIT
       { id: "schema", family: "schema", kind: "metadata", signal: dictSignal },
     )) ?? [];
   const tables = new Map<string, Table>();
+  const tablesByName = new Map<string, Table[]>();
   for (const row of inventory) {
     const name = technicalText(row.TABLE_NAME);
     const column = technicalText(row.COLUMN_NAME);
@@ -187,6 +229,30 @@ FROM INFORMATION_SCHEMA.COLUMNS ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSIT
     });
     tables.set(`${schema}.${name}`, table);
   }
+  for (const table of tables.values())
+    tablesByName.set(table.name, [...(tablesByName.get(table.name) ?? []), table]);
+  const refreshContracts = (names: Iterable<string>) => {
+    for (const name of names)
+      state.contracts[name] = (tablesByName.get(name) ?? []).flatMap((table) =>
+        table.columns.map((column) => ({
+          table: table.name,
+          schema: table.schema,
+          column: column.name,
+          type: column.type,
+          length: column.length ?? null,
+        })),
+      );
+  };
+  refreshContracts(
+    new Set([
+      ...physical,
+      ...[...tables.values()]
+        .filter((table) => /^M4R(?:CH|DC)_/.test(table.name))
+        .map((table) => table.name),
+    ]),
+  );
+  publish();
+  if (inventory.length) options.onPhase?.("contratos de columnas");
   if (inventory.length) {
     const primary = await execute(
       `SELECT K.TABLE_SCHEMA, K.TABLE_NAME, K.COLUMN_NAME, K.ORDINAL_POSITION, C.CONSTRAINT_NAME
@@ -227,8 +293,19 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
   };
   const apply = (entry: AuditCacheEntry) => {
     for (const symbol of entry.symbols) symbols.add(symbol);
+    const context = new Set(entry.symbols);
+    for (const row of entry.rows)
+      for (const field of ["SOURCE_CODE", "APISQL"]) {
+        const code = row[field];
+        if (typeof code === "string") safeMetadataText(code, context, publishedSymbols);
+      }
+    state.metadataSymbols = [...publishedSymbols].sort();
     for (const ref of entry.references) enqueue(ref);
-    for (const name of entry.physical) physical.add(name);
+    for (const name of entry.physical)
+      if (!physical.has(name)) {
+        physical.add(name);
+        refreshContracts([name]);
+      }
     for (const id of entry.ruleReferences) {
       knownT3.add(id);
       ruleReferences.add(id);
@@ -238,7 +315,25 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
   const confirm = (ids: readonly string[]): Promise<boolean> => {
     const next = confirming.then(async () => {
       const wanted = [...new Set(ids)]
-        .filter((id) => identifier.test(id) && !knownT3.has(id) && !absentT3.has(id))
+        .filter((id) => {
+          if (!identifier.test(id) || knownT3.has(id) || absentT3.has(id) || incompatibleT3.has(id))
+            return false;
+          const issue = auditBindingIssue(id, binding(t3Table, "ID_T3"));
+          if (!issue) return true;
+          incompatibleT3.add(id);
+          let task = state.tasks.find((item) => item.id === `confirm/schema/${issue}`);
+          if (!task) {
+            task = {
+              id: `confirm/schema/${issue}`,
+              status: "ok",
+              code: "CANDIDATES_EXCLUDED_BY_SCHEMA",
+              rows: 0,
+            };
+            state.tasks.push(task);
+          }
+          task.rows = (task.rows ?? 0) + 1;
+          return false;
+        })
         .sort();
       let complete = true;
       for (
@@ -251,6 +346,10 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
         const statement = `SELECT ID_T3 FROM ${t3Table ? `${quote(t3Table.schema)}.${quote(t3Table.name)}` : "M4RCH_T3S"} WHERE ID_T3 IN (${batch.map((_, index) => `@v${index}`).join(", ")})`;
         const key = digest(statement + JSON.stringify(params));
         const saved = cache.get(key);
+        if (saved && !validateEntry(saved, `confirm/${key.slice(0, 12)}`)) {
+          complete = false;
+          continue;
+        }
         const rows =
           saved?.rows ??
           (await execute(statement, params, {
@@ -279,20 +378,28 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
           const id = technicalText(row.ID_T3);
           return id && batch.includes(id) ? [id] : [];
         });
+        if (
+          !saved &&
+          !saveEntry(
+            {
+              key,
+              rows: matches.map((id) => ({ ID_T3: id })),
+              references: [],
+              physical: [],
+              symbols: matches,
+              ruleReferences: [],
+            },
+            `confirm/${key.slice(0, 12)}`,
+          )
+        ) {
+          complete = false;
+          continue;
+        }
         for (const id of matches) {
           knownT3.add(id);
           symbols.add(id);
         }
         for (const id of batch) if (!knownT3.has(id)) absentT3.add(id);
-        if (!saved)
-          options.onBatch?.({
-            key,
-            rows: matches.map((id) => ({ ID_T3: id })),
-            references: [],
-            physical: [],
-            symbols: matches,
-            ruleReferences: [],
-          });
       }
       return complete && !dictSignal.aborted && !fatalSql;
     });
@@ -302,16 +409,6 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
     );
     return next;
   };
-  const seeds = [
-    ...new Set([
-      ...REQUIRED_READ_OBJECTS,
-      ...collectMeta4References(features).map((ref) => ref.object),
-    ]),
-  ].sort();
-  for (const id of seeds) {
-    symbols.add(id);
-    enqueue({ key: "ID_T3", value: id });
-  }
   if (inventory.length) await confirm(sourceCandidates);
   for (const id of knownT3) if (!seeds.includes(id)) seeds.push(id);
   for (const id of seeds) enqueue({ key: "ID_T3", value: id });
@@ -321,6 +418,20 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
 
   const processJob = async (job: Job) => {
     const family = `${job.table.schema}.${job.table.name}/${job.key}`;
+    const valid: string[] = [];
+    const excluded = new Map<string, number>();
+    for (const value of job.values) {
+      const issue = auditBindingIssue(value, binding(job.table, job.key));
+      if (!issue) valid.push(value);
+      else {
+        failed.add(`${job.key}/${value}`);
+        excluded.set(issue, (excluded.get(issue) ?? 0) + 1);
+      }
+    }
+    for (const [code, rows] of excluded)
+      state.tasks.push({ id: `${family}/parameters`, status: "incomplete", code, rows });
+    if (!valid.length) return;
+    job = { ...job, values: valid };
     const columns = job.table.columns.filter(
       (column) => SAFE_FIELDS.has(column.name) && !binary.has(column.type),
     );
@@ -343,6 +454,10 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
     };
     const saved = cache.get(key);
     if (saved) {
+      if (!validateEntry(saved, taskId)) {
+        for (const value of job.values) failed.add(`${job.key}/${value}`);
+        return;
+      }
       reused++;
       apply(saved);
       attach(saved.rows);
@@ -405,7 +520,6 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
         for (const [field, value] of Object.entries(row)) {
           const id = technicalText(value);
           if (SAFE_FIELDS.has(field) && field.startsWith("ID_") && id) {
-            symbols.add(id);
             entry.symbols.push(id);
           }
         }
@@ -456,10 +570,10 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
           add("ID_T3", id);
           entry.ruleReferences.push(id);
         }
-      const safe = sanitizeMetadataRows(rows, symbols);
+      const used = new Set<string>();
+      const safe = sanitizeMetadataRows(rows, new Set([...symbols, ...entry.symbols]), used);
+      entry.symbols.push(...used);
       entry.rows.push(...safe);
-      attach(safe);
-      apply(entry);
       publish();
       if (rows.length < L.pageSize) break;
       if (!job.table.order.length || page === L.maxPages - 1) {
@@ -477,8 +591,14 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
       entry.symbols = [...new Set(entry.symbols)];
       entry.physical = [...new Set(entry.physical)];
       entry.ruleReferences = [...new Set(entry.ruleReferences)];
-      options.onBatch?.(entry);
-    } else for (const value of job.values) failed.add(`${job.key}/${value}`);
+    }
+    const accepted = complete ? saveEntry(entry, taskId) : validateEntry(entry, taskId);
+    if (accepted) {
+      apply(entry);
+      attach(entry.rows);
+      publish();
+    }
+    if (!complete || !accepted) for (const value of job.values) failed.add(`${job.key}/${value}`);
   };
   if (inventory.length)
     while (!dictSignal.aborted && !fatalSql) {
@@ -495,6 +615,8 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
             jobs.push({ table, key, values: values.slice(offset, offset + L.batchSize) });
       }
       await mapAuditWork(jobs, processJob, () => dictSignal.aborted || fatalSql);
+      // Mantiene la cobertura del nodo/TI documentado sin confundirlo con un T3.
+      for (const node of REQUIRED_READ_NODES) enqueue({ key: "ID_TI", value: node.ti });
       for (const item of wave) {
         item.status =
           dictSignal.aborted || fatalSql || failed.has(refId(item.ref)) ? "failed" : "complete";
@@ -510,18 +632,9 @@ WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY K.TABLE_SCHEMA, K.TABLE_NAME, K
   clearTimeout(dictTimer);
   if (dictSignal.aborted && !options.signal?.aborted)
     state.tasks.push({ id: "dictionary-budget", status: "incomplete", code: "DICTIONARY_BUDGET" });
+  refreshContracts(physical);
   for (const name of [...physical].sort()) {
-    const matches = [...tables.values()].filter((table) => table.name === name);
-    state.contracts[name] = matches.flatMap((table) =>
-      table.columns.map((column) => ({
-        table: table.name,
-        schema: table.schema,
-        column: column.name,
-        type: column.type,
-        length: column.length ?? null,
-      })),
-    );
-    if (!matches.length)
+    if (!tablesByName.has(name))
       state.tasks.push({ id: `physical/${name}`, status: "incomplete", code: "TABLE_NOT_FOUND" });
   }
   options.onPhase?.("sondeos");

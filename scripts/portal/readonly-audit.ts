@@ -30,6 +30,7 @@ import {
   type AuditTask,
 } from "./readonly-audit-model";
 import { AuditStore, type AuditPublication, type AuditRunStatus } from "./readonly-audit-store";
+import { assertAuditBindings } from "./readonly-audit-bindings";
 
 export type AuditConnection = {
   context: readonly string[];
@@ -153,15 +154,20 @@ function nativeRequest(pool: sql.ConnectionPool, timeoutMs: number): Cancellable
     query: async (statement, params, meta) => {
       assertReadOnlySql(statement);
       for (const [key, value] of Object.entries(params)) {
+        const type = meta.bindings?.[key];
         if (value instanceof Date) {
           request.input(key, sql.Date, value);
           continue;
         }
-        if (typeof value === "number") {
+        if (typeof value === "number" && !type) {
           request.input(key, sql.Int, value);
           continue;
         }
-        const type = meta.bindings?.[key];
+        const effective = type ?? {
+          type: key === "organization" || key === "employeeId" ? "varchar" : "nvarchar",
+          length: key === "organization" ? 4 : key === "employeeId" ? 64 : 128,
+        };
+        assertAuditBindings({ [key]: value }, { bindings: { [key]: effective } });
         const length = type?.length === -1 ? sql.MAX : (type?.length ?? 128);
         switch (type?.type) {
           case "varchar":
@@ -175,6 +181,18 @@ function nativeRequest(pool: sql.ConnectionPool, timeoutMs: number): Cancellable
             break;
           case "int":
             request.input(key, sql.Int, Number(value));
+            break;
+          case "smallint":
+            request.input(key, sql.SmallInt, Number(value));
+            break;
+          case "tinyint":
+            request.input(key, sql.TinyInt, Number(value));
+            break;
+          case "bigint":
+            request.input(key, sql.BigInt, value);
+            break;
+          case "bit":
+            request.input(key, sql.Bit, Number(value));
             break;
           default:
             request.input(
@@ -617,13 +635,6 @@ export async function runReadonlyAudit(
     phase = "WSDL";
     log("Fase: WSDL y consolidación de contratos.");
     await wsdlWork;
-    for (const service of Object.keys(SOAP_CATALOG))
-      if (!tasks.some((task) => task.id === `wsdl/${service}`))
-        tasks.push({
-          id: `wsdl/${service}`,
-          status: "incomplete",
-          code: signal.aborted ? "INTERRUPTED" : "WSDL_DEFERRED",
-        });
     setPhase("guardado");
     status =
       reason === "OUTPUT_WRITE_FAILED"
@@ -651,6 +662,13 @@ export async function runReadonlyAudit(
       } catch {
         tasks.push({ id: "wsdl", status: "error", code: "READ_FAILED" });
       }
+    for (const service of Object.keys(SOAP_CATALOG)) {
+      const code = signal.aborted ? "INTERRUPTED" : "WSDL_DEFERRED";
+      if (!tasks.some((task) => task.id === `wsdl/${service}`))
+        tasks.push({ id: `wsdl/${service}`, status: "incomplete", code });
+      if (!soap.some((row) => row.service === service))
+        soap.push({ service, status: null, issues: [code] });
+    }
     if (
       monitorRunning &&
       !(await closeAuditWithin(() => monitorRunning ?? Promise.resolve(), 5000))

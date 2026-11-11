@@ -1,4 +1,10 @@
-import { identifier, type AuditRow } from "./readonly-audit-model";
+import {
+  AuditFailure,
+  cacheEntrySchema,
+  identifier,
+  type AuditCacheEntry,
+  type AuditRow,
+} from "./readonly-audit-model";
 
 export const SAFE_FIELDS = new Set([
   "ID_T3",
@@ -57,14 +63,20 @@ const literals = new Set([
   "-1",
   "4000-01-01",
 ]);
-export function safeMetadataText(value: string, symbols: ReadonlySet<string> = new Set()): string {
+export function safeMetadataText(
+  value: string,
+  symbols: ReadonlySet<string> = new Set(),
+  usedSymbols?: Set<string>,
+): string {
   return value
     .replace(
       /'(?:''|\\.|[^'\\])*'|"(?:""|\\.|[^"\\])*"|\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|--[^\r\n]*/g,
       (token) => {
         if (token.startsWith("/*") || token.startsWith("//") || token.startsWith("--")) return " ";
         const content = token.slice(1, -1);
-        return `${token[0]}${literals.has(content) || symbols.has(content) ? content : "[LITERAL OMITIDO]"}${token[0]}`;
+        const approved = symbols.has(content) && identifier.test(content);
+        if (approved && !literals.has(content)) usedSymbols?.add(content);
+        return `${token[0]}${literals.has(content) || approved ? content : "[LITERAL OMITIDO]"}${token[0]}`;
       },
     )
     .replace(/(?:https?:\/\/|\\\\)[^\s'"<>]+/gi, "[DIRECCIÓN OMITIDA]")
@@ -78,6 +90,7 @@ export function safeMetadataText(value: string, symbols: ReadonlySet<string> = n
 export function sanitizeMetadataRows(
   rows: readonly AuditRow[],
   symbols: ReadonlySet<string>,
+  usedSymbols?: Set<string>,
 ): Record<string, string | number | null>[] {
   return rows.map((row) =>
     Object.fromEntries(
@@ -90,7 +103,7 @@ export function sanitizeMetadataRows(
           [
             name,
             name === "SOURCE_CODE" || name === "APISQL"
-              ? safeMetadataText(value, symbols)
+              ? safeMetadataText(value, symbols, usedSymbols)
               : identifier.test(value.trim()) || /^\d{1,4}$/.test(value.trim())
                 ? value.trim()
                 : "[VALOR OMITIDO]",
@@ -99,4 +112,51 @@ export function sanitizeMetadataRows(
       }),
     ),
   );
+}
+
+export function isSafeMetadataRow(row: AuditRow, symbols: ReadonlySet<string>): boolean {
+  return Object.entries(row).every(
+    ([field, value]) =>
+      SAFE_FIELDS.has(field) &&
+      (value === null ||
+        (typeof value === "number" && Number.isFinite(value)) ||
+        (typeof value === "string" &&
+          (field === "SOURCE_CODE" || field === "APISQL"
+            ? safeMetadataText(value, symbols) === value
+            : identifier.test(value) || /^\d{1,4}$/.test(value) || value === "[VALOR OMITIDO]"))),
+  );
+}
+
+/** La misma política se aplica al diario, su recuperación y la salida pública. */
+export function assertSafeMetadataEntry(value: AuditCacheEntry): AuditCacheEntry {
+  const parsed = cacheEntrySchema.safeParse(value);
+  if (!parsed.success) throw new AuditFailure("UNSAFE_CHECKPOINT");
+  const symbols = new Set(parsed.data.symbols);
+  if (parsed.data.rows.some((row) => !isSafeMetadataRow(row, symbols)))
+    throw new AuditFailure("UNSAFE_CHECKPOINT");
+  return parsed.data;
+}
+
+export function assertSafeDictionary(
+  dictionary: Readonly<Record<string, readonly AuditRow[]>>,
+  roots: readonly string[],
+  ruleReferences: readonly string[],
+  approvedSymbols: readonly string[] = [],
+): void {
+  const symbols = new Set(
+    [...roots, ...ruleReferences, ...approvedSymbols].filter((value) => identifier.test(value)),
+  );
+  for (const rows of Object.values(dictionary))
+    for (const row of rows)
+      for (const [field, value] of Object.entries(row))
+        if (
+          SAFE_FIELDS.has(field) &&
+          field.startsWith("ID_") &&
+          typeof value === "string" &&
+          identifier.test(value)
+        )
+          symbols.add(value);
+  for (const rows of Object.values(dictionary))
+    if (rows.some((row) => !isSafeMetadataRow(row, symbols)))
+      throw new AuditFailure("UNSAFE_PUBLICATION");
 }

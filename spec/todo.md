@@ -1,5 +1,29 @@
 # powermeta4 - estado de tareas
 
+## Corrección tras evidencias VM — 2026-11-11
+
+- [x] Verificada la generación recibida: fallo `UNSAFE_CHECKPOINT` tras 24,3 s;
+      271 consultas, 7.541 apartados, 3.383 referencias pendientes y cero sondeos.
+      Hashes coherentes con LF; seis salidas originales conservadas.
+- [x] Reproducido el rechazo de símbolos globales ausentes del lote. Saneamiento
+      y validación compartidos, símbolos usados autocontenidos y validación antes
+      de publicar. Lotes rechazados aislados; referencias pendientes y resto continúa.
+- [x] Comprobación de tipos, longitudes y rangos antes del adaptador; heurísticos
+      incompatibles contados, contratos incompatibles pendientes. Sin truncamientos.
+- [x] Esquema publicado al leerlo, inventario WSDL completo aun al fallar y LF
+      fijado para evidencias. Verificación de generaciones sin regenerar hashes.
+- [x] Nodo/TI de experiencia corregido; fragmentos originales de conocimientos
+      y criterios incorporados como fuentes. Generador y matriz distinguen
+      metadatos, sondeos, fuentes locales y verificaciones anteriores.
+- [x] 86 pruebas dirigidas correctas en ocho archivos de auditoría/registro.
+- [x] Suite completa ejecutada: 1.295 correctas, tres fallos previos de expectativas
+      DEBUG y dos omitidas; 211 archivos. Typecheck correcto; sin cambios en esos lectores.
+- [x] Build correcto (44 páginas), documentación regenerada y diff/estado revisados.
+      Lint conserva siete avisos previos y formato en 624 archivos, incluidos los
+      seis resultados VM preservados; sin avisos nuevos de código ni reformateo global.
+- [ ] Repetir el diagnóstico corregido en la VM y revisar columnas, sondeos y
+      dependencias restantes antes de cerrar integraciones del portal.
+
 ## Diagnóstico de lectura observable y reanudable — 2026-11-10
 
 - [x] Separar planificación por lotes, ejecución cancelable y almacenamiento seguro.
@@ -25,8 +49,8 @@
       global pendiente; TypeScript del diagnóstico sin avisos ni errores de formato.
 - [ ] Revisar fuera de esta corrección las expectativas antiguas de certificados/
       proyecciones DEBUG y los tres fallos intermitentes de la segunda corrida.
-- [ ] Ejecutar la versión corregida en la VM con `npm run portal:readonly-audit`;
-      si queda parcial, repetir la misma orden y versionar sus seis resultados.
+- [x] Ejecutado el diagnóstico del 2026-11-10 en la VM; recibidos sus seis resultados
+      parciales. Repetición con la corrección del 2026-11-11 pendiente arriba.
 
 ## Consultas del portal y continuidad con la VM — 2026-11-10
 
@@ -59,8 +83,8 @@
 - [x] Pruebas posteriores de informes/proveedor: 69 correctas en siete archivos;
       19 de auditoría/proveedor correctas tras los ajustes finales. Diff check
       correcto y estado Git revisado; inventario de 82 archivos en continuidad.
-- [ ] Ejecutar la versión corregida de `npm run portal:readonly-audit` en la VM y versionar los seis
-      resultados de `docs/portal/implementacion/evidencias-vm/`.
+- [x] Recibidos los seis resultados de `docs/portal/implementacion/evidencias-vm/`;
+      fallo `UNSAFE_CHECKPOINT` analizado. La nueva ejecución sigue pendiente arriba.
 - [ ] Segunda sesión: leer primero manifiesto/errores y cerrar solo contratos
       afectados, permisos y reglas virtuales acreditados; mantener pendientes
       explícitos los destinos sin estructura y las simulaciones sin reglas LN4.

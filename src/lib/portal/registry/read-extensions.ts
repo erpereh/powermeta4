@@ -54,6 +54,20 @@ const replacementQuery = (consult: ConsultSpec, manager: boolean): PortalSqlQuer
 
 /** Se integra en el registro único después de resolver las entradas del menú. */
 export function extendPortalReads(feature: PortalFeature): PortalFeature {
+  // Los destinos del menú son envoltorios; estos fragmentos contienen el contrato original.
+  const related =
+    feature.route === "/portal/empleado/talento/conocimientos"
+      ? ["sse_g3/sse_g3_p22_body.jsp"]
+      : feature.route.endsWith("/talento/criterios")
+        ? [
+            "mss_g3/mss_g3_p16_obj.jsp",
+            "mss_g3/mss_g3_p16_comp.jsp",
+            "mss_g3/mss_g3_p16_mod.jsp",
+            "mss_g3/mss_g3_p16_close.jsp",
+          ]
+        : [];
+  if (related.length)
+    feature = { ...feature, sources: [...new Set([...feature.sources, ...related])] };
   const manager = feature.profile === "responsable";
   let sections: readonly FeatureSection[] = (feature.sections ?? []).map((section) => {
     if (section.kind !== "consult") return section;

@@ -21,13 +21,14 @@ import {
   AuditFailure,
   cacheEntrySchema,
   digest,
+  identifier,
   type AuditCacheEntry,
   type AuditMetric,
   type AuditRow,
   type AuditState,
   type AuditTask,
 } from "./readonly-audit-model";
-import { SAFE_FIELDS, safeMetadataText } from "./readonly-audit-safety";
+import { assertSafeDictionary, assertSafeMetadataEntry } from "./readonly-audit-safety";
 
 export const AUDIT_FILES = [
   "dictionary.json",
@@ -37,6 +38,56 @@ export const AUDIT_FILES = [
   "resumen.md",
   "manifest.json",
 ] as const;
+export const canonicalAuditText = (value: string): string => value.replace(/\r\n/g, "\n");
+const auditHash = (value: string) => digest(canonicalAuditText(value));
+
+/** Valida las seis salidas sin convertir diferencias de contenido en hashes nuevos. */
+export function verifyAuditArtifacts(bodies: ReadonlyMap<string, string>): {
+  generationId: string;
+  normalizedLineEndings: boolean;
+} {
+  const manifest = z
+    .object({
+      formatVersion: z.literal(2),
+      generationId: z.string().uuid(),
+      files: z.record(z.string().regex(/^[a-f0-9]{64}$/)),
+      coverage: z.object({ seedObjects: z.array(z.string()) }),
+    })
+    .passthrough()
+    .parse(JSON.parse(bodies.get("manifest.json") ?? "null"));
+  let normalizedLineEndings = false;
+  for (const file of AUDIT_FILES) {
+    const body = bodies.get(file);
+    if (body === undefined) throw new AuditFailure("GENERATION_INVALID");
+    if (file !== "manifest.json" && digest(body) !== manifest.files[file]) {
+      if (auditHash(body) !== manifest.files[file]) throw new AuditFailure("GENERATION_INVALID");
+      normalizedLineEndings = true;
+    }
+    if (file.endsWith(".json") && file !== "manifest.json") {
+      const header = z
+        .object({ formatVersion: z.literal(2), generationId: z.string().uuid() })
+        .passthrough()
+        .parse(JSON.parse(body));
+      if (header.generationId !== manifest.generationId)
+        throw new AuditFailure("GENERATION_INVALID");
+    }
+  }
+  const dictionary = z
+    .object({
+      tables: z.record(z.array(z.record(z.unknown()))),
+      referencesInRules: z.array(z.string()),
+      symbols: z.array(z.string().regex(identifier)).optional(),
+    })
+    .passthrough()
+    .parse(JSON.parse(bodies.get("dictionary.json") ?? "null"));
+  assertSafeDictionary(
+    dictionary.tables,
+    manifest.coverage.seedObjects,
+    dictionary.referencesInRules,
+    dictionary.symbols,
+  );
+  return { generationId: manifest.generationId, normalizedLineEndings };
+}
 export type AuditRunStatus = "running" | "complete" | "partial" | "interrupted" | "failed";
 export type AuditPublication = {
   runId: string;
@@ -99,22 +150,16 @@ const atomic = (file: string, value: string) => {
     throw error;
   }
 };
-const safeRow = (row: Record<string, string | number | null>, symbols: ReadonlySet<string>) =>
-  Object.entries(row).every(
-    ([field, value]) =>
-      SAFE_FIELDS.has(field) &&
-      (typeof value !== "string" ||
-        (field === "SOURCE_CODE" || field === "APISQL"
-          ? safeMetadataText(value, symbols) === value
-          : /^[A-Z][A-Z0-9_#$]{0,127}$/i.test(value) ||
-            /^\d{1,4}$/.test(value) ||
-            value === "[VALOR OMITIDO]")),
-  );
-
 export function auditArtifacts(
   state: AuditState,
   info: AuditPublication,
 ): Record<(typeof AUDIT_FILES)[number], string> {
+  assertSafeDictionary(
+    state.dictionary,
+    state.coverage.seedObjects,
+    state.referencesInRules,
+    state.metadataSymbols,
+  );
   const generationId = randomUUID();
   const common = { formatVersion: 2, generationId };
   const tasks = [...info.tasks, ...state.tasks];
@@ -125,7 +170,7 @@ export function auditArtifacts(
     "",
     `Estado: ${info.status}. Motivo: ${info.reason ?? "—"}.`,
     `Duración: ${(durationMs / 1000).toFixed(1)} s. Consultas iniciadas: ${info.queriesStarted}; completadas: ${info.queriesStarted - info.active}; activas: ${info.active}; lotes reutilizados: ${info.reused}.`,
-    `Referencias completas: ${state.coverage.visited.length}; pendientes: ${state.coverage.unvisited.length}. Errores: ${errors.filter((task) => task.status === "error").length}; incompletas: ${errors.filter((task) => task.status === "incomplete").length}.`,
+    `Referencias procesadas: ${state.coverage.visited.length}; pendientes: ${state.coverage.unvisited.length}. Errores: ${errors.filter((task) => task.status === "error").length}; incompletas: ${errors.filter((task) => task.status === "incomplete").length}.`,
     "",
     "Solo SELECT revisadas y GET WSDL. Sin SQL extraído, operaciones SOAP, LN4 ni escrituras. Los metadatos reutilizados conservan su procedencia; sondeos y WSDL se leen de nuevo. Una consulta lenta no acredita un bloqueo.",
     "",
@@ -152,6 +197,7 @@ export function auditArtifacts(
     "dictionary.json": json({
       ...common,
       tables: state.dictionary,
+      symbols: state.metadataSymbols,
       referencesInRules: state.referencesInRules,
     }),
     "contracts.json": json({ ...common, columns: state.contracts, soap: info.soap }),
@@ -187,8 +233,9 @@ export function auditArtifacts(
       metrics: info.metrics,
       tasks,
       metadataReusedFrom: info.metadataReusedFrom ?? null,
+      hashNormalization: "utf8-lf",
       files: Object.fromEntries(
-        Object.entries(bodies).map(([file, value]) => [file, digest(value)]),
+        Object.entries(bodies).map(([file, value]) => [file, auditHash(value)]),
       ),
     }),
   };
@@ -318,9 +365,7 @@ export class AuditStore {
           const record = recordSchema.parse(JSON.parse(line));
           if (digest(JSON.stringify(record.payload)) !== record.hash)
             throw new AuditFailure("CHECKPOINT_INVALID");
-          const symbols = new Set(record.payload.symbols);
-          if (record.payload.rows.some((row) => !safeRow(row, symbols)))
-            throw new AuditFailure("CHECKPOINT_INVALID");
+          assertSafeMetadataEntry(record.payload);
           this.entries.set(record.payload.key, record.payload);
         }
         this.notice("CHECKPOINT_REUSED");
@@ -350,10 +395,7 @@ export class AuditStore {
   }
   append(entry: AuditCacheEntry): void {
     if (this.entries.has(entry.key)) return;
-    const safe = cacheEntrySchema.parse(entry);
-    const symbols = new Set(safe.symbols);
-    if (safe.rows.some((row) => !safeRow(row, symbols)))
-      throw new AuditFailure("UNSAFE_CHECKPOINT");
+    const safe = assertSafeMetadataEntry(entry);
     if (this.fd === undefined) throw new AuditFailure("JOURNAL_NOT_OPEN");
     const line = `${JSON.stringify({ payload: safe, hash: digest(JSON.stringify(safe)) })}\n`;
     writeFileSync(this.fd, line);
@@ -419,26 +461,14 @@ export class AuditStore {
       const value: unknown = JSON.parse(readFileSync(pointer, "utf8"));
       const parsed = z.object({ id: z.string().uuid() }).strict().parse(value);
       const directory = path.join(this.root, "generations", parsed.id);
-      const manifest = z
-        .object({
-          formatVersion: z.literal(2),
-          generationId: z.string().uuid(),
-          files: z.record(hash),
-        })
-        .passthrough()
-        .parse(JSON.parse(readFileSync(path.join(directory, "manifest.json"), "utf8")));
       const bodies = new Map(
         AUDIT_FILES.map((file) => [file, readFileSync(path.join(directory, file), "utf8")]),
       );
-      if (
-        manifest.generationId !== parsed.id ||
-        AUDIT_FILES.some(
-          (file) =>
-            file !== "manifest.json" && digest(bodies.get(file) ?? "") !== manifest.files[file],
-        )
-      )
-        throw new AuditFailure("GENERATION_INVALID");
-      for (const file of AUDIT_FILES) atomic(path.join(this.output, file), bodies.get(file) ?? "");
+      const verified = verifyAuditArtifacts(bodies);
+      if (verified.generationId !== parsed.id) throw new AuditFailure("GENERATION_INVALID");
+      if (verified.normalizedLineEndings) this.notice("GENERATION_EOL_NORMALIZED");
+      for (const file of AUDIT_FILES)
+        atomic(path.join(this.output, file), canonicalAuditText(bodies.get(file) ?? ""));
       return true;
     } catch {
       this.notice("GENERATION_INVALID");

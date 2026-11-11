@@ -12,6 +12,7 @@ import { PORTAL_DOMAINS, PORTAL_FEATURES, PORTAL_MENU } from "../../src/lib/port
 import type { PortalFeature, ReadContract, WriteOperation } from "../../src/lib/portal/types";
 import { formatGenerated } from "./format";
 import { readonlyMatrix } from "./readonly-matrix";
+import { loadReadonlyVmEvidence, readonlyEvidenceReview } from "./readonly-vm-evidence";
 
 const OUT = path.resolve("docs/portal/implementacion");
 
@@ -254,13 +255,19 @@ writeFileSync(path.join(OUT, "navegacion.md"), navigation());
 writeFileSync(path.join(OUT, "dependencias-servidor.md"), dependencies());
 writeFileSync(path.join(OUT, "estado.md"), status());
 writeFileSync(path.join(OUT, "auditoria-fuentes.md"), sourceAudit());
-writeFileSync(path.join(OUT, "matriz-solo-lectura.md"), readonlyMatrix());
+const vmEvidence = loadReadonlyVmEvidence(path.join(OUT, "evidencias-vm"));
+writeFileSync(path.join(OUT, "matriz-solo-lectura.md"), readonlyMatrix(vmEvidence));
+writeFileSync(
+  path.join(OUT, "revision-evidencias-vm.md"),
+  readonlyEvidenceReview(vmEvidence, PORTAL_FEATURES, process.cwd()),
+);
 formatGenerated([
   path.join(OUT, "navegacion.md"),
   path.join(OUT, "dependencias-servidor.md"),
   path.join(OUT, "estado.md"),
   path.join(OUT, "auditoria-fuentes.md"),
   path.join(OUT, "matriz-solo-lectura.md"),
+  path.join(OUT, "revision-evidencias-vm.md"),
 ]);
 console.log(
   `Generados dependencias-servidor.md y estado.md (${PORTAL_FEATURES.length} pantallas).`,

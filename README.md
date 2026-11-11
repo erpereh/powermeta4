@@ -298,5 +298,15 @@ código, muestras DEBUG y validación VM. En sesión DEBUG de desarrollo, el por
 permite seleccionar persona ficticia, variante y escenario mediante URL, sin
 nueva persistencia ni alternativa ficticia ante un fallo real.
 
+La evidencia recibida el 2026-11-11 terminó con `UNSAFE_CHECKPOINT` antes de los
+sondeos. Se conserva íntegra y se contrasta en la
+[revisión de evidencias](docs/portal/implementacion/revision-evidencias-vm.md).
+El ejecutor corregido guarda lotes con símbolos autocontenidos, comprueba tipos y
+longitudes antes de consultar y conserva el esquema desde su lectura. Un lote
+rechazado queda pendiente sin detener los demás. `portal:docs` valida la generación
+y sus hashes con LF, y separa metadatos, sondeos y verificaciones anteriores en la
+matriz. Tras incorporar esta corrección, repetir la misma orden en la VM; el cambio
+de código invalidará automáticamente la caché incompatible, sin borrados manuales.
+
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.
