@@ -3,7 +3,11 @@ import { METRICS } from "./catalogue";
 
 /** Completely invented, available only behind the development debug gate. */
 export function demoReport(period: string, previous = false): PayrollReportRunDetail {
-  const labels = [...new Set(METRICS.map((metric) => metric.header))];
+  const labels = [
+    ...new Set(
+      METRICS.filter((metric) => metric.id !== "extraProrated").map((metric) => metric.header),
+    ),
+  ];
   const headers = [
     "Id Empleado",
     "Apellidos y Nombres",
@@ -14,6 +18,8 @@ export function demoReport(period: string, previous = false): PayrollReportRunDe
     ...labels,
     "Ayuda vehículo",
     "Porcentaje I.R.P.F.",
+    "Paga Extra Prorrateada",
+    "Fecha de Antigüedad",
   ];
   const date = new Date(`${period}-01T00:00:00Z`);
   if (previous) date.setUTCMonth(date.getUTCMonth() - 1);
@@ -42,6 +48,7 @@ export function demoReport(period: string, previous = false): PayrollReportRunDe
         if (header === "Id Empleado") return id;
         if (header === "Apellidos y Nombres") return `Persona ficticia ${index + 1}`;
         if (header === "Id Empresa") return "DEMO";
+        if (header === "Fecha de Antigüedad") return "2001-10-15";
         if (header === "Total conceptos fijos") return previous || index !== 1 ? "2000" : "2050";
         if (header === "Porcentaje I.R.P.F.") return "15";
         if (header === "Salario Base") return "1800";

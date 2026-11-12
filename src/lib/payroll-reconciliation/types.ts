@@ -23,6 +23,21 @@ export type Snapshot = {
   hash: string;
   capturedAt: string;
   populationConfirmed: boolean;
+  /** Sidecar preserves the existing column positions/evidence of other controls. */
+  seniorityDates?: string[];
+  society?: string;
+  /** Server-only evidence intake; existing SQL readers cannot yet accredit this rule. */
+  extraPayEvidence?: ExtraPayEvidence[];
+};
+export type ExtraPayEvidence = {
+  society: string;
+  entity: string;
+  employeeId: string;
+  period: string;
+  validFrom: string;
+  validTo: string;
+  rule: "12-payments-three-prorated-extras";
+  reference: string;
 };
 export type SourceFact = {
   employeeId: string;
@@ -33,6 +48,7 @@ export type SourceFact = {
   documentReference?: string;
   reason?: string;
   issue?: string;
+  seniorityDate?: string;
 };
 export type Source = {
   id: string;
@@ -84,6 +100,7 @@ export type Finding = {
   metric: string;
   employeeId: string;
   name: string;
+  entity?: string;
   actual: string | null;
   expected: string | null;
   delta: string | null;

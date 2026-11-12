@@ -1,11 +1,15 @@
 import type { PayrollReportRunDetail } from "@/types/payroll-report";
-import { METRICS, normalizeHeader } from "./catalogue";
+import { columnIndex, METRICS, normalizeHeader } from "./catalogue";
 import { hash } from "./hash";
 import type { Snapshot } from "./types";
 import { LIMITS, ReconciliationError } from "./import";
 
 /** Deliberately excludes NIF, bank data and unrelated personal columns. */
-export function snapshot(detail: PayrollReportRunDetail, populationConfirmed: boolean): Snapshot {
+export function snapshot(
+  detail: PayrollReportRunDetail,
+  populationConfirmed: boolean,
+  society?: string,
+): Snapshot {
   if (detail.rows.length > LIMITS.rows || detail.rows.length * detail.headers.length > LIMITS.cells)
     throw new ReconciliationError(
       "La ejecución supera los límites de filas/celdas del cuadre.",
@@ -29,12 +33,23 @@ export function snapshot(detail: PayrollReportRunDetail, populationConfirmed: bo
   );
   const headers = columns.map((index) => detail.headers[index]);
   const rows = detail.rows.map((row) => columns.map((index) => row[index] ?? ""));
+  const seniorityColumn = columnIndex(detail.headers, "Fecha de Antigüedad");
+  const seniorityDates =
+    seniorityColumn < 0 ? undefined : detail.rows.map((row) => row[seniorityColumn] ?? "");
   return {
     run: detail.run,
     headers,
     rows,
-    hash: hash({ run: detail.run, headers, rows }),
+    hash: hash({
+      run: detail.run,
+      headers,
+      rows,
+      ...(seniorityDates ? { seniorityDates } : {}),
+      ...(society ? { society } : {}),
+    }),
     capturedAt: new Date().toISOString(),
     populationConfirmed,
+    ...(seniorityDates ? { seniorityDates } : {}),
+    ...(society ? { society } : {}),
   };
 }

@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-11-12 - Correcciones de cálculo de Cuadre de nómina
+
+- C01/C02/C08/C15 usan exclusivamente el mes inmediatamente anterior y comparten
+  compatibilidad entre formulario, servidor y motor. Nombres descriptivos no
+  bloquean códigos coincidentes; tipo normalizado sin equivalencias inventadas.
+- C04 conserva base + experiencia + CAI para devengo completo acreditado y añade
+  prorrata base × 3 / 12 condicionada a evidencia individual y vigencia completa.
+  Los lectores actuales no producen esa acreditación; modalidad real pendiente,
+  sin deducciones por importes/calendario, consultas nuevas ni entradas manuales.
+- C13 separa importes, base, alias e identificadores por empresa/matrícula;
+  contrasta antigüedad de nómina con listado anual v2, sin fecha de nacimiento.
+  Diferencia pago faltante explícito de ausencia de dato, y listado exhaustivo
+  de fuente parcial sin declarar automáticamente pagos indebidos.
+- Reapertura de expedientes anteriores con recálculo en memoria, sin actualización
+  silenciosa de instantáneas ni migración. Revisiones de controles ajenos y C12
+  conservadas; pruebas con huellas anteriores exactas. Exportación de siete columnas.
+- Contratos, pendientes RRHH y comandos de validación VM documentados. No se ha
+  ejecutado SQL real ni se acredita una modalidad PeopleNet por pruebas sintéticas.
+- Comprobaciones ejecutadas: `npm test` con 216 archivos y 1.388 pruebas correctas,
+  más dos omisiones preexistentes; después de los últimos casos límite, las 148
+  pruebas dirigidas de once archivos pasan. Typecheck y build de 44 páginas
+  correctos. Formato correcto en los 37 archivos comprobados del módulo y scripts;
+  `git diff --check` sin errores. `npm run lint` conserva siete avisos y formato
+  pendiente en 619 archivos anteriores, sin reformateo general. Rama `davidev`,
+  sin commits, push ni nueva migración.
+
 ## 2026-11-11 - Cierre local con captura parcial y correcciones de DEBUG, Cuadre y Excel
 
 - Conservada la captura running 539b018e-7e10-4ac3-9549-84299856cf09: diccionario

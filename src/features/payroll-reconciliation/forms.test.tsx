@@ -46,6 +46,42 @@ async function choose(user: ReturnType<typeof userEvent.setup>, label: string, n
 const submit = () => screen.getByRole("button", { name: "Crear expediente y analizar" });
 
 describe("real payroll execution selection", () => {
+  it("excludes non-consecutive or incompatible runs and blocks a saved invalid selection", async () => {
+    const user = userEvent.setup(),
+      onSubmit = vi.fn();
+    const older = run({ accruedOn: "2026-07-25" });
+    const otherKind = run({
+      ...PREVIOUS,
+      runAt: "2026-08-30T11:00:00.000Z",
+      payKind: "Retroactivas",
+    });
+    const props = { runs: [...RUNS, older, otherKind], demo: false, busy: false, onSubmit };
+    render(
+      <SelectionForm
+        {...props}
+        initial={{
+          title: "Cuadre",
+          period: "2026-09",
+          current: runKey(CURRENT),
+          previous: runKey(older),
+        }}
+      />,
+    );
+    const action = screen.getByRole("button", { name: "Actualizar instantáneas" });
+    expect(action.hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("alert").textContent).toContain("mes inmediatamente anterior");
+    fireEvent.submit(action.closest("form")!);
+    expect(onSubmit).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("combobox", { name: "Ejecución anterior" }));
+    expect(screen.queryByRole("option", { name: reportRunLabel(older) })).toBeNull();
+    expect(screen.queryByRole("option", { name: reportRunLabel(otherKind) })).toBeNull();
+    expect(screen.getByRole("option", { name: reportRunLabel(PREVIOUS) })).toBeTruthy();
+    await user.click(
+      screen.getByRole("option", { name: "Sin anterior: dejar controles mensuales pendientes" }),
+    );
+    await user.click(action);
+    expect(onSubmit.mock.calls[0][0].previousKey).toBeNull();
+  });
   it("offers a historical execution without depending on today's month and submits its actual period", async () => {
     const user = userEvent.setup(),
       onSubmit = vi.fn();

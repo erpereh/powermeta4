@@ -5,6 +5,17 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
+Actualización de implementación 2026-11-12: Q02 se protege técnicamente con
+mes inmediato y compatibilidad compartida; su validación SQL real sigue pendiente.
+En Q06 están implementadas las dos fórmulas definidas, pero la modalidad
+individual y su vigencia no están acreditadas por los lectores actuales. No
+identificar `SSP_PRORRATA`, frecuencia o importes con número anual de pagas.
+Q06 conserva «14 meses», parciales, transiciones y el contrato de configuración
+individual. Q12 incorpora aislamiento de importes por empresa/matrícula y
+contraste de antigüedad; RRHH debe confirmar elegibilidad, mes de pago y base
+aplicable, además de cobertura del listado. Estas correcciones locales no
+resuelven por sí solas Q06/Q12 ni acreditan reglas por convenio, país o jornada.
+
 ## Decisiones de producto ya cerradas
 
 - Herramienta independiente **Cuadre de nómina**, `cuadre-nomina`,

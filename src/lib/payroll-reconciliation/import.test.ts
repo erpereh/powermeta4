@@ -8,6 +8,36 @@ const book = (name: string, rows: unknown[][]) => {
   return new Uint8Array(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }));
 };
 describe("source contracts", () => {
+  it("retains annual seniority and company, including other months, without using birth dates", async () => {
+    const serial = (date: string) =>
+      (Date.parse(`${date}T00:00:00Z`) - Date.UTC(1899, 11, 30)) / 86_400_000;
+    const bytes = book("ACYC", [
+      [],
+      [],
+      ["", "EMPRESA", "MATRICULA", "", "", "", "FECHA NACIMIENTO", "ANTIGÜEDAD"],
+      ["", "A", "009001", "", "", "", serial("1980-01-01"), serial("2001-10-15")],
+      ["", "B", "009001", "", "", "", serial("2001-10-15"), serial("1986-11-15")],
+      ["", "A", "009002", "", "", "", serial("1986-10-15"), null],
+      ["", "A", "009003", "", "", "", null, 60],
+    ]);
+    const source = await importSource(bytes, "annual.xlsx", "aniversarios", "2026-10", true);
+    expect(source.profile).toBe("aniversarios-v2");
+    expect(source.facts).toHaveLength(4);
+    expect(source.facts[0]).toMatchObject({
+      entity: "A",
+      employeeId: "009001",
+      seniorityDate: "2001-10-15",
+      values: { anniversary: "anniversary25" },
+    });
+    expect(source.facts[1]).toMatchObject({
+      entity: "B",
+      seniorityDate: "1986-11-15",
+      values: { anniversary: null },
+    });
+    expect(source.facts[2].issue).toContain("Antigüedad");
+    expect(source.facts[3].issue).toContain("Antigüedad");
+    expect(JSON.stringify(source.facts)).not.toContain("1980-01-01");
+  });
   it("preserves signed excesses and the evidence of confirmed exceptions", async () => {
     const excess = book("Excesos", [
       [

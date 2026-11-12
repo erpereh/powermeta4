@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import { describe, expect, it } from "vitest";
 import { importAutoSource } from "./import";
+import { sourceChange } from "./source-plan";
 
 function book(sheets: Record<string, unknown[][]>) {
   const workbook = XLSX.utils.book_new();
@@ -33,6 +34,21 @@ const excess = (period = "2026-10") =>
   });
 
 describe("automatic source recognition and periods", () => {
+  it("requires explicit replacement when the same annual file upgrades to the seniority-preserving profile", async () => {
+    const bytes = book({
+      ACYC: [
+        [],
+        [],
+        ["", "EMPRESA", "MATRICULA", "", "", "", "", "ANTIGUEDAD"],
+        ["", "DEMO", "009001", "", "", "", "", 37179],
+      ],
+    });
+    const source = await importAutoSource(bytes, "annual.xlsx", "2026-10");
+    const old = { ...source, profile: "aniversarios-v1", complete: true };
+    expect(sourceChange([old], source).check.operation).toBe("replace");
+    expect(sourceChange([source], source).check.operation).toBe("skip");
+    expect(sourceChange([old], source).sources[0].complete).toBe(false);
+  });
   it("recognizes structure after renaming, stores the filename and leaves absent people uncovered", async () => {
     const source = await importAutoSource(gym(), "archivo-renombrado.xlsx", "2026-10");
     expect(source).toMatchObject({

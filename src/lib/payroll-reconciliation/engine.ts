@@ -1,6 +1,11 @@
 import { columnIndex, CONTROL_NAMES, identity, METRICS, type Metric } from "./catalogue";
 import { decimal, divide, magnitude, multiply, textDecimal } from "./decimal";
 import { hash } from "./hash";
+import { monthlySnapshotIssue } from "./comparison";
+import { anniversaryFindings } from "./anniversaries";
+import { extraPayExpected } from "./extra-pay";
+import { missing, payroll, resolveIdentity, type Value } from "./payroll-value";
+export { resolveIdentity } from "./payroll-value";
 import type {
   Annotation,
   Dossier,
@@ -12,13 +17,7 @@ import type {
   SourceFact,
 } from "./types";
 
-export const ENGINE_VERSION = "1.0.0";
-type Value = { value: bigint | null; reason: string; evidence: string[] };
-const missing = (reason: string, evidence: string[] = []): Value => ({
-  value: null,
-  reason,
-  evidence,
-});
+export const ENGINE_VERSION = "1.1.0";
 const zero = BigInt(0);
 
 function population(data: Snapshot | null): Map<string, { rows: number[]; name: string }> {
@@ -35,41 +34,6 @@ function population(data: Snapshot | null): Map<string, { rows: number[]; name: 
     people.set(id, existing);
   });
   return people;
-}
-
-function payroll(data: Snapshot | null, rows: number[] | undefined, metric: Metric): Value {
-  if (!data) return missing("Falta ejecución anterior.");
-  if (!rows?.length)
-    return missing("Persona ausente de esta ejecución; no acredita alta o baja laboral.");
-  const index = columnIndex(data.headers, metric.header, metric.occurrence);
-  if (index < 0)
-    return missing(`Columna ausente: ${metric.header} (ocurrencia ${metric.occurrence ?? 1}).`);
-  const evidence = rows.map(
-    (row) => `${data.run.reportId}@${data.run.runAt}:fila ${row + 2}, columna ${index + 1}`,
-  );
-  const values = rows.map((row) => decimal(data.rows[row][index]));
-  if (values.some((value) => value === null))
-    return missing("Importe vacío, inválido o no acreditado en nómina.", evidence);
-  const valid = values.filter((value): value is bigint => value !== null);
-  if (metric.percentage && new Set(valid.map(String)).size > 1)
-    return missing("Porcentajes distintos entre tramos; no se suman.", evidence);
-  return {
-    value: metric.percentage ? valid[0] : valid.reduce((sum, value) => sum + value, zero),
-    reason: "",
-    evidence,
-  };
-}
-
-/** Only resolve numeric aliases if the authorized payroll population is unambiguous. */
-export function resolveIdentity(raw: string, ids: Set<string>): string | null {
-  const id = identity(raw);
-  if (ids.has(id)) return id;
-  if (!/^\d+$/.test(id)) return null;
-  const alias = id.replace(/^0+(?=\d)/, "");
-  const candidates = [...ids].filter(
-    (candidate) => /^\d+$/.test(candidate) && candidate.replace(/^0+(?=\d)/, "") === alias,
-  );
-  return candidates.length === 1 ? candidates[0] : null;
 }
 
 function factValue(fact: SourceFact, metric: Metric, parameters: Parameters): bigint | null {
@@ -105,12 +69,14 @@ export function reconcile(
   input: Pick<Dossier, "period" | "current" | "previous" | "sources" | "parameters">,
 ): ReconciliationResult {
   const { current, previous, parameters } = input;
+  const comparisonIssue = monthlySnapshotIssue(input.period, current, previous);
   const currentPeople = population(current),
     previousPeople = population(previous);
   const ids = new Set([...currentPeople.keys(), ...previousPeople.keys()]);
   const diagnostics = input.sources.flatMap((source) =>
     source.diagnostics.map((message) => `${source.category}: ${message}`),
   );
+  if (comparisonIssue) diagnostics.push(`C01/C02/C08/C15: ${comparisonIssue}`);
   if (!currentPeople.size)
     diagnostics.push(
       "El informe no contiene una identidad utilizable; no se pueden reconciliar personas.",
@@ -149,6 +115,10 @@ export function reconcile(
   }
   const findings: Finding[] = [];
   for (const metric of METRICS) {
+    if (metric.control === "C13") {
+      findings.push(...anniversaryFindings(input, metric));
+      continue;
+    }
     const relevant = sources.filter((source) =>
       metric.control === "C10"
         ? ["recarga", "eurest"].includes(source.category)
@@ -156,13 +126,12 @@ export function reconcile(
     );
     const facts = relevant.flatMap((source) =>
       sourceFacts(source)
-        .filter((fact) =>
-          metric.control === "C13"
-            ? Object.hasOwn(fact.values, "anniversary")
-            : Object.hasOwn(fact.values, metric.id) ||
-              (metric.id === "telework" && Object.hasOwn(fact.values, "member")) ||
-              (metric.id === "meal" && Object.hasOwn(fact.values, "absences")) ||
-              (metric.control === "C10" && Object.hasOwn(fact.values, "net")),
+        .filter(
+          (fact) =>
+            Object.hasOwn(fact.values, metric.id) ||
+            (metric.id === "telework" && Object.hasOwn(fact.values, "member")) ||
+            (metric.id === "meal" && Object.hasOwn(fact.values, "absences")) ||
+            (metric.control === "C10" && Object.hasOwn(fact.values, "net")),
         )
         .map((fact) => ({
           source,
@@ -197,11 +166,23 @@ export function reconcile(
       const actual = payroll(current, currentPeople.get(id)?.rows, metric);
       let expected: Value;
       let absentSource = false;
-      if (metric.monthly) expected = payroll(previous, previousPeople.get(id)?.rows, metric);
+      if (metric.monthly)
+        expected = comparisonIssue
+          ? missing(comparisonIssue)
+          : payroll(previous, previousPeople.get(id)?.rows, metric);
       else {
         const matched = facts.filter((item) => item.id === id);
         const exception = overrides.filter((item) => item.id === id);
-        if (exception.length) {
+        if (metric.id === "extraProrated") {
+          expected = extraPayExpected(
+            current,
+            currentPeople.get(id)?.rows,
+            id,
+            input.period,
+            metric,
+            parameters,
+          );
+        } else if (exception.length) {
           const item = exception[0];
           expected =
             exception.length === 1 && !item.fact.issue
@@ -214,89 +195,52 @@ export function reconcile(
                 }
               : missing("Excepciones concurrentes o inválidas.");
         } else if (metric.control === "C04") {
-          if (
-            parameters.rulesConfirmed &&
-            parameters.extraMetric === metric.id &&
-            parameters.extraFullEmployeeIds.includes(id)
-          ) {
-            const parts = [
-              "Salario Base",
-              "Complemento Experiencia Importe",
-              "Complemento Adaptación Individualizado",
-            ].map((header) => payroll(current, currentPeople.get(id)?.rows, { ...metric, header }));
-            expected = parts.every((part) => part.value !== null)
-              ? {
-                  value: parts.reduce((sum, part) => sum + (part.value ?? zero), zero),
-                  reason: "Devengo completo declarado para esta persona y paga.",
-                  evidence: parts.flatMap((part) => part.evidence),
-                }
-              : missing("Componentes de la extra incompletos.");
-          } else
-            expected = missing(
-              "Falta confirmar devengo completo individual o regla proporcional (Q06).",
-            );
+          expected = extraPayExpected(
+            current,
+            currentPeople.get(id)?.rows,
+            id,
+            input.period,
+            metric,
+            parameters,
+          );
         } else if (!relevant.length) {
           absentSource = true;
           expected = missing("Falta fuente independiente para este control.");
         } else if (!matched.length) {
-          expected =
-            relevant.every((source) => source.complete && !source.diagnostics.length) &&
-            metric.control !== "C13"
-              ? {
-                  value: zero,
-                  reason: "Fuera del listado cuya cobertura completa se ha confirmado.",
-                  evidence: relevant.map((source) => source.hash),
-                }
-              : missing("Sin registro en fuente parcial o con incidencias; no equivale a cero.");
+          expected = relevant.every((source) => source.complete && !source.diagnostics.length)
+            ? {
+                value: zero,
+                reason: "Fuera del listado cuya cobertura completa se ha confirmado.",
+                evidence: relevant.map((source) => source.hash),
+              }
+            : missing("Sin registro en fuente parcial o con incidencias; no equivale a cero.");
         } else {
           const evidence = matched.map(
             (item) =>
               `${item.source.hash}:devengo ${item.source.accrualPeriod ?? item.source.period}${item.source.windowStart ? ` (${item.source.windowStart}/${item.source.windowEnd ?? "pendiente"})` : ""}:${item.fact.reference}`,
           );
-          if (metric.control === "C13") {
-            const candidates = matched.filter((item) => item.fact.values.anniversary === metric.id);
-            const base = payroll(current, currentPeople.get(id)?.rows, {
-              ...metric,
-              header: "Salario Base",
-            });
-            expected =
-              candidates.length === 1 &&
-              !candidates[0].fact.issue &&
-              parameters.rulesConfirmed &&
-              parameters.anniversaryFullBase
-                ? {
-                    ...base,
-                    reason: "Elegibilidad y base completa declaradas para el periodo.",
-                    evidence: [...evidence, ...base.evidence],
-                  }
-                : missing(
-                    "Falta confirmar elegibilidad/base por entidad o no corresponde este aniversario (Q12).",
-                    evidence,
-                  );
-          } else {
-            const values = matched.map((item) => factValue(item.fact, metric, parameters));
-            const conflicts =
-              matched.length > 1 && !["C06", "C07", "C11", "C12"].includes(metric.control);
-            expected = conflicts
+          const values = matched.map((item) => factValue(item.fact, metric, parameters));
+          const conflicts =
+            matched.length > 1 && !["C06", "C07", "C11", "C12"].includes(metric.control);
+          expected = conflicts
+            ? missing(
+                "Duplicado o solape de fuentes: resolver procedencia antes de sumar.",
+                evidence,
+              )
+            : values.some((value) => value === null)
               ? missing(
-                  "Duplicado o solape de fuentes: resolver procedencia antes de sumar.",
+                  matched.find((item) => item.fact.issue)?.fact.issue ??
+                    "Faltan valores/reglas de periodo confirmados; no se usa la cache del libro.",
                   evidence,
                 )
-              : values.some((value) => value === null)
-                ? missing(
-                    matched.find((item) => item.fact.issue)?.fact.issue ??
-                      "Faltan valores/reglas de periodo confirmados; no se usa la cache del libro.",
-                    evidence,
-                  )
-                : {
-                    value: values.reduce<bigint>((sum, value) => sum + (value ?? zero), zero),
-                    reason:
-                      metric.control === "C14"
-                        ? "Columna mensual PPSE; semántica/calendario pendientes de validación Q13."
-                        : "",
-                    evidence,
-                  };
-          }
+              : {
+                  value: values.reduce<bigint>((sum, value) => sum + (value ?? zero), zero),
+                  reason:
+                    metric.control === "C14"
+                      ? "Columna mensual PPSE; semántica/calendario pendientes de validación Q13."
+                      : "",
+                  evidence,
+                };
         }
       }
       const comparable = actual.value !== null && expected.value !== null;
@@ -342,12 +286,21 @@ export function reconcile(
                         parameters.rulesConfirmed,
                         parameters.extraMetric,
                         parameters.extraFullEmployeeIds.includes(id),
+                        current.society ?? null,
+                        current.extraPayEvidence?.filter((item) => item.employeeId === id) ?? [],
                       ]
-                    : metric.control === "C13"
-                      ? [parameters.rulesConfirmed, parameters.anniversaryFullBase]
+                    : metric.monthly
+                      ? [
+                          input.period,
+                          current.run,
+                          previous?.run ?? null,
+                          current.populationConfirmed,
+                          previous?.populationConfirmed ?? false,
+                        ]
                       : [],
           tolerance: textDecimal(tolerance),
-          version: ENGINE_VERSION,
+          // Preserve fingerprints/reviews of unchanged controls, especially C12.
+          version: metric.monthly || metric.control === "C04" ? ENGINE_VERSION : "1.0.0",
         }),
       });
     }

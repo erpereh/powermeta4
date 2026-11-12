@@ -19,6 +19,7 @@ import {
 } from "@/components/system";
 import type { PayrollReportRun, PayrollReportRunKey } from "@/types/payroll-report";
 import type { Parameters } from "@/lib/payroll-reconciliation/types";
+import { monthlyRunIssue } from "@/lib/payroll-reconciliation/comparison";
 import {
   ALL_REPORTS,
   NO_RUN,
@@ -159,7 +160,9 @@ export function SelectionForm({
   );
   const current = reportRuns.find((run) => runId(run) === currentId && run.hasData);
   const period = demo ? demoPeriod : (current?.accruedOn.slice(0, 7) ?? "");
-  const priorRuns = sortRuns(runs.filter((run) => current && run.accruedOn.slice(0, 7) < period));
+  const priorRuns = sortRuns(
+    runs.filter((run) => current && monthlyRunIssue(period, current, run) === null),
+  );
   const previous = priorRuns.find((run) => runId(run) === previousId && run.hasData);
   const samePeriod = !initial || !current || period === initial.period;
   const validSelection = demo
@@ -327,8 +330,8 @@ export function SelectionForm({
           )}
           {current && previousId !== NO_RUN && !previous && (
             <p role="alert">
-              La ejecución anterior ya no está disponible o no corresponde a un mes anterior. Elige
-              otra o continúa sin anterior.
+              La ejecución anterior ya no está disponible o no es comparable con el mes
+              inmediatamente anterior. Elige otra o continúa sin anterior.
             </p>
           )}
           <p className="text-sm text-muted-foreground">

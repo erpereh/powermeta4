@@ -60,6 +60,52 @@ function findingRow(sheet: ExcelJS.Worksheet, finding: Finding) {
 }
 
 describe("reconciliation workbook", () => {
+  it("retains company-separated C13 amounts and pending proration in the existing seven columns", async () => {
+    const input = dossier();
+    const source = {
+      id: "annual",
+      hash: "annual",
+      category: "aniversarios" as const,
+      period: input.period,
+      complete: true,
+      profile: "aniversarios-v2",
+      diagnostics: [],
+      cellCount: 1,
+      facts: [
+        {
+          employeeId: "009001",
+          entity: "DEMO",
+          seniorityDate: "2001-10-15",
+          values: { anniversary: "anniversary25" },
+          reference: "ACYC!C4",
+        },
+      ],
+    };
+    input.sources = [source];
+    input.parameters.rulesConfirmed = true;
+    input.parameters.anniversaryFullBase = true;
+    input.current.rows[0][input.current.headers.indexOf("Paga 25 años")] = "1800";
+    const other = [...input.current.rows[0]];
+    other[input.current.headers.indexOf("Id Empresa")] = "OTHER";
+    other[input.current.headers.indexOf("Salario Base")] = "900";
+    other[input.current.headers.indexOf("Paga 25 años")] = "900";
+    input.current.rows.push(other);
+    input.current.seniorityDates!.push("2001-10-15");
+    source.facts.push({ ...source.facts[0], entity: "OTHER", reference: "ACYC!C5" });
+    input.result = reconcile(input);
+    const workbook = await load(input),
+      sheet = controlSheet(workbook, "C13");
+    const rows = input.result.findings.filter(
+      (row) => row.metric === "anniversary25" && row.employeeId === "009001",
+    );
+    expect(rows.map((row) => row.actual)).toEqual(["1800", "900"]);
+    expect(sheet.columnCount).toBe(7);
+    const reasons = JSON.stringify(sheet.getColumn(7).values);
+    expect(reasons).toContain("Empresa DEMO");
+    expect(reasons).toContain("Empresa OTHER");
+    const extra = controlSheet(workbook, "C04");
+    expect(JSON.stringify(extra.getColumn(7).values)).toContain("Modalidad pendiente");
+  });
   it("exports seven columns in all sixteen control sheets, retaining IRPF units in headers", async () => {
     const input = dossier(),
       original = structuredClone(input),

@@ -69,7 +69,9 @@ describe("deterministic reconciliation", () => {
     }
     input.sources.push(
       source("recarga", [fact({ net: "121" })]),
-      source("aniversarios", [fact({ anniversary: "anniversary25" })]),
+      source("aniversarios", [
+        { ...fact({ anniversary: "anniversary25" }), entity: "DEMO", seniorityDate: "2001-10-15" },
+      ]),
     );
     input.parameters = {
       ...input.parameters,

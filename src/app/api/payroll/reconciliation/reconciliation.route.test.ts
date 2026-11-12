@@ -111,6 +111,103 @@ beforeEach(() => {
   mocks.save.mockImplementation((_scope, record) => record);
 });
 describe("reconciliation boundaries", () => {
+  it.each(["gap", "report", "frequency", "kind", "unknown"])(
+    "rejects an incompatible previous execution (%s) on creation and refresh",
+    async (caseName) => {
+      mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+      mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+      const current = demoReport("2026-10"),
+        previous = demoReport("2026-10", true);
+      if (caseName === "gap") previous.run.accruedOn = "2026-08-25";
+      if (caseName === "report") previous.run.reportId = "02_C";
+      if (caseName === "frequency") previous.run.payFrequency = "002";
+      if (caseName === "kind") previous.run.payKind = "Retroactivas";
+      if (caseName === "unknown") previous.run.payKind = null;
+      mocks.read.mockImplementation((_society, key) =>
+        key.accruedOn === current.run.accruedOn ? current : previous,
+      );
+      const selection = {
+        currentKey: runKey(current.run),
+        previousKey: runKey(previous.run),
+        populationConfirmed: true,
+      };
+      expect((await POST(request("POST", { ...create(), ...selection, demo: false }))).status).toBe(
+        422,
+      );
+      expect(
+        (
+          await PATCH(
+            request("PATCH", { id: dossier.id, revision: 1, action: "refresh", ...selection }),
+          )
+        ).status,
+      ).toBe(422);
+      expect(mocks.save).not.toHaveBeenCalled();
+    },
+  );
+  it("accepts descriptive differences with the same identifiers and normalized CSP_TIPO_PAGA", async () => {
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+    const current = demoReport("2026-10"),
+      previous = demoReport("2026-10", true);
+    previous.run.payKind = "  NÓRMAL  ";
+    previous.run.reportName = "Otra denominación";
+    previous.payFrequencyName = "Mensual renombrada";
+    previous.payTypeName = "Paga Regular";
+    mocks.read.mockImplementation((_society, key) =>
+      key.accruedOn === current.run.accruedOn ? current : previous,
+    );
+    expect(
+      (
+        await POST(
+          request("POST", {
+            ...create(),
+            demo: false,
+            currentKey: runKey(current.run),
+            previousKey: runKey(previous.run),
+          }),
+        )
+      ).status,
+    ).toBe(200);
+  });
+  it("recalculates legacy inputs on read without SQL, saving or invalidating C12 reviews", async () => {
+    const advance = dossier.result.findings.find((row) => row.control === "C12")!;
+    dossier.annotations = [
+      {
+        findingId: advance.id,
+        fingerprint: advance.fingerprint,
+        state: "Pendiente",
+        comment: "",
+        actor: "TEST",
+        at: "2026-10-01",
+      },
+    ];
+    dossier.result.engineVersion = "1.0.0";
+    dossier.previous!.run.accruedOn = "2026-08-25";
+    const response = await GET(
+      new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`),
+    );
+    const { data } = await response.json();
+    expect(
+      data.result.findings.find((row: { control: string }) => row.control === "C01").status,
+    ).toBe("No comparable");
+    expect(data.annotations[0].invalidated).toBe(false);
+    expect(data.revision).toBe(1);
+    expect(dossier.result.engineVersion).toBe("1.0.0");
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.read).not.toHaveBeenCalled();
+    expect(
+      (
+        await PATCH(
+          request("PATCH", {
+            id: dossier.id,
+            revision: 1,
+            action: "parameters",
+            parameters: DEFAULT_PARAMETERS,
+          }),
+        )
+      ).status,
+    ).toBe(200);
+  });
   it.each(["2015-04", "2026-09"])(
     "creates and analyzes a real-mode dossier using the selected execution's actual period %s",
     async (period) => {

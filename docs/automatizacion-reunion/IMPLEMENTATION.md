@@ -7,6 +7,113 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
+## Correcciones de cálculo — 2026-11-12
+
+El motor 1.1.0 limita C01/C02/C08/C15 al mes inmediatamente anterior. La
+compatibilidad usa códigos de informe y frecuencia, y el tipo de paga del
+informe normalizado; no compara nombres descriptivos ni mezcla `CSP_TIPO_PAGA`
+con el nombre del tipo del calendario. Diferencias económicas siguen siendo
+hallazgos revisables, sin diagnóstico automático de error.
+
+C04 conserva base + experiencia + CAI para devengo completo acreditado.
+Incorpora «Paga Extra Prorrateada» y la fórmula base × 3 / 12, condicionada a
+evidencia individual de modalidad y vigencia completa. **Los lectores actuales
+no acreditan esa modalidad: en datos reales queda pendiente.** La fórmula está
+implementada y probada con evidencia sintética. No se han añadido lecturas SQL
+especulativas, consultas por empleado, campos manuales ni nuevas importaciones.
+
+La investigación reutiliza `payroll-reports`, `payroll-receipt` y su mapper.
+`CSP_TOT_PAGA_EXTRA` corresponde al concepto cobrado del recibo;
+`SSP_PRORRATA` es cotización. El diccionario local permite localizar
+`M4SSP_H_CONVENIOS`, `M4SSP_CONV_PAG_EXT` y `M4SSP_DEF_PAG_EXT`, pero no acredita
+la resolución individual ni las excepciones y vigencias. `SSP_NUM_PAGAS` es
+virtual y no constituye un número anual de pagas comprobado. No se deducen
+modalidades de importes, calendario, frecuencia ni de la anotación «14 meses».
+
+C13 separa bases, pagos, beneficiarios, alias e identificadores por empresa y
+matrícula. La antigüedad de nómina se conserva junto a las filas, sin desplazar
+las columnas de evidencia de los demás controles. El listado anual v2 retiene
+su antigüedad laboral y todos los meses; no importa nacimiento. Exige coincidencia
+de fechas y confirmación de elegibilidad/base. Cero explícito permite detectar
+pago faltante; ausencia de dato no lo sustituye. Pago sin beneficiario queda
+pendiente con cobertura parcial; con cobertura exhaustiva acreditada se marca
+diferencia revisable, sin declarar automáticamente que sea indebido.
+
+Los expedientes antiguos se recalculan en memoria al abrirlos, sin leer SQL,
+guardar SQLite ni refrescar instantáneas. Para guardar el nuevo cálculo y poder
+exportarlo, usar «Guardar parámetros y recalcular». Las revisiones de los
+controles no modificados mantienen sus huellas; C12 no cambia. No hay migración SQL.
+Para recuperar antigüedad ausente, actualizar expresamente las instantáneas.
+Volver a comprobar e incorporar el listado anual v1 propone una sustitución
+por v2 incluso si el fichero tiene el mismo hash; no es una migración silenciosa.
+La carga automática sigue declarando fuente parcial (`complete: false`).
+La confirmación de reglas/base no declara por sí sola cobertura exhaustiva;
+esa declaración pertenece al contrato de importación existente (`complete`).
+
+### Validación real en la VM
+
+Esta entrega se valida localmente; no se ha ejecutado SQL real en la VM.
+Con el servidor detenido, compilar la nueva versión con `npm run build` y
+arrancar con `npm run start`. No hace falta una migración adicional para estas
+correcciones. Usar la configuración PeopleNet ya existente, sin compartirla.
+
+Para la referencia documental de octubre de 2026:
+
+```powershell
+npm run cuadre:discover -- CYC --period 2026-10
+npm run cuadre:discover -- CYC --period 2026-09
+```
+
+Copiar las claves reales elegidas a `data/cuadre-selection.json`, con dos
+propiedades `currentKey` y `previousKey`. Cada clave conserva exactamente
+`reportId`, `runAt`, `accruedOn` y `payFrequency` de la salida; no inventar códigos
+ni usar las copias Datos2/3 como mes anterior. Ejecutar:
+
+```powershell
+npm run cuadre:verify -- CYC --selection ".\data\cuadre-selection.json"
+```
+
+El verificador reutiliza el lector SQL existente y solo imprime recuentos,
+diagnósticos y la advertencia de modalidad pendiente. No importa el listado
+de aniversarios ni confirma reglas económicas de C04/C13. Si no hay un anterior
+compatible, los controles mensuales deben quedar pendientes. Para otro mes o
+sociedad, repetir con sus periodos y claves reales, sin cambiar el contexto de
+sociedad de una persona desde el navegador.
+Con selección válida se espera `monthlyComparison.comparable: true`; revisar
+`reason` si es `false`. `cuadre:discover` muestra por separado `payKind` del
+informe y `payTypeName`/`payFrequencyName` del calendario, sin equipararlos.
+
+Comprobaciones en la aplicación y PeopleNet:
+
+1. Confirmar población/filtros y conceptos de ambas ejecuciones. Diferencias
+   descriptivas con los mismos códigos no bloquean; agosto no sirve como anterior
+   de octubre. Sin anterior, las otras categorías siguen disponibles.
+2. Contrastar una extra completa acreditada contra base + experiencia + CAI de
+   esa empresa, matrícula y periodo, incluida una diferencia conocida.
+3. Para la modalidad prorrateada, identificar en Meta4 la asignación histórica
+   individual, sus posibles excepciones y la semántica de los indicadores de
+   `M4SSP_DEF_PAG_EXT`, con su convenio y vigencias. Confirmar expresamente 12 pagos
+   y tres extras, y resolver «14 meses». El histórico de importes y el calendario
+   solo corroboran; no acreditan esa configuración. Hasta disponer del contrato
+   técnico verificable y conectarlo al lector, comprobar que la aplicación
+   conserva «Modalidad pendiente», incluso si el importe coincide con base / 4.
+4. Actualizar la instantánea e incorporar el listado anual v2. Contrastar un
+   aniversario de 25 años y otro de 40 con empresa, matrícula y antigüedad; revisar
+   cero explícito, pago vacío y pago sin beneficiario. Con carga automática parcial,
+   este último queda pendiente. El contraste exhaustivo requiere una fuente con
+   cobertura explícitamente acreditada en el contrato existente; no basta marcar
+   la casilla de elegibilidad/base ni debe forzarse editando SQLite.
+5. Si una matrícula existe en dos empresas de la sociedad, comprobar que aparecen
+   dos hallazgos C13 con bases/pagos independientes y la empresa en el motivo,
+   también en Excel. Confirmar que C12 conserva datos y revisiones.
+
+Un aniversario del 29 de febrero en un año no bisiesto queda pendiente de
+confirmar su mes de pago; no se elige automáticamente febrero ni marzo.
+
+Conservar como resultado de validación solo sociedad, periodos, claves técnicas,
+recuentos y reglas confirmadas o pendientes; no compartir importes personales,
+matrículas, credenciales ni logs SQL sin sanear.
+
 ## Instalar y abrir
 
 En la instalación donde se ejecuta powermeta4, con el servidor detenido:
@@ -227,20 +334,21 @@ de 0,01 EUR/pp es editable y sigue siendo un valor de piloto.
 
 ## Qué queda condicionado
 
-- C01/C02/C08/C15 necesitan anterior compatible; la ausencia de una persona
+- C01/C02/C08/C15 necesitan el mes inmediatamente anterior compatible; la ausencia de una persona
   no se interpreta como baja laboral ni como cero.
 - C03/C06/C07/C10/C14/C16 tienen perfiles contrastados con los originales.
   Se conservan sus diferencias conocidas, la identidad inválida de Eurest y
   los registros finales de PPSE. Q13 mantiene pendiente la aceptación económica
   del calendario; una coincidencia numérica no lo valida por sí sola.
-- C04 exige matrículas con devengo completo declarado para una paga concreta,
-  o excepción acreditada; la proporcionalidad no se inventa.
+- C04 exige devengo completo declarado para una paga concreta o excepción
+  acreditada. La fórmula de prorrata está implementada, pero su acreditación
+  automática en SQL sigue pendiente; la proporcionalidad no se inventa.
 - C05/C09 necesitan tarifa, días y vigencia confirmados; los casos particulares
   usan la plantilla de excepciones, no comentarios que cambien importes.
 - C11/C12 admiten las plantillas normalizadas descargables. Faltan los
   registros independientes del cliente para validar su uso operativo.
-- C13 filtra antigüedad, mes/año y entidad presente en la nómina. Requiere
-  confirmar elegibilidad/base por entidad o excepción independiente.
+- C13 agrupa importes y cruza empresa/matrícula y antigüedad, mes/año.
+  Requiere confirmar elegibilidad/base; ausencia y cobertura parcial no generan ceros.
 - Solapes de recarga/Eurest o duplicados no acreditados quedan no comparables.
   El perfil de apartamentos delimita los bloques recibidos; si crecen fuera
   del contrato se debe validar una nueva versión.

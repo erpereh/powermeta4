@@ -4,6 +4,7 @@ import { snapshot } from "../../src/lib/payroll-reconciliation/snapshot";
 import { reconcile } from "../../src/lib/payroll-reconciliation/engine";
 import { validRunKey } from "../../src/lib/payroll-reconciliation/validation";
 import { DEFAULT_PARAMETERS } from "../../src/lib/payroll-reconciliation/types";
+import { monthlySnapshotIssue } from "../../src/lib/payroll-reconciliation/comparison";
 import { execute, societyArgument } from "./common";
 
 void execute(async () => {
@@ -21,13 +22,15 @@ void execute(async () => {
       ? await getPayrollReportRun(society, validRunKey(selection.previousKey))
       : null;
   if (!current) throw new Error("Ejecución inexistente.");
-  const result = reconcile({
+  const input = {
     period: current.run.accruedOn.slice(0, 7),
-    current: snapshot(current, true),
-    previous: previous ? snapshot(previous, true) : null,
+    current: snapshot(current, true, society),
+    previous: previous ? snapshot(previous, true, society) : null,
     sources: [],
     parameters: DEFAULT_PARAMETERS,
-  });
+  };
+  const result = reconcile(input);
+  const comparisonIssue = monthlySnapshotIssue(input.period, input.current, input.previous);
   console.log(
     JSON.stringify(
       {
@@ -37,6 +40,9 @@ void execute(async () => {
         engineVersion: result.engineVersion,
         controls: result.controls,
         diagnostics: result.diagnostics,
+        monthlyComparison: { comparable: comparisonIssue === null, reason: comparisonIssue },
+        extraPayModality:
+          "Pendiente: los lectores actuales no acreditan modalidad individual ni vigencia. Importes y calendario no son prueba suficiente.",
       },
       null,
       2,

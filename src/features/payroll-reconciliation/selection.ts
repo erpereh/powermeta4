@@ -1,6 +1,7 @@
 import { payrollReportRunId } from "@/lib/payroll-reports/run-key";
 import { formatIsoDay, formatRunAt } from "@/components/tools/reports/payroll-results-format";
 import type { PayrollReportRun, PayrollReportRunKey } from "@/types/payroll-report";
+import { monthlyRunIssue } from "@/lib/payroll-reconciliation/comparison";
 
 export const NO_RUN = "none";
 export const ALL_REPORTS = "all";
@@ -31,16 +32,7 @@ export function previousCandidate(
   runs: readonly PayrollReportRun[],
   current: PayrollReportRun,
 ): PayrollReportRun | undefined {
-  if (!current.payKind?.trim()) return undefined;
-  const month = new Date(`${current.accruedOn.slice(0, 7)}-01T00:00:00Z`);
-  month.setUTCMonth(month.getUTCMonth() - 1);
-  const preceding = month.toISOString().slice(0, 7);
   return sortRuns(runs).find(
-    (run) =>
-      run.hasData &&
-      run.reportId === current.reportId &&
-      run.payFrequency === current.payFrequency &&
-      run.payKind === current.payKind &&
-      run.accruedOn.startsWith(preceding),
+    (run) => monthlyRunIssue(current.accruedOn.slice(0, 7), current, run) === null,
   );
 }

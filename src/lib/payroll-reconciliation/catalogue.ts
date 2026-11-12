@@ -47,6 +47,7 @@ export const METRICS: Metric[] = [
       control: "C04",
     }),
   ),
+  { id: "extraProrated", header: "Paga Extra Prorrateada", control: "C04" },
   { id: "telework", header: "importe abono teletrabajo", control: "C05", category: "teletrabajo" },
   { id: "kmExempt", header: "Kilometraje Exento", control: "C06", category: "comisiones" },
   { id: "kmSubject", header: "Kilometraje No Exento", control: "C06", category: "comisiones" },

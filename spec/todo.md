@@ -1,5 +1,26 @@
 # powermeta4 - estado de tareas
 
+## Cuadre de nómina: correcciones de cálculo — 2026-11-12
+
+- [x] C01/C02/C08/C15 limitadas al mes inmediato mediante validación compartida;
+      códigos estables y tipo normalizado, sin bloquear por nombres descriptivos.
+- [x] C04 conserva extra completa y añade base × 3 / 12 con acreditación individual
+      y vigencia; sin contrato SQL suficiente, modalidad real pendiente.
+- [x] C13 agrega y cruza por empresa/matrícula, conserva antigüedad laboral,
+      detecta pagos faltantes y separa cobertura parcial/exhaustiva sin ceros ficticios.
+- [x] C12 y revisiones ajenas conservadas; regresión contra huellas anteriores.
+      Expedientes anteriores recalculados sin refresco SQL ni migración.
+- [x] Contratos y pasos VM documentados en la guía de Cuadre.
+- [x] Verificación ejecutada: `npm test` con 216 archivos correctos,
+      1.388 pruebas superadas y dos omisiones preexistentes; tras los últimos
+      casos límite, 148 pruebas dirigidas correctas en once archivos.
+      Typecheck y build (44 páginas) correctos; formato del módulo y diff sin errores.
+- [ ] Lint global conserva siete avisos y formato pendiente en 619 archivos
+      preexistentes; no se ha ejecutado un reformateo general.
+- [ ] Validar en VM población e informes de meses consecutivos y casos C04/C13.
+- [ ] Acreditar contrato PeopleNet de modalidad individual, «14 meses», vigencias,
+      devengos parciales, transiciones y elegibilidad/base de aniversarios con RRHH.
+
 ## Cierre local sin nueva ejecución VM — 2026-11-11
 
 Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.

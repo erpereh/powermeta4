@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { BlobReader, ZipReader } from "@zip.js/zip.js";
 import { identity, METRICS, MONTHS, normalizeHeader } from "./catalogue";
 import { decimal, textDecimal } from "./decimal";
+import { anniversaryMetric, seniorityDate } from "./dates";
 import type { Category, Source, SourceFact } from "./types";
 import {
   detectSourceProfile,
@@ -368,6 +369,7 @@ function parseSource(
         dateCol = name === "ACYC" ? "H" : "G";
       header(s, "B", first - 1, "EMPRESA");
       header(s, "C", first - 1, "MATRICULA");
+      header(s, dateCol, first - 1, "ANTIGUEDAD");
       for (let row = first; row <= lastRow(s); row++) {
         if (!/^\d+$/.test(identity(value(s, "C", row)))) continue;
         const rawDate = numeric(s, dateCol, row);
@@ -383,15 +385,19 @@ function parseSource(
           );
           continue;
         }
-        const years = Number(period.slice(0, 4)) - date.y;
-        if (date.m !== Number(period.slice(5)) || ![25, 40].includes(years)) continue;
+        const dateText = seniorityDate(
+          `${String(date.y).padStart(4, "0")}-${String(date.m).padStart(2, "0")}-${String(date.d).padStart(2, "0")}`,
+        );
         push(
           s,
           name,
           "C",
           row,
-          { anniversary: `anniversary${years}` },
-          { entity: value(s, "B", row) },
+          { anniversary: dateText ? anniversaryMetric(dateText, period) : null },
+          {
+            entity: value(s, "B", row),
+            ...(dateText ? { seniorityDate: dateText } : { issue: "Antigüedad no interpretable." }),
+          },
         );
       }
     }
@@ -431,7 +437,9 @@ function parseSource(
       } else {
         metric = get("metrica");
         amount = get("importe_esperado_firmado");
-        const definition = METRICS.find((item) => item.id === metric && !item.monthly);
+        const definition = METRICS.find(
+          (item) => item.id === metric && !item.monthly && item.id !== "extraProrated",
+        );
         if (!definition || get("control") !== definition.control)
           fail(`Control/métrica de excepción no acreditados en fila ${row}.`);
         if (!get("motivo") || !get("referencia_documental") || get("confirmada") !== "SI")
@@ -492,7 +500,7 @@ function parseSource(
     category,
     period,
     complete,
-    profile: `${category}-v1`,
+    profile: `${category}-v${category === "aniversarios" ? 2 : 1}`,
     facts,
     diagnostics,
     cellCount,

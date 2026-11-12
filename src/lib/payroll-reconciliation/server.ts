@@ -14,9 +14,10 @@ import {
 } from "@/server/database/repositories/payroll-reconciliation-repository";
 import { DEFAULT_PARAMETERS, type Dossier, type SourceImportResult } from "./types";
 import { demoReport } from "./demo";
-import { reconcile, retainAnnotations } from "./engine";
+import { ENGINE_VERSION, reconcile, retainAnnotations } from "./engine";
 import { LIMITS, importAutoSource, importSource, ReconciliationError } from "./import";
 import { snapshot } from "./snapshot";
+import { monthlySnapshotIssue } from "./comparison";
 import { sourceChange, sourceLimitError } from "./source-plan";
 import {
   creationSchema,
@@ -139,6 +140,13 @@ export async function guarded(
   }
 }
 const repository = () => reconciliationRepository();
+function currentDossier(context: Context, id: string): Dossier {
+  const dossier = repository().get(context, id);
+  if (dossier.result.engineVersion === ENGINE_VERSION) return dossier;
+  const result = reconcile(dossier);
+  // Recalculate saved inputs in memory, without refreshing SQL or writing SQLite.
+  return { ...dossier, result, annotations: retainAnnotations(dossier.annotations, result) };
+}
 function requireRevision(dossier: Dossier, revision: number): void {
   if (dossier.revision !== revision)
     throw new ReconciliationError("El expediente ha cambiado. Vuelve a abrirlo.", 409);
@@ -150,7 +158,7 @@ async function loadSnapshot(
   previous: boolean,
   confirmed: boolean,
 ) {
-  if (context.demo) return snapshot(demoReport(period, previous), confirmed);
+  if (context.demo) return snapshot(demoReport(period, previous), confirmed, context.society);
   const data = await getPayrollReportRun(context.society, validRunKey(key));
   if (!data?.rows.length)
     throw new ReconciliationError("La ejecución elegida no existe o está vacía.", 422);
@@ -159,21 +167,23 @@ async function loadSnapshot(
       "La fecha de paga actual no corresponde al mes seleccionado.",
       422,
     );
-  return snapshot(data, confirmed);
+  return snapshot(data, confirmed, context.society);
 }
-function validatePrevious(current: Dossier["current"], previous: Dossier["previous"]): void {
-  if (previous && previous.run.accruedOn.slice(0, 7) >= current.run.accruedOn.slice(0, 7))
-    throw new ReconciliationError(
-      "La ejecución anterior debe pertenecer a un mes anterior al actual.",
-      422,
-    );
+function validatePrevious(
+  period: string,
+  current: Dossier["current"],
+  previous: Dossier["previous"],
+): void {
+  if (!previous) return;
+  const issue = monthlySnapshotIssue(period, current, previous);
+  if (issue) throw new ReconciliationError(issue, 422);
 }
 export async function getDossiers(request: Request, context: Context): Promise<Response> {
   const url = new URL(request.url);
   if (url.searchParams.has("catalog"))
     return jsonResponse(context.demo ? [] : await listPayrollReportRuns(context.society));
   const id = url.searchParams.get("id");
-  return jsonResponse(id ? repository().get(context, id) : repository().list(context));
+  return jsonResponse(id ? currentDossier(context, id) : repository().list(context));
 }
 export async function createDossier(request: Request, context: Context): Promise<Response> {
   const input = parse(creationSchema, await jsonBody(request));
@@ -184,7 +194,7 @@ export async function createDossier(request: Request, context: Context): Promise
     input.previousKey || context.demo
       ? await loadSnapshot(context, input.previousKey, input.period, true, true)
       : null;
-  validatePrevious(current, previous);
+  validatePrevious(input.period, current, previous);
   const base = {
     period: input.period,
     current,
@@ -208,7 +218,7 @@ export async function createDossier(request: Request, context: Context): Promise
 }
 export async function updateDossier(request: Request, context: Context): Promise<Response> {
   const input = parse(mutationSchema, await jsonBody(request));
-  const dossier = repository().get(context, input.id);
+  const dossier = currentDossier(context, input.id);
   requireRevision(dossier, input.revision);
   if (input.action === "parameters") {
     if (!input.parameters) throw new ReconciliationError("Faltan los parámetros.");
@@ -260,7 +270,9 @@ export async function updateDossier(request: Request, context: Context): Promise
             )
           : null;
   }
-  validatePrevious(dossier.current, dossier.previous);
+  // Legacy selections may be incompatible: other operations must remain usable.
+  if (input.action === "refresh")
+    validatePrevious(dossier.period, dossier.current, dossier.previous);
   dossier.result = reconcile(dossier);
   dossier.annotations = retainAnnotations(dossier.annotations, dossier.result);
   return jsonResponse(await repository().save(context, dossier, input.revision));
@@ -295,7 +307,7 @@ export async function previewSource(request: Request, context: Context): Promise
   const { file, metadata } = await multipart(request);
   const input = parse(checkSourceSchema, metadata);
   if ("auto" in input) {
-    const dossier = repository().get(context, input.id);
+    const dossier = currentDossier(context, input.id);
     requireRevision(dossier, input.revision);
     const source = await importAutoSource(
       new Uint8Array(await file.arrayBuffer()),
@@ -325,7 +337,7 @@ export async function previewSource(request: Request, context: Context): Promise
 export async function analyzeSource(request: Request, context: Context): Promise<Response> {
   const { file, metadata } = await multipart(request);
   const input = parse(analyzeSourceSchema, metadata);
-  const dossier = repository().get(context, input.id);
+  const dossier = currentDossier(context, input.id);
   requireRevision(dossier, input.revision);
   if ("auto" in input) {
     const source = await importAutoSource(

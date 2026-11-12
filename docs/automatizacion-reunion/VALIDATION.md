@@ -1,5 +1,22 @@
 # Validación de fuentes y criterios de aceptación
 
+Corrección local 2026-11-12: las pruebas sintéticas cubren periodos consecutivos
+y denominaciones, ambas fórmulas C04 con su acreditación, y C13 por empresa y
+matrícula con fechas, pagos ausentes y cobertura parcial/exhaustiva. Incluyen
+huellas anteriores exactas de C12 y de los controles ajenos al cambio,
+recarga de expedientes, servidor, formulario y exportación de siete columnas.
+La fórmula de prorrata no implica una modalidad SQL acreditada: sus pruebas
+positivas usan evidencia sintética explícita. Los pasos operativos pendientes
+están en «Validación real en la VM» de [IMPLEMENTATION](IMPLEMENTATION.md).
+
+Ejecuciones de esta entrega: `npm test` termina con 216 archivos correctos,
+1.388 pruebas superadas y dos omisiones preexistentes. Después de los últimos
+casos límite se ejecutan las 148 pruebas del módulo, servidor y UI en once archivos,
+todas correctas. Typecheck y build (44 páginas) pasan. El formato de los 37 archivos
+comprobados del módulo/scripts y `git diff --check` pasan. El lint global conserva
+siete avisos y formato pendiente en 619 archivos anteriores; no se reformatea
+el repositorio. No se han ejecutado los comandos SQL de la VM.
+
 Estado de esta evidencia: análisis documental y comprobaciones locales;
 la implementación posterior y sus pruebas están en [IMPLEMENTATION](IMPLEMENTATION.md)
 y `spec/changelog.md`. **No acredita validación operativa en PeopleNet**. Los originales no se han guardado

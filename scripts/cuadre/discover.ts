@@ -26,6 +26,10 @@ void execute(async () => {
     const occurrences = new Map<string, number>();
     output.push({
       key,
+      reportName: run.reportName,
+      payKind: run.payKind,
+      payFrequencyName: detail?.payFrequencyName ?? null,
+      payTypeName: detail?.payTypeName ?? null,
       hasData: run.hasData,
       rows: detail?.rows.length ?? 0,
       people: detail && idIndex >= 0 ? new Set(detail.rows.map((row) => row[idIndex])).size : 0,

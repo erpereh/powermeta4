@@ -41,6 +41,14 @@ y mostrar discrepancias con la cache. Una cache sola no aprueba una fuente
 derivada; una fórmula sin cache/regla no se convierte en cero. Los motivos
 del libro son anotaciones de RRHH, no hechos históricos de SQL.
 
+Implementación 2026-11-12: C01/C02/C08/C15 solo admiten el mes inmediatamente
+anterior, con cambio de año. Selector, servidor y motor comparten la validación.
+Se comparan códigos de informe/frecuencia y `CSP_TIPO_PAGA` normalizado
+(espacios, mayúsculas y acentos); los nombres descriptivos no restringen el
+cruce. Códigos distintos necesitan equivalencia acreditada. Población sin
+confirmar, persona ausente o mes incompatible quedan pendientes, sin ceros
+implícitos ni diagnóstico automático de error.
+
 ## C01 — Fijos
 
 H: correo y E03–E06. `Datos!DF1`: «Total conceptos fijos».
@@ -98,6 +106,20 @@ P: comparar extra completa solo con devengo completo acreditado. En otro
 caso, mostrar valores y «No comparable — falta regla/histórico de devengo».
 No usar fila sin fórmula como cero esperado ni aplicar la tercera extra a
 cualquier mes/sociedad. Q06 mantiene proporcionalidad y convenios pendientes.
+
+Implementación 2026-11-12: `extraProrated` contrasta «Paga Extra Prorrateada»
+con `(Salario Base × 3) / 12` únicamente con evidencia independiente, individual
+y vigente todo el mes de 12 pagos con tres extras prorrateadas. La evidencia
+debe coincidir en sociedad del servidor, empresa, matrícula y periodo; la
+fórmula completa tampoco cruza matrículas de empresas distintas.
+Los lectores SQL actuales no producen esa acreditación: la prorrata real queda
+«No comparable — Modalidad pendiente». La fórmula y sus guardas están probadas
+con evidencia sintética, sin presentarla como contrato PeopleNet validado.
+No hay campos manuales, nuevas importaciones ni consultas de recibo por persona.
+`CSP_TOT_PAGA_EXTRA` alimenta el concepto cobrado en el recibo;
+`SSP_PRORRATA` corresponde a cotización. `SSP_NUM_PAGAS` es un elemento virtual
+sin correspondencia física anual acreditada. Importes, frecuencia y calendario
+no acreditan modalidad. «14 meses», parciales y transiciones siguen pendientes.
 
 ## C05 — Teletrabajo
 
@@ -221,6 +243,21 @@ comparar pago esperado/pago sin beneficiario y base cuando sea aplicable.
 En Iberinform la clasificación se deriva del aniversario de antigüedad,
 sin inventar etiqueta ausente. No usar nacimiento ni asumir misma cuantía
 para España/Portugal/IBER. Elegibilidad y proporcionalidad siguen en Q12.
+
+Implementación 2026-11-12: C13 agrupa base, pagos e identidades por
+`(empresa, matrícula)` dentro de la sociedad, antes del cruce. Conserva y
+contrasta antigüedad laboral de nómina y listado; el perfil `aniversarios-v2`
+retiene todo el listado anual, incluidas personas de otros meses. Los alias
+numéricos solo se resuelven dentro de la empresa. Los identificadores de hallazgo
+y sus motivos identifican la empresa; las siete columnas de salida se conservan.
+Con aniversario, beneficiario y regla acreditados, cero explícito detecta pago
+faltante; celda vacía o ausencia de registro mantiene pago no acreditado.
+Pago sin beneficiario y listado exhaustivo declarado permite diferencia
+revisable, sin afirmar pago indebido. Fuente parcial, identidad sin vincular,
+fecha inválida o contradictoria y elegibilidad sin confirmar quedan pendientes.
+Cumplir años sin estar acreditado como beneficiario nunca genera un cero esperado
+artificial. Fuentes v1 e instantáneas sin antigüedad necesitan actualización
+expresa. Ninguna regla nueva se deduce de convenio, país o jornada.
 
 ## C14 — PPSE, aportación personal
 
