@@ -5,6 +5,7 @@ import { reconcile } from "../../src/lib/payroll-reconciliation/engine";
 import { validRunKey } from "../../src/lib/payroll-reconciliation/validation";
 import { DEFAULT_PARAMETERS } from "../../src/lib/payroll-reconciliation/types";
 import { monthlySnapshotIssue } from "../../src/lib/payroll-reconciliation/comparison";
+import { captureAutomaticExtras } from "../../src/lib/payroll-reconciliation/extra-pay-reader";
 import { execute, societyArgument } from "./common";
 
 void execute(async () => {
@@ -24,7 +25,7 @@ void execute(async () => {
   if (!current) throw new Error("Ejecución inexistente.");
   const input = {
     period: current.run.accruedOn.slice(0, 7),
-    current: snapshot(current, true, society),
+    current: await captureAutomaticExtras(snapshot(current, true, society)),
     previous: previous ? snapshot(previous, true, society) : null,
     sources: [],
     parameters: DEFAULT_PARAMETERS,
@@ -41,8 +42,14 @@ void execute(async () => {
         controls: result.controls,
         diagnostics: result.diagnostics,
         monthlyComparison: { comparable: comparisonIssue === null, reason: comparisonIssue },
-        extraPayModality:
-          "Pendiente: los lectores actuales no acreditan modalidad individual ni vigencia. Importes y calendario no son prueba suficiente.",
+        extraPayModality: {
+          issue: input.current.extraPayAutomatic?.issue ?? null,
+          people: input.current.extraPayAutomatic?.people.length ?? 0,
+          accredited:
+            input.current.extraPayAutomatic?.people.filter((person) => !person.issue).length ?? 0,
+          pending:
+            input.current.extraPayAutomatic?.people.filter((person) => person.issue).length ?? 0,
+        },
       },
       null,
       2,

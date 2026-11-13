@@ -4,6 +4,7 @@ import { hash } from "./hash";
 import { monthlySnapshotIssue } from "./comparison";
 import { anniversaryFindings } from "./anniversaries";
 import { extraPayExpected } from "./extra-pay";
+import { automaticExtraFindings } from "./extra-pay-findings";
 import { missing, payroll, resolveIdentity, type Value } from "./payroll-value";
 export { resolveIdentity } from "./payroll-value";
 import type {
@@ -17,7 +18,7 @@ import type {
   SourceFact,
 } from "./types";
 
-export const ENGINE_VERSION = "1.1.0";
+export const ENGINE_VERSION = "1.2.0";
 const zero = BigInt(0);
 
 function population(data: Snapshot | null): Map<string, { rows: number[]; name: string }> {
@@ -115,6 +116,10 @@ export function reconcile(
   }
   const findings: Finding[] = [];
   for (const metric of METRICS) {
+    if (metric.control === "C04" && current.extraPayAutomatic) {
+      findings.push(...automaticExtraFindings(input, metric));
+      continue;
+    }
     if (metric.control === "C13") {
       findings.push(...anniversaryFindings(input, metric));
       continue;
@@ -300,7 +305,7 @@ export function reconcile(
                       : [],
           tolerance: textDecimal(tolerance),
           // Preserve fingerprints/reviews of unchanged controls, especially C12.
-          version: metric.monthly || metric.control === "C04" ? ENGINE_VERSION : "1.0.0",
+          version: metric.control === "C04" ? ENGINE_VERSION : metric.monthly ? "1.1.0" : "1.0.0",
         }),
       });
     }

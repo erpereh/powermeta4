@@ -19,6 +19,7 @@ import { LIMITS, importAutoSource, importSource, ReconciliationError } from "./i
 import { snapshot } from "./snapshot";
 import { monthlySnapshotIssue } from "./comparison";
 import { sourceChange, sourceLimitError } from "./source-plan";
+import { captureAutomaticExtras } from "./extra-pay-reader";
 import {
   creationSchema,
   identitySchema,
@@ -167,7 +168,8 @@ async function loadSnapshot(
       "La fecha de paga actual no corresponde al mes seleccionado.",
       422,
     );
-  return snapshot(data, confirmed, context.society);
+  const captured = snapshot(data, confirmed, context.society);
+  return previous ? captured : captureAutomaticExtras(captured);
 }
 function validatePrevious(
   period: string,

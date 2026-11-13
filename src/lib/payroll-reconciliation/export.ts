@@ -206,6 +206,14 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
     const rows = dossier.result.findings
       .filter((finding) => finding.control === control.id)
       .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+    const auto = dossier.current.extraPayAutomatic;
+    const noExtraDue =
+      control.id === "C04" &&
+      !rows.length &&
+      auto &&
+      !auto.issue &&
+      auto.people.length > 0 &&
+      auto.people.every((person) => !person.issue);
     table(
       `${control.id} ${control.name}`,
       [
@@ -227,18 +235,30 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
             finding.delta,
             exportReason(finding.reason),
           ])
-        : [
-            [
-              "Sin filas comparables",
-              "",
-              "",
-              null,
-              null,
-              null,
-              "Revisar identidad y estructura del informe",
+        : noExtraDue
+          ? [
+              [
+                "Sin pagos de extras que contrastar en esta ejecución",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Configuración acreditada en PeopleNet",
+              ],
+            ]
+          : [
+              [
+                "Sin filas comparables",
+                "",
+                "",
+                null,
+                null,
+                null,
+                "Revisar identidad y estructura del informe",
+              ],
             ],
-          ],
-      rows.length ? rows.map((finding) => finding.status) : ["No comparable"],
+      rows.length ? rows.map((finding) => finding.status) : noExtraDue ? [] : ["No comparable"],
     );
   }
   const findingsById = new Map(dossier.result.findings.map((finding) => [finding.id, finding]));

@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-11-13 - C04 automático desde PeopleNet
+
+- El motor 1.2.0 captura configuración de extras con lecturas agrupadas y
+  parametrizadas, reutilizando el informe, la conexión SQL y las guardas SELECT.
+  Solo al crear o actualizar instantáneas; errores aislados a C04, sin nuevas
+  APIs, migración, archivos externos ni listas manuales para el cálculo automático.
+- R1 reproducida con su código y vigencia confirmados por el usuario: 0/N,
+  1/S, NULL conserva definición, e instrucciones específicas de IBER para
+  extras 3/4. No se extiende a noviembre ni a versiones distintas.
+- Cálculos base + experiencia + CAI y base × 3 / 12 con ámbito por empresa,
+  matrícula y alta, porcentajes y devengo acreditados. Validación temporal y
+  contraste de acumulados con el informe guardado; herencias desconocidas,
+  parciales, transiciones, otras combinaciones/monedas pendientes.
+- Capturas opcionales compatibles con expedientes anteriores; revisiones y
+  huellas de todos los demás controles conservadas, incluido C12. Excel mantiene
+  siete columnas y no fabrica pendientes si no corresponde contrastar extras.
+- Pruebas sintéticas y documentación ampliadas. El significado de los indicadores
+  y R1 procede de las salidas SQL aportadas; la nueva lectura y la paridad de
+  población/importes aún requieren validación real en la VM.
+- Comprobaciones ejecutadas: suite completa con 218 archivos correctos,
+  1.447 pruebas superadas y dos omisiones preexistentes. Tras los ajustes finales,
+  las 205 pruebas dirigidas de Cuadre en 13 archivos pasan. Typecheck y build
+  (44 páginas) correctos; formato correcto en los 41 archivos comprobados y
+  `git diff --check` sin errores. El lint global conserva siete avisos y formato
+  pendiente en 619 archivos preexistentes, sin reformateo general. Rama `davidev`,
+  sin ramas nuevas, commits ni push.
+
 ## 2026-11-12 - Correcciones de cálculo de Cuadre de nómina
 
 - C01/C02/C08/C15 usan exclusivamente el mes inmediatamente anterior y comparten

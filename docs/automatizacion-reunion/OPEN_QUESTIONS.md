@@ -5,7 +5,16 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
-Actualización de implementación 2026-11-12: Q02 se protege técnicamente con
+Actualización C04 2026-11-13: confirmado por salida SQL del usuario el enlace
+DMD1/indicadores individuales y el código de R1 de agosto a octubre de 2026,
+incluidas las excepciones técnicas de IBER. Se implementa lectura automática
+agrupada; queda pendiente validar sus consultas y cobertura en VM (salidas
+01–05), las unidades/tipo de salario y la paridad económica de casos reales.
+No se requiere archivo externo ni nueva entrada manual para este contraste.
+Se mantienen pendientes herencias no reproducibles, versiones posteriores de
+R1, «14 meses», parciales, transiciones y otras combinaciones de extras.
+
+Actualización de implementación 2026-11-12 (histórico): Q02 se protege técnicamente con
 mes inmediato y compatibilidad compartida; su validación SQL real sigue pendiente.
 En Q06 están implementadas las dos fórmulas definidas, pero la modalidad
 individual y su vigencia no están acreditadas por los lectores actuales. No

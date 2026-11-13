@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   remove: vi.fn(),
   read: vi.fn(),
   runs: vi.fn(),
+  extras: vi.fn(),
 }));
 vi.mock("@/lib/auth/session", () => ({ getCurrentAuthContext: mocks.auth }));
 vi.mock("@/lib/meta4/operational-context", () => ({ getMeta4OperationalContext: mocks.context }));
@@ -27,6 +28,9 @@ vi.mock("@/features/registro-retributivo/server/company-scope", () => ({
 vi.mock("@/lib/peoplenet/payroll-reports", () => ({
   getPayrollReportRun: mocks.read,
   listPayrollReportRuns: mocks.runs,
+}));
+vi.mock("@/lib/payroll-reconciliation/extra-pay-reader", () => ({
+  captureAutomaticExtras: mocks.extras,
 }));
 vi.mock("@/server/database/repositories/payroll-reconciliation-repository", () => ({
   reconciliationRepository: () => ({
@@ -42,6 +46,8 @@ import { POST as previewRoute } from "./preview/route";
 import { POST as analyzeRoute } from "./analyze/route";
 import { matchesProxyMatcher } from "@/proxy";
 import { runKey } from "@/features/payroll-reconciliation/selection";
+import { automaticExtraFixture } from "@/lib/payroll-reconciliation/extra-pay.fixture";
+import { resolveAutomaticExtras } from "@/lib/payroll-reconciliation/extra-pay-resolution";
 
 const request = (method: string, body?: unknown, extra: Record<string, string> = {}) =>
   new Request("http://localhost/api/payroll/reconciliation", {
@@ -85,6 +91,7 @@ function persistUploads() {
 }
 beforeEach(() => {
   vi.resetAllMocks();
+  mocks.extras.mockImplementation(async (captured) => captured);
   mocks.auth.mockResolvedValue({ authContext: { mode: "debug" } });
   mocks.debug.mockReturnValue(true);
   mocks.company.mockReturnValue("company-a");
@@ -111,6 +118,94 @@ beforeEach(() => {
   mocks.save.mockImplementation((_scope, record) => record);
 });
 describe("reconciliation boundaries", () => {
+  it("captures automatic extras only on real creation/explicit refresh, never on reload or parameter edits", async () => {
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+    const detail = demoReport("2026-10");
+    detail.headers.push("Periodo");
+    detail.rows.forEach((row) => row.push("1"));
+    mocks.read.mockResolvedValue(detail);
+    const fixture = automaticExtraFixture();
+    mocks.extras.mockImplementation(async (captured) => ({
+      ...captured,
+      extraPayAutomatic: resolveAutomaticExtras(captured, fixture.data),
+    }));
+    const response = await POST(
+      request("POST", { ...create(), demo: false, currentKey: runKey(detail.run) }),
+    );
+    expect(response.status).toBe(200);
+    const { data } = await response.json();
+    expect(data.current.hrPeriods).toEqual(["1", "1", "1"]);
+    expect(
+      data.result.findings.find(
+        (row: { metric: string; employeeId: string }) =>
+          row.metric === "extra3" && row.employeeId === "009001",
+      ),
+    ).toMatchObject({ expected: "2000", actual: "0", delta: "-2000" });
+    expect(mocks.extras).toHaveBeenCalledTimes(1);
+    dossier = data;
+    await GET(new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`));
+    await PATCH(
+      request("PATCH", {
+        id: dossier.id,
+        revision: 1,
+        action: "parameters",
+        parameters: DEFAULT_PARAMETERS,
+      }),
+    );
+    expect(mocks.extras).toHaveBeenCalledTimes(1);
+    await PATCH(
+      request("PATCH", {
+        id: dossier.id,
+        revision: 1,
+        action: "refresh",
+        currentKey: runKey(detail.run),
+        previousKey: null,
+        populationConfirmed: true,
+      }),
+    );
+    expect(mocks.extras).toHaveBeenCalledTimes(2);
+  });
+  it("saves an explicit C04 read issue without blocking monthly controls or allowing client-supplied evidence", async () => {
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+    const detail = demoReport("2026-10"),
+      previous = demoReport("2026-10", true);
+    mocks.read.mockImplementation((_society, key) =>
+      key.accruedOn === detail.run.accruedOn ? detail : previous,
+    );
+    mocks.extras.mockImplementation(async (captured) => ({
+      ...captured,
+      extraPayAutomatic: {
+        version: 1,
+        society: "CYC",
+        period: "2026-10",
+        runHash: "unavailable",
+        people: [],
+        issue: "Lectura no disponible",
+      },
+    }));
+    const body = {
+      ...create(),
+      demo: false,
+      currentKey: runKey(detail.run),
+      previousKey: runKey(previous.run),
+    };
+    const response = await POST(request("POST", body));
+    expect(response.status).toBe(200);
+    const { data } = await response.json();
+    expect(
+      data.result.findings.find((row: { metric: string }) => row.metric === "fixed").status,
+    ).toBe("Coincide");
+    expect(
+      data.result.findings
+        .filter((row: { control: string }) => row.control === "C04")
+        .every((row: { expected: string | null }) => row.expected === null),
+    ).toBe(true);
+    expect(
+      (await POST(request("POST", { ...body, extraPayAutomatic: { people: [] } }))).status,
+    ).toBe(400);
+  });
   it.each(["gap", "report", "frequency", "kind", "unknown"])(
     "rejects an incompatible previous execution (%s) on creation and refresh",
     async (caseName) => {
@@ -195,6 +290,7 @@ describe("reconciliation boundaries", () => {
     expect(dossier.result.engineVersion).toBe("1.0.0");
     expect(mocks.save).not.toHaveBeenCalled();
     expect(mocks.read).not.toHaveBeenCalled();
+    expect(mocks.extras).not.toHaveBeenCalled();
     expect(
       (
         await PATCH(

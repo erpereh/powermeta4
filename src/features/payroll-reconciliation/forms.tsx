@@ -399,6 +399,10 @@ export function ParametersForm({
         {field("cardRate", "Tarjeta: tarifa del periodo")}
         {field("cardBase", "Tarjeta: base del periodo")}
       </div>
+      <p className="text-sm text-muted-foreground">
+        Las extras se comprueban con los datos de PeopleNet al actualizar las instantáneas. Los dos
+        ajustes siguientes se conservan para expedientes anteriores sin lectura automática.
+      </p>
       <Choice
         label="Paga extra para devengo completo"
         value={draft.extraMetric}

@@ -36,6 +36,9 @@ export function snapshot(
   const seniorityColumn = columnIndex(detail.headers, "Fecha de Antigüedad");
   const seniorityDates =
     seniorityColumn < 0 ? undefined : detail.rows.map((row) => row[seniorityColumn] ?? "");
+  const periodColumn = columnIndex(detail.headers, "Periodo");
+  const hrPeriods =
+    periodColumn < 0 ? undefined : detail.rows.map((row) => row[periodColumn] ?? "");
   return {
     run: detail.run,
     headers,
@@ -46,10 +49,12 @@ export function snapshot(
       rows,
       ...(seniorityDates ? { seniorityDates } : {}),
       ...(society ? { society } : {}),
+      ...(hrPeriods ? { hrPeriods } : {}),
     }),
     capturedAt: new Date().toISOString(),
     populationConfirmed,
     ...(seniorityDates ? { seniorityDates } : {}),
     ...(society ? { society } : {}),
+    ...(hrPeriods ? { hrPeriods } : {}),
   };
 }

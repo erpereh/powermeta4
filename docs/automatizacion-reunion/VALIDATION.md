@@ -1,5 +1,36 @@
 # Validación de fuentes y criterios de aceptación
 
+## Ampliación C04 — 2026-11-13
+
+Evidencia SQL aportada por el usuario: correspondencia DMD1 de los cinco
+indicadores, valores por defecto, recuentos de asignaciones individuales y
+código completo de R1 con vigencia 01/08/2026–31/10/2026. Confirma la
+interpretación 0/N, 1/S, NULL conserva definición y las ramas IBER; no prueba
+por sí sola cobertura, devengo o importe esperado de cada persona.
+
+El lector automático y su resolución se verifican localmente con fixtures
+sintéticos: ambas fórmulas sin parámetros manuales, prioridad, NULL, vigencias,
+versiones distintas, IBER/0041, tramos, monedas, ausencias, duplicados, porcentajes,
+tres/cuatro extras, matrículas repetidas en empresas distintas y coherencia
+de importes. Se comprueban SELECT parametrizadas y agrupadas, aislamiento de
+fallos, creación/actualización explícita, recarga sin SQL, revisiones estables
+ante reordenación de filas y exportación sin pendientes artificiales.
+
+No se ha ejecutado este nuevo lector contra PeopleNet desde el entorno local.
+La [guía de instalación y validación](IMPLEMENTATION.md) indica cómo refrescar
+expedientes anteriores y ejecutar el verificador en la VM. Los resultados
+finales de pruebas y comprobaciones se registran en `spec/changelog.md`.
+
+Resultados ejecutados: `npm test` termina con 218 archivos correctos,
+1.447 pruebas superadas y dos omisiones preexistentes. La comprobación final
+del módulo, servidor, UI y repositorio de expedientes pasa sus 205 pruebas en
+13 archivos. `npm run typecheck` y `npm run build` pasan (44 páginas). Formato
+correcto en los 41 archivos comprobados; `git diff --check` sin errores.
+`npm run lint` conserva siete avisos y formato pendiente en 619 archivos
+preexistentes; no se reformatea el repositorio.
+
+## Validación anterior — 2026-11-12
+
 Corrección local 2026-11-12: las pruebas sintéticas cubren periodos consecutivos
 y denominaciones, ambas fórmulas C04 con su acreditación, y C13 por empresa y
 matrícula con fechas, pagos ausentes y cobertura parcial/exhaustiva. Incluyen

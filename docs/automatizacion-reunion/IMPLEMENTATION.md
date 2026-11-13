@@ -7,7 +7,104 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
-## Correcciones de cálculo — 2026-11-12
+## C04 automático — 2026-11-13
+
+El motor 1.2.0 añade lectura automática de configuración y devengo al **crear
+un expediente real o actualizar expresamente sus instantáneas**. Abrirlo,
+revisarlo, guardar parámetros y exportarlo reutilizan la captura guardada: no
+consultan ni actualizan PeopleNet silenciosamente. No hay migración adicional.
+Los parámetros manuales anteriores se conservan para expedientes sin esta
+captura; una captura automática pendiente no se acredita con esos parámetros.
+
+La evidencia VM aportada por el usuario confirma `DMD1`, los componentes
+`CSP_PRORRATEADA_PE1…PE5`, valores por defecto (0 para 1–4; NULL para 5),
+asignaciones individuales y el código completo de `CSP_PRORRATEADA/R1`.
+**Esto acredita el significado de los indicadores, no valida la nueva lectura
+SQL ni toda la población.** Las salidas de diagnóstico 01–05 siguen pendientes.
+
+### Reglas y alcance de la lectura
+
+- Se reutilizan el informe, el pool y la protección SELECT existentes. Hay ocho
+  lecturas agrupadas, en parejas, sin consultas de recibo por empleado.
+- La captura conserva el periodo de alta de la columna `Periodo`, sin alterar
+  las posiciones de las columnas. C04 agrupa por empresa/matrícula y exige un
+  único periodo de alta; no suma bases de empresas diferentes.
+- Se resuelven asignaciones individuales, de empresa y de convenio por cada
+  día del mes. Menor número indica mayor prioridad; empates con valores
+  contradictorios, prioridades inválidas y cambios efectivos de modalidad
+  quedan pendientes. `1` y `1.00000000` son equivalentes; NULL no es cero.
+- Otros niveles de herencia se detectan y se conservan pendientes, sin
+  reproducir un motor SAV genérico. La detección es conservadora: una asignación
+  de uno de esos niveles al mismo indicador puede bloquearlo aunque después
+  resulte ajena a la persona. Se identifica su tabla en el motivo.
+- Se verifica el código ejecutable de la versión confirmada de R1, junto con
+  sus metadatos. Solo se admite **01/08/2026–31/10/2026**. Noviembre y otras
+  versiones/reglas quedan pendientes; no se prolonga la vigencia por similitud.
+- R1 usa `1 → S`, `0 → N`, `NULL → conservar definición`. En IBER fuerza S
+  para la extra 3; para la 4 fuerza N en convenio `0041`, S en otros convenios
+  acreditados. Solo actúa sobre extras que existen en su definición.
+- Las correcciones se consultan a fecha de ejecución del informe (`runAt`).
+  Historiales/definiciones sin corrección bitemporal modificados después de esa
+  ejecución no se presentan como configuración histórica acreditada.
+- Se cruzan fecha de pago, imputación actual, frecuencia, moneda principal,
+  matrícula, periodo de alta y tramos con los acumulados usados por el recibo.
+  Deben cubrir todo el mes sin huecos ni duplicados y coincidir con los importes
+  de extras del informe guardado. Los valores aplicados de Meta4 sirven de
+  contraste cuando coinciden con esas claves; no acreditan modalidad por importe.
+
+### Fórmulas y pendientes
+
+La extra separada que vence en la paga seleccionada se compara con **base +
+experiencia + CAI** cuando el salario es mensual (tipo 1), las unidades fijas
+del mes y las de esa extra suman 1, el porcentaje es 100 % y no hay ausencias,
+huelga, IT u horas de ausencia acreditadas en el mes. Los componentes y los
+indicadores de ausencia vacíos no se sustituyen por cero.
+
+La prorrata se compara con **base × 3 / 12** únicamente con las tres extras
+definidas 1/2/3, todas prorrateadas al 100 %, y mes completo acreditado. Una
+cuarta extra, incluso separada, deja esta fórmula pendiente. Los tipos diarios
+u horarios, porcentajes distintos, parciales, transiciones y otras combinaciones
+mantienen pendiente su regla económica; no se reconstruyen descuentos por 360 días.
+El cuadre actual exige EUR; otras monedas quedan pendientes.
+
+Se omiten las filas con cero explícito y ausencia de obligación acreditada.
+Un pago no nulo en esas condiciones se conserva como diferencia revisable.
+Una celda vacía o modalidad desconocida sigue pendiente. El Excel mantiene las
+siete columnas y no introduce celdas pendientes cuando no hay extras que contrastar.
+C12 y las huellas de todos los controles ajenos a C04 se conservan.
+
+### Validación de esta ampliación en la VM
+
+1. Con el servidor detenido, ejecutar `npm run build` y arrancar `npm run start`.
+   No hay nueva migración ni archivo que subir para C04.
+2. Abrir el expediente de octubre de 2026 y usar **Actualizar instantáneas**,
+   con las ejecuciones correctas. Guardar parámetros sin actualizar no carga la
+   nueva evidencia. Si falta `Periodo` en el informe, aparecerá pendiente.
+3. Reutilizar las claves de `cuadre:discover` y ejecutar:
+
+   ```powershell
+   npm run cuadre:verify -- CYC --selection ".\data\cuadre-selection.json"
+   ```
+
+   Revisar `extraPayModality.issue`, `people`, `accredited` y `pending`, y el
+   resumen de C04. `accredited` cuenta configuraciones sin incidencia; no implica
+   que todos sus devengos permitan aplicar una fórmula económica.
+
+4. Contrastar con PeopleNet una extra completa, una modalidad con exactamente
+   las tres extras prorrateadas, una diferencia conocida, un pago faltante y un
+   caso parcial. Confirmar el mapeo de acumulados, tipo salarial/unidades,
+   porcentajes, ausencias y calendario. En IBER revisar la extra 3 y la 4 con
+   convenio `0041` y con otro convenio.
+5. Verificar recarga/exportación sin nuevas lecturas, conservación de revisiones
+   C12 y noviembre pendiente. Ante diferencias de captura, actualizar/generar
+   conscientemente el informe correcto; no forzar importes o datos en SQLite.
+
+Pruebas locales y resultados finales de esta entrega: `VALIDATION.md` y
+`spec/changelog.md`. No se afirma ejecución SQL real de este lector desde el
+entorno local. «14 meses» sigue siendo una etiqueta de RRHH sin correspondencia
+anual acreditada: el control usa el tratamiento real de cada extra.
+
+## Correcciones de cálculo — 2026-11-12 (histórico)
 
 El motor 1.1.0 limita C01/C02/C08/C15 al mes inmediatamente anterior. La
 compatibilidad usa códigos de informe y frecuencia, y el tipo de paga del

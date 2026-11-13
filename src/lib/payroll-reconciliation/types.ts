@@ -26,8 +26,36 @@ export type Snapshot = {
   /** Sidecar preserves the existing column positions/evidence of other controls. */
   seniorityDates?: string[];
   society?: string;
-  /** Server-only evidence intake; existing SQL readers cannot yet accredit this rule. */
+  /** Legacy conditional evidence; new SQL captures use extraPayAutomatic. */
   extraPayEvidence?: ExtraPayEvidence[];
+  /** Optional server capture; old dossiers are never refreshed implicitly. */
+  extraPayAutomatic?: AutomaticExtraPay;
+  hrPeriods?: string[];
+};
+export type AutomaticExtraPay = {
+  version: 1;
+  society: string;
+  period: string;
+  runHash: string;
+  issue?: string;
+  people: AutomaticExtraPayPerson[];
+};
+export type AutomaticExtraPayPerson = {
+  employeeId: string;
+  entity: string;
+  hrPeriod: string;
+  issue?: string;
+  monthlyFull: boolean;
+  accrualIssue?: string;
+  paid: Record<string, string | null>;
+  extras: {
+    order: number;
+    prorated: boolean | null;
+    due: boolean;
+    full: boolean;
+    percentage: string | null;
+  }[];
+  evidence: string[];
 };
 export type ExtraPayEvidence = {
   society: string;

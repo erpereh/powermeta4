@@ -1,5 +1,26 @@
 # powermeta4 - estado de tareas
 
+## C04 automático desde PeopleNet — 2026-11-13
+
+- [x] Lectura SELECT agrupada al crear/actualizar instantáneas; mismo pool y
+      guardas existentes, sin recibos por empleado, nuevas APIs ni migración.
+- [x] Indicadores numéricos/NULL, prioridades, vigencias y R1 confirmada de
+      agosto a octubre de 2026; tratamiento específico IBER fiel al código aportado.
+- [x] Fórmulas automáticas condicionadas a configuración/devengo acreditados,
+      importes coherentes con el informe y ámbito empresa/matrícula/alta.
+- [x] Casos sin regla, herencia desconocida, parciales, errores de lectura y
+      periodos posteriores pendientes; C12 y revisiones ajenas conservados.
+- [x] Pruebas sintéticas de cálculo, lector, servidor, recarga y Excel ampliadas;
+      guía y contratos con límites reales y pasos VM actualizados.
+- [x] Comprobaciones ejecutadas: suite completa con 218 archivos correctos,
+      1.447 pruebas superadas y dos omisiones preexistentes; comprobación final
+      de Cuadre con 205 pruebas en 13 archivos. Typecheck, build (44 páginas),
+      formato de los 41 archivos comprobados y diff sin errores.
+- [ ] Lint global conserva siete avisos y formato pendiente en 619 archivos
+      preexistentes; sin reformateo general ni avisos nuevos en el cambio.
+- [ ] Validar lector/configuración/devengo con PeopleNet real en VM, incluyendo
+      salidas 01–05 ya solicitadas; las pruebas locales no sustituyen ese contraste.
+
 ## Cuadre de nómina: correcciones de cálculo — 2026-11-12
 
 - [x] C01/C02/C08/C15 limitadas al mes inmediato mediante validación compartida;

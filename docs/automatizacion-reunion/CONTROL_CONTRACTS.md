@@ -98,6 +98,24 @@ Q03/Q05: precisión y otros perfiles/entidades se validan por separado.
 
 ## C04 — Paga extra
 
+Ampliación 2026-11-13 (motor 1.2.0): la evidencia automática se conserva en
+propiedades opcionales `hrPeriods` y `extraPayAutomatic` del snapshot. Incluye
+sociedad, clave de ejecución, empresa, matrícula, periodo de alta, tratamiento
+de cada extra, porcentaje, vencimiento, devengo, procedencia e incidencias.
+Se obtiene solo en creación/actualización explícita; no procede del navegador.
+No cambia el contrato de siete columnas, las otras categorías ni C12.
+
+El significado de R1 y su vigencia agosto–octubre de 2026 están contrastados
+con el SQL aportado por el usuario. El nuevo lector agrupado sigue necesitando
+validación SQL real. La [guía](IMPLEMENTATION.md#c04-automático--2026-11-13)
+define los niveles soportados, las guardas históricas y los casos pendientes.
+Las fórmulas funcionan sin confirmaciones manuales con evidencia suficiente.
+La prorrata requiere exactamente las tres extras definidas 1/2/3 prorrateadas
+al 100 % y mes completo. No se deduce una modalidad por importe o calendario.
+Los pagos no esperados siguen siendo diferencias revisables, no errores
+automáticamente declarados. Las condiciones que siguen describen la base
+documental y la implementación anterior, conservadas como historia.
+
 H: correo/E11. Base AK + experiencia AL + CAI AU; prorrata BV; extras
 BW/BX/BY/BZ. `P.extra!L3=G3+H3+I3`, `M3=K3-L3` para la tercera extra.
 La hoja de excepciones muestra cálculos por 360 días y cambios a 12 pagas,
