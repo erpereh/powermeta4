@@ -15,6 +15,8 @@ describe("grouped automatic extra reader", () => {
     "uses guarded parametrized SELECTs and eight grouped reads for %s",
     async (period) => {
       const input = automaticExtraFixture(period, period === "2026-07" ? "historical" : "R1");
+      if (period === "2026-07")
+        input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "4000-01-01" };
       const queries = {
         ...EXTRA_PAY_SQL,
         unsupported: EXTRA_PAY_UNSUPPORTED_SQL,
@@ -31,6 +33,9 @@ describe("grouped automatic extra reader", () => {
       expect(result.extraPayAutomatic?.people[0].issue).toBeUndefined();
       expect(result.extraPayAutomatic?.rule?.variant).toBe(
         period === "2026-07" ? "r1-through-july-2026" : "r1-aug-oct-2026",
+      );
+      expect(result.extraPayAutomatic?.rule?.versions[0].validTo).toBe(
+        period === "2026-07" ? "4000-01-01" : "2026-10-31",
       );
       expect(EXTRA_PAY_SQL.rules).toContain("R.RULE_ORDER");
       expect(mocks.read).toHaveBeenCalledTimes(8);
@@ -75,9 +80,11 @@ describe("grouped automatic extra reader", () => {
       );
     },
   );
-  it("keeps an unknown later rule pending after reading it rather than extending R1", async () => {
+  it("keeps an unknown later executable pending even when its validity covers the month", async () => {
     const input = automaticExtraFixture("2026-11");
-    mocks.read.mockResolvedValue([{ ...input.data.rules[0], DATE_TO: "4000-01-01" }]);
+    mocks.read.mockResolvedValue([
+      { ...input.data.rules[0], DATE_TO: "4000-01-01", SOURCE: "Return(0)" },
+    ]);
     const result = await captureAutomaticExtras(input.current);
     expect(mocks.read).toHaveBeenCalledTimes(1);
     expect(result.extraPayAutomatic?.issue).toContain("R1");

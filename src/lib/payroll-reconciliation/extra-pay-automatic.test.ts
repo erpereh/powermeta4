@@ -48,9 +48,12 @@ describe("confirmed R1 semantics", () => {
       expect(resolveExtraRule(input.data.rules, period).rule?.mode).toBe("R1");
     },
   );
-  it.each(["2026-07", "2026-11", "2027-10"])("does not extrapolate R1 to %s", (period) => {
-    expect(resolveExtraRule(automaticExtraFixture().data.rules, period).issue).toBeDefined();
-  });
+  it.each(["2026-07", "2026-11", "2027-10"])(
+    "rejects %s outside the received validity",
+    (period) => {
+      expect(resolveExtraRule(automaticExtraFixture().data.rules, period).issue).toBeDefined();
+    },
+  );
   it("ignores comments/formatting but preserves changes inside literals and executable code", () => {
     expect(extraRuleTokens("// remark\n" + VERIFIED_EXTRA_RULE + "\n' comment")).toBe(
       extraRuleTokens(VERIFIED_EXTRA_RULE),
@@ -74,7 +77,7 @@ describe("confirmed R1 semantics", () => {
       if (kind === "condition") input.data.rules[0] = { ...input.data.rules[0], CONDITION: "1" };
       if (kind === "priority") input.data.rules[0] = { ...input.data.rules[0], PRIORITY: "0" };
       if (kind === "order") input.data.rules[0] = { ...input.data.rules[0], RULE_ORDER: "101" };
-      if (kind === "dates") input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "4000-01-01" };
+      if (kind === "dates") input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "2026-10-30" };
       expect(resolveExtraRule(input.data.rules, "2026-10").issue).toBeDefined();
     },
   );
@@ -234,7 +237,7 @@ describe("historical R1 through July 2026", () => {
     if (kind === "condition") input.data.rules[0] = { ...input.data.rules[0], CONDITION: "1" };
     if (kind === "order") input.data.rules[0] = { ...input.data.rules[0], RULE_ORDER: "101" };
     if (kind === "missingOrder") input.data.rules[0] = { ...input.data.rules[0], RULE_ORDER: null };
-    if (kind === "dates") input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "4000-01-01" };
+    if (kind === "dates") input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "2026-07-30" };
     if (kind === "duplicate") input.data.rules.push(input.data.rules[0]);
     if (kind === "unknown") input.data.rules.push({ ...input.data.rules[0], RULE_ID: "R2" });
     if (kind === "transition")
@@ -246,6 +249,134 @@ describe("historical R1 through July 2026", () => {
       status: "No comparable",
     });
     expect(input.current.extraPayAutomatic?.issue).toBeTruthy();
+  });
+});
+
+describe("actual PeopleNet rule validity", () => {
+  const vmFixture = () => {
+    const input = automaticExtraFixture("2026-07", "historical");
+    // Exact technical values returned by the VM; payroll employees remain invented.
+    input.data.rules = [
+      {
+        RULE_ID: "R1",
+        RULE_TI: "CSP_HRPERIOD_CALC",
+        DATE_FROM: "1800-01-01",
+        DATE_TO: "4000-01-01",
+        PRIORITY: "2",
+        RULE_ORDER: "100",
+        CONDITION: "0",
+        SOURCE: HISTORICAL_EXTRA_RULE,
+      },
+    ];
+    return input;
+  };
+  it.each(["2026-07-31", "4000-01-01"])(
+    "recognizes the same code with actual end %s and preserves that evidence",
+    (end) => {
+      const input = vmFixture();
+      input.data.rules[0] = { ...input.data.rules[0], DATE_TO: end };
+      input.data.rules.push(...automaticExtraFixture("2026-07", "definition").data.rules);
+      const resolution = resolveExtraRule(input.data.rules, input.period);
+      expect(resolution.issue).toBeUndefined();
+      expect(resolution.rule).toMatchObject({
+        mode: "R1",
+        variant: "r1-through-july-2026",
+        versions: [
+          { id: "CSP_PRORRATEADA_REV" },
+          { id: "R1", validFrom: "1800-01-01", validTo: end, priority: "2", order: "100" },
+        ],
+      });
+    },
+  );
+  it("calculates both formulas with the VM's 1800–4000 validity without changing its dates", () => {
+    const input = vmFixture();
+    paid(input, "extra3", "1999.98");
+    capture(input);
+    expect(find(input, "extra3")).toMatchObject({ expected: "2000", delta: "-0.02" });
+    expect(find(input, "extra3")?.evidence.join(" ")).toContain("1800-01-01/4000-01-01");
+    paid(input, "extra3", "0");
+    paid(input, "extraProrated", "449.98");
+    prorate(input);
+    capture(input);
+    expect(find(input, "extraProrated")).toMatchObject({ expected: "450", delta: "-0.02" });
+    expect(input.current.extraPayAutomatic?.rule?.versions[0].validTo).toBe("4000-01-01");
+    input.data.payroll[0] = { ...input.data.payroll[0], FIXED_UNITS: "0.5" };
+    capture(input);
+    expect(find(input, "extraProrated")?.expected).toBeNull();
+  });
+  it.each(["historical", "R1"] as const)(
+    "uses the recognized %s behavior when PeopleNet accredits another month",
+    (mode) => {
+      const input = automaticExtraFixture("2026-11", mode);
+      input.current.society = "IBER";
+      input.data.rules[0] = {
+        ...input.data.rules[0],
+        DATE_FROM: "2026-01-01",
+        DATE_TO: "4000-01-01",
+      };
+      capture(input);
+      expect(input.current.extraPayAutomatic?.issue).toBeUndefined();
+      expect(
+        input.current.extraPayAutomatic?.people[0].extras.find((extra) => extra.order === 3)
+          ?.prorated,
+      ).toBe(mode === "R1");
+    },
+  );
+  it.each([
+    ["startMissing", "fecha inicial"],
+    ["endMissing", "fecha final"],
+    ["startInvalid", "fecha inicial"],
+    ["endInvalid", "fecha final"],
+    ["startsMidMonth", "Vigencia"],
+    ["endsMidMonth", "Vigencia"],
+    ["inverted", "Vigencia"],
+    ["priority", "Prioridad"],
+    ["order", "Orden"],
+    ["condition", "Condición"],
+    ["ti", "TI"],
+    ["missingCode", "Código"],
+    ["changedCode", "Código"],
+    ["unknownId", "Identificador"],
+  ])("identifies %s instead of issuing a generic rejection", (kind, message) => {
+    const input = vmFixture();
+    const changes: Record<string, Record<string, string | null>> = {
+      startMissing: { DATE_FROM: null },
+      endMissing: { DATE_TO: null },
+      startInvalid: { DATE_FROM: "2026-02-30" },
+      endInvalid: { DATE_TO: "4000-13-01" },
+      startsMidMonth: { DATE_FROM: "2026-07-02" },
+      endsMidMonth: { DATE_TO: "2026-07-30" },
+      inverted: { DATE_FROM: "2026-08-01", DATE_TO: "2026-06-30" },
+      priority: { PRIORITY: "3" },
+      order: { RULE_ORDER: "101" },
+      condition: { CONDITION: "1" },
+      ti: { RULE_TI: "OTHER" },
+      missingCode: { SOURCE: null },
+      changedCode: { SOURCE: "Return(0)" },
+      unknownId: { RULE_ID: "R2" },
+    };
+    input.data.rules[0] = { ...input.data.rules[0], ...changes[kind] };
+    capture(input);
+    expect(input.current.extraPayAutomatic?.issue).toContain(message);
+    expect(find(input, "extra3")).toMatchObject({
+      expected: null,
+      delta: null,
+      status: "No comparable",
+    });
+    expect(find(input, "extra3")?.reason).toContain(message);
+  });
+  it("keeps overlapping active R1 versions pending instead of choosing one by its original calendar", () => {
+    const input = vmFixture();
+    input.data.rules.push({
+      ...automaticExtraFixture().data.rules[0],
+      DATE_FROM: "1800-01-01",
+      DATE_TO: "4000-01-01",
+    });
+    capture(input);
+    expect(input.current.extraPayAutomatic?.issue).toContain(
+      "Versiones duplicadas o contradictorias",
+    );
+    expect(find(input, "extra3")?.expected).toBeNull();
   });
 });
 
@@ -641,6 +772,8 @@ describe("automatic C04", () => {
     "retains other findings/reviews, including C12, after %s capture and reload",
     (mode) => {
       const input = automaticExtraFixture(mode === "R1" ? "2026-10" : "2026-07", mode);
+      if (mode === "historical")
+        input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "4000-01-01" };
       const before = reconcile(input);
       capture(input);
       const reloaded: Fixture = JSON.parse(JSON.stringify(input));

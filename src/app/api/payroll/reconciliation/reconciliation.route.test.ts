@@ -128,6 +128,8 @@ describe("reconciliation boundaries", () => {
       detail.rows.forEach((row) => row.push("1"));
       mocks.read.mockResolvedValue(detail);
       const fixture = automaticExtraFixture(period, period === "2026-07" ? "historical" : "R1");
+      if (period === "2026-07")
+        fixture.data.rules[0] = { ...fixture.data.rules[0], DATE_TO: "4000-01-01" };
       mocks.extras.mockImplementation(async (captured) => ({
         ...captured,
         extraPayAutomatic: resolveAutomaticExtras(captured, fixture.data),

@@ -71,8 +71,21 @@ export function resolveExtraRule(
   const { first, last } = extraMonth(period);
   if (!rows.length)
     return { issue: `No hay reglas de prorrateo con código acreditado para ${period}.` };
-  if (rows.some((row) => !covers(row, first, last)))
-    return { issue: `Vigencia incompleta o cambio de regla de prorrateo durante ${period}.` };
+  for (const row of rows) {
+    const id = text(row, "RULE_ID") || "sin identificar";
+    const from = text(row, "DATE_FROM"),
+      to = text(row, "DATE_TO");
+    if (!validDate(from))
+      return {
+        issue: `Vigencia de la regla ${id}: fecha inicial ausente o inválida para ${period}.`,
+      };
+    if (!validDate(to))
+      return {
+        issue: `Vigencia de la regla ${id}: fecha final ausente o inválida para ${period}.`,
+      };
+    if (!covers(row, first, last))
+      return { issue: `Vigencia de la regla ${id}: ${from} a ${to} no cubre ${period} completo.` };
+  }
   if (new Set(rows.map((row) => text(row, "RULE_ID"))).size !== rows.length)
     return {
       issue: `Versiones duplicadas o contradictorias de la regla de prorrateo para ${period}.`,
@@ -81,30 +94,41 @@ export function resolveExtraRule(
   const version =
     r1 &&
     EXTRA_RULE_VERSIONS.find(
-      (candidate) =>
-        r1.DATE_FROM === candidate.from &&
-        r1.DATE_TO === candidate.to &&
-        sameNumber(r1.PRIORITY, candidate.priority) &&
-        sameNumber(r1.RULE_ORDER, candidate.order) &&
-        extraRuleTokens(text(r1, "SOURCE")) === extraRuleTokens(candidate.source),
+      (candidate) => extraRuleTokens(text(r1, "SOURCE")) === extraRuleTokens(candidate.source),
     );
-  const unknown = rows.find((row) => {
-    if (!sameNumber(row.CONDITION, "0") || text(row, "RULE_TI") !== "CSP_HRPERIOD_CALC")
-      return true;
+  for (const row of rows) {
+    const id = text(row, "RULE_ID");
+    const fail = (field: string, detail: string) => ({
+      issue: `${field} de la regla ${id || "sin identificar"} para ${period}: ${detail}`,
+    });
+    const received = (field: string) =>
+      row[field] === null ? "NULL" : text(row, field) || "ausente";
+    if (id !== "R1" && id !== "CSP_PRORRATEADA_REV")
+      return fail("Identificador", "regla no reconocida.");
+    if (text(row, "RULE_TI") !== "CSP_HRPERIOD_CALC")
+      return fail("TI", `recibida ${received("RULE_TI")}; se esperaba CSP_HRPERIOD_CALC.`);
+    if (!sameNumber(row.CONDITION, "0"))
+      return fail("Condición", `recibida ${received("CONDITION")}; se esperaba 0.`);
     const tokens = extraRuleTokens(text(row, "SOURCE"));
-    const known =
-      text(row, "RULE_ID") === "R1"
-        ? Boolean(version)
-        : text(row, "RULE_ID") === "CSP_PRORRATEADA_REV" &&
-          sameNumber(row.PRIORITY, "3") &&
-          row.RULE_ORDER === null &&
-          tokens === extraRuleTokens("Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)");
-    return !known;
-  });
-  if (unknown)
-    return {
-      issue: `Código o metadatos de la regla de prorrateo ${text(unknown, "RULE_ID") || "sin identificar"} sin acreditar para ${period}.`,
-    };
+    if (!tokens) return fail("Código", "ausente o sin instrucciones acreditadas.");
+    if (id === "R1") {
+      if (!version) return fail("Código", "no coincide con los comportamientos contrastados.");
+      if (!sameNumber(row.PRIORITY, version.priority))
+        return fail(
+          "Prioridad",
+          `recibida ${received("PRIORITY")}; se esperaba ${version.priority} para este código.`,
+        );
+      if (!sameNumber(row.RULE_ORDER, version.order))
+        return fail("Orden", `recibido ${received("RULE_ORDER")}; se esperaba ${version.order}.`);
+    } else {
+      if (tokens !== extraRuleTokens("Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)"))
+        return fail("Código", "no coincide con la regla contrastada que conserva la definición.");
+      if (!sameNumber(row.PRIORITY, "3"))
+        return fail("Prioridad", `recibida ${received("PRIORITY")}; se esperaba 3.`);
+      if (row.RULE_ORDER !== null)
+        return fail("Orden", `recibido ${received("RULE_ORDER")}; se esperaba NULL.`);
+    }
+  }
   const versions = rows
     .map((row) => ({
       id: text(row, "RULE_ID"),

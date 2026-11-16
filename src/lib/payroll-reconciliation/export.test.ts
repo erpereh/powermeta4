@@ -80,6 +80,8 @@ describe("reconciliation workbook", () => {
     "exports %s automatic extras without manual parameters using seven columns",
     async (mode) => {
       const fixture = automaticExtraFixture(mode === "R1" ? "2026-10" : "2026-07", mode);
+      if (mode === "historical")
+        fixture.data.rules[0] = { ...fixture.data.rules[0], DATE_TO: "4000-01-01" };
       fixture.current.rows[0][fixture.current.headers.indexOf("Paga Extra 3ª")] = "1999.98";
       fixture.data.payroll[0] = { ...fixture.data.payroll[0], PAID3: "1999.98" };
       fixture.current.extraPayAutomatic = resolveAutomaticExtras(fixture.current, fixture.data);
@@ -94,6 +96,18 @@ describe("reconciliation workbook", () => {
       expect(input.parameters.extraFullEmployeeIds).toEqual([]);
     },
   );
+  it("exports the precise rule field that failed instead of a generic metadata rejection", async () => {
+    const fixture = automaticExtraFixture("2026-07", "historical");
+    fixture.data.rules[0] = { ...fixture.data.rules[0], DATE_TO: "4000-01-01", PRIORITY: "3" };
+    fixture.current.extraPayAutomatic = resolveAutomaticExtras(fixture.current, fixture.data);
+    const input: Dossier = { ...dossier(), period: fixture.period, current: fixture.current };
+    input.result = reconcile(input);
+    const sheet = controlSheet(await load(input), "C04");
+    expect(values(sheet.getRow(1))).toEqual(headers);
+    expect(String(sheet.getRow(2).getCell(7).value)).toContain("Prioridad de la regla R1");
+    expect(String(sheet.getRow(2).getCell(7).value)).toContain("recibida 3; se esperaba 2");
+    expect(sheet.getRow(2).getCell(5).value).toBe("Pendiente");
+  });
   it("retains company-separated C13 amounts and pending proration in the existing seven columns", async () => {
     const input = dossier();
     const source = {

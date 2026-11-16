@@ -5,7 +5,16 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
-Actualización R1 histórica 2026-11-16: recibido código y metadatos completos
+Actualización vigencia real 2026-11-16: el diagnóstico desde el propio proyecto
+en VM reconoce el código histórico (`codeMatches: true`), con prioridad 2,
+orden 100 y condición 0, pero devuelve fin `4000-01-01`. Resuelto localmente
+el rechazo por exigir literalmente el fin de una extracción anterior. Se valida
+la cobertura mensual con las fechas leídas y se conserva la procedencia real.
+La fuente tiene 35 CR y 35 LF; no era el supuesto de saltos exclusivamente CR.
+La causa concreta ya está acreditada; cobertura individual, devengo y paridad
+económica tras actualizar instantáneas continúan pendientes de validación VM.
+
+Actualización R1 histórica 2026-11-16 (histórico): recibido código y metadatos completos
 de la versión hasta 31/07/2026 (inicio 1800, prioridad 2, orden 100, condición 0).
 Resuelto el rechazo de esa versión; las excepciones de IBER pertenecen solo a
 agosto–octubre. No hace falta otra consulta para acreditar este comportamiento.
