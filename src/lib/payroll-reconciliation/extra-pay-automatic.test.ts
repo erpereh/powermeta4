@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { automaticExtraFixture } from "./extra-pay.fixture";
 import { extraProration, extraRuleTokens, VERIFIED_EXTRA_RULE } from "./extra-pay-rule";
-import { resolveAutomaticExtras, verifiedExtraRule } from "./extra-pay-resolution";
+import { resolveAutomaticExtras, resolveExtraRule } from "./extra-pay-resolution";
 import { reconcile, retainAnnotations } from "./engine";
 import { hash } from "./hash";
 import { METRICS } from "./catalogue";
@@ -40,11 +40,11 @@ describe("confirmed R1 semantics", () => {
     "supports %s with the exact confirmed source",
     (period) => {
       const input = automaticExtraFixture();
-      expect(verifiedExtraRule(input.data.rules, period)).toBe(true);
+      expect(resolveExtraRule(input.data.rules, period).rule?.mode).toBe("R1");
     },
   );
   it.each(["2026-07", "2026-11", "2027-10"])("does not extrapolate R1 to %s", (period) => {
-    expect(verifiedExtraRule(automaticExtraFixture().data.rules, period)).toBe(false);
+    expect(resolveExtraRule(automaticExtraFixture().data.rules, period).issue).toBeDefined();
   });
   it("ignores comments/formatting but preserves changes inside literals and executable code", () => {
     expect(extraRuleTokens("// remark\n" + VERIFIED_EXTRA_RULE + "\n' comment")).toBe(
@@ -57,7 +57,7 @@ describe("confirmed R1 semantics", () => {
     ]) {
       const input = automaticExtraFixture();
       input.data.rules[0] = { ...input.data.rules[0], SOURCE: source };
-      expect(verifiedExtraRule(input.data.rules, "2026-10")).toBe(false);
+      expect(resolveExtraRule(input.data.rules, "2026-10").issue).toBeDefined();
     }
   });
   it.each(["duplicate", "condition", "priority", "dates", "additional"])(
@@ -69,7 +69,7 @@ describe("confirmed R1 semantics", () => {
       if (kind === "condition") input.data.rules[0] = { ...input.data.rules[0], CONDITION: "1" };
       if (kind === "priority") input.data.rules[0] = { ...input.data.rules[0], PRIORITY: "0" };
       if (kind === "dates") input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "4000-01-01" };
-      expect(verifiedExtraRule(input.data.rules, "2026-10")).toBe(false);
+      expect(resolveExtraRule(input.data.rules, "2026-10").issue).toBeDefined();
     },
   );
   it("reproduces NULL inheritance and the confirmed IBER branches only for defined extras", () => {
@@ -82,6 +82,121 @@ describe("confirmed R1 semantics", () => {
     expect(extraProration("IBER", "0042", 4, 0, false)).toBe(true);
     expect(extraProration("IBER", "", 4, 0, false)).toBeNull();
   });
+});
+
+describe("configuration outside R1", () => {
+  it.each(["2025-07", "2026-07", "2026-11", "2027-01"])(
+    "calculates the due complete extra in %s from the accredited definition",
+    (period) => {
+      const input = automaticExtraFixture(period, "definition");
+      // These indicators have no effect when the active rule preserves the definition.
+      prorate(input);
+      input.data.defaults = [];
+      input.data.unsupported = [{ LEVEL: "other", COMPONENT: "CSP_PRORRATEADA_PE3" }];
+      paid(input, "extra3", "1999.98");
+      capture(input);
+      expect(find(input, "extra3")).toMatchObject({ expected: "2000", delta: "-0.02" });
+      expect(input.current.extraPayAutomatic?.rule).toMatchObject({
+        mode: "definition",
+        versions: [{ id: "CSP_PRORRATEADA_REV", validFrom: "1800-01-01", validTo: "4000-01-01" }],
+      });
+      expect(find(input, "extra3")?.evidence.join(" ")).toContain("CSP_PRORRATEADA_REV");
+    },
+  );
+  it("calculates July base × 3 / 12 from three prorated definitions, without individual flags", () => {
+    const input = automaticExtraFixture("2026-07", "definition");
+    input.data.defaults = [];
+    input.data.definitions = input.data.definitions.map((row) => ({ ...row, ORIGINAL: "S" }));
+    paid(input, "extraProrated", "449.98");
+    capture(input);
+    expect(find(input, "extraProrated")).toMatchObject({ expected: "450", delta: "-0.02" });
+    expect(find(input, "extra3")).toBeUndefined();
+    input.data.payroll[0] = { ...input.data.payroll[0], FIXED_UNITS: "0.5" };
+    capture(input);
+    expect(find(input, "extraProrated")?.expected).toBeNull();
+  });
+  it("omits July zeros with no obligation and preserves unexpected payments", () => {
+    const input = automaticExtraFixture("2026-07", "definition");
+    input.data.definitions = input.data.definitions.map((row) => ({ ...row, PAY_MONTH: "12" }));
+    capture(input);
+    expect(reconcile(input).findings.filter((row) => row.control === "C04")).toEqual([]);
+    paid(input, "extra1", "10");
+    capture(input);
+    expect(find(input, "extra1")).toMatchObject({ actual: "10", expected: "0", delta: "10" });
+  });
+  it("does not invalidate a definition-based review for unused indicator evidence", () => {
+    const input = capture(automaticExtraFixture("2026-07", "definition"));
+    const before = find(input, "extra3")?.fingerprint;
+    prorate(input);
+    input.data.defaults = [];
+    capture(input);
+    expect(find(input, "extra3")?.fingerprint).toBe(before);
+  });
+  it("does not apply IBER R1 exceptions when only the definition rule is active", () => {
+    const input = automaticExtraFixture("2026-07", "definition");
+    input.current.society = "IBER";
+    input.data.histories[0] = { ...input.data.histories[0], VALUE: "0042" };
+    input.data.definitions = input.data.definitions.map((row) => ({ ...row, AGREEMENT: "0042" }));
+    input.data.definitions.push({ ...input.data.definitions[0], ORDINAL: "4" });
+    capture(input);
+    expect(
+      input.current.extraPayAutomatic?.people[0].extras.map((extra) => extra.prorated),
+    ).toEqual([false, false, false, false]);
+    expect(find(input, "extra3")?.expected).toBe("2000");
+  });
+  it("accepts the known preserving rule alongside the confirmed R1", () => {
+    const input = automaticExtraFixture();
+    input.data.rules.push(...automaticExtraFixture("2026-07", "definition").data.rules);
+    capture(input);
+    expect(input.current.extraPayAutomatic?.rule?.mode).toBe("R1");
+    expect(find(input, "extra3")?.expected).toBe("2000");
+  });
+  it.each([
+    "missing",
+    "unknown",
+    "source",
+    "condition",
+    "priority",
+    "duplicate",
+    "partial",
+    "transition",
+  ])("keeps %s July rule evidence pending instead of assuming the definition applies", (kind) => {
+    const input = automaticExtraFixture("2026-07", "definition");
+    if (kind === "missing") input.data.rules = [];
+    if (kind === "unknown") input.data.rules.push({ ...input.data.rules[0], RULE_ID: "R2" });
+    if (kind === "source") input.data.rules[0] = { ...input.data.rules[0], SOURCE: "Return(0)" };
+    if (kind === "condition") input.data.rules[0] = { ...input.data.rules[0], CONDITION: "1" };
+    if (kind === "priority") input.data.rules[0] = { ...input.data.rules[0], PRIORITY: "0" };
+    if (kind === "duplicate") input.data.rules.push(input.data.rules[0]);
+    if (kind === "partial") input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "2026-07-15" };
+    if (kind === "transition")
+      input.data.rules.push({ ...input.data.rules[0], RULE_ID: "R1", DATE_FROM: "2026-07-15" });
+    capture(input);
+    expect(input.current.extraPayAutomatic?.issue).toBeTruthy();
+    expect(find(input, "extra3")).toMatchObject({
+      expected: null,
+      delta: null,
+      status: "No comparable",
+    });
+  });
+  it.each(["unknownModality", "missingComponent", "partial", "differentConfiguration"])(
+    "keeps %s pending with an accredited July rule",
+    (kind) => {
+      const input = automaticExtraFixture("2026-07", "definition");
+      if (kind === "unknownModality")
+        input.data.definitions[2] = { ...input.data.definitions[2], ORIGINAL: null };
+      if (kind === "missingComponent")
+        input.current.rows[0][input.current.headers.indexOf("Complemento Experiencia Importe")] =
+          "";
+      if (kind === "partial") input.data.payroll[0] = { ...input.data.payroll[0], UNITS3: "0.5" };
+      if (kind === "differentConfiguration")
+        input.data.definitions[2] = { ...input.data.definitions[2], ORIGINAL: "S" };
+      capture(input);
+      expect(
+        find(input, kind === "differentConfiguration" ? "extraProrated" : "extra3")?.expected,
+      ).toBeNull();
+    },
+  );
 });
 
 describe("automatic C04", () => {
@@ -357,24 +472,27 @@ describe("automatic C04", () => {
     ]);
     expect(new Set(findings.map((row) => row.id)).size).toBe(2);
   });
-  it("retains all other finding fingerprints/reviews, including C12, after capture and JSON reload", () => {
-    const input = automaticExtraFixture();
-    const before = reconcile(input);
-    capture(input);
-    const reloaded: Fixture = JSON.parse(JSON.stringify(input));
-    const after = reconcile(reloaded);
-    expect(hash(after.findings.filter((row) => row.control !== "C04"))).toBe(
-      hash(before.findings.filter((row) => row.control !== "C04")),
-    );
-    const annotation: Annotation = {
-      findingId: before.findings.find((row) => row.control === "C12")!.id,
-      fingerprint: before.findings.find((row) => row.control === "C12")!.fingerprint,
-      state: "Diferencia justificada",
-      comment: "Guardada",
-      actor: "TEST",
-      at: "2026-10-26",
-    };
-    expect(retainAnnotations([annotation], after)[0].invalidated).toBe(false);
-    expect(after).toEqual(reconcile(input));
-  });
+  it.each(["R1", "definition"] as const)(
+    "retains other findings/reviews, including C12, after %s capture and reload",
+    (mode) => {
+      const input = automaticExtraFixture(mode === "R1" ? "2026-10" : "2026-07", mode);
+      const before = reconcile(input);
+      capture(input);
+      const reloaded: Fixture = JSON.parse(JSON.stringify(input));
+      const after = reconcile(reloaded);
+      expect(hash(after.findings.filter((row) => row.control !== "C04"))).toBe(
+        hash(before.findings.filter((row) => row.control !== "C04")),
+      );
+      const annotation: Annotation = {
+        findingId: before.findings.find((row) => row.control === "C12")!.id,
+        fingerprint: before.findings.find((row) => row.control === "C12")!.fingerprint,
+        state: "Diferencia justificada",
+        comment: "Guardada",
+        actor: "TEST",
+        at: "2026-10-26",
+      };
+      expect(retainAnnotations([annotation], after)[0].invalidated).toBe(false);
+      expect(after).toEqual(reconcile(input));
+    },
+  );
 });

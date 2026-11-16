@@ -9,7 +9,7 @@ sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos
 
 ## C04 automático — 2026-11-13
 
-El motor 1.2.0 añade lectura automática de configuración y devengo al **crear
+El motor 1.2.1 (corrección 2026-11-16) lee la configuración y el devengo al **crear
 un expediente real o actualizar expresamente sus instantáneas**. Abrirlo,
 revisarlo, guardar parámetros y exportarlo reutilizan la captura guardada: no
 consultan ni actualizan PeopleNet silenciosamente. No hay migración adicional.
@@ -24,22 +24,29 @@ SQL ni toda la población.** Las salidas de diagnóstico 01–05 siguen pendient
 
 ### Reglas y alcance de la lectura
 
-- Se reutilizan el informe, el pool y la protección SELECT existentes. Hay ocho
-  lecturas agrupadas, en parejas, sin consultas de recibo por empleado.
+- Se reutilizan el informe, el pool y la protección SELECT existentes. Primero
+  se consulta la regla vigente: cuatro lecturas agrupadas si conserva la definición,
+  ocho con R1. Máximo dos simultáneas, sin consultas de recibo por empleado.
 - La captura conserva el periodo de alta de la columna `Periodo`, sin alterar
   las posiciones de las columnas. C04 agrupa por empresa/matrícula y exige un
   único periodo de alta; no suma bases de empresas diferentes.
-- Se resuelven asignaciones individuales, de empresa y de convenio por cada
+- Con R1 se resuelven asignaciones individuales, de empresa y de convenio por cada
   día del mes. Menor número indica mayor prioridad; empates con valores
   contradictorios, prioridades inválidas y cambios efectivos de modalidad
   quedan pendientes. `1` y `1.00000000` son equivalentes; NULL no es cero.
-- Otros niveles de herencia se detectan y se conservan pendientes, sin
+- Con R1, otros niveles de herencia se detectan y se conservan pendientes, sin
   reproducir un motor SAV genérico. La detección es conservadora: una asignación
   de uno de esos niveles al mismo indicador puede bloquearlo aunque después
   resulte ajena a la persona. Se identifica su tabla en el motivo.
-- Se verifica el código ejecutable de la versión confirmada de R1, junto con
-  sus metadatos. Solo se admite **01/08/2026–31/10/2026**. Noviembre y otras
-  versiones/reglas quedan pendientes; no se prolonga la vigencia por similitud.
+- No hay bloqueo por mes. Si la única regla vigente es la conocida
+  `CSP_PRORRATEADA_REV` con `Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)`, se
+  conserva `SSP_PRORRATEADA` de la definición vigente de cada extra del convenio.
+  No se leen ni aplican indicadores o excepciones de R1 en ese recorrido.
+- R1 solo se acepta con el código ejecutable y metadatos contrastados y vigencia
+  **01/08/2026–31/10/2026**. No se prolonga a otros meses. Julio, noviembre u otro
+  mes pueden calcularse desde la definición si la regla vigente lo acredita.
+  Reglas ausentes, desconocidas, duplicadas o con cambios dentro del mes quedan
+  pendientes con motivo concreto; ausencia de R1 por sí sola no acredita nada.
 - R1 usa `1 → S`, `0 → N`, `NULL → conservar definición`. En IBER fuerza S
   para la extra 3; para la 4 fuerza N en convenio `0041`, S en otros convenios
   acreditados. Solo actúa sobre extras que existen en su definición.
@@ -51,6 +58,9 @@ SQL ni toda la población.** Las salidas de diagnóstico 01–05 siguen pendient
   Deben cubrir todo el mes sin huecos ni duplicados y coincidir con los importes
   de extras del informe guardado. Los valores aplicados de Meta4 sirven de
   contraste cuando coinciden con esas claves; no acreditan modalidad por importe.
+- El JSON añade solo `extraPayAutomatic.rule`, opcional para capturas anteriores:
+  modo `definition` o `R1`, identificadores, vigencias y hash del código reconocido.
+  La procedencia del hallazgo recoge la regla utilizada, sin guardar código LN4.
 
 ### Fórmulas y pendientes
 
@@ -77,32 +87,48 @@ C12 y las huellas de todos los controles ajenos a C04 se conservan.
 
 1. Con el servidor detenido, ejecutar `npm run build` y arrancar `npm run start`.
    No hay nueva migración ni archivo que subir para C04.
-2. Abrir el expediente de octubre de 2026 y usar **Actualizar instantáneas**,
-   con las ejecuciones correctas. Guardar parámetros sin actualizar no carga la
+2. Abrir el expediente del mes disponible (por ejemplo julio) y usar
+   **Actualizar instantáneas**, con las ejecuciones correctas. Guardar parámetros sin actualizar no carga la
    nueva evidencia. Si falta `Periodo` en el informe, aparecerá pendiente.
-3. Reutilizar las claves de `cuadre:discover` y ejecutar:
+3. Reutilizar las claves de julio de `cuadre:discover`. Si hace falta obtenerlas,
+   ejecutar `npm run cuadre:discover -- CYC --period 2026-07` (cambiar el año si
+   corresponde). Guardar en `data/cuadre-selection.json` el objeto `selectionFormat`,
+   eligiendo expresamente la `currentKey` de la ejecución correcta con datos;
+   la primera salida no acredita por sí sola que sea la adecuada. Ejecutar:
 
    ```powershell
    npm run cuadre:verify -- CYC --selection ".\data\cuadre-selection.json"
    ```
 
-   Revisar `extraPayModality.issue`, `people`, `accredited` y `pending`, y el
-   resumen de C04. `accredited` cuenta configuraciones sin incidencia; no implica
+   Revisar `engineVersion` (`1.2.1`), `extraPayModality.issue`, `rule`, `people`,
+   `accredited` y `pending`, y el resumen de C04. `accredited` cuenta configuraciones sin incidencia; no implica
    que todos sus devengos permitan aplicar una fórmula económica.
+
+   Para julio, si PeopleNet devuelve solo la regla conocida que conserva la definición,
+   `rule.mode` debe ser `definition`, con `CSP_PRORRATEADA_REV` en `rule.versions`.
+   El motivo general «R1 está confirmada solo de agosto a octubre» debe desaparecer.
+   La selección puede conservar `previousKey: null` para probar solo C04; los
+   controles mensuales necesitan el mes anterior y seguirán pendientes sin él.
 
 4. Contrastar con PeopleNet una extra completa, una modalidad con exactamente
    las tres extras prorrateadas, una diferencia conocida, un pago faltante y un
    caso parcial. Confirmar el mapeo de acumulados, tipo salarial/unidades,
-   porcentajes, ausencias y calendario. En IBER revisar la extra 3 y la 4 con
-   convenio `0041` y con otro convenio.
+   porcentajes, ausencias y calendario. En IBER revisar las excepciones de extras
+   3/4 únicamente con R1 vigente; en julio manda la definición acreditada.
 5. Verificar recarga/exportación sin nuevas lecturas, conservación de revisiones
-   C12 y noviembre pendiente. Ante diferencias de captura, actualizar/generar
+   C12 y el comportamiento según la regla vigente en otros meses. Ante diferencias
+   de captura, actualizar/generar
    conscientemente el informe correcto; no forzar importes o datos en SQLite.
 
 Pruebas locales y resultados finales de esta entrega: `VALIDATION.md` y
 `spec/changelog.md`. No se afirma ejecución SQL real de este lector desde el
 entorno local. «14 meses» sigue siendo una etiqueta de RRHH sin correspondencia
 anual acreditada: el control usa el tratamiento real de cada extra.
+
+La captura de julio recibida el 2026-11-16 acredita que la versión anterior se
+detenía antes de leer PeopleNet por el límite de R1. No acredita todavía el
+resultado del recorrido corregido: siguen pendientes su lectura SQL real,
+la cobertura de configuración y el contraste económico de los casos de julio.
 
 ## Correcciones de cálculo — 2026-11-12 (histórico)
 

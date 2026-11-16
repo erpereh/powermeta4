@@ -37,8 +37,19 @@ export type AutomaticExtraPay = {
   society: string;
   period: string;
   runHash: string;
+  /** Optional for compatibility with captures made before rule selection by period. */
+  rule?: AutomaticExtraPayRule;
   issue?: string;
   people: AutomaticExtraPayPerson[];
+};
+export type AutomaticExtraPayRule = {
+  mode: "definition" | "R1";
+  versions: {
+    id: string;
+    validFrom: string;
+    validTo: string;
+    sourceHash: string;
+  }[];
 };
 export type AutomaticExtraPayPerson = {
   employeeId: string;

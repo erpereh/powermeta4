@@ -98,6 +98,16 @@ Q03/Q05: precisión y otros perfiles/entidades se validan por separado.
 
 ## C04 — Paga extra
 
+Corrección 2026-11-16 (motor 1.2.1): el mes no bloquea C04. Se consulta la
+regla vigente y su código. Con la única regla conocida `CSP_PRORRATEADA_REV`,
+que devuelve el propio campo sin modificar las extras, se usa la definición
+vigente del convenio; no se aplican indicadores ni excepciones de R1. Esta
+última sigue restringida a su código y vigencia confirmados. Reglas desconocidas,
+ausentes o cambiantes quedan pendientes. La propiedad opcional
+`extraPayAutomatic.rule` conserva modo, versiones, vigencias y hash de código.
+No cambian las fórmulas, los requisitos de devengo ni C12. Julio está probado
+con datos sintéticos; la lectura y paridad económica reales siguen pendientes.
+
 Ampliación 2026-11-13 (motor 1.2.0): la evidencia automática se conserva en
 propiedades opcionales `hrPeriods` y `extraPayAutomatic` del snapshot. Incluye
 sociedad, clave de ejecución, empresa, matrícula, periodo de alta, tratamiento

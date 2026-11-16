@@ -118,54 +118,60 @@ beforeEach(() => {
   mocks.save.mockImplementation((_scope, record) => record);
 });
 describe("reconciliation boundaries", () => {
-  it("captures automatic extras only on real creation/explicit refresh, never on reload or parameter edits", async () => {
-    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
-    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
-    const detail = demoReport("2026-10");
-    detail.headers.push("Periodo");
-    detail.rows.forEach((row) => row.push("1"));
-    mocks.read.mockResolvedValue(detail);
-    const fixture = automaticExtraFixture();
-    mocks.extras.mockImplementation(async (captured) => ({
-      ...captured,
-      extraPayAutomatic: resolveAutomaticExtras(captured, fixture.data),
-    }));
-    const response = await POST(
-      request("POST", { ...create(), demo: false, currentKey: runKey(detail.run) }),
-    );
-    expect(response.status).toBe(200);
-    const { data } = await response.json();
-    expect(data.current.hrPeriods).toEqual(["1", "1", "1"]);
-    expect(
-      data.result.findings.find(
-        (row: { metric: string; employeeId: string }) =>
-          row.metric === "extra3" && row.employeeId === "009001",
-      ),
-    ).toMatchObject({ expected: "2000", actual: "0", delta: "-2000" });
-    expect(mocks.extras).toHaveBeenCalledTimes(1);
-    dossier = data;
-    await GET(new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`));
-    await PATCH(
-      request("PATCH", {
-        id: dossier.id,
-        revision: 1,
-        action: "parameters",
-        parameters: DEFAULT_PARAMETERS,
-      }),
-    );
-    expect(mocks.extras).toHaveBeenCalledTimes(1);
-    await PATCH(
-      request("PATCH", {
-        id: dossier.id,
-        revision: 1,
-        action: "refresh",
-        currentKey: runKey(detail.run),
-        previousKey: null,
-        populationConfirmed: true,
-      }),
-    );
-    expect(mocks.extras).toHaveBeenCalledTimes(2);
-  });
+  it.each(["2026-07", "2026-10"])(
+    "captures %s extras only on real creation/explicit refresh, never on reload or parameter edits",
+    async (period) => {
+      mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+      mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+      const detail = demoReport(period);
+      detail.headers.push("Periodo");
+      detail.rows.forEach((row) => row.push("1"));
+      mocks.read.mockResolvedValue(detail);
+      const fixture = automaticExtraFixture(period, period === "2026-07" ? "definition" : "R1");
+      mocks.extras.mockImplementation(async (captured) => ({
+        ...captured,
+        extraPayAutomatic: resolveAutomaticExtras(captured, fixture.data),
+      }));
+      const response = await POST(
+        request("POST", { ...create(), period, demo: false, currentKey: runKey(detail.run) }),
+      );
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.current.extraPayAutomatic.rule.mode).toBe(
+        period === "2026-07" ? "definition" : "R1",
+      );
+      expect(data.current.hrPeriods).toEqual(["1", "1", "1"]);
+      expect(
+        data.result.findings.find(
+          (row: { metric: string; employeeId: string }) =>
+            row.metric === "extra3" && row.employeeId === "009001",
+        ),
+      ).toMatchObject({ expected: "2000", actual: "0", delta: "-2000" });
+      expect(mocks.extras).toHaveBeenCalledTimes(1);
+      dossier = data;
+      await GET(new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`));
+      await PATCH(
+        request("PATCH", {
+          id: dossier.id,
+          revision: 1,
+          action: "parameters",
+          parameters: DEFAULT_PARAMETERS,
+        }),
+      );
+      expect(mocks.extras).toHaveBeenCalledTimes(1);
+      await PATCH(
+        request("PATCH", {
+          id: dossier.id,
+          revision: 1,
+          action: "refresh",
+          currentKey: runKey(detail.run),
+          previousKey: null,
+          populationConfirmed: true,
+        }),
+      );
+      expect(mocks.extras).toHaveBeenCalledTimes(2);
+    },
+  );
   it("saves an explicit C04 read issue without blocking monthly controls or allowing client-supplied evidence", async () => {
     mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
     mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });

@@ -1,5 +1,28 @@
 # Validación de fuentes y criterios de aceptación
 
+## Corrección del bloqueo de julio — 2026-11-16
+
+La captura de la VM aportada por el usuario muestra que C04 se detenía por la
+vigencia agosto–octubre de R1, antes de consultar la configuración de julio.
+No demuestra que la configuración o los importes de julio estén acreditados.
+
+Las pruebas sintéticas cubren la regla conocida que conserva la definición,
+ambas fórmulas en julio, meses anteriores y posteriores, exclusión de indicadores
+y excepciones de R1 fuera de su vigencia, reglas desconocidas/ausentes, duplicados,
+cambios de regla, parciales y datos incompletos. También comprueban cuatro lecturas
+agrupadas frente a ocho con R1, fallos SQL aislados a C04, creación/actualización,
+recarga, exportación de siete columnas y conservación de revisiones C12.
+
+Comprobaciones ejecutadas: `npm run typecheck` correcto; `npm test` con 218
+archivos correctos, 1.476 pruebas superadas y las dos omisiones preexistentes
+(1.478 total, 460,15 s); `npm run build` correcto, 44 páginas. Formato dirigido
+correcto y `git diff --check` sin errores. `npm run lint` mantiene siete avisos
+y formato pendiente en los mismos 619 archivos anteriores; sin reformateo general.
+
+Las comprobaciones reales de julio se detallan en [IMPLEMENTATION](IMPLEMENTATION.md).
+Esta corrección local no acredita todavía la ejecución SQL ni la paridad económica
+del recorrido nuevo en la VM.
+
 ## Ampliación C04 — 2026-11-13
 
 Evidencia SQL aportada por el usuario: correspondencia DMD1 de los cinco

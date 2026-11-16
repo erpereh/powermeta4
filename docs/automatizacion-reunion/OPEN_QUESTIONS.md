@@ -5,6 +5,14 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
+Actualización C04 2026-11-16: la captura real de julio muestra un bloqueo por
+fecha anterior a cualquier lectura de configuración. Corregido localmente:
+la regla conocida que conserva la definición permite resolver otros meses
+sin extender R1 ni sus excepciones. Sigue pendiente contrastar la lectura
+corregida y ambas fórmulas en casos de julio contra PeopleNet. Mes distinto
+de agosto–octubre ya no es por sí solo un motivo de pendiente; sí lo son una
+regla desconocida, configuración insuficiente o devengo no acreditado.
+
 Actualización C04 2026-11-13: confirmado por salida SQL del usuario el enlace
 DMD1/indicadores individuales y el código de R1 de agosto a octubre de 2026,
 incluidas las excepciones técnicas de IBER. Se implementa lectura automática

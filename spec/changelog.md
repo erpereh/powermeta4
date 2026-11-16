@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-11-16 - C04 resuelve la configuración vigente también en julio
+
+- Corregido el bloqueo de C04 por fecha anterior a cualquier lectura PeopleNet.
+  El motor 1.2.1 consulta la regla del mes: si solo está vigente la conocida
+  CSP_PRORRATEADA_REV, conserva la definición de extras del convenio. No deduce
+  modalidad por importes ni aplica indicadores/excepciones de R1 en ese recorrido.
+- R1 sigue limitada a su código y vigencia contrastados, agosto–octubre de 2026.
+  Reglas desconocidas/ausentes, duplicados y cambios dentro del mes mantienen
+  pendiente con causa concreta. Cuatro SELECT agrupadas para definición y ocho
+  con R1, usando conexión y guardas existentes; sin lecturas por persona.
+- JSON compatible con procedencia opcional de la regla (modo, versiones,
+  vigencias y hash de código), también visible en cuadre:verify. No hay migración,
+  nuevas APIs, archivos externos ni cambios en C12 o las otras categorías.
+- Pruebas sintéticas ampliadas para julio, ambas fórmulas, IBER sin R1, otros
+  meses, datos/reglas insuficientes, lectura, creación/actualización, recarga,
+  exportación y conservación de revisiones. Documentación y pasos VM actualizados.
+- Typecheck y formato dirigido correctos. Lint global mantiene siete avisos y
+  formato pendiente en los mismos 619 archivos anteriores, sin reformateo general.
+  Suite completa correcta: 218 archivos, 1.476 pruebas superadas y dos omisiones
+  preexistentes (1.478 total, 460,15 s). Build correcto (44 páginas), diff sin
+  errores y estado Git revisado; davidev conservada, sin ramas, commits ni push.
+  No se afirma ejecución SQL real ni paridad económica de julio:
+  la captura aportada por el usuario muestra únicamente el bloqueo anterior.
+
 ## 2026-11-13 - C04 automático desde PeopleNet
 
 - El motor 1.2.0 captura configuración de extras con lecturas agrupadas y

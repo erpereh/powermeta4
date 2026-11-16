@@ -10,6 +10,7 @@ import { LIMITS } from "./import";
 import {
   extraMonth,
   resolveAutomaticExtras,
+  resolveExtraRule,
   type ExtraPayData,
   type ExtraPayRow,
 } from "./extra-pay-resolution";
@@ -34,10 +35,6 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
   });
   if (!current.society || !["CYC", "IBER", "COLL"].includes(current.society))
     return fail("Sociedad de la captura sin acreditar.");
-  if (month.first < "2026-08-01" || month.last > "2026-10-31")
-    return fail(
-      "Regla de prorrateo pendiente para este periodo; R1 está confirmada solo de agosto a octubre de 2026.",
-    );
   const runAt = new Date(current.run.runAt);
   if (!Number.isFinite(runAt.getTime()))
     return fail("Fecha de ejecución inválida para resolver las correcciones históricas.");
@@ -62,32 +59,33 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
   };
   try {
     // Bounded concurrency: two grouped reads at a time, independent of employee count.
-    const [rules, defaults] = await Promise.all([
-      read(EXTRA_PAY_SQL.rules),
-      read(EXTRA_PAY_SQL.defaults),
-    ]);
+    const rules = await read(EXTRA_PAY_SQL.rules);
+    const resolution = resolveExtraRule(rules, period);
+    if (!resolution.rule) return fail(resolution.issue);
     const [payroll, histories] = await Promise.all([
       read(EXTRA_PAY_SQL.payroll),
       read(EXTRA_PAY_SQL.histories),
     ]);
-    const [definitions, values] = await Promise.all([
-      read(EXTRA_PAY_SQL.definitions),
-      read(EXTRA_PAY_SQL.values),
-    ]);
-    const [unsupported, applied] = await Promise.all([
-      read(EXTRA_PAY_UNSUPPORTED_SQL),
-      read(EXTRA_PAY_APPLIED_SQL),
-    ]);
     const data: ExtraPayData = {
       rules,
-      defaults,
       payroll,
       histories,
-      definitions,
-      values,
-      unsupported,
-      applied,
+      definitions: await read(EXTRA_PAY_SQL.definitions),
+      defaults: [],
+      values: [],
+      unsupported: [],
+      applied: [],
     };
+    if (resolution.rule.mode === "R1") {
+      [data.defaults, data.values] = await Promise.all([
+        read(EXTRA_PAY_SQL.defaults),
+        read(EXTRA_PAY_SQL.values),
+      ]);
+      [data.unsupported, data.applied] = await Promise.all([
+        read(EXTRA_PAY_UNSUPPORTED_SQL),
+        read(EXTRA_PAY_APPLIED_SQL),
+      ]);
+    }
     const evidence = resolveAutomaticExtras(current, data);
     return { ...current, extraPayAutomatic: evidence, hash: hash([current.hash, evidence]) };
   } catch (error) {

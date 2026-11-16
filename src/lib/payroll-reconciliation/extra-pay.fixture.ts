@@ -1,17 +1,18 @@
 import { demoReport } from "./demo";
 import { snapshot } from "./snapshot";
 import { VERIFIED_EXTRA_RULE } from "./extra-pay-rule";
-import type { ExtraPayData } from "./extra-pay-resolution";
+import { extraMonth, type ExtraPayData } from "./extra-pay-resolution";
 import { DEFAULT_PARAMETERS } from "./types";
 
 /** Invented employees/configuration, never evidence of a real PeopleNet population. */
-export function automaticExtraFixture() {
-  const detail = demoReport("2026-10");
+export function automaticExtraFixture(period = "2026-10", mode: "R1" | "definition" = "R1") {
+  const detail = demoReport(period);
   detail.rows = [detail.rows[0]];
   detail.headers.push("Periodo");
   detail.rows[0].push("1");
   const current = snapshot(detail, true, "CYC");
-  const range = { DATE_FROM: "2026-01-01", DATE_TO: "4000-01-01" };
+  const range = { DATE_FROM: `${period.slice(0, 4)}-01-01`, DATE_TO: "4000-01-01" };
+  const month = extraMonth(period);
   const data: ExtraPayData = {
     payroll: [
       {
@@ -19,8 +20,8 @@ export function automaticExtraFixture() {
         HR_PERIOD: "1",
         ENTITY: "DEMO",
         CURRENCY: "EUR",
-        DATE_FROM: "2026-10-01",
-        DATE_TO: "2026-10-31",
+        DATE_FROM: month.first,
+        DATE_TO: month.last,
         FIXED_UNITS: "1",
         ABSENCE_DAYS: "0",
         STRIKE_DAYS: "0",
@@ -49,7 +50,7 @@ export function automaticExtraFixture() {
       AGREEMENT: "A1",
       ORDINAL: String(order),
       EXTRA_ID: `E${order}`,
-      PAY_MONTH: order === 3 ? "10" : order === 1 ? "6" : "12",
+      PAY_MONTH: order === 3 ? period.slice(5, 7) : order === 1 ? "6" : "12",
       PAY_DAY: "25",
       ...range,
       DEFINITION_FROM: range.DATE_FROM,
@@ -63,13 +64,13 @@ export function automaticExtraFixture() {
     })),
     rules: [
       {
-        RULE_ID: "R1",
+        RULE_ID: mode === "R1" ? "R1" : "CSP_PRORRATEADA_REV",
         RULE_TI: "CSP_HRPERIOD_CALC",
-        DATE_FROM: "2026-08-01",
-        DATE_TO: "2026-10-31",
+        DATE_FROM: mode === "R1" ? "2026-08-01" : "1800-01-01",
+        DATE_TO: mode === "R1" ? "2026-10-31" : "4000-01-01",
         PRIORITY: "3",
         CONDITION: "0",
-        SOURCE: VERIFIED_EXTRA_RULE,
+        SOURCE: mode === "R1" ? VERIFIED_EXTRA_RULE : "Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)",
       },
     ],
     values: [],
@@ -79,7 +80,7 @@ export function automaticExtraFixture() {
   return {
     current,
     data,
-    period: "2026-10",
+    period,
     parameters: { ...DEFAULT_PARAMETERS },
     previous: null,
     sources: [],

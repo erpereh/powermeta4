@@ -44,6 +44,7 @@ void execute(async () => {
         monthlyComparison: { comparable: comparisonIssue === null, reason: comparisonIssue },
         extraPayModality: {
           issue: input.current.extraPayAutomatic?.issue ?? null,
+          rule: input.current.extraPayAutomatic?.rule ?? null,
           people: input.current.extraPayAutomatic?.people.length ?? 0,
           accredited:
             input.current.extraPayAutomatic?.people.filter((person) => !person.issue).length ?? 0,

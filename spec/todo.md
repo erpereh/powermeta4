@@ -1,5 +1,25 @@
 # powermeta4 - estado de tareas
 
+## C04: configuración del mes sin bloqueo por R1 — 2026-11-16
+
+- [x] Retirado el rechazo anticipado por fecha; lectura de la regla vigente en
+      cualquier mes y reconocimiento de la regla conocida que conserva la definición.
+- [x] Cálculo desde las definiciones del convenio sin indicadores ni excepciones
+      R1 ajenos al periodo; cuatro lecturas agrupadas, frente a ocho con R1.
+- [x] R1 conserva código/vigencia agosto–octubre de 2026; reglas desconocidas,
+      ausentes, duplicadas o cambiantes pendientes con motivo concreto.
+- [x] Procedencia opcional de la regla en JSON y en el verificador, sin migración;
+      fórmulas, interfaz y C12 conservados. Casos sintéticos de julio, recarga,
+      exportación y revisiones ampliados; guía y contratos actualizados.
+- [x] Typecheck y formato dirigido correctos. Lint global ejecutado: siete avisos
+      y formato pendiente en los mismos 619 archivos anteriores.
+- [x] Suite completa correcta: 218 archivos, 1.476 pruebas superadas y dos omisiones
+      preexistentes. Build correcto (44 páginas), diff sin errores y estado Git
+      revisado; rama davidev, sin ramas nuevas, commits ni push.
+- [ ] Validar el recorrido corregido en VM con las instantáneas de julio y
+      contrastar definición, unidades e importes con PeopleNet. La captura recibida
+      acredita el bloqueo anterior, no la paridad económica del recorrido nuevo.
+
 ## C04 automático desde PeopleNet — 2026-11-13
 
 - [x] Lectura SELECT agrupada al crear/actualizar instantáneas; mismo pool y

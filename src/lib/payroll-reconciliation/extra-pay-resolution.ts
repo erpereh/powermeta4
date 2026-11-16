@@ -3,7 +3,12 @@ import { decimal, textDecimal } from "./decimal";
 import { hash } from "./hash";
 import { resolveIdentity } from "./payroll-value";
 import { extraProration, extraRuleTokens, VERIFIED_EXTRA_RULE } from "./extra-pay-rule";
-import type { AutomaticExtraPay, AutomaticExtraPayPerson, Snapshot } from "./types";
+import type {
+  AutomaticExtraPay,
+  AutomaticExtraPayPerson,
+  AutomaticExtraPayRule,
+  Snapshot,
+} from "./types";
 
 export type ExtraPayRow = Readonly<Record<string, string | null>>;
 export type ExtraPayData = {
@@ -53,27 +58,54 @@ function indicator(value: string | null | undefined): 0 | 1 | null | "invalid" {
   return parsed === one ? 1 : parsed === zero ? 0 : "invalid";
 }
 
-export function verifiedExtraRule(rows: ExtraPayRow[], period: string): boolean {
+export function resolveExtraRule(
+  rows: ExtraPayRow[],
+  period: string,
+): { rule: AutomaticExtraPayRule; issue?: never } | { issue: string; rule?: never } {
   const { first, last } = extraMonth(period);
-  if (first < "2026-08-01" || last > "2026-10-31") return false;
+  if (!rows.length)
+    return { issue: `No hay reglas de prorrateo con código acreditado para ${period}.` };
+  if (rows.some((row) => !covers(row, first, last)))
+    return { issue: `Vigencia incompleta o cambio de regla de prorrateo durante ${period}.` };
   const r1 = rows.filter((row) => text(row, "RULE_ID") === "R1");
-  if (r1.length !== 1) return false;
-  return rows.every((row) => {
+  if (new Set(rows.map((row) => text(row, "RULE_ID"))).size !== rows.length)
+    return {
+      issue: `Versiones duplicadas o contradictorias de la regla de prorrateo para ${period}.`,
+    };
+  const unknown = rows.find((row) => {
     if (
-      !covers(row, first, last) ||
       !sameNumber(row.PRIORITY, "3") ||
       !sameNumber(row.CONDITION, "0") ||
       text(row, "RULE_TI") !== "CSP_HRPERIOD_CALC"
     )
-      return false;
+      return true;
     const tokens = extraRuleTokens(text(row, "SOURCE"));
-    return text(row, "RULE_ID") === "R1"
-      ? row.DATE_FROM === "2026-08-01" &&
+    const known =
+      text(row, "RULE_ID") === "R1"
+        ? row.DATE_FROM === "2026-08-01" &&
           row.DATE_TO === "2026-10-31" &&
           tokens === extraRuleTokens(VERIFIED_EXTRA_RULE)
-      : text(row, "RULE_ID") === "CSP_PRORRATEADA_REV" &&
+        : text(row, "RULE_ID") === "CSP_PRORRATEADA_REV" &&
           tokens === extraRuleTokens("Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)");
+    return !known;
   });
+  if (unknown)
+    return {
+      issue: `Código o metadatos de la regla de prorrateo ${text(unknown, "RULE_ID") || "sin identificar"} sin acreditar para ${period}.`,
+    };
+  return {
+    rule: {
+      mode: r1.length ? "R1" : "definition",
+      versions: rows
+        .map((row) => ({
+          id: text(row, "RULE_ID"),
+          validFrom: text(row, "DATE_FROM"),
+          validTo: text(row, "DATE_TO"),
+          sourceHash: hash(extraRuleTokens(text(row, "SOURCE"))),
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+  };
 }
 
 /** A small resolver for the five confirmed indicators, not a generic SAV interpreter. */
@@ -168,11 +200,13 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
     runHash: hash(current.run),
     people: [],
   };
-  if (!verifiedExtraRule(data.rules, period)) {
-    result.issue =
-      "Versión o vigencia de la regla de prorrateo no acreditada; solo está confirmada R1 de agosto a octubre de 2026.";
+  const resolution = resolveExtraRule(data.rules, period);
+  if (!resolution.rule) {
+    result.issue = resolution.issue;
     return result;
   }
+  const rule = resolution.rule;
+  result.rule = rule;
   const idCol = columnIndex(current.headers, "Id Empleado"),
     entityCol = columnIndex(current.headers, "Id Empresa");
   const groups = new Map<string, number[]>();
@@ -315,17 +349,21 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
         fail("Cambio o falta de vigencia de la definición de extras durante el mes.");
         break;
       }
-      const forced = current.society === "IBER" && (order === 3 || order === 4);
-      const flag = forced
-        ? { value: null }
-        : resolveIndicator(scoped, person, agreement, order, month.days);
+      const usesIndicators = rule.mode === "R1";
+      const forced = usesIndicators && current.society === "IBER" && (order === 3 || order === 4);
+      const flag =
+        !usesIndicators || forced
+          ? { value: null }
+          : resolveIndicator(scoped, person, agreement, order, month.days);
       if (flag.issue) {
         fail(flag.issue);
         break;
       }
       const original =
         definition.ORIGINAL === "S" ? true : definition.ORIGINAL === "N" ? false : null;
-      const prorated = extraProration(result.society, agreement, order, flag.value, original);
+      const prorated = usesIndicators
+        ? extraProration(result.society, agreement, order, flag.value, original)
+        : original;
       if (prorated === null) {
         fail(`Modalidad de la extra ${order} sin acreditar.`);
         break;
@@ -362,6 +400,7 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
           row.COMPONENT === `CSP_PRORRATEADA_PE${order}`,
       );
       if (
+        usesIndicators &&
         !forced &&
         applied.some(
           (row) =>
@@ -376,8 +415,8 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
       }
     }
     person.evidence = [
-      `PeopleNet:${result.society}:${entity}:${employeeId}:${hrPeriod}:${period}:R1:2026-08-01/2026-10-31`,
-      `Configuración:${hash({ histories: evidenceRows(histories), definitions: evidenceRows(definitions), values: evidenceRows(scoped.values.filter((row) => row.KEY1 === employeeId || row.KEY1 === entity || row.KEY1 === agreement)), defaults: evidenceRows(data.defaults), pay: evidenceRows(pay), applied: evidenceRows(data.applied.filter((row) => row.EMPLOYEE === nativeId)) })}`,
+      `PeopleNet:${result.society}:${entity}:${employeeId}:${hrPeriod}:${period}:${rule.mode}:${rule.versions.map((version) => `${version.id}:${version.validFrom}/${version.validTo}:${version.sourceHash}`).join(";")}`,
+      `Configuración:${hash({ histories: evidenceRows(histories), definitions: evidenceRows(definitions), pay: evidenceRows(pay), ...(rule.mode === "R1" ? { values: evidenceRows(scoped.values.filter((row) => row.KEY1 === employeeId || row.KEY1 === entity || row.KEY1 === agreement)), defaults: evidenceRows(data.defaults), applied: evidenceRows(data.applied.filter((row) => row.EMPLOYEE === nativeId)) } : {}) })}`,
     ];
   }
   return result;

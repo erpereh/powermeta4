@@ -76,21 +76,24 @@ describe("reconciliation workbook", () => {
     expect(JSON.stringify(values(sheet.getRow(2)))).not.toContain("Pendiente");
     expect(sheet.getRow(2).getCell(1).value).toContain("Sin pagos de extras");
   });
-  it("exports automatic extra calculations without manual parameters using the existing seven columns", async () => {
-    const fixture = automaticExtraFixture();
-    fixture.current.rows[0][fixture.current.headers.indexOf("Paga Extra 3ª")] = "1999.98";
-    fixture.data.payroll[0] = { ...fixture.data.payroll[0], PAID3: "1999.98" };
-    fixture.current.extraPayAutomatic = resolveAutomaticExtras(fixture.current, fixture.data);
-    const input: Dossier = { ...dossier(), current: fixture.current };
-    input.result = reconcile(input);
-    const workbook = await load(input),
-      sheet = controlSheet(workbook, "C04");
-    expect(values(sheet.getRow(1))).toEqual(headers);
-    expect(sheet.rowCount).toBe(2);
-    expect(values(sheet.getRow(2)).slice(3, 6)).toEqual(["1999.98", "2000", "-0.02"]);
-    expect(String(sheet.getRow(2).getCell(7).value)).toContain("Empresa DEMO");
-    expect(input.parameters.extraFullEmployeeIds).toEqual([]);
-  });
+  it.each(["R1", "definition"] as const)(
+    "exports %s automatic extras without manual parameters using seven columns",
+    async (mode) => {
+      const fixture = automaticExtraFixture(mode === "R1" ? "2026-10" : "2026-07", mode);
+      fixture.current.rows[0][fixture.current.headers.indexOf("Paga Extra 3ª")] = "1999.98";
+      fixture.data.payroll[0] = { ...fixture.data.payroll[0], PAID3: "1999.98" };
+      fixture.current.extraPayAutomatic = resolveAutomaticExtras(fixture.current, fixture.data);
+      const input: Dossier = { ...dossier(), period: fixture.period, current: fixture.current };
+      input.result = reconcile(input);
+      const workbook = await load(input),
+        sheet = controlSheet(workbook, "C04");
+      expect(values(sheet.getRow(1))).toEqual(headers);
+      expect(sheet.rowCount).toBe(2);
+      expect(values(sheet.getRow(2)).slice(3, 6)).toEqual(["1999.98", "2000", "-0.02"]);
+      expect(String(sheet.getRow(2).getCell(7).value)).toContain("Empresa DEMO");
+      expect(input.parameters.extraFullEmployeeIds).toEqual([]);
+    },
+  );
   it("retains company-separated C13 amounts and pending proration in the existing seven columns", async () => {
     const input = dossier();
     const source = {
