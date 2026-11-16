@@ -19,6 +19,7 @@ type ExportRequest = {
   year?: string;
   employee?: string;
   scenario?: string;
+  debugActor?: string; debugVariant?: string; debugScenario?: string;
 };
 
 const optionalText = (value: unknown): string | undefined | null =>
@@ -36,8 +37,10 @@ const parseRequest = (body: unknown): ExportRequest | null => {
   const year = optionalText(record.year);
   const employee = optionalText(record.employee);
   const scenario = optionalText(record.scenario);
+  const debugActor = optionalText(record.debugActor); const debugVariant = optionalText(record.debugVariant); const debugScenario = optionalText(record.debugScenario);
+  if ([debugActor, debugVariant, debugScenario].some((value) => value === null)) return null;
   if (year === null || employee === null || scenario === null) return null;
-  return { format, year, employee, scenario };
+  return { format, year, employee, scenario, debugActor: debugActor ?? undefined, debugVariant: debugVariant ?? undefined, debugScenario: debugScenario ?? undefined };
 };
 
 const failure = (message: string, status: number) =>
@@ -69,6 +72,7 @@ export async function POST(request: Request) {
       year: parsed.year,
       employee: parsed.employee,
       scenario: parsed.scenario,
+      debugActor: parsed.debugActor, debugVariant: parsed.debugVariant, debugScenario: parsed.debugScenario,
     });
     if (result.status === "unavailable") return failure(result.message, 503);
     if (result.status === "error") return failure(result.message, 400);

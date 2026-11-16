@@ -13,7 +13,7 @@ import { DependencyState, PortalError } from "../portal-states";
 import { DirectorySearch } from "./directory-search";
 import { FeatureView } from "./feature-view";
 import { HomeView } from "./home-view";
-import { ManagerHomeView, PopulationPanel } from "./manager-view";
+import { ManagerHomeView } from "./manager-view";
 import { OrgTree } from "./org-tree";
 import { OrgTreeLink, PersonOrgChart } from "./person-org-chart";
 import { PayslipsView } from "./payslips-view";
@@ -22,17 +22,27 @@ import { ProjectionsView } from "./projections-view";
 import { CertificatesView } from "./certificates-view";
 import { HolidaysView } from "./holidays-view";
 import type { ProjectionSearchParams } from "@/lib/portal/projections/types";
+import type { PortalReadParams } from "@/lib/portal/read-model";
+import type { PortalDebugSelection } from "@/lib/portal/read-model";
 
 async function OrgChart({
   context,
   route,
   params,
+  debug,
 }: {
   context: PortalContext;
   route: string;
   params: OrgSearchParams;
+  debug?: PortalDebugSelection | null;
 }) {
   const selected = getOrgSelection(params);
+  if (debug) {
+    if (debug.scenario === "error") return <PortalError message="Error simulado del organigrama." />;
+    const { debugOrgTree, debugPersonHierarchy } = await import("@/lib/portal/organization-debug.fixture");
+    return selected.status === "selected" ? <PersonOrgChart hierarchy={debugPersonHierarchy(debug, selected.employeeId)} route={route} />
+      : <OrgTree roots={debugOrgTree(debug)} route={route} />;
+  }
   if (selected.status === "invalid") return <PersonOrgChart hierarchy={null} route={route} />;
   if (selected.status === "selected") {
     const result = await readPortal(
@@ -82,26 +92,30 @@ export function FeatureDispatch({
   context,
   orgSearchParams = {},
   projectionSearchParams = {},
+  readSearchParams = {},
+  debug = null,
 }: {
   feature: PortalFeature;
   context: PortalContext;
   orgSearchParams?: OrgSearchParams;
   projectionSearchParams?: ProjectionSearchParams;
+  readSearchParams?: PortalReadParams;
+  debug?: PortalDebugSelection | null;
 }) {
-  const variant = context.mode === "meta4" ? context.variant : null;
+  const variant = context.mode === "meta4" ? context.variant : debug?.variant ?? null;
   const header = <FeatureHeader feature={feature} variant={variant} />;
   const fallback = <Skeleton className="h-40 w-full rounded-xl" />;
   switch (feature.view) {
     case "home":
-      return <HomeView context={context} />;
+      return <HomeView context={context} debug={debug} />;
     case "manager-home":
-      return <ManagerHomeView context={context} />;
+      return <ManagerHomeView context={context} debug={debug} />;
     case "tasks":
       return (
         <div className="flex min-w-0 flex-col gap-6">
           {header}
           <Suspense fallback={fallback}>
-            <TasksView context={context} />
+            <TasksView context={context} debug={debug} />
           </Suspense>
           <FeatureSections feature={feature} catalogs={NO_CATALOGS} />
         </div>
@@ -118,26 +132,18 @@ export function FeatureDispatch({
         <div className="flex min-w-0 flex-col gap-6">
           {header}
           <Suspense fallback={fallback}>
-            <OrgChart context={context} route={feature.route} params={orgSearchParams} />
+            <OrgChart context={context} route={feature.route} params={orgSearchParams} debug={debug} />
           </Suspense>
         </div>
       );
     case "population":
     case "team":
-      return (
-        <div className="flex min-w-0 flex-col gap-6">
-          {header}
-          <Suspense fallback={fallback}>
-            <PopulationPanel context={context} />
-          </Suspense>
-          <FeatureSections feature={feature} catalogs={NO_CATALOGS} />
-        </div>
-      );
+      return <FeatureView feature={feature} context={context} params={readSearchParams} />;
     case "payslips":
       return (
         <div className="flex min-w-0 flex-col gap-6">
           {header}
-          <PayslipsView context={context} />
+          <PayslipsView context={context} params={readSearchParams} />
           <FeatureSections feature={feature} catalogs={NO_CATALOGS} />
         </div>
       );
@@ -189,7 +195,7 @@ export function FeatureDispatch({
               </div>
             }
           >
-            <HolidaysView context={context} />
+            <HolidaysView context={context} params={readSearchParams} />
           </Suspense>
         </div>
       );
@@ -197,7 +203,7 @@ export function FeatureDispatch({
     case "generic":
       return (
         <Suspense fallback={fallback}>
-          <FeatureView feature={feature} context={context} />
+          <FeatureView feature={feature} context={context} params={readSearchParams} />
         </Suspense>
       );
   }

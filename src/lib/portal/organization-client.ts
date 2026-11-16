@@ -47,7 +47,14 @@ export async function loadOrganization<T>(
   signal: AbortSignal,
   guard: (value: unknown) => value is T,
 ): Promise<T> {
-  const response = await fetch(`/api/portal/organization/${encodeURIComponent(id)}/${kind}`, {
+  const debug = new URLSearchParams();
+  if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
+    const current = new URLSearchParams(window.location.search);
+    for (const key of ["debugActor", "debugVariant", "debugScenario"]) {
+      const value = current.get(key); if (value) debug.set(key, value);
+    }
+  }
+  const response = await fetch(`/api/portal/organization/${encodeURIComponent(id)}/${kind}${debug.size ? `?${debug}` : ""}`, {
     signal,
     cache: "no-store",
   });

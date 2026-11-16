@@ -9,6 +9,7 @@ import { PortalShell, type PortalShellContext } from "./portal-shell";
 const route = vi.hoisted(() => ({ pathname: "/portal/empleado/datos/idiomas" }));
 vi.mock("next/navigation", () => ({
   usePathname: () => route.pathname,
+  useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: vi.fn() }),
 }));
 vi.mock("@/components/app-shell/app-command-palette", () => ({

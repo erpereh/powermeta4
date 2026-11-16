@@ -19,6 +19,13 @@
 
 # local runtime data and generated artifacts
 /data/
+/docs/portal/implementacion/evidencias-vm/*.tmp
+
+# Private meeting recording and all audiovisual analysis derivatives
+/revision_video/
+
+# Private payroll reconciliation sources supplied by the client
+/docs/automatizacion-reunion/fuentes_cuadres_cierre_de_nómina/
 
 # production
 /build

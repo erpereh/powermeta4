@@ -10,8 +10,11 @@ import { getPortalDomain, getPortalMenuLocation, PORTAL_FEATURES } from "@/lib/p
 import { useWorkspaceStore, workspaceStore } from "@/stores/use-workspace-store";
 
 import { PORTAL_ICONS } from "./portal-icons";
+import { copyPortalDebugParams } from "@/lib/portal/read-model";
 
 const DEBOUNCE_MS = 250;
+const debugParams = () => process.env.NODE_ENV === "development" && typeof window !== "undefined" ? copyPortalDebugParams(new URLSearchParams(window.location.search), new URLSearchParams()) : new URLSearchParams();
+const debugHref = (href: string) => { const params = debugParams(); return params.size ? `${href}?${params}` : href; };
 
 /**
  * Elementos del buscador del portal: funciones del registro y personas del
@@ -62,7 +65,9 @@ export function usePortalCommandItems({
       setStatus("Buscando personas…");
       setPeople([]);
       timerRef.current = setTimeout(() => {
-        void searchPortalDirectoryAction(text)
+        const params = debugParams();
+        const search = params.size ? searchPortalDirectoryAction(text, Object.fromEntries(params)) : searchPortalDirectoryAction(text);
+        void search
           .then((result) => {
             if (
               request !== requestRef.current ||
@@ -70,7 +75,7 @@ export function usePortalCommandItems({
             )
               return;
             if (result.status === "ok") {
-              if (result.society !== (workspaceStore.getState().auth?.societyCode ?? null)) {
+              if ("society" in result && result.society !== (workspaceStore.getState().auth?.societyCode ?? null)) {
                 setPeople([]);
                 setStatus("La sociedad ha cambiado. Repite la búsqueda.");
                 return;
@@ -114,7 +119,7 @@ export function usePortalCommandItems({
           ...(feature.keywords ?? []),
         ],
         icon: PORTAL_ICONS[feature.icon],
-        onSelect: () => navigate(feature.route),
+        onSelect: () => navigate(debugHref(feature.route)),
       };
     });
     const persons = people.map((person) => ({
@@ -125,7 +130,7 @@ export function usePortalCommandItems({
       keywords: [person.job ?? "", person.unit ?? "", person.email ?? "", person.employeeId],
       icon: UserRound,
       onSelect: () =>
-        navigate(`/portal/organizacion/personas/${encodeURIComponent(person.employeeId)}`),
+        navigate(debugHref(`/portal/organizacion/personas/${encodeURIComponent(person.employeeId)}`)),
     }));
     return [...persons, ...features];
   }, [navigate, people]);

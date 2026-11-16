@@ -78,7 +78,7 @@ partes no textuales, system prompts, tools, function calling y cualquier dato
 de Meta4. El cliente compatible normaliza la raíz de `AI_BASE_URL` a
 `/chat/completions`, envía `{ model, messages, stream: true }`, procesa SSE y
 persiste contenido incremental y estados `complete`, `cancelled` o `failed`.
-El esquema actual es `DATABASE_SCHEMA_VERSION = 9`; la migración 009 elimina
+El esquema actual es `DATABASE_SCHEMA_VERSION = 11`; la migración 009 elimina
 la infraestructura exclusiva del agente y las configuraciones de proveedor,
 sin tocar conversaciones, mensajes, attachments ni el grafo de padres.
 
@@ -167,6 +167,21 @@ ejecuta la aplicación con `npm ci`; después reiniciar `npm run dev` o ejecutar
 producción incluidas en `package-lock.json`; copiar solo el código no instala
 esas librerías.
 
+## Cuadre de nómina
+
+La herramienta de la sidebar `/tools/cuadre-nomina` guarda expedientes locales
+reanudables: permite elegir informes y ejecuciones de Resultados de nómina,
+comparar con anterior, añadir Excel externos por entregas, revisar diferencias
+y exportar el libro de cuadres. Las instantáneas solo se actualizan cuando se
+solicita expresamente. No escribe en PeopleNet ni envía datos al chat.
+
+Tras actualizar, ejecutar `npm run setup` con el servidor detenido para aplicar
+la migración 011 (esquema 11). Los expedientes se incluyen en backups y se
+conservan hasta borrado explícito; no se conservan los originales subidos.
+Las copias de esquemas anteriores requieren una instalación compatible.
+Uso, pruebas, reglas pendientes y comandos `cuadre:discover`, `cuadre:verify`
+y `cuadre:verify-local`: [Guía de Cuadre de nómina](docs/automatizacion-reunion/IMPLEMENTATION.md).
+
 ## Copias locales
 
 El ZIP contiene exclusivamente:
@@ -182,7 +197,7 @@ El manifest tiene exactamente estas cinco propiedades:
 ```json
 {
   "backupVersion": 1,
-  "databaseSchemaVersion": 9,
+  "databaseSchemaVersion": 11,
   "appVersion": "...",
   "createdAt": "...",
   "databasePath": "database/powermeta4.db"
@@ -194,7 +209,7 @@ saneamiento de la copia, la lectura de uploads y la compresión se realizan sin
 ese lock. Sesiones, imports pendientes, recibos de idempotencia y el perfil Meta4
 cifrado se eliminan de la copia temporal; la base activa no se modifica al
 exportar. Los backups de esquema 8 no se restauran directamente: la política
-vigente exige coincidencia exacta con el esquema 9.
+vigente exige coincidencia exacta con el esquema 11.
 
 La restauración exige coincidencia exacta de `backupVersion` y
 `databaseSchemaVersion` antes de adquirir mantenimiento. Valida seguridad del
@@ -268,6 +283,64 @@ Scripts del portal: `npm run portal:docs` (regenera estado y dependencias),
 con acceso a PeopleNet/Meta4, `npm run portal:discover` (diccionario Meta4 a
 `data/portal-discovery/`) y `npm run portal:verify -- [todo|sql|soap]`
 (columnas, recuentos y WSDL, sin valores personales).
+
+El diagnóstico de solo lectura conserva la orden `npm run portal:readonly-audit`,
+sin parámetros interactivos, con dos consultas SQL simultáneas, progreso cada
+cinco segundos y un presupuesto de 30 minutos. Publica seis archivos de metadatos
+saneados, con hashes y generaciones, en `docs/portal/implementacion/evidencias-vm/`.
+El diario local ignorado permite reutilizar metadatos compatibles; no persiste
+personas ni parámetros. Solo SELECT revisadas y GET WSDL, sin operaciones SOAP,
+LN4 ni escrituras PeopleNet.
+
+El cierre local del 2026-11-11 usa la captura `539b018e-7e10-4ac3-9549-84299856cf09`
+sin solicitar ni ejecutar otra auditoría VM. El diccionario LFS completo ocupa
+**283.170.405 bytes**, con tamaño y SHA-256 coincidentes. Los cinco hashes y la
+generación son coherentes. El estado guardado `running` representa una captura
+parcial de la ejecución interrumpida: 1.990 contratos de tablas, nueve WSDL,
+8.537 referencias pendientes y **cero sondeos actuales**. Los seis archivos
+originales se conservan intactos.
+
+La [revisión de evidencias](docs/portal/implementacion/revision-evidencias-vm.md)
+contrasta las 97 sentencias distintas con el esquema y registra referencias
+ambiguas o no verificables. Se incorporan por separado los sondeos históricos
+conservados en Git, con generación, revisión, sociedad y huella de sentencia más
+alcance. Solo respaldan contratos coincidentes; nunca se presentan como sondeos
+actuales. Las [matriz y guía DEBUG](docs/portal/implementacion/matriz-solo-lectura.md)
+y la [continuidad](docs/portal/implementacion/continuidad-solo-lectura.md) separan
+implementación, compatibilidad estática, DEBUG, historia y validación VM.
+
+La población del certificado usa la correspondencia confirmada
+`SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD`, `STD_N_GEO_PLACESP` y el orden por
+`SSP_FEC_FIN`, conservando alias y filtro de sociedad. Se mantienen las correcciones
+de contratos, preferencias y objetivos, sin cambios de identidad, equipo o permisos.
+Experiencia, criterios, GAP, presupuesto y cálculos virtuales sin contrato completo
+mantienen una dependencia visible. No se reconstruyen literales eliminados ni
+se inventan fórmulas, escalas o autorizaciones.
+
+El diagnóstico comparte un saneamiento léxico idempotente y símbolos autocontenidos
+entre publicación, diario y recuperación. Las TI compartidas conservan su inventario
+sin expandir métodos ajenos; los despachadores ambiguos quedan pendientes.
+El guardado asíncrono y único serializa por fragmentos, agrupa solicitudes y calcula
+hashes incrementales; comprueba espacio para la generación, su sustitución y 64 MiB
+de reserva. Los fallos usan códigos técnicos, conservan la última generación válida
+y evitan un nuevo intento inmediato de escribir todo el diccionario.
+
+DEBUG usa exclusivamente personas ficticias del conjunto vigente y conserva los
+generadores reales PDF/Excel. La edición de revisiones de Cuadre mantiene su borrador
+sin reconstruir las tablas con cada carácter. Sus tablas se montan al visitarlas
+y las pestañas conservan filtros y borradores al ocultarse. El editor y los fixtures Excel comparten
+un presupuesto de 180 segundos por caso y el cierre de la instancia identificada por
+su ventana, PID e instante de creación; las pruebas generales, de interfaz y nativas se ejecutan en grupos consecutivos;
+la interfaz y Excel van en serie, manteniendo 5 s por prueba de interfaz.
+La validación local termina con 215 archivos y 1.339 pruebas correctas, las dos
+omisiones preexistentes y ningún fallo; incluye los diez casos nativos Excel.
+Typecheck, build (44 páginas) y generación documental correctos. Lint mantiene
+siete avisos y formato pendiente en 619 archivos anteriores, sin reformateo general.
+Los nueve fallos originales se han resuelto; el inventario completo de 37 archivos
+y los límites reales de esta captura están en la guía de continuidad.
+
+Los [detalles del diagnóstico](docs/portal/implementacion/evidencias-vm/README.md)
+describen su operación, sin convertirla en un paso obligatorio de este cierre.
 
 Las acciones ERP actuales son un catálogo local honesto; no ejecutan
 operaciones externas ni representan sincronización con un sistema real.

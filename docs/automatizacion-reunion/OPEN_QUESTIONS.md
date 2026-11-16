@@ -1,0 +1,88 @@
+# Preguntas pendientes tras analizar los Excel
+
+Estado actualizado el 2026-10-26 con correo y diez originales. «Resuelta»
+acredita el contrato indicado, no una implementación ni todas sus variantes.
+Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
+decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
+
+Actualización R1 histórica 2026-11-16: recibido código y metadatos completos
+de la versión hasta 31/07/2026 (inicio 1800, prioridad 2, orden 100, condición 0).
+Resuelto el rechazo de esa versión; las excepciones de IBER pertenecen solo a
+agosto–octubre. No hace falta otra consulta para acreditar este comportamiento.
+Siguen pendientes las asignaciones y cobertura reales, los devengos, la paridad
+económica y cualquier versión distinta; la evidencia de regla no los sustituye.
+
+Actualización C04 2026-11-16 (histórico): la captura real de julio muestra un bloqueo por
+fecha anterior a cualquier lectura de configuración. Corregido localmente:
+la regla conocida que conserva la definición permite resolver otros meses
+sin extender R1 ni sus excepciones. Sigue pendiente contrastar la lectura
+corregida y ambas fórmulas en casos de julio contra PeopleNet. Mes distinto
+de agosto–octubre ya no es por sí solo un motivo de pendiente; sí lo son una
+regla desconocida, configuración insuficiente o devengo no acreditado.
+
+Actualización C04 2026-11-13: confirmado por salida SQL del usuario el enlace
+DMD1/indicadores individuales y el código de R1 de agosto a octubre de 2026,
+incluidas las excepciones técnicas de IBER. Se implementa lectura automática
+agrupada; queda pendiente validar sus consultas y cobertura en VM (salidas
+01–05), las unidades/tipo de salario y la paridad económica de casos reales.
+No se requiere archivo externo ni nueva entrada manual para este contraste.
+Se mantienen pendientes herencias no reproducibles, versiones posteriores de
+R1, «14 meses», parciales, transiciones y otras combinaciones de extras.
+
+Actualización de implementación 2026-11-12 (histórico): Q02 se protege técnicamente con
+mes inmediato y compatibilidad compartida; su validación SQL real sigue pendiente.
+En Q06 están implementadas las dos fórmulas definidas, pero la modalidad
+individual y su vigencia no están acreditadas por los lectores actuales. No
+identificar `SSP_PRORRATA`, frecuencia o importes con número anual de pagas.
+Q06 conserva «14 meses», parciales, transiciones y el contrato de configuración
+individual. Q12 incorpora aislamiento de importes por empresa/matrícula y
+contraste de antigüedad; RRHH debe confirmar elegibilidad, mes de pago y base
+aplicable, además de cobertura del listado. Estas correcciones locales no
+resuelven por sí solas Q06/Q12 ni acreditan reglas por convenio, país o jornada.
+
+## Decisiones de producto ya cerradas
+
+- Herramienta independiente **Cuadre de nómina**, `cuadre-nomina`,
+  `/tools/cuadre-nomina`, en `STANDALONE_TOOLS` y sidebar, como Registro
+  Retributivo. Sustituye la propuesta anterior de acción en Inicio.
+- Nóminas actual/anterior mediante **SQL existente**, elección expresa del
+  usuario. Los originales validan el diseño y aportan referencias externas;
+  S09 puede aportar PPSE embebido, pero no sustituye la ejecución SQL elegida.
+- Sin IA ni nuevas escrituras ERP. Por decisión posterior aprobada, expedientes
+  locales reanudables con instantáneas mínimas y fuentes normalizadas en SQLite,
+  revisión humana y descarga Excel. La plantilla de anticipos para el cuadre no
+  acredita ni autoriza una importación en PeopleNet.
+- Los archivos recibidos y sus derivados permanecen fuera de Git. El correo
+  proporcionado en esta conversación es evidencia; no se accede al buzón.
+
+## Estado e impacto por pendiente
+
+| ID  | Estado y lo resuelto                                                                                                                                                | Pendiente, evidencia e impacto                                                                                                                                                                 | Resolución requerida                                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q01 | **Parcial**. Diez originales y libro de cuadre recibidos e inspeccionados; 39 hojas.                                                                                | Faltan informe bruto anterior identificado, registro externo de excesos y cartas/calendario de anticipos. El resto ya no está bloqueado por «falta de original» genérica.                      | RRHH: aportar solo estas fuentes y un caso vacío/excepcional por perfil cuando se pilote. C11/C12 quedan con falta fuente hasta entonces.                  |
+| Q02 | **Parcial**. Claves y lector SQL existentes; las copias Datos/2/3 y pivots están delimitadas.                                                                       | Todas las copias son de octubre y no equivalentes. Falta vincular cada referencia con ejecución, filtros y población; septiembre no está acreditado como informe bruto.                        | RRHH/técnico: elegir actual/anterior en VM, confirmar alcance y comparar contra snapshot. Mantener selección explícita, no «última» automática.            |
+| Q03 | **Parcial**. Signos de nueve cruces Flex, comisiones, tarjeta y cuotas observados; precisión original conservada.                                                   | No se aprobó tolerancia económica universal ni vigencias para otros meses. Se mantienen diferencias del original.                                                                              | RRHH: validar tolerancia por métrica, redondeo final y signos de plantillas. 0,01 EUR/pp sigue siendo propuesta de piloto.                                 |
+| Q04 | **Pendiente**. Notas del libro/capturas acreditan casos que revisa RRHH.                                                                                            | No hay contrato histórico SQL que pruebe causas económicas automáticas. El color o una IT no demuestran por sí solos un importe.                                                               | Técnico + RRHH: diccionario, vigencias y casos de referencia. Mientras tanto delta disponible, motivo desconocido/revisión manual.                         |
+| Q05 | **Resuelta para el perfil recibido**. Nueve correspondencias Mercer mensuales y signos contrastados con datos originales.                                           | Otras entidades/versiones/productos y duplicados de persona requieren contrato propio; no usar columnas anuales por analogía.                                                                  | Implementar el perfil descrito y sus casos sintéticos; solicitar muestra solo si cambia estructura/alcance.                                                |
+| Q06 | **Parcial**. Componentes y extra simple acreditados; hoja de casos con 360 días y permisos.                                                                         | Seis deltas no se reproducen desde componentes agregados de Datos2; faltan algoritmo proporcional general, versión de referencia y convenios distintos.                                        | RRHH + Meta4: revisar esos casos, devengo/roles y vigencias. C04 condicionado, no extrapolar restas de días de una captura.                                |
+| Q07 | **Parcial**. Colectivo, fórmulas y notas disponibles; dos miembros sin cálculo y una diferencia.                                                                    | Falta cerrar tarifa/días/vigencia, 40 %, efectos de ausencias y correspondencia del indicador ERP.                                                                                             | RRHH confirma parámetros/excepciones; técnico acredita histórico si se quiere enriquecer. No usar Hoja3 como fuente independiente.                         |
+| Q08 | **Parcial**. Contrato de Carga de Valores y tres métricas acreditados; detalle/desglose delimitados.                                                                | Origen SQL/servicio, efectos del generador y ventana aplicable no acreditados por el fichero.                                                                                                  | V1 usa Excel; técnico inspecciona contrato del generador antes de una integración directa.                                                                 |
+| Q09 | **Parcial**. Recuperadas fórmulas de comida/tarjeta y procedencia de dos fuentes.                                                                                   | Confirmar bases de días, excepciones de ausencias, tarifa/base por vigencia y tratamiento de solapes futuros. Una identidad de S07 es inválida; hay una diferencia en cada métrica de tarjeta. | RRHH corrige identidad y valida parámetros/casos. No aplicar fórmulas universales ni elegir una copia para ocultar diferencias.                            |
+| Q10 | **Parcial**. Ubicación y modelo de sesión/contexto cerrados.                                                                                                        | La publicación operativa debe confirmar que el acceso al conjunto de nómina coincide con Resultados de nómina.                                                                                 | Propietario: confirmar alcance existente antes de publicar; no inventar permisos/roles ni usar el portal como autorización. No bloquea esta documentación. |
+| Q11 | **Parcial**. Dos conceptos DT/DU identificados y plantilla de cuotas definida.                                                                                      | No hay fuente independiente de solicitudes/cuotas; Excel de importación ERP no acreditado.                                                                                                     | RRHH aporta calendario confirmado. Si se quiere importar a Meta4, fase separada con contrato y autorización de escritura; no es v1.                        |
+| Q12 | **Parcial**. Lista anual, antigüedad correcta, grupos 25/40 y un caso de octubre contrastados.                                                                      | Confirmar elegibilidad, mes de pago, base/jornada y reglas de entidades/convenios distintos.                                                                                                   | RRHH + configuración: casos por entidad. No usar nacimiento ni alta como antigüedad por defecto.                                                           |
+| Q13 | **Parcial**. Nombre PPSE resuelto, hoja embebida recibida y meses O:X identificados.                                                                                | BUSCARV histórico lee M, no mes, y termina en 252. La columna de octubre presenta cuatro diferencias; faltan semántica/actualización del calendario y tratamiento de vacíos.                   | RRHH valida diferencias y filas finales. V1 compara mes solicitado y declara pendientes; no sustituye por M para obtener coincidencia.                     |
+| Q14 | **Resuelta para v1**. Inventariados once conceptos y Gimnasio como C16.                                                                                             | Hojas auxiliares de excepciones no crean controles adicionales ni escrituras. Nuevos conceptos requerirán nueva versión de perfil.                                                             | Implementar únicamente catálogo acreditado, con ocurrencias explícitas; cuota duplicada no se cuenta dos veces.                                            |
+| Q15 | **Resuelta; decisión posterior aprobada e implementada**. Expediente local reanudable por empresa/sociedad; instantáneas conservadas hasta actualización explícita. | No se guardan originales; entradas normalizadas y notas permanecen hasta borrado explícito e integran backups. Las copias anteriores conservan los datos.                                      | Migración 011, revisión optimista y mismo alcance operacional que Resultados de nómina. Ver IMPLEMENTATION.                                                |
+
+## Puerta de implementación y puerta de aceptación
+
+Se puede comenzar el núcleo, navegación standalone, lectura SQL y parsers con
+los contratos acreditados. No falta tomar una decisión técnica arbitraria
+para esos elementos. Cada control debe mostrar su pendiente cuando falte una
+fuente, parámetro o contrato condicionado, según SPEC.
+
+No se puede afirmar paridad económica completa de los dieciséis controles
+ni aprobación automática del cierre. Los casos y recuentos de VALIDATION
+deben conservarse como evidencia hasta que RRHH resuelva las discrepancias.
+Las consultas reales y el piloto en VM permanecen pendientes.

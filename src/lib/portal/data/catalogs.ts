@@ -16,8 +16,8 @@ export type PortalCatalogState =
 export const featureCatalogs = (feature: PortalFeature): ConnectedCatalog[] => [
   ...new Set(
     (feature.sections ?? []).flatMap((section) =>
-      section.kind === "form"
-        ? section.form.fields.flatMap((field) =>
+      section.kind === "form" || (section.kind === "query" && section.query.form)
+        ? (section.kind === "form" ? section.form.fields : section.query.form?.fields ?? []).flatMap((field) =>
             field.options?.kind === "catalog" ? [field.options.catalog] : [],
           )
         : [],

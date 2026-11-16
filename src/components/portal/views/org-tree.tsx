@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { PortalLink as Link } from "../portal-link";
+import { copyPortalDebugParams } from "@/lib/portal/read-model";
 import { useSearchParams } from "next/navigation";
 import { ChevronRight, Network, Search } from "lucide-react";
 import { useMemo } from "react";
@@ -133,7 +134,7 @@ export function OrgTree({ roots, route }: { roots: readonly OrgNode[]; route: st
   const visible = useMemo(() => filterTree(roots, needle), [roots, needle]);
 
   const update = (nextQuery: string, nextExpanded: ReadonlySet<string>) => {
-    const next = new URLSearchParams();
+    const next = copyPortalDebugParams(params, new URLSearchParams());
     if (nextQuery) next.set("filtro", nextQuery.slice(0, 120));
     next.set("ramas", [...nextExpanded].join("\n"));
     window.history.replaceState(null, "", orgChartHref(route, next));

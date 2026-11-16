@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Download } from "lucide-react";
 
 import { UserDetailDialog } from "@/components/tools/users/user-detail-dialog";
 import {
@@ -12,6 +13,7 @@ import {
   type TableProps,
 } from "@/components/system";
 import { compareEmployeeIds } from "@/lib/meta4/users/employee-id";
+import { USERS_SEARCH_MAX_LENGTH, filterUsers } from "@/lib/meta4/users/list-filter";
 import type { Meta4UserListItem } from "@/lib/meta4/users/types";
 import type { Meta4Society } from "@/lib/meta4/societies";
 
@@ -21,8 +23,74 @@ const TABLE_HEIGHT = Math.min(PAGE_SIZE, 10) * ROW_HEIGHT + ROW_HEIGHT;
 
 type SortState = NonNullable<TableProps<Meta4UserListItem>["sort"]>;
 
-const normalizeSearch = (value: string): string =>
-  value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const saveFile = (blob: Blob, fileName: string) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
+/** Exporta a Excel lo filtrado; el servidor vuelve a leer los usuarios de la sociedad. */
+function UsersDownload({ query, total }: { query: string; total: number }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const download = async () => {
+    setPending(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/users/export", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      if (!response.ok) {
+        const data: unknown = await response.json().catch(() => null);
+        setError(
+          isRecord(data) && typeof data.message === "string"
+            ? data.message
+            : "No se ha podido descargar el Excel.",
+        );
+        return;
+      }
+      const fileName =
+        /filename="([^"]+)"/.exec(response.headers.get("content-disposition") ?? "")?.[1] ??
+        "Usuarios.xlsx";
+      saveFile(await response.blob(), fileName);
+    } catch {
+      setError("No se ha podido descargar el Excel.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-start gap-1 sm:items-end">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => void download()}
+        disabled={pending || total === 0}
+        aria-busy={pending}
+      >
+        <Download aria-hidden="true" className="size-4" />
+        {pending ? "Preparando…" : total === 1 ? "Exportar a Excel" : `Exportar ${total} a Excel`}
+      </Button>
+      {error ? (
+        <p role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 const employeeIdSortKey = (id: string): string => {
   if (/^\d+$/.test(id)) {
@@ -95,16 +163,7 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
     [],
   );
 
-  const filteredUsers = useMemo(() => {
-    const query = normalizeSearch(globalFilter.trim());
-    if (!query) return users;
-    return users.filter((user) => {
-      const id = normalizeSearch(user.id);
-      const claveSelf = normalizeSearch(user.claveSelf);
-      const name = normalizeSearch(user.fullName);
-      return id.includes(query) || claveSelf.includes(query) || name.includes(query);
-    });
-  }, [users, globalFilter]);
+  const filteredUsers = useMemo(() => filterUsers(users, globalFilter), [users, globalFilter]);
 
   const sortedUsers = useMemo(() => {
     if (!sort) return filteredUsers;
@@ -139,17 +198,21 @@ export function UsersListTable({ society, users }: UsersListTableProps) {
         <EmptyState title={`No hay usuarios disponibles en ${society}.`} />
       ) : (
         <div className="space-y-4">
-          <Input
-            type="search"
-            value={globalFilter}
-            onChange={(value) => {
-              setGlobalFilter(value);
-              setPageIndex(0);
-            }}
-            placeholder="Buscar por ID, usuario o nombre..."
-            aria-label="Buscar por ID, usuario o nombre"
-            className="max-w-md"
-          />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <Input
+              type="search"
+              value={globalFilter}
+              onChange={(value) => {
+                setGlobalFilter(value);
+                setPageIndex(0);
+              }}
+              placeholder="Buscar por ID, usuario o nombre..."
+              aria-label="Buscar por ID, usuario o nombre"
+              maxLength={USERS_SEARCH_MAX_LENGTH}
+              className="max-w-md"
+            />
+            <UsersDownload query={globalFilter} total={filteredCount} />
+          </div>
 
           <Table
             data={pageUsers}

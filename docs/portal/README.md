@@ -14,6 +14,8 @@ Este directorio conserva la especificación del original y documenta su implemen
 
 ## Orden de lectura para cada implementación
 
+Para la ampliación de consultas de 2026-11-10, leer la [continuidad de solo lectura](implementacion/continuidad-solo-lectura.md) y la [matriz completa por función y apartado](implementacion/matriz-solo-lectura.md). La orden única en la VM es `npm run portal:readonly-audit`; sus seis resultados quedan en `implementacion/evidencias-vm/`. Una muestra DEBUG o un recuento no acreditan una integración real ni permisos efectivos.
+
 1. Leer las fuentes de verdad del proyecto en el orden de [AGENTS.md](../../AGENTS.md), [DESIGN.md](../../DESIGN.md), [todo](../../spec/todo.md), [changelog](../../spec/changelog.md), [README del proyecto](../../README.md), [package.json](../../package.json) y [components.json](../../components.json).
 2. Leer esta entrada, la [metodología](referencias/metodologia.md), la [integración](implementacion/integracion-powermeta4.md) y el [mapa de destinos](implementacion/mapa-destino.md).
 3. Elegir el flujo en las guías de [empleado](empleado/flujos.md), [responsable](responsable/flujos.md) o [transversal](transversal/flujos.md). Consultar su índice de dominio y las fichas de pantalla, formulario, controlador, cuerpo y scripts enlazadas.

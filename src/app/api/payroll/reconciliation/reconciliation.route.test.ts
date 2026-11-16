@@ -1,0 +1,728 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as XLSX from "xlsx";
+import type { Dossier } from "@/lib/payroll-reconciliation/types";
+import { DEFAULT_PARAMETERS } from "@/lib/payroll-reconciliation/types";
+import { snapshot } from "@/lib/payroll-reconciliation/snapshot";
+import { demoReport } from "@/lib/payroll-reconciliation/demo";
+import { reconcile } from "@/lib/payroll-reconciliation/engine";
+
+const mocks = vi.hoisted(() => ({
+  auth: vi.fn(),
+  context: vi.fn(),
+  debug: vi.fn(),
+  company: vi.fn(),
+  get: vi.fn(),
+  list: vi.fn(),
+  save: vi.fn(),
+  remove: vi.fn(),
+  read: vi.fn(),
+  runs: vi.fn(),
+  extras: vi.fn(),
+}));
+vi.mock("@/lib/auth/session", () => ({ getCurrentAuthContext: mocks.auth }));
+vi.mock("@/lib/meta4/operational-context", () => ({ getMeta4OperationalContext: mocks.context }));
+vi.mock("@/lib/auth/debug-config", () => ({ isDebugAuthEnabled: mocks.debug }));
+vi.mock("@/features/registro-retributivo/server/company-scope", () => ({
+  resolveRetributivoCompanyId: mocks.company,
+}));
+vi.mock("@/lib/peoplenet/payroll-reports", () => ({
+  getPayrollReportRun: mocks.read,
+  listPayrollReportRuns: mocks.runs,
+}));
+vi.mock("@/lib/payroll-reconciliation/extra-pay-reader", () => ({
+  captureAutomaticExtras: mocks.extras,
+}));
+vi.mock("@/server/database/repositories/payroll-reconciliation-repository", () => ({
+  reconciliationRepository: () => ({
+    get: mocks.get,
+    list: mocks.list,
+    save: mocks.save,
+    remove: mocks.remove,
+  }),
+}));
+import { GET, POST, PATCH } from "./route";
+import { POST as exportRoute } from "./export/route";
+import { POST as previewRoute } from "./preview/route";
+import { POST as analyzeRoute } from "./analyze/route";
+import { matchesProxyMatcher } from "@/proxy";
+import { runKey } from "@/features/payroll-reconciliation/selection";
+import { automaticExtraFixture } from "@/lib/payroll-reconciliation/extra-pay.fixture";
+import { resolveAutomaticExtras } from "@/lib/payroll-reconciliation/extra-pay-resolution";
+
+const request = (method: string, body?: unknown, extra: Record<string, string> = {}) =>
+  new Request("http://localhost/api/payroll/reconciliation", {
+    method,
+    headers: { "content-type": "application/json", ...extra },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+const create = () => ({
+  title: "Prueba",
+  period: "2026-10",
+  populationConfirmed: true,
+  demo: true,
+});
+let dossier: Dossier;
+function uploadBytes(amount = 15) {
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(
+    book,
+    XLSX.utils.aoa_to_sheet([
+      ["Id Empleado", "", "", "", "", "Pago de octubre"],
+      ["009001", "", "", "", "", amount],
+    ]),
+    "Hoja1",
+  );
+  return new Uint8Array(XLSX.write(book, { type: "buffer", bookType: "xlsx" }));
+}
+function upload(metadata: unknown, bytes = uploadBytes(), filename = "renombrado.xlsx") {
+  const body = new FormData();
+  body.append("file", new Blob([Uint8Array.from(bytes)]), filename);
+  body.append("metadata", JSON.stringify(metadata));
+  return new Request("http://localhost/api/payroll/reconciliation/analyze", {
+    method: "POST",
+    body,
+  });
+}
+function persistUploads() {
+  mocks.save.mockImplementation((_scope, record: Dossier) => {
+    dossier = { ...record, revision: record.revision + 1 };
+    return structuredClone(dossier);
+  });
+}
+beforeEach(() => {
+  vi.resetAllMocks();
+  mocks.extras.mockImplementation(async (captured) => captured);
+  mocks.auth.mockResolvedValue({ authContext: { mode: "debug" } });
+  mocks.debug.mockReturnValue(true);
+  mocks.company.mockReturnValue("company-a");
+  const base = {
+    period: "2026-10",
+    current: snapshot(demoReport("2026-10"), true),
+    previous: snapshot(demoReport("2026-10", true), true),
+    sources: [],
+    parameters: DEFAULT_PARAMETERS,
+  };
+  dossier = {
+    ...base,
+    id: "11111111-1111-4111-a111-111111111111",
+    title: "Prueba",
+    revision: 1,
+    createdAt: "2026-10-01",
+    updatedAt: "2026-10-01",
+    demo: true,
+    annotations: [],
+    result: reconcile(base),
+  };
+  mocks.get.mockImplementation(() => structuredClone(dossier));
+  mocks.list.mockReturnValue([]);
+  mocks.save.mockImplementation((_scope, record) => record);
+});
+describe("reconciliation boundaries", () => {
+  it.each(["2026-07", "2026-10"])(
+    "captures %s extras only on real creation/explicit refresh, never on reload or parameter edits",
+    async (period) => {
+      mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+      mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+      const detail = demoReport(period);
+      detail.headers.push("Periodo");
+      detail.rows.forEach((row) => row.push("1"));
+      mocks.read.mockResolvedValue(detail);
+      const fixture = automaticExtraFixture(period, period === "2026-07" ? "historical" : "R1");
+      mocks.extras.mockImplementation(async (captured) => ({
+        ...captured,
+        extraPayAutomatic: resolveAutomaticExtras(captured, fixture.data),
+      }));
+      const response = await POST(
+        request("POST", { ...create(), period, demo: false, currentKey: runKey(detail.run) }),
+      );
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.current.extraPayAutomatic.rule).toMatchObject({
+        mode: "R1",
+        variant: period === "2026-07" ? "r1-through-july-2026" : "r1-aug-oct-2026",
+      });
+      expect(data.current.hrPeriods).toEqual(["1", "1", "1"]);
+      expect(
+        data.result.findings.find(
+          (row: { metric: string; employeeId: string }) =>
+            row.metric === "extra3" && row.employeeId === "009001",
+        ),
+      ).toMatchObject({ expected: "2000", actual: "0", delta: "-2000" });
+      expect(mocks.extras).toHaveBeenCalledTimes(1);
+      dossier = data;
+      await GET(new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`));
+      await PATCH(
+        request("PATCH", {
+          id: dossier.id,
+          revision: 1,
+          action: "parameters",
+          parameters: DEFAULT_PARAMETERS,
+        }),
+      );
+      expect(mocks.extras).toHaveBeenCalledTimes(1);
+      await PATCH(
+        request("PATCH", {
+          id: dossier.id,
+          revision: 1,
+          action: "refresh",
+          currentKey: runKey(detail.run),
+          previousKey: null,
+          populationConfirmed: true,
+        }),
+      );
+      expect(mocks.extras).toHaveBeenCalledTimes(2);
+    },
+  );
+  it("saves an explicit C04 read issue without blocking monthly controls or allowing client-supplied evidence", async () => {
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+    const detail = demoReport("2026-10"),
+      previous = demoReport("2026-10", true);
+    mocks.read.mockImplementation((_society, key) =>
+      key.accruedOn === detail.run.accruedOn ? detail : previous,
+    );
+    mocks.extras.mockImplementation(async (captured) => ({
+      ...captured,
+      extraPayAutomatic: {
+        version: 1,
+        society: "CYC",
+        period: "2026-10",
+        runHash: "unavailable",
+        people: [],
+        issue: "Lectura no disponible",
+      },
+    }));
+    const body = {
+      ...create(),
+      demo: false,
+      currentKey: runKey(detail.run),
+      previousKey: runKey(previous.run),
+    };
+    const response = await POST(request("POST", body));
+    expect(response.status).toBe(200);
+    const { data } = await response.json();
+    expect(
+      data.result.findings.find((row: { metric: string }) => row.metric === "fixed").status,
+    ).toBe("Coincide");
+    expect(
+      data.result.findings
+        .filter((row: { control: string }) => row.control === "C04")
+        .every((row: { expected: string | null }) => row.expected === null),
+    ).toBe(true);
+    expect(
+      (await POST(request("POST", { ...body, extraPayAutomatic: { people: [] } }))).status,
+    ).toBe(400);
+  });
+  it.each(["gap", "report", "frequency", "kind", "unknown"])(
+    "rejects an incompatible previous execution (%s) on creation and refresh",
+    async (caseName) => {
+      mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+      mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+      const current = demoReport("2026-10"),
+        previous = demoReport("2026-10", true);
+      if (caseName === "gap") previous.run.accruedOn = "2026-08-25";
+      if (caseName === "report") previous.run.reportId = "02_C";
+      if (caseName === "frequency") previous.run.payFrequency = "002";
+      if (caseName === "kind") previous.run.payKind = "Retroactivas";
+      if (caseName === "unknown") previous.run.payKind = null;
+      mocks.read.mockImplementation((_society, key) =>
+        key.accruedOn === current.run.accruedOn ? current : previous,
+      );
+      const selection = {
+        currentKey: runKey(current.run),
+        previousKey: runKey(previous.run),
+        populationConfirmed: true,
+      };
+      expect((await POST(request("POST", { ...create(), ...selection, demo: false }))).status).toBe(
+        422,
+      );
+      expect(
+        (
+          await PATCH(
+            request("PATCH", { id: dossier.id, revision: 1, action: "refresh", ...selection }),
+          )
+        ).status,
+      ).toBe(422);
+      expect(mocks.save).not.toHaveBeenCalled();
+    },
+  );
+  it("accepts descriptive differences with the same identifiers and normalized CSP_TIPO_PAGA", async () => {
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+    const current = demoReport("2026-10"),
+      previous = demoReport("2026-10", true);
+    previous.run.payKind = "  NÓRMAL  ";
+    previous.run.reportName = "Otra denominación";
+    previous.payFrequencyName = "Mensual renombrada";
+    previous.payTypeName = "Paga Regular";
+    mocks.read.mockImplementation((_society, key) =>
+      key.accruedOn === current.run.accruedOn ? current : previous,
+    );
+    expect(
+      (
+        await POST(
+          request("POST", {
+            ...create(),
+            demo: false,
+            currentKey: runKey(current.run),
+            previousKey: runKey(previous.run),
+          }),
+        )
+      ).status,
+    ).toBe(200);
+  });
+  it("recalculates legacy inputs on read without SQL, saving or invalidating C12 reviews", async () => {
+    const advance = dossier.result.findings.find((row) => row.control === "C12")!;
+    dossier.annotations = [
+      {
+        findingId: advance.id,
+        fingerprint: advance.fingerprint,
+        state: "Pendiente",
+        comment: "",
+        actor: "TEST",
+        at: "2026-10-01",
+      },
+    ];
+    dossier.result.engineVersion = "1.0.0";
+    dossier.previous!.run.accruedOn = "2026-08-25";
+    const response = await GET(
+      new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`),
+    );
+    const { data } = await response.json();
+    expect(
+      data.result.findings.find((row: { control: string }) => row.control === "C01").status,
+    ).toBe("No comparable");
+    expect(data.annotations[0].invalidated).toBe(false);
+    expect(data.revision).toBe(1);
+    expect(dossier.result.engineVersion).toBe("1.0.0");
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.read).not.toHaveBeenCalled();
+    expect(mocks.extras).not.toHaveBeenCalled();
+    expect(
+      (
+        await PATCH(
+          request("PATCH", {
+            id: dossier.id,
+            revision: 1,
+            action: "parameters",
+            parameters: DEFAULT_PARAMETERS,
+          }),
+        )
+      ).status,
+    ).toBe(200);
+  });
+  it.each(["2015-04", "2026-09"])(
+    "creates and analyzes a real-mode dossier using the selected execution's actual period %s",
+    async (period) => {
+      mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+      mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+      const current = demoReport(period),
+        previous = demoReport(period, true);
+      current.run.reportId = "01_C";
+      previous.run.reportId = "01_C";
+      mocks.read.mockImplementation((_society, key) =>
+        key.accruedOn === current.run.accruedOn ? current : previous,
+      );
+      const response = await POST(
+        request("POST", {
+          ...create(),
+          period: current.run.accruedOn.slice(0, 7),
+          demo: false,
+          currentKey: runKey(current.run),
+          previousKey: runKey(previous.run),
+        }),
+      );
+      expect(response.status).toBe(200);
+      const result = await response.json();
+      expect(result.data.period).toBe(period);
+      expect(result.data.result.controls).toHaveLength(16);
+      expect(
+        result.data.result.findings.some(
+          (row: { control: string; delta: string | null }) =>
+            row.control === "C01" && row.delta !== null,
+        ),
+      ).toBe(true);
+      expect(mocks.save).toHaveBeenCalledOnce();
+    },
+  );
+  it("keeps server protection against relabeling a historical execution as a newer month", async () => {
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+    const historical = demoReport("2015-04");
+    historical.run.reportId = "01_C";
+    mocks.read.mockResolvedValue(historical);
+    const response = await POST(
+      request("POST", {
+        ...create(),
+        period: "2026-09",
+        demo: false,
+        currentKey: runKey(historical.run),
+      }),
+    );
+    expect(response.status).toBe(422);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("requires auth on all routes, including proxy exceptions", async () => {
+    mocks.auth.mockResolvedValue(null);
+    for (const handler of [POST, exportRoute, previewRoute, analyzeRoute])
+      expect((await handler(request("POST", {}))).status).toBe(401);
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+  it("gates synthetic data strictly and rejects foreign origins/context switches", async () => {
+    mocks.debug.mockReturnValue(false);
+    expect((await POST(request("POST", create()))).status).toBe(403);
+    mocks.debug.mockReturnValue(true);
+    expect((await POST(request("POST", create(), { origin: "https://other.test" }))).status).toBe(
+      403,
+    );
+    expect(
+      (await POST(request("POST", create(), { "x-powermeta4-company": "company-b" }))).status,
+    ).toBe(409);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("creates a partial saved dossier and reopens it without reading SQL", async () => {
+    const created = await POST(request("POST", create()));
+    expect(created.status).toBe(200);
+    const body = await created.json();
+    expect(body.data.result.controls).toHaveLength(16);
+    expect(body.data.sources).toEqual([]);
+    expect(
+      (await GET(new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`)))
+        .status,
+    ).toBe(200);
+    expect(mocks.read).not.toHaveBeenCalled();
+    expect(mocks.context).not.toHaveBeenCalled();
+  });
+  it("rejects client society/results, stale revisions, and stale findings", async () => {
+    expect((await POST(request("POST", { ...create(), society: "CYC" }))).status).toBe(400);
+    expect(
+      (
+        await PATCH(
+          request("PATCH", {
+            id: dossier.id,
+            revision: 2,
+            action: "parameters",
+            parameters: DEFAULT_PARAMETERS,
+          }),
+        )
+      ).status,
+    ).toBe(409);
+    expect(
+      (
+        await PATCH(
+          request("PATCH", {
+            id: dossier.id,
+            revision: 1,
+            action: "review",
+            findingId: "obsolete",
+            fingerprint: "x".repeat(64),
+            state: "Diferencia justificada",
+            comment: "No altera importes",
+          }),
+        )
+      ).status,
+    ).toBe(409);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("exports saved snapshots without silently updating PeopleNet", async () => {
+    const response = await exportRoute(request("POST", { id: dossier.id, revision: 1 }));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("spreadsheetml");
+    expect(mocks.read).not.toHaveBeenCalled();
+    expect((await exportRoute(request("POST", { id: dossier.id, revision: 2 }))).status).toBe(409);
+  });
+  it("automatically imports a renamed file, preserves its name and leaves unlisted people pending", async () => {
+    persistUploads();
+    const fixed = dossier.result.findings.find((item) => item.control === "C01")!;
+    const gym = dossier.result.findings.find((item) => item.control === "C16")!;
+    dossier.annotations = [fixed, gym].map((item) => ({
+      findingId: item.id,
+      fingerprint: item.fingerprint,
+      state: "Pendiente",
+      comment: "Comentario",
+      actor: "TEST",
+      at: dossier.updatedAt,
+    }));
+    const response = await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(response.status).toBe(200);
+    const result = (await response.json()).data;
+    expect(result).toMatchObject({
+      category: "gimnasio",
+      status: "incorporado",
+      records: 1,
+      filename: "renombrado.xlsx",
+    });
+    expect(dossier.sources[0]).toMatchObject({
+      category: "gimnasio",
+      complete: false,
+      period: "2026-10",
+      filename: "renombrado.xlsx",
+    });
+    expect(dossier.annotations.find((item) => item.findingId === fixed.id)?.invalidated).toBe(
+      false,
+    );
+    expect(dossier.annotations.find((item) => item.findingId === gym.id)?.invalidated).toBe(true);
+    expect(
+      dossier.result.findings
+        .filter((item) => item.control === "C16" && item.employeeId !== "009001")
+        .every((item) => item.delta === null && item.status === "No comparable"),
+    ).toBe(true);
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+  it("previews automatic new/replacement/duplicate sources without changing any dossier state", async () => {
+    persistUploads();
+    const original = structuredClone(dossier);
+    const preview = await previewRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(preview.status).toBe(200);
+    const check = (await preview.json()).data;
+    expect(check).toMatchObject({
+      operation: "add",
+      category: "gimnasio",
+      filename: "renombrado.xlsx",
+      records: 1,
+      replacedFiles: [],
+      diagnostics: [],
+    });
+    expect(check.hash).toHaveLength(64);
+    expect(check.cellCount).toBeGreaterThan(0);
+    expect(dossier).toEqual(original);
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.get).toHaveBeenCalledWith(
+      { companyId: "company-a", society: "DEBUG", demo: true, actor: "DEBUG" },
+      dossier.id,
+    );
+
+    await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    const applied = structuredClone(dossier);
+    mocks.save.mockClear();
+    const replacement = await previewRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, uploadBytes(30), "nuevo.xlsx"),
+    );
+    expect((await replacement.json()).data).toMatchObject({
+      operation: "replace",
+      records: 1,
+      replacedFiles: ["renombrado.xlsx"],
+    });
+    const duplicate = await previewRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, uploadBytes(), "otra-copia.xlsx"),
+    );
+    expect((await duplicate.json()).data).toMatchObject({
+      operation: "skip",
+      records: 1,
+      replacedFiles: [],
+    });
+    expect(dossier).toEqual(applied);
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+  it("keeps the manual preview contract without persisting", async () => {
+    const response = await previewRoute(
+      upload({ category: "gimnasio", period: "2026-10", complete: true }),
+    );
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).toMatchObject({ count: 1, diagnostics: [] });
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("rejects stale, out-of-scope and invalid-month automatic previews without saving", async () => {
+    expect((await previewRoute(upload({ id: dossier.id, revision: 2, auto: true }))).status).toBe(
+      409,
+    );
+    dossier.period = "2026-07";
+    const invalidMonth = await previewRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(invalidMonth.status).toBe(422);
+    expect(await invalidMonth.json()).toMatchObject({
+      category: "gimnasio",
+      message: expect.stringMatching(/julio.*octubre/),
+    });
+    const otherCompany = upload({ id: dossier.id, revision: 1, auto: true });
+    otherCompany.headers.set("x-powermeta4-company", "company-b");
+    expect((await previewRoute(otherCompany)).status).toBe(409);
+    expect(
+      (await previewRoute(upload({ id: dossier.id, revision: 1, auto: true, period: "2026-10" })))
+        .status,
+    ).toBe(400);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("omits an identical source without changing revision or its previously declared coverage", async () => {
+    persistUploads();
+    await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    dossier.sources[0].complete = true;
+    mocks.save.mockClear();
+    const response = await analyzeRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, uploadBytes(), "otra-copia.xlsx"),
+    );
+    expect(response.status).toBe(200);
+    expect((await response.json()).data.status).toBe("ya_incorporado");
+    expect(dossier.sources).toHaveLength(1);
+    expect(dossier.sources[0].complete).toBe(true);
+    expect(dossier.revision).toBe(2);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("preserves successful uploads after a rejected file, then replaces the category with the next valid file", async () => {
+    persistUploads();
+    await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    const saved = structuredClone(dossier);
+    const failed = await analyzeRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, new Uint8Array([1, 2, 3]), "roto.xlsx"),
+    );
+    expect(failed.status).toBe(422);
+    expect(dossier).toEqual(saved);
+    const response = await analyzeRoute(
+      upload({ id: dossier.id, revision: 2, auto: true }, uploadBytes(30), "nuevo.xlsx"),
+    );
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).toMatchObject({
+      status: "sustituido",
+      replacedFiles: ["renombrado.xlsx"],
+    });
+    expect(dossier.sources).toHaveLength(1);
+    expect(dossier.sources[0].facts[0].values.gym).toBe("30");
+    expect(dossier.revision).toBe(3);
+  });
+  it("returns the detected category and available months for an incompatible file without saving", async () => {
+    dossier.period = "2026-07";
+    const response = await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({
+      category: "gimnasio",
+      message: expect.stringMatching(/julio.*octubre/),
+    });
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("rejects stale revisions and browser category/period overrides in automatic mode", async () => {
+    expect((await analyzeRoute(upload({ id: dossier.id, revision: 2, auto: true }))).status).toBe(
+      409,
+    );
+    expect(
+      (
+        await analyzeRoute(
+          upload({
+            id: dossier.id,
+            revision: 1,
+            auto: true,
+            category: "mercer",
+            period: "2026-07",
+          }),
+        )
+      ).status,
+    ).toBe(400);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("retains the legacy analyze contract and rejects a whole-workbook resource overflow", async () => {
+    const legacy = await analyzeRoute(
+      upload({
+        id: dossier.id,
+        revision: 1,
+        category: "gimnasio",
+        period: "2026-10",
+        complete: true,
+        confirmed: true,
+      }),
+    );
+    expect(legacy.status).toBe(200);
+    expect((await legacy.json()).data.sources[0].complete).toBe(true);
+    mocks.save.mockClear();
+    dossier.sources = [
+      {
+        id: "other-source",
+        category: "teletrabajo",
+        period: dossier.period,
+        hash: "other-hash",
+        profile: "teletrabajo-v1",
+        complete: false,
+        facts: [],
+        diagnostics: [],
+        cellCount: 2_000_000,
+      },
+    ];
+    const response = await analyzeRoute(upload({ id: dossier.id, revision: 1, auto: true }));
+    expect(response.status).toBe(413);
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(dossier.sources[0].category).toBe("teletrabajo");
+  });
+  it("updates an existing invalidated review and reopens it without changing calculated results", async () => {
+    const finding = dossier.result.findings.find((item) => item.status === "Con diferencia")!;
+    const original = structuredClone(dossier.result);
+    dossier.annotations = [
+      {
+        findingId: finding.id,
+        fingerprint: "0".repeat(64),
+        state: "Pendiente",
+        comment: "Anterior",
+        actor: "OLD",
+        at: "2026-10-01",
+        invalidated: true,
+      },
+    ];
+    mocks.save.mockImplementation((_scope, record: Dossier) => {
+      dossier = { ...record, revision: record.revision + 1 };
+      return dossier;
+    });
+    const response = await PATCH(
+      request("PATCH", {
+        id: dossier.id,
+        revision: dossier.revision,
+        action: "review",
+        findingId: finding.id,
+        fingerprint: finding.fingerprint,
+        state: "Diferencia justificada",
+        comment: "Comentario actualizado",
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(dossier.annotations).toHaveLength(1);
+    expect(dossier.annotations[0]).toMatchObject({
+      state: "Diferencia justificada",
+      comment: "Comentario actualizado",
+      fingerprint: finding.fingerprint,
+      invalidated: false,
+    });
+    const reopened = await GET(
+      new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`),
+    );
+    expect((await reopened.json()).data.annotations).toEqual(dossier.annotations);
+    expect(dossier.result).toEqual(original);
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+  it.each(["Diferencia justificada", "Requiere corrección manual"])(
+    "requires a nonblank comment for %s on the server",
+    async (state) => {
+      const finding = dossier.result.findings[0];
+      const response = await PATCH(
+        request("PATCH", {
+          id: dossier.id,
+          revision: dossier.revision,
+          action: "review",
+          findingId: finding.id,
+          fingerprint: finding.fingerprint,
+          state,
+          comment: "  ",
+        }),
+      );
+      expect(response.status).toBe(400);
+      expect(mocks.save).not.toHaveBeenCalled();
+    },
+  );
+  it("uses only the server society for real report reads", async () => {
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });
+    const data = demoReport("2026-10");
+    mocks.read.mockResolvedValue(data);
+    const key = {
+      reportId: "01_C",
+      runAt: "2026-10-16T10:00:00.000Z",
+      accruedOn: "2026-10-25",
+      payFrequency: "001",
+    };
+    expect(
+      (await POST(request("POST", { ...create(), demo: false, currentKey: key }))).status,
+    ).toBe(200);
+    expect(mocks.read).toHaveBeenCalledWith("CYC", key);
+  });
+  it("excludes only the three bounded reconciliation body handlers from proxy cloning", () => {
+    for (const path of ["preview", "analyze", "export"])
+      expect(matchesProxyMatcher(`/api/payroll/reconciliation/${path}`)).toBe(false);
+    expect(matchesProxyMatcher("/api/payroll/reconciliation")).toBe(true);
+    expect(matchesProxyMatcher("/api/payroll/reconciliation/anything")).toBe(true);
+  });
+});

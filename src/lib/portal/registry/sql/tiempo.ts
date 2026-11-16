@@ -94,3 +94,8 @@ WHERE F.ID_ORGANIZATION = @organization AND F.STD_ID_HR = @employeeId AND F.SCO_
 ORDER BY F.SCO_DT_DATE_AND_HOUR DESC`,
   ),
 } as const satisfies Record<string, PortalSqlQuery>;
+
+/** Columnas del nodo para reemplazar la ventana inicial al consultar un histórico. */
+export const TIME_PERIOD_COLUMNS: Readonly<Record<string, string>> = {
+  planificacion: "W.DT_START", fichajes: "F.SCO_DT_DATE_AND_HOUR", ausencias: "A.SCO_DT_START",
+};

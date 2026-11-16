@@ -119,7 +119,7 @@ describe("estados y ruta de festivos", () => {
     mocks.load.mockResolvedValue({ status: "ok", debug: true, data: { year: 2026, holidays: [] } });
     render(await HolidaysView({ context }));
     expect(mocks.auth).toHaveBeenCalledOnce();
-    expect(mocks.load).toHaveBeenCalledExactlyOnceWith(auth, context);
+    expect(mocks.load).toHaveBeenCalledExactlyOnceWith(auth, context, {});
     expect(screen.getAllByRole("table")).toHaveLength(12);
   });
   it("el dispatcher conserva la cabecera y anuncia la carga con Suspense", () => {

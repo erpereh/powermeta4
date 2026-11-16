@@ -5,6 +5,7 @@ import { loadPortalTaskGroup } from "@/lib/portal/data/tasks";
 import type { PortalTaskLine } from "@/lib/portal/data/tasks-core";
 import { getPortalFeatureBySource } from "@/lib/portal/registry";
 import { readPortal } from "@/lib/portal/server";
+import type { PortalDebugSelection, PortalReadResult } from "@/lib/portal/read-model";
 
 import { PortalDataTable, type PortalRow } from "../portal-data";
 import { DependencyState, PortalError } from "../portal-states";
@@ -36,16 +37,22 @@ const formatDate = (iso: string): string => {
 export async function TasksView({
   context,
   compact = false,
+  debug,
 }: {
   context: PortalContext;
   compact?: boolean;
+  debug?: PortalDebugSelection | null;
 }) {
   // El objeto Axis vive en sesión: las operaciones se leen en orden, sin carreras.
   const groups = [];
   for (const group of GROUPS)
     groups.push({
       group,
-      result: await readPortal(context, () => loadPortalTaskGroup(group.kind), group.title),
+      result: debug ? await (async (): Promise<PortalReadResult<readonly PortalTaskLine[]>> => {
+        if (debug.scenario === "error" || (debug.scenario === "partial" && group.kind === "valuation")) return { status: "error", message: "Error simulado de este grupo de tareas." };
+        const { debugTasks } = await import("@/lib/portal/organization-debug.fixture");
+        return { status: "ok", source: "debug", data: debugTasks(debug, group.kind) };
+      })() : await readPortal(context, () => loadPortalTaskGroup(group.kind), group.title),
     });
   if (groups.every(({ result }) => result.status === "ok" && result.data.length === 0)) {
     return (

@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "cuadre:discover": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/cuadre/discover.ts",
+    "cuadre:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/cuadre/verify.ts",
+    "cuadre:verify-local": "node --conditions=react-server --import tsx scripts/cuadre/verify-local.ts",
     "dev": "cross-env NODE_OPTIONS=--use-system-ca next dev --turbopack",
     "build": "next build",
     "start": "cross-env NODE_OPTIONS=--use-system-ca next start",
@@ -17,6 +20,7 @@
     "portal:certificate-discover": "node --conditions=react-server --import tsx scripts/portal/descubrir-certificado.ts",
     "portal:holidays-discover": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/portal/descubrir-festivos.ts",
     "portal:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/portal/verificar.ts",
+    "portal:readonly-audit": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/portal/readonly-audit.ts",
     "quinquenal:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/quinquenal/verificar.ts",
     "retributivo:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/registro-retributivo/verificar.ts",
     "typecheck": "tsc --noEmit",

@@ -14,13 +14,14 @@ import {
 import { portalUnavailable, type PortalResult } from "../result";
 import { readPortal } from "../server";
 import type { ConsultData, ConsultSpec, PortalFeature, PortalSqlQuery } from "../types";
+import type { PortalConsultResults } from "../read-model";
 import { documentHref } from "./documents-core";
 import { getOwnEmails, getOwnMaritalStatus } from "./organization";
 import { getOwnPaymentAccounts } from "./payments";
 import { MANAGER_SCOPE_VERIFIED } from "./scope";
 import { withTeamScope } from "./team-scope";
 
-export type ConsultResults = Readonly<Record<string, PortalResult<ConsultData>>>;
+export type ConsultResults = PortalConsultResults;
 
 const dateItems = new Set(["SCO_DT_START", "SCO_DT_END", "STD_DT_START", "STD_DT_END"]);
 /** `sqlText` deja las fechas de SQL como `AAAA-MM-DD`; nada más tiene esa forma exacta. */
@@ -32,6 +33,12 @@ const displayValue = (item: string | undefined, value: string | null): string =>
   if (!/^\d{4}-\d{2}-\d{2}/.test(value)) return value;
   const [year, month, day] = value.slice(0, 10).split("-");
   return `${day}/${month}/${year}`;
+};
+const displayField = (item: string | undefined, row: PortalSqlRow): string => {
+  const value = item ? row[item] : null;
+  if (item === "SCO_DT_DATE_AND_HOUR" && value instanceof Date)
+    return `${value.toISOString().slice(0, 10).split("-").reverse().join("/")} ${value.toISOString().slice(11, 16)}`;
+  return displayValue(item, sqlText(value));
 };
 
 const startOfToday = (): Date => {
@@ -47,16 +54,36 @@ const runSqlConsult = async (
   query: PortalSqlQuery,
   society: Meta4Society,
   employeeId: string,
+  targetEmployeeId?: string,
+  period?: string,
 ): Promise<PortalSqlRow[]> => {
   const base: Record<string, PortalSqlParam> = {
     organization: organizationParam(society),
     today: { type: "date", value: startOfToday() },
   };
-  if (query.scope === "society") return runPortalSelect(query.statement, base);
+  let statement = query.statement;
+  if (period && query.periodColumn) {
+    if (!/^[A-Z]+\.[A-Z_]+$/.test(query.periodColumn)) throw new Error("Columna de periodo no válida.");
+    const [year, month] = period.split("-").map(Number);
+    base.periodStart = { type: "date", value: new Date(Date.UTC(year, month - 1, 1)) };
+    base.periodEnd = { type: "date", value: new Date(Date.UTC(year, month, 1)) };
+    statement = statement.replace(/\bTOP \d+\s+/i, "")
+      .replaceAll(` AND ${query.periodColumn} >= @today`, "")
+      .replaceAll(`AND YEAR(${query.periodColumn}) = YEAR(@today)`, "");
+    const order = statement.lastIndexOf("ORDER BY");
+    const condition = ` AND ${query.periodColumn} >= @periodStart AND ${query.periodColumn} < @periodEnd\n`;
+    statement = order >= 0 ? `${statement.slice(0, order)}${condition}${statement.slice(order)}` : `${statement}${condition}`;
+  }
+  if (query.scope === "society") return runPortalSelect(statement, base);
   const own = { ...base, employeeId: employeeParam(employeeId) };
-  if (query.scope === "own") return runPortalSelect(query.statement, own);
+  if (query.scope === "own") return runPortalSelect(statement, own);
   // El equipo se resuelve en la base desde la matrícula del servidor (team-scope.ts).
-  return runPortalSelect(withTeamScope(query.statement), own);
+  return runPortalSelect(
+    targetEmployeeId
+      ? withTeamScope(statement).replaceAll("SELECT DISTINCT ID_EMPLEADO FROM TEAM_HR", "SELECT DISTINCT ID_EMPLEADO FROM TEAM_HR WHERE ID_EMPLEADO = @targetEmployeeId")
+      : withTeamScope(statement),
+    targetEmployeeId ? { ...own, targetEmployeeId: employeeParam(targetEmployeeId) } : own,
+  );
 };
 
 export const mapConsultRows = (
@@ -73,7 +100,7 @@ export const mapConsultRows = (
     rows: visibleRows.map((row) =>
       consult.fields.map((field) => ({
         label: field.label,
-        value: displayValue(field.item, field.item ? sqlText(row[field.item]) : null),
+        value: displayField(field.item, row),
       })),
     ),
     ...(download
@@ -84,6 +111,10 @@ export const mapConsultRows = (
           }),
         }
       : {}),
+    ...(consult.personLink ? { personLinks: visibleRows.map((row) => {
+      const id = sqlText(row[consult.personLink?.item ?? ""]);
+      return id ? `${consult.personLink?.route}?employee=${encodeURIComponent(id)}` : null;
+    }) } : {}),
   };
 };
 
@@ -91,6 +122,8 @@ export const mapConsultRows = (
 export const loadFeatureConsults = async (
   feature: PortalFeature,
   context: PortalContext,
+  targetEmployeeId?: string,
+  period?: string,
 ): Promise<ConsultResults> => {
   const entries = await Promise.all(
     (feature.sections ?? []).flatMap((section) =>
@@ -151,7 +184,7 @@ export const loadFeatureConsults = async (
                       if (!consult.query) throw new Error("Apartado sql sin consulta.");
                       return mapConsultRows(
                         consult,
-                        await runSqlConsult(consult.query, meta4.society, employeeId),
+                        await runSqlConsult(consult.query, meta4.society, employeeId, targetEmployeeId, period),
                       );
                     }
                     default:

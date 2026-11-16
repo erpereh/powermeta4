@@ -6,6 +6,7 @@ import type { PortalContext } from "../context";
 import { getHolidayCalendar } from "../data/holidays";
 import type { PendingId } from "../types";
 import { currentHolidayYear, type HolidayCalendar } from "./calendar";
+import { debugSelection, type PortalReadParams } from "../read-model";
 
 export type HolidayLoad =
   | { readonly status: "ok"; readonly data: HolidayCalendar; readonly debug: boolean }
@@ -20,6 +21,7 @@ export type HolidayLoad =
 export async function loadHolidayPage(
   auth: ResolvedAuthSession,
   context: PortalContext,
+  params: PortalReadParams = {},
 ): Promise<HolidayLoad> {
   const now = new Date();
   const year = currentHolidayYear(now);
@@ -29,8 +31,11 @@ export async function loadHolidayPage(
     context.mode === "unavailable" &&
     context.reason === "debug"
   ) {
+    const selection = debugSelection(params);
+    if (selection.scenario === "error") return { status: "error", message: "Error simulado del calendario." };
     const { holidayDebugData } = await import("./debug.fixture");
-    return { status: "ok", data: holidayDebugData(year), debug: true };
+    const data = holidayDebugData(year);
+    return { status: "ok", data: { ...data, holidays: selection.scenario === "empty" ? [] : selection.scenario === "partial" ? data.holidays.slice(0, 4) : data.holidays }, debug: true };
   }
   if (auth.authContext.mode !== "meta4")
     return {

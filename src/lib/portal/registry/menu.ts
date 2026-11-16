@@ -11,7 +11,7 @@ import type {
 import { pendingRead } from "./helpers";
 import { originalPageSections } from "./original-pages";
 
-type SectionKey = `consult:${string}` | `form:${string}` | `note:${string}`;
+type SectionKey = `consult:${string}` | `form:${string}` | `note:${string}` | `query:${string}`;
 type PageOptions = {
   route?: string;
   select?: readonly SectionKey[];
@@ -686,7 +686,7 @@ const sectionKey = (section: FeatureSection): SectionKey =>
     ? `note:${section.title}`
     : section.kind === "consult"
       ? `consult:${section.consult.id}`
-      : `form:${section.form.id}`;
+      : section.kind === "query" ? `query:${section.query.id}` : `form:${section.form.id}`;
 const dynamicDestination = (title: string): PortalOriginalDestination => ({
   kind: "dynamic",
   menuEntry: title,
@@ -893,7 +893,7 @@ function createManagerSections({
           "retribucion",
           "presupuesto",
           "Analiza el presupuesto de tu unidad organizativa",
-          "Presupuesto de la unidad (SMCO_BUDGET). No se sustituye por los salarios individuales; falta el contrato de presupuesto.",
+          "Presupuesto de la unidad (SSCO_OR_RP_BUDGET_SAL_WU!SSCO_OR_RP_BUDGET_SAL_WU). Falta resolver sus nodos virtuales, filtros y responsabilidades.",
           "mss_g2/smco_g2_p11.jsp",
           { estado: "21" },
         ),
@@ -1084,7 +1084,7 @@ function createManagerSections({
           "talento",
           "competencias",
           "Competencias del puesto",
-          "GAP del nivel actual respecto al puesto y su nivel requerido; falta el contrato específico de SSM_JOB_COMPETENCES.",
+          "GAP del nivel actual respecto al puesto y su nivel requerido; falta el contrato específico de SSM_R_JOB_COMP!SMCO_DATA_FINAL, SSM_X_GROUP y SSM_KNOW_MAP.",
           "mss_g3/mss_g3_p9.jsp",
           { estado: "31" },
         ),

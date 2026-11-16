@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { PortalLink as Link, PortalSectionNav, PortalDebugNavigation } from "./portal-link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -15,7 +15,6 @@ import {
   BreadcrumbSeparator,
   Button,
   PageHeader,
-  SectionNav,
   Tooltip,
 } from "@/components/system";
 import {
@@ -27,6 +26,7 @@ import {
 } from "@/lib/portal/registry";
 import type { PortalProfile, PortalVariant } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
+import { debugSelection } from "@/lib/portal/read-model";
 
 export type PortalShellPerson = {
   fullName: string;
@@ -133,16 +133,19 @@ function PortalBreadcrumb({ pathname }: { pathname: string }) {
 export function PortalShell({
   context,
   children,
+  debugEnabled = false,
 }: {
   context: PortalShellContext;
   children: ReactNode;
+  debugEnabled?: boolean;
 }) {
   const pathname = usePathname();
+  const params = useSearchParams();
   const wideReport = getPortalFeatureByRoute(pathname)?.view === "projections";
   const palette = useOptionalAppCommandPalette();
   const profile = getProfileForRoute(pathname);
   const location = getPortalMenuLocation(pathname);
-  const variant = context.mode === "meta4" ? context.variant : undefined;
+  const variant = context.mode === "meta4" ? context.variant : debugEnabled ? debugSelection(Object.fromEntries(params ?? [])).variant : undefined;
   const groups =
     location?.section.groups.flatMap((group) => {
       const first = getPortalMenuPages(group, variant)[0];
@@ -161,6 +164,7 @@ export function PortalShell({
     : null;
 
   return (
+    <PortalDebugNavigation value={debugEnabled ? params?.toString() ?? "" : ""}>
     <div data-portal-root className="flex min-h-svh min-w-0 flex-col">
       <PageHeader
         contentClassName={cn("mx-auto w-full max-w-6xl", wideReport && "xl:max-w-none")}
@@ -185,7 +189,7 @@ export function PortalShell({
         }
         toolbar={
           location ? (
-            <SectionNav
+            <PortalSectionNav
               overflow="menu"
               menuWidth={320}
               aria-label={
@@ -206,5 +210,6 @@ export function PortalShell({
         {children}
       </div>
     </div>
+    </PortalDebugNavigation>
   );
 }

@@ -216,6 +216,11 @@ export type FormSpec = {
   readonly presentationNotice?: string;
   readonly developmentNotice?: boolean;
 };
+/** Consulta o simulación sin contrato ejecutable: conserva controles y validación, sin escritura. */
+export type PendingQueryFormSpec = Omit<FormSpec, "write" | "mode"> & {
+  readonly mode: "query";
+  readonly dependency: { readonly method: string; readonly label: string; readonly pending: readonly PendingId[] };
+};
 
 /** Columna o dato que muestra una consulta del original. */
 export type ConsultField = {
@@ -240,6 +245,8 @@ export type ConsultSpec = {
   readonly rowFilter?: { readonly item: string; readonly equals: readonly string[] };
   /** Documento guardado en PeopleNet por fila; la SELECT devuelve su clave como `DOC_KEY`. */
   readonly download?: { readonly kind: PortalDocumentKind; readonly label: string };
+  /** Navegación a una ficha que vuelve a autorizar la persona en servidor. */
+  readonly personLink?: { readonly item: string; readonly route: "/portal/responsable/equipo/ficha" };
 };
 
 /** Documentos propios que el portal original descarga con `download_blob`. */
@@ -257,6 +264,8 @@ export type PortalSqlQuery = {
   readonly scope: "own" | "team" | "society";
   readonly tables: readonly string[];
   readonly statement: string;
+  /** Columna fija y documentada para seleccionar un mes, nunca un valor del navegador. */
+  readonly periodColumn?: string;
 };
 
 export type PortalReaderId =
@@ -271,9 +280,11 @@ export type ConsultData = {
   readonly rows: readonly (readonly { readonly label: string; readonly value: string }[])[];
   /** Enlace de descarga de cada fila (mismo orden que `rows`), si el apartado tiene documento. */
   readonly links?: readonly (string | null)[];
+  readonly personLinks?: readonly (string | null)[];
 };
 
 export type FeatureSection =
+  | { readonly kind: "query"; readonly query: { readonly id: string; readonly title: string; readonly meta4?: readonly string[]; readonly form?: PendingQueryFormSpec } }
   | { readonly kind: "consult"; readonly consult: ConsultSpec }
   | { readonly kind: "form"; readonly form: FormSpec }
   | {

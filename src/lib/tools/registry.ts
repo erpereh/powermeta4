@@ -57,7 +57,8 @@ export type ToolIconName =
   | "process-status"
   | "process-errors"
   | "process-history"
-  | "registro-retributivo";
+  | "registro-retributivo"
+  | "cuadre-nomina";
 
 export type ToolDefinition = {
   id: string;
@@ -131,6 +132,7 @@ export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   "process-errors": CircleAlert,
   "process-history": History,
   "registro-retributivo": TableProperties,
+  "cuadre-nomina": FileSpreadsheet,
 };
 
 const tool = (
@@ -488,6 +490,16 @@ export const TOOL_MODULES = [
 ] as const satisfies readonly ToolModuleDefinition[];
 
 export const STANDALONE_TOOLS = [
+  {
+    id: "cuadre-nomina",
+    name: "Cuadre de nómina",
+    shortName: "Cuadre de nómina",
+    description: "Contrasta nóminas y fuentes externas en expedientes reanudables.",
+    route: "/tools/cuadre-nomina",
+    icon: "cuadre-nomina",
+    implemented: true,
+    keywords: ["cuadre", "nomina", "cierre", "contraste"],
+  },
   {
     id: "registro-retributivo",
     name: "Registro Retributivo",

@@ -6,6 +6,7 @@ import type { ResolvedAuthSession } from "@/lib/auth/service";
 import type { PortalContext } from "../context";
 import { getProjections } from "../data/projections";
 import type { PendingId } from "../types";
+import { DEBUG_ACTORS, debugSelection } from "../read-model";
 import {
   projectionEmployeeSelection,
   projectionYearSelection,
@@ -39,12 +40,20 @@ export async function loadProjectionPage(
     context.mode === "unavailable" &&
     context.reason === "debug";
   if (debug) {
+    const sample = debugSelection(params);
+    if (sample.scenario === "error") return { status: "error", message: "Error simulado de proyecciones." };
+    const actor = DEBUG_ACTORS.find((person) => person.id === (employee.status === "team" ? employee.employeeId : sample.actor));
+    if (!actor) return { status: "error", message: "La persona no existe en la sociedad ficticia." };
     const { projectionDebugData } = await import("./debug.fixture");
     const data = projectionDebugData(
       selection,
-      typeof params.scenario === "string" ? params.scenario : undefined,
+      params.debugScenario ? sample.scenario : typeof params.scenario === "string" ? params.scenario : undefined,
       employee.status === "team" ? employee.employeeId : undefined,
     );
+    if (actor) {
+      if (data.report) data.report = { ...data.report, employee: { ...data.report.employee, id: actor.id, name: actor.name.split(" · ")[0] } };
+      if (data.member) data.member = { id: actor.id, name: actor.name.split(" · ")[0] };
+    }
     if (selection.status === "selected" && !data.years.includes(selection.year))
       return { status: "error", message: "Ese ejercicio no existe en la muestra de desarrollo." };
     return { status: "ok", data, debug: true };

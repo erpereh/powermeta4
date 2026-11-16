@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PortalLink as Link } from "@/components/portal/portal-link";
 import { ArrowLeft } from "lucide-react";
 
 import { Avatar } from "@/components/system";
@@ -6,14 +6,22 @@ import { DependencyState, PortalError } from "@/components/portal/portal-states"
 import { FileSections } from "@/components/portal/views/person-file";
 import { getDirectoryPerson } from "@/lib/portal/data/organization";
 import { readPortal, getRequestPortalContext } from "@/lib/portal/server";
+import { requireAuthContext } from "@/lib/auth/session";
+import { canUsePortalDebug } from "@/lib/portal/read-provider";
+import { debugSelection, type PortalReadParams } from "@/lib/portal/read-model";
+import { portalError } from "@/lib/portal/result";
+import type { PersonFile } from "@/lib/portal/data/organization";
+import type { DirectoryEntry } from "@/lib/portal/data/organization-core";
 
 const EMPLOYEE_ID = /^[A-Za-z0-9]{1,20}$/;
 
 /** Ficha de directorio de una persona («Quién es quién - Datos Empleado»). */
 export default async function PortalPersonPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ employeeId: string }>;
+  searchParams: Promise<PortalReadParams>;
 }) {
   const { employeeId: raw } = await params;
   const employeeId = decodeURIComponent(raw).trim();
@@ -35,7 +43,15 @@ export default async function PortalPersonPage({
       </div>
     );
   }
-  const result = await readPortal(
+  const debug = canUsePortalDebug(await requireAuthContext(), context) ? debugSelection(await searchParams) : null;
+  const debugFile = async () => {
+    if (!debug) throw new Error("Muestra no autorizada.");
+    const { debugPersonFile } = await import("@/lib/portal/organization-debug.fixture");
+    const file = debugPersonFile(debug, employeeId);
+    const manager = file?.managerId ? debugPersonFile(debug, file.managerId) : null;
+    return { status: "ok", source: "debug", data: { file, manager: manager?.person ?? null } } as const;
+  };
+  const result = debug ? debug.scenario === "error" ? portalError<{ file: PersonFile | null; manager: DirectoryEntry | null }>("Error simulado del directorio.") : await debugFile() : await readPortal(
     context,
     async (meta4) => {
       const file = await getDirectoryPerson(meta4.society, employeeId);

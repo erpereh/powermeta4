@@ -1,7 +1,8 @@
 "use client";
 
 import { Search, UserRound } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { PortalDebugNavigation } from "../portal-link";
 
 import { searchPortalDirectoryAction } from "@/app/actions/portal";
 import { EmptyState, Input, Skeleton } from "@/components/system";
@@ -20,6 +21,7 @@ const DEBOUNCE_MS = 300;
 
 /** «Quién es quién»: búsqueda incremental de personas de la sociedad activa. */
 export function DirectorySearch() {
+  const debugSearch = useContext(PortalDebugNavigation);
   const society = useWorkspaceStore((state) => state.auth?.societyCode ?? null);
   const [query, setQuery] = useState("");
   const [state, setState] = useState<SearchState>({ kind: "idle" });
@@ -38,13 +40,13 @@ export function DirectorySearch() {
     }
     setState({ kind: "loading" });
     const timer = setTimeout(() => {
-      void searchPortalDirectoryAction(text)
+      void searchPortalDirectoryAction(text, Object.fromEntries(new URLSearchParams(debugSearch)))
         .then((result) => {
           if (request !== requestRef.current) return;
           if (result.status === "ok") {
             // Una respuesta de otra sociedad (cambio de workspace en curso) se descarta.
             const currentSociety = workspaceStore.getState().auth?.societyCode ?? null;
-            if (result.society !== currentSociety) {
+            if ("society" in result && result.society !== currentSociety) {
               setState({
                 kind: "unavailable",
                 message: "La sociedad ha cambiado. Repite la búsqueda.",
@@ -68,7 +70,7 @@ export function DirectorySearch() {
       clearTimeout(timer);
       requestRef.current++;
     };
-  }, [query, society]);
+  }, [query, society, debugSearch]);
 
   return (
     <div className="flex min-w-0 flex-col gap-4">

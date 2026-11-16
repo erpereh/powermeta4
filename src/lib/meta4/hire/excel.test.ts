@@ -1,14 +1,18 @@
-import { execFile, execFileSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { promisify } from "node:util";
 
 import * as XLSX from "xlsx";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { editHireWorkbook, encodeUtf8Bom, findInstalledExcel, powershellForExcel } from "./excel";
+import {
+  editHireWorkbook as editNativeHireWorkbook,
+  encodeUtf8Bom,
+  findInstalledExcel,
+  powershellForExcel,
+} from "./excel";
 import { hireExtraFixture } from "./test-fixtures";
 import {
   FIRST_PERSON_ROW,
@@ -18,13 +22,25 @@ import {
   toExcelSerialDate,
 } from "./mapping";
 import type { HirePerson } from "./types";
+import { EXCEL_LIFECYCLE, runOwnedExcel } from "./excel-lifecycle";
 
 const OLE_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
 const templatePath = path.join(process.cwd(), "fuentes", "HIRE", "Hire_1_PERSONA.xls");
 const canEdit = existsSync(templatePath) && findInstalledExcel() !== null;
 const writtenColumns = new Set(WRITTEN_COLUMNS);
 const optionalCurrencyColumns = ["GV", "GW", "IJ", "IK"] as const;
-const runFile = promisify(execFile);
+let nativeDeadline = 0;
+const ownedExcelPids = new Set<number>();
+beforeEach(() => {
+  nativeDeadline = Date.now() + 180_000;
+  ownedExcelPids.clear();
+});
+const nativeOptions = () => ({
+  deadline: nativeDeadline,
+  onOwner: (owner: { pid: number }) => ownedExcelPids.add(owner.pid),
+});
+const editHireWorkbook = (template: string, people: readonly HirePerson[]) =>
+  editNativeHireWorkbook(template, people, nativeOptions());
 
 const person = (suffix: string, hireDate: string): HirePerson => ({
   ...hireExtraFixture,
@@ -225,6 +241,7 @@ const prepareTemplateCopy = async (
     encodeUtf8Bom(String.raw`
 param([Parameter(Mandatory = $true)][string]$WorkbookPath)
 $ErrorActionPreference = "Stop"
+${EXCEL_LIFECYCLE}
 function Com-Member($com, [string]$name, $flags, [object[]]$comArgs = @()) {
   $result = $com.GetType().InvokeMember($name, $flags, $null, $com, $comArgs)
   Write-Output -NoEnumerate $result
@@ -236,6 +253,7 @@ $excel = $null
 $workbook = $null
 try {
   $excel = New-Object -ComObject Excel.Application
+  Register-OwnedExcel $excel
   Com-Member $excel "Visible" $set @($false) | Out-Null
   Com-Member $excel "DisplayAlerts" $set @($false) | Out-Null
   Com-Member $excel "EnableEvents" $set @($false) | Out-Null
@@ -244,6 +262,8 @@ try {
   Unblock-File -LiteralPath $WorkbookPath -ErrorAction SilentlyContinue
   $workbooks = Com-Member $excel "Workbooks" $get
   $workbook = Com-Member $workbooks "Open" $invoke @($WorkbookPath, 0, $false)
+  Com-Member $excel "Calculation" $set @(-4135) | Out-Null
+  Com-Member $excel "CalculateBeforeSave" $set @($false) | Out-Null
   $worksheets = Com-Member $workbook "Worksheets" $get
   $sheet = Com-Member $worksheets "Item" $invoke @("AltaNueva")
   $headers = '${JSON.stringify(headers)}' | ConvertFrom-Json
@@ -261,34 +281,29 @@ try {
     }
   }
   Com-Member $workbook "Save" $invoke | Out-Null
-} finally {
-  if ($null -ne $workbook) {
-    Com-Member $workbook "Close" $invoke @($false) | Out-Null
-    [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook)
-  }
-  if ($null -ne $excel) {
-    Com-Member $excel "Quit" $invoke | Out-Null
-    [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel)
-  }
-  [GC]::Collect()
-  [GC]::WaitForPendingFinalizers()
+ } finally {
+  try {
+    if ($null -ne $workbook) {
+      try { Com-Member $workbook "Close" $invoke @($false) | Out-Null } catch {}
+      try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) } catch {}
+    }
+    if ($null -ne $excel) {
+      if ($null -ne $excelOwnerId) { try { Com-Member $excel "Quit" $invoke | Out-Null } catch {} }
+      try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) } catch {}
+    }
+    [GC]::Collect()
+    [GC]::WaitForPendingFinalizers()
+  } finally { Close-OwnedExcel }
 }
 `),
   );
-  await runFile(
+  const run = await runOwnedExcel(
     powershellForExcel(),
-    [
-      "-NoProfile",
-      "-NonInteractive",
-      "-ExecutionPolicy",
-      "Bypass",
-      "-File",
-      scriptPath,
-      "-WorkbookPath",
-      workbookPath,
-    ],
-    { windowsHide: true, timeout: 180_000 },
+    scriptPath,
+    { WorkbookPath: workbookPath },
+    nativeOptions(),
   );
+  if (!run.ok) throw new Error("EXCEL_FIXTURE_FAILED: " + run.stderr);
   return workbookPath;
 };
 
@@ -297,9 +312,8 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     const templateBytes = readFileSync(templatePath);
     const templateSize = statSync(templatePath).size;
     const hireDate = "2026-10-02";
-    const before = new Set(excelProcessIds());
     const bytes = await editHireWorkbook(templatePath, [person("A", hireDate)]);
-    expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
+    expect(excelProcessIds().filter((pid) => ownedExcelPids.has(pid))).toEqual([]);
     expect(statSync(templatePath).size).toBe(templateSize);
     expect(bytes.subarray(0, 8).equals(OLE_MAGIC)).toBe(true);
     expect(bytes.length).toBeGreaterThan(templateBytes.length * 0.8);
@@ -494,7 +508,7 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(joined).not.toContain("12345678Z");
     expect(joined).not.toContain("p6@prueba.es");
     expect(joined).not.toContain("atradius.com");
-  }, 180_000);
+  }, 190_000);
 
   it("copies the template row for three people and overlays only manual fields", async () => {
     const templateBytes = readFileSync(templatePath);
@@ -503,9 +517,8 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
       person("B", "2026-10-03"),
       person("C", "2026-10-04"),
     ];
-    const before = new Set(excelProcessIds());
     const bytes = await editHireWorkbook(templatePath, people);
-    expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
+    expect(excelProcessIds().filter((pid) => ownedExcelPids.has(pid))).toEqual([]);
     expect(bytes.length).toBeGreaterThan(templateBytes.length * 0.8);
     expect(bytes.subarray(0, 8).equals(OLE_MAGIC)).toBe(true);
 
@@ -602,17 +615,16 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
 
     expect(rows[0]?.get("X")?.value).not.toEqual(rows[1]?.get("X")?.value);
     expect(rows[1]?.get("AY")?.value).not.toEqual(rows[2]?.get("AY")?.value);
-  }, 180_000);
+  }, 190_000);
 
   it("keeps the original currency defaults for a single person with empty currencies", async () => {
     const templateBytes = readFileSync(templatePath);
     const templateSheet = readWorkbook(templateBytes).Sheets[HIRE_DATA_SHEET];
     const input = { ...person("A", "2026-10-02"), payrollCurrency: "", accountCurrency: "" };
-    const before = new Set(excelProcessIds());
     const sheet = readWorkbook(await editHireWorkbook(templatePath, [input])).Sheets[
       HIRE_DATA_SHEET
     ];
-    expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
+    expect(excelProcessIds().filter((pid) => ownedExcelPids.has(pid))).toEqual([]);
     const original = rowCells(templateSheet, FIRST_PERSON_ROW);
     const generated = rowCells(sheet, FIRST_PERSON_ROW);
     for (const column of optionalCurrencyColumns) {
@@ -620,11 +632,10 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     }
     for (const column of ["HT", "HU"]) expect(generated.get(column)?.value).toBe("USD");
     expect(readFileSync(templatePath).equals(templateBytes)).toBe(true);
-  }, 180_000);
+  }, 190_000);
 
   it("preserves currency formulas for empty fields and overwrites them for populated fields", async () => {
     const templateBytes = readFileSync(templatePath);
-    const before = new Set(excelProcessIds());
     const directory = await mkdtemp(path.join(tmpdir(), "hire-currency-formulas-"));
     try {
       const formulaTemplatePath = await prepareTemplateCopy(directory, {}, true);
@@ -687,8 +698,8 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
       await rm(directory, { recursive: true, force: true });
     }
     expect(readFileSync(templatePath).equals(templateBytes)).toBe(true);
-    expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
-  }, 180_000);
+    expect(excelProcessIds().filter((pid) => ownedExcelPids.has(pid))).toEqual([]);
+  }, 190_000);
 
   it("preserves Atradius AM, IBAN GQ and template HO when only the four fields differ", async () => {
     const changed = person("A", "2026-10-02");
@@ -730,12 +741,11 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
     expect(importedValue(baseSheet, expectedImportHeaders.GP, 6)).toBeUndefined();
     expect(importedValue(baseSheet, expectedImportHeaders.HN, 6)).toBeUndefined();
     expect(importedValue(baseSheet, "SRCO_PA_HIRE_WIZ_PAYROLL.SCO_OR_REF_MOD", 6)).toBeUndefined();
-  }, 180_000);
+  }, 190_000);
 
   it("accepts already repaired headers without changing existing data", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "hire-import-headers-"));
     const originalBytes = readFileSync(templatePath);
-    const before = new Set(excelProcessIds());
     try {
       const repaired = await editHireWorkbook(templatePath, []);
       const repairedPath = path.join(directory, "Repaired.xls");
@@ -775,15 +785,14 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
       await rm(directory, { recursive: true, force: true });
     }
     expect(readFileSync(templatePath).equals(originalBytes)).toBe(true);
-    expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
-  }, 180_000);
+    expect(excelProcessIds().filter((pid) => ownedExcelPids.has(pid))).toEqual([]);
+  }, 190_000);
 
   it.each(["AL5", "GP5", "HN5", "HP5"])(
     "rejects incompatible %s before saving the copy",
     async (address) => {
       const directory = await mkdtemp(path.join(tmpdir(), "hire-invalid-header-"));
       const originalBytes = readFileSync(templatePath);
-      const before = new Set(excelProcessIds());
       try {
         const invalidPath = await prepareTemplateCopy(directory, { [address]: "UNEXPECTED.ITEM" });
         const invalidBytes = await readFile(invalidPath);
@@ -797,8 +806,8 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
         await rm(directory, { recursive: true, force: true });
       }
       expect(readFileSync(templatePath).equals(originalBytes)).toBe(true);
-      expect(excelProcessIds().filter((pid) => !before.has(pid))).toEqual([]);
+      expect(excelProcessIds().filter((pid) => ownedExcelPids.has(pid))).toEqual([]);
     },
-    180_000,
+    190_000,
   );
 });

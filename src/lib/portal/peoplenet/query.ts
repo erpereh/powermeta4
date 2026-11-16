@@ -30,11 +30,45 @@ export class PortalSqlContractError extends Error {
 
 const READ_ONLY = /^\s*(?:SELECT|WITH)\b/i;
 const FORBIDDEN =
-  /\b(?:INSERT|UPDATE|DELETE|MERGE|DROP|ALTER|CREATE|EXEC|EXECUTE|TRUNCATE|GRANT|REVOKE)\b/i;
+  /\b(?:INTO|INSERT|UPDATE|DELETE|MERGE|DROP|ALTER|CREATE|EXEC|EXECUTE|TRUNCATE|GRANT|REVOKE|DENY|BULK|OPENROWSET|OPENQUERY|OPENDATASOURCE|DBCC|BACKUP|RESTORE|USE|SET|DECLARE|WAITFOR|RECONFIGURE|SHUTDOWN)\b/i;
+
+const hasMultipleStatements = (statement: string): boolean => {
+  const code = statement.replace(/'(?:''|[^'])*'|\[[^\]]*\]|"(?:""|[^"])*"/g, " ");
+  let depth = 0;
+  let selected = false;
+  let union = false;
+  for (const match of code.matchAll(/\(|\)|[A-Z_]+/gi)) {
+    const token = match[0].toUpperCase();
+    if (token === "(") {
+      depth++;
+      continue;
+    }
+    if (token === ")") {
+      depth--;
+      continue;
+    }
+    if (depth !== 0) continue;
+    if (["UNION", "EXCEPT", "INTERSECT"].includes(token)) union = true;
+    if (token === "SELECT") {
+      if (selected && !union) return true;
+      selected = true;
+      union = false;
+    }
+    if (token === "WITH" && selected) return true;
+  }
+  return depth !== 0;
+};
 
 /** Rechaza cualquier sentencia que no sea una lectura (AGENTS.md). */
 export const assertReadOnlySql = (statement: string): void => {
-  if (!READ_ONLY.test(statement) || FORBIDDEN.test(statement) || statement.includes(";")) {
+  if (
+    !READ_ONLY.test(statement) ||
+    FORBIDDEN.test(statement) ||
+    statement.includes(";") ||
+    /--|\/\*|\*\//.test(statement) ||
+    /(?:\[[^\]]+\]|[\w]+)\s*\.\s*(?:\[[^\]]+\]|[\w]*)\s*\./.test(statement) ||
+    hasMultipleStatements(statement)
+  ) {
     throw new PortalSqlGuardError();
   }
 };

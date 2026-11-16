@@ -1,4 +1,5 @@
 "use client";
+import { copyPortalDebugParams } from "@/lib/portal/read-model";
 
 import { ArrowLeft, Download, ExternalLink, FileText } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -20,8 +21,8 @@ import type { CertificatePageData } from "@/lib/portal/certificates/types";
 const PDF_ROUTE = "/api/portal/certificates/pdf";
 
 /** Enlaces de la vista previa y de la descarga: mismo PDF, distinta presentación. */
-const generatedLinks = (year: number, employee: string | null) => {
-  const params = new URLSearchParams({ year: String(year) });
+const generatedLinks = (year: number, employee: string | null, debugParams: Pick<URLSearchParams, "get">) => {
+  const params = copyPortalDebugParams(debugParams, new URLSearchParams({ year: String(year) }));
   if (employee) params.set("employee", employee);
   const preview = `${PDF_ROUTE}?${params}`;
   params.set("download", "1");
@@ -83,7 +84,7 @@ export function CertificateReportView({
   const employee = data.member ? params.get("employee") : null;
 
   const navigate = (year: string) => {
-    const next = new URLSearchParams({ year });
+    const next = copyPortalDebugParams(params, new URLSearchParams({ year }));
     // La matrícula se conserva al cambiar de ejercicio; el servidor la vuelve a validar.
     if (employee) next.set("employee", employee);
     startTransition(() => router.push(`${pathname}?${next}`, { scroll: false }));
@@ -157,7 +158,7 @@ export function CertificateReportView({
           </Callout>
         ) : null}
         {year !== null && selection.kind === "generated" ? (
-          <CertificatePreview year={year} {...generatedLinks(year, employee)} />
+          <CertificatePreview year={year} {...generatedLinks(year, employee, params)} />
         ) : year !== null && selection.kind === "stored" ? (
           <CertificatePreview
             year={year}

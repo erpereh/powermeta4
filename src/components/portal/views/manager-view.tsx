@@ -6,6 +6,9 @@ import type { PortalContext } from "@/lib/portal/context";
 import { getDirectoryEntries } from "@/lib/portal/data/organization";
 import { loadManagerScope } from "@/lib/portal/data/scope";
 import { readPortal } from "@/lib/portal/server";
+import { MANAGER_SCOPE_VERIFIED } from "@/lib/portal/data/scope";
+import { loadReadPeople } from "@/lib/portal/read-provider";
+import { debugTeam, type PortalDebugSelection } from "@/lib/portal/read-model";
 
 import { DependencyState, PortalError, SensitiveLocked } from "../portal-states";
 import { PortalDataTable } from "../portal-data";
@@ -16,7 +19,16 @@ const SCOPE_MESSAGE =
   "La población procede de los servicios publicados SNTC_AD_POPULATION y SNTC_AD_MANAGERS. Hasta contrastarla con el SSM real solo se muestran datos de directorio; salarios, datos personales, currículos y evaluaciones permanecen bloqueados.";
 
 /** Población del responsable según Meta4, con datos de directorio de ORO. */
-export async function PopulationPanel({ context }: { context: PortalContext }) {
+export async function PopulationPanel({ context, debug }: { context: PortalContext; debug?: PortalDebugSelection | null }) {
+  if (debug || MANAGER_SCOPE_VERIFIED) {
+    const result = debug ? { status: "ok" as const, data: debug.scenario === "empty" ? [] : debugTeam(debug.actor).map((person) => ({ value: person.id, label: person.name })) }
+      : await readPortal(context, () => loadReadPeople(context), "tu jerarquía ORO");
+    if (debug?.scenario === "error" || result.status === "error") return <PortalError message="No se ha podido consultar el equipo." />;
+    if (result.status === "unavailable") return <DependencyState message={result.message} pending={result.pending} meta4={["M4ORO_EMPLEADOS.ID_RESPONSABLE"]} />;
+    return <PortalDataTable title="Tu equipo" rows={result.data.map((person) => ({ id: person.value,
+      href: `/portal/responsable/equipo/ficha?employee=${encodeURIComponent(person.value)}`,
+      fields: [{ label: "Persona", value: person.label }, { label: "Matrícula", value: person.value }] }))} />;
+  }
   const result = await readPortal(context, () => loadManagerScope(), "tu población");
   if (result.status === "unavailable") {
     return (
@@ -110,7 +122,7 @@ export async function PopulationPanel({ context }: { context: PortalContext }) {
 }
 
 /** Inicio del responsable: tareas, población y apartados del SSM. */
-export function ManagerHomeView({ context }: { context: PortalContext }) {
+export function ManagerHomeView({ context, debug }: { context: PortalContext; debug?: PortalDebugSelection | null }) {
   return (
     <div className="flex min-w-0 flex-col gap-8">
       <header className="space-y-1">
@@ -121,7 +133,7 @@ export function ManagerHomeView({ context }: { context: PortalContext }) {
           Tu equipo, las peticiones que esperan tu validación y la gestión del SSM.
         </p>
       </header>
-      {context.mode !== "meta4" ? (
+      {context.mode !== "meta4" && !debug ? (
         <DependencyState
           title="Portal sin sesión Meta4"
           message={context.message}
@@ -134,7 +146,7 @@ export function ManagerHomeView({ context }: { context: PortalContext }) {
               Validaciones y tareas
             </h2>
             <Suspense fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
-              <TasksView context={context} compact />
+              <TasksView context={context} compact debug={debug} />
             </Suspense>
           </section>
           <section aria-labelledby="responsable-equipo" className="flex min-w-0 flex-col gap-3">
@@ -142,7 +154,7 @@ export function ManagerHomeView({ context }: { context: PortalContext }) {
               Población
             </h2>
             <Suspense fallback={<Skeleton className="h-40 w-full rounded-xl" />}>
-              <PopulationPanel context={context} />
+              <PopulationPanel context={context} debug={debug} />
             </Suspense>
           </section>
         </>
@@ -151,7 +163,7 @@ export function ManagerHomeView({ context }: { context: PortalContext }) {
         <h2 id="responsable-apartados" className="text-sm font-semibold text-foreground">
           Apartados
         </h2>
-        <DomainGrid profile="responsable" context={context} />
+        <DomainGrid profile="responsable" context={context} debug={debug} />
       </section>
     </div>
   );

@@ -11,6 +11,38 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "unit",
+          include: ["src/**/*.test.ts"],
+          exclude: ["src/lib/meta4/hire/excel.test.ts"],
+          maxWorkers: 2,
+          sequence: { groupOrder: 0 },
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "ui",
+          include: ["src/**/*.test.tsx"],
+          maxWorkers: 1,
+          fileParallelism: false,
+          sequence: { groupOrder: 1 },
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "excel-native",
+          include: ["src/lib/meta4/hire/excel.test.ts"],
+          maxWorkers: 1,
+          fileParallelism: false,
+          sequence: { groupOrder: 2 },
+          testTimeout: 190_000,
+        },
+      },
+    ],
   },
 });

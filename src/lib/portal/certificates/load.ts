@@ -8,6 +8,7 @@ import { getCertificates, type CertificateRead } from "../data/certificates";
 import { projectionEmployeeSelection, projectionYearSelection } from "../projections/types";
 import type { PendingId } from "../types";
 import type { CertificateSearchParams } from "./types";
+import { DEBUG_ACTORS, debugSelection } from "../read-model";
 
 export type CertificateLoad =
   | ({ status: "ok"; debug: boolean } & CertificateRead)
@@ -36,11 +37,19 @@ export async function loadCertificatePage(
     context.mode === "unavailable" &&
     context.reason === "debug";
   if (debug) {
+    const sample = debugSelection(params);
+    if (sample.scenario === "error") return { status: "error", message: "Error simulado de certificados." };
+    const actor = DEBUG_ACTORS.find((person) => person.id === (employee.status === "team" ? employee.employeeId : sample.actor));
+    if (!actor) return { status: "error", message: "La persona no existe en la sociedad ficticia." };
     const { certificateDebugData } = await import("./debug.fixture");
     const data = certificateDebugData(selection, employee, today);
     if (!data)
       return { status: "error", message: "Ese ejercicio no existe en la muestra de desarrollo." };
-    return { status: "ok", debug: true, ...data };
+    if (sample.scenario === "empty") return { status: "ok", debug: true, page: { ...data.page, years: [], selectedYear: null, selection: { kind: "none" } }, certificates: [] };
+    return { status: "ok", debug: true, ...data, page: { ...data.page, ...(data.page.member ? { member: { id: actor.id, name: actor.name.split(" · ")[0] } } : {}) }, certificates: data.certificates.map((certificate) => ({ ...certificate, fields: { ...certificate.fields,
+      perceptorNombre: actor.name.split(" · ")[0],
+      ...(sample.scenario === "partial" ? { trabajoEspecieValoracion: null } : {}),
+    } })) };
   }
   const result = await getCertificates(context, selection, employee, today);
   if (result.status === "ok") return { status: "ok", debug: false, ...result.data };

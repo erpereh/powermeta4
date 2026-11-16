@@ -149,11 +149,22 @@ describe("Hire Excel temp files", () => {
       },
     ];
     const files = await writeHireEditFiles(directory, people);
-    const payload = JSON.parse((await readFile(files.instructionsPath)).subarray(3).toString("utf8")) as {
-      rows: Array<{ row: number; copyFromTemplate: boolean; cells: Array<{ column: string; kind: string; value?: string | number }> }>;
+    const payload = JSON.parse(
+      (await readFile(files.instructionsPath)).subarray(3).toString("utf8"),
+    ) as {
+      rows: Array<{
+        row: number;
+        copyFromTemplate: boolean;
+        cells: Array<{ column: string; kind: string; value?: string | number }>;
+      }>;
     };
-    expect(payload.rows.map((row) => [row.row, row.copyFromTemplate])).toEqual([[6, false], [7, true]]);
-    const [first, second] = payload.rows.map((row) => new Map(row.cells.map((cell) => [cell.column, cell])));
+    expect(payload.rows.map((row) => [row.row, row.copyFromTemplate])).toEqual([
+      [6, false],
+      [7, true],
+    ]);
+    const [first, second] = payload.rows.map(
+      (row) => new Map(row.cells.map((cell) => [cell.column, cell])),
+    );
     const preservedColumns = new Set(["GV", "GW", "IJ", "IK"]);
     const expectedColumns = WRITTEN_COLUMNS.filter((column) => !preservedColumns.has(column));
     for (const cells of [first, second]) {
@@ -313,6 +324,31 @@ describe("Hire Excel temp files", () => {
     });
     expect(JSON.stringify(diagnostic)).not.toContain("ana@example.test");
     expect(JSON.stringify(diagnostic)).not.toContain("12345678Z");
+  });
+
+  it("batches only adjacent authorized cells and leaves optional currencies and formulas outside every range", async () => {
+    directory = await mkdtemp(path.join(tmpdir(), "hire-ranges-"));
+    const files = await writeHireEditFiles(directory, [person]);
+    type Cell = { column: string; kind: string; value?: string | number };
+    const payload = JSON.parse(
+      (await readFile(files.instructionsPath)).subarray(3).toString("utf8"),
+    ) as {
+      rows: Array<{ cells: Cell[]; runs: Array<{ first: string; last: string; cells: Cell[] }> }>;
+    };
+    const row = payload.rows[0];
+    const index = (column: string) =>
+      [...column].reduce((value, char) => value * 26 + char.charCodeAt(0) - 64, 0);
+    expect(
+      row.runs.flatMap((run) => run.cells).sort((a, b) => index(a.column) - index(b.column)),
+    ).toEqual([...row.cells].sort((a, b) => index(a.column) - index(b.column)));
+    expect(row.runs.length).toBeLessThan(row.cells.length / 2);
+    for (const run of row.runs) {
+      expect(index(run.last) - index(run.first) + 1).toBe(run.cells.length);
+      for (const column of ["HO", "GY", "HA", "IG", "IH", "GV", "GW", "IJ", "IK"])
+        expect(index(column) < index(run.first) || index(column) > index(run.last), column).toBe(
+          true,
+        );
+    }
   });
 
   it("parses the generated script and instructions with Windows PowerShell", async () => {

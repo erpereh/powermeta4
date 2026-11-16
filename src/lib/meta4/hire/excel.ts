@@ -1,6 +1,5 @@
 import "server-only";
 
-import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -27,10 +26,15 @@ import {
   toExcelSerialDateTime,
 } from "./mapping";
 import type { HirePerson } from "./types";
+import {
+  EXCEL_LIFECYCLE,
+  runOwnedExcel,
+  type ExcelRun,
+  type ExcelRunOptions,
+} from "./excel-lifecycle";
 
 const OLE_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
 const UTF8_BOM = Buffer.from([0xef, 0xbb, 0xbf]);
-const EXCEL_TIMEOUT_MS = 180_000;
 const CLASS_NOT_REGISTERED =
   /80040154|REGDB_E_CLASSNOTREG|Class not registered|Clase no registrada/i;
 
@@ -148,9 +152,12 @@ param(
   [Parameter(Mandatory = $true)][string]$InstructionsPath
 )
 $ErrorActionPreference = "Stop"
+${EXCEL_LIFECYCLE}
 
 function Set-ComProp($com, [string]$name, $value) {
-  $com.GetType().InvokeMember($name, [System.Reflection.BindingFlags]::SetProperty, $null, $com, @($value)) | Out-Null
+  $arguments = New-Object object[] 1
+  $arguments[0] = $value
+  $com.GetType().InvokeMember($name, [System.Reflection.BindingFlags]::SetProperty, $null, $com, $arguments) | Out-Null
 }
 function Get-ComProp($com, [string]$name, [object[]]$comArgs = @()) {
   # -NoEnumerate: Excel collections (Workbooks, Worksheets, Rows...) implement
@@ -172,23 +179,11 @@ function Invoke-ComMethod($com, [string]$name, [object[]]$comArgs = @()) {
 
 $excel = $null
 $workbook = $null
-$createdPid = $null
-$created = @()
-$before = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
 try {
   [Console]::Out.WriteLine("STAGE=start")
   $excel = New-Object -ComObject Excel.Application
   [Console]::Out.WriteLine("STAGE=excel-com-created")
-  $deadline = (Get-Date).AddSeconds(15)
-  do {
-    $created = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | Where-Object { $before -notcontains $_.Id })
-    if ($created.Count -ge 1) { break }
-    Start-Sleep -Milliseconds 200
-  } while ((Get-Date) -lt $deadline)
-  if ($created.Count -ge 1) {
-    $createdPid = $created[0].Id
-    [Console]::Out.WriteLine("EXCEL_PID=$createdPid")
-  }
+  Register-OwnedExcel $excel
   [Console]::Out.WriteLine("STAGE=excel-started")
   Set-ComProp $excel "Visible" $false
   Set-ComProp $excel "DisplayAlerts" $false
@@ -203,6 +198,9 @@ try {
   $workbooks = Get-ComProp $excel "Workbooks"
   $workbook = Invoke-ComMethod $workbooks "Open" @($WorkbookPath, 0, $false)
   [Console]::Out.WriteLine("STAGE=workbook-opened")
+  # Calculation cannot reliably be changed before the first workbook is open.
+  # Keep original formulas/caches while overlaying only the authorized cells.
+  Set-ComProp $excel "Calculation" -4135
   $worksheets = Get-ComProp $workbook "Worksheets"
   $sheet = Invoke-ComMethod $worksheets "Item" @([string]$payload.sheetName)
   [Console]::Out.WriteLine("STAGE=sheet-ready")
@@ -247,21 +245,27 @@ try {
       Invoke-ComMethod $srcRow "Copy" @($dstRow) | Out-Null
     }
   }
+  [Console]::Out.WriteLine("STAGE=rows-copied")
   foreach ($personRow in @($payload.rows)) {
     $rowNumber = [int]$personRow.row
-    foreach ($cell in @($personRow.cells)) {
-      $address = "{0}{1}" -f $cell.column, $rowNumber
+    foreach ($run in @($personRow.runs)) {
+      # Each run contains only adjacent authorized cells, never template formulas
+      # or optional currency cells that must retain their original value.
+      $address = "{0}{1}:{2}{1}" -f $run.first, $rowNumber, $run.last
       $range = Get-ComProp $sheet "Range" @($address)
-      if ($cell.kind -eq "clear") {
-        Invoke-ComMethod $range "ClearContents" @() | Out-Null
-      } elseif ($cell.kind -eq "literal") {
-        # Leading apostrophe: Excel keeps "0001" as text instead of the number 1.
-        Set-ComProp $range "Value2" ("'" + [string]$cell.value)
-      } elseif ($cell.kind -eq "number") {
-        Set-ComProp $range "Value2" ([double]$cell.value)
-      } else {
-        Set-ComProp $range "Value2" ([string]$cell.value)
+      $values = [Array]::CreateInstance([object], [int[]]@(1, @($run.cells).Count), [int[]]@(1, 1))
+      $index = 0
+      foreach ($cell in @($run.cells)) {
+        $values[1, ($index + 1)] = if ($cell.kind -eq "clear") { $null }
+          elseif ($cell.kind -eq "literal") { "'" + [string]$cell.value }
+          elseif ($cell.kind -eq "number") { [double]$cell.value }
+          else { [string]$cell.value }
+        $index++
       }
+      try {
+        if ($index -eq 1) { Set-ComProp $range "Value2" $values[1, 1] }
+        else { Set-ComProp $range "Value2" $values }
+      } catch { throw ("EXCEL_RANGE_WRITE_FAILED:" + $run.first + ":" + $run.last) }
     }
   }
   [Console]::Out.WriteLine("STAGE=edited")
@@ -279,17 +283,12 @@ try {
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) } catch {}
   }
   if ($null -ne $excel) {
-    try { Invoke-ComMethod $excel "Quit" @() } catch {}
+    if ($null -ne $excelOwnerId) { try { Invoke-ComMethod $excel "Quit" @() } catch {} }
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) } catch {}
   }
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
-  if ($null -ne $createdPid) {
-    $proc = Get-Process -Id $createdPid -ErrorAction SilentlyContinue
-    if ($null -ne $proc) {
-      Stop-Process -Id $createdPid -Force -ErrorAction SilentlyContinue
-    }
-  }
+  Close-OwnedExcel
 }
 `;
 
@@ -298,6 +297,20 @@ type CellEdit =
   | { column: string; kind: "literal"; value: string }
   | { column: string; kind: "number"; value: number }
   | { column: string; kind: "clear" };
+
+const columnIndex = (column: string): number =>
+  [...column].reduce((value, char) => value * 26 + char.charCodeAt(0) - 64, 0);
+const adjacentCellRuns = (cells: readonly CellEdit[]) => {
+  const runs: { first: string; last: string; cells: CellEdit[] }[] = [];
+  for (const cell of [...cells].sort((a, b) => columnIndex(a.column) - columnIndex(b.column))) {
+    const previous = runs.at(-1);
+    if (previous && columnIndex(cell.column) === columnIndex(previous.last) + 1) {
+      previous.cells.push(cell);
+      previous.last = cell.column;
+    } else runs.push({ first: cell.column, last: cell.column, cells: [cell] });
+  }
+  return runs;
+};
 
 const textCells = (columns: readonly string[], value: string): CellEdit[] =>
   columns.map((column) =>
@@ -327,7 +340,11 @@ const dateCells = (columns: readonly string[], value: string, dateTime = false):
   );
 
 /** Visible Si/No and bound PeopleNet code from SRCO_VALIDATION A:E. */
-const checkCells = (columns: readonly [string, string], value: boolean, code: "number" | "letter"): CellEdit[] => [
+const checkCells = (
+  columns: readonly [string, string],
+  value: boolean,
+  code: "number" | "letter",
+): CellEdit[] => [
   { column: columns[0], kind: "text", value: value ? "Si" : "No" },
   code === "number"
     ? { column: columns[1], kind: "number", value: value ? 1 : 0 }
@@ -488,7 +505,11 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
     ...checkCells(MANUAL_COLUMNS.strategicEmployee, person.strategicEmployee, "number"),
     ...choiceCells(
       MANUAL_COLUMNS.ssNumberChoice,
-      person.ssNumberChoice === "" ? "" : person.ssNumberChoice === "assigned" ? "Con Núm. S.S." : "Sin Núm. S.S.",
+      person.ssNumberChoice === ""
+        ? ""
+        : person.ssNumberChoice === "assigned"
+          ? "Con Núm. S.S."
+          : "Sin Núm. S.S.",
       person.ssNumberChoice === "assigned" ? 1 : 0,
     ),
     ...literalCells(MANUAL_COLUMNS.ssNumberPrefix, person.ssNumberPrefix),
@@ -504,7 +525,11 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
     ...numberCells(MANUAL_COLUMNS.numberOfHours, person.numberOfHours),
     ...choiceCells(
       MANUAL_COLUMNS.partialScheduleType,
-      person.partialScheduleType === "" ? "" : person.partialScheduleType === "R" ? "Regular" : "Irregular",
+      person.partialScheduleType === ""
+        ? ""
+        : person.partialScheduleType === "R"
+          ? "Regular"
+          : "Irregular",
       person.partialScheduleType,
     ),
     ...numberCells(MANUAL_COLUMNS.weeklyWorkDays, person.weeklyWorkDays),
@@ -552,81 +577,6 @@ const stripMarkOfTheWeb = async (filePath: string): Promise<void> => {
   await rm(`${filePath}:Zone.Identifier`, { force: true }).catch(() => undefined);
 };
 
-type ExcelRun =
-  | { ok: true }
-  | { ok: false; exitCode: number | null; stdout: string; stderr: string };
-
-const spawnExcel = (
-  powershellPath: string,
-  scriptPath: string,
-  workbookPath: string,
-  instructionsPath: string,
-): Promise<ExcelRun> =>
-  new Promise((resolve) => {
-    const child = spawn(
-      powershellPath,
-      [
-        "-NoProfile",
-        "-NonInteractive",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        scriptPath,
-        "-WorkbookPath",
-        workbookPath,
-        "-InstructionsPath",
-        instructionsPath,
-      ],
-      { windowsHide: true },
-    );
-    let stdout = "";
-    let stderr = "";
-    let excelPid: number | undefined;
-    let settled = false;
-    let timedOut = false;
-    const finish = (result: ExcelRun) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve(result);
-    };
-    const killExcel = () => {
-      if (!excelPid) return;
-      spawn("taskkill.exe", ["/PID", String(excelPid), "/F"], { windowsHide: true });
-    };
-    const timer = setTimeout(() => {
-      timedOut = true;
-      killExcel();
-      child.kill();
-    }, EXCEL_TIMEOUT_MS);
-    child.stdout.setEncoding("utf8");
-    child.stderr.setEncoding("utf8");
-    child.stdout.on("data", (chunk: string) => {
-      stdout += chunk;
-      const match = /EXCEL_PID=(\d+)/.exec(stdout);
-      if (match?.[1]) excelPid = Number(match[1]);
-    });
-    child.stderr.on("data", (chunk: string) => {
-      stderr += chunk;
-    });
-    child.on("error", (error) => {
-      finish({ ok: false, exitCode: null, stdout, stderr: error.message });
-    });
-    child.on("close", (code) => {
-      const nextStderr = timedOut ? `${stderr}\nExcel edit timed out.` : stderr;
-      if (code === 0 && !timedOut) {
-        finish({ ok: true });
-        return;
-      }
-      finish({
-        ok: false,
-        exitCode: timedOut ? null : code,
-        stdout,
-        stderr: nextStderr,
-      });
-    });
-  });
-
 const rejectExcelRun = (run: Extract<ExcelRun, { ok: false }>): never => {
   const diagnostic = buildExcelDiagnostic(run.exitCode, run.stdout, run.stderr);
   logExcelFailure(diagnostic);
@@ -641,13 +591,15 @@ const runExcel = async (
   scriptPath: string,
   workbookPath: string,
   instructionsPath: string,
+  options: ExcelRunOptions,
 ): Promise<void> => {
   const primary = powershellForExcel();
-  const first = await spawnExcel(primary, scriptPath, workbookPath, instructionsPath);
+  const parameters = { WorkbookPath: workbookPath, InstructionsPath: instructionsPath };
+  const first = await runOwnedExcel(primary, scriptPath, parameters, options);
   if (first.ok) return;
   const alternate = alternatePowershell(primary);
   if (alternate && CLASS_NOT_REGISTERED.test(first.stderr)) {
-    const second = await spawnExcel(alternate, scriptPath, workbookPath, instructionsPath);
+    const second = await runOwnedExcel(alternate, scriptPath, parameters, options);
     if (second.ok) return;
     rejectExcelRun(second);
   }
@@ -663,11 +615,15 @@ export const writeHireEditFiles = async (
   const instructions = {
     sheetName: HIRE_DATA_SHEET,
     templateRow: FIRST_PERSON_ROW,
-    rows: people.map((person, index) => ({
-      row: FIRST_PERSON_ROW + index,
-      copyFromTemplate: index > 0,
-      cells: cellsForPerson(person),
-    })),
+    rows: people.map((person, index) => {
+      const cells = cellsForPerson(person);
+      return {
+        row: FIRST_PERSON_ROW + index,
+        copyFromTemplate: index > 0,
+        cells,
+        runs: adjacentCellRuns(cells),
+      };
+    }),
   };
   await writeFile(scriptPath, encodeUtf8Bom(EXCEL_SCRIPT));
   await writeFile(instructionsPath, encodeUtf8Bom(JSON.stringify(instructions)));
@@ -687,6 +643,7 @@ export const assertOle2Buffer = (bytes: Buffer): void => {
 export const editHireWorkbook = async (
   templatePath: string,
   people: readonly HirePerson[],
+  options: ExcelRunOptions = {},
 ): Promise<Buffer> => {
   const directory = await mkdtemp(path.join(tmpdir(), "hire-edit-"));
   const workbookPath = path.join(directory, "Hire.xls");
@@ -694,7 +651,10 @@ export const editHireWorkbook = async (
     await copyFile(templatePath, workbookPath);
     await stripMarkOfTheWeb(workbookPath);
     const { scriptPath, instructionsPath } = await writeHireEditFiles(directory, people);
-    await runExcel(scriptPath, workbookPath, instructionsPath);
+    await runExcel(scriptPath, workbookPath, instructionsPath, {
+      ...options,
+      deadline: options.deadline ?? Date.now() + 180_000,
+    });
     const bytes = await readWhenUnlocked(workbookPath);
     assertOle2Buffer(bytes);
     return bytes;

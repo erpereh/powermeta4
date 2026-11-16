@@ -1,0 +1,959 @@
+"use client";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { FileSpreadsheet, Plus, Download, RefreshCw, FolderOpen, Trash2 } from "lucide-react";
+import {
+  Button,
+  Input,
+  Modal,
+  PageHeader,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Tooltip,
+} from "@/components/system";
+import { useWorkspaceStore } from "@/stores/use-workspace-store";
+import { METRICS } from "@/lib/payroll-reconciliation/catalogue";
+import { metricLabel, reconciliationDate } from "@/lib/payroll-reconciliation/presentation";
+import type {
+  Annotation,
+  Category,
+  Dossier,
+  DossierSummary,
+  Finding,
+  Parameters,
+} from "@/lib/payroll-reconciliation/types";
+import type { PayrollReportRun } from "@/types/payroll-report";
+import { Choice, Panel, ParametersForm, SelectionForm } from "./forms";
+import { SourcesView } from "./SourcesView";
+import { ReconciliationRequestError } from "./request-error";
+
+const ROOT = "/api/payroll/reconciliation";
+function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob),
+    anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+export function ReconciliationApp({ demo }: { demo: boolean }) {
+  const companyId = useWorkspaceStore((state) => state.activeCompanyId);
+  const sessionKey = useWorkspaceStore(
+    (state) =>
+      `${state.auth?.mode ?? "none"}:${state.auth?.username ?? ""}:${state.auth?.societyCode ?? ""}`,
+  );
+  return (
+    <ReconciliationFrame
+      key={`${companyId ?? "none"}:${sessionKey}`}
+      companyId={companyId}
+      demo={demo}
+    />
+  );
+}
+function ReconciliationFrame({ companyId, demo }: { companyId: string | null; demo: boolean }) {
+  const [list, setList] = useState<DossierSummary[]>([]),
+    [runs, setRuns] = useState<PayrollReportRun[]>([]);
+  const [dossier, setDossier] = useState<Dossier | null>(null),
+    [view, setView] = useState("resumen");
+  const [error, setError] = useState(""),
+    [catalogError, setCatalogError] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const catalogRequest = useRef(0);
+  const [busy, setBusy] = useState(false),
+    [newOpen, setNewOpen] = useState(false),
+    [refreshOpen, setRefreshOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DossierSummary | null>(null);
+  const [selected, setSelected] = useState<Finding | null>(null);
+  const changeReviewOpen = useCallback((open: boolean) => {
+    if (!open) setSelected(null);
+  }, []);
+  const [search, setSearch] = useState(""),
+    [status, setStatus] = useState("all"),
+    [control, setControl] = useState("all");
+  const [dataMode, setDataMode] = useState("actual");
+  const mounted = useRef(true);
+  const api = useCallback(
+    async <T,>(path = "", init?: RequestInit): Promise<T> => {
+      const headers = new Headers(init?.headers);
+      if (companyId) headers.set("x-powermeta4-company", companyId);
+      if (typeof init?.body === "string") headers.set("content-type", "application/json");
+      const response = await fetch(`${ROOT}${path}`, { ...init, headers, cache: "no-store" });
+      const body = (await response.json()) as {
+        ok?: boolean;
+        message?: string;
+        category?: Category;
+        data: T;
+      };
+      if (!response.ok || !body.ok)
+        throw new ReconciliationRequestError(
+          response.status === 409
+            ? `${body.message ?? "El expediente ha cambiado."} Vuelve a cargar el expediente antes de guardar.`
+            : (body.message ?? "No se ha podido completar la operación."),
+          response.status,
+          body.category,
+        );
+      return body.data;
+    },
+    [companyId],
+  );
+  const loadList = useCallback(async () => {
+    const rows = await api<DossierSummary[]>();
+    if (mounted.current) setList(rows);
+  }, [api]);
+  const loadCatalog = useCallback(async () => {
+    const requestId = ++catalogRequest.current;
+    setCatalogLoading(true);
+    setCatalogError("");
+    try {
+      const rows = await api<PayrollReportRun[]>("?catalog=1");
+      if (mounted.current && requestId === catalogRequest.current) setRuns(rows);
+    } catch {
+      if (mounted.current && requestId === catalogRequest.current)
+        setCatalogError(
+          "No se ha podido leer el catálogo de PeopleNet. Reintenta la conexión para crear o actualizar las nóminas; los expedientes guardados se conservan.",
+        );
+    } finally {
+      if (mounted.current && requestId === catalogRequest.current) setCatalogLoading(false);
+    }
+  }, [api]);
+  useEffect(() => {
+    mounted.current = true;
+    void loadList().catch((reason: unknown) => {
+      if (mounted.current)
+        setError(reason instanceof Error ? reason.message : "No se pudo cargar el historial.");
+    });
+    void loadCatalog();
+    return () => {
+      mounted.current = false;
+    };
+  }, [loadCatalog, loadList]);
+  const perform = async (operation: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await operation();
+    } catch (reason) {
+      if (mounted.current)
+        setError(reason instanceof Error ? reason.message : "No se pudo completar la operación.");
+    } finally {
+      if (mounted.current) setBusy(false);
+    }
+  };
+  const accept = async (saved: Dossier) => {
+    if (!mounted.current) return;
+    setDossier(saved);
+    await loadList();
+  };
+  const mutate = (patch: Record<string, unknown>) => {
+    if (!dossier) return Promise.resolve();
+    return perform(async () => {
+      await accept(
+        await api<Dossier>("", {
+          method: "PATCH",
+          body: JSON.stringify({ id: dossier.id, revision: dossier.revision, ...patch }),
+        }),
+      );
+    });
+  };
+  const open = (id: string) =>
+    void perform(async () => {
+      const record = await api<Dossier>(`?id=${encodeURIComponent(id)}`);
+      if (mounted.current) {
+        setDossier(record);
+        setView("resumen");
+        setSearch("");
+        setStatus("all");
+        setControl("all");
+      }
+    });
+  const findings = useMemo(
+    () =>
+      dossier?.result.findings.filter(
+        (finding) =>
+          (control === "all" || finding.control === control) &&
+          (status === "all" || finding.status === status) &&
+          `${finding.employeeId} ${finding.name} ${finding.reason}`
+            .toLocaleLowerCase()
+            .includes(search.toLocaleLowerCase()),
+      ) ?? [],
+    [dossier, search, status, control],
+  );
+  const reviews = useMemo(() => {
+    const byId = new Map(dossier?.result.findings.map((finding) => [finding.id, finding]));
+    return (
+      dossier?.annotations.map((annotation) => ({
+        ...annotation,
+        finding: byId.get(annotation.findingId),
+      })) ?? []
+    );
+  }, [dossier]);
+  const showFinding = useCallback((finding: Finding) => {
+    setError("");
+    setSelected(finding);
+  }, []);
+  const exportCurrent = () =>
+    void perform(async () => {
+      if (!dossier) return;
+      const response = await fetch(`${ROOT}/export`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(companyId ? { "x-powermeta4-company": companyId } : {}),
+        },
+        body: JSON.stringify({ id: dossier.id, revision: dossier.revision }),
+      });
+      if (!response.ok) {
+        const body = (await response.json()) as { message?: string };
+        throw new Error(body.message ?? "No se pudo exportar.");
+      }
+      const blob = await response.blob();
+      if (mounted.current)
+        download(blob, `Cuadre_nomina_${dossier.period}_r${dossier.revision}.xlsx`);
+    });
+  return (
+    <main className="flex min-h-svh min-w-0 flex-col">
+      <PageHeader
+        title="Cuadre de nómina"
+        icon={FileSpreadsheet}
+        tone="green"
+        description="Contrasta nóminas y fuentes externas. Guarda el avance y complétalo cuando lleguen nuevos archivos."
+        actions={
+          <>
+            <Button size="sm" variant="outline" onClick={() => setNewOpen(true)} disabled={busy}>
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">Nuevo</span>
+              <span className="sr-only sm:hidden">Nuevo expediente</span>
+            </Button>
+            {dossier && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={exportCurrent}
+                disabled={busy}
+                aria-label="Exportar libro de cuadres"
+              >
+                <Download className="size-4" />
+                <span className="hidden sm:inline">Excel</span>
+              </Button>
+            )}
+          </>
+        }
+      />
+      <div className="mx-auto w-full min-w-0 max-w-7xl space-y-5 p-4 sm:p-6" aria-busy={busy}>
+        {error && !selected && (
+          <div
+            role="alert"
+            className="rounded-lg border border-destructive p-3 text-sm text-destructive"
+          >
+            {error}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (dossier) open(dossier.id);
+                else void perform(loadList);
+              }}
+            >
+              Volver a cargar
+            </Button>
+          </div>
+        )}
+        {catalogError && (
+          <p role="status" className="rounded-lg bg-muted p-3 text-sm">
+            {catalogError}
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={busy || catalogLoading}
+              onClick={() => void loadCatalog()}
+            >
+              Reintentar catálogo
+            </Button>
+          </p>
+        )}
+        {demo && (
+          <p className="rounded-lg bg-muted p-3 text-sm">
+            Modo de desarrollo: las ejecuciones de muestra son ficticias. No hay conexión con
+            PeopleNet.
+          </p>
+        )}
+        {!dossier ? (
+          <Panel title="Expedientes guardados">
+            <p className="text-sm text-muted-foreground">
+              Empieza con la nómina disponible y añade los archivos de contraste después. El avance
+              se guarda en esta instalación.
+            </p>
+            {!list.length && (
+              <Button onClick={() => setNewOpen(true)} disabled={busy}>
+                Crear primer expediente
+              </Button>
+            )}
+            <Table
+              data={list}
+              getRowId={(row) => row.id}
+              columns={[
+                { key: "title", header: "Expediente" },
+                { key: "period", header: "Mes" },
+                {
+                  key: "updatedAt",
+                  header: "Actualizado",
+                  cell: (row) => new Date(row.updatedAt).toLocaleString("es-ES"),
+                },
+                {
+                  key: "actions",
+                  header: "Acciones",
+                  cell: (row) => (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => open(row.id)}
+                        disabled={busy}
+                      >
+                        Abrir
+                      </Button>
+                      <Tooltip content="Eliminar expediente">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Eliminar expediente ${row.title}`}
+                          onClick={() => setDeleteTarget(row)}
+                          disabled={busy}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  ),
+                },
+              ]}
+              emptyState="Sin expedientes guardados"
+              scrollAreaLabel="Expedientes de cuadre"
+            />
+          </Panel>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h1 className="text-xl font-semibold">{dossier.title}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {dossier.period} · revisión {dossier.revision}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Tooltip content="Expedientes">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={busy}
+                    aria-label="Expedientes"
+                    onClick={() => setDossier(null)}
+                  >
+                    <FolderOpen className="size-4" />
+                  </Button>
+                </Tooltip>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => setRefreshOpen(true)}
+                >
+                  <RefreshCw className="size-4" />
+                  Actualizar desde PeopleNet
+                </Button>
+              </div>
+            </div>
+            <Tabs
+              value={view}
+              onValueChange={(value) => {
+                if (!busy) setView(value);
+              }}
+              variant="underline"
+            >
+              <TabsList>
+                {[
+                  ["resumen", "Resumen"],
+                  ["fuentes", "Fuentes"],
+                  ["controles", "Controles"],
+                  ["datos", "Datos"],
+                  ["revision", "Revisión"],
+                ].map(([id, name]) => (
+                  <TabsTrigger value={id} key={id}>
+                    {name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <TabsContent value="resumen">
+                <div className="space-y-5 pt-4">
+                  <Panel title="Estado del cuadre">
+                    <p className="text-sm">
+                      {
+                        dossier.result.findings.filter(
+                          (finding) => finding.status === "Con diferencia",
+                        ).length
+                      }{" "}
+                      diferencias y{" "}
+                      {
+                        dossier.result.findings.filter((finding) =>
+                          ["Falta fuente", "No comparable"].includes(finding.status),
+                        ).length
+                      }{" "}
+                      filas pendientes. Una coincidencia numérica no acredita el cierre de nómina.
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      {dossier.result.controls.map((item) => (
+                        <button
+                          type="button"
+                          key={item.id}
+                          className="rounded-lg border bg-background p-3 text-left focus-visible:outline-2 focus-visible:outline-ring"
+                          onClick={() => {
+                            setControl(item.id);
+                            setView("controles");
+                          }}
+                        >
+                          <span className="block text-sm font-medium">
+                            {item.id} · {item.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {item.matches} coinciden · {item.differences} diferencias ·{" "}
+                            {item.pending} pendientes
+                            {!item.total ? " · sin identidad utilizable" : ""}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    {dossier.result.diagnostics.length > 0 && (
+                      <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                        {dossier.result.diagnostics.map((message, index) => (
+                          <li key={index}>{message}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </Panel>
+                  <Panel title="Parámetros y reglas del periodo">
+                    <ParametersForm
+                      key={`${dossier.id}:${dossier.revision}`}
+                      parameters={dossier.parameters}
+                      busy={busy}
+                      onSave={(parameters: Parameters) =>
+                        void mutate({ action: "parameters", parameters })
+                      }
+                    />
+                  </Panel>
+                </div>
+              </TabsContent>
+              <TabsContent value="fuentes">
+                <SourcesView
+                  key={dossier.id}
+                  dossier={dossier}
+                  busy={busy}
+                  api={api}
+                  onBatch={(operation) =>
+                    perform(async () => {
+                      await operation((saved) => {
+                        if (mounted.current) setDossier(saved);
+                      });
+                      await loadList();
+                    })
+                  }
+                  onRemove={(sourceId) => void mutate({ action: "removeSource", sourceId })}
+                />
+              </TabsContent>
+              <TabsContent value="controles">
+                <RetainedPane active={view === "controles"}>
+                  <div className="space-y-4 pt-4">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <Input label="Buscar persona o motivo" value={search} onChange={setSearch} />
+                      <Choice
+                        label="Control"
+                        value={control}
+                        onChange={setControl}
+                        items={[
+                          { id: "all", name: "Todos" },
+                          ...dossier.result.controls.map((item) => ({
+                            id: item.id,
+                            name: `${item.id} ${item.name}`,
+                          })),
+                        ]}
+                      />
+                      <Choice
+                        label="Estado calculado"
+                        value={status}
+                        onChange={setStatus}
+                        items={[
+                          { id: "all", name: "Todos" },
+                          ...["Coincide", "Con diferencia", "Falta fuente", "No comparable"].map(
+                            (name) => ({ id: name, name }),
+                          ),
+                        ]}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {findings.length} filas. Abre una fila para ver operandos, evidencias y
+                      registrar la revisión.
+                    </p>
+                    <FindingTable findings={findings} showFinding={showFinding} />
+                  </div>
+                </RetainedPane>
+              </TabsContent>
+              <TabsContent value="datos">
+                <RetainedPane active={view === "datos"}>
+                  <div className="space-y-4 pt-4">
+                    <Choice
+                      label="Instantánea"
+                      value={dataMode}
+                      onChange={setDataMode}
+                      items={[
+                        { id: "actual", name: "Actual" },
+                        { id: "anterior", name: "Anterior" },
+                      ]}
+                    />
+                    <SnapshotTable dossier={dossier} previous={dataMode === "anterior"} />
+                  </div>
+                </RetainedPane>
+              </TabsContent>
+              <TabsContent value="revision">
+                <div className="space-y-4 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Las decisiones conservan el resultado calculado. Una evidencia modificada
+                    invalida su revisión.
+                  </p>
+                  <Table
+                    data={reviews}
+                    getRowId={(row) => row.findingId}
+                    autoHeight={reviews.length <= 7}
+                    variableRowHeight
+                    scrollAreaLabel="Revisiones guardadas"
+                    columns={[
+                      {
+                        key: "findingId",
+                        header: "Hallazgo",
+                        width: "280px",
+                        cell: (row) =>
+                          row.finding ? (
+                            <div className="space-y-1">
+                              <p>
+                                {row.finding.employeeId} · {row.finding.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {row.finding.control} · {metricLabel(row.finding.metric)}
+                              </p>
+                            </div>
+                          ) : (
+                            "Hallazgo anterior"
+                          ),
+                      },
+                      { key: "state", header: "Decisión", width: "180px" },
+                      { key: "comment", header: "Comentario", width: "240px" },
+                      {
+                        key: "at",
+                        header: "Fecha",
+                        width: "180px",
+                        cell: (row) => reconciliationDate(row.at),
+                      },
+                      {
+                        key: "invalidated",
+                        header: "Vigencia",
+                        width: "180px",
+                        cell: (row) =>
+                          !row.finding
+                            ? "Hallazgo anterior"
+                            : row.invalidated
+                              ? "Invalidada: revisar de nuevo"
+                              : "Vigente",
+                      },
+                      {
+                        key: "actions",
+                        header: "Acciones",
+                        width: "180px",
+                        cell: (row) => (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busy || !row.finding}
+                            aria-label={
+                              row.finding
+                                ? `Editar revisión de ${row.finding.employeeId}, ${row.finding.control}, ${metricLabel(row.finding.metric)}`
+                                : "Editar revisión de hallazgo anterior"
+                            }
+                            onClick={() => {
+                              if (row.finding) showFinding(row.finding);
+                            }}
+                          >
+                            Editar revisión
+                          </Button>
+                        ),
+                      },
+                    ]}
+                    emptyState="Sin revisiones guardadas. Abre un resultado desde Controles."
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
+      </div>
+      <Modal open={newOpen} onOpenChange={setNewOpen} title="Nuevo expediente" size="lg">
+        {error && (
+          <p role="alert" className="mb-3 text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <SelectionForm
+          runs={runs}
+          demo={demo}
+          busy={busy}
+          catalogLoading={catalogLoading}
+          catalogError={catalogError}
+          onRetryCatalog={() => void loadCatalog()}
+          onSubmit={(input) =>
+            void perform(async () => {
+              await accept(await api<Dossier>("", { method: "POST", body: JSON.stringify(input) }));
+              if (mounted.current) {
+                setNewOpen(false);
+                setView("resumen");
+              }
+            })
+          }
+        />
+      </Modal>
+      <Modal
+        open={refreshOpen}
+        onOpenChange={setRefreshOpen}
+        title="Actualizar desde PeopleNet"
+        description="Las nuevas instantáneas sustituirán a las guardadas. Se recalcularán los controles y las revisiones afectadas quedarán invalidadas."
+        size="lg"
+      >
+        {error && (
+          <p role="alert" className="mb-3 text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        {dossier && (
+          <SelectionForm
+            key={dossier.revision}
+            runs={runs}
+            demo={demo}
+            busy={busy}
+            catalogLoading={catalogLoading}
+            catalogError={catalogError}
+            onRetryCatalog={() => void loadCatalog()}
+            initial={{
+              title: dossier.title,
+              period: dossier.period,
+              current: dossier.current.run,
+              previous: dossier.previous?.run,
+            }}
+            onSubmit={(input) =>
+              void perform(async () => {
+                await accept(
+                  await api<Dossier>("", {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      id: dossier.id,
+                      revision: dossier.revision,
+                      action: "refresh",
+                      currentKey: input.currentKey,
+                      previousKey: input.previousKey,
+                      populationConfirmed: true,
+                    }),
+                  }),
+                );
+                if (mounted.current) setRefreshOpen(false);
+              })
+            }
+          />
+        )}
+      </Modal>
+      <Modal
+        open={Boolean(deleteTarget)}
+        onOpenChange={(value) => {
+          if (!value) setDeleteTarget(null);
+        }}
+        title="Eliminar expediente"
+        description="Se borrará el expediente de esta instalación. Las copias de seguridad anteriores conservarán sus datos."
+        footer={
+          <Button
+            disabled={busy}
+            onClick={() =>
+              void perform(async () => {
+                if (!deleteTarget) return;
+                await api("", {
+                  method: "DELETE",
+                  body: JSON.stringify({ id: deleteTarget.id, revision: deleteTarget.revision }),
+                });
+                if (mounted.current) setDeleteTarget(null);
+                await loadList();
+              })
+            }
+          >
+            Eliminar expediente
+          </Button>
+        }
+      >
+        <p>{deleteTarget?.title}</p>
+      </Modal>
+      <Modal
+        open={Boolean(selected)}
+        onOpenChange={changeReviewOpen}
+        title="Revisar resultado"
+        size="lg"
+        dismissible={!busy}
+      >
+        {error && (
+          <p role="alert" className="mb-3 text-sm text-destructive">
+            {error}
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                void perform(async () => {
+                  if (!dossier || !selected) return;
+                  const saved = await api<Dossier>(`?id=${encodeURIComponent(dossier.id)}`);
+                  await accept(saved);
+                  if (!mounted.current) return;
+                  const current = saved.result.findings.find(
+                    (finding) => finding.id === selected.id,
+                  );
+                  if (!current) {
+                    setSelected(null);
+                    setError(
+                      "El hallazgo ya no existe en el resultado actual. Su revisión se conserva como hallazgo anterior.",
+                    );
+                    return;
+                  }
+                  setSelected(current);
+                })
+              }
+            >
+              Volver a cargar expediente
+            </Button>
+          </p>
+        )}
+        {selected && (
+          <ReviewFields
+            key={selected.id}
+            selected={selected}
+            annotation={dossier?.annotations.find((item) => item.findingId === selected.id)}
+            busy={busy}
+            onCancel={() => setSelected(null)}
+            onSave={(state, comment) =>
+              void perform(async () => {
+                if (!dossier) return;
+                await accept(
+                  await api<Dossier>("", {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      id: dossier.id,
+                      revision: dossier.revision,
+                      action: "review",
+                      findingId: selected.id,
+                      fingerprint: selected.fingerprint,
+                      state,
+                      comment,
+                    }),
+                  }),
+                );
+                if (mounted.current) setSelected(null);
+              })
+            }
+          />
+        )}
+      </Modal>
+    </main>
+  );
+}
+
+/** Monta las tablas al visitarlas y conserva sus filtros al cambiar de pestaña. */
+function RetainedPane({ active, children }: { active: boolean; children: ReactNode }) {
+  const [visited, setVisited] = useState(active);
+  useEffect(() => {
+    if (active) setVisited(true);
+  }, [active]);
+  return active || visited ? children : null;
+}
+
+const FindingTable = memo(function FindingTable({
+  findings,
+  showFinding,
+}: {
+  findings: Finding[];
+  showFinding: (finding: Finding) => void;
+}) {
+  return (
+    <Table
+      data={findings}
+      getRowId={(row) => row.id}
+      height={520}
+      scrollAreaLabel="Resultados del cuadre"
+      onRowActivate={showFinding}
+      getRowAriaLabel={(row) => `Revisar ${row.employeeId}, ${row.metric}: ${row.status}`}
+      columns={[
+        { key: "employeeId", header: "Matrícula", width: "120px" },
+        { key: "name", header: "Persona", width: "200px" },
+        { key: "control", header: "Control", width: "90px" },
+        {
+          key: "metric",
+          header: "Concepto",
+          width: "230px",
+          cell: (row) => METRICS.find((metric) => metric.id === row.metric)?.header ?? row.metric,
+        },
+        {
+          key: "actual",
+          header: "Actual",
+          width: "130px",
+          cell: (row) => row.actual ?? "Pendiente",
+        },
+        {
+          key: "expected",
+          header: "Anterior / esperado",
+          width: "150px",
+          cell: (row) => row.expected ?? "Pendiente",
+        },
+        {
+          key: "delta",
+          header: "Diferencia",
+          width: "130px",
+          cell: (row) => row.delta ?? "—",
+        },
+        { key: "status", header: "Resultado", width: "160px" },
+      ]}
+    />
+  );
+});
+
+/** El borrador se actualiza sin volver a renderizar las tablas del expediente. */
+function ReviewFields({
+  selected,
+  annotation,
+  busy,
+  onCancel,
+  onSave,
+}: {
+  selected: Finding;
+  annotation?: Annotation;
+  busy: boolean;
+  onCancel: () => void;
+  onSave: (state: Annotation["state"], comment: string) => void;
+}) {
+  const invalidated = Boolean(
+    annotation && (annotation.invalidated || annotation.fingerprint !== selected.fingerprint),
+  );
+  const [reviewState, setReviewState] = useState<Annotation["state"]>(
+    invalidated ? "Pendiente" : (annotation?.state ?? "Pendiente"),
+  );
+  const [comment, setComment] = useState(annotation?.comment ?? "");
+  const [reviewInvalidated, setReviewInvalidated] = useState(invalidated);
+  const fingerprint = useRef(selected.fingerprint);
+  useEffect(() => {
+    if (fingerprint.current !== selected.fingerprint) {
+      fingerprint.current = selected.fingerprint;
+      setReviewState("Pendiente");
+      setReviewInvalidated(true);
+    }
+  }, [selected.fingerprint]);
+  return (
+    <div className="space-y-4">
+      {reviewInvalidated && (
+        <p role="status" className="rounded-lg bg-muted p-3 text-sm">
+          La evidencia ha cambiado. Revisa el resultado actual y confirma de nuevo la decisión. Se
+          conserva el comentario anterior para que puedas editarlo.
+        </p>
+      )}
+      <p className="font-medium">
+        {selected.employeeId} · {selected.name} ·{" "}
+        {METRICS.find((metric) => metric.id === selected.metric)?.header}
+      </p>
+      <p>
+        {selected.status} · actual {selected.actual ?? "pendiente"} · esperado{" "}
+        {selected.expected ?? "pendiente"} · diferencia {selected.delta ?? "pendiente"}{" "}
+        {selected.unit}
+      </p>
+      <p className="text-sm">{selected.reason || "Motivo desconocido — pendiente de revisión."}</p>
+      <ul className="max-h-40 list-disc overflow-auto break-all pl-5 text-xs text-muted-foreground">
+        {selected.evidence.map((evidence, index) => (
+          <li key={index}>{evidence}</li>
+        ))}
+      </ul>
+      <Choice
+        label="Decisión de revisión"
+        value={reviewState}
+        disabled={busy}
+        onChange={(value) => {
+          if (
+            value === "Pendiente" ||
+            value === "Diferencia justificada" ||
+            value === "Requiere corrección manual"
+          )
+            setReviewState(value);
+        }}
+        items={["Pendiente", "Diferencia justificada", "Requiere corrección manual"].map(
+          (name) => ({ id: name, name }),
+        )}
+      />
+      <Input
+        label="Comentario"
+        value={comment}
+        onChange={setComment}
+        maxLength={2000}
+        disabled={busy}
+      />
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="outline" disabled={busy} onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button
+          disabled={busy || (reviewState !== "Pendiente" && !comment.trim())}
+          onClick={() => onSave(reviewState, comment)}
+        >
+          Guardar revisión
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+const SnapshotTable = memo(function SnapshotTable({
+  dossier,
+  previous,
+}: {
+  dossier: Dossier;
+  previous: boolean;
+}) {
+  const [search, setSearch] = useState("");
+  const data = previous ? dossier.previous : dossier.current;
+  if (!data)
+    return <p>Sin ejecución anterior. Puedes elegirla desde Actualizar desde PeopleNet.</p>;
+  const rows = data.rows
+    .map((cells, index) => ({ id: String(index), cells }))
+    .filter((row) =>
+      row.cells.some((cell) => cell.toLocaleLowerCase().includes(search.toLocaleLowerCase())),
+    );
+  return (
+    <div className="min-w-0 space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Informe {data.run.reportId} · paga {data.run.accruedOn} · capturado{" "}
+        {new Date(data.capturedAt).toLocaleString("es-ES")} · {data.rows.length} filas. Se conservan
+        las columnas necesarias para el cuadre; NIF y cuentas bancarias se excluyen.
+      </p>
+      <Input label="Buscar en los datos" value={search} onChange={setSearch} />
+      <Table
+        data={rows}
+        getRowId={(row) => row.id}
+        height={520}
+        scrollAreaLabel="Datos de la instantánea de nómina"
+        columns={data.headers.map((header, index) => ({
+          key: String(index),
+          header,
+          width: "180px",
+          cell: (row: { cells: string[] }) => row.cells[index],
+        }))}
+      />
+    </div>
+  );
+});

@@ -48,7 +48,7 @@ const snapshot: WorkspaceSnapshot = {
   workspaces: {},
   auth: authContext,
   backupVersion: 1,
-  databaseSchemaVersion: 10,
+  databaseSchemaVersion: 11,
   appVersion: "0.1.0",
 };
 

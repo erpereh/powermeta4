@@ -2,7 +2,10 @@ import { requireAuthContext } from "@/lib/auth/session";
 import type { PortalContext } from "@/lib/portal/context";
 import { featureCatalogs, loadPortalCatalogs } from "@/lib/portal/data/catalogs";
 import { getOwnFile } from "@/lib/portal/data/organization";
-import { loadFeatureConsults } from "@/lib/portal/data/consults";
+import { loadPortalReadPage } from "@/lib/portal/read-provider";
+import { type PortalDebugSelection } from "@/lib/portal/read-model";
+import type { PortalReadParams } from "@/lib/portal/read-model";
+import { PortalReadQuery } from "../read-query";
 import { isFeatureAvailable } from "@/lib/portal/registry";
 import { readPortal } from "@/lib/portal/server";
 import type { PortalFeature } from "@/lib/portal/types";
@@ -21,11 +24,19 @@ const ownId = (context: Meta4Context): string | null =>
 async function FeatureData({
   feature,
   context,
+  debug,
 }: {
   feature: PortalFeature;
   context: PortalContext;
+  debug?: PortalDebugSelection | null;
 }) {
   if (feature.view !== "my-file") return null;
+  if (debug) {
+    if (debug.scenario === "error") return <PortalError message="Error simulado de la ficha propia." />;
+    const { debugPersonFile } = await import("@/lib/portal/organization-debug.fixture");
+    const file = debugPersonFile(debug, debug.actor, true);
+    return file ? <FileSections sections={file.sections} /> : null;
+  }
   if (context.mode !== "meta4") return null;
   const employeeId = ownId(context);
   if (!employeeId) {
@@ -74,9 +85,11 @@ async function FeatureData({
 export async function FeatureView({
   feature,
   context,
+  params = {},
 }: {
   feature: PortalFeature;
   context: PortalContext;
+  params?: PortalReadParams;
 }) {
   const variant = context.mode === "meta4" ? context.variant : null;
   if (variant && !isFeatureAvailable(feature, variant)) {
@@ -101,11 +114,13 @@ export async function FeatureView({
     context.mode === "meta4" && context.identity.status === "resolved"
       ? context.identity.person.hireDate
       : null;
-  const results = await loadFeatureConsults(feature, context);
+  const page = await loadPortalReadPage(feature, authSession, context, params);
+  const results = page.results;
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <FeatureHeader feature={feature} variant={variant} />
-      <FeatureData feature={feature} context={context} />
+      <FeatureData feature={feature} context={context} debug={page.debug} />
+      {feature.sections?.some((section) => section.kind === "query" && !section.query.form) ? <PortalReadQuery key={JSON.stringify(params)} route={feature.route} featureId={feature.id} page={page} /> : null}
       {feature.read.kind === "pending" &&
       (feature.sections ?? []).every((section) => section.kind !== "consult") ? (
         <DependencyState

@@ -1,5 +1,493 @@
 # powermeta4 - estado de tareas
 
+## C04: R1 histórica de julio acreditada — 2026-11-16
+
+- [x] Incorporado el código SQL aportado de R1 1800–31/07/2026, prioridad 2,
+      orden 100 y condición 0; coexistencia con la regla autogenerada de prioridad 3.
+- [x] PE1–PE5 también para IBER en la versión histórica; excepciones IBER solo
+      agosto–octubre. Prioridades de regla y asignaciones resueltas por separado.
+- [x] Mismo lector agrupado con RULE_ORDER añadido; procedencia JSON opcional
+      con variante, prioridad y orden, conservada ante un fallo de lectura posterior.
+      Sin migración, nueva pantalla/API ni cambios en C12 o las otras categorías.
+- [x] Ambas fórmulas, NULL, versiones, límite julio–agosto, fallos, recarga,
+      exportación y revisiones cubiertos; 190 pruebas dirigidas correctas en cinco
+      archivos. Typecheck correcto. Documentación y pasos VM actualizados.
+- [x] Lint global ejecutado: siete avisos y formato pendiente en los mismos
+      619 archivos preexistentes; sin reformateo general.
+- [x] Suite completa correcta: 218 archivos, 1.502 pruebas superadas y dos omisiones
+      preexistentes (447,50 s). Build correcto (44 páginas), formato dirigido de
+      39 archivos y diff sin errores. Estado Git revisado; davidev conservada,
+      sin ramas nuevas, commits ni push.
+- [ ] Actualizar las instantáneas en VM y contrastar asignaciones, devengo e
+      importes reales. La regla histórica sí está acreditada por la salida SQL;
+      la paridad económica del lector corregido continúa pendiente.
+
+## C04: configuración del mes sin bloqueo por R1 — 2026-11-16
+
+- [x] Retirado el rechazo anticipado por fecha; lectura de la regla vigente en
+      cualquier mes y reconocimiento de la regla conocida que conserva la definición.
+- [x] Cálculo desde las definiciones del convenio sin indicadores ni excepciones
+      R1 ajenos al periodo; cuatro lecturas agrupadas, frente a ocho con R1.
+- [x] R1 conserva código/vigencia agosto–octubre de 2026; reglas desconocidas,
+      ausentes, duplicadas o cambiantes pendientes con motivo concreto.
+- [x] Procedencia opcional de la regla en JSON y en el verificador, sin migración;
+      fórmulas, interfaz y C12 conservados. Casos sintéticos de julio, recarga,
+      exportación y revisiones ampliados; guía y contratos actualizados.
+- [x] Typecheck y formato dirigido correctos. Lint global ejecutado: siete avisos
+      y formato pendiente en los mismos 619 archivos anteriores.
+- [x] Suite completa correcta: 218 archivos, 1.476 pruebas superadas y dos omisiones
+      preexistentes. Build correcto (44 páginas), diff sin errores y estado Git
+      revisado; rama davidev, sin ramas nuevas, commits ni push.
+- [ ] Validar el recorrido corregido en VM con las instantáneas de julio y
+      contrastar definición, unidades e importes con PeopleNet. La captura recibida
+      acredita el bloqueo anterior, no la paridad económica del recorrido nuevo.
+
+## C04 automático desde PeopleNet — 2026-11-13
+
+- [x] Lectura SELECT agrupada al crear/actualizar instantáneas; mismo pool y
+      guardas existentes, sin recibos por empleado, nuevas APIs ni migración.
+- [x] Indicadores numéricos/NULL, prioridades, vigencias y R1 confirmada de
+      agosto a octubre de 2026; tratamiento específico IBER fiel al código aportado.
+- [x] Fórmulas automáticas condicionadas a configuración/devengo acreditados,
+      importes coherentes con el informe y ámbito empresa/matrícula/alta.
+- [x] Casos sin regla, herencia desconocida, parciales, errores de lectura y
+      periodos posteriores pendientes; C12 y revisiones ajenas conservados.
+- [x] Pruebas sintéticas de cálculo, lector, servidor, recarga y Excel ampliadas;
+      guía y contratos con límites reales y pasos VM actualizados.
+- [x] Comprobaciones ejecutadas: suite completa con 218 archivos correctos,
+      1.447 pruebas superadas y dos omisiones preexistentes; comprobación final
+      de Cuadre con 205 pruebas en 13 archivos. Typecheck, build (44 páginas),
+      formato de los 41 archivos comprobados y diff sin errores.
+- [ ] Lint global conserva siete avisos y formato pendiente en 619 archivos
+      preexistentes; sin reformateo general ni avisos nuevos en el cambio.
+- [ ] Validar lector/configuración/devengo con PeopleNet real en VM, incluyendo
+      salidas 01–05 ya solicitadas; las pruebas locales no sustituyen ese contraste.
+
+## Cuadre de nómina: correcciones de cálculo — 2026-11-12
+
+- [x] C01/C02/C08/C15 limitadas al mes inmediato mediante validación compartida;
+      códigos estables y tipo normalizado, sin bloquear por nombres descriptivos.
+- [x] C04 conserva extra completa y añade base × 3 / 12 con acreditación individual
+      y vigencia; sin contrato SQL suficiente, modalidad real pendiente.
+- [x] C13 agrega y cruza por empresa/matrícula, conserva antigüedad laboral,
+      detecta pagos faltantes y separa cobertura parcial/exhaustiva sin ceros ficticios.
+- [x] C12 y revisiones ajenas conservadas; regresión contra huellas anteriores.
+      Expedientes anteriores recalculados sin refresco SQL ni migración.
+- [x] Contratos y pasos VM documentados en la guía de Cuadre.
+- [x] Verificación ejecutada: `npm test` con 216 archivos correctos,
+      1.388 pruebas superadas y dos omisiones preexistentes; tras los últimos
+      casos límite, 148 pruebas dirigidas correctas en once archivos.
+      Typecheck y build (44 páginas) correctos; formato del módulo y diff sin errores.
+- [ ] Lint global conserva siete avisos y formato pendiente en 619 archivos
+      preexistentes; no se ha ejecutado un reformateo general.
+- [ ] Validar en VM población e informes de meses consecutivos y casos C04/C13.
+- [ ] Acreditar contrato PeopleNet de modalidad individual, «14 meses», vigencias,
+      devengos parciales, transiciones y elegibilidad/base de aniversarios con RRHH.
+
+## Cierre local sin nueva ejecución VM — 2026-11-11
+
+Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.
+
+- [x] Captura parcial running 539b018e-7e10-4ac3-9549-84299856cf09 revisada:
+      LFS completo de 283.170.405 bytes, hashes coherentes, 1.990 contratos,
+      nueve WSDL GET, 8.537 referencias pendientes y cero sondeos actuales.
+      Los seis archivos originales permanecen intactos.
+- [x] Certificado corregido con SSP_LG_ENT_ADDRESS → M4SSP_LG_ENT_ADD,
+      STD_N_GEO_PLACESP y orden SSP_FEC_FIN; alias y sociedad conservados.
+- [x] Contraste estático de 97 sentencias, con referencias ambiguas/no verificables
+      explícitas. Procedencia histórica desde Git por generación, revisión,
+      sociedad, apartado y huella de sentencia/alcance; sin copiar sondeos actuales.
+- [x] Saneamiento léxico SQL/LN4 idempotente y compartido, símbolos autocontenidos,
+      compatibilidad de evidencias antiguas y alcance limitado de métodos compartidos.
+- [x] Publicación única asíncrona por fragmentos, hashes incrementales, solicitudes
+      agrupadas, comprobación de espacio y reserva de 64 MiB; recuperación y diario
+      por fragmentos sin cargar el archivo completo; códigos técnicos de fallo.
+- [x] DEBUG actualizado al conjunto ficticio vigente y rechazos de personas
+      inexistentes, producción y activación incompleta; PDF/Excel reales.
+- [x] Borrador de Cuadre aislado de las tablas, conservando cancelación,
+      invalidación, revisión/fingerprint y recuperación de errores 409/500. Tablas
+      montadas al visitarlas y pestañas estables que conservan filtros al ocultarse.
+- [x] Excel y fixtures comparten Hwnd/PID/instante de creación, espera y cierre
+      exclusivo de la instancia propia. Casos nativos en serie, presupuesto de
+      180 s compartido y reserva de cierre, sin ampliar el timeout de interfaz.
+      Suite por grupos consecutivos: general, interfaz en serie y Excel en serie.
+      Edición por rangos contiguos solo de celdas autorizadas, sin fórmulas intermedias.
+- [x] Suite completa correcta: 215 archivos, 1.339 pruebas correctas y dos
+      omisiones preexistentes, sin fallos. Diez casos nativos Excel y ocho de
+      Cuadre incluidos; sin aumentar el límite de interfaz ni ejecutar alta Meta4.
+- [x] Revisión final: 101 pruebas dirigidas correctas en diez archivos, typecheck,
+      build (44 páginas), documentación, diff y estado Git comprobados. 97 sentencias
+      contrastadas, cero nombres físicos ausentes y siete con referencias no verificables.
+- [x] Lint ejecutado: siete avisos previos y formato pendiente en 619 archivos;
+      sin avisos nuevos ni reformateos generales. Rama davidev, 37 archivos en el
+      inventario, seis evidencias intactas, sin commits/push ni otra auditoría VM.
+- [ ] Límites que la captura no acredita: SQL corregido en vivo, permisos efectivos,
+      paridad visual y contratos completos de experiencia, criterios, GAP,
+      presupuesto y cálculos virtuales. Dependencias visibles, sin conjeturas.
+
+## Nueva evidencia VM y corrección de contratos — 2026-11-11 (histórico)
+
+- [x] Verificado el contenido completo Git LFS de dictionary.json (111.792.981
+      bytes, tamaño y SHA-256 del objeto coincidentes), los cinco hashes y la generación.
+- [x] Revisados los resultados: 98,2 s, 2.740 consultas, 819 contratos, nueve WSDL;
+      276 combinaciones SQL correctas, cinco fallidas y diez diferidas de 291.
+- [x] Corregidos los campos físicos de contratos, preferencias y las dos lecturas
+      de objetivos. Alias, filtros, identidad y jerarquía ORO conservados.
+- [x] Localidad del certificado corregida; correspondencia SSP_LG_ENT_ADDRESS
+      priorizada para la VM, sin inventar una tabla física ni marcarla validada.
+- [x] Eliminado el descarte a 5.000 referencias; cobertura y reanudación bajo los
+      presupuestos temporales existentes. Sondeos diferidos como incomplete.
+- [x] Revisión histórica sin alterar evidencias: pendientes desconocidos por recorte,
+      tareas diferidas separadas de fallos y nuevas sentencias pendientes de sondeo.
+- [x] Carga del diccionario sin análisis/clonado repetidos, índice reutilizado y
+      detección explícita de punteros LFS. Fixtures pequeños y comprobación real separada.
+- [x] 82 pruebas dirigidas en ocho archivos, typecheck y portal:docs correctos.
+- [x] Build correcto (44 páginas), diff y estado revisados. Suite completa con
+      dos procesos: 1.303 correctas, nueve fallidas, dos omitidas en 213 archivos.
+      Lint conserva siete avisos y 620 archivos con formato pendiente; sin reformateos generales.
+- [ ] Revisar las incidencias de comprobaciones ajenas al diagnóstico: tres fallos
+      DEBUG ya documentados, cuatro timeouts de Cuadre y dos casos nativos Excel.
+      Cuadre aislado con 15 s: seis correctas y un timeout; configuración sin cambios.
+- [ ] Recibir otra generación VM con la misma orden; revisar nuevos sondeos,
+      direcciones y cierre de referencias. Sin borrar cachés manualmente.
+- [ ] Contratos completos de experiencia, criterios, competencias/GAP y presupuesto;
+      permisos efectivos y paridad visual siguen pendientes por funcionalidad.
+
+## Primera corrección tras evidencias VM — 2026-11-11 (histórico)
+
+- [x] Verificada la generación recibida: fallo `UNSAFE_CHECKPOINT` tras 24,3 s;
+      271 consultas, 7.541 apartados, 3.383 referencias pendientes y cero sondeos.
+      Hashes coherentes con LF; seis salidas originales conservadas.
+- [x] Reproducido el rechazo de símbolos globales ausentes del lote. Saneamiento
+      y validación compartidos, símbolos usados autocontenidos y validación antes
+      de publicar. Lotes rechazados aislados; referencias pendientes y resto continúa.
+- [x] Comprobación de tipos, longitudes y rangos antes del adaptador; heurísticos
+      incompatibles contados, contratos incompatibles pendientes. Sin truncamientos.
+- [x] Esquema publicado al leerlo, inventario WSDL completo aun al fallar y LF
+      fijado para evidencias. Verificación de generaciones sin regenerar hashes.
+- [x] Nodo/TI de experiencia corregido; fragmentos originales de conocimientos
+      y criterios incorporados como fuentes. Generador y matriz distinguen
+      metadatos, sondeos, fuentes locales y verificaciones anteriores.
+- [x] 86 pruebas dirigidas correctas en ocho archivos de auditoría/registro.
+- [x] Suite completa ejecutada: 1.295 correctas, tres fallos previos de expectativas
+      DEBUG y dos omitidas; 211 archivos. Typecheck correcto; sin cambios en esos lectores.
+- [x] Build correcto (44 páginas), documentación regenerada y diff/estado revisados.
+      Lint conserva siete avisos previos y formato en 624 archivos, incluidos los
+      seis resultados VM preservados; sin avisos nuevos de código ni reformateo global.
+- [ ] Repetir el diagnóstico corregido en la VM y revisar columnas, sondeos y
+      dependencias restantes antes de cerrar integraciones del portal.
+
+## Diagnóstico de lectura observable y reanudable — 2026-11-10
+
+- [x] Separar planificación por lotes, ejecución cancelable y almacenamiento seguro.
+      Índice de esquema único, lotes de 150 claves tipadas, páginas de 2.000 filas,
+      deduplicación de referencias/reglas y eliminación del índice inverso de nodos.
+- [x] Prueba simulada de 71 referencias/40 tablas: 118 consultas de diccionario
+      frente a 2.840 (120 con esquema, dentro del máximo de 150);
+      sondeos agrupados de 145 a 97 por sociedad, con todas sus pantallas atribuidas.
+- [x] Inicio inmediato, progreso cada 5 s, consultas lentas desde 5 s, esperas propias
+      opcionales y resumen con duración, consultas, cobertura, errores y ruta.
+- [x] Presupuesto total de 30 min; diccionario 20 min y sondeos 8 min. Timeouts
+      nativos, cancelación real, corte tras cancelación no confirmada, circuitos por
+      familia y cierre acotado. Ctrl+C/SIGTERM guardan el avance.
+- [x] Diario saneado por lote bajo data ignorado, seis salidas de formato 2 por
+      generaciones y recuperación de publicación interrumpida. Reanudación <24 h
+      con huellas de código/fuentes, esquema y contexto/permisos; sondeos/WSDL nuevos.
+- [x] 43 pruebas dirigidas correctas en cinco archivos, sin conexión corporativa.
+      Typecheck correcto. Comprobaciones generales y detalle de fallos ajenos en
+      docs/portal/implementacion/continuidad-solo-lectura.md.
+- [x] Build correcto (44 páginas). Suite general ejecutada; saneamiento corregido
+      y repetido. Pase posterior sin Excel COM: 1.256 correctas, seis fallos ajenos
+      al diagnóstico y dos omitidas. Lint conserva siete avisos previos y formato
+      global pendiente; TypeScript del diagnóstico sin avisos ni errores de formato.
+- [ ] Revisar fuera de esta corrección las expectativas antiguas de certificados/
+      proyecciones DEBUG y los tres fallos intermitentes de la segunda corrida.
+- [x] Ejecutado el diagnóstico del 2026-11-10 en la VM; recibidos sus seis resultados
+      parciales. Repetición con la corrección del 2026-11-11 pendiente arriba.
+
+## Consultas del portal y continuidad con la VM — 2026-11-10
+
+- [x] Proveedores real/DEBUG separados, resultado ficticio identificado y activación
+      restringida por sesión, desarrollo y flag. Selector de persona, variante y
+      escenario por URL; aviso visible y navegación conservada, sin persistencia nueva.
+- [x] Consultas tipadas separadas de escrituras, filtros combinados y descargas
+      PDF/Excel con relectura/autorización en servidor. Equipo ORO revalidado en
+      pantalla, enlaces directos y exportaciones. Revisión salarial cerrada cuando
+      falta acreditar sus responsabilidades específicas.
+- [x] Lectores preparados de conocimientos, preferencias pendientes/registradas,
+      objetivos pendientes/vigentes, presencia calculada y apartados del dossier
+      del responsable; modos actual/retroactivo/combinado de nómina propia.
+      Beneficios consulta opciones/costes guardados; no inventa reglas de simulación.
+- [x] Guardia SQL reforzada: SELECT INTO, CTE de escritura, lotes, procedimientos
+      y referencias externas rechazados. Diagnóstico único `portal:readonly-audit`
+      con metadatos saneados, recuentos, GET WSDL, cobertura y fallos independientes.
+- [x] Matriz generada de 192 entradas y 154 apartados; menú/URL, controles, fuentes,
+      permisos, DEBUG y validación VM separados. Guía de continuidad y seis archivos
+      de evidencia previstos dentro del repositorio, sin commit/push automático.
+- [x] Playwright/Chrome: 16 medidas a 1440/1024/768/390 sin overflow; filtros,
+      escenarios, persona ajena, teclado, descargas de consultas y nómina,
+      modos retroactivo/combinado, ficha pública y jerarquía DEBUG: correctos.
+- [x] Typecheck y build correctos. Suite general ejecutada: el timeout previo de
+      Excel COM se mantiene; dos expectativas afectadas por interfaces nuevas se
+      corrigieron. Pase sin ese archivo: 205 archivos, 1.222 pruebas correctas y
+      2 omitidas. No se modifica código del alta de personas.
+- [x] Lint ejecutado: siete avisos previos; continúa formato global pendiente.
+      No se aplica reformateo general. Los archivos nuevos TypeScript se formatean.
+- [x] Pruebas posteriores de informes/proveedor: 69 correctas en siete archivos;
+      19 de auditoría/proveedor correctas tras los ajustes finales. Diff check
+      correcto y estado Git revisado; inventario de 82 archivos en continuidad.
+- [x] Recibidos los seis resultados de `docs/portal/implementacion/evidencias-vm/`;
+      fallo `UNSAFE_CHECKPOINT` analizado. La nueva ejecución sigue pendiente arriba.
+- [ ] Segunda sesión: leer primero manifiesto/errores y cerrar solo contratos
+      afectados, permisos y reglas virtuales acreditados; mantener pendientes
+      explícitos los destinos sin estructura y las simulaciones sin reglas LN4.
+- [ ] Repetir la integración Excel COM del alta en un entorno donde termine.
+
+## Formularios de expedientes simplificados — 2026-11-05
+
+- [x] Nuevo expediente y Actualizar instantáneas sin enlace a Resultados de
+      nómina ni casilla de confirmación. El botón principal confirma la selección
+      con el contrato `populationConfirmed: true`; parámetros y reglas conservados.
+- [x] Actualizar catálogo junto al nombre, a la derecha; Reintentar catálogo
+      en caso de error. Bloqueo durante carga u operación y adaptación móvil.
+      Se conservan las validaciones de nombre, ejecuciones con datos y periodo.
+- [x] Diecisiete pruebas dirigidas del formulario correctas; typecheck y build
+      correctos. Lint/formato dirigidos correctos. Lint global ejecutado: siete
+      avisos previos y formato pendiente en los mismos 618 archivos.
+- [x] Chrome headless con formulario y Modal reales, Inter de la build y catálogo
+      ficticio: creación/actualización, carga, error y reintento a cuatro anchuras
+      (1440/1024/768/390), sin overflow horizontal ni excepciones JavaScript.
+      Es una prueba aislada del formulario, sin conexión corporativa ni persistencia.
+- [x] Suite general ejecutada con dos workers y timeout de 20 s: 201 archivos,
+      1.192 pruebas correctas, 2 omitidas y un fallo por timeout propio de 180 s
+      en la integración Excel COM de fórmulas de moneda del alta de personas.
+      Pase sin ese archivo: 200 archivos, 1.183 pruebas correctas y 2 omitidas.
+      Diff check correcto y estado Git revisado; solo cinco archivos de la tarea.
+- [ ] Repetir la integración Excel COM de fórmulas de moneda del alta; el archivo
+      de integración y el código del alta no se modifican en esta tarea.
+
+## Comprobar y aplicar fuentes por separado — 2026-11-05
+
+- [x] Comprobar usa preview automático por ID/revisión, sin guardar ni alterar
+      resultados, notas, revisión o fecha. Resultado por archivo: nuevo,
+      sustitución con nombres, ya incorporado o error; diagnósticos conservados.
+- [x] Aplicar guarda solo los válidos revisados, encadena revisiones y conserva
+      los éxitos ante fallos posteriores. Errores globales exigen recargar y
+      comprobar de nuevo. Selección y controles bloqueados durante las operaciones.
+- [x] Categorías coincidentes quedan pendientes hasta quitar los sobrantes y
+      comprobar. Añadir/quitar archivos o cambiar la revisión invalida la revisión
+      de fuentes. Los límites conjuntos bloquean Aplicar; sustituciones primero
+      (las que reducen celdas antes) para respetar límites intermedios.
+- [x] Papelera accesible con tooltip en Expedientes guardados, manteniendo el
+      diálogo de confirmación. Sin migración, originales persistidos ni cambios ERP.
+- [x] Suite completa: 201 archivos, 1.187 pruebas correctas y 2 omitidas, con
+      `--maxWorkers=2 --testTimeout=20000`. Dos pases iniciales dirigidos agotaron
+      cinco segundos en distintas pruebas previas de revisión; el pase completo
+      con mayor margen y el dirigido final de tres archivos (43 pruebas) pasan.
+      Último ajuste de textos: 14 pruebas de Fuentes correctas.
+- [x] Setup en SQLite aislada, typecheck y build correctos. Navegador Chrome
+      headless con datos ficticios: comprobación sin cambios, lote con errores,
+      aplicación parcial, sustitución, invalidación de selección, conflicto,
+      duplicado, recarga persistida y confirmación de papelera. Cuatro anchuras
+      (1440/1024/768/390), sin overflow de página ni excepciones JavaScript.
+- [x] Lint global ejecutado: siete avisos anteriores y formato pendiente en
+      618 archivos. Los 13 archivos de código/guía modificados pasan formato
+      dirigido; todo/changelog mantienen su formato histórico. Diff y estado Git
+      revisados. Base, muestras, capturas y script de navegador quedan en data
+      ignorado. Guía de uso y contratos actualizada.
+
+## Carga múltiple automática de Fuentes — 2026-11-03
+
+- [x] Seleccionar o arrastrar varios archivos y pulsar Comprobar incorpora cada
+      válido, con errores independientes por archivo y reintento individual.
+      Cola secuencial, revisión encadenada, guardado parcial real, omisión de
+      duplicados y sustitución automática; prevalece el último válido de cada
+      categoría. Errores globales conservan la cola mientras la pantalla siga abierta.
+- [x] Registro tipado por hojas/cabeceras para los trece perfiles, sin clasificación
+      por nombre. Normal importa solo PPSE. Gimnasio y Apartamentos eligen columnas
+      por mes y explican los meses disponibles. Validación de devengo/nómina,
+      incluido septiembre para octubre y cambio de año; no se inventa devengo.
+- [x] Modalidad automática en analyze con ID/revisión/auto, periodo y categoría
+      del servidor; contrato manual compatible. Filename opcional en el JSON
+      existente, sin migración. Nuevas fuentes parciales, ausencias pendientes;
+      fuentes anteriores intactas hasta sustituirlas. Límites y aislamiento conservados.
+- [x] Fuentes sin selectores, casillas, vista previa ni segundo guardado; columnas
+      sin Perfil/Cobertura/Huella. Retirar y Expedientes con iconos accesibles y
+      tooltip; retirada confirmada. Subtítulo solo con mes/revisión y debug identificado.
+- [x] Suite completa: 201 archivos, 1.175 pruebas correctas y 2 omitidas. Tras
+      ajustar el diseño móvil, 49 pruebas dirigidas correctas en seis archivos.
+      Los diez originales se reconocen renombrados para octubre, sin modificar
+      sus hashes; julio rechaza los originales incompatibles con mensajes claros.
+- [x] Navegador real con base debug aislada: lote de cinco archivos (tres válidos,
+      corrupto y desconocido), duplicado, sustitución, recarga/reapertura, lote
+      de julio, recuperación de 503 simulado y confirmación de retirada. Fuentes
+      a 1440/1024/768/390 px sin overflow de página ni errores JavaScript.
+- [x] Setup aislado, typecheck y build correctos; lint global ejecutado conserva
+      siete avisos previos y 618 archivos con formato pendiente. Lint/formato
+      dirigido y diff check correctos; estado Git revisado. Guía actualizada,
+      originales y artefactos privados fuera de Git; sin acceso remoto ni escrituras ERP.
+
+## Excel de cuadre legible y revisión editable — 2026-11-03
+
+- [x] C01–C16 ordenadas por Con diferencia, Falta fuente, No comparable y
+      Coincide, con orden estable dentro del grupo y colores asociados al resultado.
+      Motivos automáticos breves solo al exportar; «Fuera del listado» conserva
+      cálculos, huellas y revisiones anteriores sin cambios.
+- [x] Las 23 hojas omiten hashes, perfiles, versiones e identificadores internos;
+      categorías, campos y parámetros legibles, sin parámetros duplicados. Se
+      conservan referencias operativas, ceros iniciales y precisión decimal.
+      Anchuras por contenido hasta 80 caracteres; nombres/conceptos en una línea
+      y comentarios extensos ajustables. Revisión identifica persona y concepto.
+- [x] Editar decisión y comentario desde Revisión, cancelar sin guardar,
+      comentario obligatorio para decisiones no pendientes, reapertura de
+      revisiones invalidadas como Pendiente con comentario anterior y bloqueo
+      de hallazgos antiguos. Conflictos conservan el borrador y permiten recargar.
+      Corregida la devolución de foco del modal mientras se escribe.
+- [x] Setup en base aislada de depuración; navegador real con creación, edición,
+      guardado, recarga, invalidación, cancelación y descarga. Modal con nombres
+      largos a 1440/1024/768/390 px, sin overflow de página ni errores JavaScript.
+      Excel nativo en solo lectura: 23 hojas, nombres/conceptos sin ajuste y fila
+      de 20 puntos; comentario de 915 caracteres ajustado a 180 puntos. Fichero intacto.
+- [x] Suite completa: 199 archivos, 1.153 pruebas correctas y 2 omitidas.
+      Tras la última simplificación de avisos, pase dirigido de tres archivos
+      con 27 pruebas correctas. Prueba local de diez originales correcta y
+      hashes inalterados. Typecheck y build correctos; lint global ejecutado
+      conserva siete avisos y 618 archivos con formato previo pendiente.
+      Lint/formato dirigido correcto; diff y estado Git comprobados.
+- [x] Guía con los diez archivos, categoría de carga y limitaciones: periodos,
+      tarifas, cobertura, identidad inválida de Eurest y fuentes pendientes de
+      excesos/anticipos. Originales privados, muestras y logs fuera de Git.
+- [ ] Piloto y reglas económicas pendientes de PeopleNet, sin conexión remota
+      durante esta entrega. No se modifican motor, esquema ni interfaces HTTP.
+
+## Excel de cuadre simplificado — 2026-10-28
+
+- [x] C01–C16 exportan siete columnas, sin Unidad, Resultado ni Evidencias.
+      IRPF identifica % y pp en sus cabeceras. Diferencias en naranja suave;
+      falta de fuente/no comparable en gris y coincidencias sin relleno especial.
+      El color procede del estado del motor, respetando sus tolerancias.
+- [x] Cuatro pruebas nuevas del XLSX reabierto: estructura de dieciséis controles,
+      signos/tolerancias EUR y pp, cuatro estados, vacíos y contenido auxiliar.
+      Comparación sintética con HEAD: siete hojas auxiliares idénticas en modelo.
+      Excel nativo en solo lectura: C01–C04 revisadas, ceros iniciales, cabeceras,
+      colores y motivos completos; originales corporativos sin modificar.
+- [x] Suite completa: 198 archivos, 1.141 pruebas correctas y 2 omitidas.
+      Typecheck, build y diff check correctos. Lint global ejecutado: siete
+      avisos previos y 618 archivos con formato pendiente; formato dirigido
+      correcto. Guía actualizada; muestras, PDF, vistas y logs excluidos de Git.
+
+## Selección de ejecuciones del cuadre — 2026-10-27
+
+- [x] Corregido el bloqueo del selector: informe y ejecución actual de cualquier
+      periodo; mes derivado de acumulación y de solo lectura. Identificadores
+      estables, fechas legibles y ejecuciones vacías deshabilitadas; `01` y
+      `01_C` siguen separados.
+- [x] Propuesta de anterior: última ejecución del mes natural anterior con igual
+      informe, frecuencia y tipo de paga conocido. Cambiar la selección exige
+      confirmar de nuevo. Carga tardía, error, vacío y reintento dentro del diálogo.
+- [x] Actualización de expedientes con el mismo selector y protección de su mes;
+      las instantáneas se conservan hasta confirmar. Sin cambios en SQLite,
+      lectores SQL, motor ni validaciones de periodo del servidor.
+- [x] Doce pruebas del formulario real y tres de creación/validación API nuevas.
+      Suite completa: 197 archivos, 1.137 pruebas correctas y 2 omitidas.
+      Typecheck, build y diff check correctos. Lint global ejecutado: siete
+      avisos previos y 618 archivos con formato pendiente; formato dirigido correcto.
+- [x] Navegador con formulario real, catálogo y servidor simulados: selección,
+      mes derivado y análisis con dieciséis controles. Formulario aislado sin
+      overflow horizontal a 390/768/1024/1440 px; no equivale a validar toda la
+      aplicación en esas resoluciones. Guía y flujos actualizados.
+- [ ] Confirmar en el catálogo corporativo qué ejecuciones existen, incluido
+      septiembre de 2026. No hay conexión PeopleNet configurada en este entorno.
+
+## Cuadre de nómina con expedientes reanudables — 2026-10-27
+
+- [x] Herramienta standalone en sidebar, `/tools/cuadre-nomina`, con selección
+      de todos los informes y ejecuciones disponibles, anterior opcional y
+      confirmación de población. Los lectores de Resultados de nómina conservan
+      su implementación y contrato.
+- [x] Motor decimal determinista, C01–C16, perfiles de los diez originales,
+      plantillas de excesos/anticipos/excepciones y parámetros por periodo.
+      No se inventan reglas proporcionales, causas históricas ni fuentes ausentes.
+- [x] Expedientes SQLite por empresa/sociedad, migración 011/esquema 11,
+      instantáneas conservadas hasta actualización explícita, carga progresiva,
+      revisión optimista, notas invalidadas por cambios y borrado confirmado.
+      Integrados en backups; no se guardan originales ni NIF/cuentas bancarias.
+- [x] Vista previa, análisis, revisión y libro de 23 hojas; límites de archivo,
+      cuerpo y expansión ZIP. Sesión/contexto/origen validados en servidor y
+      separación completa respecto al chat y las escrituras ERP.
+- [x] Scripts `cuadre:discover`, `cuadre:verify` y `cuadre:verify-local`, guía
+      IMPLEMENTATION y actualización de la documentación funcional/técnica.
+- [x] `npm run setup` aplicado en un directorio de prueba excluido, sin tocar
+      la base de producto del usuario. Typecheck y build correctos. Suite completa:
+      196 archivos, 1.121 pruebas correctas y 2 omitidas; tras los últimos ajustes,
+      repetición dirigida de siete archivos con 40 pruebas correctas.
+- [x] Contraste local con diez originales intactos: Mercer 484 coincidencias
+      por métrica; kilómetros 24 por métrica; apartamentos 57/1 diferencias;
+      tarjeta 335/1 por métrica; PPSE 239/4; gimnasio 42 coincidencias.
+      Navegador: creación, revisión, recarga/reapertura, fuente posterior de
+      11.646.303 bytes y descarga real del libro, con tema claro/oscuro.
+- [x] Lint global ejecutado: siete avisos previos y 618 archivos con formato
+      pendiente; 51 archivos de la entrega pasan el formato dirigido. Se conserva
+      el formato histórico de todo/changelog, sin una limpieza ajena a la tarea.
+      Originales, derivados, capturas, logs y SQLite de prueba excluidos de Git.
+- [ ] Piloto real en PeopleNet, reglas económicas Q pendientes y medición en VM.
+- [ ] Completar matriz visual de 1440/1024/768/390 px; revisión ejecutada a
+      1305 × 703, sin overflow horizontal de página. No se afirma cobertura móvil
+      completa ni un benchmark corporativo.
+
+## Contratos del cuadre con los Excel del cliente — 2026-10-26
+
+- [x] Diez originales excluidos de Git antes de generar derivados; 39 hojas
+      inspeccionadas, huellas antes/después idénticas, 42 vistas/rangos nativos
+      revisados. Excel en solo lectura, cálculo manual, sin actualizar vínculos
+      ni guardar los originales. Scripts, snapshots y logs privados excluidos.
+- [x] Siete documentos actualizados y anexos SOURCES, CONTROL_CONTRACTS y
+      VALIDATION: dieciséis controles, incluidos Gimnasio y ambos anticipos;
+      correspondencias, fórmulas, bloques, ocurrencias, signos y casos sintéticos.
+- [x] Decisión del usuario: herramienta standalone `cuadre-nomina` en sidebar,
+      como Registro Retributivo; nóminas desde SQL existente. Sin registrar
+      herramienta, implementar APIs, cambiar dependencias ni comportamiento.
+- [x] Contrastadas fuentes originales y snapshots; conservadas diferencias,
+      filas sin identidad y rangos incompletos. PPSE embebido identificado;
+      causas automáticas y reglas no demostradas siguen pendientes.
+- [x] Suite final sin solapar inspección Excel: 191 archivos, 1.097 pruebas
+      correctas y 2 omitidas. Primera ejecución con interferencia de otra
+      instancia Excel repetida y superada. Diez documentos con formato y
+      enlaces comprobados; typecheck/build siguen fallando por los tres tipos
+      obsoletos de `.next/dev/types` ya documentados. Lint global ejecutado:
+      siete avisos y formato previo pendiente en 631 archivos; formato
+      específico de esta entrega correcto.
+- [ ] Cerrar únicamente pendientes concretos de OPEN_QUESTIONS: anterior y
+      ejecuciones SQL identificadas, excesos y cuotas de anticipos, vigencias,
+      proporcionalidades y discrepancias de los originales. Después, piloto
+      en VM y aceptación por control; no declarar paridad completa ahora.
+
+## Especificación del cuadre de nómina desde reunión — 2026-10-26
+
+- [x] Reunión de 70:40 analizada por segmentos: transcripción local íntegra,
+      848 capturas periódicas, 169 de cambios y 46 de detalle revisadas;
+      manifiesto y notas reanudables privados. `/revision_video/` fuera de Git.
+- [x] Siete documentos en `docs/automatizacion-reunion/`: proceso con tiempos,
+      SPEC, automatización, flujos, arquitectura, roadmap y dudas. Quince
+      controles; hechos, inferencias y propuestas separados. Sin implementar
+      la acción ni modificar el comportamiento del producto.
+- [x] Suite completa: 191 archivos, 1.097 pruebas correctas y 2 omitidas.
+      Formato de los siete documentos y enlaces correctos. Lint global
+      ejecutado: siete avisos anteriores y 631 archivos con formato pendiente.
+      Typecheck y build ejecutados: fallan por tres referencias obsoletas de
+      `.next/dev/types` a rutas IA eliminadas del Registro Retributivo.
+- [ ] Recibir originales y validar perfiles, población, reglas económicas y
+      acceso (Q01–Q14). No declarar paridad completa sin esos contratos.
+- [ ] Implementación futura de «Cuadrar nómina» según SPEC y ROADMAP;
+      escrituras ERP e histórico propio quedan fuera de v1.
+
+## Excel del listado de usuarios — 2026-10-22
+
+- [x] Exportación a Excel de `/tools/users/list` con el filtro de búsqueda.
+- [x] Hoja «Detalle» con la ficha de cada persona exportada.
+- [ ] Medir el tiempo de exportación de los ~650 usuarios con PeopleNet real.
+- [ ] Revisión manual en navegador con Meta4 real pendiente.
+
 ## Registro Retributivo desde PeopleNet — 2026-10-22
 
 - [x] Origen «Desde PeopleNet» en Inicio (`Tabs segment`), además de subir
@@ -319,7 +807,7 @@
       correctos. Revisión visual con sesión debug y expansión por teclado.
 - [x] Lint dirigido correcto en los dos archivos de código; lint global
       ejecutado con siete avisos previos y 515 archivos con formato pendiente.
-- [x] Suite completa: 173 archivos, 942 pruebas correctas y 2 omitidas.
+- [x] Suite completa: 173 archivos, 943 pruebas correctas y 2 omitidas.
       `git diff --check` y `git status --short` revisados.
 
 ## Paneles laterales y buscador del portal — 2026-10-16

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PortalLink as Link } from "../portal-link";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,

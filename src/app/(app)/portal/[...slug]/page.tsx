@@ -11,6 +11,9 @@ import {
 } from "@/lib/portal/registry";
 import { getRequestPortalContext } from "@/lib/portal/server";
 import type { OrgSearchParams } from "@/lib/portal/organization-navigation";
+import { requireAuthContext } from "@/lib/auth/session";
+import { canUsePortalDebug } from "@/lib/portal/read-provider";
+import { debugSelection } from "@/lib/portal/read-model";
 
 const SEGMENT = /^[a-z0-9-]{1,60}$/;
 
@@ -48,17 +51,21 @@ export default async function PortalRoutePage({
   const domain = PORTAL_DOMAINS.find((candidate) => candidate.route === route);
   const menuLocation = getPortalMenuLocation(route);
   const context = await getRequestPortalContext();
+  const search = await searchParams;
+  const debug = context.mode === "unavailable" && context.reason === "debug" && canUsePortalDebug(await requireAuthContext(), context) ? debugSelection(search) : null;
   const destination = getPortalMenuRedirect(
     route,
-    context.mode === "meta4" ? context.variant : undefined,
+    context.mode === "meta4" ? context.variant : debug?.variant,
   );
-  if (destination) redirect(destination);
+  if (destination) redirect(debug ? `${destination}?${new URLSearchParams({ debugActor: debug.actor, debugVariant: debug.variant, debugScenario: debug.scenario })}` : destination);
   if (!feature && !domain && !menuLocation) notFound();
   if (feature)
     return (
       <FeatureDispatch
         feature={feature}
         context={context}
+        readSearchParams={search}
+        debug={debug}
         orgSearchParams={feature.view === "orgchart" ? await searchParams : undefined}
         projectionSearchParams={
           feature.view === "projections" || feature.view === "certificates"

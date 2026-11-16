@@ -1,4 +1,5 @@
-import { IconChip, SectionNav } from "@/components/system";
+import { IconChip } from "@/components/system";
+import { PortalSectionNav } from "./portal-link";
 import { PORTAL_ICON_TONES } from "@/lib/theme/icon-tones";
 import { getPortalMenuLocation, getPortalMenuPages } from "@/lib/portal/registry";
 import type { PortalFeature, PortalVariant } from "@/lib/portal/types";
@@ -26,7 +27,7 @@ export function FeatureHeader({
         </div>
       </div>
       {pages.length > 1 ? (
-        <SectionNav
+        <PortalSectionNav
           aria-label={`Páginas de ${location?.group?.title}`}
           overflow="menu"
           variant="segment"

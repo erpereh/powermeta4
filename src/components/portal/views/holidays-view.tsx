@@ -5,6 +5,7 @@ import { HOLIDAY_META4 } from "@/lib/portal/holidays/contract";
 import { loadHolidayPage, type HolidayLoad } from "@/lib/portal/holidays/load";
 import { DependencyState, PortalError } from "../portal-states";
 import { HolidayCalendarView } from "./holidays/calendar-view";
+import type { PortalReadParams } from "@/lib/portal/read-model";
 
 export function HolidayResult({ result }: { result: HolidayLoad }) {
   if (result.status === "unavailable") {
@@ -34,7 +35,7 @@ export function HolidayResult({ result }: { result: HolidayLoad }) {
   return <HolidayCalendarView data={result.data} debug={result.debug} />;
 }
 
-export async function HolidaysView({ context }: { context: PortalContext }) {
+export async function HolidaysView({ context, params = {} }: { context: PortalContext; params?: PortalReadParams }) {
   const auth = await requireAuthContext();
-  return <HolidayResult result={await loadHolidayPage(auth, context)} />;
+  return <HolidayResult result={await loadHolidayPage(auth, context, params)} />;
 }
