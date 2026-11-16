@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-11-16 - C04 valida la vigencia real, sin fechas literales de referencia
+
+- El motor 1.2.3 reconoce R1 por código ejecutable y metadatos confirmados;
+  exige fechas válidas que cubran el mes, sin compararlas literalmente con una
+  extracción anterior. El diagnóstico de la VM acreditó código coincidente,
+  prioridad 2, orden 100 y fin 4000-01-01: la exigencia de fin 2026-07-31 causaba
+  el rechazo. Los 35 CR/35 LF descartan el supuesto de saltos exclusivamente CR.
+- Conserva las vigencias leídas y los identificadores JSON. El código reconocido
+  determina las excepciones de IBER. Fechas ausentes, cobertura parcial, código
+  desconocido, metadatos incompatibles y reglas ambiguas siguen pendientes.
+  El motivo identifica el campo rechazado, también en el Excel de siete columnas.
+- No cambia fórmulas, requisitos de devengo, consultas SQL, C12 ni revisiones
+  ajenas. Sin nuevas APIs, migración ni cambios de autenticación. La guía usa
+  npm run dev para conservar acceso rápido/debug y aclara el selector opcional
+  de consola; una captura guardada solo se sustituye mediante actualización expresa.
+- Las 211 pruebas dirigidas de cinco archivos y typecheck pasan. Incluyen los
+  metadatos exactos de la VM, ambas fórmulas con fin 4000, errores por campo,
+  cobertura temporal, conflictos, lectura, recarga y exportación.
+- Suite completa correcta: 1.523 pruebas pasadas y dos omitidas en 218 archivos
+  (480,62 s); build correcto con 44 páginas y formato acotado correcto en
+  39 archivos. Diff sin errores y estado revisado en davidev; sin commits ni push.
+  Lint mantiene siete avisos y formato pendiente en los mismos 619 archivos
+  anteriores, sin reformateo general.
+  La causa está acreditada por la salida VM; la configuración individual, el
+  devengo y la paridad económica del recorrido corregido aún requieren contraste real.
+
 ## 2026-11-16 - C04 reconoce la R1 histórica de julio
 
 - El motor 1.2.2 reconoce el código y los metadatos aportados por el usuario de

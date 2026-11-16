@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## C04: vigencia real de PeopleNet — 2026-11-16
+
+- [x] Causa confirmada por diagnóstico VM: código histórico coincidente con
+      fin 4000-01-01 rechazado por exigir literalmente 2026-07-31.
+- [x] Identificación por código, TI, prioridad, orden y condición; cobertura
+      del mes con fechas reales válidas, conservadas en JSON y evidencia.
+      Perfiles sin límites de calendario fijos y sin modificar PeopleNet.
+- [x] Rechazos por campo para vigencia, código, TI, condición, prioridad, orden
+      e identificador; conflictos/duplicados pendientes. Fórmulas, C12 y
+      revisiones ajenas conservadas; autenticación y acceso rápido/debug intactos.
+- [x] Regresión de metadatos exactos VM, ambas fórmulas con fin 4000, fechas
+      parciales/inválidas, comportamientos por código, lectura, recarga y Excel:
+      211 pruebas dirigidas correctas en cinco archivos. Typecheck correcto.
+- [x] Guía/contratos actualizados; VM con npm run dev, selección JSON opcional
+      solo para consola y distinción entre regla acreditada y devengo pendiente.
+- [x] Lint global ejecutado: siete avisos y formato pendiente en los mismos
+      619 archivos previos; sin reformateo general.
+- [x] Suite completa: 1.523 pruebas correctas y dos omitidas en 218 archivos;
+      build correcto con 44 páginas. Formato acotado correcto en 39 archivos,
+      diff sin errores y estado revisado en davidev, sin commits ni push.
+- [ ] Actualizar instantáneas en VM y contrastar configuración, devengo e importes
+      reales tras superar la validación de R1. Sin más consultas para aislar esta causa.
+
 ## C04: R1 histórica de julio acreditada — 2026-11-16
 
 - [x] Incorporado el código SQL aportado de R1 1800–31/07/2026, prioridad 2,

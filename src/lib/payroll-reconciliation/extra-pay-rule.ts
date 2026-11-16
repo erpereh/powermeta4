@@ -1,6 +1,6 @@
 import type { ExtraPayRuleVariant } from "./types";
 
-/** Earlier R1 supplied from PeopleNet, valid through July 2026; no IBER exceptions. */
+/** Earlier R1 supplied from PeopleNet; five indicators with no IBER exceptions. */
 export const HISTORICAL_EXTRA_RULE = `
 SSP_PAG_EXT1.DESTROYBLOCK()
 SSP_PAG_EXT1.load_blk()
@@ -21,7 +21,7 @@ Next
 Endif
 Return(CSP_PRORRATEADA)`;
 
-/** R1 supplied from PeopleNet by the user, valid August–October 2026. */
+/** R1 first supplied for August–October 2026, including IBER exceptions. */
 export const VERIFIED_EXTRA_RULE = `
 SSP_PAG_EXT1.DESTROYBLOCK()
 SSP_PAG_EXT1.load_blk()
@@ -57,20 +57,16 @@ Next
 Endif
 Return(CSP_PRORRATEADA)`;
 
-/** Two explicitly verified versions, not a general LN4 interpreter. */
+/** Verified executable variants. Validity comes from the selected PeopleNet rows. */
 export const EXTRA_RULE_VERSIONS = [
   {
     variant: "r1-through-july-2026",
-    from: "1800-01-01",
-    to: "2026-07-31",
     priority: "2",
     order: "100",
     source: HISTORICAL_EXTRA_RULE,
   },
   {
     variant: "r1-aug-oct-2026",
-    from: "2026-08-01",
-    to: "2026-10-31",
     priority: "3",
     order: "100",
     source: VERIFIED_EXTRA_RULE,

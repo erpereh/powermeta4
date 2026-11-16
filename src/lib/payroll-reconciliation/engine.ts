@@ -18,7 +18,7 @@ import type {
   SourceFact,
 } from "./types";
 
-export const ENGINE_VERSION = "1.2.2";
+export const ENGINE_VERSION = "1.2.3";
 const zero = BigInt(0);
 
 function population(data: Snapshot | null): Map<string, { rows: number[]; name: string }> {

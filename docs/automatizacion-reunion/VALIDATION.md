@@ -1,5 +1,34 @@
 # Validación de fuentes y criterios de aceptación
 
+## Vigencia real leída en la VM — 2026-11-16
+
+El diagnóstico del propio proyecto en la VM confirma motor 1.2.2, comportamiento
+histórico instalado, lectura de RULE_ORDER y código coincidente. Devuelve R1
+desde 1800-01-01 hasta 4000-01-01, prioridad 2, orden 100, condición 0 y TI
+CSP_HRPERIOD_CALC. El rechazo se reproduce localmente y desaparece al cambiar
+solo el fin por el literal esperado anteriormente: queda aislada la causa.
+Los 35 CR y 35 LF de SQL descartan el supuesto de saltos exclusivamente CR.
+
+La regresión conserva los valores exactos de los metadatos de esa salida y
+personas/importes sintéticos. Cubre el reconocimiento y ambas fórmulas con fin
+4000, otra fecha final que cubre el mes, fechas inválidas o con cobertura parcial,
+campos de rechazo concretos, reglas activas superpuestas y comportamientos IBER
+según código. Incluye lectura, creación/actualización, recarga, exportación de
+siete columnas, mensajes del campo rechazado y revisiones C12.
+
+Comprobaciones locales ejecutadas: 211 pruebas dirigidas en cinco archivos;
+suite completa con 1.523 pruebas pasadas y dos omitidas en 218 archivos
+(480,62 s); `npm run typecheck` y `npm run build` correctos, con 44 páginas.
+`npm run lint` no pasa por el formato pendiente en los mismos 619 archivos
+previos y conserva siete avisos existentes. El formato acotado a 39 archivos
+de Cuadre/documentación es correcto. `git diff --check` sin errores y estado
+revisado en `davidev`, sin ramas nuevas, commits ni push.
+
+La regla y la causa del rechazo están acreditadas por la evidencia VM aportada.
+La lectura completa de configuración, devengo e importes del motor 1.2.3 sigue
+requiriendo contraste en la VM. Pasos actualizados en [IMPLEMENTATION](IMPLEMENTATION.md),
+manteniendo `npm run dev` para acceso rápido/debug y el acceso Meta4 para datos reales.
+
 ## R1 histórica de julio — 2026-11-16
 
 El usuario aporta la consulta real con `CSP_PRORRATEADA_REV` y R1 vigente
