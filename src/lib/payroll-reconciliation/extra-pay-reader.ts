@@ -15,7 +15,7 @@ import {
   type ExtraPayRow,
 } from "./extra-pay-resolution";
 import { EXTRA_PAY_SQL, EXTRA_PAY_UNSUPPORTED_SQL, EXTRA_PAY_APPLIED_SQL } from "./extra-pay-sql";
-import type { Snapshot } from "./types";
+import type { AutomaticExtraPayRule, Snapshot } from "./types";
 
 /** Enrich only a newly captured snapshot. Failure is isolated to C04. */
 export async function captureAutomaticExtras(current: Snapshot): Promise<Snapshot> {
@@ -28,10 +28,11 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
     runHash: hash(current.run),
     people: [],
   };
+  let resolvedRule: AutomaticExtraPayRule | undefined;
   const fail = (issue: string): Snapshot => ({
     ...current,
-    extraPayAutomatic: { ...automatic, issue },
-    hash: hash([current.hash, issue]),
+    extraPayAutomatic: { ...automatic, ...(resolvedRule ? { rule: resolvedRule } : {}), issue },
+    hash: hash([current.hash, resolvedRule ?? null, issue]),
   });
   if (!current.society || !["CYC", "IBER", "COLL"].includes(current.society))
     return fail("Sociedad de la captura sin acreditar.");
@@ -62,6 +63,7 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
     const rules = await read(EXTRA_PAY_SQL.rules);
     const resolution = resolveExtraRule(rules, period);
     if (!resolution.rule) return fail(resolution.issue);
+    resolvedRule = resolution.rule;
     const [payroll, histories] = await Promise.all([
       read(EXTRA_PAY_SQL.payroll),
       read(EXTRA_PAY_SQL.histories),

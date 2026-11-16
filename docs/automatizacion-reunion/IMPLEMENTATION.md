@@ -9,7 +9,7 @@ sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos
 
 ## C04 automático — 2026-11-13
 
-El motor 1.2.1 (corrección 2026-11-16) lee la configuración y el devengo al **crear
+El motor 1.2.2 (corrección 2026-11-16) lee la configuración y el devengo al **crear
 un expediente real o actualizar expresamente sus instantáneas**. Abrirlo,
 revisarlo, guardar parámetros y exportarlo reutilizan la captura guardada: no
 consultan ni actualizan PeopleNet silenciosamente. No hay migración adicional.
@@ -18,7 +18,8 @@ captura; una captura automática pendiente no se acredita con esos parámetros.
 
 La evidencia VM aportada por el usuario confirma `DMD1`, los componentes
 `CSP_PRORRATEADA_PE1…PE5`, valores por defecto (0 para 1–4; NULL para 5),
-asignaciones individuales y el código completo de `CSP_PRORRATEADA/R1`.
+asignaciones individuales y el código completo de dos versiones de `CSP_PRORRATEADA/R1`:
+la histórica hasta julio de 2026 y la versión de agosto a octubre de 2026.
 **Esto acredita el significado de los indicadores, no valida la nueva lectura
 SQL ni toda la población.** Las salidas de diagnóstico 01–05 siguen pendientes.
 
@@ -42,14 +43,20 @@ SQL ni toda la población.** Las salidas de diagnóstico 01–05 siguen pendient
   `CSP_PRORRATEADA_REV` con `Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)`, se
   conserva `SSP_PRORRATEADA` de la definición vigente de cada extra del convenio.
   No se leen ni aplican indicadores o excepciones de R1 en ese recorrido.
-- R1 solo se acepta con el código ejecutable y metadatos contrastados y vigencia
-  **01/08/2026–31/10/2026**. No se prolonga a otros meses. Julio, noviembre u otro
-  mes pueden calcularse desde la definición si la regla vigente lo acredita.
+- R1 se reconoce por su código ejecutable y sus metadatos contrastados:
+  **01/01/1800–31/07/2026, prioridad 2, orden 100**, o
+  **01/08/2026–31/10/2026, prioridad 3, orden 100**. Ambas tienen condición 0.
+  La regla autogenerada que conserva la definición tiene prioridad 3 y orden NULL;
+  puede coexistir con cualquiera de las dos. La prioridad de la regla es distinta
+  de la prioridad de las asignaciones; no modifica cómo se resuelven estas últimas.
+  No se prolonga ninguna versión a otras vigencias.
   Reglas ausentes, desconocidas, duplicadas o con cambios dentro del mes quedan
   pendientes con motivo concreto; ausencia de R1 por sí sola no acredita nada.
-- R1 usa `1 → S`, `0 → N`, `NULL → conservar definición`. En IBER fuerza S
-  para la extra 3; para la 4 fuerza N en convenio `0041`, S en otros convenios
-  acreditados. Solo actúa sobre extras que existen en su definición.
+- Ambas versiones de R1 usan `1 → S`, `0 → N`, `NULL → conservar definición`.
+  La histórica aplica los cinco indicadores también en IBER, sin excepciones.
+  Solo la versión de agosto–octubre fuerza S en IBER para la extra 3; para la 4
+  fuerza N en convenio `0041`, S en otros convenios acreditados. Cada versión
+  solo actúa sobre extras que existen en su definición.
 - Las correcciones se consultan a fecha de ejecución del informe (`runAt`).
   Historiales/definiciones sin corrección bitemporal modificados después de esa
   ejecución no se presentan como configuración histórica acreditada.
@@ -60,7 +67,10 @@ SQL ni toda la población.** Las salidas de diagnóstico 01–05 siguen pendient
   contraste cuando coinciden con esas claves; no acreditan modalidad por importe.
 - El JSON añade solo `extraPayAutomatic.rule`, opcional para capturas anteriores:
   modo `definition` o `R1`, identificadores, vigencias y hash del código reconocido.
-  La procedencia del hallazgo recoge la regla utilizada, sin guardar código LN4.
+  La ampliación 1.2.2 añade propiedades opcionales `variant` y prioridad/orden
+  de cada versión. El verificador muestra esa evidencia, incluso si falla una
+  lectura posterior. La procedencia del hallazgo recoge la versión utilizada,
+  sin guardar código LN4. Las capturas anteriores conservan su compatibilidad.
 
 ### Fórmulas y pendientes
 
@@ -100,21 +110,26 @@ C12 y las huellas de todos los controles ajenos a C04 se conservan.
    npm run cuadre:verify -- CYC --selection ".\data\cuadre-selection.json"
    ```
 
-   Revisar `engineVersion` (`1.2.1`), `extraPayModality.issue`, `rule`, `people`,
+   Revisar `engineVersion` (`1.2.2`), `extraPayModality.issue`, `rule`, `people`,
    `accredited` y `pending`, y el resumen de C04. `accredited` cuenta configuraciones sin incidencia; no implica
    que todos sus devengos permitan aplicar una fórmula económica.
 
-   Para julio, si PeopleNet devuelve solo la regla conocida que conserva la definición,
-   `rule.mode` debe ser `definition`, con `CSP_PRORRATEADA_REV` en `rule.versions`.
-   El motivo general «R1 está confirmada solo de agosto a octubre» debe desaparecer.
+   Para la R1 histórica de julio aportada por el usuario, `rule.mode` debe ser
+   `R1`, `rule.variant` debe ser `r1-through-july-2026` y su entrada en
+   `rule.versions` debe mostrar fin `2026-07-31`, prioridad `2` y orden `100`.
+   Debe desaparecer «Código o metadatos de la regla de prorrateo R1 sin acreditar
+   para 2026-07». Si solo está activa la regla que conserva la definición, el modo
+   seguirá siendo `definition`. En agosto–octubre, la variante reconocida es
+   `r1-aug-oct-2026`. Una regla reconocida no acredita por sí sola el devengo.
    La selección puede conservar `previousKey: null` para probar solo C04; los
    controles mensuales necesitan el mes anterior y seguirán pendientes sin él.
 
 4. Contrastar con PeopleNet una extra completa, una modalidad con exactamente
    las tres extras prorrateadas, una diferencia conocida, un pago faltante y un
    caso parcial. Confirmar el mapeo de acumulados, tipo salarial/unidades,
-   porcentajes, ausencias y calendario. En IBER revisar las excepciones de extras
-   3/4 únicamente con R1 vigente; en julio manda la definición acreditada.
+   porcentajes, ausencias y calendario. En IBER comprobar que julio respeta los
+   cinco indicadores y que las excepciones de extras 3/4 solo se aplican con la
+   versión agosto–octubre. No acreditar modalidad por coincidencia del importe.
 5. Verificar recarga/exportación sin nuevas lecturas, conservación de revisiones
    C12 y el comportamiento según la regla vigente en otros meses. Ante diferencias
    de captura, actualizar/generar
@@ -125,10 +140,11 @@ Pruebas locales y resultados finales de esta entrega: `VALIDATION.md` y
 entorno local. «14 meses» sigue siendo una etiqueta de RRHH sin correspondencia
 anual acreditada: el control usa el tratamiento real de cada extra.
 
-La captura de julio recibida el 2026-11-16 acredita que la versión anterior se
-detenía antes de leer PeopleNet por el límite de R1. No acredita todavía el
-resultado del recorrido corregido: siguen pendientes su lectura SQL real,
-la cobertura de configuración y el contraste económico de los casos de julio.
+Las capturas de julio recibidas el 2026-11-16 muestran primero el bloqueo por
+mes y después el rechazo de la R1 histórica. La salida SQL posterior acredita
+su código, vigencia, prioridad 2 y orden 100, además de la regla autogenerada.
+Esas evidencias no prueban todavía la cobertura de configuración, el devengo
+ni la paridad económica de los casos reales con el lector 1.2.2 corregido.
 
 ## Correcciones de cálculo — 2026-11-12 (histórico)
 

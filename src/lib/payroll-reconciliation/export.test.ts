@@ -76,7 +76,7 @@ describe("reconciliation workbook", () => {
     expect(JSON.stringify(values(sheet.getRow(2)))).not.toContain("Pendiente");
     expect(sheet.getRow(2).getCell(1).value).toContain("Sin pagos de extras");
   });
-  it.each(["R1", "definition"] as const)(
+  it.each(["R1", "definition", "historical"] as const)(
     "exports %s automatic extras without manual parameters using seven columns",
     async (mode) => {
       const fixture = automaticExtraFixture(mode === "R1" ? "2026-10" : "2026-07", mode);

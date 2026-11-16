@@ -42,13 +42,17 @@ export type AutomaticExtraPay = {
   issue?: string;
   people: AutomaticExtraPayPerson[];
 };
+export type ExtraPayRuleVariant = "r1-through-july-2026" | "r1-aug-oct-2026";
 export type AutomaticExtraPayRule = {
   mode: "definition" | "R1";
+  variant?: ExtraPayRuleVariant;
   versions: {
     id: string;
     validFrom: string;
     validTo: string;
     sourceHash: string;
+    priority?: string;
+    order?: string | null;
   }[];
 };
 export type AutomaticExtraPayPerson = {

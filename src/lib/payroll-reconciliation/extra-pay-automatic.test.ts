@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { automaticExtraFixture } from "./extra-pay.fixture";
-import { extraProration, extraRuleTokens, VERIFIED_EXTRA_RULE } from "./extra-pay-rule";
+import {
+  extraProration,
+  extraRuleTokens,
+  HISTORICAL_EXTRA_RULE,
+  VERIFIED_EXTRA_RULE,
+} from "./extra-pay-rule";
 import { resolveAutomaticExtras, resolveExtraRule } from "./extra-pay-resolution";
 import { reconcile, retainAnnotations } from "./engine";
 import { hash } from "./hash";
@@ -60,7 +65,7 @@ describe("confirmed R1 semantics", () => {
       expect(resolveExtraRule(input.data.rules, "2026-10").issue).toBeDefined();
     }
   });
-  it.each(["duplicate", "condition", "priority", "dates", "additional"])(
+  it.each(["duplicate", "condition", "priority", "order", "dates", "additional"])(
     "rejects %s rule evidence",
     (kind) => {
       const input = automaticExtraFixture();
@@ -68,19 +73,179 @@ describe("confirmed R1 semantics", () => {
       if (kind === "additional") input.data.rules.push({ ...input.data.rules[0], RULE_ID: "R2" });
       if (kind === "condition") input.data.rules[0] = { ...input.data.rules[0], CONDITION: "1" };
       if (kind === "priority") input.data.rules[0] = { ...input.data.rules[0], PRIORITY: "0" };
+      if (kind === "order") input.data.rules[0] = { ...input.data.rules[0], RULE_ORDER: "101" };
       if (kind === "dates") input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "4000-01-01" };
       expect(resolveExtraRule(input.data.rules, "2026-10").issue).toBeDefined();
     },
   );
   it("reproduces NULL inheritance and the confirmed IBER branches only for defined extras", () => {
-    expect(extraProration("CYC", "A", 1, null, true)).toBe(true);
-    expect(extraProration("CYC", "A", 1, 0, true)).toBe(false);
-    expect(extraProration("CYC", "A", 1, 1, false)).toBe(true);
-    expect(extraProration("CYC", "A", 1, null, null)).toBeNull();
-    expect(extraProration("IBER", "0041", 3, 0, false)).toBe(true);
-    expect(extraProration("IBER", "0041", 4, 1, true)).toBe(false);
-    expect(extraProration("IBER", "0042", 4, 0, false)).toBe(true);
-    expect(extraProration("IBER", "", 4, 0, false)).toBeNull();
+    expect(extraProration("r1-aug-oct-2026", "CYC", "A", 1, null, true)).toBe(true);
+    expect(extraProration("r1-aug-oct-2026", "CYC", "A", 1, 0, true)).toBe(false);
+    expect(extraProration("r1-aug-oct-2026", "CYC", "A", 1, 1, false)).toBe(true);
+    expect(extraProration("r1-aug-oct-2026", "CYC", "A", 1, null, null)).toBeNull();
+    expect(extraProration("r1-aug-oct-2026", "IBER", "0041", 3, 0, false)).toBe(true);
+    expect(extraProration("r1-aug-oct-2026", "IBER", "0041", 4, 1, true)).toBe(false);
+    expect(extraProration("r1-aug-oct-2026", "IBER", "0042", 4, 0, false)).toBe(true);
+    expect(extraProration("r1-aug-oct-2026", "IBER", "", 4, 0, false)).toBeNull();
+  });
+});
+
+describe("historical R1 through July 2026", () => {
+  it.each(["2025-07", "2026-06", "2026-07"])(
+    "recognizes %s and the coexisting priority-3 preserving rule",
+    (period) => {
+      const input = automaticExtraFixture(period, "historical");
+      input.data.rules.push(...automaticExtraFixture(period, "definition").data.rules);
+      const resolved = resolveExtraRule(input.data.rules, period);
+      expect(resolved.issue).toBeUndefined();
+      expect(resolved.rule).toMatchObject({
+        mode: "R1",
+        variant: "r1-through-july-2026",
+        versions: [
+          { id: "CSP_PRORRATEADA_REV", priority: "3", order: null },
+          { id: "R1", validFrom: "1800-01-01", validTo: "2026-07-31", priority: "2", order: "100" },
+        ],
+      });
+    },
+  );
+  it.each(["0", "1", "1.00000000", null])(
+    "uses %s for all five extras without IBER exceptions",
+    (value) => {
+      for (const society of ["CYC", "IBER", "COLL"]) {
+        for (const agreement of ["0041", "0042"]) {
+          const input = automaticExtraFixture("2026-07", "historical");
+          input.current.society = society;
+          input.data.histories[0] = { ...input.data.histories[0], VALUE: agreement };
+          input.data.definitions = [1, 2, 3, 4, 5].map((order) => ({
+            ...input.data.definitions[0],
+            AGREEMENT: agreement,
+            ORDINAL: String(order),
+            ORIGINAL: "N",
+          }));
+          prorate(input, value);
+          input.data.values.push(
+            ...[4, 5].map((order) => ({
+              ...input.data.values[0],
+              COMPONENT: `CSP_PRORRATEADA_PE${order}`,
+            })),
+          );
+          capture(input);
+          const person = input.current.extraPayAutomatic?.people[0];
+          expect(person?.issue).toBeUndefined();
+          expect(person?.extras.map((extra) => extra.prorated)).toEqual(
+            Array.from({ length: 5 }, () => value !== null && value !== "0"),
+          );
+        }
+      }
+    },
+  );
+  it("preserves each original definition for NULL instead of taking a default or IBER override", () => {
+    const input = automaticExtraFixture("2026-07", "historical");
+    input.current.society = "IBER";
+    input.data.definitions = input.data.definitions.map((row) => ({ ...row, ORIGINAL: "S" }));
+    prorate(input, null);
+    capture(input);
+    expect(input.current.extraPayAutomatic?.people[0].extras.every((extra) => extra.prorated)).toBe(
+      true,
+    );
+  });
+  it("calculates both July formulas without treating rule priority as assignment priority", () => {
+    const input = automaticExtraFixture("2026-07", "historical");
+    prorate(input, "0");
+    input.data.values = input.data.values.map((row) => ({ ...row, PRIORITY: "3" }));
+    paid(input, "extra3", "1999.98");
+    capture(input);
+    expect(find(input, "extra3")).toMatchObject({ expected: "2000", delta: "-0.02" });
+    expect(find(input, "extra3")?.evidence.join(" ")).toContain("r1-through-july-2026");
+    paid(input, "extra3", "0");
+    paid(input, "extraProrated", "449.98");
+    input.data.values.push(
+      ...input.data.values.map((row) => ({ ...row, VALUE: "1.00000000", PRIORITY: "0" })),
+    );
+    capture(input);
+    expect(find(input, "extraProrated")).toMatchObject({ expected: "450", delta: "-0.02" });
+    input.data.payroll[0] = { ...input.data.payroll[0], FIXED_UNITS: "0.5" };
+    capture(input);
+    expect(find(input, "extraProrated")?.expected).toBeNull();
+  });
+  it("selects historical July and modern August without leaking IBER behavior across the boundary", () => {
+    for (const [period, mode, variant, prorated] of [
+      ["2026-07", "historical", "r1-through-july-2026", false],
+      ["2026-08", "R1", "r1-aug-oct-2026", true],
+    ] as const) {
+      const input = automaticExtraFixture(period, mode);
+      input.current.society = "IBER";
+      capture(input);
+      expect(input.current.extraPayAutomatic?.rule?.variant).toBe(variant);
+      expect(
+        input.current.extraPayAutomatic?.people[0].extras.find((extra) => extra.order === 3)
+          ?.prorated,
+      ).toBe(prorated);
+    }
+    const historical = automaticExtraFixture("2026-07", "historical");
+    expect(resolveExtraRule(historical.data.rules, "2026-08").issue).toBeDefined();
+  });
+  it("ignores formatting/comments but does not equate the two executable versions", () => {
+    const input = automaticExtraFixture("2026-07", "historical");
+    input.data.rules[0] = {
+      ...input.data.rules[0],
+      SOURCE:
+        "// Comentario\n" +
+        HISTORICAL_EXTRA_RULE.replace("Next\n", "Next 'i\n").replaceAll("\n", "\r\n"),
+      PRIORITY: "2.00000000",
+      RULE_ORDER: "100.00000000",
+    };
+    expect(resolveExtraRule(input.data.rules, input.period).rule?.variant).toBe(
+      "r1-through-july-2026",
+    );
+    input.data.rules[0] = { ...input.data.rules[0], SOURCE: VERIFIED_EXTRA_RULE };
+    expect(resolveExtraRule(input.data.rules, input.period).issue).toBeDefined();
+  });
+  it("reloads previously captured extras without requiring the new optional metadata", () => {
+    const input = capture(automaticExtraFixture());
+    const before = reconcile(input);
+    const automatic = input.current.extraPayAutomatic;
+    if (!automatic?.rule) throw new Error("Missing fixture capture");
+    delete automatic.rule.variant;
+    automatic.rule.versions = automatic.rule.versions.map(
+      ({ id, validFrom, validTo, sourceHash }) => ({ id, validFrom, validTo, sourceHash }),
+    );
+    const reloaded: Fixture = JSON.parse(JSON.stringify(input));
+    expect(reconcile(reloaded)).toEqual(before);
+  });
+  it.each([
+    "source",
+    "priority",
+    "condition",
+    "order",
+    "missingOrder",
+    "dates",
+    "duplicate",
+    "unknown",
+    "transition",
+  ])("keeps %s historical evidence pending", (kind) => {
+    const input = automaticExtraFixture("2026-07", "historical");
+    if (kind === "source")
+      input.data.rules[0] = {
+        ...input.data.rules[0],
+        SOURCE: HISTORICAL_EXTRA_RULE.replace("= 1 and", "= 0 and"),
+      };
+    if (kind === "priority") input.data.rules[0] = { ...input.data.rules[0], PRIORITY: "3" };
+    if (kind === "condition") input.data.rules[0] = { ...input.data.rules[0], CONDITION: "1" };
+    if (kind === "order") input.data.rules[0] = { ...input.data.rules[0], RULE_ORDER: "101" };
+    if (kind === "missingOrder") input.data.rules[0] = { ...input.data.rules[0], RULE_ORDER: null };
+    if (kind === "dates") input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "4000-01-01" };
+    if (kind === "duplicate") input.data.rules.push(input.data.rules[0]);
+    if (kind === "unknown") input.data.rules.push({ ...input.data.rules[0], RULE_ID: "R2" });
+    if (kind === "transition")
+      input.data.rules[0] = { ...input.data.rules[0], DATE_TO: "2026-07-15" };
+    capture(input);
+    expect(find(input, "extra3")).toMatchObject({
+      expected: null,
+      delta: null,
+      status: "No comparable",
+    });
+    expect(input.current.extraPayAutomatic?.issue).toBeTruthy();
   });
 });
 
@@ -472,7 +637,7 @@ describe("automatic C04", () => {
     ]);
     expect(new Set(findings.map((row) => row.id)).size).toBe(2);
   });
-  it.each(["R1", "definition"] as const)(
+  it.each(["R1", "definition", "historical"] as const)(
     "retains other findings/reviews, including C12, after %s capture and reload",
     (mode) => {
       const input = automaticExtraFixture(mode === "R1" ? "2026-10" : "2026-07", mode);

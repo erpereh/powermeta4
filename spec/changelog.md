@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-11-16 - C04 reconoce la R1 histórica de julio
+
+- El motor 1.2.2 reconoce el código y los metadatos aportados por el usuario de
+  R1 vigente desde 1800 hasta 31/07/2026, prioridad 2, orden 100 y condición 0.
+  Conserva por separado agosto–octubre de 2026, prioridad 3 y orden 100.
+  Código ejecutable, fechas y metadatos deben coincidir con la versión acreditada.
+- La versión histórica usa los cinco indicadores en todas las sociedades,
+  incluyendo IBER; las excepciones de extras 3/4 solo se ejecutan en la posterior.
+  La prioridad de la regla no modifica la resolución de asignaciones individuales.
+  La regla autogenerada de prioridad 3 y orden NULL puede coexistir con ambas.
+- RULE_ORDER añadido a la SELECT existente; mismo pool, guardas y lecturas
+  agrupadas. Evidencia opcional ampliada con variante, prioridad y orden, visible
+  en el verificador y conservada si falla después una lectura de configuración.
+  Sin nuevas pantallas, endpoints, migración, archivos externos ni cambios en C12.
+- Pruebas ampliadas de ambas fórmulas en julio, cinco indicadores, 0/1/decimales/
+  NULL, CYC/IBER/COLL, convenios, frontera julio–agosto, errores, capturas antiguas,
+  actualización, exportación y revisiones. Las 190 pruebas dirigidas de cinco
+  archivos pasan y typecheck es correcto. Suite completa correcta: 218 archivos,
+  1.502 pruebas superadas y dos omisiones preexistentes (1.504 total, 447,50 s).
+  Build correcto (44 páginas), formato dirigido correcto en 39 archivos y diff
+  sin errores. Estado Git revisado; davidev conservada, sin ramas, commits ni push.
+- Lint mantiene siete avisos y formato pendiente en los mismos 619 archivos
+  previos, sin reformateo general. La salida SQL acredita la regla histórica;
+  cobertura, devengo y paridad económica reales del lector corregido requieren VM.
+
 ## 2026-11-16 - C04 resuelve la configuración vigente también en julio
 
 - Corregido el bloqueo de C04 por fecha anterior a cualquier lectura PeopleNet.

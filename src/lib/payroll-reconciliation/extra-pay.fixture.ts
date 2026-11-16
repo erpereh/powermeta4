@@ -1,11 +1,15 @@
 import { demoReport } from "./demo";
 import { snapshot } from "./snapshot";
-import { VERIFIED_EXTRA_RULE } from "./extra-pay-rule";
+import { HISTORICAL_EXTRA_RULE, VERIFIED_EXTRA_RULE } from "./extra-pay-rule";
 import { extraMonth, type ExtraPayData } from "./extra-pay-resolution";
 import { DEFAULT_PARAMETERS } from "./types";
 
 /** Invented employees/configuration, never evidence of a real PeopleNet population. */
-export function automaticExtraFixture(period = "2026-10", mode: "R1" | "definition" = "R1") {
+export function automaticExtraFixture(
+  period = "2026-10",
+  mode: "R1" | "definition" | "historical" = "R1",
+) {
+  const usesIndicators = mode !== "definition";
   const detail = demoReport(period);
   detail.rows = [detail.rows[0]];
   detail.headers.push("Periodo");
@@ -64,13 +68,19 @@ export function automaticExtraFixture(period = "2026-10", mode: "R1" | "definiti
     })),
     rules: [
       {
-        RULE_ID: mode === "R1" ? "R1" : "CSP_PRORRATEADA_REV",
+        RULE_ID: usesIndicators ? "R1" : "CSP_PRORRATEADA_REV",
         RULE_TI: "CSP_HRPERIOD_CALC",
         DATE_FROM: mode === "R1" ? "2026-08-01" : "1800-01-01",
-        DATE_TO: mode === "R1" ? "2026-10-31" : "4000-01-01",
-        PRIORITY: "3",
+        DATE_TO: mode === "R1" ? "2026-10-31" : mode === "historical" ? "2026-07-31" : "4000-01-01",
+        PRIORITY: mode === "historical" ? "2" : "3",
+        RULE_ORDER: usesIndicators ? "100" : null,
         CONDITION: "0",
-        SOURCE: mode === "R1" ? VERIFIED_EXTRA_RULE : "Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)",
+        SOURCE:
+          mode === "R1"
+            ? VERIFIED_EXTRA_RULE
+            : mode === "historical"
+              ? HISTORICAL_EXTRA_RULE
+              : "Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)",
       },
     ],
     values: [],

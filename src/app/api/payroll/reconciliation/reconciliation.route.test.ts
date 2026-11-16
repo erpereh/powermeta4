@@ -127,7 +127,7 @@ describe("reconciliation boundaries", () => {
       detail.headers.push("Periodo");
       detail.rows.forEach((row) => row.push("1"));
       mocks.read.mockResolvedValue(detail);
-      const fixture = automaticExtraFixture(period, period === "2026-07" ? "definition" : "R1");
+      const fixture = automaticExtraFixture(period, period === "2026-07" ? "historical" : "R1");
       mocks.extras.mockImplementation(async (captured) => ({
         ...captured,
         extraPayAutomatic: resolveAutomaticExtras(captured, fixture.data),
@@ -137,9 +137,10 @@ describe("reconciliation boundaries", () => {
       );
       expect(response.status).toBe(200);
       const { data } = await response.json();
-      expect(data.current.extraPayAutomatic.rule.mode).toBe(
-        period === "2026-07" ? "definition" : "R1",
-      );
+      expect(data.current.extraPayAutomatic.rule).toMatchObject({
+        mode: "R1",
+        variant: period === "2026-07" ? "r1-through-july-2026" : "r1-aug-oct-2026",
+      });
       expect(data.current.hrPeriods).toEqual(["1", "1", "1"]);
       expect(
         data.result.findings.find(

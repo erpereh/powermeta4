@@ -11,31 +11,38 @@ import { assertReadOnlySql } from "@/lib/portal/peoplenet/query";
 
 beforeEach(() => vi.resetAllMocks());
 describe("grouped automatic extra reader", () => {
-  it("uses only guarded parametrized SELECTs and eight grouped reads for the full population", async () => {
-    const input = automaticExtraFixture();
-    const queries = {
-      ...EXTRA_PAY_SQL,
-      unsupported: EXTRA_PAY_UNSUPPORTED_SQL,
-      applied: EXTRA_PAY_APPLIED_SQL,
-    };
-    for (const query of Object.values(queries))
-      expect(() => assertReadOnlySql(query)).not.toThrow();
-    mocks.read.mockImplementation(async (sql: string) => {
-      const entry = Object.entries(queries).find(([, query]) => query === sql);
-      return entry ? input.data[entry[0] as keyof typeof input.data] : [];
-    });
-    const before = structuredClone(input.current);
-    const result = await captureAutomaticExtras(input.current);
-    expect(result.extraPayAutomatic?.people[0].issue).toBeUndefined();
-    expect(mocks.read).toHaveBeenCalledTimes(8);
-    for (const [, parameters] of mocks.read.mock.calls) {
-      expect(parameters.organization.value).toBe("CYC");
-      expect(parameters.correctionDate.value.toISOString()).toBe(input.current.run.runAt);
-      expect(parameters.frequency.value).toBe(input.current.run.payFrequency);
-    }
-    expect(result.hash).not.toBe(before.hash);
-    expect(input.current).toEqual(before);
-  });
+  it.each(["2026-07", "2026-10"])(
+    "uses guarded parametrized SELECTs and eight grouped reads for %s",
+    async (period) => {
+      const input = automaticExtraFixture(period, period === "2026-07" ? "historical" : "R1");
+      const queries = {
+        ...EXTRA_PAY_SQL,
+        unsupported: EXTRA_PAY_UNSUPPORTED_SQL,
+        applied: EXTRA_PAY_APPLIED_SQL,
+      };
+      for (const query of Object.values(queries))
+        expect(() => assertReadOnlySql(query)).not.toThrow();
+      mocks.read.mockImplementation(async (sql: string) => {
+        const entry = Object.entries(queries).find(([, query]) => query === sql);
+        return entry ? input.data[entry[0] as keyof typeof input.data] : [];
+      });
+      const before = structuredClone(input.current);
+      const result = await captureAutomaticExtras(input.current);
+      expect(result.extraPayAutomatic?.people[0].issue).toBeUndefined();
+      expect(result.extraPayAutomatic?.rule?.variant).toBe(
+        period === "2026-07" ? "r1-through-july-2026" : "r1-aug-oct-2026",
+      );
+      expect(EXTRA_PAY_SQL.rules).toContain("R.RULE_ORDER");
+      expect(mocks.read).toHaveBeenCalledTimes(8);
+      for (const [, parameters] of mocks.read.mock.calls) {
+        expect(parameters.organization.value).toBe("CYC");
+        expect(parameters.correctionDate.value.toISOString()).toBe(input.current.run.runAt);
+        expect(parameters.frequency.value).toBe(input.current.run.payFrequency);
+      }
+      expect(result.hash).not.toBe(before.hash);
+      expect(input.current).toEqual(before);
+    },
+  );
   it("isolates an unavailable SQL contract to C04 and retains the report", async () => {
     const input = automaticExtraFixture();
     mocks.read.mockRejectedValue(new Error("Unreachable"));
@@ -88,7 +95,27 @@ describe("grouped automatic extra reader", () => {
       const result = await captureAutomaticExtras(input.current);
       expect(result.rows).toEqual(input.current.rows);
       expect(result.extraPayAutomatic?.issue).toContain("No se ha podido acreditar");
+      expect(result.extraPayAutomatic?.rule?.mode).toBe("definition");
       expect(mocks.read).toHaveBeenCalledTimes(4);
+    } finally {
+      log.mockRestore();
+    }
+  });
+  it("retains the recognized historical rule if a later grouped SQL read fails", async () => {
+    const input = automaticExtraFixture("2026-07", "historical");
+    mocks.read.mockImplementation(async (sql: string) => {
+      if (sql === EXTRA_PAY_SQL.rules) return input.data.rules;
+      throw new Error("UnavailablePayroll");
+    });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const result = await captureAutomaticExtras(input.current);
+      expect(result.rows).toEqual(input.current.rows);
+      expect(result.extraPayAutomatic?.issue).toContain("No se ha podido acreditar");
+      expect(result.extraPayAutomatic?.rule).toMatchObject({
+        mode: "R1",
+        variant: "r1-through-july-2026",
+      });
     } finally {
       log.mockRestore();
     }

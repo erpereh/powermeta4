@@ -2,11 +2,12 @@ import { columnIndex, identity } from "./catalogue";
 import { decimal, textDecimal } from "./decimal";
 import { hash } from "./hash";
 import { resolveIdentity } from "./payroll-value";
-import { extraProration, extraRuleTokens, VERIFIED_EXTRA_RULE } from "./extra-pay-rule";
+import { extraProration, extraRuleTokens, EXTRA_RULE_VERSIONS } from "./extra-pay-rule";
 import type {
   AutomaticExtraPay,
   AutomaticExtraPayPerson,
   AutomaticExtraPayRule,
+  ExtraPayRuleVariant,
   Snapshot,
 } from "./types";
 
@@ -58,34 +59,45 @@ function indicator(value: string | null | undefined): 0 | 1 | null | "invalid" {
   return parsed === one ? 1 : parsed === zero ? 0 : "invalid";
 }
 
+type ResolvedExtraRule = { versions: AutomaticExtraPayRule["versions"] } & (
+  | { mode: "R1"; variant: ExtraPayRuleVariant }
+  | { mode: "definition"; variant?: never }
+);
+
 export function resolveExtraRule(
   rows: ExtraPayRow[],
   period: string,
-): { rule: AutomaticExtraPayRule; issue?: never } | { issue: string; rule?: never } {
+): { rule: ResolvedExtraRule; issue?: never } | { issue: string; rule?: never } {
   const { first, last } = extraMonth(period);
   if (!rows.length)
     return { issue: `No hay reglas de prorrateo con código acreditado para ${period}.` };
   if (rows.some((row) => !covers(row, first, last)))
     return { issue: `Vigencia incompleta o cambio de regla de prorrateo durante ${period}.` };
-  const r1 = rows.filter((row) => text(row, "RULE_ID") === "R1");
   if (new Set(rows.map((row) => text(row, "RULE_ID"))).size !== rows.length)
     return {
       issue: `Versiones duplicadas o contradictorias de la regla de prorrateo para ${period}.`,
     };
+  const r1 = rows.find((row) => text(row, "RULE_ID") === "R1");
+  const version =
+    r1 &&
+    EXTRA_RULE_VERSIONS.find(
+      (candidate) =>
+        r1.DATE_FROM === candidate.from &&
+        r1.DATE_TO === candidate.to &&
+        sameNumber(r1.PRIORITY, candidate.priority) &&
+        sameNumber(r1.RULE_ORDER, candidate.order) &&
+        extraRuleTokens(text(r1, "SOURCE")) === extraRuleTokens(candidate.source),
+    );
   const unknown = rows.find((row) => {
-    if (
-      !sameNumber(row.PRIORITY, "3") ||
-      !sameNumber(row.CONDITION, "0") ||
-      text(row, "RULE_TI") !== "CSP_HRPERIOD_CALC"
-    )
+    if (!sameNumber(row.CONDITION, "0") || text(row, "RULE_TI") !== "CSP_HRPERIOD_CALC")
       return true;
     const tokens = extraRuleTokens(text(row, "SOURCE"));
     const known =
       text(row, "RULE_ID") === "R1"
-        ? row.DATE_FROM === "2026-08-01" &&
-          row.DATE_TO === "2026-10-31" &&
-          tokens === extraRuleTokens(VERIFIED_EXTRA_RULE)
+        ? Boolean(version)
         : text(row, "RULE_ID") === "CSP_PRORRATEADA_REV" &&
+          sameNumber(row.PRIORITY, "3") &&
+          row.RULE_ORDER === null &&
           tokens === extraRuleTokens("Return(CSP_HRPERIOD_CALC.CSP_PRORRATEADA)");
     return !known;
   });
@@ -93,18 +105,20 @@ export function resolveExtraRule(
     return {
       issue: `Código o metadatos de la regla de prorrateo ${text(unknown, "RULE_ID") || "sin identificar"} sin acreditar para ${period}.`,
     };
+  const versions = rows
+    .map((row) => ({
+      id: text(row, "RULE_ID"),
+      validFrom: text(row, "DATE_FROM"),
+      validTo: text(row, "DATE_TO"),
+      sourceHash: hash(extraRuleTokens(text(row, "SOURCE"))),
+      priority: text(row, "PRIORITY"),
+      order: row.RULE_ORDER ?? null,
+    }))
+    .sort((a, b) => a.id.localeCompare(b.id));
   return {
-    rule: {
-      mode: r1.length ? "R1" : "definition",
-      versions: rows
-        .map((row) => ({
-          id: text(row, "RULE_ID"),
-          validFrom: text(row, "DATE_FROM"),
-          validTo: text(row, "DATE_TO"),
-          sourceHash: hash(extraRuleTokens(text(row, "SOURCE"))),
-        }))
-        .sort((a, b) => a.id.localeCompare(b.id)),
-    },
+    rule: version
+      ? { mode: "R1", variant: version.variant, versions }
+      : { mode: "definition", versions },
   };
 }
 
@@ -350,7 +364,10 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
         break;
       }
       const usesIndicators = rule.mode === "R1";
-      const forced = usesIndicators && current.society === "IBER" && (order === 3 || order === 4);
+      const forced =
+        rule.variant === "r1-aug-oct-2026" &&
+        current.society === "IBER" &&
+        (order === 3 || order === 4);
       const flag =
         !usesIndicators || forced
           ? { value: null }
@@ -361,9 +378,10 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
       }
       const original =
         definition.ORIGINAL === "S" ? true : definition.ORIGINAL === "N" ? false : null;
-      const prorated = usesIndicators
-        ? extraProration(result.society, agreement, order, flag.value, original)
-        : original;
+      const prorated =
+        rule.mode === "R1"
+          ? extraProration(rule.variant, result.society, agreement, order, flag.value, original)
+          : original;
       if (prorated === null) {
         fail(`Modalidad de la extra ${order} sin acreditar.`);
         break;
@@ -415,7 +433,7 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
       }
     }
     person.evidence = [
-      `PeopleNet:${result.society}:${entity}:${employeeId}:${hrPeriod}:${period}:${rule.mode}:${rule.versions.map((version) => `${version.id}:${version.validFrom}/${version.validTo}:${version.sourceHash}`).join(";")}`,
+      `PeopleNet:${result.society}:${entity}:${employeeId}:${hrPeriod}:${period}:${rule.variant ?? rule.mode}:${rule.versions.map((version) => `${version.id}:${version.validFrom}/${version.validTo}:${version.sourceHash}`).join(";")}`,
       `Configuración:${hash({ histories: evidenceRows(histories), definitions: evidenceRows(definitions), pay: evidenceRows(pay), ...(rule.mode === "R1" ? { values: evidenceRows(scoped.values.filter((row) => row.KEY1 === employeeId || row.KEY1 === entity || row.KEY1 === agreement)), defaults: evidenceRows(data.defaults), applied: evidenceRows(data.applied.filter((row) => row.EMPLOYEE === nativeId)) } : {}) })}`,
     ];
   }

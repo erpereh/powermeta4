@@ -1,5 +1,27 @@
 # powermeta4 - estado de tareas
 
+## C04: R1 histórica de julio acreditada — 2026-11-16
+
+- [x] Incorporado el código SQL aportado de R1 1800–31/07/2026, prioridad 2,
+      orden 100 y condición 0; coexistencia con la regla autogenerada de prioridad 3.
+- [x] PE1–PE5 también para IBER en la versión histórica; excepciones IBER solo
+      agosto–octubre. Prioridades de regla y asignaciones resueltas por separado.
+- [x] Mismo lector agrupado con RULE_ORDER añadido; procedencia JSON opcional
+      con variante, prioridad y orden, conservada ante un fallo de lectura posterior.
+      Sin migración, nueva pantalla/API ni cambios en C12 o las otras categorías.
+- [x] Ambas fórmulas, NULL, versiones, límite julio–agosto, fallos, recarga,
+      exportación y revisiones cubiertos; 190 pruebas dirigidas correctas en cinco
+      archivos. Typecheck correcto. Documentación y pasos VM actualizados.
+- [x] Lint global ejecutado: siete avisos y formato pendiente en los mismos
+      619 archivos preexistentes; sin reformateo general.
+- [x] Suite completa correcta: 218 archivos, 1.502 pruebas superadas y dos omisiones
+      preexistentes (447,50 s). Build correcto (44 páginas), formato dirigido de
+      39 archivos y diff sin errores. Estado Git revisado; davidev conservada,
+      sin ramas nuevas, commits ni push.
+- [ ] Actualizar las instantáneas en VM y contrastar asignaciones, devengo e
+      importes reales. La regla histórica sí está acreditada por la salida SQL;
+      la paridad económica del lector corregido continúa pendiente.
+
 ## C04: configuración del mes sin bloqueo por R1 — 2026-11-16
 
 - [x] Retirado el rechazo anticipado por fecha; lectura de la regla vigente en

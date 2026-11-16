@@ -98,6 +98,17 @@ Q03/Q05: precisión y otros perfiles/entidades se validan por separado.
 
 ## C04 — Paga extra
 
+Ampliación de R1 histórica 2026-11-16 (motor 1.2.2): la salida SQL del usuario
+acredita la versión 01/01/1800–31/07/2026, prioridad 2, orden 100 y condición 0.
+Aplica PE1–PE5 con 1/S, 0/N y NULL conserva definición, también en IBER. Solo
+la versión agosto–octubre (prioridad 3, orden 100) tiene excepciones IBER.
+Cada versión exige coincidencia de código ejecutable y metadatos, con vigencia
+completa y corrección a fecha de ejecución. La prioridad de la regla no cambia
+la de las asignaciones individuales. Evidencia JSON opcional ampliada con
+`variant`, prioridad y orden; sin migración, nuevas pantallas ni cambios en C12.
+La regla de julio queda acreditada por la salida aportada; cobertura, devengo
+y paridad económica reales del lector corregido continúan pendientes en VM.
+
 Corrección 2026-11-16 (motor 1.2.1): el mes no bloquea C04. Se consulta la
 regla vigente y su código. Con la única regla conocida `CSP_PRORRATEADA_REV`,
 que devuelve el propio campo sin modificar las extras, se usa la definición

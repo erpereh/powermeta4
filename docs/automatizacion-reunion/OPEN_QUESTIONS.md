@@ -5,7 +5,14 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
-Actualización C04 2026-11-16: la captura real de julio muestra un bloqueo por
+Actualización R1 histórica 2026-11-16: recibido código y metadatos completos
+de la versión hasta 31/07/2026 (inicio 1800, prioridad 2, orden 100, condición 0).
+Resuelto el rechazo de esa versión; las excepciones de IBER pertenecen solo a
+agosto–octubre. No hace falta otra consulta para acreditar este comportamiento.
+Siguen pendientes las asignaciones y cobertura reales, los devengos, la paridad
+económica y cualquier versión distinta; la evidencia de regla no los sustituye.
+
+Actualización C04 2026-11-16 (histórico): la captura real de julio muestra un bloqueo por
 fecha anterior a cualquier lectura de configuración. Corregido localmente:
 la regla conocida que conserva la definición permite resolver otros meses
 sin extender R1 ni sus excepciones. Sigue pendiente contrastar la lectura

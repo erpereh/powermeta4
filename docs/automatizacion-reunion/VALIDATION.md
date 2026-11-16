@@ -1,5 +1,30 @@
 # Validación de fuentes y criterios de aceptación
 
+## R1 histórica de julio — 2026-11-16
+
+El usuario aporta la consulta real con `CSP_PRORRATEADA_REV` y R1 vigente
+01/01/1800–31/07/2026, prioridad 2, orden 100, condición 0 y código completo.
+Confirma el tratamiento de los cinco indicadores sin excepciones de IBER.
+Se incorpora esa versión y se mantiene por separado agosto–octubre de 2026.
+
+Las pruebas sintéticas cubren ambas fórmulas con R1 histórica, 0/1/decimales/NULL,
+los cinco órdenes en CYC/IBER/COLL, convenios 0041/otros y la frontera julio–agosto.
+También cubren convivencia con la regla autogenerada, prioridades de regla y
+asignaciones separadas, código/metadatos alterados, versiones desconocidas,
+parciales, SQL agrupado, fallos aislados con procedencia conservada, actualización
+expresa, recarga de capturas anteriores, exportación y revisiones C12.
+
+Comprobaciones ejecutadas: 190 pruebas dirigidas correctas en cinco archivos;
+`npm test` con 218 archivos correctos, 1.502 pruebas superadas y dos omisiones
+preexistentes (1.504 total, 447,50 s). `npm run typecheck` y `npm run build`
+correctos (44 páginas), formato dirigido de 39 archivos y `git diff --check`
+sin errores. `npm run lint` conserva siete avisos y formato pendiente en los
+mismos 619 archivos anteriores; no se reformatea el repositorio.
+
+La evidencia aportada acredita la regla histórica. Las pruebas locales no
+sustituyen el contraste SQL del lector corregido ni la comprobación de cobertura,
+devengo e importes de trabajadores reales. Pasos VM en [IMPLEMENTATION](IMPLEMENTATION.md).
+
 ## Corrección del bloqueo de julio — 2026-11-16
 
 La captura de la VM aportada por el usuario muestra que C04 se detenía por la
