@@ -1,5 +1,12 @@
 # Validación de fuentes y criterios de aceptación
 
+## C04/C13 en la aplicación — 2026-11-17
+
+Acceso rápido JORGE.SALVADOR, CYC, `M4PRENOMINA`. Septiembre: C04 136/0/100,
+C13 1108/0/0. Octubre: C04 425/41/203 (3.ª extra 288 coinciden, 36 diferencias;
+prorrata 137), C13 1118/0/2. Agosto (`cuadre:verify`): prorrata 138. Detalle en
+[IMPLEMENTATION](IMPLEMENTATION.md#c04-y-c13-operativos-con-datos-reales--2026-11-17-motor-124).
+
 ## Validación real en M4PRENOMINA — 2026-11-16
 
 Ejecutado en la VM con motor 1.2.4, `WPNETDESAPRE / M4PRENOMINA` (`.env.local`),

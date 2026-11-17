@@ -150,6 +150,29 @@ export function anniversaryFindings(
         "Antigüedad del listado ausente, inválida o distinta de nómina; elegibilidad pendiente.",
         sourceEvidence,
       );
+    } else if (!exceptions.length && parameters.rulesConfirmed && parameters.anniversaryFullBase) {
+      // Calculos.txt rule confirmed by RRHH: base salary only in the 25/40 anniversary
+      // month of the payroll's own seniority; no anniversary means nothing is due.
+      // A beneficiary list, when present, only cross-checks seniority (branch above).
+      const listing = !relevant.length
+        ? " Sin listado de beneficiarios."
+        : matched.length
+          ? " Figura en el listado con la misma antigüedad."
+          : " No figura en el listado de beneficiarios.";
+      if (due === metric.id) {
+        expected = payroll(current, person.rows, { ...metric, header: "Salario Base" });
+        if (expected.value !== null)
+          expected.reason = `Regla confirmada (Calculos.txt): aniversario según la antigüedad de nómina; esperado salario base.${listing}`;
+        if (actual.value === BigInt(0) && expected.value !== null && expected.value !== BigInt(0))
+          expected.reason += " Pago faltante: nómina declara cero explícito.";
+      } else {
+        expected = {
+          value: BigInt(0),
+          reason:
+            "Regla confirmada (Calculos.txt): no cumple este aniversario en el periodo según la antigüedad de nómina.",
+          evidence: [],
+        };
+      }
     } else if (!relevant.length && !exceptions.length) {
       expected = missing(
         due === metric.id
@@ -205,7 +228,9 @@ export function anniversaryFindings(
         ? magnitude(delta) <= tolerance
           ? "Coincide"
           : "Con diferencia"
-        : !relevant.length && !exceptions.length
+        : !relevant.length &&
+            !exceptions.length &&
+            !(parameters.rulesConfirmed && parameters.anniversaryFullBase)
           ? "Falta fuente"
           : "No comparable";
     const record = {

@@ -7,6 +7,85 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
+## Fuentes de octubre cargadas y C01–C16 en la aplicación — 2026-11-17 (motor 1.2.5)
+
+Los diez originales de `fuentes_cuadres_cierre_de_nómina` (nómina de octubre de
+2026) se subieron desde la aplicación (copias; originales sin modificar, mismo
+MD5) a dos expedientes CYC: «Cuadre octubre 2026 · ejecución 16/10» (ejecución
+del libro `Normal_Inf 0001_C_202610161141`, anterior 14/10) y «Cuadre octubre
+2026» (04/11, anterior 28/10). Los diez se reconocen y aplican sin errores.
+
+Parámetros del periodo tomados de las fórmulas del libro de octubre (visibles y
+editables en Parámetros): teletrabajo 2,24 €/día × 20 días (`2,24×4×5`), comida
+12,10 € × (9 − ausencias), tarjeta tarifa 12,1 y base 11; reglas y aniversarios
+confirmados.
+
+Cambios de motor:
+
+- Fuentes parciales (C03, C05–C10, C14, C16; C12 excluido): una persona que no
+  figura en la fuente y tiene **cero explícito en nómina** coincide («sin importe
+  que contrastar»), como en el libro de RRHH, que solo revisa a los listados. Si
+  tiene **pago** sin registro queda pendiente con «Pago en nómina sin registro en
+  la fuente parcial; revisar».
+- C13 con la regla confirmada aplica Calculos.txt también con listado; el listado
+  solo contrasta la antigüedad y el motivo indica si la persona figura en él.
+
+Resultados (coinciden / diferencias / pendientes), ejecución 04/11:
+
+| C   | Resultado        | Pendientes y diferencias                                                       |
+| --- | ---------------- | ------------------------------------------------------------------------------ |
+| C03 | 5031/2/7         | 7 pagos sin registro en FPS                                                    |
+| C05 | 143/1/416        | 416 cobran teletrabajo y no están en el colectivo de tecnología (otra fuente)  |
+| C06 | 1680/0/0         | —                                                                              |
+| C07 | 559/1/0          | 1 diferencia conocida del original                                             |
+| C09 | 547/8/5          | 8 con `(8−H)` o excepciones del libro; 5 pagos sin registro                    |
+| C10 | 1116/2/4         | 2 diferencias conocidas; identidad inválida de Eurest                          |
+| C14 | 548/4/11         | 4 diferencias de octubre (Q13); 8 sin valor en la columna del mes              |
+| C16 | 560/0/0          | —                                                                              |
+
+C11 y C12 siguen sin fuente: no hay registro de excesos ni cartas/calendario de
+anticipos entre los diez originales (las hojas del libro son resultados).
+
+## C04 y C13 operativos con datos reales — 2026-11-17 (motor 1.2.4)
+
+Sustituye a las conclusiones de C04/C13 de la sección siguiente.
+
+- **Prorrata «12»**: la columna «Paga Extra Prorrateada» del informe es
+  `M4SCO_AC_HR_PERIOD.SSP_P_EXT_PRORRAT` (560/560 personas en octubre), no
+  `CSP_TOT_PAGA_EXTRA` (165/560: en junio/octubre suma también la extra separada).
+  El lector usa ahora `SSP_P_EXT_PRORRAT`.
+- **Modalidad**: sale de la configuración. En CYC hay asignaciones individuales
+  `CSP_PRORRATEADA_PE1–PE3 = 1` para 143 personas: las mismas 143 a las que Meta4
+  calcula cada mes la extra prorrateada; las demás usan el valor por defecto 0 y
+  cobran la 1.ª extra en junio (391) y la 3.ª en octubre (395). Las columnas
+  `CSP_PRORRATEADA_PE*` del acumulado valen 0 para todos y no se usan.
+- **Configuración posterior al cálculo**: historiales y definiciones siguen
+  pendientes. Valores por defecto y asignaciones posteriores (el diccionario se
+  tocó el 27–28/10) solo se aceptan si la prorrata calculada por Meta4 lo
+  corrobora: modalidad prorrateada ⇔ `SSP_P_EXT_PRORRAT ≠ 0`. Si no cuadra o
+  falta, la persona queda pendiente. El importe nunca decide la modalidad.
+- **Coherencia informe/acumulado**: ya no se exige que el acumulado sea anterior a
+  la ejecución; se exige que los importes de extras del informe y del acumulado
+  coincidan (comprobación existente). Así octubre es evaluable aunque se recalculó
+  el 05/11.
+- **C13 (Calculos.txt)**: con «Confirmo reglas» y la casilla de aniversarios
+  marcadas, sin listado de beneficiarios: en el mes en que la antigüedad de nómina
+  cumple 25/40 años el esperado es el salario base; si no cumple, 0. Con listado se
+  mantiene el contraste anterior. Sin confirmación sigue «Falta fuente».
+
+Resultados en la aplicación (acceso rápido JORGE.SALVADOR, CYC, `M4PRENOMINA`):
+
+| Expediente                     | C04                                                                 | C13              |
+| ------------------------------ | ------------------------------------------------------------------- | ---------------- |
+| Septiembre 2026 (28/10 vs 14/09) | prorrata 136 coinciden; 100 pendientes con motivo                  | 1108/0/0         |
+| Octubre 2026 (04/11 vs 28/10)  | 3.ª extra 288 coinciden, 36 diferencias; prorrata 137; 203 pendientes | 1118/0/2         |
+| Agosto 2026 (`cuadre:verify`)  | prorrata 138 coinciden                                             | —                |
+
+Las 36 diferencias de octubre: 11 sin pago de la 3.ª extra, 5 pagos sin esperado
+y 20 entre el 83 y el 99 % (posible devengo de parte del año): revisables. Los 50
+con devengo parcial o porcentaje distinto del 100 % y los 19 con unidades
+incompletas quedan pendientes (regla proporcional no definida en Calculos.txt).
+
 ## Validación real en la VM y conexiones — 2026-11-16 (motor 1.2.4)
 
 Primera ejecución completa contra `M4PRENOMINA` desde la VM, con acceso Meta4

@@ -267,7 +267,9 @@ describe("anniversaries scoped by company and employee", () => {
     expect(new Set(rows.map((row) => row.id)).size).toBe(2);
     source.facts.shift();
     source.complete = false;
-    expect(finding(input, "anniversary25").status).toBe("No comparable");
+    // Confirmed Calculos.txt rule: payroll seniority decides; the list only cross-checks.
+    expect(finding(input, "anniversary25").status).toBe("Coincide");
+    expect(finding(input, "anniversary25").reason).toContain("No figura en el listado");
   });
   it.each([
     "missingPayrollDate",
@@ -275,7 +277,6 @@ describe("anniversaries scoped by company and employee", () => {
     "wrongSourceDate",
     "legacySource",
     "duplicate",
-    "missingEntity",
     "unconfirmedRule",
   ])("keeps %s pending", (caseName) => {
     const input = inputs();
@@ -297,26 +298,41 @@ describe("anniversaries scoped by company and employee", () => {
     set(input, "Paga 25 años", "1800");
     expect(finding(input, "anniversary25")).toMatchObject({ delta: null, status: "No comparable" });
   });
-  it("distinguishes unlisted payments in complete and partial lists and never concludes they are undue", () => {
+  it("applies the confirmed rule with the list as cross-check only", () => {
     const input = inputs();
     const source = beneficiaries();
     source.facts[0].employeeId = "009002";
     input.sources = [source];
     set(input, "Paga 25 años", "1800");
+    // Due by payroll seniority but missing from the list: base salary still expected.
+    expect(finding(input, "anniversary25")).toMatchObject({ status: "Coincide", delta: "0" });
+    expect(finding(input, "anniversary25").reason).toContain("No figura en el listado");
+    // Not an anniversary this month: nothing is due, a payment is a reviewable difference.
+    input.current.seniorityDates![0] = "2002-03-01";
     expect(finding(input, "anniversary25")).toMatchObject({
       status: "Con diferencia",
       expected: "0",
       delta: "1800",
     });
-    expect(finding(input, "anniversary25").reason).toContain("requiere revisión");
-    source.complete = false;
-    expect(finding(input, "anniversary25")).toMatchObject({
-      status: "No comparable",
-      expected: null,
-    });
-    source.complete = true;
     set(input, "Paga 25 años", "0");
-    expect(finding(input, "anniversary25").status).toBe("No comparable");
+    expect(finding(input, "anniversary25").status).toBe("Coincide");
+    // Without confirmation the rule never applies.
+    input.parameters.anniversaryFullBase = false;
+    set(input, "Paga 25 años", "1800");
+    expect(finding(input, "anniversary25")).toMatchObject({ expected: null, status: "No comparable" });
+  });
+  it("keeps an unlinked list entry without entity pending while payroll follows the rule", () => {
+    const input = inputs();
+    const source = beneficiaries();
+    delete source.facts[0].entity;
+    input.sources = [source];
+    set(input, "Paga 25 años", "1800");
+    expect(finding(input, "anniversary25").status).toBe("Coincide");
+    expect(
+      reconcile(input).findings.some(
+        (row) => row.control === "C13" && !row.entity && row.status === "No comparable",
+      ),
+    ).toBe(true);
   });
   it("does not use birth dates, future anniversaries or unknown employee bases", () => {
     expect(anniversaryMetric("2001-11-01", "2026-10")).toBeNull();
@@ -334,10 +350,8 @@ describe("anniversaries scoped by company and employee", () => {
       ),
     ).toMatchObject({ actual: null, expected: null, delta: null, status: "No comparable" });
     set(input, "Paga 25 años", "1800");
-    expect(finding(input, "anniversary25")).toMatchObject({
-      expected: null,
-      status: "No comparable",
-    });
+    expect(finding(input, "anniversary25")).toMatchObject({ status: "Coincide" });
+    expect(finding(input, "anniversary25").reason).toContain("No figura en el listado");
     source.facts[0].seniorityDate = "2001-11-15";
     expect(reconcile(input).findings.some((row) => row.employeeId === "999999")).toBe(false);
   });

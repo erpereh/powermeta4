@@ -65,6 +65,40 @@ describe("PeopleNet datetime seniority (C13)", () => {
   });
 });
 
+describe("C13 rule from Calculos.txt without beneficiary list", () => {
+  it("expects base salary only in the 25/40 anniversary month once RRHH confirms the rule", () => {
+    const detail = demoReport("2026-10");
+    const seniority = detail.headers.indexOf("Fecha de Antigüedad");
+    const base = detail.headers.indexOf("Salario Base");
+    detail.rows = detail.rows.map((row) =>
+      row.map((cell, index) => (index === seniority ? "2001-10-15 00:00:00" : cell)),
+    );
+    const input = {
+      period: "2026-10",
+      current: snapshot(detail, true, "CYC"),
+      previous: null,
+      sources: [],
+    };
+    const pending = reconcile({ ...input, parameters: DEFAULT_PARAMETERS }).findings.filter(
+      (finding) => finding.control === "C13",
+    );
+    expect(pending.every((finding) => finding.status === "Falta fuente")).toBe(true);
+    const confirmed = reconcile({
+      ...input,
+      parameters: { ...DEFAULT_PARAMETERS, rulesConfirmed: true, anniversaryFullBase: true },
+    }).findings.filter((finding) => finding.control === "C13");
+    const due = confirmed.filter((finding) => finding.metric === "anniversary25");
+    expect(due.length).toBeGreaterThan(0);
+    for (const finding of due) {
+      const row = detail.rows.find((cells) => cells[0].replace(/^'/, "") === finding.employeeId)!;
+      expect(Number(finding.expected)).toBe(Number(row[base]));
+      expect(["Coincide", "Con diferencia"]).toContain(finding.status);
+    }
+    const notDue = confirmed.filter((finding) => finding.metric === "anniversary40");
+    expect(notDue.every((finding) => finding.expected === "0")).toBe(true);
+  });
+});
+
 describe("IRPF occurrence diagnostic (C02)", () => {
   const withIrpf = (first: string, second: string) => {
     const detail = demoReport("2026-10");
@@ -124,13 +158,28 @@ describe("C04 configuration written after the accrual calculation", () => {
   it("accredits configuration that predates the calculation", () => {
     expect(resolve(base()).issue).toBeUndefined();
   });
-  it("keeps pending an indicator default changed after the calculation", () => {
+  const lateDefault = (engine: string | undefined) => {
     const data = base();
     data.defaults = data.defaults.map((row) => ({ ...row, UPDATED: "2026-10-27 15:23:45" }));
-    const issue = resolve(data).issue ?? "";
-    expect(issue).toContain("Valor por defecto del indicador");
-    expect(issue).toContain("2026-10-27 15:23:45");
-    expect(issue).toContain(CALCULATED);
+    data.payroll = data.payroll.map((row) => ({
+      ...row,
+      PRORATED: engine ?? null,
+    }));
+    return resolve(data);
+  };
+  it("accepts a default changed after the calculation only if Meta4's result corroborates it", () => {
+    // Default 0 (N) means no prorated extra; Meta4 computed a null prorated amount.
+    const person = lateDefault("0");
+    expect(person.issue).toBeUndefined();
+    expect(person.evidence[0]).toContain("corroborada por la prorrata calculada por Meta4");
+  });
+  it("keeps pending a late default that Meta4's result contradicts or cannot confirm", () => {
+    const contradicted = lateDefault("250.5");
+    expect(contradicted.issue).toContain("Valor por defecto del indicador");
+    expect(contradicted.issue).toContain("2026-10-27 15:23:45");
+    expect(contradicted.issue).toContain(CALCULATED);
+    expect(contradicted.issue).toContain("no la corrobora");
+    expect(lateDefault(undefined).issue).toContain("Falta la prorrata calculada por Meta4");
   });
   it("keeps pending a history or definition changed after the calculation", () => {
     const history = base();
@@ -145,42 +194,37 @@ describe("C04 configuration written after the accrual calculation", () => {
     data.histories.push({ ...data.histories[0], VALUE: "A2", UPDATED: "2026-10-20 09:00:00" });
     expect(resolve(data).issue).toContain("Historial de convenio");
   });
-  it("keeps pending an individual assignment corrected after the calculation", () => {
+  const lateAssignment = (engine: string) => {
     const data = base();
-    data.values = [
-      {
-        LEVEL: "individual",
-        KEY1: "009001",
-        KEY2: "1",
-        COMPONENT: "CSP_PRORRATEADA_PE1",
-        VALUE: "1",
-        PRIORITY: "1",
-        DATE_FROM: "2026-01-01",
-        DATE_TO: "4000-01-01",
-        UPDATED: "2026-10-15 00:00:00",
-      },
-    ];
-    expect(resolve(data).issue).toContain("Asignación del indicador 1");
+    data.payroll = data.payroll.map((row) => ({ ...row, PRORATED: engine }));
+    data.values = [1, 2, 3].map((order) => ({
+      LEVEL: "individual",
+      KEY1: "009001",
+      KEY2: "1",
+      COMPONENT: `CSP_PRORRATEADA_PE${order}`,
+      VALUE: "1",
+      PRIORITY: "1",
+      DATE_FROM: "2026-01-01",
+      DATE_TO: "4000-01-01",
+      UPDATED: "2026-10-15 00:00:00",
+    }));
+    return resolve(data);
+  };
+  it("keeps pending a late individual assignment when Meta4 computed no prorated extra", () => {
+    expect(lateAssignment("0").issue).toContain("Asignación del indicador 1");
+  });
+  it("accepts a late 12-payment assignment corroborated by Meta4's prorated extra", () => {
+    const person = lateAssignment("300");
+    expect(person.issue).toBeUndefined();
+    expect(person.extras.every((extra) => extra.prorated)).toBe(true);
   });
   it("treats a missing modification date as unaccredited, never as older", () => {
     const data = base();
     data.defaults = data.defaults.map((row) => ({ ...row, UPDATED: null }));
+    data.payroll = data.payroll.map((row) => ({ ...row, PRORATED: "999" }));
     expect(resolve(data).issue).toContain("sin fecha");
   });
-  it("explains an accrual recalculated after the report run instead of a generic gap", () => {
-    const data = base();
-    data.recalculated = data.payroll.map((row) => ({
-      EMPLOYEE: row.EMPLOYEE,
-      HR_PERIOD: row.HR_PERIOD,
-      ENTITY: row.ENTITY,
-      UPDATED: "2026-11-05 19:01:00",
-    }));
-    data.payroll = [];
-    const issue = resolve(data).issue ?? "";
-    expect(issue).toContain("recalculado en PeopleNet después de esta ejecución");
-    expect(issue).toContain("2026-11-05 19:01:00");
-  });
-  it("keeps the generic message when nothing was recalculated", () => {
+  it("keeps the generic message when there is no accrual", () => {
     const data = base();
     data.payroll = [];
     expect(resolve(data).issue).toBe(

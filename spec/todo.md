@@ -1,5 +1,13 @@
 # powermeta4 - estado de tareas
 
+## Cuadre: C04 y C13 con Calculos.txt — 2026-11-17
+
+- [x] C04 «12» y «14 meses» operativos en CYC (agosto–octubre) con corroboración Meta4.
+- [x] C13 con regla confirmada sin listado; septiembre y octubre en la aplicación.
+- [ ] Excel originales de las fuentes externas (C03, C05–C07, C09–C11, C14, C16)
+      y del listado 25/40: no están en la VM.
+- [ ] Regla proporcional de extras con devengo parcial o porcentaje ≠ 100 %.
+
 ## Cuadre: validación real en M4PRENOMINA y conexiones — 2026-11-16
 
 - [x] SQLite reparada con copia previa (catálogos vacíos de commits sin rama);
@@ -12,8 +20,8 @@
 - [x] Contraste real: CYC jul–oct, IBER oct, COLL sep (Excel identificado);
       recálculo independiente de C01/C02/C08/C15; flujo completo en la aplicación.
 - [x] Calculos.txt contrastado y ambigüedades documentadas (14 meses, base C13).
-- [ ] C04: generar en PeopleNet un informe de octubre posterior al cálculo del
-      05/11 (o esperar noviembre) y actualizar instantáneas; acreditar modalidades.
+- [x] C04 desbloqueado sin nueva ejecución (2026-11-17): corroboración Meta4;
+      ver sección superior.
 - [ ] RRHH: base aplicable de las pagas de aniversario (relación 1,883 en 6 de
       10), significado de «14 meses» y tolerancias (Q03/Q06/Q12).
 - [ ] Originales externos (Mercer, Gimnasio, Eurest, etc.) y cartas de anticipos

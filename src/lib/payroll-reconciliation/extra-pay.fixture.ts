@@ -86,7 +86,6 @@ export function automaticExtraFixture(
     values: [],
     unsupported: [],
     applied: [],
-    recalculated: [],
   };
   return {
     current,

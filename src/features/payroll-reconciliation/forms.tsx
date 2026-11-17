@@ -428,7 +428,7 @@ export function ParametersForm({
       <Checkbox
         checked={draft.anniversaryFullBase}
         onCheckedChange={(value) => setDraft({ ...draft, anniversaryFullBase: value })}
-        label="Confirmo elegibilidad y salario base completo para los aniversarios del listado y entidad del periodo"
+        label="Confirmo la regla de aniversarios 25/40: salario base completo en el mes del aniversario (antigüedad de nómina; con listado, además, sus beneficiarios)"
       />
       <Checkbox
         checked={draft.rulesConfirmed}

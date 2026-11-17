@@ -18,7 +18,7 @@ import type {
   SourceFact,
 } from "./types";
 
-export const ENGINE_VERSION = "1.2.4";
+export const ENGINE_VERSION = "1.2.5";
 const zero = BigInt(0);
 
 function population(data: Snapshot | null): Map<string, { rows: number[]; name: string }> {
@@ -223,7 +223,19 @@ export function reconcile(
                 reason: "Fuera del listado cuya cobertura completa se ha confirmado.",
                 evidence: relevant.map((source) => source.hash),
               }
-            : missing("Sin registro en fuente parcial o con incidencias; no equivale a cero.");
+            : metric.control !== "C12" && actual.value === zero
+              ? {
+                  // Same scope as RRHH's workbook: only listed people are checked; an
+                  // explicit zero in payroll leaves nothing to contrast.
+                  value: zero,
+                  reason: "Sin registro en la fuente y nómina en cero: sin importe que contrastar.",
+                  evidence: relevant.map((source) => source.hash),
+                }
+              : missing(
+                  metric.control !== "C12" && actual.value !== null
+                    ? "Pago en nómina sin registro en la fuente parcial; revisar."
+                    : "Sin registro en fuente parcial o con incidencias; no equivale a cero.",
+                );
         } else {
           const evidence = matched.map(
             (item) =>

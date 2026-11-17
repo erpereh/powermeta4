@@ -106,7 +106,11 @@ describe.skipIf(!existsSync(directory))("private local originals, no personal ou
       parameters: { ...DEFAULT_PARAMETERS, cardRate: "12.1", cardBase: "11", rulesConfirmed: true },
     });
     const counts = (metric: string) => {
-      const rows = result.findings.filter((finding) => finding.metric === metric);
+      // Parity with the workbook covers listed people; unlisted zeros are a separate rule.
+      const rows = result.findings.filter(
+        (finding) =>
+          finding.metric === metric && !finding.reason.includes("Sin registro en la fuente"),
+      );
       return [
         rows.filter((row) => row.status === "Coincide").length,
         rows.filter((row) => row.status === "Con diferencia").length,

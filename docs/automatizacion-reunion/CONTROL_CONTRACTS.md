@@ -98,6 +98,11 @@ Q03/Q05: precisión y otros perfiles/entidades se validan por separado.
 
 ## C04 — Paga extra
 
+Actualización 2026-11-17: prorrata = `SSP_P_EXT_PRORRAT` (columna real del informe).
+Valores por defecto/asignaciones posteriores al cálculo se aceptan solo si esa
+prorrata calculada por Meta4 corrobora la modalidad; historiales/definiciones no.
+Coherencia informe/acumulado por igualdad de importes de extras.
+
 Validación real 2026-11-16 (motor 1.2.4): la configuración usada debe ser
 anterior al cálculo del acumulado de la persona (`DT_LAST_UPDATE` mínimo de sus
 tramos), no solo a la ejecución del informe. Historiales, definiciones, valores
@@ -292,6 +297,10 @@ Q11: no se recibieron cartas/calendario. La plantilla inferior es para el
 cuadre; **no acredita un formato de importación válido de PeopleNet**.
 
 ## C13 — Aniversarios 25/40
+
+Actualización 2026-11-17: con la regla de Calculos.txt confirmada en parámetros y
+sin listado, esperado = salario base en el mes de aniversario 25/40 según la
+antigüedad de nómina; 0 en el resto.
 
 Validación real 2026-11-16: la antigüedad del informe llega como
 `AAAA-MM-DD 00:00:00` y se acepta solo a medianoche. Sin listado, el motivo

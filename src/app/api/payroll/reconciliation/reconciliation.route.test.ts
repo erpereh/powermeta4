@@ -433,7 +433,7 @@ describe("reconciliation boundaries", () => {
     expect(mocks.read).not.toHaveBeenCalled();
     expect((await exportRoute(request("POST", { id: dossier.id, revision: 2 }))).status).toBe(409);
   });
-  it("automatically imports a renamed file, preserves its name and leaves unlisted people pending", async () => {
+  it("automatically imports a renamed file, preserves its name and only checks unlisted payments", async () => {
     persistUploads();
     const fixed = dossier.result.findings.find((item) => item.control === "C01")!;
     const gym = dossier.result.findings.find((item) => item.control === "C16")!;
@@ -467,7 +467,11 @@ describe("reconciliation boundaries", () => {
     expect(
       dossier.result.findings
         .filter((item) => item.control === "C16" && item.employeeId !== "009001")
-        .every((item) => item.delta === null && item.status === "No comparable"),
+        .every(
+          (item) =>
+            (item.actual === "0" && item.status === "Coincide" && item.expected === "0") ||
+            (item.actual !== "0" && item.delta === null && item.status === "No comparable"),
+        ),
     ).toBe(true);
     expect(mocks.read).not.toHaveBeenCalled();
   });

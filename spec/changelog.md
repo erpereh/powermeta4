@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-11-17 - Fuentes de octubre cargadas; C01–C16 calculando
+
+- Diez originales subidos desde la aplicación a los expedientes CYC de octubre
+  (16/10 y 04/11); parámetros de C05/C09/C10 tomados del libro de octubre.
+- Motor 1.2.5: en fuentes parciales, ausente + nómina en cero coincide; pago sin
+  registro queda pendiente para revisar (C12 sin cambios). C13 aplica la regla
+  confirmada también con listado, que solo contrasta antigüedad.
+- Suite completa: 1.547 correctas y 36 omitidas, sin fallos. Typecheck y diff correctos.
+- Pruebas ajustadas al nuevo criterio sin perder casos: pagos sin fuente, IDs sin
+  vincular, duplicados, paridad con el libro y fechas de C13.
+
+## 2026-11-17 - C04 y C13 operativos con las reglas de Calculos.txt
+
+- C04: la prorrata se lee de `SSP_P_EXT_PRORRAT` (la columna real del informe);
+  la configuración posterior al cálculo solo se acepta si la prorrata calculada
+  por Meta4 la corrobora; la coherencia informe/acumulado se comprueba por
+  importes. CYC octubre: 3.ª extra 288 coinciden y 36 diferencias; prorrata
+  136–138 coincidencias en agosto–octubre.
+- C13: con la regla confirmada en parámetros, esperado salario base en el mes de
+  aniversario 25/40 según la antigüedad de nómina y 0 en el resto; sin listado.
+- Recorrido completo en la aplicación con acceso rápido JORGE.SALVADOR:
+  actualizar instantáneas, confirmar parámetros, subir Excel (el informe COLL se
+  rechaza por no ser fuente), crear octubre, recargar y exportar.
+- Comprobaciones: suite completa 1.542 correctas, 38 omitidas y 3 fallidas, todas
+  en `readonly-audit-runner` (portal, plazo de 5 s): intermitente, pasa y falla
+  alternativamente con y sin estos cambios. Typecheck y `git diff --check` correctos.
+
 ## 2026-11-16 - Cuadre validado contra M4PRENOMINA y conexiones corregidas
 
 - Conexiones: la SQLite de la VM tenía `011/012_meta4_catalogs` de commits sin

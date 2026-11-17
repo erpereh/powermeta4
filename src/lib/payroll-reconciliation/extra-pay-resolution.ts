@@ -21,8 +21,6 @@ export type ExtraPayData = {
   values: ExtraPayRow[];
   unsupported: ExtraPayRow[];
   applied: ExtraPayRow[];
-  /** Optional: accruals rewritten after the run (older tests/captures omit it). */
-  recalculated?: ExtraPayRow[];
 };
 const one = decimal("1");
 const hundred = decimal("100");
@@ -173,7 +171,7 @@ function resolveIndicator(
   order: number,
   days: string[],
   calculated: string | null = null,
-): { value: 0 | 1 | null; issue?: string } {
+): { value: 0 | 1 | null; issue?: string; late?: string } {
   const component = `CSP_PRORRATEADA_PE${order}`;
   const unsupported = data.unsupported.filter((row) => row.COMPONENT === component);
   if (unsupported.length)
@@ -185,15 +183,6 @@ function resolveIndicator(
   if (defaults.length !== 1)
     return { value: null, issue: `Valor por defecto del indicador ${order} ausente o duplicado.` };
   const changedDefault = writtenAfter(defaults, calculated);
-  if (changedDefault && calculated)
-    return {
-      value: null,
-      issue: afterCalculation(
-        `Valor por defecto del indicador ${order}`,
-        changedDefault,
-        calculated,
-      ),
-    };
   const candidates = data.values.filter(
     (row) =>
       row.COMPONENT === component &&
@@ -204,11 +193,7 @@ function resolveIndicator(
         (row.LEVEL === "agreement" && row.KEY1 === agreement)),
   );
   const changedValue = writtenAfter(candidates, calculated);
-  if (changedValue && calculated)
-    return {
-      value: null,
-      issue: afterCalculation(`Asignación del indicador ${order}`, changedValue, calculated),
-    };
+  let defaultUsed = false;
   const resolved: (0 | 1 | null)[] = [];
   for (const day of days) {
     const active = candidates.filter((row) => covers(row, day));
@@ -230,6 +215,7 @@ function resolveIndicator(
     )
       return { value: null, issue: `Prioridad del indicador ${order} sin acreditar.` };
     const best = active.length ? Math.min(...priorities) : null;
+    if (!active.length) defaultUsed = true;
     const values = active.length
       ? active.filter((_, index) => priorities[index] === best).map((row) => indicator(row.VALUE))
       : [indicator(defaults[0].VALUE)];
@@ -241,7 +227,15 @@ function resolveIndicator(
   }
   if (new Set(resolved).size !== 1)
     return { value: null, issue: `Cambio de modalidad del indicador ${order} dentro del mes.` };
-  return { value: resolved[0] };
+  // Configuration written after the calculation is only usable if Meta4's own
+  // result corroborates it (checked by the caller with SSP_P_EXT_PRORRAT).
+  const late =
+    calculated && changedValue
+      ? afterCalculation(`Asignación del indicador ${order}`, changedValue, calculated)
+      : calculated && changedDefault && defaultUsed
+        ? afterCalculation(`Valor por defecto del indicador ${order}`, changedDefault, calculated)
+        : undefined;
+  return { value: resolved[0], ...(late ? { late } : {}) };
 }
 
 function total(rows: ExtraPayRow[], field: string): string | null {
@@ -323,20 +317,7 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
         resolveIdentity(text(row, "EMPLOYEE"), ids) === employeeId,
     );
     if (!pay.length) {
-      const rewritten = (data.recalculated ?? [])
-        .filter(
-          (row) =>
-            row.ENTITY === entity &&
-            sameNumber(row.HR_PERIOD, hrPeriod) &&
-            resolveIdentity(text(row, "EMPLOYEE"), ids) === employeeId,
-        )
-        .map((row) => text(row, "UPDATED"))
-        .sort();
-      fail(
-        rewritten.length
-          ? `Acumulado recalculado en PeopleNet después de esta ejecución del informe (${rewritten.at(-1)}); no hay versión anterior. Elige una ejecución generada después de ese cálculo.`
-          : "No hay acumulado coherente para esta empresa, matrícula y periodo de alta.",
-      );
+      fail("No hay acumulado coherente para esta empresa, matrícula y periodo de alta.");
       continue;
     }
     const nativeIds = new Set(pay.map((row) => row.EMPLOYEE));
@@ -441,6 +422,7 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
         row.LEVEL === "individual" && row.KEY1 === nativeId ? { ...row, KEY1: employeeId } : row,
       ),
     };
+    const lateConfiguration: string[] = [];
     for (const definition of definitions) {
       const order = Number(definition.ORDINAL);
       if (
@@ -463,6 +445,7 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
         fail(flag.issue);
         break;
       }
+      if ("late" in flag && flag.late) lateConfiguration.push(flag.late);
       const original =
         definition.ORIGINAL === "S" ? true : definition.ORIGINAL === "N" ? false : null;
       const prorated =
@@ -519,7 +502,23 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
         break;
       }
     }
+    // Late configuration: Meta4's own prorated-extra result (SSP_P_EXT_PRORRAT) must
+    // agree with the resolved modality; the amount never decides it on its own.
+    let corroboration: string | null = null;
+    if (!person.issue && lateConfiguration.length) {
+      const engine = decimal(total(pay, "PRORATED"));
+      const anyProrated = person.extras.some((extra) => extra.prorated);
+      if (engine === null)
+        fail(`${lateConfiguration[0]} Falta la prorrata calculada por Meta4 para corroborarla.`);
+      else if (anyProrated !== (engine !== zero))
+        fail(
+          `${lateConfiguration[0]} El cálculo de Meta4 no la corrobora (prorrata calculada ${engine === zero ? "nula" : "no nula"}).`,
+        );
+      else
+        corroboration = `Configuración posterior al cálculo corroborada por la prorrata calculada por Meta4 (${anyProrated ? "no nula" : "nula"}).`;
+    }
     person.evidence = [
+      ...(corroboration ? [corroboration] : []),
       `PeopleNet:${result.society}:${entity}:${employeeId}:${hrPeriod}:${period}:${rule.variant ?? rule.mode}:${rule.versions.map((version) => `${version.id}:${version.validFrom}/${version.validTo}:${version.sourceHash}`).join(";")}`,
       `Configuración:${hash({ histories: evidenceRows(histories), definitions: evidenceRows(definitions), pay: evidenceRows(pay), ...(rule.mode === "R1" ? { values: evidenceRows(scoped.values.filter((row) => row.KEY1 === employeeId || row.KEY1 === entity || row.KEY1 === agreement)), defaults: evidenceRows(data.defaults), applied: evidenceRows(data.applied.filter((row) => row.EMPLOYEE === nativeId)) } : {}) })}`,
     ];

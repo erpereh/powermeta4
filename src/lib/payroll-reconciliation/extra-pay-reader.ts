@@ -68,16 +68,11 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
       read(EXTRA_PAY_SQL.payroll),
       read(EXTRA_PAY_SQL.histories),
     ]);
-    const [definitions, recalculated] = await Promise.all([
-      read(EXTRA_PAY_SQL.definitions),
-      read(EXTRA_PAY_SQL.recalculated),
-    ]);
     const data: ExtraPayData = {
       rules,
       payroll,
       histories,
-      definitions,
-      recalculated,
+      definitions: await read(EXTRA_PAY_SQL.definitions),
       defaults: [],
       values: [],
       unsupported: [],

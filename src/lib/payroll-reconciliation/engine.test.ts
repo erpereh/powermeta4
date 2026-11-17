@@ -94,7 +94,15 @@ describe("deterministic reconciliation", () => {
     const input = inputs();
     input.sources = [source("gimnasio", [fact({ gym: "0" }), fact({ gym: "5" }, "999999")])];
     expect(finding(input, "gym").status).toBe("Coincide");
-    expect(finding(input, "gym", "009002").status).toBe("No comparable");
+    // Absent from a partial list with an explicit zero in payroll: nothing to contrast.
+    expect(finding(input, "gym", "009002")).toMatchObject({ status: "Coincide", expected: "0" });
+    expect(finding(input, "gym", "009002").reason).toContain("nómina en cero");
+    set(input, "Cuota Gimnasio Importe", "30", "009002");
+    expect(finding(input, "gym", "009002")).toMatchObject({
+      status: "No comparable",
+      expected: null,
+    });
+    expect(finding(input, "gym", "009002").reason).toContain("Pago en nómina sin registro");
     expect(
       reconcile(input).findings.some(
         (item) => item.employeeId === "Sin vincular" && item.status === "No comparable",

@@ -38,8 +38,7 @@ describe("grouped automatic extra reader", () => {
         period === "2026-07" ? "4000-01-01" : "2026-10-31",
       );
       expect(EXTRA_PAY_SQL.rules).toContain("R.RULE_ORDER");
-      // Eight configuration reads plus the recalculated-accrual explanation.
-      expect(mocks.read).toHaveBeenCalledTimes(9);
+      expect(mocks.read).toHaveBeenCalledTimes(8);
       for (const [, parameters] of mocks.read.mock.calls) {
         expect(parameters.organization.value).toBe("CYC");
         expect(parameters.correctionDate.value.toISOString()).toBe(input.current.run.runAt);
@@ -63,14 +62,14 @@ describe("grouped automatic extra reader", () => {
     "reads %s configuration without querying indicators when the rule preserves definitions",
     async (period) => {
       const input = automaticExtraFixture(period, "definition");
-      const needed = ["rules", "payroll", "histories", "definitions", "recalculated"] as const;
+      const needed = ["rules", "payroll", "histories", "definitions"] as const;
       mocks.read.mockImplementation(async (sql: string) => {
         const key = needed.find((key) => EXTRA_PAY_SQL[key] === sql);
         if (!key) throw new Error("UnusedIndicatorQuery");
-        return input.data[key] ?? [];
+        return input.data[key];
       });
       const result = await captureAutomaticExtras(input.current);
-      expect(mocks.read).toHaveBeenCalledTimes(5);
+      expect(mocks.read).toHaveBeenCalledTimes(4);
       expect(result.extraPayAutomatic?.issue).toBeUndefined();
       expect(result.extraPayAutomatic?.rule?.mode).toBe("definition");
       expect(result.extraPayAutomatic?.people[0]).toMatchObject({ monthlyFull: true });
@@ -104,7 +103,7 @@ describe("grouped automatic extra reader", () => {
       expect(result.rows).toEqual(input.current.rows);
       expect(result.extraPayAutomatic?.issue).toContain("No se ha podido acreditar");
       expect(result.extraPayAutomatic?.rule?.mode).toBe("definition");
-      expect(mocks.read).toHaveBeenCalledTimes(5);
+      expect(mocks.read).toHaveBeenCalledTimes(4);
     } finally {
       log.mockRestore();
     }
