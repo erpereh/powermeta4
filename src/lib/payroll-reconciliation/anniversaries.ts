@@ -151,7 +151,11 @@ export function anniversaryFindings(
         sourceEvidence,
       );
     } else if (!relevant.length && !exceptions.length) {
-      expected = missing("Falta fuente independiente de beneficiarios para este control.");
+      expected = missing(
+        due === metric.id
+          ? "Cumple el aniversario en este periodo según la antigüedad de nómina; falta el listado de beneficiarios para acreditar elegibilidad y base."
+          : "Falta fuente independiente de beneficiarios para este control.",
+      );
     } else if (!parameters.rulesConfirmed || !parameters.anniversaryFullBase) {
       expected = missing(
         "Falta confirmar elegibilidad, mes de pago y salario base aplicable (Q12).",

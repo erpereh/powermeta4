@@ -7,6 +7,7 @@ import {
   exportReason,
   metricLabel,
   reconciliationDate,
+  reconciliationRunAt,
   sourceFieldLabel,
   sourceFieldValue,
 } from "./presentation";
@@ -33,6 +34,10 @@ const minimumWidth = (header: string): number =>
       : /motivo|comentario|observaciones|incidencia|^valor$/i.test(header)
         ? 44
         : 16;
+
+/** Server/database only: lets the reader spot captures taken from another base. */
+const originLabel = (origin: Dossier["current"]["origin"]): string =>
+  origin ? `${origin.server} / ${origin.database}` : "No registrada (captura anterior)";
 
 export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
   const workbook = new ExcelJS.Workbook();
@@ -118,10 +123,11 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
         "Actual: informe",
         [dossier.current.run.reportId, dossier.current.run.reportName].filter(Boolean).join(" · "),
       ],
-      ["Actual: ejecución", reconciliationDate(dossier.current.run.runAt)],
+      ["Actual: ejecución", reconciliationRunAt(dossier.current.run.runAt)],
       ["Actual: fecha de paga", reconciliationDate(dossier.current.run.accruedOn)],
       ["Actual: frecuencia", dossier.current.run.payFrequency],
       ["Actual: captura", reconciliationDate(dossier.current.capturedAt)],
+      ["Actual: base PeopleNet", originLabel(dossier.current.origin)],
       [
         "Anterior: informe",
         dossier.previous
@@ -130,10 +136,14 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
               .join(" · ")
           : "Pendiente",
       ],
-      ["Anterior: ejecución", reconciliationDate(dossier.previous?.run.runAt)],
+      ["Anterior: ejecución", reconciliationRunAt(dossier.previous?.run.runAt)],
       ["Anterior: fecha de paga", reconciliationDate(dossier.previous?.run.accruedOn)],
       ["Anterior: frecuencia", dossier.previous?.run.payFrequency ?? "Pendiente"],
       ["Anterior: captura", reconciliationDate(dossier.previous?.capturedAt)],
+      [
+        "Anterior: base PeopleNet",
+        dossier.previous ? originLabel(dossier.previous.origin) : "Pendiente",
+      ],
       ...exportParameters(dossier.parameters),
       ...dossier.result.diagnostics.map((message): [string, string] => [
         "Aviso",

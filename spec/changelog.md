@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-11-16 - Cuadre validado contra M4PRENOMINA y conexiones corregidas
+
+- Conexiones: la SQLite de la VM tenía `011/012_meta4_catalogs` de commits sin
+  rama y `setup` abortaba; sin la tabla del Cuadre todo devolvía 503. Copia en
+  `data/backups/pre-cuadre-schema-repair-20261116/`, retiradas cinco tablas vacías
+  y sus dos registros; `setup` aplica la 011 real. El pool PeopleNet se reconstruye
+  al cambiar la configuración efectiva (antes podía seguir en `M4PRE` tras cambiar
+  `.env.local`) y reconecta si está cerrado. Meta4 verificado con `--use-system-ca`.
+- Las instantáneas guardan servidor/base (`origin`, opcional): no se comparan
+  bases distintas; Datos y Expediente lo muestran. El Excel ya no desplaza la hora
+  local de `CSP_DT_RUN` a Madrid.
+- C13 lee la antigüedad `AAAA-MM-DD 00:00:00` de PeopleNet (antes todas eran
+  «inválidas») e indica sin listado quién cumple según la nómina. C02 compara
+  numéricamente las dos ocurrencias del IRPF (antes 579 avisos falsos).
+- C04 (motor 1.2.4): explica el acumulado recalculado tras la ejecución y exige
+  que historiales, definiciones, valores por defecto y asignaciones sean
+  anteriores al cálculo del acumulado de cada persona. Septiembre acreditaba
+  138 prorratas con indicadores modificados el 27–28/10, después del cálculo
+  del 05/10; ahora quedan pendientes con las dos fechas. Fórmulas, devengo, siete columnas y C12 sin cambios.
+- `cuadre:verify` añade la base leída y motivos agregados por métrica, sin
+  identidades ni importes.
+- Verificado con SQL real (solo SELECT): CYC julio–octubre, IBER octubre y COLL
+  septiembre; Excel COLL identificado como ejecución 06/10 10:49. Recálculo
+  independiente igual al motor en C01/C02/C08/C15. Flujo completo en la
+  aplicación con sesión Meta4 real (CYC). Calculos.txt contrastado: «14 meses»
+  sin modalidad en PeopleNet; C13 pago = salario base en 3 de 10 casos reales.
+- Regresiones nuevas (`vm-regressions`, `client-pool`).
+- Comprobaciones: suite completa 1.526 correctas, 38 omitidas y 16 fallidas
+  (1.187 s, con `next dev` activo). 12 eran de la ruta del Cuadre (origen exigía
+  configuración PeopleNet en el test): corregido, origen opcional; los 282 de
+  Cuadre/PeopleNet pasan. Los 4 restantes (backup, config Meta4, ruta de alta)
+  pasan aislados con y sin estos cambios (tiempo bajo carga). Typecheck, build
+  (45 páginas) y `git diff --check` correctos. `oxlint` solo avisos previos;
+  `oxfmt --check` marca 2.116 de 2.223 archivos por falta de configuración en
+  esta rama, sin reformateo general. Rama `salvadev` (la activa; no se cambió a
+  davidev), sin commits ni push.
+
 ## 2026-11-16 - C04 valida la vigencia real, sin fechas literales de referencia
 
 - El motor 1.2.3 reconoce R1 por código ejecutable y metadatos confirmados;

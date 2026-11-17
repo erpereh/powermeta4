@@ -7,6 +7,101 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
+## Validación real en la VM y conexiones — 2026-11-16 (motor 1.2.4)
+
+Primera ejecución completa contra `M4PRENOMINA` desde la VM, con acceso Meta4
+real (acceso rápido) y `npm run dev`. Solo SELECT parametrizadas; ninguna
+escritura en PeopleNet, SOAP ni originales. Recuentos sin datos personales en
+[VALIDATION](VALIDATION.md#validación-real-en-m4prenomina--2026-11-16).
+
+### Conexiones corregidas
+
+- **SQLite local**: la base de la VM tenía aplicadas `011_meta4_catalogs` y
+  `012_meta4_catalog_scopes`, de dos commits sin rama (`eb99e441`, `20b36312`).
+  `npm run setup` abortaba («migración desconocida o modificada») y la tabla del
+  Cuadre no existía: toda operación devolvía el 503 genérico. Con copia previa en
+  `data/backups/pre-cuadre-schema-repair-20261116/`, se retiraron las cinco tablas
+  `meta4_catalog*` **vacías** y sus dos registros; `setup` aplica la 011 real.
+  Otra instalación con el mismo síntoma: comprobar `schema_migrations` antes de
+  repetirlo; no aplicar si esas tablas contienen filas.
+- **Base PeopleNet**: `.env.local` (prioridad en Next y en los scripts) apunta a
+  `M4PRENOMINA`; `.env` conserva `M4PRE` con otras credenciales. El pool se
+  guardaba en `globalThis` sin clave: un `next dev` ya arrancado seguía leyendo la
+  base anterior tras cambiar `.env.local`. Ahora se reconstruye si cambia la
+  configuración efectiva (huella sin secretos) y se reconecta si estaba cerrado.
+- **Origen de la captura**: cada instantánea guarda servidor/base leídos
+  (`origin`, opcional). Actual y anterior de bases distintas no se comparan;
+  la pestaña Datos y la hoja Expediente muestran «Base PeopleNet». Las capturas
+  anteriores sin origen siguen abriendo («No registrada»).
+- **Meta4/SOAP**: el WSDL de Login responde (HTTP 200, ~3,4 s) solo con la CA del
+  sistema; sin ella falla con `SELF_SIGNED_CERT_IN_CHAIN`. `dev`, `start` y
+  `cuadre:*` ya usan `NODE_OPTIONS=--use-system-ca`: no arrancar `next` directamente.
+  Acceso rápido y sesión verificados (cookie opaca, 2 s).
+- **Hora de ejecución en Excel**: `CSP_DT_RUN` es hora local sin zona; el Excel la
+  convertía otra vez a Madrid (+1/+2 h). Ahora usa el mismo formato que la UI y
+  Resultados de nómina (`Normal_Inf …_202610161141` = ejecución 11:39:57).
+- Tiempos medidos: catálogo 0,4 s (4.301 ejecuciones CYC), lectura de un informe
+  ≤ 21 s (límite 30 s), creación de expediente 6,2 s, actualización 5,2 s.
+
+### Correcciones de controles con datos reales
+
+- **C13**: PeopleNet devuelve la antigüedad como `AAAA-MM-DD 00:00:00`; el
+  parser solo aceptaba `AAAA-MM-DD`, así que todas las personas quedaban con
+  «antigüedad ausente o inválida». Se acepta medianoche; otra hora sigue sin
+  acreditar. Sin listado, quien cumple 25/40 según la nómina lo indica el motivo
+  (sigue «Falta fuente»; la nómina no sustituye al listado de beneficiarios).
+- **C02**: el aviso de ocurrencias comparaba texto (`15.00` frente a `15.0000`) y
+  marcaba todas las filas; ahora compara valores. CYC octubre: 2 filas reales.
+- **C04**: (1) un acumulado reescrito después de la ejecución del informe se
+  explica con su fecha («Acumulado recalculado … elige una ejecución posterior»)
+  en lugar de «sin acumulado coherente»; lectura agrupada adicional sin importes.
+  (2) La configuración (historiales, definiciones, valores por defecto de
+  `M4RCH_ITEMS` y asignaciones) debe ser **anterior al cálculo del acumulado**
+  de cada persona, no solo a la ejecución del informe: Meta4 no guarda la versión
+  previa de esas filas. Una fecha posterior o ausente deja C04 pendiente con
+  ambas fechas. Antes, septiembre de CYC acreditaba 138 prorratas con indicadores
+  creados el 27–28/10, después del cálculo del 05/10: era una acreditación sin
+  evidencia de que esa configuración produjera el pago.
+- C12 no cambia (código, cálculo ni huellas); su revisión se conserva al guardar
+  parámetros y actualizar instantáneas, y solo se invalida cuando cambian sus fuentes.
+
+### Contraste con «Calculos.txt»
+
+- **C04 «14 meses»** (base + experiencia + CAI) y **«12»** (base × 3 / 12) son las
+  dos fórmulas ya implementadas. PeopleNet no tiene una modalidad llamada
+  «14 meses»: CYC define tres extras al 100 % (junio, diciembre y octubre) con
+  `SSP_PRORRATEADA` nulo, que resuelve R1 por indicadores; COLL solo junio y
+  diciembre (la prorrata de tres extras nunca aplica); IBER quince convenios con
+  terceras/cuartas extras al 50/100/150 %. No se asocia «14 meses» a 12 + 2 ni a
+  ninguna combinación sin confirmación de RRHH.
+- **C13** «salario base … solo cuando toque en 25–40 años»: implementado como
+  esperado = salario base con listado y confirmación de base. En CYC enero–octubre
+  de 2026 hay 10 aniversarios de 25 años según la antigüedad de nómina y todos
+  cobran; ninguna persona cobra sin cumplir. El pago es igual al «Salario Base»
+  del informe en 3 casos; en 6 la relación es 1,883 y en otro 2,174 (y 0,04 con
+  jornada del 70 %). La base aplicable no se deduce de esos importes: al
+  confirmarla, esos casos aparecerán como diferencias revisables.
+- **C01/C02/C08/C15** contra el mes inmediatamente anterior: ya era así. Con
+  datos reales el motor coincide al 100 % con un recálculo independiente.
+- **Anticipos**: sin cambios en C12, como se pidió.
+
+### Qué sigue pendiente
+
+- C04 no puede acreditarse con los datos actuales de `M4PRENOMINA`: los
+  indicadores PE1–PE5 se modificaron el 27–28/10 y el último acumulado de
+  octubre (CYC, IBER y COLL) se recalculó el 05/11 19:00–19:02, después de todas
+  las ejecuciones del informe. Hace falta una ejecución del informe de octubre
+  generada en PeopleNet **después de ese cálculo** (o la nómina de noviembre).
+  Esa generación es una operación de PeopleNet; esta herramienta no la lanza.
+- `M4SCO_APPLY_PERIOD` no tiene filas de `CSP_PRORRATEADA_PE*` desde junio:
+  Meta4 no registra haber aplicado esos indicadores en ningún cálculo.
+- Los diez originales externos no están en esta VM (solo dos copias del informe
+  COLL de septiembre): C03, C05–C07, C09–C11, C13 (listado), C14 y C16 siguen
+  «Falta fuente» con datos reales. La importación se probó con plantillas simuladas.
+- La interfaz no tiene selector de sociedad desde `db40ebca`: con el usuario de
+  acceso rápido (CYC e IBER) solo se abre CYC; COLL no está en su perfil. IBER y
+  COLL se verificaron con `cuadre:verify`, que usa el mismo lector.
+
 ## C04 automático — 2026-11-13
 
 El motor 1.2.3 (corrección 2026-11-16) lee la configuración y el devengo al **crear
@@ -128,7 +223,7 @@ C12 y las huellas de todos los controles ajenos a C04 se conservan.
    npm run cuadre:verify -- CYC --selection ".\data\cuadre-selection.json"
    ```
 
-   Revisar `engineVersion` (`1.2.3`), `extraPayModality.issue`, `rule`, `people`,
+   Revisar `engineVersion` (`1.2.4`), `target` (servidor/base leídos), `extraPayModality.issue`, `rule`, `people`,
    `accredited` y `pending`, y el resumen de C04. `accredited` cuenta configuraciones sin incidencia; no implica
    que todos sus devengos permitan aplicar una fórmula económica.
 

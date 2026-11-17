@@ -938,7 +938,9 @@ const SnapshotTable = memo(function SnapshotTable({
     <div className="min-w-0 space-y-3">
       <p className="text-sm text-muted-foreground">
         Informe {data.run.reportId} · paga {data.run.accruedOn} · capturado{" "}
-        {new Date(data.capturedAt).toLocaleString("es-ES")} · {data.rows.length} filas. Se conservan
+        {new Date(data.capturedAt).toLocaleString("es-ES")}
+        {data.origin ? ` desde ${data.origin.server} / ${data.origin.database}` : ""} ·{" "}
+        {data.rows.length} filas. Se conservan
         las columnas necesarias para el cuadre; NIF y cuentas bancarias se excluyen.
       </p>
       <Input label="Buscar en los datos" value={search} onChange={setSearch} />

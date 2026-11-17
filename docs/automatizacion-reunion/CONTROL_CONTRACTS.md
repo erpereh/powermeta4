@@ -98,6 +98,13 @@ Q03/Q05: precisión y otros perfiles/entidades se validan por separado.
 
 ## C04 — Paga extra
 
+Validación real 2026-11-16 (motor 1.2.4): la configuración usada debe ser
+anterior al cálculo del acumulado de la persona (`DT_LAST_UPDATE` mínimo de sus
+tramos), no solo a la ejecución del informe. Historiales, definiciones, valores
+por defecto (`M4RCH_ITEMS`) y asignaciones (`DT_COR_START`) posteriores, o sin
+fecha, dejan la persona pendiente con ambas fechas. Un acumulado reescrito tras
+la ejecución se identifica como tal. Fórmulas, devengo, siete columnas y C12 sin cambios.
+
 Corrección de vigencia real 2026-11-16 (motor 1.2.3): el diagnóstico del lector
 de la VM devuelve código histórico coincidente y metadatos válidos (prioridad 2,
 orden 100, condición 0, TI CSP_HRPERIOD_CALC) con vigencia 1800–4000. Se identifica
@@ -285,6 +292,10 @@ Q11: no se recibieron cartas/calendario. La plantilla inferior es para el
 cuadre; **no acredita un formato de importación válido de PeopleNet**.
 
 ## C13 — Aniversarios 25/40
+
+Validación real 2026-11-16: la antigüedad del informe llega como
+`AAAA-MM-DD 00:00:00` y se acepta solo a medianoche. Sin listado, el motivo
+indica quién cumple según la nómina, sin esperado ni cambio de estado.
 
 H: correo/E21. Nómina BJ/BK y base AK. S01 usa entidad, matrícula y
 antigüedad; en ACYC, I clasifica 25/40, con títulos y cabecera intermedia.

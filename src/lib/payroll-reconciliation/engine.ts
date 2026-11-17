@@ -18,7 +18,7 @@ import type {
   SourceFact,
 } from "./types";
 
-export const ENGINE_VERSION = "1.2.3";
+export const ENGINE_VERSION = "1.2.4";
 const zero = BigInt(0);
 
 function population(data: Snapshot | null): Map<string, { rows: number[]; name: string }> {
@@ -87,7 +87,12 @@ export function reconcile(
   if (columnIndex(current.headers, "Porcentaje I.R.P.F.", 2) >= 0) {
     const first = columnIndex(current.headers, "Porcentaje I.R.P.F."),
       second = columnIndex(current.headers, "Porcentaje I.R.P.F.", 2);
-    const different = current.rows.filter((row) => row[first] !== row[second]).length;
+    // Same percentage with another scale (15.00 / 15.0000) is not a difference.
+    const different = current.rows.filter((row) => {
+      const a = decimal(row[first]),
+        b = decimal(row[second]);
+      return a === null || b === null ? row[first] !== row[second] : a !== b;
+    }).length;
     if (different)
       diagnostics.push(
         `IRPF: ${different} filas con ocurrencias distintas; se usa la primera sin sumar porcentajes.`,

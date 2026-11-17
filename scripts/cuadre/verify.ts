@@ -6,7 +6,26 @@ import { validRunKey } from "../../src/lib/payroll-reconciliation/validation";
 import { DEFAULT_PARAMETERS } from "../../src/lib/payroll-reconciliation/types";
 import { monthlySnapshotIssue } from "../../src/lib/payroll-reconciliation/comparison";
 import { captureAutomaticExtras } from "../../src/lib/payroll-reconciliation/extra-pay-reader";
+import { getPeopleNetTarget } from "../../src/lib/peoplenet/client";
+import type { Finding } from "../../src/lib/payroll-reconciliation/types";
 import { execute, societyArgument } from "./common";
+
+/** Status/reason counts per control and metric; no IDs, names or amounts. */
+function reasonSummary(findings: Finding[]) {
+  const summary: Record<string, Record<string, number>> = {};
+  for (const finding of findings) {
+    const key = `${finding.control}/${finding.metric}`;
+    const reason = finding.reason
+      .replace(/\d+(?:[.,]\d+)?/g, "#")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 180);
+    const bucket = (summary[key] ??= {});
+    const label = `${finding.status}${reason ? ` · ${reason}` : ""}`;
+    bucket[label] = (bucket[label] ?? 0) + 1;
+  }
+  return summary;
+}
 
 void execute(async () => {
   const society = societyArgument(),
@@ -36,10 +55,13 @@ void execute(async () => {
     JSON.stringify(
       {
         society,
+        period: input.period,
+        target: getPeopleNetTarget(),
         currentRows: current.rows.length,
         previousRows: previous?.rows.length ?? 0,
         engineVersion: result.engineVersion,
         controls: result.controls,
+        reasons: reasonSummary(result.findings),
         diagnostics: result.diagnostics,
         monthlyComparison: { comparable: comparisonIssue === null, reason: comparisonIssue },
         extraPayModality: {

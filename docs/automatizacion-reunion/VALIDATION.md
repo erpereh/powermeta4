@@ -1,5 +1,60 @@
 # Validación de fuentes y criterios de aceptación
 
+## Validación real en M4PRENOMINA — 2026-11-16
+
+Ejecutado en la VM con motor 1.2.4, `WPNETDESAPRE / M4PRENOMINA` (`.env.local`),
+solo SELECT parametrizadas. Formato: coinciden/diferencias/pendientes. Sin
+matrículas, nombres ni importes.
+
+**Excel de prueba identificado.** `informes nomina/Normal_Inf 0001_20261091154.xls`
+(y su copia `…_2026109110.xls`) = COLL, informe `01`, nómina de septiembre
+(pago 25/09/2026), ejecución `2026-10-06T10:49:34`. Contraste por persona:
+total devengos, líquido, fijos y salario base 13/13 iguales; frente a la
+ejecución de agosto 0/13 (devengos). Cabeceras y 20 filas idénticas; las
+diferencias por posición son orden de tramos. Los diez originales externos
+no están en la VM.
+
+| Sociedad · mes · actual / anterior                   | C01        | C02        | C08         | C15          | C04                                    |
+| ---------------------------------------------------- | ---------- | ---------- | ----------- | ------------ | -------------------------------------- |
+| CYC 2026-10 · 16/10 11:39 / 28/10 (sept.)            | 521/32/7   | 188/365/7  | 1102/4/14   | 6071/12/77   | 0/0/2795 (recalculado 05/11)           |
+| CYC 2026-10 · 04/11 17:22 / 28/10                    | 519/34/8   | 187/366/8  | 1102/4/16   | 6070/13/88   | 0/0/2800 (recalculado 05/11)           |
+| CYC 2026-09 · 28/10 09:11 / 14/09 (ago.)             | 521/28/9   | 178/371/9  | 1096/2/18   | 6033/6/99    | 0/0/2770 (indicadores del 27/10)       |
+| CYC 2026-08 · 14/09 09:45 / 06/08 (jul.)             | 526/25/7   | 93/458/7   | 1102/0/14   | 6058/3/77    | 0/0/2765 (indicadores del 27/10)       |
+| COLL 2026-09 · 06/10 10:49 (Excel) / 11/09 (ago.)    | 12/1/0     | 0/13/0     | 0/0/26 col. | 13/0/130 col.| 0/0/65 (indicadores del 27/10)         |
+| IBER 2026-10 · 05/11 09:44 / 23/09 «Normal»          | 57/13/3    | 25/45/3    | 0/0/146 col.| 70/0/733 col.| 0/0/360 (recalculado 05/11)            |
+| IBER 2026-10 · 05/11 / 30/09 «Normal + Retroactiva»  | pendiente  | pendiente  | pendiente   | pendiente    | — tipo de paga distinto: no se compara |
+
+- C01/C02/C08/C15: recálculo independiente (suma por persona sin el motor):
+  560/560 hallazgos iguales en cada métrica de CYC octubre. Las diferencias de
+  C02 son mayoritariamente < 1 pp (346 de 365 en CYC octubre, primera fila): variaciones reales
+  de porcentaje, revisables con la tolerancia de 0,01 pp (Q03), no errores.
+  «col.» = columna ausente en el informe de 152/159 columnas de COLL/IBER.
+- C04: regla `r1-aug-oct-2026` reconocida en las tres sociedades con vigencias
+  reales (R1 2026-08-01/2026-10-31, prioridad 3, orden 100; regla de definición
+  1800/4000). Ninguna persona acreditada: ver causas en
+  [IMPLEMENTATION](IMPLEMENTATION.md#qué-sigue-pendiente). Antes de la guarda de
+  1.2.4, septiembre acreditaba 541 configuraciones y la prorrata coincidía en 138
+  personas: la fórmula cuadra, pero no queda acreditada la modalidad.
+- C13: con la corrección de fecha, las 559 «antigüedad inválida» de CYC octubre
+  pasan a «Falta fuente»; 10 aniversarios de 25 años en enero–octubre, 3 con
+  pago = salario base del informe.
+- C03, C05–C07, C09–C12, C14, C16: «Falta fuente» (sin originales en la VM).
+
+**Aplicación (Chrome sin interfaz, sesión Meta4 real, CYC):** catálogo, creación
+de septiembre (28/10 frente a 14/09), recarga sin SQL (misma huella y captura),
+revisiones C01 y C12, comentario obligatorio, revisión obsoleta (409),
+parámetros, actualización de instantáneas con revisiones vigentes, rechazo de
+anterior no inmediato (422) y de ejecución de otro mes (422), exportación de
+23 hojas de siete columnas (409 si la revisión es obsoleta), pestaña Datos con
+origen y sin overflow a 1440/390 px ni errores JavaScript. Informe COLL como
+fuente: «No se reconoce la categoría». Plantillas de anticipos y excesos con
+**datos simulados**: comprobación, aplicación, copia idéntica sin nueva revisión,
+C11/C12 con una coincidencia y una diferencia, revisión C12 invalidada por nueva
+evidencia y restaurada al retirar las fuentes. Esto no valida C11/C12 operativamente.
+
+Comprobaciones locales: ver `spec/changelog.md` (2026-11-16, Cuadre validado
+contra M4PRENOMINA). Typecheck, build y `git diff --check` correctos.
+
 ## Vigencia real leída en la VM — 2026-11-16
 
 El diagnóstico del propio proyecto en la VM confirma motor 1.2.2, comportamiento

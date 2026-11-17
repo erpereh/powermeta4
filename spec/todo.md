@@ -1,5 +1,27 @@
 # powermeta4 - estado de tareas
 
+## Cuadre: validación real en M4PRENOMINA y conexiones — 2026-11-16
+
+- [x] SQLite reparada con copia previa (catálogos vacíos de commits sin rama);
+      `npm run setup` correcto y API del Cuadre operativa.
+- [x] Pool PeopleNet ligado a la configuración efectiva; `.env.local`
+      (`M4PRENOMINA`) prevalece y el origen queda en cada instantánea/Excel.
+- [x] Meta4/SOAP y sesión: WSDL con CA del sistema y acceso rápido verificados.
+- [x] C13 antigüedad datetime, C02 aviso numérico, C04 acumulado recalculado y
+      configuración posterior al cálculo; hora de ejecución del Excel.
+- [x] Contraste real: CYC jul–oct, IBER oct, COLL sep (Excel identificado);
+      recálculo independiente de C01/C02/C08/C15; flujo completo en la aplicación.
+- [x] Calculos.txt contrastado y ambigüedades documentadas (14 meses, base C13).
+- [ ] C04: generar en PeopleNet un informe de octubre posterior al cálculo del
+      05/11 (o esperar noviembre) y actualizar instantáneas; acreditar modalidades.
+- [ ] RRHH: base aplicable de las pagas de aniversario (relación 1,883 en 6 de
+      10), significado de «14 meses» y tolerancias (Q03/Q06/Q12).
+- [ ] Originales externos (Mercer, Gimnasio, Eurest, etc.) y cartas de anticipos
+      no están en la VM: C03, C05–C07, C09–C12, C14, C16 siguen sin fuente real.
+- [ ] Login SQL con `INSERT` en la base: pedir a sistemas un usuario solo lectura.
+- [ ] Selector de sociedad retirado en `db40ebca`: decidir si se recupera para
+      abrir IBER/COLL desde la aplicación.
+
 ## C04: vigencia real de PeopleNet — 2026-11-16
 
 - [x] Causa confirmada por diagnóstico VM: código histórico coincidente con

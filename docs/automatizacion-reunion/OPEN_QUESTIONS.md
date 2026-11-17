@@ -5,6 +5,18 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
+Actualización validación real 2026-11-16 (motor 1.2.4): primera ejecución en
+`M4PRENOMINA`. Q02 avanza: actual/anterior reales comparables en CYC (julio–
+octubre), IBER y COLL; el motor coincide con un recálculo independiente en
+C01/C02/C08/C15. Q06 sigue abierta con causa concreta: indicadores PE1–PE5
+modificados el 27–28/10 y acumulados de octubre recalculados el 05/11 después
+de todas las ejecuciones; sin `M4SCO_APPLY_PERIOD` para esos indicadores.
+«14 meses» no corresponde a ninguna modalidad de PeopleNet (CYC: tres extras
+junio/diciembre/octubre; COLL: dos). Q12: la antigüedad de nómina ya se lee;
+el pago de 25 años es igual al salario base del informe en 3 de 10 casos
+(relación 1,883 en 6): RRHH debe fijar la base aplicable. Detalle en
+[IMPLEMENTATION](IMPLEMENTATION.md#validación-real-en-la-vm-y-conexiones--2026-11-16-motor-124).
+
 Actualización vigencia real 2026-11-16: el diagnóstico desde el propio proyecto
 en VM reconoce el código histórico (`codeMatches: true`), con prioridad 2,
 orden 100 y condición 0, pero devuelve fin `4000-01-01`. Resuelto localmente

@@ -21,6 +21,8 @@ export type ExtraPayData = {
   values: ExtraPayRow[];
   unsupported: ExtraPayRow[];
   applied: ExtraPayRow[];
+  /** Optional: accruals rewritten after the run (older tests/captures omit it). */
+  recalculated?: ExtraPayRow[];
 };
 const one = decimal("1");
 const hundred = decimal("100");
@@ -53,6 +55,23 @@ function covers(row: ExtraPayRow, first: string, last = first, prefix = "DATE"):
     to = text(row, `${prefix}_TO`);
   return validDate(from) && validDate(to) && from <= first && to >= last;
 }
+/**
+ * Meta4 keeps no prior version of these rows: configuration written after the
+ * accrual was calculated cannot be presented as the one that produced it.
+ * Rows without the timestamp (captures/tests before 1.2.4) are not judged.
+ */
+function writtenAfter(rows: ExtraPayRow[], calculated: string | null): string | null {
+  if (!calculated) return null;
+  return (
+    rows
+      .map((row) => (Object.hasOwn(row, "UPDATED") ? text(row, "UPDATED") || "sin fecha" : ""))
+      .filter((value) => value === "sin fecha" || value > calculated)
+      .sort()
+      .at(-1) ?? null
+  );
+}
+const afterCalculation = (what: string, updated: string, calculated: string) =>
+  `${what} modificado en PeopleNet (${updated}) después del cálculo del acumulado (${calculated}); configuración histórica sin acreditar.`;
 function indicator(value: string | null | undefined): 0 | 1 | null | "invalid" {
   if (value === null) return null;
   const parsed = decimal(value);
@@ -153,6 +172,7 @@ function resolveIndicator(
   agreement: string,
   order: number,
   days: string[],
+  calculated: string | null = null,
 ): { value: 0 | 1 | null; issue?: string } {
   const component = `CSP_PRORRATEADA_PE${order}`;
   const unsupported = data.unsupported.filter((row) => row.COMPONENT === component);
@@ -164,6 +184,16 @@ function resolveIndicator(
   const defaults = data.defaults.filter((row) => row.COMPONENT === component);
   if (defaults.length !== 1)
     return { value: null, issue: `Valor por defecto del indicador ${order} ausente o duplicado.` };
+  const changedDefault = writtenAfter(defaults, calculated);
+  if (changedDefault && calculated)
+    return {
+      value: null,
+      issue: afterCalculation(
+        `Valor por defecto del indicador ${order}`,
+        changedDefault,
+        calculated,
+      ),
+    };
   const candidates = data.values.filter(
     (row) =>
       row.COMPONENT === component &&
@@ -173,6 +203,12 @@ function resolveIndicator(
         (row.LEVEL === "entity" && row.KEY1 === person.entity) ||
         (row.LEVEL === "agreement" && row.KEY1 === agreement)),
   );
+  const changedValue = writtenAfter(candidates, calculated);
+  if (changedValue && calculated)
+    return {
+      value: null,
+      issue: afterCalculation(`Asignación del indicador ${order}`, changedValue, calculated),
+    };
   const resolved: (0 | 1 | null)[] = [];
   for (const day of days) {
     const active = candidates.filter((row) => covers(row, day));
@@ -287,7 +323,20 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
         resolveIdentity(text(row, "EMPLOYEE"), ids) === employeeId,
     );
     if (!pay.length) {
-      fail("No hay acumulado coherente para esta empresa, matrícula y periodo de alta.");
+      const rewritten = (data.recalculated ?? [])
+        .filter(
+          (row) =>
+            row.ENTITY === entity &&
+            sameNumber(row.HR_PERIOD, hrPeriod) &&
+            resolveIdentity(text(row, "EMPLOYEE"), ids) === employeeId,
+        )
+        .map((row) => text(row, "UPDATED"))
+        .sort();
+      fail(
+        rewritten.length
+          ? `Acumulado recalculado en PeopleNet después de esta ejecución del informe (${rewritten.at(-1)}); no hay versión anterior. Elige una ejecución generada después de ese cálculo.`
+          : "No hay acumulado coherente para esta empresa, matrícula y periodo de alta.",
+      );
       continue;
     }
     const nativeIds = new Set(pay.map((row) => row.EMPLOYEE));
@@ -307,6 +356,15 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
     const histories = data.histories.filter(
       (row) => row.EMPLOYEE === nativeId && sameNumber(row.HR_PERIOD, hrPeriod),
     );
+    const stamps = pay.map((row) => text(row, "CALCULATED"));
+    // Earliest write of the person's slices: configuration must predate all of them.
+    const calculated = stamps.every(Boolean) ? ([...stamps].sort()[0] ?? null) : null;
+    // Checked first: a row written later may also look like an overlap.
+    const changedHistory = writtenAfter(histories, calculated);
+    if (changedHistory && calculated) {
+      fail(afterCalculation("Historial de convenio, salario o empresa", changedHistory, calculated));
+      continue;
+    }
     const history = (kind: string): string | null => {
       const matches = histories.filter((row) => row.KIND === kind);
       return matches.length === 1 && covers(matches[0], month.first, month.last)
@@ -371,6 +429,11 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
       fail("Definición de extras ausente, duplicada o con órdenes no acreditados.");
       continue;
     }
+    const changedDefinition = writtenAfter(definitions, calculated);
+    if (changedDefinition && calculated) {
+      fail(afterCalculation("Definición de extras del convenio", changedDefinition, calculated));
+      continue;
+    }
     // Resolve aliases to the native employee key only within the authorized entity/period.
     const scoped: ExtraPayData = {
       ...data,
@@ -395,7 +458,7 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
       const flag =
         !usesIndicators || forced
           ? { value: null }
-          : resolveIndicator(scoped, person, agreement, order, month.days);
+          : resolveIndicator(scoped, person, agreement, order, month.days, calculated);
       if (flag.issue) {
         fail(flag.issue);
         break;

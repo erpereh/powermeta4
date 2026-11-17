@@ -8,6 +8,7 @@ import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
 import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
 import { resolveRetributivoCompanyId } from "@/features/registro-retributivo/server/company-scope";
 import { getPayrollReportRun, listPayrollReportRuns } from "@/lib/peoplenet/payroll-reports";
+import { getPeopleNetTarget } from "@/lib/peoplenet/client";
 import {
   reconciliationRepository,
   type ReconciliationScope,
@@ -168,8 +169,16 @@ async function loadSnapshot(
       "La fecha de paga actual no corresponde al mes seleccionado.",
       422,
     );
-  const captured = snapshot(data, confirmed, context.society);
+  const captured = { ...snapshot(data, confirmed, context.society), ...captureOrigin() };
   return previous ? captured : captureAutomaticExtras(captured);
+}
+/** Provenance only: a missing/unreadable configuration never blocks a capture already read. */
+function captureOrigin(): Pick<Dossier["current"], "origin"> {
+  try {
+    return { origin: getPeopleNetTarget() };
+  } catch {
+    return {};
+  }
 }
 function validatePrevious(
   period: string,

@@ -39,6 +39,14 @@ export function monthlySnapshotIssue(
 ): string | null {
   const issue = monthlyRunIssue(period, current.run, previous?.run ?? null);
   if (issue) return issue;
+  // Captures from another PeopleNet database (e.g. M4PRE vs M4PRENOMINA) never compare.
+  if (
+    current.origin &&
+    previous?.origin &&
+    (current.origin.server !== previous.origin.server ||
+      current.origin.database !== previous.origin.database)
+  )
+    return "Las ejecuciones proceden de bases PeopleNet distintas; actualiza ambas instantáneas desde la misma base.";
   if (!current.populationConfirmed || !previous?.populationConfirmed)
     return "El alcance de población de las ejecuciones no está confirmado.";
   return null;

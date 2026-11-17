@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
 import sql from "mssql";
 
 export class PeopleNetConfigError extends Error {
@@ -47,18 +48,72 @@ export const getPeopleNetConfig = (env: NodeJS.ProcessEnv = process.env): sql.co
   };
 };
 
+/**
+ * Non-reversible fingerprint of the effective connection. It lets a long-lived
+ * process notice that `.env.local` now points elsewhere without keeping secrets.
+ */
+export const peopleNetConfigFingerprint = (config: sql.config): string =>
+  createHash("sha256")
+    .update(
+      JSON.stringify([
+        config.server,
+        config.port,
+        config.database,
+        config.user,
+        config.password,
+        config.options?.encrypt,
+        config.options?.trustServerCertificate,
+      ]),
+    )
+    .digest("hex");
+
+/** Server and database actually used; never includes credentials. */
+export const getPeopleNetTarget = (
+  env: NodeJS.ProcessEnv = process.env,
+): { server: string; database: string } => {
+  const config = getPeopleNetConfig(env);
+  return {
+    server: config.server.toUpperCase(),
+    database: (config.database ?? "").toUpperCase(),
+  };
+};
+
 // Survives dev hot reloads so each edit does not open a new pool.
 const poolCache = globalThis as typeof globalThis & {
   powermeta4PeopleNetPool?: Promise<sql.ConnectionPool>;
+  powermeta4PeopleNetPoolKey?: string;
 };
 
 export const getPeopleNetPool = (): Promise<sql.ConnectionPool> => {
-  if (!poolCache.powermeta4PeopleNetPool) {
-    const pool = new sql.ConnectionPool(getPeopleNetConfig());
-    poolCache.powermeta4PeopleNetPool = pool.connect().catch((error: unknown) => {
-      poolCache.powermeta4PeopleNetPool = undefined;
-      throw error;
-    });
+  const config = getPeopleNetConfig();
+  const key = peopleNetConfigFingerprint(config);
+  const cached = poolCache.powermeta4PeopleNetPool;
+  if (cached && poolCache.powermeta4PeopleNetPoolKey !== key) {
+    // A previous base/credential must never keep answering after a config change.
+    poolCache.powermeta4PeopleNetPool = undefined;
+    void cached.then((pool) => pool.close()).catch(() => undefined);
   }
-  return poolCache.powermeta4PeopleNetPool;
+  if (!poolCache.powermeta4PeopleNetPool) {
+    const pool = new sql.ConnectionPool(config);
+    const connecting = pool.connect();
+    poolCache.powermeta4PeopleNetPool = connecting;
+    poolCache.powermeta4PeopleNetPoolKey = key;
+    connecting.catch(() => {
+      if (poolCache.powermeta4PeopleNetPool === connecting)
+        poolCache.powermeta4PeopleNetPool = undefined;
+    });
+    // mssql recovers individual connections; only log a safe name, never the message.
+    pool.on("error", (error: unknown) => {
+      console.error("[peoplenet] pool error", {
+        name: error instanceof Error ? error.name : "unknown",
+      });
+    });
+    return connecting;
+  }
+  return poolCache.powermeta4PeopleNetPool.then((pool) => {
+    if (pool.connected || pool.connecting) return pool;
+    // Closed by a script or the driver: reconnect instead of reusing a dead pool.
+    if (poolCache.powermeta4PeopleNetPoolKey === key) poolCache.powermeta4PeopleNetPool = undefined;
+    return getPeopleNetPool();
+  });
 };

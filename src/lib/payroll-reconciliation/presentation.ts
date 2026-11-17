@@ -1,3 +1,4 @@
+import { formatRunAt } from "@/components/tools/reports/payroll-results-format";
 import { CATEGORIES, METRICS } from "./catalogue";
 import type { Category, Parameters } from "./types";
 
@@ -13,6 +14,14 @@ const timestampFormat = new Intl.DateTimeFormat("es-ES", {
   timeStyle: "medium",
   timeZone: "Europe/Madrid",
 });
+/**
+ * `CSP_DT_RUN` is PeopleNet local wall-clock time without zone (read as UTC by
+ * mssql), as in Resultados de nómina: never convert it to Madrid again.
+ */
+export function reconciliationRunAt(value: string | undefined): string {
+  return value ? formatRunAt(value) : "Pendiente";
+}
+
 export function reconciliationDate(value: string | undefined): string {
   if (!value) return "Pendiente";
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value.split("-").reverse().join("/");

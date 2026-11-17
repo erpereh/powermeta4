@@ -179,6 +179,11 @@ Tras actualizar, ejecutar `npm run setup` con el servidor detenido para aplicar
 la migración 011 (esquema 11). Los expedientes se incluyen en backups y se
 conservan hasta borrado explícito; no se conservan los originales subidos.
 Las copias de esquemas anteriores requieren una instalación compatible.
+Si `setup` responde «migración desconocida o modificada», revisar
+`schema_migrations`: una base migrada con trabajo sin rama necesita reparación
+manual con copia previa (ver la guía). Arrancar siempre con `npm run dev` o
+`npm run start`: Meta4 requiere `--use-system-ca`. La base PeopleNet usada es
+la de `.env.local` (prioridad sobre `.env`) y el Excel/Datos indican cuál fue.
 Uso, pruebas, reglas pendientes y comandos `cuadre:discover`, `cuadre:verify`
 y `cuadre:verify-local`: [Guía de Cuadre de nómina](docs/automatizacion-reunion/IMPLEMENTATION.md).
 

@@ -1,7 +1,9 @@
 /** Calendar dates only; never infer seniority from a birth/hire date. */
 export function seniorityDate(value: string | undefined): string | null {
   const text = value?.trim() ?? "";
-  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  // PeopleNet report results serialize datetime columns as `YYYY-MM-DD 00:00:00`.
+  // Only midnight is a calendar date; any other time stays unaccredited.
+  const iso = /^(\d{4})-(\d{2})-(\d{2})(?:[ T]00:00:00(?:\.0+)?Z?)?$/.exec(text);
   const spanish = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text);
   if (!iso && !spanish) return null;
   const year = Number(iso ? iso[1] : spanish?.[3]);

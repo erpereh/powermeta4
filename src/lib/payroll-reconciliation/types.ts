@@ -26,6 +26,8 @@ export type Snapshot = {
   /** Sidecar preserves the existing column positions/evidence of other controls. */
   seniorityDates?: string[];
   society?: string;
+  /** PeopleNet server/database actually read (no credentials); absent in older captures. */
+  origin?: { server: string; database: string };
   /** Legacy conditional evidence; new SQL captures use extraPayAutomatic. */
   extraPayEvidence?: ExtraPayEvidence[];
   /** Optional server capture; old dossiers are never refreshed implicitly. */
