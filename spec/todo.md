@@ -1,5 +1,16 @@
 # powermeta4 - estado de tareas
 
+## Cuadre: C05 y C11 desde PeopleNet — 2026-11-17
+
+- [x] Análisis de los diez Excel y del libro de RRHH: origen y fórmula de cada hoja.
+- [x] C05 con la regla Meta4 de teletrabajo (precio por entidad × indicador) y el
+      colectivo 80-20 como contraste. CYC octubre 553/3/4 (antes 143/1/416).
+- [x] C11 con `SCO_EXC_PREV_PAYMENT` (líquido negativo + pagos − órdenes). 560/0/0.
+- [x] C04: motivo de extras parciales con fórmula × unidades de Meta4.
+- [ ] C04: confirmar con RRHH el precio de la 3.ª extra (20 casos al 82–99 %), el
+      colectivo sin 3.ª extra (11) y si se aceptan las unidades de devengo.
+- [ ] C12 fuera de alcance (sin cartas ni calendario de anticipos).
+
 ## Cuadre: C04 y C13 con Calculos.txt — 2026-11-17
 
 - [x] C04 «12» y «14 meses» operativos en CYC (agosto–octubre) con corroboración Meta4.

@@ -1,5 +1,14 @@
 # Validación de fuentes y criterios de aceptación
 
+## C05/C11 desde PeopleNet — 2026-11-17 (motor 1.3.0)
+
+Acceso rápido JORGE.SALVADOR, CYC, `M4PRENOMINA`, diez Excel subidos (copias).
+Octubre 04/11: C05 553/3/4 y C11 560/0/0; 16/10: C05 556/1/2 y C11 559/0/0. Antes:
+C05 143/1/416 y C11 sin fuente. `cuadre:verify`: CYC septiembre y agosto, IBER
+octubre y COLL septiembre (cifras en
+[IMPLEMENTATION](IMPLEMENTATION.md#c05-y-c11-desde-peoplenet-análisis-de-los-diez-excel--2026-11-17-motor-130)).
+Recarga con la misma huella, exportación 200, sin errores JS.
+
 ## C04/C13 en la aplicación — 2026-11-17
 
 Acceso rápido JORGE.SALVADOR, CYC, `M4PRENOMINA`. Septiembre: C04 136/0/100,

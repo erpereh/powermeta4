@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-17 - C05 y C11 desde PeopleNet (motor 1.3.0)
+
+- C05: esperado con la regla `CSP_I_ABONO_TELETRABAJO` (verificada por tokens) y
+  la configuración PeopleNet (precio mensual por entidad, indicador 0/1/2, alta del
+  mes, baja todo el mes anterior). El Excel del colectivo contrasta el indicador 2.
+  Configuración escrita después del cálculo o de la ejecución queda pendiente.
+- C11: esperado con `SCO_EXC_PREV_PAYMENT` (líquido negativo anterior + pagos −
+  órdenes); reglas verificadas por huella; ajustes del día 05 pendientes.
+- C04: los pendientes por devengo parcial indican si el importe es fórmula ×
+  unidades de Meta4. C12 sin cambios.
+- Resultado en la aplicación (CYC octubre 04/11): C05 553/3/4, C11 560/0/0.
+- Comprobaciones: suite completa 1.560 correctas y 36 omitidas, sin fallos; typecheck,
+  oxlint (sin avisos en lo cambiado) y build correctos. `oxfmt --check` ya fallaba en
+  todo el repositorio (2.119 archivos) antes de este cambio.
+
 ## 2026-11-17 - Fuentes de octubre cargadas; C01–C16 calculando
 
 - Diez originales subidos desde la aplicación a los expedientes CYC de octubre

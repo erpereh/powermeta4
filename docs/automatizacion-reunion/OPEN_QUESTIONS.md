@@ -5,6 +5,17 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
+Actualización 2026-11-17 (motor 1.3.0): **Q07 (teletrabajo) resuelta con
+PeopleNet**: indicador individual `CSP_IND_ABONO_TELETRABAJO` (0/1/2) y precio
+mensual por entidad `CSP_P_ABONO_TELETRABAJO` reproducen el 99 % de octubre; el
+Excel 80-20 coincide con el indicador 2 (118/118). **Q01 (excesos) resuelta**: la
+columna es `SCO_EXC_PREV_PAYMENT` y se recalcula con pagos y órdenes de
+PeopleNet; no hace falta plantilla externa. **Q06 (C04) sigue abierta** en tres
+puntos para RRHH: (1) 11 personas con 3.ª extra 0 y fórmula de 13.790–44.351 €
+(¿colectivo sin 3.ª extra?); (2) 20 cobran el 82–99 % de la fórmula con devengo
+completo (¿precio medio del año, `SSP_TIPO_PRECIO = 1`?); (3) aceptar o no las
+unidades de devengo de Meta4 en extras parciales. C12 sigue fuera de alcance.
+
 Actualización validación real 2026-11-16 (motor 1.2.4): primera ejecución en
 `M4PRENOMINA`. Q02 avanza: actual/anterior reales comparables en CYC (julio–
 octubre), IBER y COLL; el motor coincide con un recálculo independiente en

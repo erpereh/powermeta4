@@ -1,10 +1,14 @@
 import { columnIndex, identity, METRICS, type Metric } from "./catalogue";
-import { decimal, magnitude, textDecimal } from "./decimal";
+import { decimal, magnitude, multiply, textDecimal } from "./decimal";
 import { hash } from "./hash";
 import { missing, payroll, type Value } from "./payroll-value";
 import { completeProratedRule } from "./extra-pay-resolution";
 import type { Dossier, Finding, Snapshot } from "./types";
 
+const cent = decimal("0.01") ?? BigInt(0);
+const unitCent = decimal("0.01") ?? BigInt(1);
+const roundCents = (value: bigint): bigint =>
+  ((value + (value < BigInt(0) ? -unitCent : unitCent) / BigInt(2)) / unitCent) * unitCent;
 function automaticExpected(
   current: Snapshot,
   rows: number[],
@@ -94,16 +98,30 @@ function automaticExpected(
       evidence,
     };
   if (person.accrualIssue) return missing(person.accrualIssue, evidence);
-  if (!extra.full || decimal(extra.percentage) !== decimal("100"))
-    return missing(
-      "Devengo parcial o porcentaje distinto del 100 %; regla proporcional pendiente.",
-      evidence,
-    );
   const parts = [
     "Salario Base",
     "Complemento Experiencia Importe",
     "Complemento Adaptación Individualizado",
   ].map((header) => payroll(current, rows, { ...metric, header }));
+  if (!extra.full || decimal(extra.percentage) !== decimal("100")) {
+    // Context for RRHH: whether the amount is the formula × Meta4's own accrual units.
+    // Units are payroll output, so they never turn a partial accrual into a match.
+    const units = decimal(extra.units),
+      paid = payroll(current, rows, metric).value,
+      formula = parts.every((part) => part.value !== null)
+        ? parts.reduce((sum, part) => sum + (part.value ?? BigInt(0)), BigInt(0))
+        : null;
+    const proportional =
+      units !== null && formula !== null && paid !== null
+        ? magnitude(paid - roundCents(multiply(formula, units))) <= cent
+          ? ` El importe es la fórmula × unidades de devengo de Meta4 (${textDecimal(units)}).`
+          : ` El importe no es la fórmula × unidades de devengo de Meta4 (${textDecimal(units)}).`
+        : "";
+    return missing(
+      `Devengo parcial o porcentaje distinto del 100 %; regla proporcional pendiente (falta acreditar los días que descuenta el convenio).${proportional}`,
+      evidence,
+    );
+  }
   if (parts.some((part) => part.value === null))
     return missing("Componentes de la extra incompletos.", evidence);
   return {

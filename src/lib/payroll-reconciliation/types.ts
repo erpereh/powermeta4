@@ -32,7 +32,37 @@ export type Snapshot = {
   extraPayEvidence?: ExtraPayEvidence[];
   /** Optional server capture; old dossiers are never refreshed implicitly. */
   extraPayAutomatic?: AutomaticExtraPay;
+  /** Optional C05 capture: Meta4 telework rule inputs (indicator, price, hire, leave). */
+  teleworkAutomatic?: AutomaticTelework;
+  /** Optional C11 capture: previous net and payments/orders behind SCO_EXC_PREV_PAYMENT. */
+  excessAutomatic?: AutomaticExcess;
   hrPeriods?: string[];
+};
+type AutomaticCaptureBase = {
+  version: 1;
+  society: string;
+  period: string;
+  runHash: string;
+  issue?: string;
+};
+export type AutomaticPersonResult = {
+  employeeId: string;
+  entity: string;
+  hrPeriod: string;
+  /** Amount in the accumulator read with the inputs; must match the saved report. */
+  paid: string | null;
+  /** Expected amount derived from the configuration; null keeps the person pending. */
+  due: string | null;
+  reason: string;
+  evidence: string[];
+};
+export type AutomaticTelework = AutomaticCaptureBase & {
+  variant?: TeleworkRuleVariant;
+  people: (AutomaticPersonResult & { indicator: string | null })[];
+};
+export type TeleworkRuleVariant = "telework-2022-06" | "telework-2026-09";
+export type AutomaticExcess = AutomaticCaptureBase & {
+  people: AutomaticPersonResult[];
 };
 export type AutomaticExtraPay = {
   version: 1;
@@ -71,6 +101,8 @@ export type AutomaticExtraPayPerson = {
     due: boolean;
     full: boolean;
     percentage: string | null;
+    /** Meta4 accrual fraction (SSP_U_PAGA_EX_n); context only, never accredits accrual. */
+    units?: string | null;
   }[];
   evidence: string[];
 };

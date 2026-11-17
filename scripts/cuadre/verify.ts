@@ -6,6 +6,10 @@ import { validRunKey } from "../../src/lib/payroll-reconciliation/validation";
 import { DEFAULT_PARAMETERS } from "../../src/lib/payroll-reconciliation/types";
 import { monthlySnapshotIssue } from "../../src/lib/payroll-reconciliation/comparison";
 import { captureAutomaticExtras } from "../../src/lib/payroll-reconciliation/extra-pay-reader";
+import {
+  captureAutomaticExcess,
+  captureAutomaticTelework,
+} from "../../src/lib/payroll-reconciliation/automatic-reader";
 import { getPeopleNetTarget } from "../../src/lib/peoplenet/client";
 import type { Finding } from "../../src/lib/payroll-reconciliation/types";
 import { execute, societyArgument } from "./common";
@@ -44,7 +48,11 @@ void execute(async () => {
   if (!current) throw new Error("Ejecución inexistente.");
   const input = {
     period: current.run.accruedOn.slice(0, 7),
-    current: await captureAutomaticExtras(snapshot(current, true, society)),
+    current: await captureAutomaticExcess(
+      await captureAutomaticTelework(
+        await captureAutomaticExtras(snapshot(current, true, society)),
+      ),
+    ),
     previous: previous ? snapshot(previous, true, society) : null,
     sources: [],
     parameters: DEFAULT_PARAMETERS,
@@ -64,6 +72,17 @@ void execute(async () => {
         reasons: reasonSummary(result.findings),
         diagnostics: result.diagnostics,
         monthlyComparison: { comparable: comparisonIssue === null, reason: comparisonIssue },
+        automatic: Object.fromEntries(
+          (["teleworkAutomatic", "excessAutomatic"] as const).map((key) => [
+            key,
+            {
+              issue: input.current[key]?.issue ?? null,
+              people: input.current[key]?.people.length ?? 0,
+              pending:
+                input.current[key]?.people.filter((person) => person.due === null).length ?? 0,
+            },
+          ]),
+        ),
         extraPayModality: {
           issue: input.current.extraPayAutomatic?.issue ?? null,
           rule: input.current.extraPayAutomatic?.rule ?? null,

@@ -480,6 +480,7 @@ export function resolveAutomaticExtras(current: Snapshot, data: ExtraPayData): A
         due: date === current.run.accruedOn,
         full: person.monthlyFull && decimal(total(pay, `UNITS${order}`)) === one,
         percentage: definition.PERCENTAGE ?? null,
+        units: total(pay, `UNITS${order}`),
       });
       const applied = data.applied.filter(
         (row) =>

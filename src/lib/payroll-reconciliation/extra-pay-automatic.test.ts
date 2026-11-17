@@ -496,6 +496,20 @@ describe("configuration outside R1", () => {
 });
 
 describe("automatic C04", () => {
+  it("explains a partial accrual with Meta4 units without accrediting it", () => {
+    const input = automaticExtraFixture();
+    input.data.payroll[0] = { ...input.data.payroll[0], UNITS3: "0.5" };
+    paid(input, "extra3", "1000");
+    capture(input);
+    // Units are payroll output: the reason says whether formula × units holds, still pending.
+    expect(find(input, "extra3")).toMatchObject({ expected: null, status: "No comparable" });
+    expect(find(input, "extra3")?.reason).toContain(
+      "es la fórmula × unidades de devengo de Meta4 (0.5)",
+    );
+    paid(input, "extra3", "900");
+    capture(input);
+    expect(find(input, "extra3")?.reason).toContain("no es la fórmula × unidades");
+  });
   it("keeps C04 reviews valid when SQL returns the same evidence in another order", () => {
     const input = automaticExtraFixture();
     prorate(input);

@@ -196,6 +196,13 @@ fuera del colectivo. Reconstruir el cálculo conocido con parámetros del mes;
 no imponer cuatro días/cinco semanas ni copiar BP a todas las personas.
 Q07: completar 40 %, ausencias y vigencias mediante la plantilla de excepciones.
 
+Actualización 2026-11-17 (motor 1.3.0): el esperado sale de PeopleNet, no del
+Excel. Regla `CSP_I_ABONO_TELETRABAJO` verificada (2022-06 y 09/2026): indicador
+1 → 0, alta en el mes → 0, baja todo el mes anterior → 0, indicador 2 → precio × 2,
+indicador 0 → precio mensual de la entidad. El colectivo 80-20 solo contrasta
+pertenencia (discrepancia = pendiente). Configuración escrita después del cálculo
+o de la ejecución, herencia no reproducida o informe ≠ acumulado: pendiente.
+
 ## C06 — Kms y cancelación de provisión
 
 H: correo/E13. S03/Carga de Valores, cabecera fila 2: A matrícula, B artículo,
@@ -284,6 +291,12 @@ registro independiente de recálculos. P: solicitar plantilla externa de
 excesos, seleccionar mes de compensación y conservar signo/precisión.
 Sin ella mostrar «Falta fuente», aunque el libro tenga un «OK». No inferir
 la anotación perdida a partir del saldo ERP. Q01 sigue parcialmente abierta.
+
+Actualización 2026-11-17 (motor 1.3.0): la columna es `SCO_EXC_PREV_PAYMENT`;
+se recalcula con la regla estándar verificada (líquido negativo anterior + pagos −
+órdenes de pago desde la paga anterior). La hoja Excesos del libro es un listado
+del informe, no fuente. Pendiente: paga de ajustes del día 05, varios registros
+anteriores, movimientos escritos tras el cálculo y órdenes sin pago registrado.
 
 ## C12 — Anticipos
 

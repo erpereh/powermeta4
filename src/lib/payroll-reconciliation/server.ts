@@ -21,6 +21,7 @@ import { snapshot } from "./snapshot";
 import { monthlySnapshotIssue } from "./comparison";
 import { sourceChange, sourceLimitError } from "./source-plan";
 import { captureAutomaticExtras } from "./extra-pay-reader";
+import { captureAutomaticExcess, captureAutomaticTelework } from "./automatic-reader";
 import {
   creationSchema,
   identitySchema,
@@ -170,7 +171,9 @@ async function loadSnapshot(
       422,
     );
   const captured = { ...snapshot(data, confirmed, context.society), ...captureOrigin() };
-  return previous ? captured : captureAutomaticExtras(captured);
+  if (previous) return captured;
+  // Each capture is isolated: a failed read leaves only its own control pending.
+  return captureAutomaticExcess(await captureAutomaticTelework(await captureAutomaticExtras(captured)));
 }
 /** Provenance only: a missing/unreadable configuration never blocks a capture already read. */
 function captureOrigin(): Pick<Dossier["current"], "origin"> {

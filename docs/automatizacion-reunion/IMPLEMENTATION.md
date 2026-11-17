@@ -7,6 +7,101 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
+## C05 y C11 desde PeopleNet; análisis de los diez Excel — 2026-11-17 (motor 1.3.0)
+
+Análisis completo de los diez originales (hojas, fórmulas y referencias) y del
+libro de RRHH `Normal_Inf 0001_C_202610161141 cuadres.xls` (24 hojas). Solo
+SELECT en `M4PRENOMINA`; originales intactos (mismo MD5).
+
+### De dónde sale cada dato en el libro de RRHH
+
+| Hoja del libro           | Fórmula / origen                                              | Control |
+| ------------------------ | ------------------------------------------------------------- | ------- |
+| Fijos, IRPF              | mes actual − mes anterior (dos copias del informe)            | C01/C02 |
+| Flex ← Mercer            | `BUSCARV` al fichero FPS; suma de signos                       | C03     |
+| P.extra                  | `L = G+H+I` (base + experiencia + CAI), `M = K − L`            | C04     |
+| Teletrabajo              | solo listado; nota `M50 = 2,24×2`, `M51 = M50×5` (22,40 €)     | C05     |
+| (Colectivo) 80-20        | `BO = 2,24×4`, `BP = BO×5` (44,80 €), `BQ` = nómina (Hoja3)    | C05     |
+| Kms                      | resta con la carga de comisiones                               | C06     |
+| Apartamentos, Gimnasio   | resta con el Excel del mes                                     | C07/C16 |
+| Turnos                   | mes actual − anterior                                          | C08     |
+| Comp.comida              | `(9 − ausencias) × 12,1`                                       | C09     |
+| Tarjeta comida           | recarga + Eurest con base 11 y tarifa 12,1                     | C10     |
+| Excesos                  | sin fórmulas: listado de la columna del propio informe        | C11     |
+| Anticipos                | sin fórmulas: listado del informe                              | C12     |
+| 25-40                    | listado de beneficiarios sin fórmulas                          | C13     |
+| PPSE ← Fichero PPSE      | `BUSCARV` a la aportación del mes                              | C14     |
+| Conceptos varios         | cuota grupo empresa con `BUSCARV`; resto, mes anterior         | C15     |
+
+Las columnas BQ/Hoja3, la hoja Teletrabajo y la hoja Excesos son copias de la
+propia nómina: no son fuente independiente.
+
+### C05 — regla real de Meta4
+
+`CSP_HRPERIOD_CALC.CSP_I_ABONO_TELETRABAJO` (`_RULE_U_P`, versión desde
+01/09/2026; la anterior, 2022-06 a 2026-08, no tiene el ×2):
+
+- indicador `CSP_IND_ABONO_TELETRABAJO` 1 → 0; paga distinta del día 25 → 0;
+- alta en el mes (`SSP_ES_ALTA`) → 0; baja todo el mes anterior
+  (maternidad + paternidad + enfermedad + accidente = días del mes) → 0;
+- indicador 2 (colectivo 80/20) → precio × 2; indicador 0 → precio.
+
+El precio `CSP_P_ABONO_TELETRABAJO` es un valor mensual por entidad legal
+(`M4SCO_LE_VALUES`: octubre 22,40 = 2,24 × 2 días × 5 semanas; noviembre 17,92)
+y el indicador es individual (`M4SCO_PERIO_VALUES`: 118 personas con 2 y 11 con 1
+en CYC octubre). Es exactamente la regla del libro: 2 días/semana para todos y 4
+para el colectivo 80-20.
+
+Implementación: al crear o actualizar instantáneas se lee la regla (se compara
+por tokens con las dos versiones verificadas), el acumulado del mes, el del mes
+anterior, los valores por defecto, las asignaciones y cualquier herencia no
+reproducida. Queda pendiente, nunca coincidente:
+
+- regla distinta, herencia en otros niveles o varios tramos en el mes;
+- **configuración escrita después del cálculo o de la ejecución**: se usa la
+  fecha real de escritura (`DT_LAST_UPDATE`, no solo `DT_COR_START`), incluidas
+  asignaciones individuales que empiezan el día siguiente al mes. En agosto los
+  indicadores 80/20 se escribieron el 16/09 con fecha de corrección 01/09: sin
+  esto, 116 personas aparecían como error;
+- importe del informe distinto del acumulado leído;
+- persona en el colectivo 80-20 del Excel sin indicador 2, o al revés.
+
+El Excel del colectivo pasa a ser contraste (118 coinciden, 0 conflictos en
+octubre) y los parámetros tarifa/días dejan de usarse con captura.
+
+### C11 — exceso de la paga anterior
+
+La columna «Exceso líquido paga anterior» es `SCO_EXC_PREV_PAYMENT` (17/17
+importes y 542 ceros iguales). Regla estándar (`SCO_HRPERIOD_CALC2`): líquido
+negativo de la paga anterior + pagos (`M4SCO_PAYMENT`) − órdenes de pago
+(`M4SCO_PAYMEN_ORDER`) entre la paga anterior y la actual; la regla CYC de 2018
+sustituye el resultado si hay paga de ajustes el día 05. Las reglas se
+verifican con una huella de sus códigos. Pendiente: paga de ajustes, varios
+registros de la paga anterior, movimientos escritos después del cálculo y
+órdenes sin ningún pago registrado (29 personas en CYC, fuera del informe).
+Cuando pagos ≠ órdenes, el motivo indica que la paga anterior se recalculó
+después de pagarse (único origen observado; 21 de 25 casos Meta4 lo compensa).
+
+### C04 — devengo parcial
+
+Las unidades `SSP_U_PAGA_EX_n` son la fracción devengada en año comercial de 360
+días. Con fecha de alta anterior a 2026 hay 338 personas con unidades 1 y 71
+que no (ausencias que descuenta el convenio: `SSP_DESC_MAT`, `SSP_DESC_PAT` y
+`SSP_DESC_MPAR` = Y). El motivo de cada pendiente indica ahora si el importe es
+fórmula × unidades de Meta4 (37 de 50 en octubre); sigue pendiente porque las
+unidades son resultado de la nómina.
+
+### Resultados (coinciden / diferencias / pendientes), CYC octubre en la aplicación
+
+| C   | 04/11 vs 28/10 | 16/10 vs 14/10 | Antes (1.2.5) |
+| --- | -------------- | -------------- | ------------- |
+| C05 | 553/3/4        | 556/1/2        | 143/1/416     |
+| C11 | 560/0/0        | 559/0/0        | 0/0/560       |
+
+Otros meses (`cuadre:verify`): CYC septiembre C05 543/3/8 y C11 554/0/0; CYC
+agosto C05 432/3/118 (configuración reescrita) y C11 553/0/0; IBER octubre
+C05 70/1/1 y C11 72/0/0; COLL septiembre C05 12/0/1 y C11 9/4/0.
+
 ## Fuentes de octubre cargadas y C01–C16 en la aplicación — 2026-11-17 (motor 1.2.5)
 
 Los diez originales de `fuentes_cuadres_cierre_de_nómina` (nómina de octubre de

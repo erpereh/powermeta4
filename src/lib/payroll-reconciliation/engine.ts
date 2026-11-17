@@ -5,6 +5,7 @@ import { monthlySnapshotIssue } from "./comparison";
 import { anniversaryFindings } from "./anniversaries";
 import { extraPayExpected } from "./extra-pay";
 import { automaticExtraFindings } from "./extra-pay-findings";
+import { automaticCapture, automaticFindings } from "./automatic-findings";
 import { missing, payroll, resolveIdentity, type Value } from "./payroll-value";
 export { resolveIdentity } from "./payroll-value";
 import type {
@@ -18,7 +19,7 @@ import type {
   SourceFact,
 } from "./types";
 
-export const ENGINE_VERSION = "1.2.5";
+export const ENGINE_VERSION = "1.3.0";
 const zero = BigInt(0);
 
 function population(data: Snapshot | null): Map<string, { rows: number[]; name: string }> {
@@ -98,6 +99,14 @@ export function reconcile(
         `IRPF: ${different} filas con ocurrencias distintas; se usa la primera sin sumar porcentajes.`,
       );
   }
+  if (current.teleworkAutomatic && !current.teleworkAutomatic.issue)
+    diagnostics.push(
+      "C05: el esperado sale de PeopleNet (precio mensual de la entidad × indicador de teletrabajo, regla CSP_I_ABONO_TELETRABAJO); el Excel del colectivo solo contrasta quién es 80/20 y los parámetros de tarifa/días no se usan.",
+    );
+  if (current.excessAutomatic && !current.excessAutomatic.issue)
+    diagnostics.push(
+      "C11: el esperado sale de PeopleNet (líquido negativo de la paga anterior + pagos − órdenes de pago, regla SCO_EXC_PREV_PAYMENT); la hoja Excesos del libro de RRHH es un listado del propio informe.",
+    );
   const entityColumn = columnIndex(current.headers, "Id Empresa");
   const entities = new Set(
     current.rows.map((row) => identity(row[entityColumn] ?? "")).filter(Boolean),
@@ -123,6 +132,12 @@ export function reconcile(
   for (const metric of METRICS) {
     if (metric.control === "C04" && current.extraPayAutomatic) {
       findings.push(...automaticExtraFindings(input, metric));
+      continue;
+    }
+    // C05/C11 from a PeopleNet capture (new dossiers); older captures keep the source path.
+    const capture = automaticCapture(current, metric);
+    if (capture) {
+      findings.push(...automaticFindings(input, metric, capture));
       continue;
     }
     if (metric.control === "C13") {
