@@ -72,7 +72,22 @@ export type AutomaticExtraPay = {
   /** Optional for compatibility with captures made before rule selection by period. */
   rule?: AutomaticExtraPayRule;
   issue?: string;
+  /** Optional price capture (1.3.1); absent in older dossiers, which keep the base formula. */
+  price?: { averageThird: boolean; issue?: string };
   people: AutomaticExtraPayPerson[];
+};
+export type AutomaticExtraPrice = {
+  issue?: string;
+  /** Orders whose price is individually set to 0 in PeopleNet (SSP_P_PAGA_EX_n). */
+  zero: number[];
+  /** SSP_TOTAL_P_PAGAS of the month: the current price before averaging. */
+  total: string | null;
+  /** Closed ordinary months of the accrual year (third extra). */
+  history: { prices: string; months: number } | null;
+  /** Months of the accrual year still to come, projected at the current price. */
+  projected: number;
+  /** Non-prorated part of the year when the third extra became prorated in it. */
+  switchUnits: string | null;
 };
 export type ExtraPayRuleVariant = "r1-through-july-2026" | "r1-aug-oct-2026";
 export type AutomaticExtraPayRule = {
@@ -95,6 +110,7 @@ export type AutomaticExtraPayPerson = {
   monthlyFull: boolean;
   accrualIssue?: string;
   paid: Record<string, string | null>;
+  price?: AutomaticExtraPrice;
   extras: {
     order: number;
     prorated: boolean | null;
@@ -155,6 +171,11 @@ export type Parameters = {
   extraMetric: string;
   extraFullEmployeeIds: string[];
   anniversaryFullBase: boolean;
+  /**
+   * RRHH accepts Meta4's accrual units (SSP_U_PAGA_EX_n) for partial extras. Optional:
+   * dossiers saved before 1.3.1 lack it and keep partial accruals pending.
+   */
+  extraUnitsAccepted?: boolean;
 };
 export const DEFAULT_PARAMETERS: Parameters = {
   tolerance: "0.01",

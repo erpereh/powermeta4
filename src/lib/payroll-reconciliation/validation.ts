@@ -26,6 +26,7 @@ export const parametersSchema: z.ZodType<Parameters> = z
     extraMetric: z.enum(["extra1", "extra2", "extra3", "extra4"]),
     extraFullEmployeeIds: z.array(z.string().min(1).max(40)).max(10_000),
     anniversaryFullBase: z.boolean(),
+    extraUnitsAccepted: z.boolean().optional(),
   })
   .strict();
 export const creationSchema = z

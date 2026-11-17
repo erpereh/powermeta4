@@ -6,13 +6,18 @@ vi.mock("@/lib/portal/peoplenet/query", async (original) => ({
 }));
 import { captureAutomaticExtras } from "./extra-pay-reader";
 import { automaticExtraFixture } from "./extra-pay.fixture";
-import { EXTRA_PAY_SQL, EXTRA_PAY_UNSUPPORTED_SQL, EXTRA_PAY_APPLIED_SQL } from "./extra-pay-sql";
+import {
+  EXTRA_PAY_SQL,
+  EXTRA_PAY_UNSUPPORTED_SQL,
+  EXTRA_PAY_APPLIED_SQL,
+  EXTRA_PRICE_SQL,
+} from "./extra-pay-sql";
 import { assertReadOnlySql } from "@/lib/portal/peoplenet/query";
 
 beforeEach(() => vi.resetAllMocks());
 describe("grouped automatic extra reader", () => {
   it.each(["2026-07", "2026-10"])(
-    "uses guarded parametrized SELECTs and eight grouped reads for %s",
+    "uses guarded parametrized SELECTs and twelve grouped reads for %s",
     async (period) => {
       const input = automaticExtraFixture(period, period === "2026-07" ? "historical" : "R1");
       if (period === "2026-07")
@@ -22,7 +27,7 @@ describe("grouped automatic extra reader", () => {
         unsupported: EXTRA_PAY_UNSUPPORTED_SQL,
         applied: EXTRA_PAY_APPLIED_SQL,
       };
-      for (const query of Object.values(queries))
+      for (const query of [...Object.values(queries), ...Object.values(EXTRA_PRICE_SQL)])
         expect(() => assertReadOnlySql(query)).not.toThrow();
       mocks.read.mockImplementation(async (sql: string) => {
         const entry = Object.entries(queries).find(([, query]) => query === sql);
@@ -38,7 +43,8 @@ describe("grouped automatic extra reader", () => {
         period === "2026-07" ? "4000-01-01" : "2026-10-31",
       );
       expect(EXTRA_PAY_SQL.rules).toContain("R.RULE_ORDER");
-      expect(mocks.read).toHaveBeenCalledTimes(8);
+      // Eight configuration reads plus four price reads (rules, accrual, history, assignments).
+      expect(mocks.read).toHaveBeenCalledTimes(12);
       for (const [, parameters] of mocks.read.mock.calls) {
         expect(parameters.organization.value).toBe("CYC");
         expect(parameters.correctionDate.value.toISOString()).toBe(input.current.run.runAt);
@@ -65,11 +71,12 @@ describe("grouped automatic extra reader", () => {
       const needed = ["rules", "payroll", "histories", "definitions"] as const;
       mocks.read.mockImplementation(async (sql: string) => {
         const key = needed.find((key) => EXTRA_PAY_SQL[key] === sql);
+        if (Object.values(EXTRA_PRICE_SQL).includes(sql)) return [];
         if (!key) throw new Error("UnusedIndicatorQuery");
         return input.data[key];
       });
       const result = await captureAutomaticExtras(input.current);
-      expect(mocks.read).toHaveBeenCalledTimes(4);
+      expect(mocks.read).toHaveBeenCalledTimes(8);
       expect(result.extraPayAutomatic?.issue).toBeUndefined();
       expect(result.extraPayAutomatic?.rule?.mode).toBe("definition");
       expect(result.extraPayAutomatic?.people[0]).toMatchObject({ monthlyFull: true });

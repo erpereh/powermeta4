@@ -7,6 +7,56 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
+## C04: precio medio de la 3.ª extra, precio fijado a 0 y cambios de modalidad — 2026-11-17 (motor 1.3.1)
+
+Investigación en `M4PRENOMINA` (solo SELECT) de las tres cuestiones abiertas de C04
+en CYC octubre (ejecución 04/11):
+
+- **Precio medio del año** (20 personas al 82–99 % de la fórmula). La regla
+  `SCO_HRPERIOD_CALC2.SSP_PAGA_EXTRA_3` `RULE111` vigente desde 01/10/2026 paga
+  *unidades × precio medio del devengo*: suma de `SSP_P_PAGA_EX_3` de los meses
+  cerrados de la paga ordinaria (`SCO_ID_PAY_TYPE = '1'`, revisiones incluidas) +
+  el mes actual a `SSP_TOTAL_P_PAGAS` + los meses restantes proyectados con él,
+  dividido entre los meses. `SSP_TOTAL_P_PAGAS` es exactamente Salario Base +
+  Complemento Experiencia + CAI (la fórmula de Calculos.txt). Contraste: 394 de
+  395 terceras extras pagadas cuadran al céntimo. Quien tuvo subidas en el año
+  cobra la media, no el precio actual: no era un error.
+- **Precio fijado a 0** (11 personas con salario base de 13.790–44.351 € y 3.ª
+  extra 0). Tienen asignado individualmente `SSP_P_PAGA_EX_1/2/3/5 = 0` en
+  `M4SCO_PERIO_VALUES` (desde 2017, 2020 o 2025): nunca cobran extras separadas.
+  El esperado es 0.
+- **Cambio a prorrateada dentro del año** (5 personas con extra parcial y
+  modalidad prorrateada). Su `CSP_PRORRATEADA_PE3 = 1` empieza en marzo, mayo o
+  junio de 2026: los meses previos se pagan aparte. Unidades = días del año
+  comercial antes del cambio / 360 (0,1667, 0,3333, 0,4167). Si la fila empieza
+  en el mes de alta no hay parte previa (4 altas de 2026).
+- **Unidades parciales**: `SSP_U_PAGA_EX_3` (regla de ~20.000 caracteres) descuenta
+  maternidad, paternidad y maternidad parcial día a día; no se reproduce con los
+  totales mensuales. Las 50 extras parciales de octubre son exactamente
+  unidades × precio medio. Nuevo parámetro **«Acepto las unidades de devengo de
+  Meta4 en extras parciales»** (desactivado por defecto; exige «Confirmo reglas»):
+  solo con él se acreditan.
+
+Implementación: tras la resolución de C04 se leen las reglas de
+`SSP_PAGA_EXTRA_3` (huella verificada), la ventana de devengo de la 3.ª extra de
+todos los convenios (debe ser enero–diciembre del año), los precios de los meses
+cerrados y las asignaciones `SSP_P_PAGA_EX_n` / `CSP_PRORRATEADA_PE3`. Asignaciones
+escritas después del cálculo dejan el precio sin acreditar. Si la regla o la
+ventana no coinciden (meses anteriores a 10/2026, IBER, COLL), se mantiene la
+fórmula anterior. Un fallo de esta lectura no afecta al resto de C04.
+
+| C04 CYC octubre                 | 04/11 vs 28/10 | 16/10 vs 14/10 |
+| ------------------------------- | -------------- | -------------- |
+| Motor 1.3.0                     | 425/41/203     | 424/39/228     |
+| Motor 1.3.1                     | 453/1/204      | 451/0/229      |
+| 1.3.1 con unidades aceptadas    | 504/1/153      | 502/0/178      |
+
+Queda 1 diferencia (parte no prorrateada de una persona que cambió de modalidad:
+Meta4 aplica un precio medio distinto) y los pendientes de configuración que ya
+existían: convenio, empresa o tipo de salario incompletos en el mes (12 personas),
+convenios sin definición de extras (7), tramos sin mes completo (19), historial
+modificado después del cálculo (3) e informe distinto del acumulado (3).
+
 ## C05 y C11 desde PeopleNet; análisis de los diez Excel — 2026-11-17 (motor 1.3.0)
 
 Análisis completo de los diez originales (hojas, fórmulas y referencias) y del

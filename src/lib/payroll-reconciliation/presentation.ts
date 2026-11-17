@@ -148,5 +148,9 @@ export function exportParameters(parameters: Parameters): [string, string | null
       "Elegibilidad y base completa de aniversarios confirmadas",
       parameters.anniversaryFullBase ? "Sí" : "No",
     ],
+    [
+      "Unidades de devengo de Meta4 aceptadas en extras parciales",
+      parameters.extraUnitsAccepted ? "Sí" : "No",
+    ],
   ];
 }

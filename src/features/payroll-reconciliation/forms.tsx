@@ -431,6 +431,11 @@ export function ParametersForm({
         label="Confirmo la regla de aniversarios 25/40: salario base completo en el mes del aniversario (antigüedad de nómina; con listado, además, sus beneficiarios)"
       />
       <Checkbox
+        checked={draft.extraUnitsAccepted === true}
+        onCheckedChange={(value) => setDraft({ ...draft, extraUnitsAccepted: value })}
+        label="Acepto las unidades de devengo de Meta4 en extras parciales (3.ª extra: unidades × precio medio del año; los días que descuenta el convenio no se recalculan)"
+      />
+      <Checkbox
         checked={draft.rulesConfirmed}
         onCheckedChange={(value) => setDraft({ ...draft, rulesConfirmed: value })}
         label="Confirmo reglas, parámetros y vigencia para este periodo"

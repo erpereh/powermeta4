@@ -1,5 +1,13 @@
 # powermeta4 - estado de tareas
 
+## Cuadre: C04 con precio medio y precio fijado a 0 — 2026-11-17
+
+- [x] 3.ª extra con la regla `SSP_PAGA_EXTRA_3` de 10/2026 (precio medio del año).
+- [x] Precio de extras fijado a 0 (`SSP_P_PAGA_EX_n`) y cambio a prorrateada en el año.
+- [x] Parámetro «Acepto las unidades de devengo de Meta4» (desactivado por defecto).
+- [ ] RRHH: decidir si acepta las unidades de devengo de Meta4 en extras parciales.
+- [ ] 1.ª/2.ª extra e IBER/COLL: reglas de precio no verificadas; mantienen la fórmula base.
+
 ## Cuadre: C05 y C11 desde PeopleNet — 2026-11-17
 
 - [x] Análisis de los diez Excel y del libro de RRHH: origen y fórmula de cada hoja.
@@ -7,8 +15,6 @@
       colectivo 80-20 como contraste. CYC octubre 553/3/4 (antes 143/1/416).
 - [x] C11 con `SCO_EXC_PREV_PAYMENT` (líquido negativo + pagos − órdenes). 560/0/0.
 - [x] C04: motivo de extras parciales con fórmula × unidades de Meta4.
-- [ ] C04: confirmar con RRHH el precio de la 3.ª extra (20 casos al 82–99 %), el
-      colectivo sin 3.ª extra (11) y si se aceptan las unidades de devengo.
 - [ ] C12 fuera de alcance (sin cartas ni calendario de anticipos).
 
 ## Cuadre: C04 y C13 con Calculos.txt — 2026-11-17

@@ -5,15 +5,17 @@ import { missing, payroll, type Value } from "./payroll-value";
 import { completeProratedRule } from "./extra-pay-resolution";
 import type { Dossier, Finding, Snapshot } from "./types";
 
-const cent = decimal("0.01") ?? BigInt(0);
-const unitCent = decimal("0.01") ?? BigInt(1);
+const zero = BigInt(0);
+const cent = decimal("0.01") ?? BigInt(1);
+/** Round half away from zero to cents, like the LN4 Round(x, 2) of the payroll. */
 const roundCents = (value: bigint): bigint =>
-  ((value + (value < BigInt(0) ? -unitCent : unitCent) / BigInt(2)) / unitCent) * unitCent;
+  ((value + (value < zero ? -cent : cent) / BigInt(2)) / cent) * cent;
 function automaticExpected(
   current: Snapshot,
   rows: number[],
   metric: Metric,
   period: string,
+  unitsAccepted = false,
 ): Value {
   const automatic = current.extraPayAutomatic;
   if (
@@ -90,27 +92,104 @@ function automaticExpected(
   }
   const order = Number(metric.id.slice(5));
   const extra = person.extras.find((item) => item.order === order);
-  if (!extra || extra.prorated || !extra.due)
-    return {
-      value: BigInt(0),
-      reason:
-        "No corresponde abono separado de esta extra en la paga seleccionada según su configuración.",
-      evidence,
-    };
-  if (person.accrualIssue) return missing(person.accrualIssue, evidence);
+  const price = person.price,
+    averageThird = order === 3 && automatic.price?.averageThird === true && !!price && !price.issue;
   const parts = [
     "Salario Base",
     "Complemento Experiencia Importe",
     "Complemento Adaptación Individualizado",
   ].map((header) => payroll(current, rows, { ...metric, header }));
-  if (!extra.full || decimal(extra.percentage) !== decimal("100")) {
+  const formula = parts.every((part) => part.value !== null)
+    ? parts.reduce((sum, part) => sum + (part.value ?? zero), zero)
+    : null;
+  const paid = payroll(current, rows, metric).value;
+  // SSP_PAGA_EXTRA_3 (10/2026): average monthly price of the accrual year, the current
+  // month at SSP_TOTAL_P_PAGAS (Calculos.txt: base + experience + CAI) and the rest projected.
+  const average = (): Value | bigint => {
+    const total = decimal(price?.total);
+    if (!price?.history || total === null)
+      return missing("Precios mensuales de la 3.ª extra incompletos en PeopleNet.", evidence);
+    if (formula === null) return missing("Componentes de la extra incompletos.", evidence);
+    if (total !== formula)
+      return missing(
+        `El precio de extras de Meta4 del mes (${textDecimal(total)}) no es Salario Base + Complemento Experiencia + CAI (${textDecimal(formula)}); revisar los conceptos que computan para pagas.`,
+        evidence,
+      );
+    const months = BigInt(price.history.months + 1 + price.projected);
+    return ((decimal(price.history.prices) ?? zero) + total * BigInt(1 + price.projected)) / months;
+  };
+  const averageReason = (value: bigint, units: string) =>
+    `Unidades (${units}) × precio medio del devengo ${textDecimal(roundCents(value))} (regla SSP_PAGA_EXTRA_3 de 10/2026: ${price?.history?.months ?? 0} meses cerrados, el actual a Salario Base + Experiencia + CAI y ${price?.projected ?? 0} proyectados).`;
+  if (!extra || !extra.due)
+    return {
+      value: zero,
+      reason:
+        "No corresponde abono separado de esta extra en la paga seleccionada según su configuración.",
+      evidence,
+    };
+  if (extra.prorated) {
+    // Prorated from a date inside the accrual year: the earlier months are paid apart.
+    if (averageThird && price?.switchUnits) {
+      const units = unitsAccepted ? extra.units : price.switchUnits;
+      if (!unitsAccepted && decimal(extra.units) !== decimal(price.switchUnits))
+        return missing(
+          `Pasó a prorrateada durante el año: los meses previos dan ${price.switchUnits} unidades y Meta4 calcula ${extra.units ?? "sin valor"} (posibles días que descuenta el convenio); devengo sin acreditar.`,
+          evidence,
+        );
+      const value = average();
+      if (typeof value !== "bigint") return value;
+      return {
+        value: roundCents(multiply(value, decimal(units) ?? zero)),
+        reason: `Pasó a prorrateada durante el año; parte no prorrateada: ${averageReason(value, units ?? "")}${unitsAccepted && decimal(units) !== decimal(price.switchUnits) ? ` Unidades de Meta4 aceptadas por RRHH (los meses previos dan ${price.switchUnits}).` : ""}`,
+        evidence: [...evidence, ...parts.flatMap((part) => part.evidence)],
+      };
+    }
+    return {
+      value: zero,
+      reason:
+        "No corresponde abono separado de esta extra en la paga seleccionada según su configuración.",
+      evidence,
+    };
+  }
+  if (price && !price.issue && price.zero.includes(order))
+    return {
+      value: zero,
+      reason: `Precio de la extra ${order} fijado a 0 en PeopleNet (asignación individual SSP_P_PAGA_EX_${order}).`,
+      evidence,
+    };
+  if (person.accrualIssue) return missing(person.accrualIssue, evidence);
+  const partial = !extra.full || decimal(extra.percentage) !== decimal("100");
+  if (averageThird) {
+    const value = average();
+    if (typeof value !== "bigint") return value;
+    if (partial) {
+      // Units are payroll output: context only, a partial accrual stays pending.
+      const units = decimal(extra.units);
+      const holds =
+        units !== null &&
+        paid !== null &&
+        magnitude(paid - roundCents(multiply(value, units))) <= cent;
+      if (unitsAccepted && units !== null)
+        return {
+          value: roundCents(multiply(value, units)),
+          reason: `Devengo parcial con unidades de Meta4 aceptadas por RRHH: ${averageReason(value, textDecimal(units))}`,
+          evidence: [...evidence, ...parts.flatMap((part) => part.evidence)],
+        };
+      return missing(
+        `Devengo parcial o porcentaje distinto del 100 %: las unidades las calcula Meta4 con los días que descuenta el convenio.${units === null ? "" : holds ? ` El importe es ${averageReason(value, textDecimal(units))}` : ` El importe no es unidades × precio medio (${textDecimal(units)}).`}`,
+        evidence,
+      );
+    }
+    return {
+      value: roundCents(value),
+      reason: averageReason(value, "1"),
+      evidence: [...evidence, ...parts.flatMap((part) => part.evidence)],
+    };
+  }
+  if (partial) {
     // Context for RRHH: whether the amount is the formula × Meta4's own accrual units.
     // Units are payroll output, so they never turn a partial accrual into a match.
-    const units = decimal(extra.units),
-      paid = payroll(current, rows, metric).value,
-      formula = parts.every((part) => part.value !== null)
-        ? parts.reduce((sum, part) => sum + (part.value ?? BigInt(0)), BigInt(0))
-        : null;
+    const units = decimal(extra.units);
     const proportional =
       units !== null && formula !== null && paid !== null
         ? magnitude(paid - roundCents(multiply(formula, units))) <= cent
@@ -122,10 +201,9 @@ function automaticExpected(
       evidence,
     );
   }
-  if (parts.some((part) => part.value === null))
-    return missing("Componentes de la extra incompletos.", evidence);
+  if (formula === null) return missing("Componentes de la extra incompletos.", evidence);
   return {
-    value: parts.reduce((sum, part) => sum + (part.value ?? BigInt(0)), BigInt(0)),
+    value: formula,
     reason:
       "Salario Base + Complemento Experiencia + Complemento Adaptación Individualizado; devengo completo acreditado en PeopleNet.",
     evidence: [...evidence, ...parts.flatMap((part) => part.evidence)],
@@ -152,7 +230,13 @@ export function automaticExtraFindings(
     const entity = identity(row[entityColumn] ?? ""),
       employeeId = identity(row[idColumn] ?? "");
     const actual = payroll(current, rows, metric),
-      expected = automaticExpected(current, rows, metric, input.period);
+      expected = automaticExpected(
+        current,
+        rows,
+        metric,
+        input.period,
+        input.parameters.rulesConfirmed && input.parameters.extraUnitsAccepted === true,
+      );
     // An accredited absence of obligation with an explicit zero is not a pending control.
     if (actual.value === BigInt(0) && expected.value === BigInt(0)) continue;
     const delta =

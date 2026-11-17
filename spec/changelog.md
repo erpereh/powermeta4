@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-17 - C04 con precio medio de la 3.ª extra (motor 1.3.1)
+
+- 3.ª extra: unidades × precio medio del devengo según `SSP_PAGA_EXTRA_3` RULE111
+  de 10/2026 (huella verificada); el precio actual debe ser Salario Base +
+  Experiencia + CAI. CYC octubre: 394/395 pagadas cuadran al céntimo.
+- Precio de extras fijado a 0 en PeopleNet: esperado 0 (11 personas).
+- Cambio a prorrateada dentro del año: parte previa = días / 360 × precio medio.
+- Nuevo parámetro opcional `extraUnitsAccepted` (desactivado): acredita las
+  unidades de devengo de Meta4 en extras parciales. C12 sin cambios.
+- CYC octubre 04/11: C04 425/41/203 → 453/1/204 (504/1/153 con unidades aceptadas).
+- Comprobaciones: suite completa 1.566 correctas y 36 omitidas, sin fallos; typecheck,
+  oxlint y build correctos; recorrido en la aplicación sin errores JS.
+
 ## 2026-11-17 - C05 y C11 desde PeopleNet (motor 1.3.0)
 
 - C05: esperado con la regla `CSP_I_ABONO_TELETRABAJO` (verificada por tokens) y

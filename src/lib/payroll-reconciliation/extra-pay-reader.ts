@@ -14,7 +14,13 @@ import {
   type ExtraPayData,
   type ExtraPayRow,
 } from "./extra-pay-resolution";
-import { EXTRA_PAY_SQL, EXTRA_PAY_UNSUPPORTED_SQL, EXTRA_PAY_APPLIED_SQL } from "./extra-pay-sql";
+import {
+  EXTRA_PAY_SQL,
+  EXTRA_PAY_UNSUPPORTED_SQL,
+  EXTRA_PAY_APPLIED_SQL,
+  EXTRA_PRICE_SQL,
+} from "./extra-pay-sql";
+import { resolveExtraPrices } from "./extra-pay-price";
 import type { AutomaticExtraPayRule, Snapshot } from "./types";
 
 /** Enrich only a newly captured snapshot. Failure is isolated to C04. */
@@ -50,6 +56,7 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
     paymentDate: date(current.run.accruedOn),
     correctionDate: { type: "datetime" as const, value: runAt },
     frequency: { type: "varchar" as const, length: 3, value: current.run.payFrequency },
+    yearStart: date(`${period.slice(0, 4)}-01-01`),
   };
   const read = async (statement: string): Promise<ExtraPayRow[]> => {
     const rows = await runPortalSelect(statement, params);
@@ -88,7 +95,23 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
         read(EXTRA_PAY_APPLIED_SQL),
       ]);
     }
-    const evidence = resolveAutomaticExtras(current, data);
+    let evidence = resolveAutomaticExtras(current, data);
+    try {
+      // Price of the separate extras; a failed read keeps the base formula (pending price).
+      const [rules, accrual] = await Promise.all([
+        read(EXTRA_PRICE_SQL.rules),
+        read(EXTRA_PRICE_SQL.accrual),
+      ]);
+      const [history, assignments] = await Promise.all([
+        read(EXTRA_PRICE_SQL.history),
+        read(EXTRA_PRICE_SQL.assignments),
+      ]);
+      evidence = resolveExtraPrices(evidence, { rules, accrual, history, assignments, payroll });
+    } catch (error) {
+      console.error("[cuadre] extra price read failed", {
+        name: error instanceof Error ? error.name : "UnknownError",
+      });
+    }
     return { ...current, extraPayAutomatic: evidence, hash: hash([current.hash, evidence]) };
   } catch (error) {
     console.error("[cuadre] extra pay read failed", {

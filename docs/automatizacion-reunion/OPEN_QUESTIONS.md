@@ -5,6 +5,13 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
+Actualización 2026-11-17 (motor 1.3.1): **Q06 (C04) resuelta en sus tres puntos**
+con PeopleNet: (1) los 11 sin 3.ª extra tienen el precio de extras fijado a 0
+(`SSP_P_PAGA_EX_n`); (2) el 82–99 % es el precio medio del año de la regla
+`SSP_PAGA_EXTRA_3` de 10/2026 (394/395 al céntimo); (3) las unidades parciales
+son de Meta4 y solo se acreditan si RRHH marca «Acepto las unidades de devengo».
+**Decisión pendiente de RRHH**: marcar o no esa casilla.
+
 Actualización 2026-11-17 (motor 1.3.0): **Q07 (teletrabajo) resuelta con
 PeopleNet**: indicador individual `CSP_IND_ABONO_TELETRABAJO` (0/1/2) y precio
 mensual por entidad `CSP_P_ABONO_TELETRABAJO` reproducen el 99 % de octubre; el

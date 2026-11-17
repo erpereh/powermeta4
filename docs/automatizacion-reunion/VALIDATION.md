@@ -1,5 +1,12 @@
 # Validación de fuentes y criterios de aceptación
 
+## C04 con precio medio — 2026-11-17 (motor 1.3.1)
+
+Aplicación (acceso rápido, CYC, `M4PRENOMINA`): octubre 04/11 C04 453/1/204 (antes
+425/41/203) y 504/1/153 con unidades aceptadas; 16/10: 451/0/229 y 502/0/178.
+Septiembre, agosto, IBER y COLL sin cambios (`cuadre:verify`). Recarga con la misma
+huella, exportación 200, sin errores JS. Los expedientes quedan sin aceptar unidades.
+
 ## C05/C11 desde PeopleNet — 2026-11-17 (motor 1.3.0)
 
 Acceso rápido JORGE.SALVADOR, CYC, `M4PRENOMINA`, diez Excel subidos (copias).
