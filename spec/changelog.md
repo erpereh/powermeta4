@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-11-18 - C04: extras de junio y diciembre, IBER y COLL (motor 1.4.0)
+
+- 1.ª y 2.ª extra: unidades × precio medio del semestre (`SSP_PAGA_EXTRA_1/2` RULE111
+  de `CSP_HRPERIOD_CALC`, huella verificada, sin proyección). Extras completas al
+  céntimo: CYC junio 349/351 y diciembre 347/347; IBER 57/57 y 57/57; COLL 10/10 y 11/11.
+- Precio según los conceptos que computan (`CSP_IPE_*` del centro de trabajo, nueva
+  lectura `computing`): CYC Salario Base + Experiencia + CAI; IBER y COLL Salario
+  Base + Antigüedad. Se contrasta siempre con `SSP_TOTAL_P_PAGAS`.
+- Cambio a prorrateada en el semestre (días / 180 × media previa), importe de la
+  extra fijado a 0 (`SSP_PAGA_EXTRA_n`), baja en el mes (finiquito) y regularización
+  al cierre del devengo. Las unidades aceptadas exigen importe = unidades × precio.
+- C04: CYC junio 445/22/215 → 458/4/220; CYC diciembre 428/29/293 → 441/1/308;
+  IBER junio 1/0/155 → 45/0/107; IBER diciembre 0/0/194 → 40/0/154; COLL junio
+  0/0/13 → 10/0/3; COLL diciembre 0/0/17 → 10/0/7. CYC octubre sin cambios (453/1/204).
+- Comprobaciones: suite completa 1.550 correctas, 36 omitidas y 9 fallos por tiempo
+  agotado (5 s) en `backup.test.ts` y `readonly-audit-runner.test.ts` mientras corría
+  el build; repetidos aparte pasan (7/7 y 12/12, más `users-hire-form`). Los 249
+  tests de `payroll-reconciliation` pasan. Typecheck, build y `git diff --check`
+  correctos; oxlint sin avisos nuevos y `oxfmt --check` limpio en lo cambiado (normalizado a LF; en todo el
+  repositorio sigue fallando, como antes). Solo SELECT; sin recorrido en el navegador.
+
 ## 2026-11-18 - Informe «Primavera» (nómina de Portugal)
 
 - Nueva acción «Primavera» en Informes (`/tools/reports/primavera`): la consulta de

@@ -15,13 +15,25 @@
 - [x] Exportación a Excel como el script (`POST /api/reports/primavera/export`):
       hoja «Resumen», una hoja por mes, verde/rojo y fila TOTAL; base leída en el nombre.
 
+## Cuadre: C04 junio, diciembre, IBER y COLL — 2026-11-18
+
+- [x] 1.ª y 2.ª extra con el precio medio del semestre (`SSP_PAGA_EXTRA_1/2` RULE111).
+- [x] Precio de IBER y COLL = Salario Base + Antigüedad (indicadores `CSP_IPE_*`
+      verificados) contrastado con `SSP_TOTAL_P_PAGAS`.
+- [x] Cambio a prorrateada en el semestre, importe fijado a 0 (`SSP_PAGA_EXTRA_n`),
+      baja en el mes y regularización al cierre del devengo.
+- [ ] Altas de febrero en la extra de junio: el importe no es unidades × precio
+      medio; Meta4 aplica un tratamiento propio que no se reproduce.
+- [ ] Extras 4.ª/5.ª de IBER (porcentajes 50/150 %) y finiquitos: sin regla verificada.
+- [ ] Repetir el recorrido en el navegador con el motor 1.4.0.
+
 ## Cuadre: C04 con precio medio y precio fijado a 0 — 2026-11-17
 
 - [x] 3.ª extra con la regla `SSP_PAGA_EXTRA_3` de 10/2026 (precio medio del año).
 - [x] Precio de extras fijado a 0 (`SSP_P_PAGA_EX_n`) y cambio a prorrateada en el año.
 - [x] Parámetro «Acepto las unidades de devengo de Meta4» (desactivado por defecto).
 - [ ] RRHH: decidir si acepta las unidades de devengo de Meta4 en extras parciales.
-- [ ] 1.ª/2.ª extra e IBER/COLL: reglas de precio no verificadas; mantienen la fórmula base.
+- [x] 1.ª/2.ª extra e IBER/COLL: resuelto el 2026-11-18 (motor 1.4.0).
 
 ## Cuadre: C05 y C11 desde PeopleNet — 2026-11-17
 

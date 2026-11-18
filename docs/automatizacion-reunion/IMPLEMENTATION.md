@@ -7,6 +7,63 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
+## C04: extras de junio y diciembre, IBER y COLL — 2026-11-18 (motor 1.4.0)
+
+Investigación en `M4PRENOMINA` (solo SELECT) con las ejecuciones de junio de 2026
+y diciembre de 2025 de las tres sociedades:
+
+- **Precio medio del semestre.** Las extras 1.ª y 2.ª usan `RULE111` de
+  `CSP_HRPERIOD_CALC` (desde 2018, sin cambios en 2025–2026): unidades × media de
+  `SSP_P_PAGA_EX_n` de los meses cerrados del devengo (junio: enero–mayo;
+  diciembre: julio–noviembre; paga ordinaria, revisiones incluidas) y del mes
+  actual a `SSP_TOTAL_P_PAGAS`, **sin proyección**. Contraste con extras completas:
+  CYC junio 349/351, CYC diciembre 347/347, IBER 57/57 y 57/57, COLL 10/10 y 11/11.
+- **Composición del precio.** `SSP_TOTAL_P_PAGAS` suma los conceptos con indicador
+  `CSP_IPE_* = 1` (valores por centro de trabajo, `M4SCO_WC_VALUES`, sin cambios
+  desde 2014), más la base y la antigüedad estándar. Con columnas del informe:
+  CYC = Salario Base + Complemento Experiencia + CAI; **IBER y COLL = Salario Base +
+  Antigüedad** (la columna «Plus Convenio» no computa en ningún mes). Se exige
+  que los indicadores sean los verificados y que el precio de Meta4 sea igual a la
+  suma del informe; si no, la persona queda pendiente (mes incompleto o concepto
+  sin columna).
+- **Cambio a prorrateada dentro del semestre.** Meta4 no guarda unidades (0) y abona
+  aparte días previos / 180 × media de los meses anteriores al cambio, sin redondear
+  la fracción. Cuadra 5/5 en diciembre y 1/4 en junio; los otros tres tienen días
+  descontados (uno con incapacidad temporal) y quedan pendientes, nunca como
+  diferencia.
+- **Importe fijado a 0.** Además del precio (`SSP_P_PAGA_EX_n`), una asignación
+  individual del propio importe (`SSP_PAGA_EXTRA_n = 0`, IBER desde 2024) anula la
+  regla: el esperado es 0 (5 personas en IBER junio).
+- **Baja en el mes.** `RULE111` devuelve 0 si `SSP_ES_BAJA` y la extra se abona en el
+  finiquito (`SSP_FINIQ_PAGA_n`): pendiente (fin del periodo de `STD_HR_PERIOD`).
+- **Regularización al cierre del devengo.** En diciembre, Meta4 recalcula la 3.ª
+  extra de quien no la cobra ese mes (importes negativos de 24–62 días):
+  pendiente con su motivo, ya no «Con diferencia» (14 en CYC diciembre).
+- **Unidades aceptadas.** Con «Acepto las unidades de devengo de Meta4», una extra
+  parcial solo se acredita si el importe es unidades × precio medio. Las 5 altas
+  de febrero de junio de 2026 no lo cumplen y quedan pendientes.
+
+| C04 (coinciden/diferencias/pendientes) | Motor 1.3.1 | Motor 1.4.0 | 1.4.0 con unidades aceptadas |
+| -------------------------------------- | ----------- | ----------- | ---------------------------- |
+| CYC junio 2026                         | 445/22/215  | 458/4/220   | 478/4/200                    |
+| CYC diciembre 2025                     | 428/29/293  | 441/1/308   | 467/1/282                    |
+| IBER junio 2026                        | 1/0/155     | 45/0/107    | 46/0/106                     |
+| IBER diciembre 2025                    | 0/0/194     | 40/0/154    | 43/0/151                     |
+| COLL junio 2026                        | 0/0/13      | 10/0/3      | 12/0/1                       |
+| COLL diciembre 2025                    | 0/0/17      | 10/0/7      | 11/0/6                       |
+| CYC octubre 2026 (04/11)               | 453/1/204   | 453/1/204   | 504/1/153                    |
+
+CYC septiembre y agosto, y COLL septiembre, no cambian. IBER octubre pasa de 86 a
+90 hallazgos porque una persona tiene el historial modificado en PeopleNet después
+del cálculo (dato nuevo, no del motor). Diferencias reales que quedan:
+
+- en CYC junio, una revisión salarial de enero–mayo pagada en junio que Meta4 no
+  aplicó a la media, y una extra pagada al 50 % sin configuración que lo explique;
+- en junio y diciembre, las 3 prorratas de la fórmula base × 3 / 12, que ya existían.
+
+Las extras 4.ª y 5.ª de IBER (septiembre/octubre, porcentajes 50/150 %) siguen con
+la fórmula base y los porcentajes ≠ 100 % pendientes.
+
 ## C04: precio medio de la 3.ª extra, precio fijado a 0 y cambios de modalidad — 2026-11-17 (motor 1.3.1)
 
 Investigación en `M4PRENOMINA` (solo SELECT) de las tres cuestiones abiertas de C04

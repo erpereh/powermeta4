@@ -1,5 +1,14 @@
 # Validación de fuentes y criterios de aceptación
 
+## C04 junio, diciembre, IBER y COLL — 2026-11-18 (motor 1.4.0)
+
+`cuadre:verify` sobre `M4PRENOMINA` (solo SELECT): CYC, IBER y COLL en junio de 2026
+y diciembre de 2025, y repetición de CYC octubre, septiembre y agosto, IBER
+octubre y COLL septiembre. Cifras en
+[IMPLEMENTATION](IMPLEMENTATION.md#c04-extras-de-junio-y-diciembre-iber-y-coll--2026-11-18-motor-140).
+Las cinco consultas de precio pasan `assertReadOnlySql` y se han ejecutado en las
+tres sociedades. No se ha repetido el recorrido en el navegador.
+
 ## C04 con precio medio — 2026-11-17 (motor 1.3.1)
 
 Aplicación (acceso rápido, CYC, `M4PRENOMINA`): octubre 04/11 C04 453/1/204 (antes

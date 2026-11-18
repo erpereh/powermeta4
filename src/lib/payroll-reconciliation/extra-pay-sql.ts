@@ -26,8 +26,11 @@ export const EXTRA_PAY_SQL = {
  CONVERT(varchar(100), A.SSP_PAGA_EXTRA_4) AS PAID4,
  CONVERT(varchar(100), A.SSP_P_EXT_PRORRAT) AS PRORATED,
  CONVERT(varchar(100), A.SSP_TOTAL_P_PAGAS) AS PRICE_TOTAL,
- CONVERT(varchar(19), A.DT_LAST_UPDATE, 120) AS CALCULATED
+ CONVERT(varchar(19), A.DT_LAST_UPDATE, 120) AS CALCULATED,
+ CONVERT(varchar(10), H.STD_DT_END, 23) AS HR_END
 FROM M4SCO_AC_HR_PERIOD A
+LEFT JOIN STD_HR_PERIOD H ON H.ID_ORGANIZATION = A.ID_ORGANIZATION
+ AND H.STD_ID_HR = A.SCO_ID_HR AND H.STD_OR_HR_PERIOD = A.SCO_OR_HR_PERIOD
 JOIN M4CSP_AC_HR_PERIOD B ON B.ID_ORGANIZATION = A.ID_ORGANIZATION
  AND B.SCO_ID_HR = A.SCO_ID_HR AND B.SCO_OR_HR_PERIOD = A.SCO_OR_HR_PERIOD
  AND B.SCO_DT_ALLOC = A.SCO_DT_ALLOC AND B.SCO_DT_PAYMENT = A.SCO_DT_PAYMENT
@@ -151,51 +154,94 @@ const written = `CONVERT(varchar(19), CASE WHEN DT_LAST_UPDATE > DT_COR_START
   THEN DT_LAST_UPDATE ELSE DT_COR_START END, 120)`;
 const corrected = "DT_COR_START <= @correctionDate AND DT_COR_END >= @correctionDate";
 
+/** Levels other than the work center that could set a "computes for extras" indicator. */
+const computingFilter = "ID_DMD = 'DMD1' AND ID_DMD_COMPONENT LIKE 'CSP[_]IPE[_]%'";
+const computingLevels = [
+  ["individual", "M4SCO_PERIO_VALUES"],
+  ["entity", "M4SCO_LE_VALUES"],
+  ["agreement", "M4SSP_V_CONVENIOS"],
+  ["role", "M4SCO_ROLE_VALUES"],
+]
+  .map(
+    ([level, table]) => `SELECT '${level}' AS LEVEL, CONVERT(varchar(30), NULL) AS KEY1,
+ ID_DMD_COMPONENT AS COMPONENT, SCO_VALUE AS VALUE,
+ CONVERT(varchar(10), DT_START, 23) AS DATE_FROM, CONVERT(varchar(10), DT_END, 23) AS DATE_TO,
+ ${written} AS UPDATED
+FROM ${table} WHERE ID_ORGANIZATION = @organization AND ${computingFilter}
+ AND DT_START <= @lastDay AND DT_END >= @firstDay AND ${corrected}`,
+  )
+  .join("\nUNION ALL\n");
+
 /**
- * Price of the separate extras (SSP_PAGA_EXTRA_3 RULE111 from 10/2026): units × average
- * monthly price of the accrual year, the current month at SSP_TOTAL_P_PAGAS and the
- * remaining months projected with it. Only fixed identifiers; parameters are bound.
+ * Price of the separate extras: units × average monthly price of the accrual window, the
+ * current month at SSP_TOTAL_P_PAGAS (SSP_PAGA_EXTRA_1/2 RULE111 of CSP_HRPERIOD_CALC;
+ * SSP_PAGA_EXTRA_3 from 10/2026 with the remaining months projected). Only fixed
+ * identifiers; parameters are bound.
  */
 export const EXTRA_PRICE_SQL = {
-  rules: `SELECT R.ID_RULE AS RULE_ID, CONVERT(varchar(10), R.DT_START, 23) AS DATE_FROM,
+  rules: `SELECT R.ID_ITEM AS ITEM, R.ID_RULE AS RULE_ID,
+ CONVERT(varchar(10), R.DT_START, 23) AS DATE_FROM,
  CONVERT(varchar(10), R.DT_END, 23) AS DATE_TO, S.SOURCE_CODE AS SOURCE
 FROM M4RCH_RULES R LEFT JOIN M4RCH_RULES3 S
  ON S.ID_TI = R.ID_TI AND S.ID_ITEM = R.ID_ITEM AND S.ID_RULE = R.ID_RULE
  AND S.ID_RULE_TI = R.ID_RULE_TI AND S.DT_START = R.DT_START
  AND S.DT_START_CORR = R.DT_START_CORR
-WHERE R.ID_TI = 'SCO_HRPERIOD_CALC2' AND R.ID_ITEM = 'SSP_PAGA_EXTRA_3'
+WHERE R.ID_TI = 'SCO_HRPERIOD_CALC2'
+ AND R.ID_ITEM IN ('SSP_PAGA_EXTRA_1','SSP_PAGA_EXTRA_2','SSP_PAGA_EXTRA_3')
  AND R.DT_START <= @lastDay AND R.DT_END >= @firstDay
  AND R.DT_START_CORR <= @correctionDate AND R.DT_END_CORR >= @correctionDate`,
 
-  /** Accrual window of the third extra of every agreement of the society. */
-  accrual: `SELECT C.SSP_ID_CONVENIO AS AGREEMENT, D.SSP_DIA_INI_DEV AS START_DAY,
- D.SSP_MES_INI_DEV AS START_MONTH, D.SSP_A_ATRAS_IDV AS START_BACK,
- D.SSP_DIA_FIN_DEV AS END_DAY, D.SSP_MES_FIN_DEV AS END_MONTH, D.SSP_A_ATRAS_FDV AS END_BACK
+  /** Accrual window of the first three extras of every agreement of the society. */
+  accrual: `SELECT C.SSP_ID_CONVENIO AS AGREEMENT, C.SSP_ORDEN AS ORDINAL,
+ D.SSP_DIA_INI_DEV AS START_DAY, D.SSP_MES_INI_DEV AS START_MONTH,
+ D.SSP_A_ATRAS_IDV AS START_BACK, D.SSP_DIA_FIN_DEV AS END_DAY,
+ D.SSP_MES_FIN_DEV AS END_MONTH, D.SSP_A_ATRAS_FDV AS END_BACK
 FROM M4SSP_CONV_PAG_EXT C
 JOIN M4SSP_DEF_PAG_EXT D ON D.ID_ORGANIZATION = C.ID_ORGANIZATION
  AND D.SSP_ID_PAGA_EXTRA = C.SSP_ID_PAGA_EXTRA
  AND D.SSP_FEC_INICIO <= @lastDay AND D.SSP_FEC_FIN >= @firstDay
-WHERE C.ID_ORGANIZATION = @organization AND C.SSP_ORDEN = 3
+WHERE C.ID_ORGANIZATION = @organization AND C.SSP_ORDEN IN (1, 2, 3)
  AND C.SSP_FEC_INICIO <= @lastDay AND C.SSP_FEC_FIN >= @firstDay`,
 
-  /** Closed months of the accrual year: ordinary pay type, every revision included. */
+  /** Closed months of the year, one row per month: ordinary pay type, every revision included. */
   history: `SELECT SCO_ID_HR AS EMPLOYEE, CONVERT(varchar(30), SCO_OR_HR_PERIOD) AS HR_PERIOD,
- CONVERT(varchar(100), SUM(SSP_P_PAGA_EX_3)) AS PRICES,
- SUM(CASE WHEN SCO_DT_ALLOC = SCO_DT_PAYMENT THEN 1 ELSE 0 END) AS MONTHS,
- CONVERT(varchar(10), MIN(SCO_DT_ALLOC), 23) AS FIRST_ALLOC
+ CONVERT(varchar(10), SCO_DT_ALLOC, 23) AS ALLOC,
+ CONVERT(varchar(100), SUM(SSP_P_PAGA_EX_1)) AS PRICES1,
+ CONVERT(varchar(100), SUM(SSP_P_PAGA_EX_2)) AS PRICES2,
+ CONVERT(varchar(100), SUM(SSP_P_PAGA_EX_3)) AS PRICES3,
+ SUM(CASE WHEN SCO_DT_ALLOC = SCO_DT_PAYMENT THEN 1 ELSE 0 END) AS MONTHS
 FROM M4SCO_AC_HR_PERIOD WHERE ID_ORGANIZATION = @organization AND SCO_IND_MAIN_CURR = 1
  AND SCO_ID_PAY_TYPE = '1' AND SCO_DT_ALLOC >= @yearStart AND SCO_DT_ALLOC < @firstDay
  AND SCO_DT_PAYMENT <= @paymentDate AND SCO_PAY_FREQ_PAY = @frequency
  AND SCO_PAY_FREQ_ALLOC = @frequency
-GROUP BY SCO_ID_HR, SCO_OR_HR_PERIOD`,
+GROUP BY SCO_ID_HR, SCO_OR_HR_PERIOD, SCO_DT_ALLOC`,
 
-  /** Individual extra prices (SSP_P_PAGA_EX_n) and modality changes of the year. */
+  /**
+   * Individual extra prices (SSP_P_PAGA_EX_n) or amounts (SSP_PAGA_EXTRA_n, which override
+   * the rule) and modality changes of the year.
+   */
   assignments: `SELECT STD_ID_HR AS EMPLOYEE, CONVERT(varchar(30), STD_OR_HR_PERIOD) AS HR_PERIOD,
  ID_DMD_COMPONENT AS COMPONENT, SCO_VALUE AS VALUE,
  CONVERT(varchar(10), DT_START, 23) AS DATE_FROM, CONVERT(varchar(10), DT_END, 23) AS DATE_TO,
  ${written} AS UPDATED
 FROM M4SCO_PERIO_VALUES WHERE ID_ORGANIZATION = @organization AND ID_DMD = 'DMD1'
  AND ID_DMD_COMPONENT IN ('SSP_P_PAGA_EX_1','SSP_P_PAGA_EX_2','SSP_P_PAGA_EX_3',
-  'SSP_P_PAGA_EX_4','CSP_PRORRATEADA_PE3')
+  'SSP_P_PAGA_EX_4','SSP_PAGA_EXTRA_1','SSP_PAGA_EXTRA_2','SSP_PAGA_EXTRA_3','SSP_PAGA_EXTRA_4',
+  'CSP_PRORRATEADA_PE1','CSP_PRORRATEADA_PE2','CSP_PRORRATEADA_PE3')
  AND DT_START <= @lastDay AND DT_END >= @yearStart AND ${corrected}`,
+
+  /** Concepts that compute for the extra price (CSP_IPE_* = 1): work center, other levels, default. */
+  computing: `SELECT 'workCenter' AS LEVEL, CONVERT(varchar(30), SCO_ID_WORK_CENTE) AS KEY1,
+ ID_DMD_COMPONENT AS COMPONENT, SCO_VALUE AS VALUE,
+ CONVERT(varchar(10), DT_START, 23) AS DATE_FROM, CONVERT(varchar(10), DT_END, 23) AS DATE_TO,
+ ${written} AS UPDATED
+FROM M4SCO_WC_VALUES WHERE ID_ORGANIZATION = @organization AND ${computingFilter}
+ AND DT_START <= @lastDay AND DT_END >= @firstDay AND ${corrected}
+UNION ALL
+${computingLevels}
+UNION ALL
+SELECT 'default', CONVERT(varchar(30), NULL), ID_ITEM, CONVERT(varchar(100), DEFAULT_VALUE),
+ CONVERT(varchar(10), NULL), CONVERT(varchar(10), NULL), CONVERT(varchar(19), DT_LAST_UPDATE, 120)
+FROM M4RCH_ITEMS WHERE ID_TI = 'CSP_HRROLE_CALC' AND ID_ITEM LIKE 'CSP[_]IPE[_]%'
+ AND ID_DMD = 'DMD1' AND ID_DMD_COMPONENT = ID_ITEM`,
 };

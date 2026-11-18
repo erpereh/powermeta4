@@ -5,6 +5,13 @@ acredita el contrato indicado, no una implementación ni todas sus variantes.
 Las evidencias S se encuentran en [SOURCES](SOURCES.md); las fórmulas y
 decisiones de v1 en [CONTROL_CONTRACTS](CONTROL_CONTRACTS.md).
 
+Actualización 2026-11-18 (motor 1.4.0): las extras de **junio y diciembre** usan el
+precio medio del semestre (`SSP_PAGA_EXTRA_1/2` RULE111, sin proyección) y en
+**IBER y COLL** el precio es Salario Base + Antigüedad (indicadores `CSP_IPE_*` del
+centro de trabajo). Importe de la extra fijado a 0, baja en el mes y regularización
+al cierre del devengo quedan explicados. Sin cambios en la decisión pendiente de
+RRHH sobre las unidades de Meta4.
+
 Actualización 2026-11-17 (motor 1.3.1): **Q06 (C04) resuelta en sus tres puntos**
 con PeopleNet: (1) los 11 sin 3.ª extra tienen el precio de extras fijado a 0
 (`SSP_P_PAGA_EX_n`); (2) el 82–99 % es el precio medio del año de la regla

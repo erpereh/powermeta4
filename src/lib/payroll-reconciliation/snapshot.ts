@@ -25,6 +25,8 @@ export function snapshot(
       "Salario Base",
       "Complemento Experiencia Importe",
       "Complemento Adaptación Individualizado",
+      // Standard seniority: part of the extra price in IBER and COLL (C04 1.4.0).
+      "Antigüedad",
       "Paga Extra Prorrateada",
     ].map(normalizeHeader),
   );

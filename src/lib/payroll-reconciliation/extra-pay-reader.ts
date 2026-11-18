@@ -66,7 +66,7 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
     );
   };
   try {
-    // Bounded concurrency: two grouped reads at a time, independent of employee count.
+    // Bounded concurrency: at most two grouped reads at a time, independent of employee count.
     const rules = await read(EXTRA_PAY_SQL.rules);
     const resolution = resolveExtraRule(rules, period);
     if (!resolution.rule) return fail(resolution.issue);
@@ -106,7 +106,15 @@ export async function captureAutomaticExtras(current: Snapshot): Promise<Snapsho
         read(EXTRA_PRICE_SQL.history),
         read(EXTRA_PRICE_SQL.assignments),
       ]);
-      evidence = resolveExtraPrices(evidence, { rules, accrual, history, assignments, payroll });
+      const computing = await read(EXTRA_PRICE_SQL.computing);
+      evidence = resolveExtraPrices(evidence, {
+        rules,
+        accrual,
+        history,
+        assignments,
+        computing,
+        payroll,
+      });
     } catch (error) {
       console.error("[cuadre] extra price read failed", {
         name: error instanceof Error ? error.name : "UnknownError",

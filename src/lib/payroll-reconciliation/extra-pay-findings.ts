@@ -3,10 +3,13 @@ import { decimal, magnitude, multiply, textDecimal } from "./decimal";
 import { hash } from "./hash";
 import { missing, payroll, type Value } from "./payroll-value";
 import { completeProratedRule } from "./extra-pay-resolution";
+import { COMPUTING_CONCEPTS } from "./extra-pay-price";
 import type { Dossier, Finding, Snapshot } from "./types";
 
 const zero = BigInt(0);
 const cent = decimal("0.01") ?? BigInt(1);
+/** Calculos.txt formula; captures without the CSP_IPE_* read (before 1.4.0) keep it. */
+const CYC_FORMULA = COMPUTING_CONCEPTS.CYC.formula;
 /** Round half away from zero to cents, like the LN4 Round(x, 2) of the payroll. */
 const roundCents = (value: bigint): bigint =>
   ((value + (value < zero ? -cent : cent) / BigInt(2)) / cent) * cent;
@@ -93,41 +96,91 @@ function automaticExpected(
   const order = Number(metric.id.slice(5));
   const extra = person.extras.find((item) => item.order === order);
   const price = person.price,
-    averageThird = order === 3 && automatic.price?.averageThird === true && !!price && !price.issue;
-  const parts = [
-    "Salario Base",
-    "Complemento Experiencia Importe",
-    "Complemento Adaptación Individualizado",
-  ].map((header) => payroll(current, rows, { ...metric, header }));
-  const formula = parts.every((part) => part.value !== null)
-    ? parts.reduce((sum, part) => sum + (part.value ?? zero), zero)
-    : null;
+    semester = price?.semester?.find((item) => item.order === order);
+  const averageThird =
+    order === 3 && automatic.price?.averageThird === true && !!price && !price.issue;
+  const averageSemester =
+    automatic.price?.averageSemester?.includes(order) === true && !!semester && !price?.issue;
+  const headers = automatic.price?.formula ?? CYC_FORMULA,
+    formulaName =
+      JSON.stringify(headers) === JSON.stringify(CYC_FORMULA)
+        ? "Salario Base + Complemento Experiencia + Complemento Adaptación Individualizado"
+        : headers.join(" + ");
+  const parts = headers.map((header) => payroll(current, rows, { ...metric, header }));
+  const formula =
+    headers.length && parts.every((part) => part.value !== null)
+      ? parts.reduce((sum, part) => sum + (part.value ?? zero), zero)
+      : null;
+  const formulaEvidence = parts.flatMap((part) => part.evidence);
+  const incomplete = () =>
+    missing(
+      headers.length
+        ? "Componentes de la extra incompletos."
+        : "Los conceptos que computan para pagas (CSP_IPE_*) no coinciden con la configuración verificada de la sociedad.",
+      evidence,
+    );
+  const total = decimal(price?.total);
+  // Meta4's own price of the month must be the report concepts: guards concepts without column.
+  const priceMismatch = () =>
+    total !== null && formula !== null && total !== formula
+      ? missing(
+          `El precio de extras de Meta4 del mes (${textDecimal(total)}) no es ${formulaName} (${textDecimal(formula)}); revisar los conceptos que computan para pagas o un mes incompleto.`,
+          evidence,
+        )
+      : null;
   const paid = payroll(current, rows, metric).value;
-  // SSP_PAGA_EXTRA_3 (10/2026): average monthly price of the accrual year, the current
-  // month at SSP_TOTAL_P_PAGAS (Calculos.txt: base + experience + CAI) and the rest projected.
+  // SSP_PAGA_EXTRA_n RULE111: average monthly price of the accrual window, the current month
+  // at SSP_TOTAL_P_PAGAS (the report concepts) and, for the third (10/2026), the rest projected.
   const average = (): Value | bigint => {
-    const total = decimal(price?.total);
-    if (!price?.history || total === null)
-      return missing("Precios mensuales de la 3.ª extra incompletos en PeopleNet.", evidence);
-    if (formula === null) return missing("Componentes de la extra incompletos.", evidence);
-    if (total !== formula)
-      return missing(
-        `El precio de extras de Meta4 del mes (${textDecimal(total)}) no es Salario Base + Complemento Experiencia + CAI (${textDecimal(formula)}); revisar los conceptos que computan para pagas.`,
-        evidence,
-      );
-    const months = BigInt(price.history.months + 1 + price.projected);
-    return ((decimal(price.history.prices) ?? zero) + total * BigInt(1 + price.projected)) / months;
+    const history = order === 3 ? price?.history : semester?.history;
+    if (!history || total === null)
+      return missing(`Precios mensuales de la extra ${order} incompletos en PeopleNet.`, evidence);
+    if (formula === null) return incomplete();
+    const mismatch = priceMismatch();
+    if (mismatch) return mismatch;
+    const projected = order === 3 ? (price?.projected ?? 0) : 0;
+    const months = BigInt(history.months + 1 + projected);
+    return ((decimal(history.prices) ?? zero) + total * BigInt(1 + projected)) / months;
   };
   const averageReason = (value: bigint, units: string) =>
-    `Unidades (${units}) × precio medio del devengo ${textDecimal(roundCents(value))} (regla SSP_PAGA_EXTRA_3 de 10/2026: ${price?.history?.months ?? 0} meses cerrados, el actual a Salario Base + Experiencia + CAI y ${price?.projected ?? 0} proyectados).`;
-  if (!extra || !extra.due)
-    return {
-      value: zero,
-      reason:
-        "No corresponde abono separado de esta extra en la paga seleccionada según su configuración.",
-      evidence,
-    };
+    order === 3
+      ? `Unidades (${units}) × precio medio del devengo ${textDecimal(roundCents(value))} (regla SSP_PAGA_EXTRA_3 de 10/2026: ${price?.history?.months ?? 0} meses cerrados, el actual a ${formulaName} y ${price?.projected ?? 0} proyectados).`
+      : `Unidades (${units}) × precio medio del semestre ${textDecimal(roundCents(value))} (regla SSP_PAGA_EXTRA_${order} RULE111: ${semester?.history?.months ?? 0} meses cerrados y el actual a ${formulaName}).`;
+  const closing = automatic.price?.closing?.includes(order) === true;
+  const notDue = (): Value =>
+    // Meta4 recalculates an extra in the last month of its accrual (RULE111 "(*1)").
+    closing && paid !== null && paid !== zero
+      ? missing(
+          `Abono o regularización de la extra ${order} en el mes de cierre de su devengo (Meta4 la recalcula al final del devengo); regla de regularización no reproducida.`,
+          evidence,
+        )
+      : {
+          value: zero,
+          reason:
+            "No corresponde abono separado de esta extra en la paga seleccionada según su configuración.",
+          evidence,
+        };
+  if (!extra || !extra.due) return notDue();
   if (extra.prorated) {
+    // June/December extra prorated from a date inside the semester: the earlier days are paid
+    // apart at the average price of those months, over 180 days (no units stored by Meta4).
+    if (averageSemester && semester?.switchDays && semester.beforeSwitch?.months) {
+      const before = semester.beforeSwitch;
+      const value = roundCents(
+        ((decimal(before.prices) ?? zero) * BigInt(semester.switchDays)) /
+          BigInt(before.months * 180),
+      );
+      if (paid !== null && magnitude(paid - value) <= cent)
+        return {
+          value,
+          reason: `Pasó a prorrateada durante el semestre; parte no prorrateada: ${semester.switchDays}/180 días × precio medio de los ${before.months} meses previos (regla SSP_PAGA_EXTRA_${order} RULE111).`,
+          evidence,
+        };
+      return missing(
+        `Pasó a prorrateada durante el semestre: ${semester.switchDays}/180 días × precio medio de los meses previos dan ${textDecimal(value)}; el importe difiere (posibles días descontados por absentismo); devengo sin acreditar.`,
+        evidence,
+      );
+    }
     // Prorated from a date inside the accrual year: the earlier months are paid apart.
     if (averageThird && price?.switchUnits) {
       const units = unitsAccepted ? extra.units : price.switchUnits;
@@ -141,25 +194,25 @@ function automaticExpected(
       return {
         value: roundCents(multiply(value, decimal(units) ?? zero)),
         reason: `Pasó a prorrateada durante el año; parte no prorrateada: ${averageReason(value, units ?? "")}${unitsAccepted && decimal(units) !== decimal(price.switchUnits) ? ` Unidades de Meta4 aceptadas por RRHH (los meses previos dan ${price.switchUnits}).` : ""}`,
-        evidence: [...evidence, ...parts.flatMap((part) => part.evidence)],
+        evidence: [...evidence, ...formulaEvidence],
       };
     }
-    return {
-      value: zero,
-      reason:
-        "No corresponde abono separado de esta extra en la paga seleccionada según su configuración.",
-      evidence,
-    };
+    return notDue();
   }
   if (price && !price.issue && price.zero.includes(order))
     return {
       value: zero,
-      reason: `Precio de la extra ${order} fijado a 0 en PeopleNet (asignación individual SSP_P_PAGA_EX_${order}).`,
+      reason: `Precio o importe de la extra ${order} fijado a 0 en PeopleNet (asignación individual SSP_P_PAGA_EX_${order} o SSP_PAGA_EXTRA_${order}).`,
       evidence,
     };
+  if (price?.leaving)
+    return missing(
+      `Baja en el mes: RULE111 devuelve 0 y Meta4 abona la extra ${order} en el finiquito (SSP_FINIQ_PAGA_${order}); regla de finiquito no reproducida.`,
+      evidence,
+    );
   if (person.accrualIssue) return missing(person.accrualIssue, evidence);
   const partial = !extra.full || decimal(extra.percentage) !== decimal("100");
-  if (averageThird) {
+  if (averageThird || averageSemester) {
     const value = average();
     if (typeof value !== "bigint") return value;
     if (partial) {
@@ -169,11 +222,13 @@ function automaticExpected(
         units !== null &&
         paid !== null &&
         magnitude(paid - roundCents(multiply(value, units))) <= cent;
-      if (unitsAccepted && units !== null)
+      // Accepted units still need the amount to be units × average price: anything else is a
+      // Meta4 path this control does not reproduce (e.g. February hires in June 2026).
+      if (unitsAccepted && units !== null && holds)
         return {
           value: roundCents(multiply(value, units)),
           reason: `Devengo parcial con unidades de Meta4 aceptadas por RRHH: ${averageReason(value, textDecimal(units))}`,
-          evidence: [...evidence, ...parts.flatMap((part) => part.evidence)],
+          evidence: [...evidence, ...formulaEvidence],
         };
       return missing(
         `Devengo parcial o porcentaje distinto del 100 %: las unidades las calcula Meta4 con los días que descuenta el convenio.${units === null ? "" : holds ? ` El importe es ${averageReason(value, textDecimal(units))}` : ` El importe no es unidades × precio medio (${textDecimal(units)}).`}`,
@@ -183,7 +238,7 @@ function automaticExpected(
     return {
       value: roundCents(value),
       reason: averageReason(value, "1"),
-      evidence: [...evidence, ...parts.flatMap((part) => part.evidence)],
+      evidence: [...evidence, ...formulaEvidence],
     };
   }
   if (partial) {
@@ -201,13 +256,14 @@ function automaticExpected(
       evidence,
     );
   }
-  if (formula === null) return missing("Componentes de la extra incompletos.", evidence);
-  return {
-    value: formula,
-    reason:
-      "Salario Base + Complemento Experiencia + Complemento Adaptación Individualizado; devengo completo acreditado en PeopleNet.",
-    evidence: [...evidence, ...parts.flatMap((part) => part.evidence)],
-  };
+  if (formula === null) return incomplete();
+  return (
+    priceMismatch() ?? {
+      value: formula,
+      reason: `${formulaName}; devengo completo acreditado en PeopleNet.`,
+      evidence: [...evidence, ...formulaEvidence],
+    }
+  );
 }
 
 export function automaticExtraFindings(

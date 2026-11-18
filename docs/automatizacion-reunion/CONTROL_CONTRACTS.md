@@ -98,6 +98,22 @@ Q03/Q05: precisión y otros perfiles/entidades se validan por separado.
 
 ## C04 — Paga extra
 
+Actualización 2026-11-18 (motor 1.4.0):
+- **Precio medio.** Las extras 1.ª y 2.ª esperan unidades × precio medio del
+  semestre (`SSP_PAGA_EXTRA_1/2` RULE111 con huella verificada, devengo enero–junio
+  y julio–diciembre), como la 3.ª.
+- **Fórmula por sociedad.** El precio se toma del informe según los indicadores
+  `CSP_IPE_*` verificados:
+  - CYC: Salario Base + Complemento Experiencia + CAI;
+  - IBER y COLL: Salario Base + Antigüedad.
+
+  Siempre debe coincidir con `SSP_TOTAL_P_PAGAS`.
+- **Cambio a prorrateada en el semestre.** Solo acredita «Coincide» cuando el importe
+  es días / 180 × media de los meses previos; en otro caso queda pendiente.
+- **Casos explicados.** El importe fijado a 0 se espera 0. La baja en el mes y la
+  regularización al cierre del devengo quedan pendientes con su motivo.
+- **Unidades aceptadas.** Exigen además que el importe sea unidades × precio medio.
+
 Actualización 2026-11-17: prorrata = `SSP_P_EXT_PRORRAT` (columna real del informe).
 Valores por defecto/asignaciones posteriores al cálculo se aceptan solo si esa
 prorrata calculada por Meta4 corrobora la modalidad; historiales/definiciones no.

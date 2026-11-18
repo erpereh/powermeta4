@@ -73,8 +73,18 @@ export type AutomaticExtraPay = {
   rule?: AutomaticExtraPayRule;
   issue?: string;
   /** Optional price capture (1.3.1); absent in older dossiers, which keep the base formula. */
-  price?: { averageThird: boolean; issue?: string };
+  price?: AutomaticExtraPriceCapture;
   people: AutomaticExtraPayPerson[];
+};
+export type AutomaticExtraPriceCapture = {
+  averageThird: boolean;
+  /** Orders 1/2 whose LN4 average-price rule and semester accrual are the verified ones (1.4.0). */
+  averageSemester?: number[];
+  /** Report columns of the concepts that compute for extras (CSP_IPE_*), verified per society. */
+  formula?: string[];
+  /** Orders whose verified accrual window ends in this month (Meta4 regularizes at its close). */
+  closing?: number[];
+  issue?: string;
 };
 export type AutomaticExtraPrice = {
   issue?: string;
@@ -88,6 +98,18 @@ export type AutomaticExtraPrice = {
   projected: number;
   /** Non-prorated part of the year when the third extra became prorated in it. */
   switchUnits: string | null;
+  /** June/December extras: closed months of the semester and a change to prorated in it. */
+  semester?: AutomaticSemesterPrice[];
+  /** HR period ending this month: RULE111 returns 0 and the extra goes to the settlement. */
+  leaving?: boolean;
+};
+export type AutomaticSemesterPrice = {
+  order: number;
+  history: { prices: string; months: number } | null;
+  /** 360-day-year days of the semester before the change to prorated (paid apart over 180). */
+  switchDays: number | null;
+  /** Closed months before that change: Meta4 pays the earlier part at their average. */
+  beforeSwitch: { prices: string; months: number } | null;
 };
 export type ExtraPayRuleVariant = "r1-through-july-2026" | "r1-aug-oct-2026";
 export type AutomaticExtraPayRule = {
