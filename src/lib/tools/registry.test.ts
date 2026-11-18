@@ -20,7 +20,7 @@ describe("tool registry", () => {
       "reports",
       "processes",
     ]);
-    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([4, 4, 4, 8, 4]);
+    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([4, 4, 4, 9, 4]);
   });
 
   it("keeps action IDs, prompts and icons configured", () => {
@@ -46,6 +46,7 @@ describe("tool registry", () => {
       "Quiero ver los resultados de un informe de nómina",
       "Quiero consultar el informe de proyecciones",
       "Quiero consultar el certificado de retenciones",
+      "Quiero consultar el informe de Primavera",
       "Quiero crear un informe",
       "Quiero consultar los informes",
       "Quiero exportar los resultados de un informe",
@@ -108,7 +109,14 @@ describe("tool registry", () => {
       "reports.payroll-results",
       "reports.projections",
       "reports.certificate",
+      "reports.primavera",
     ]);
+    expect(reports.find((tool) => tool.id === "reports.primavera")).toMatchObject({
+      name: "Primavera",
+      route: "/tools/reports/primavera",
+      icon: "report-primavera",
+    });
+    expect(searchTools("primavera").tools.map((tool) => tool.id)).toEqual(["reports.primavera"]);
     expect(reports.find((tool) => tool.id === "reports.certificate")).toMatchObject({
       route: "/tools/reports/certificado-retenciones",
       icon: "report-certificate",

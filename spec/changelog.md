@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-11-18 - Informe «Primavera» (nómina de Portugal)
+
+- Nueva acción «Primavera» en Informes (`/tools/reports/primavera`): la consulta de
+  `Desktop/Primavera/herramienta/cuadres-portugal.mjs` para la sociedad de la sesión
+  y su entidad portuguesa (CYC `ACYC_PT`, IBER `IBER PORT`, COLL `COLL`). Por empleado
+  y mes de pago: devengos = suma R, retenidos = suma D (columnas de
+  `M4CSP_CODIGOS_PRIMAVERA` con renombres y saltando las que no existen) y
+  devengos − retenidos = líquido, tolerancia 0,01. Año entero, un mes o un rango.
+- `POST /api/reports/primavera/export`: Excel como el del script (Resumen, una hoja
+  por mes, verde/rojo, fila TOTAL) con la base leída en el nombre. Vuelve a leer en
+  servidor; no guarda ficheros. Solo `SELECT`.
+- Separado de «Cuadre de nómina» (España), que no se ha tocado. RRHH con acceso a
+  las tres sociedades queda pendiente (decisión del usuario).
+- Comprobaciones: suite completa 1.580 correctas y 36 omitidas, sin fallos;
+  typecheck, build y `git diff --check` correctos; oxlint y `oxfmt --check` limpios
+  en lo cambiado (`oxfmt --check` sigue fallando en todo el repositorio, como antes).
+  Sin probar todavía contra PeopleNet en la aplicación.
+
 ## 2026-11-17 - C04 con precio medio de la 3.ª extra (motor 1.3.1)
 
 - 3.ª extra: unidades × precio medio del devengo según `SSP_PAGA_EXTRA_3` RULE111

@@ -14,6 +14,7 @@ import {
   Landmark,
   Play,
   ReceiptText,
+  Scale,
   Search,
   TableProperties,
   UserRoundCog,
@@ -52,6 +53,7 @@ export type ToolIconName =
   | "report-payroll-results"
   | "report-projections"
   | "report-certificate"
+  | "report-primavera"
   | "processes"
   | "process-run"
   | "process-status"
@@ -126,6 +128,7 @@ export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   "report-payroll-results": FileSpreadsheet,
   "report-projections": FileChartColumn,
   "report-certificate": FileBadge,
+  "report-primavera": Scale,
   processes: Workflow,
   "process-run": Play,
   "process-status": ChartNoAxesCombined,
@@ -386,6 +389,17 @@ export const TOOL_MODULES = [
           "matrícula",
         ],
         aiPrompt: "Quiero consultar el certificado de retenciones",
+        implemented: true,
+      }),
+      tool({
+        id: "reports.primavera",
+        moduleId: "reports",
+        name: "Primavera",
+        description: "Totales de Portugal cargados desde Primavera frente a sus conceptos R y D.",
+        route: "/tools/reports/primavera",
+        icon: "report-primavera",
+        keywords: ["primavera", "portugal", "devengos", "retenidos", "líquido"],
+        aiPrompt: "Quiero consultar el informe de Primavera",
         implemented: true,
       }),
       tool({

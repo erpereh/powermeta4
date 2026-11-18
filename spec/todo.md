@@ -1,5 +1,20 @@
 # powermeta4 - estado de tareas
 
+## Informe «Primavera» (Portugal) — 2026-11-18
+
+- [x] Acción «Primavera» en Informes (`/tools/reports/primavera`) con la consulta de
+      `cuadres-portugal.mjs`: sociedad activa y su entidad portuguesa, año entero,
+      un mes o un rango.
+- [x] Resumen por mes (OK / MAL / sin nómina) y detalle por empleado con totales.
+- [x] Separado de «Cuadre de nómina» (España): no aparece al buscar «cuadre».
+- [ ] Futuro: que RRHH pueda ver CYC, IBER y COLL a la vez (como el script).
+      Decisión del usuario del 2026-11-18: por ahora cada usuario ve solo la
+      sociedad con la que inicia sesión.
+- [ ] Probar en la aplicación contra PeopleNet (prenómina) y contrastar con el
+      Excel de `Cuadres Portugal.cmd`.
+- [x] Exportación a Excel como el script (`POST /api/reports/primavera/export`):
+      hoja «Resumen», una hoja por mes, verde/rojo y fila TOTAL; base leída en el nombre.
+
 ## Cuadre: C04 con precio medio y precio fijado a 0 — 2026-11-17
 
 - [x] 3.ª extra con la regla `SSP_PAGA_EXTRA_3` de 10/2026 (precio medio del año).

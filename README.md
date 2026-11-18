@@ -266,6 +266,12 @@ del proyecto jamás puedan compilar código nativo.
   COLL según la sesión) y muestra la hoja «Datos» y el «informe» por centro y
   empleado. `POST /api/reports/payroll-results/export` descarga el Excel como
   el de PeopleNet.
+- `/tools/reports/primavera`: «Primavera» comprueba en solo lectura la nómina
+  de Portugal cargada desde Primavera (entidad portuguesa de la sociedad activa):
+  por empleado y mes, devengos frente a la suma de conceptos R, retenidos frente
+  a la de D y líquido, con resumen por mes en verde/rojo. Es la misma consulta
+  que la herramienta `Cuadres Portugal.cmd`; `POST /api/reports/primavera/export`
+  descarga su mismo Excel (Resumen y una hoja por mes) para la sociedad activa.
 
 - `/portal/...`: portal del empleado y del responsable de CYC, IBER y COLL
   (inicio, tareas, organización, mis datos, retribución, tiempo, talento,

@@ -220,7 +220,7 @@ Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/tools/users/new`, `/tools/companies`, `/tools/payroll`,
 `/tools/payroll/receipt`, `/tools/reports`, `/tools/reports/quinquenal`,
 `/tools/reports/resultados-nomina`, `/tools/reports/proyecciones`,
-`/tools/reports/certificado-retenciones`,
+`/tools/reports/certificado-retenciones`, `/tools/reports/primavera`,
 `/tools/processes` y el portal del empleado y del responsable bajo `/portal`
 (`/portal`, `/portal/tareas`, `/portal/organizacion/...`,
 `/portal/empleado/...` y `/portal/responsable/...`, resueltas desde el
@@ -265,6 +265,16 @@ contexto operativo; las fórmulas viven en `src/lib/quinquenal/calc.ts`.
 `POST /api/reports/quinquenal/export` (Node.js, requiere sesión) recibe solo
 la matrícula opcional, vuelve a leer en servidor y devuelve el Excel con el
 formato de PeopleNet, sin guardar ficheros ni datos personales.
+«Primavera» (`/tools/reports/primavera`) reproduce en pantalla la consulta de
+`Desktop/Primavera/herramienta/cuadres-portugal.mjs` (nómina de Portugal) solo
+para la sociedad del contexto operativo y su entidad portuguesa (CYC `ACYC_PT`,
+IBER `IBER PORT`, COLL `COLL`): por empleado y mes de pago, devengos = suma de
+las columnas R y retenidos = suma de las D de `M4CSP_CODIGOS_PRIMAVERA` (con sus
+renombres y saltando las que no existen en `M4CSP_AC_HR_PERIOD`), y devengos −
+retenidos = líquido. `POST /api/reports/primavera/export` (Node.js, requiere
+sesión) recibe solo año y meses, vuelve a leer en servidor y devuelve el Excel
+del script (hoja «Resumen» y una hoja por mes, verde/rojo, fila TOTAL), sin
+guardar ficheros. Solo `SELECT`; no se mezcla con «Cuadre de nómina» (España).
 «Resultados de nómina» (`/tools/reports/resultados-nomina`) lista con `SELECT`
 las ejecuciones de `M4CSP_INF_RESULT` de la sociedad del contexto operativo y
 muestra su resultado (`M4CSP_INF_RESULT1.CSP_RESULTADO`: `~BLOBD\0\0` y texto
