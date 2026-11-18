@@ -173,7 +173,9 @@ async function loadSnapshot(
   const captured = { ...snapshot(data, confirmed, context.society), ...captureOrigin() };
   if (previous) return captured;
   // Each capture is isolated: a failed read leaves only its own control pending.
-  return captureAutomaticExcess(await captureAutomaticTelework(await captureAutomaticExtras(captured)));
+  return captureAutomaticExcess(
+    await captureAutomaticTelework(await captureAutomaticExtras(captured)),
+  );
 }
 /** Provenance only: a missing/unreadable configuration never blocks a capture already read. */
 function captureOrigin(): Pick<Dossier["current"], "origin"> {
@@ -246,8 +248,6 @@ export async function updateDossier(request: Request, context: Context): Promise
     );
     if (!finding || !input.state)
       throw new ReconciliationError("El hallazgo cambió. Vuelve a revisar el resultado.", 409);
-    if (input.state !== "Pendiente" && !input.comment?.trim())
-      throw new ReconciliationError("La decisión requiere un comentario.");
     dossier.annotations = dossier.annotations.filter((item) => item.findingId !== finding.id);
     dossier.annotations.push({
       findingId: finding.id,
@@ -257,6 +257,10 @@ export async function updateDossier(request: Request, context: Context): Promise
       actor: context.actor,
       at: new Date().toISOString(),
     });
+  } else if (input.action === "removeReview") {
+    if (!dossier.annotations.some((item) => item.findingId === input.findingId))
+      throw new ReconciliationError("No existe esa revisión.", 404);
+    dossier.annotations = dossier.annotations.filter((item) => item.findingId !== input.findingId);
   } else if (input.action === "removeSource") {
     if (!dossier.sources.some((source) => source.id === input.sourceId))
       throw new ReconciliationError("No existe esa fuente.", 404);
@@ -287,6 +291,10 @@ export async function updateDossier(request: Request, context: Context): Promise
   // Legacy selections may be incompatible: other operations must remain usable.
   if (input.action === "refresh")
     validatePrevious(dossier.period, dossier.current, dossier.previous);
+  dossier.parameters = {
+    ...dossier.parameters,
+    percentageTolerance: dossier.parameters.tolerance,
+  };
   dossier.result = reconcile(dossier);
   dossier.annotations = retainAnnotations(dossier.annotations, dossier.result);
   return jsonResponse(await repository().save(context, dossier, input.revision));

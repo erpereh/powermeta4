@@ -1,5 +1,22 @@
 # powermeta4 - estado de tareas
 
+## Cuadre: tolerancia única y revisiones — 2026-11-18
+
+- [x] «Tolerancia EUR» sin propuesta, aplicada a importes, IRPF y comprobaciones
+      de extras; un único umbral en el Excel y alias antiguo sincronizado al guardar.
+- [x] Parámetros necesarios conservados; ajustes antiguos de teletrabajo y
+      devengo completo visibles solo sin la captura automática correspondiente.
+- [x] Motivo igual al Excel o ausente; comentario opcional con máximo de 2.000 caracteres.
+- [x] Lápiz y papelera accesibles; borrado solo de la anotación, con validación de
+      sesión, sociedad y revisión, incluidos hallazgos anteriores o invalidados.
+- [x] Typecheck y 356 pruebas dirigidas correctas en 15 archivos.
+- [x] Suite completa: 234 archivos, 1.655 pruebas correctas y 2 omitidas;
+      build correcto (47 páginas), `git diff --check` y formato de los 14 TypeScript
+      modificados correctos. Lint global conserva 7 avisos y formato anterior pendiente.
+- [x] Navegador en debug con base temporal: 1440/1024/768/390 px sin overflow de
+      página ni errores de consola; guardar sin comentario, edición por teclado,
+      borrado, persistencia tras recargar y resultado original conservado.
+
 ## Informe «Primavera» (Portugal) — 2026-11-18
 
 - [x] Acción «Primavera» en Informes (`/tools/reports/primavera`) con la consulta de

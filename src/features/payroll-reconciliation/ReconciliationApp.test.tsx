@@ -8,6 +8,7 @@ import { reconcile } from "@/lib/payroll-reconciliation/engine";
 import { snapshot } from "@/lib/payroll-reconciliation/snapshot";
 import { DEFAULT_PARAMETERS, type Dossier } from "@/lib/payroll-reconciliation/types";
 import { mutationSchema } from "@/lib/payroll-reconciliation/validation";
+import { exportReason } from "@/lib/payroll-reconciliation/presentation";
 const tableRenders = vi.hoisted(() => ({ count: 0 }));
 
 vi.mock("@/stores/use-workspace-store", () => ({
@@ -40,6 +41,14 @@ const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => 
         { ok: false, message: "El expediente ha cambiado." },
         { status: failure },
       );
+    if (patch.action === "removeReview") {
+      saved = {
+        ...saved,
+        revision: saved.revision + 1,
+        annotations: saved.annotations.filter((item) => item.findingId !== patch.findingId),
+      };
+      return Response.json({ ok: true, data: saved });
+    }
     if (patch.action !== "review" || !patch.state) throw new Error("Operación inesperada");
     const finding = saved.result.findings.find((item) => item.id === patch.findingId);
     if (!finding) throw new Error("Hallazgo inesperado");
@@ -197,7 +206,7 @@ describe("saved reconciliation review editing", () => {
       reviewEditor().getByRole("button", { name: "Decisión de revisión" }).textContent,
     ).toContain("Diferencia justificada");
   });
-  it("cancels edits and keeps mandatory comments for non-pending decisions", async () => {
+  it("cancels edits without changing the stored review", async () => {
     const user = userEvent.setup();
     render(<ReconciliationApp demo />);
     await user.click(await openReviewList(user));
@@ -206,7 +215,7 @@ describe("saved reconciliation review editing", () => {
     await user.clear(comment);
     expect(
       reviewEditor().getByRole("button", { name: "Guardar revisión" }).hasAttribute("disabled"),
-    ).toBe(true);
+    ).toBe(false);
     await chooseDecision(user, "Pendiente");
     expect(
       reviewEditor().getByRole("button", { name: "Guardar revisión" }).hasAttribute("disabled"),
@@ -219,6 +228,103 @@ describe("saved reconciliation review editing", () => {
     expect(patches).not.toHaveBeenCalled();
     await user.click(reviewPanel().getByRole("button", { name: /^Editar revisión de 009002/ }));
     expect(reviewEditor().getByDisplayValue("Comentario anterior")).toBeTruthy();
+  });
+  it.each(["Pendiente", "Diferencia justificada", "Requiere corrección manual"])(
+    "saves %s without a comment and reopens the stored decision",
+    async (state) => {
+      const user = userEvent.setup();
+      render(<ReconciliationApp demo />);
+      await user.click(await openReviewList(user));
+      await chooseDecision(user, state);
+      await user.clear(reviewEditor().getByRole("textbox", { name: "Comentario" }));
+      await user.click(reviewEditor().getByRole("button", { name: "Guardar revisión" }));
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog", { name: "Revisar resultado" })).toBeNull(),
+      );
+      expect(saved.annotations[0]).toMatchObject({ state, comment: "" });
+      await user.click(reviewPanel().getByRole("button", { name: /^Editar revisión de 009002/ }));
+      expect(
+        reviewEditor().getByRole("textbox", { name: "Comentario" }).getAttribute("value"),
+      ).toBe("");
+      expect(
+        reviewEditor().getByRole("button", { name: "Decisión de revisión" }).textContent,
+      ).toContain(state);
+    },
+  );
+  it.each(["", "Falta fuente independiente para este control."])(
+    "shows the exported reason without a fallback for %j",
+    async (reason) => {
+      const finding = saved.result.findings.find(
+        (item) => item.id === saved.annotations[0].findingId,
+      )!;
+      finding.reason = reason;
+      const user = userEvent.setup();
+      render(<ReconciliationApp demo />);
+      await user.click(await openReviewList(user));
+      expect(reviewEditor().queryByText(/Motivo desconocido/)).toBeNull();
+      if (reason) {
+        expect(reviewEditor().getByText(exportReason(reason))).toBeTruthy();
+        expect(reviewEditor().queryByText(reason)).toBeNull();
+      }
+    },
+  );
+  it.each([false, true])(
+    "removes only a saved review using the keyboard, orphaned=%s",
+    async (orphaned) => {
+      if (orphaned) saved.annotations[0].findingId = "old-finding";
+      const original = structuredClone(saved);
+      const user = userEvent.setup();
+      const { unmount } = render(<ReconciliationApp demo />);
+      await user.click(await screen.findByRole("button", { name: "Abrir" }));
+      await user.click(await screen.findByRole("tab", { name: "Revisión" }));
+      const remove = reviewPanel().getByRole("button", { name: /^Borrar revisión de/ });
+      expect(remove.textContent).toBe("");
+      expect(reviewPanel().getByRole("button", { name: /^Editar revisión de/ }).textContent).toBe(
+        "",
+      );
+      remove.focus();
+      await user.keyboard("{Enter}");
+      await waitFor(() => expect(saved.annotations).toEqual([]));
+      expect(patches).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "removeReview",
+          id: original.id,
+          revision: original.revision,
+          findingId: original.annotations[0].findingId,
+        }),
+      );
+      expect(saved.result).toEqual(original.result);
+      expect(saved.current).toEqual(original.current);
+      expect(saved.sources).toEqual(original.sources);
+      unmount();
+      render(<ReconciliationApp demo />);
+      await user.click(await screen.findByRole("button", { name: "Abrir" }));
+      await user.click(await screen.findByRole("tab", { name: "Revisión" }));
+      expect(reviewPanel().queryByRole("button", { name: /^Borrar revisión de/ })).toBeNull();
+      await user.click(screen.getByRole("tab", { name: "Controles" }));
+      await user.click(
+        await screen.findByRole("row", { name: "Revisar 009002, fixed: Con diferencia" }),
+      );
+      expect(
+        reviewEditor().getByRole("button", { name: "Decisión de revisión" }).textContent,
+      ).toContain("Pendiente");
+      expect(
+        reviewEditor().getByRole("textbox", { name: "Comentario" }).getAttribute("value"),
+      ).toBe("");
+    },
+  );
+  it("retains a review when deletion conflicts and permits reloading the dossier", async () => {
+    const user = userEvent.setup();
+    render(<ReconciliationApp demo />);
+    await openReviewList(user);
+    failure = 409;
+    await user.click(reviewPanel().getByRole("button", { name: /^Borrar revisión de/ }));
+    expect((await screen.findByRole("alert")).textContent).toContain("Vuelve a cargar");
+    expect(saved.annotations).toHaveLength(1);
+    failure = undefined;
+    await user.click(screen.getByRole("button", { name: "Volver a cargar" }));
+    await user.click(screen.getByRole("tab", { name: "Revisión" }));
+    expect(reviewPanel().getByText("Comentario anterior")).toBeTruthy();
   });
   it("reopens invalidated reviews as pending, keeping the comment and using the current evidence", async () => {
     saved.annotations[0] = {

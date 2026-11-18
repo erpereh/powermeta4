@@ -5,6 +5,7 @@ import { DEFAULT_PARAMETERS } from "@/lib/payroll-reconciliation/types";
 import { snapshot } from "@/lib/payroll-reconciliation/snapshot";
 import { demoReport } from "@/lib/payroll-reconciliation/demo";
 import { reconcile } from "@/lib/payroll-reconciliation/engine";
+import { ReconciliationError } from "@/lib/payroll-reconciliation/import";
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -690,25 +691,160 @@ describe("reconciliation boundaries", () => {
     expect(dossier.result).toEqual(original);
     expect(mocks.read).not.toHaveBeenCalled();
   });
-  it.each(["Diferencia justificada", "Requiere corrección manual"])(
-    "requires a nonblank comment for %s on the server",
-    async (state) => {
-      const finding = dossier.result.findings[0];
-      const response = await PATCH(
-        request("PATCH", {
-          id: dossier.id,
-          revision: dossier.revision,
-          action: "review",
-          findingId: finding.id,
-          fingerprint: finding.fingerprint,
-          state,
-          comment: "  ",
-        }),
+  it.each([
+    ["Pendiente", undefined],
+    ["Diferencia justificada", undefined],
+    ["Requiere corrección manual", undefined],
+    ["Pendiente", ""],
+    ["Diferencia justificada", ""],
+    ["Requiere corrección manual", ""],
+    ["Diferencia justificada", "  "],
+  ])("saves %s with optional comment %j on the server", async (state, comment) => {
+    const finding = dossier.result.findings[0];
+    persistUploads();
+    const response = await PATCH(
+      request("PATCH", {
+        id: dossier.id,
+        revision: dossier.revision,
+        action: "review",
+        findingId: finding.id,
+        fingerprint: finding.fingerprint,
+        state,
+        comment,
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(dossier.annotations[0]).toMatchObject({ state, comment: comment ?? "", actor: "DEBUG" });
+    const reopened = await GET(
+      new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`),
+    );
+    expect((await reopened.json()).data.annotations).toEqual(dossier.annotations);
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
+  it("still rejects comments exceeding 2000 characters", async () => {
+    const finding = dossier.result.findings[0];
+    const response = await PATCH(
+      request("PATCH", {
+        id: dossier.id,
+        revision: dossier.revision,
+        action: "review",
+        findingId: finding.id,
+        fingerprint: finding.fingerprint,
+        state: "Diferencia justificada",
+        comment: "a".repeat(2001),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it.each(["vigente", "invalidada", "anterior"])(
+    "deletes only the %s review without touching payroll or other reviews",
+    async (kind) => {
+      const [first, second] = dossier.result.findings;
+      dossier.annotations = [first, second].map((finding) => ({
+        findingId: finding.id,
+        fingerprint: finding.fingerprint,
+        state: "Diferencia justificada",
+        comment: "Revisión guardada",
+        actor: "TEST",
+        at: "2026-10-01",
+      }));
+      if (kind === "invalidada") {
+        dossier.annotations[0].fingerprint = "0".repeat(64);
+        dossier.annotations[0].invalidated = true;
+      }
+      if (kind === "anterior") dossier.annotations[0].findingId = "old-finding";
+      const original = structuredClone(dossier);
+      persistUploads();
+      const body = {
+        id: dossier.id,
+        revision: dossier.revision,
+        action: "removeReview",
+        findingId: dossier.annotations[0].findingId,
+      };
+      expect((await PATCH(request("PATCH", body))).status).toBe(200);
+      expect(dossier.annotations).toHaveLength(1);
+      expect(dossier.annotations[0]).toMatchObject(original.annotations[1]);
+      expect(dossier.result).toEqual(original.result);
+      expect(dossier.current).toEqual(original.current);
+      expect(dossier.previous).toEqual(original.previous);
+      expect(dossier.sources).toEqual(original.sources);
+      expect(dossier.revision).toBe(original.revision + 1);
+      expect((await PATCH(request("PATCH", body))).status).toBe(409);
+      expect((await PATCH(request("PATCH", { ...body, revision: dossier.revision }))).status).toBe(
+        404,
       );
-      expect(response.status).toBe(400);
-      expect(mocks.save).not.toHaveBeenCalled();
+      const reopened = await GET(
+        new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`),
+      );
+      expect((await reopened.json()).data.annotations).toEqual(dossier.annotations);
+      expect(mocks.read).not.toHaveBeenCalled();
+      expect(mocks.extras).not.toHaveBeenCalled();
+      expect(mocks.remove).not.toHaveBeenCalled();
     },
   );
+  it("enforces session, company and society when removing reviews", async () => {
+    const body = {
+      id: dossier.id,
+      revision: dossier.revision,
+      action: "removeReview",
+      findingId: dossier.result.findings[0].id,
+    };
+    expect(
+      (await PATCH(request("PATCH", body, { "x-powermeta4-company": "company-b" }))).status,
+    ).toBe(409);
+    mocks.auth.mockResolvedValue(null);
+    expect((await PATCH(request("PATCH", body))).status).toBe(401);
+    mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
+    mocks.context.mockResolvedValue({ companyId: "company-c", society: "IBER", username: "TEST" });
+    mocks.get.mockImplementation(() => {
+      throw new ReconciliationError("Expediente de otra sociedad.", 404);
+    });
+    expect((await PATCH(request("PATCH", body))).status).toBe(404);
+    expect(mocks.get).toHaveBeenCalledWith(
+      expect.objectContaining({ companyId: "company-c", society: "IBER" }),
+      dossier.id,
+    );
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it("recalculates old IRPF thresholds on read and synchronizes the legacy alias only on save", async () => {
+    dossier.parameters = {
+      ...dossier.parameters,
+      tolerance: "0.05",
+      percentageTolerance: "99",
+      mealRate: "12.1",
+    };
+    const irpf = dossier.current.headers.indexOf("Porcentaje I.R.P.F.");
+    dossier.current.rows[0][irpf] = "15.06";
+    dossier.result.engineVersion = "1.4.0";
+    const response = await GET(
+      new Request(`http://localhost/api/payroll/reconciliation?id=${dossier.id}`),
+    );
+    const loaded: Dossier = (await response.json()).data;
+    expect(
+      loaded.result.findings.find((item) => item.metric === "irpf" && item.employeeId === "009001"),
+    ).toMatchObject({ status: "Con diferencia", delta: "0.06" });
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.read).not.toHaveBeenCalled();
+    persistUploads();
+    expect(
+      (
+        await PATCH(
+          request("PATCH", {
+            id: dossier.id,
+            revision: dossier.revision,
+            action: "parameters",
+            parameters: dossier.parameters,
+          }),
+        )
+      ).status,
+    ).toBe(200);
+    expect(dossier.parameters).toMatchObject({
+      tolerance: "0.05",
+      percentageTolerance: "0.05",
+      mealRate: "12.1",
+    });
+  });
   it("uses only the server society for real report reads", async () => {
     mocks.auth.mockResolvedValue({ authContext: { mode: "meta4" } });
     mocks.context.mockResolvedValue({ companyId: "company-c", society: "CYC", username: "TEST" });

@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-11-18 - Cuadre: tolerancia única y revisión simplificada (motor 1.4.1)
+
+- «Tolerancia EUR» gobierna importes e IRPF (en puntos porcentuales), además de
+  las comprobaciones previas de extras parciales y cambios a prorrateada. Se
+  conserva el redondeo a céntimos. El alias anterior se sincroniza al guardar;
+  el Excel muestra una sola tolerancia y las huellas no afectadas se conservan.
+- Parámetros necesarios visibles; ajustes antiguos de teletrabajo y devengo
+  completo solo cuando falta su captura automática, sin borrar valores guardados.
+- Motivo de revisión igual al del Excel, sin texto sustitutorio si está vacío;
+  comentario opcional en las tres decisiones, con límite de 2.000 caracteres.
+- Botones de lápiz y papelera con nombre accesible. `removeReview` retira solo
+  la anotación local (vigente, invalidada o de hallazgo anterior), respetando
+  sociedad y revisión optimista; resultados y fuentes intactos, sin escritura ERP.
+- Comprobaciones: 356 pruebas dirigidas correctas y suite completa con 234
+  archivos, 1.655 correctas y 2 omitidas. Typecheck, build (47 páginas), diff y
+  formato de los 14 TypeScript modificados correctos. Lint global conserva los
+  7 avisos y formato preexistentes; sin reformateo general.
+- Navegador en debug con SQLite temporal: 1440/1024/768/390 px, sin overflow de
+  página ni errores de consola; guardado sin comentario, edición y borrado por
+  teclado, persistencia y hallazgo intacto. Capturas ficticias fuera del repositorio.
+
 ## 2026-11-18 - C04: extras de junio y diciembre, IBER y COLL (motor 1.4.0)
 
 - 1.ª y 2.ª extra: unidades × precio medio del semestre (`SSP_PAGA_EXTRA_1/2` RULE111

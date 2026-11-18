@@ -29,7 +29,7 @@ export function reconciliationDate(value: string | undefined): string {
   return Number.isNaN(date.getTime()) ? value : timestampFormat.format(date);
 }
 
-/** Export-only wording: persisted reasons and review fingerprints stay intact. */
+/** Shared wording for the workbook and review dialog; persisted reasons stay intact. */
 const SHORT_REASONS: readonly (readonly [string, string])[] = [
   ["Falta ejecución anterior.", "Sin ejecución anterior"],
   [
@@ -134,7 +134,6 @@ export const sourceFieldValue = (field: string, value: string | null): string | 
 export function exportParameters(parameters: Parameters): [string, string | null][] {
   return [
     ["Tolerancia EUR", parameters.tolerance],
-    ["Tolerancia puntos porcentuales", parameters.percentageTolerance],
     ["Teletrabajo: tarifa por día", parameters.teleworkRate],
     ["Teletrabajo: días con derecho", parameters.teleworkDays],
     ["Comida: tarifa por día", parameters.mealRate],

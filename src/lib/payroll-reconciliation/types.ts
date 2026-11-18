@@ -182,6 +182,7 @@ export type Source = {
 };
 export type Parameters = {
   tolerance: string;
+  /** Legacy alias, synchronized on save. All controls use tolerance. */
   percentageTolerance: string;
   teleworkRate: string | null;
   teleworkDays: string | null;

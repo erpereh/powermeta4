@@ -5,6 +5,7 @@ import { DEFAULT_PARAMETERS, type Source, type SourceFact } from "./types";
 import { reconcile, resolveIdentity, retainAnnotations } from "./engine";
 import { decimal, divide, textDecimal } from "./decimal";
 import { METRICS } from "./catalogue";
+import { hash } from "./hash";
 
 const fact = (values: SourceFact["values"], employeeId = "009001"): SourceFact => ({
   employeeId,
@@ -139,6 +140,36 @@ describe("deterministic reconciliation", () => {
     expect(finding(input, "fixed")).toMatchObject({ delta: "0.01", status: "Coincide" });
     set(input, "Total conceptos fijos", "1999.989");
     expect(finding(input, "fixed")).toMatchObject({ delta: "-0.011", status: "Con diferencia" });
+  });
+  it.each([
+    ["0", "2000", "15", "Coincide"],
+    ["0", "2000.001", "15.001", "Con diferencia"],
+    ["0.05", "2000.05", "15.05", "Coincide"],
+    ["0.05", "1999.95", "14.95", "Coincide"],
+    ["0.05", "2000.051", "15.051", "Con diferencia"],
+    ["0.05", "1999.949", "14.949", "Con diferencia"],
+  ])("uses tolerance %s for EUR (%s) and IRPF (%s)", (tolerance, amount, rate, status) => {
+    const input = inputs();
+    input.parameters = { ...input.parameters, tolerance, percentageTolerance: "99" };
+    set(input, "Total conceptos fijos", amount);
+    set(input, "Porcentaje I.R.P.F.", rate);
+    expect(finding(input, "fixed").status).toBe(status);
+    expect(finding(input, "irpf")).toMatchObject({ status, unit: "pp" });
+  });
+  it("ignores the legacy percentage tolerance and invalidates only findings whose tolerance changes", () => {
+    const input = inputs();
+    const before = reconcile(input);
+    input.parameters.percentageTolerance = "0.5";
+    const after = reconcile(input);
+    expect(after.findings).toEqual(before.findings);
+    // Motor 1.4.0: changing its overall version must not invalidate legacy C04 reviews.
+    expect(hash(after.findings.filter((item) => item.control === "C04"))).toBe(
+      "d8280bdb72c52b1e4a6c0e5a92103fb94af4647d991ec6fa462aba984baaf883",
+    );
+    input.parameters.tolerance = "0.05";
+    expect(finding(input, "irpf").fingerprint).not.toBe(
+      before.findings.find((item) => item.metric === "irpf")?.fingerprint,
+    );
   });
   it("requires confirmed period parameters and rejects overlapping card sources", () => {
     const input = inputs();

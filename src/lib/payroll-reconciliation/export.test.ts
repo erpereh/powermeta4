@@ -186,8 +186,9 @@ describe("reconciliation workbook", () => {
       });
     }
   });
-  it("colors differences and pending rows from engine status, preserving both tolerances and signs", async () => {
+  it("colors differences and pending rows with one tolerance for EUR and pp, preserving signs", async () => {
     const input = dossier();
+    input.parameters.percentageTolerance = "99";
     const change = (row: number, header: string, value: string) => {
       input.current.rows[row][input.current.headers.indexOf(header)] = value;
     };
@@ -331,7 +332,7 @@ describe("reconciliation workbook", () => {
     const parameters = workbook.getWorksheet("Expediente")!;
     const labels = parameters.getColumn(1).values;
     expect(labels.filter((label) => label === "Tolerancia EUR")).toHaveLength(1);
-    expect(labels.filter((label) => label === "Tolerancia puntos porcentuales")).toHaveLength(1);
+    expect(labels.filter((label) => label === "Tolerancia puntos porcentuales")).toHaveLength(0);
     expect(exported).toContain("Reglas y vigencia confirmadas");
     expect(exported).not.toMatch(/"(?:true|false)"/);
     expect(exported).not.toContain("extra3");

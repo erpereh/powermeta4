@@ -3,7 +3,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PayrollReportRun } from "@/types/payroll-report";
-import { SelectionForm } from "./forms";
+import { ParametersForm, SelectionForm } from "./forms";
+import { DEFAULT_PARAMETERS } from "@/lib/payroll-reconciliation/types";
 import { previousCandidate, reportRunLabel, runKey } from "./selection";
 
 const run = (overrides: Partial<PayrollReportRun> = {}): PayrollReportRun => ({
@@ -44,6 +45,71 @@ async function choose(user: ReturnType<typeof userEvent.setup>, label: string, n
   await user.click(await screen.findByRole("option", { name }));
 }
 const submit = () => screen.getByRole("button", { name: "Crear expediente y analizar" });
+
+describe("reconciliation parameters", () => {
+  it.each([
+    [false, false],
+    [true, false],
+    [false, true],
+    [true, true],
+  ])(
+    "shows only needed fields with telework=%s and extras=%s",
+    (automaticTelework, automaticExtras) => {
+      const onSave = vi.fn();
+      const parameters = {
+        ...DEFAULT_PARAMETERS,
+        percentageTolerance: "99",
+        teleworkRate: "2.24",
+        teleworkDays: "20",
+        extraFullEmployeeIds: ["009001"],
+      };
+      render(
+        <ParametersForm
+          parameters={parameters}
+          automaticTelework={automaticTelework}
+          automaticExtras={automaticExtras}
+          busy={false}
+          onSave={onSave}
+        />,
+      );
+      const tolerance = screen.getByRole("textbox", { name: "Tolerancia EUR" });
+      expect(screen.queryByLabelText("Tolerancia puntos porcentuales")).toBeNull();
+      expect(screen.queryByText(/propuesta:/)).toBeNull();
+      expect(Boolean(screen.queryByLabelText("Teletrabajo: tarifa por día"))).toBe(
+        !automaticTelework,
+      );
+      expect(Boolean(screen.queryByLabelText("Teletrabajo: días con derecho"))).toBe(
+        !automaticTelework,
+      );
+      expect(
+        Boolean(screen.queryByRole("button", { name: "Paga extra para devengo completo" })),
+      ).toBe(!automaticExtras);
+      expect(Boolean(screen.queryByLabelText(/Matrículas con devengo completo/))).toBe(
+        !automaticExtras,
+      );
+      for (const label of [
+        "Comida: tarifa por día",
+        "Comida: días de derecho antes de ausencias",
+        "Tarjeta: tarifa del periodo",
+        "Tarjeta: base del periodo",
+      ])
+        expect(screen.getByRole("textbox", { name: label })).toBeTruthy();
+      expect(screen.getAllByRole("checkbox")).toHaveLength(3);
+      expect(
+        document.getElementById(tolerance.getAttribute("aria-describedby") ?? "")?.textContent,
+      ).toContain("puntos porcentuales");
+      fireEvent.change(tolerance, { target: { value: "0,05" } });
+      fireEvent.submit(
+        screen.getByRole("button", { name: "Guardar parámetros y recalcular" }).closest("form")!,
+      );
+      expect(onSave).toHaveBeenCalledWith({
+        ...parameters,
+        tolerance: "0,05",
+        percentageTolerance: "0,05",
+      });
+    },
+  );
+});
 
 describe("real payroll execution selection", () => {
   it("excludes non-consecutive or incompatible runs and blocks a saved invalid selection", async () => {
