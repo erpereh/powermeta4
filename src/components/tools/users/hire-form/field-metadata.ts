@@ -135,8 +135,15 @@ export const HIRE_FIELD_META = {
   ),
   hireDate: connected("Fecha de alta", "date", "not-shown", true, mapped("SRCO_DT_HIRE")),
 
-  // Datos personales · Información Atradius (4)
-  atradiusId: connected("ID Atradius", "text", "unmarked", false, mapped("CSP_ID_ATRADIUS")),
+  // Datos personales · Información Atradius (5)
+  atradiusId: connected(
+    "ID Atradius",
+    "text",
+    "conditional-required",
+    true,
+    mapped("CSP_ID_ATRADIUS"),
+  ),
+  fusionId: connected("Fusion ID", "text", "required", true, mapped("CSP_FUSION_ID")),
   atradiusJobCode: connected(
     "ID Atradius Job Code",
     "catalog",

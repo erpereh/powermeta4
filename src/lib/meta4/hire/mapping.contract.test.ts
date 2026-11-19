@@ -48,6 +48,7 @@ const EXPECTED_COLUMNS = {
   legalRepresentativeNif: ["Z"],
   birthDate: ["AC", "AD"],
   atradiusId: ["IS"],
+  fusionId: ["IM"],
   phonePrefix: ["AU"],
   phoneNumber: ["AV", "IO"],
   mobilePrefix: ["AW"],
@@ -160,10 +161,9 @@ describe("AltaNueva exact mapping contract", () => {
       controlDigits: ["IE"],
       ibanCountry: ["IF"],
       ibanKey: ["II"],
-      fusionId: ["IM"],
     });
     expect(new Set(WRITTEN_COLUMNS)).toEqual(
-      new Set([...Object.values(EXPECTED_COLUMNS).flat(), "IB", "IC", "IE", "IF", "II", "IM"]),
+      new Set([...Object.values(EXPECTED_COLUMNS).flat(), "IB", "IC", "IE", "IF", "II"]),
     );
     expect(new Set(WRITTEN_COLUMNS).size).toBe(WRITTEN_COLUMNS.length);
     for (const excluded of ["HO", "GY", "HA", "IG", "IH"]) {

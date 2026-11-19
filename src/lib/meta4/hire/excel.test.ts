@@ -446,7 +446,7 @@ describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
       expect(generated.get(column)?.value, column).toBe(value);
     }
     expect(generated.get("CZ")?.value).toBe("000000|000000");
-    expect(generated.get("IM")?.value).toBeUndefined();
+    expect(generated.get("IM")?.value).toBe(hireExtraFixture.fusionId);
     expect(generated.get("CY")?.value).toBe(original.get("CY")?.value);
     expect(generated.get("AU")?.value).toBe("0034");
     expect(generated.get("AV")?.value).toBe("001234567");

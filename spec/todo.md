@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: Fusion ID, ID Atradius, nombre y rol — 2026-11-19
+
+- [x] Diagnóstico en PRE (solo SELECT): todas las importaciones desde el 2026-10-01
+      se rechazaban por «Fusion ID» vacío (`SRCO_VAL_STEP_COMPLETE`, C24-012133);
+      IM se limpiaba en la copia.
+- [x] Campo obligatorio «Fusion ID» (numérico) en Información Atradius → IM
+      (`CSP_FUSION_ID`). Lo escribe RRHH.
+- [x] ID Atradius (IS) alfanumérico y obligatorio salvo contrato interno BEC/BEC1
+      (CYC/IBER/COLL), como la regla de PeopleNet.
+- [x] «Rellenar datos de prueba» visible en desarrollo (ya no se oculta con los
+      textos de desarrollo), con teléfono, móvil e ID Atradius y sin Fusion ID.
+- [x] Nombre `AltaPersonas_<fecha>.xls` sin usuario: la planificación guarda 50
+      caracteres y cortaba `.xls` en `.xl`.
+- [x] Con error del envío se cierra la confirmación para que el mensaje se vea;
+      el log del servidor serializa código y mensaje.
+- [x] Alta de prueba en PRE correcta (tarea 109997, `M4_USER_RRHH`, 0 errores).
+      Con `M4EMPLOYEE` falla por seguridad de `CYC_H_ESTRUCTURA`: el usuario que
+      lanza el alta necesita un rol con modelo de seguridad `M4ADM` como rol por
+      defecto (`M4_USER_RRHH`, `M4_USER`, `M4DRRHH` o `M4ADM`).
+- [x] `ARG_LIST_EMAIL` vacío: con «0» Meta4 enviaba el aviso a «0» (`550 No such
+      user`, subtarea con error). Comprobado en PRE: tarea 109999 sin error.
+- [ ] Borrar en PRE la persona ficticia de la prueba si RRHH lo pide.
+
 ## Informe «Primavera» (Portugal) — 2026-11-18
 
 - [x] Acción «Primavera» en Informes (`/tools/reports/primavera`) con la consulta de

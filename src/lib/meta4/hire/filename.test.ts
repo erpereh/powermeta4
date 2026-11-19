@@ -1,31 +1,26 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildHireFileName,
-  buildHireFilePath,
-  formatHireTimestamp,
-  sanitizeHireUsername,
-} from "./filename";
+import { buildHireFileName, buildHireFilePath, formatHireTimestamp } from "./filename";
+
+/** M4RJS_SCHED_TASKS.SCHED_TASK_NAME keeps 50 characters of the file name. */
+const SCHED_TASK_NAME_LENGTH = 50;
 
 describe("hire filenames", () => {
-  it("keeps a Meta4 username and formats a Windows-safe timestamp", () => {
+  it("formats a Windows-safe timestamp without the username", () => {
     const when = new Date(2026, 8, 22, 11, 12, 34);
-    expect(sanitizeHireUsername("JORGE.SALVADOR")).toBe("JORGE.SALVADOR");
     expect(formatHireTimestamp(when)).toBe("2026-09-22_11-12-34");
-    expect(buildHireFileName("JORGE.SALVADOR", when)).toBe(
-      "AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls",
-    );
+    expect(buildHireFileName(when)).toBe("AltaPersonas_2026-09-22_11-12-34.xls");
   });
 
-  it("replaces characters that are illegal in a Windows filename", () => {
-    expect(sanitizeHireUsername(' a<b>c:d"e/f\\g|h?i*j ')).toBe("a_b_c_d_e_f_g_h_i_j");
-    expect(sanitizeHireUsername("   ")).toBe("usuario");
-    expect(sanitizeHireUsername("")).toBe("usuario");
+  it("fits the scheduled task name so Meta4 keeps the .xls extension", () => {
+    const name = buildHireFileName(new Date(2026, 11, 31, 23, 59, 59));
+    expect(name.length).toBeLessThanOrEqual(SCHED_TASK_NAME_LENGTH);
+    expect(name.slice(0, SCHED_TASK_NAME_LENGTH).endsWith(".xls")).toBe(true);
   });
 
   it("joins the import directory and does not treat the directory as the file", () => {
     const directory = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel`;
-    const fileName = "AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls";
+    const fileName = "AltaPersonas_2026-09-22_11-12-34.xls";
     const filePath = buildHireFilePath(directory, fileName);
     expect(filePath).toBe(`${directory}\\${fileName}`);
     expect(filePath).not.toBe(directory);

@@ -132,7 +132,7 @@ export const launchMeta4Hire = async (
   // Rules that need catalog names (document type) run once catalogs are loaded.
   const validated = parseHirePeople(people, { documentTypes: catalogs.documentType });
   const directory = getMeta4HireDirectory(deps.hireDirectory);
-  const fileName = buildHireFileName(context.username, deps.now?.() ?? new Date());
+  const fileName = buildHireFileName(deps.now?.() ?? new Date());
   const filePath = buildHireFilePath(directory, fileName);
   const url = getMeta4HireUrl(deps.hireUrl);
   const templatePath = resolveTemplatePath(getMeta4HireTemplatePath(deps.templatePath));

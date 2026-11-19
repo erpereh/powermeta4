@@ -54,7 +54,9 @@ export function DevTestDataControls({
       if (controller.signal.aborted) return;
 
       onFill(next);
-      setMessage("Datos ficticios preparados. Puedes revisarlos y editarlos antes de confirmar.");
+      setMessage(
+        "Datos ficticios preparados (desplegables con su primera opción). Escribe el Fusion ID en Información Atradius antes de confirmar.",
+      );
     } catch (caught) {
       if (!controller.signal.aborted) {
         setError(
@@ -73,14 +75,13 @@ export function DevTestDataControls({
 
   return (
     <aside
-      data-development-only
       aria-label="Datos de prueba de desarrollo"
       className="mb-5 flex flex-col gap-3 rounded-xl border border-dashed border-border bg-muted/50 p-3 sm:flex-row sm:items-start sm:justify-between"
     >
       <div className="min-w-0 space-y-1">
         <p className="text-sm font-medium">Desarrollo</p>
         <p className="text-sm text-muted-foreground">
-          Sustituye los datos de esta persona por datos ficticios de prueba.
+          Rellena los datos obligatorios con datos ficticios de prueba, salvo el Fusion ID.
         </p>
         {catalogs.status !== "ready" ? (
           <p className="text-sm text-muted-foreground">

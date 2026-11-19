@@ -75,7 +75,7 @@ loadCatalogs.mockResolvedValue({
 
 const IMPORT_DIRECTORY = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel`;
 const HIRE_NOW = new Date(2026, 8, 22, 11, 12, 34);
-const exampleFileName = buildHireFileName("JORGE.SALVADOR", HIRE_NOW);
+const exampleFileName = buildHireFileName(HIRE_NOW);
 const exampleFilePath = buildHireFilePath(IMPORT_DIRECTORY, exampleFileName);
 
 type SoapExecute = <T>(operation: AuthenticatedSoapOperation<T>) => Promise<T>;
@@ -305,7 +305,7 @@ describe("launchMeta4Hire service", () => {
     expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(exampleFilePath);
     expect(verifyHireFile.mock.calls.at(0)?.[0]).toBe(exampleFilePath);
     expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(verifyHireFile.mock.calls.at(0)?.[0]);
-    expect(exampleFileName).toBe("AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls");
+    expect(exampleFileName).toBe("AltaPersonas_2026-09-22_11-12-34.xls");
     expect(exampleFilePath.endsWith(`\\${exampleFileName}`)).toBe(true);
     expect(exampleFilePath).not.toBe(IMPORT_DIRECTORY);
     expect(writeHireFile.mock.calls.at(0)?.[1]).toBe(preserved);
@@ -326,7 +326,7 @@ describe("launchMeta4Hire service", () => {
       executeSoap: async (operation) => {
         expect(operation.xml).not.toContain("CYC");
         expect(operation.xml).toContain(
-          `ARG_PATH_FILE>${buildHireFilePath(IMPORT_DIRECTORY, buildHireFileName("user", HIRE_NOW))}<`,
+          `ARG_PATH_FILE>${buildHireFilePath(IMPORT_DIRECTORY, buildHireFileName(HIRE_NOW))}<`,
         );
         return operation.parseResponse(new Response(successBody, { status: 200 }));
       },

@@ -22,9 +22,9 @@ const shortIdentifier = (header: unknown): string | null => {
 describe("Meta4 hire field mappings", () => {
   it("classifies every field with confirmed mappings and six UI-only controls", () => {
     const entries = Object.entries(HIRE_FIELD_META);
-    expect(entries).toHaveLength(109);
-    expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(103);
-    expect(entries.filter(([, field]) => field.mapping.status === "confirmed")).toHaveLength(103);
+    expect(entries).toHaveLength(110);
+    expect(entries.filter(([, field]) => field.integration === "connected")).toHaveLength(104);
+    expect(entries.filter(([, field]) => field.mapping.status === "confirmed")).toHaveLength(104);
     expect(entries.filter(([, field]) => field.mapping.status === "unconfirmed")).toHaveLength(0);
     expect(entries.filter(([, field]) => field.mapping.status === "ui-only")).toHaveLength(6);
     expect(

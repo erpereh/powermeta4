@@ -625,9 +625,21 @@ const readExtraFields = (issues: IssueCollector, record: HirePersonInput): HireE
       "NIF Representante legal: debe ser un NIF o NIE con su letra de control correcta.",
     );
   }
-  const atradiusId = readText(issues, "atradiusId", record.atradiusId, "ID Atradius", { max: 20 });
-  if (atradiusId && !/^\d+$/.test(atradiusId)) {
-    issues.add("atradiusId", "ID Atradius: solo admite números.");
+  // SRCO_VAL_STEP_COMPLETE (C24-012133) requires it except for BEC/BEC1 interns.
+  const internship = ["BEC", "BEC1"].includes(optionalText(record.internalContract));
+  const atradiusId = readText(issues, "atradiusId", record.atradiusId, "ID Atradius", {
+    required: !internship,
+    max: 20,
+  });
+  if (atradiusId && !/^[A-Za-z0-9]+$/.test(atradiusId)) {
+    issues.add("atradiusId", "ID Atradius: solo admite letras y números.");
+  }
+  const fusionId = readText(issues, "fusionId", record.fusionId, "Fusion ID", {
+    required: true,
+    max: 20,
+  });
+  if (fusionId && !/^\d+$/.test(fusionId)) {
+    issues.add("fusionId", "Fusion ID: solo admite números.");
   }
   return {
     positionChoice,
@@ -635,6 +647,7 @@ const readExtraFields = (issues: IssueCollector, record: HirePersonInput): HireE
     legalRepresentativeNif: issues.has("legalRepresentativeNif") ? "" : legalRepresentativeNif,
     birthDate: readDate(issues, "birthDate", record.birthDate, "fecha de nacimiento"),
     atradiusId: issues.has("atradiusId") ? "" : atradiusId,
+    fusionId: issues.has("fusionId") ? "" : fusionId,
     phonePrefix,
     phoneNumber,
     mobilePrefix,

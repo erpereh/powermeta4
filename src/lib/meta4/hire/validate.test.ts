@@ -237,7 +237,12 @@ describe("parseHirePeople", () => {
     expect(() => parseHirePeople([{ ...validPerson, postalCode: "2800" }])).toThrow(/5 dígitos/);
     expect(parseHirePeople([{ ...validPerson, country: "620", province: "620/11/11", community: "620/11", city: "620/11/11/1106", postalCode: "1000-001" }])[0]?.postalCode).toBe("1000-001");
     expect(() => parseHirePeople([{ ...validPerson, firstName: "A".repeat(51) }])).toThrow(/máximo 50/);
-    expect(() => parseHirePeople([{ ...validPerson, atradiusId: "12A" }])).toThrow(/ID Atradius/);
+    expect(parseHirePeople([{ ...validPerson, atradiusId: "A000044" }])[0]?.atradiusId).toBe("A000044");
+    expect(() => parseHirePeople([{ ...validPerson, atradiusId: "A-12" }])).toThrow(/ID Atradius/);
+    expect(() => parseHirePeople([{ ...validPerson, atradiusId: "" }])).toThrow(/ID Atradius/);
+    expect(parseHirePeople([{ ...validPerson, atradiusId: "", internalContract: "BEC" }])[0]?.atradiusId).toBe("");
+    expect(() => parseHirePeople([{ ...validPerson, fusionId: "" }])).toThrow(/Fusion ID/);
+    expect(() => parseHirePeople([{ ...validPerson, fusionId: "99A8" }])).toThrow(/Fusion ID/);
   });
 
   it("validates Social Security numbers and the substitution pair", () => {

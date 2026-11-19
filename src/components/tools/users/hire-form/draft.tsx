@@ -184,6 +184,7 @@ export const toHirePersonInput = ({
   legalRepresentativeNif: pendingValues.legalRepresentativeNif ?? "",
   birthDate: pendingValues.birthDate ?? "",
   atradiusId: pendingValues.atradiusId ?? "",
+  fusionId: pendingValues.fusionId ?? "",
   phonePrefix: pendingValues.phonePrefix ?? "",
   phoneNumber: pendingValues.phoneNumber ?? "",
   mobilePrefix: pendingValues.mobilePrefix ?? "",

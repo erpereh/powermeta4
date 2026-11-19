@@ -33,6 +33,7 @@ const TAB_FIELDS: Record<HireTabId, readonly HireIssueField[]> = {
     "maritalStatus",
     "hireDate",
     "atradiusId",
+    "fusionId",
     "atradiusJobCode",
     "atradiusCategory",
     "department",

@@ -217,6 +217,12 @@ const fillRequired = async (
   });
   fireEvent.change(screen.getByLabelText("Fecha de alta"), { target: { value: values.hireDate } });
   await user.click(screen.getByRole("button", { name: "Información Atradius" }));
+  fireEvent.change(screen.getByRole("textbox", { name: /^ID Atradius/ }), {
+    target: { value: "A000044" },
+  });
+  fireEvent.change(screen.getByRole("textbox", { name: /^Fusion ID/ }), {
+    target: { value: "9998" },
+  });
   await chooseOption(user, "ID Atradius Job Code", /Sin datos/);
   await chooseOption(user, "ID Categoría Atradius", /Sin datos/);
   await chooseOption(user, "ID Department", /Local Sales/);
@@ -233,6 +239,14 @@ const fillRequired = async (
   await user.click(screen.getByRole("button", { name: "Contactos" }));
   fireEvent.change(screen.getByLabelText("Correo electrónico"), {
     target: { value: values.email },
+  });
+};
+
+/** The development fill leaves Fusion ID to the person, as RRHH types it. */
+const typeFusionId = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole("button", { name: "Información Atradius" }));
+  fireEvent.change(screen.getByRole("textbox", { name: /^Fusion ID/ }), {
+    target: { value: "9998" },
   });
 };
 
@@ -262,6 +276,8 @@ describe("UsersHireForm", () => {
     expect(catalogValue("ID Comunidad")).toBe("Madrid");
     expect(catalogValue("ID País")).toBe("España");
 
+    await typeFusionId(user);
+    expect(inputValue("Fusion ID")).toBe("9998");
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
     expect(screen.getByText("Se van a procesar 1 personas en Meta4")).toBeTruthy();
     expect(launchHire).not.toHaveBeenCalled();
@@ -274,12 +290,14 @@ describe("UsersHireForm", () => {
     await waitFor(() => expect(inputValue("Nombre")).toBe("Prueba"));
     const firstDocument = inputValue("Núm. de documento");
     fireEvent.change(screen.getByLabelText("Primer apellido"), { target: { value: "Conservar" } });
+    await typeFusionId(user);
     await user.click(screen.getByRole("button", { name: "Añadir persona" }));
     expect(inputValue("Nombre")).toBe("");
 
     await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
     await waitFor(() => expect(inputValue("Nombre")).toBe("Prueba"));
     expect(inputValue("Núm. de documento")).not.toBe(firstDocument);
+    await typeFusionId(user);
     expect(screen.getByText("Prueba Conservar Persona 1")).toBeTruthy();
     expect(screen.getByText(`${firstDocument} · persona-1@example.test`)).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
@@ -323,6 +341,7 @@ describe("UsersHireForm", () => {
     render(<UsersHireForm catalogs={CATALOGS} />);
     await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
     await waitFor(() => expect(inputValue("Nombre")).toBe("Prueba"));
+    await typeFusionId(user);
     await user.click(screen.getByRole("button", { name: "Añadir persona" }));
 
     let resolveSearch: ((response: Response) => void) | undefined;
@@ -355,14 +374,14 @@ describe("UsersHireForm", () => {
     expect(screen.queryByRole("button", { name: "Editar persona 1" })).toBeNull();
   });
 
-  it("distinguishes the 38 PeopleNet requirements from temporary send requirements", async () => {
+  it("distinguishes the 40 PeopleNet requirements from temporary send requirements", async () => {
     const fields = Object.values(HIRE_FIELD_META);
-    expect(fields).toHaveLength(109); // 108 retained PeopleNet rows and the current hire date.
+    expect(fields).toHaveLength(110); // 109 retained PeopleNet rows and the current hire date.
     expect(
       fields.filter(
         (field) => field.peopleNet === "required" || field.peopleNet === "conditional-required",
       ),
-    ).toHaveLength(38);
+    ).toHaveLength(40);
     expect(HIRE_FIELD_META.email.peopleNet).toBe("unmarked");
     expect(HIRE_FIELD_META.hireDate.peopleNet).toBe("not-shown");
     expect(HIRE_FIELD_META.email.requiredForCurrentHire).toBe(true);

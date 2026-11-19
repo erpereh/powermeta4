@@ -42,6 +42,10 @@ export const getMeta4HireTemplatePath = (override?: string): string => {
   return "./fuentes/HIRE/Hire_1_PERSONA.xls";
 };
 
+/**
+ * ARG_LIST_EMAIL stays empty: with "0" Meta4 stored "0" as the notification list
+ * and EXECUTE_JS mailed address "0" (SMTP 550 No such user, subtask in error).
+ */
 export const buildLaunchImportEnvelope = (filePath: string): string =>
   `<soapenv:Envelope xmlns:soapenv="${SOAP_NAMESPACE}" xmlns:sch="${META4_NAMESPACE}">
   <soapenv:Header/>
@@ -49,7 +53,7 @@ export const buildLaunchImportEnvelope = (filePath: string): string =>
     <sch:SRTC_LAUNCH_IMPORT>
       <sch:ARG_ID_GROUP_INTERFACE>${escapeXml(GROUP_INTERFACE)}</sch:ARG_ID_GROUP_INTERFACE>
       <sch:ARG_PATH_FILE>${escapeXml(filePath)}</sch:ARG_PATH_FILE>
-      <sch:ARG_LIST_EMAIL>${FLAG_OFF}</sch:ARG_LIST_EMAIL>
+      <sch:ARG_LIST_EMAIL></sch:ARG_LIST_EMAIL>
       <sch:ARG_ATTACH_FILE>${FLAG_OFF}</sch:ARG_ATTACH_FILE>
       <sch:ARG_SCHEDULE_TASK>${FLAG_OFF}</sch:ARG_SCHEDULE_TASK>
     </sch:SRTC_LAUNCH_IMPORT>

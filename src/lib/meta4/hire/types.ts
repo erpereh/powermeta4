@@ -15,6 +15,7 @@ export type HireExtraFields = {
   legalRepresentativeNif: string;
   birthDate: string;
   atradiusId: string;
+  fusionId: string;
   phonePrefix: string;
   phoneNumber: string;
   mobilePrefix: string;

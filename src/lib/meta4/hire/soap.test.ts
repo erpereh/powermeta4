@@ -12,7 +12,7 @@ import {
 
 describe("Meta4 hire SOAP builder", () => {
   it("builds SRTC_LAUNCH_IMPORT with escaped UNC path and without SOAPAction", () => {
-    const filePath = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\AltaPersonas_JORGE.SALVADOR_2026-09-22_11-12-34.xls`;
+    const filePath = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\AltaPersonas_2026-09-22_11-12-34.xls`;
     const xml = buildLaunchImportEnvelope(filePath);
 
     expect(xml).toContain("<sch:SRTC_LAUNCH_IMPORT>");
@@ -20,7 +20,7 @@ describe("Meta4 hire SOAP builder", () => {
       "<sch:ARG_ID_GROUP_INTERFACE>INIT_EMPLOYEES_FD</sch:ARG_ID_GROUP_INTERFACE>",
     );
     expect(xml).toContain(`<sch:ARG_PATH_FILE>${escapeXml(filePath)}</sch:ARG_PATH_FILE>`);
-    expect(xml).toContain("<sch:ARG_LIST_EMAIL>0</sch:ARG_LIST_EMAIL>");
+    expect(xml).toContain("<sch:ARG_LIST_EMAIL></sch:ARG_LIST_EMAIL>");
     expect(xml).toContain("<sch:ARG_ATTACH_FILE>0</sch:ARG_ATTACH_FILE>");
     expect(xml).toContain("<sch:ARG_SCHEDULE_TASK>0</sch:ARG_SCHEDULE_TASK>");
     expect(xml).not.toContain("SOAPAction");

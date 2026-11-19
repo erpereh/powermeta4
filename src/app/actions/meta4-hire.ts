@@ -57,19 +57,22 @@ export async function launchMeta4HireAction(people: unknown): Promise<HireAction
     const parsed = parseHirePeople(people);
     const authSession = await requireAuthContext();
     const result = await launchMeta4Hire(authSession, parsed, {
-      log: (message, details) => console.info(`[${message}]`, details),
+      // Serialized so the dev log keeps the details (it prints objects as {}).
+      log: (message, details) => console.info(`[${message}] ${JSON.stringify(details)}`),
     });
     return { ok: true, data: { personCount: result.personCount, fileName: result.fileName } };
   } catch (error) {
     const resolved = resolveHireErrorMessage(error);
     const issues = isMeta4HireError(error) ? error.issues : [];
     // Issues and rejection texts may contain personal data: only counts are logged.
-    console.error("[meta4-hire] launchMeta4HireAction failed", {
-      errorCode: resolved.errorCode,
-      ...(issues.length > 0
-        ? { issueCount: issues.length }
-        : { message: error instanceof Error ? error.message : String(error) }),
-    });
+    console.error(
+      `[meta4-hire] launchMeta4HireAction failed ${JSON.stringify({
+        errorCode: resolved.errorCode,
+        ...(issues.length > 0
+          ? { issueCount: issues.length }
+          : { message: error instanceof Error ? error.message : String(error) }),
+      })}`,
+    );
     return issues.length > 0
       ? { ok: false, errorCode: resolved.errorCode, message: resolved.message, issues }
       : { ok: false, errorCode: resolved.errorCode, message: resolved.message };

@@ -76,6 +76,9 @@ export const MANUAL_COLUMNS = {
   legalRepresentativeNif: ["Z"],
   birthDate: ["AC", "AD"],
   atradiusId: ["IS"],
+  // PERS_DATA.CSP_FUSION_ID: mandatory in SRCO_VAL_STEP_COMPLETE (C24-012133),
+  // typed by RRHH for each person.
+  fusionId: ["IM"],
   phonePrefix: ["AU"],
   phoneNumber: ["AV", "IO"],
   mobilePrefix: ["AW"],
@@ -172,8 +175,7 @@ export const HIRE_COST_CENTER_LIST_VALUE = "000000|000000";
 
 /**
  * SRSP_PA_HIRE_WIZ_DATOS_PAGO account parts derived from the IBAN or from the
- * branch + account of "Otro formato", and PERS_DATA.CSP_FUSION_ID (IM), whose
- * template value belongs to the sample person and is cleared for every row.
+ * branch + account of "Otro formato".
  * IG (SCO_ID_STANDARD) and IH (SCO_ID_ORIGIN_TYPE) keep the template defaults.
  */
 export const DERIVED_COLUMNS = {
@@ -182,7 +184,6 @@ export const DERIVED_COLUMNS = {
   controlDigits: ["IE"],
   ibanCountry: ["IF"],
   ibanKey: ["II"],
-  fusionId: ["IM"],
 } as const;
 
 export const WRITTEN_COLUMNS: readonly string[] = [

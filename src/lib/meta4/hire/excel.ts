@@ -486,6 +486,7 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
     ...literalCells(MANUAL_COLUMNS.legalRepresentativeNif, person.legalRepresentativeNif),
     ...dateCells(MANUAL_COLUMNS.birthDate, person.birthDate),
     ...literalCells(MANUAL_COLUMNS.atradiusId, person.atradiusId),
+    ...literalCells(MANUAL_COLUMNS.fusionId, person.fusionId),
     ...literalCells(MANUAL_COLUMNS.phonePrefix, person.phonePrefix),
     ...literalCells(MANUAL_COLUMNS.phoneNumber, person.phoneNumber),
     ...literalCells(MANUAL_COLUMNS.mobilePrefix, person.mobilePrefix),
@@ -554,7 +555,6 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
     ...checkCells(MANUAL_COLUMNS.timeManagementPay, person.timeManagementPay, "number"),
     ...bankCells(person),
     ...literalCells(MANUAL_COLUMNS.project, HIRE_COST_CENTER_LIST_VALUE),
-    ...literalCells(DERIVED_COLUMNS.fusionId, ""),
   ];
 };
 

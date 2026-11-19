@@ -129,6 +129,13 @@ export const createDevHirePersonDraft = (
   draft.current.community = geoAncestor(place.id, 2);
   draft.current.country = geoAncestor(place.id, 1);
   draft.pendingValues.cityName = place.name;
+  draft.pendingValues.atradiusId = "A000044";
+  // Fusion ID is typed by hand (RRHH); the rest of the PeopleNet-required data is filled.
+  draft.pendingValues.fusionId = "";
+  draft.pendingValues.phonePrefix = "+34";
+  draft.pendingValues.phoneNumber = "912345678";
+  draft.pendingValues.mobilePrefix = "+34";
+  draft.pendingValues.mobileNumber = "612345678";
   draft.pendingValues.addressLine1 = "Calle de Prueba";
   draft.pendingValues.streetNumber = "1";
   // Spanish postal codes start with the province code.
@@ -139,7 +146,8 @@ export const createDevHirePersonDraft = (
   draft.branches.disabilityChoice = "without";
   draft.branches.bankFormatChoice = "iban";
 
-  const person = parseHirePerson(toHirePersonInput(draft));
+  // Validate as if Fusion ID were typed: it is the only field left to the user.
+  const person = parseHirePerson({ ...toHirePersonInput(draft), fusionId: "9998" });
   assertHireCatalogSelections(
     [person],
     { ...catalogs, place: [...catalogs.place, place] },

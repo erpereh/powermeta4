@@ -292,8 +292,9 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
             setExpandedId(draft.id);
             if (firstField.field) setActiveTab(hireIssueTab(firstField.field));
           }
-          setConfirmOpen(false);
         }
+        // Close the confirmation so the error below is visible.
+        setConfirmOpen(false);
         setError({
           message: firstField
             ? "Revisa los datos marcados antes de lanzar el alta."
@@ -309,6 +310,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
       setConfirmOpen(false);
     } catch (caught) {
       setError({ message: errorMessage(caught), issues: [] });
+      setConfirmOpen(false);
     } finally {
       setPending(false);
     }

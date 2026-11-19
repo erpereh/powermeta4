@@ -73,7 +73,7 @@ afterEach(() => vi.restoreAllMocks());
 describe("development hire test data", () => {
   it("builds a valid person from the supplied catalogs without changing them", () => {
     const draft = createDevHirePersonDraft(7, state, place, now);
-    const person = parseHirePerson(toHirePersonInput(draft));
+    const person = parseHirePerson({ ...toHirePersonInput(draft), fusionId: "9998" });
     expect(() =>
       assertHireCatalogSelections([person], { ...state.catalogs, place: [place] }, state.society),
     ).not.toThrow();
@@ -114,7 +114,10 @@ describe("development hire test data", () => {
   it("uses a catalog position and hours when no jobs are available", () => {
     const positionState = { ...state, catalogs: { ...state.catalogs, job: [] } };
     const person = parseHirePerson(
-      toHirePersonInput(createDevHirePersonDraft(1, positionState, place, now)),
+      {
+        ...toHirePersonInput(createDevHirePersonDraft(1, positionState, place, now)),
+        fusionId: "9998",
+      },
     );
     expect(person).toMatchObject({
       positionChoice: "position",
@@ -171,7 +174,7 @@ describe("development hire test data", () => {
     );
 
     const draft = await loadDevHirePersonDraft(7, state, now, signal);
-    const person = parseHirePerson(toHirePersonInput(draft));
+    const person = parseHirePerson({ ...toHirePersonInput(draft), fusionId: "9998" });
     expect(search).toHaveBeenCalledExactlyOnceWith("/api/hire/places?q=Madrid", { signal });
     expect(person).toMatchObject({
       city: "ZZ/COM/PROV/TEST",

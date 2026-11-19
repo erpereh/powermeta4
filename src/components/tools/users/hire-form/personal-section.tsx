@@ -59,6 +59,7 @@ export function PersonalSection() {
                 <HireCatalogsNotice />
                 <div className="grid gap-4 md:grid-cols-2">
                   <PendingInput field="atradiusId" />
+                  <PendingInput field="fusionId" />
                   <CatalogField field="atradiusJobCode" />
                   <CatalogField field="atradiusCategory" />
                   <CatalogField field="department" />

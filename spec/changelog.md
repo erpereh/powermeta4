@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-11-19 - Alta de personas: Fusion ID, ID Atradius, nombre de fichero y correo
+
+- Diagnóstico en PRE (solo SELECT): la planificación `BP_LAUNCH_IMPORT_ASAP_JS`
+  terminaba «Ejecutado», pero `M4RCH_HIST_IMP_EXP` daba 1 registro en error en
+  cada alta. Desde el 2026-10-01 el motivo era «Fusion ID» vacío
+  (`SRCO_VAL_STEP_COMPLETE`, C24-012133), porque la copia limpiaba IM.
+- Nuevo campo obligatorio «Fusion ID» (numérico, máx. 20) en Información Atradius,
+  escrito en IM (`CSP_FUSION_ID`). ID Atradius (IS) pasa a alfanumérico y es
+  obligatorio salvo contrato interno BEC/BEC1, como la regla de PeopleNet.
+- Fichero `AltaPersonas_<fecha>.xls` sin usuario: Meta4 lo usa como
+  `SCHED_TASK_NAME` (50 caracteres) y cortaba `.xls` en `.xl`.
+- `ARG_LIST_EMAIL` vacío: con «0» Meta4 enviaba el aviso a «0» (`550 No such user`)
+  y la subtarea quedaba con error.
+- «Rellenar datos de prueba» deja de ocultarse con los textos de desarrollo y
+  rellena teléfono, móvil e ID Atradius; el Fusion ID se escribe a mano.
+- Si el envío falla se cierra la confirmación para mostrar el error, y el log del
+  servidor serializa código y mensaje (antes `{}`).
+- Rol: con `M4EMPLOYEE` el alta falla por seguridad de `CYC_H_ESTRUCTURA`. Con
+  `M4_USER_RRHH` como rol por defecto, alta de prueba correcta en PRE (tareas
+  109997 y 109999, 0 errores; la 109999 sin error de correo).
+- Comprobaciones: typecheck correcto; tests del alta (formulario, servicio, SOAP,
+  validación y Excel nativo) 145/145 y, tras el último cambio, 135/135 sin Excel
+  nativo; `git diff --check` correcto. Suite completa y build pendientes al hacer
+  el commit. Vitest falla entero si se lanza desde `c:/` en minúscula; desde `C:/`
+  funciona.
+
 ## 2026-11-18 - C04: extras de junio y diciembre, IBER y COLL (motor 1.4.0)
 
 - 1.ª y 2.ª extra: unidades × precio medio del semestre (`SSP_PAGA_EXTRA_1/2` RULE111
