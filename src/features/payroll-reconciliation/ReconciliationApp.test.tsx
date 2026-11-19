@@ -8,7 +8,7 @@ import { reconcile } from "@/lib/payroll-reconciliation/engine";
 import { snapshot } from "@/lib/payroll-reconciliation/snapshot";
 import { DEFAULT_PARAMETERS, type Dossier } from "@/lib/payroll-reconciliation/types";
 import { mutationSchema } from "@/lib/payroll-reconciliation/validation";
-import { exportReason } from "@/lib/payroll-reconciliation/presentation";
+import { findingReason } from "@/lib/payroll-reconciliation/presentation";
 const tableRenders = vi.hoisted(() => ({ count: 0 }));
 
 vi.mock("@/stores/use-workspace-store", () => ({
@@ -263,11 +263,81 @@ describe("saved reconciliation review editing", () => {
       await user.click(await openReviewList(user));
       expect(reviewEditor().queryByText(/Motivo desconocido/)).toBeNull();
       if (reason) {
-        expect(reviewEditor().getByText(exportReason(reason))).toBeTruthy();
+        expect(reviewEditor().getByText(findingReason(finding))).toBeTruthy();
         expect(reviewEditor().queryByText(reason)).toBeNull();
+      } else {
+        expect(
+          reviewEditor().getByText("El total fijo aumenta respecto al mes anterior."),
+        ).toBeTruthy();
       }
     },
   );
+  it.each(["No comparable", "Falta fuente"] as const)(
+    "shares blank or pending amounts between the table and review for %s",
+    async (status) => {
+      const finding = saved.result.findings.find(
+        (item) => item.id === saved.annotations[0].findingId,
+      )!;
+      Object.assign(finding, {
+        status,
+        actual: "0",
+        expected: null,
+        delta: null,
+        reason: "Comprobación sin completar.",
+      });
+      const original = structuredClone(saved);
+      const user = userEvent.setup();
+      render(<ReconciliationApp demo />);
+      await user.click(await screen.findByRole("button", { name: "Abrir" }));
+      await user.click(screen.getByRole("tab", { name: "Controles" }));
+      const region = within(screen.getByRole("region", { name: "Resultados del cuadre" }));
+      const row = region.getByRole("row", { name: `Revisar 009002, fixed: ${status}` });
+      const cells = within(row).getAllByRole("cell");
+      expect(cells[4].textContent).toBe("0");
+      const unavailable = status === "Falta fuente" ? "Pendiente" : "";
+      expect(cells[5].textContent).toBe(unavailable);
+      expect(cells[6].textContent).toBe(unavailable);
+      row.focus();
+      await user.keyboard("{Enter}");
+      const summary = reviewEditor().getByText(/· actual/);
+      expect(summary.textContent).toContain("actual 0");
+      expect(summary.textContent?.match(/Pendiente/g)?.length ?? 0).toBe(
+        status === "Falta fuente" ? 2 : 0,
+      );
+      expect(reviewEditor().getByText("Comprobación sin completar.")).toBeTruthy();
+      expect(saved).toEqual(original);
+      expect(patches).not.toHaveBeenCalled();
+    },
+  );
+  it("hides a matching reason and finds a difference by its displayed description", async () => {
+    const finding = saved.result.findings.find(
+      (item) => item.id === saved.annotations[0].findingId,
+    )!;
+    finding.status = "Coincide";
+    finding.reason = "Explicación original conservada.";
+    const other = saved.result.findings.find(
+      (item) => item.control === "C01" && item.id !== finding.id,
+    )!;
+    other.actual = "2100";
+    other.expected = "2000";
+    other.status = "Con diferencia";
+    const user = userEvent.setup();
+    render(<ReconciliationApp demo />);
+    await user.click(await openReviewList(user));
+    expect(reviewEditor().queryByText("Explicación original conservada.")).toBeNull();
+    await user.click(reviewEditor().getByRole("button", { name: "Cancelar" }));
+    await user.click(screen.getByRole("tab", { name: "Controles" }));
+    // Other stored findings have no labour cause; search must use the same visible reason.
+    await user.type(
+      screen.getByRole("textbox", { name: "Buscar persona o motivo" }),
+      "total fijo aumenta",
+    );
+    expect(
+      screen.getByRole("row", { name: `Revisar ${other.employeeId}, fixed: Con diferencia` }),
+    ).toBeTruthy();
+    expect(finding.reason).toBe("Explicación original conservada.");
+    expect(patches).not.toHaveBeenCalled();
+  });
   it.each([false, true])(
     "removes only a saved review using the keyboard, orphaned=%s",
     async (orphaned) => {

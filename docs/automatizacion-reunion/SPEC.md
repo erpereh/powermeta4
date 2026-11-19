@@ -194,6 +194,16 @@ que el Excel exportado y no añade texto si está vacío. El comentario de
 revisión es opcional en las tres decisiones. Editar y borrar son botones de
 icono separados; borrar retira solo la anotación, conservando el hallazgo.
 
+D: decisión del usuario del 2026-11-19: conservar vacíos en las celdas sin valor;
+«Pendiente» solo en esperado/diferencia cuando falte realmente el archivo de
+contraste o la ejecución anterior. En el ejemplo falta el documento de
+cuotas/calendario de anticipos, confirmado por el usuario. Un archivo cargado
+con datos vacíos o reglas sin confirmar no justifica ese texto sustitutorio.
+Los motivos de coincidencias se ocultan; en diferencias se mantienen los motivos
+existentes y se completan los vacíos con una descripción factual de hasta 100
+caracteres, sin atribuir causas laborales no acreditadas. Esta presentación es
+común a pantalla y Excel; el cálculo, evidencias, recuentos y revisiones se conservan.
+
 ## 4. Catálogo funcional de controles
 
 Los perfiles iniciales y las ocurrencias están acreditados en los originales

@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-11-19 - Cuadre: vacíos y motivos descriptivos compartidos
+
+- Eliminada la conversión general de vacíos a «Pendiente» en el Excel. Tabla y
+  diálogo usan la misma presentación: esperado/diferencia pendientes solo si
+  falta la fuente o la ejecución anterior; ceros y valores conocidos conservados.
+- Las coincidencias omiten el motivo. Las diferencias sin explicación reciben
+  una frase de hasta 100 caracteres que describe los importes, sin atribuir una
+  causa laboral no acreditada. Los motivos existentes se conservan en diferencias;
+  la búsqueda usa el texto visible. Evidencias, huellas y revisiones intactas.
+- Anticipos conserva «Pendiente»: el usuario confirma que no se aportó su
+  documento independiente de cuotas/calendario. Sin cambios en cálculos,
+  estados, colores, recuentos, contratos HTTP ni esquema; motor 1.4.1 conservado.
+- Contraste en solo lectura con el ejemplo real: 420 motivos nuevos en seis
+  controles, ninguno de más de 100 caracteres, cero motivos en coincidencias;
+  pendientes numéricos solo en C12. Original intacto y fuera del repositorio.
+- Verificación: 437 pruebas dirigidas correctas en 16 archivos; suite completa
+  con 235 archivos, 1.736 pruebas correctas y 2 omitidas, sin fallos. Typecheck
+  correcto. Los 7 TypeScript modificados pasan lint y formato;
+  lint global conserva 7 avisos y formato pendiente en 676 archivos anteriores.
+  Compilación correcta (47 páginas), diff sin errores y estado revisado en davidev.
+
 ## 2026-11-18 - Cuadre: tolerancia única y revisión simplificada (motor 1.4.1)
 
 - «Tolerancia EUR» gobierna importes e IRPF (en puntos porcentuales), además de

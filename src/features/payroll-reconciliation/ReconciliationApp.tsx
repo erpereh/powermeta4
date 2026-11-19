@@ -24,7 +24,8 @@ import {
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 import { METRICS } from "@/lib/payroll-reconciliation/catalogue";
 import {
-  exportReason,
+  findingReason,
+  findingValue,
   metricLabel,
   reconciliationDate,
 } from "@/lib/payroll-reconciliation/presentation";
@@ -188,7 +189,7 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
         (finding) =>
           (control === "all" || finding.control === control) &&
           (status === "all" || finding.status === status) &&
-          `${finding.employeeId} ${finding.name} ${finding.reason}`
+          `${finding.employeeId} ${finding.name} ${findingReason(finding)}`
             .toLocaleLowerCase()
             .includes(search.toLocaleLowerCase()),
       ) ?? [],
@@ -510,7 +511,11 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                       {findings.length} filas. Abre una fila para ver operandos, evidencias y
                       registrar la revisión.
                     </p>
-                    <FindingTable findings={findings} showFinding={showFinding} />
+                    <FindingTable
+                      findings={findings}
+                      hasPrevious={dossier.previous !== null}
+                      showFinding={showFinding}
+                    />
                   </div>
                 </RetainedPane>
               </TabsContent>
@@ -775,6 +780,7 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
           <ReviewFields
             key={selected.id}
             selected={selected}
+            hasPrevious={Boolean(dossier?.previous)}
             annotation={dossier?.annotations.find((item) => item.findingId === selected.id)}
             busy={busy}
             onCancel={() => setSelected(null)}
@@ -816,9 +822,11 @@ function RetainedPane({ active, children }: { active: boolean; children: ReactNo
 
 const FindingTable = memo(function FindingTable({
   findings,
+  hasPrevious,
   showFinding,
 }: {
   findings: Finding[];
+  hasPrevious: boolean;
   showFinding: (finding: Finding) => void;
 }) {
   return (
@@ -843,19 +851,19 @@ const FindingTable = memo(function FindingTable({
           key: "actual",
           header: "Actual",
           width: "130px",
-          cell: (row) => row.actual ?? "Pendiente",
+          cell: (row) => findingValue(row, "actual", hasPrevious) ?? "",
         },
         {
           key: "expected",
           header: "Anterior / esperado",
           width: "150px",
-          cell: (row) => row.expected ?? "Pendiente",
+          cell: (row) => findingValue(row, "expected", hasPrevious) ?? "",
         },
         {
           key: "delta",
           header: "Diferencia",
           width: "130px",
-          cell: (row) => row.delta ?? "—",
+          cell: (row) => findingValue(row, "delta", hasPrevious) ?? "",
         },
         { key: "status", header: "Resultado", width: "160px" },
       ]}
@@ -866,12 +874,14 @@ const FindingTable = memo(function FindingTable({
 /** El borrador se actualiza sin volver a renderizar las tablas del expediente. */
 function ReviewFields({
   selected,
+  hasPrevious,
   annotation,
   busy,
   onCancel,
   onSave,
 }: {
   selected: Finding;
+  hasPrevious: boolean;
   annotation?: Annotation;
   busy: boolean;
   onCancel: () => void;
@@ -886,7 +896,7 @@ function ReviewFields({
   const [comment, setComment] = useState(annotation?.comment ?? "");
   const [reviewInvalidated, setReviewInvalidated] = useState(invalidated);
   const fingerprint = useRef(selected.fingerprint);
-  const reason = exportReason(selected.reason);
+  const reason = findingReason(selected);
   useEffect(() => {
     if (fingerprint.current !== selected.fingerprint) {
       fingerprint.current = selected.fingerprint;
@@ -907,9 +917,9 @@ function ReviewFields({
         {METRICS.find((metric) => metric.id === selected.metric)?.header}
       </p>
       <p>
-        {selected.status} · actual {selected.actual ?? "pendiente"} · esperado{" "}
-        {selected.expected ?? "pendiente"} · diferencia {selected.delta ?? "pendiente"}{" "}
-        {selected.unit}
+        {selected.status} · actual {findingValue(selected, "actual", hasPrevious)} · esperado{" "}
+        {findingValue(selected, "expected", hasPrevious)} · diferencia{" "}
+        {findingValue(selected, "delta", hasPrevious)} {selected.unit}
       </p>
       {reason && <p className="text-sm">{reason}</p>}
       <ul className="max-h-40 list-disc overflow-auto break-all pl-5 text-xs text-muted-foreground">

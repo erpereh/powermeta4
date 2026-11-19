@@ -62,6 +62,109 @@ function findingRow(sheet: ExcelJS.Worksheet, finding: Finding) {
 }
 
 describe("reconciliation workbook", () => {
+  it("keeps loaded-but-empty values blank, marks only missing sources pending and suppresses matching reasons", async () => {
+    const input = dossier();
+    const get = (metric: string): Finding => {
+      const row = input.result.findings.find((item) => item.metric === metric);
+      if (!row) throw new Error("Missing synthetic finding");
+      return row;
+    };
+    const meal = {
+      ...get("meal"),
+      actual: "0",
+      expected: null,
+      delta: null,
+      status: "No comparable" as const,
+      reason: "Faltan valores/reglas de periodo confirmados; no se usa la cache del libro.",
+    };
+    const advance = {
+      ...get("advanceDeduct"),
+      actual: "0",
+      expected: null,
+      delta: null,
+      status: "Falta fuente" as const,
+    };
+    const fixed = {
+      ...get("fixed"),
+      actual: "2100",
+      expected: "2000",
+      delta: "100",
+      status: "Con diferencia" as const,
+      reason: "",
+    };
+    const match = {
+      ...fixed,
+      id: "matching-row",
+      employeeId: "009099",
+      actual: "2000",
+      delta: "0",
+      status: "Coincide" as const,
+      reason: "Motivo original conservado",
+    };
+    input.result.findings = [meal, advance, fixed, match];
+    input.sources = [
+      {
+        id: "synthetic",
+        hash: "synthetic",
+        category: "comida",
+        period: input.period,
+        complete: false,
+        profile: "synthetic",
+        cellCount: 1,
+        diagnostics: [],
+        facts: [
+          { employeeId: meal.employeeId, values: { absences: null }, reference: "Ejemplo!A2" },
+        ],
+      },
+    ];
+    input.current.rows[0][0] = "";
+    input.previous!.run.runAt = "";
+    const original = structuredClone(input);
+    const workbook = await load(input);
+    const row = findingRow(controlSheet(workbook, "C09"), meal);
+    expect(values(row).slice(3)).toEqual([
+      "0",
+      null,
+      null,
+      "Valores o reglas del periodo sin confirmar",
+    ]);
+    expect(values(findingRow(controlSheet(workbook, "C12"), advance)).slice(3, 6)).toEqual([
+      "0",
+      "Pendiente",
+      "Pendiente",
+    ]);
+    expect(findingRow(controlSheet(workbook, "C01"), fixed).getCell(7).value).toBe(
+      "El total fijo aumenta respecto al mes anterior.",
+    );
+    expect(findingRow(controlSheet(workbook, "C01"), match).getCell(7).value).toBe("");
+    expect(workbook.getWorksheet("Datos actual")!.getCell("A2").value).toBe("");
+    expect(workbook.getWorksheet("Entradas externas")!.getCell("F2").value).toBeNull();
+    const metadata = workbook.getWorksheet("Expediente")!;
+    const data = metadata.getRows(2, metadata.rowCount - 1)!;
+    expect(
+      data.find((item) => item.getCell(1).value === "Comida: tarifa por día")?.getCell(2).value,
+    ).toBeNull();
+    expect(
+      data.find((item) => item.getCell(1).value === "Anterior: ejecución")?.getCell(2).value,
+    ).toBe("");
+    expect(input).toEqual(original);
+  });
+  it("marks the comparison pending when the previous execution has not been supplied", async () => {
+    const input = dossier();
+    input.previous = null;
+    input.result = reconcile(input);
+    const workbook = await load(input);
+    for (const metric of ["fixed", "irpf", "shifts", "readjustment"]) {
+      const finding = input.result.findings.find((item) => item.metric === metric)!;
+      const row = findingRow(controlSheet(workbook, finding.control), finding);
+      expect(row.getCell(4).value).toBe(finding.actual);
+      expect(row.getCell(5).value).toBe("Pendiente");
+      expect(row.getCell(6).value).toBe("Pendiente");
+      expect(row.getCell(7).value).toBe("Sin ejecución anterior");
+    }
+    const data = workbook.getWorksheet("Expediente")!;
+    expect(data.getColumn(2).values.filter((value) => value === "Pendiente")).toHaveLength(6);
+  });
   it("does not introduce artificial pending cells when no extra is due in an accredited capture", async () => {
     const fixture = automaticExtraFixture();
     fixture.data.definitions = fixture.data.definitions.map((row) => ({ ...row, PAY_MONTH: "12" }));
@@ -106,7 +209,7 @@ describe("reconciliation workbook", () => {
     expect(values(sheet.getRow(1))).toEqual(headers);
     expect(String(sheet.getRow(2).getCell(7).value)).toContain("Prioridad de la regla R1");
     expect(String(sheet.getRow(2).getCell(7).value)).toContain("recibida 3; se esperaba 2");
-    expect(sheet.getRow(2).getCell(5).value).toBe("Pendiente");
+    expect(sheet.getRow(2).getCell(5).value).toBeNull();
   });
   it("retains company-separated C13 amounts and pending proration in the existing seven columns", async () => {
     const input = dossier();
@@ -148,9 +251,11 @@ describe("reconciliation workbook", () => {
     );
     expect(rows.map((row) => row.actual)).toEqual(["1800", "900"]);
     expect(sheet.columnCount).toBe(7);
-    const reasons = JSON.stringify(sheet.getColumn(7).values);
-    expect(reasons).toContain("Empresa DEMO");
-    expect(reasons).toContain("Empresa OTHER");
+    const matchingRows = sheet
+      .getRows(2, sheet.rowCount - 1)!
+      .filter((row) => row.getCell(1).value === "009001");
+    expect(matchingRows.length).toBeGreaterThanOrEqual(2);
+    for (const row of matchingRows) expect(row.getCell(7).value).toBe("");
     const extra = controlSheet(workbook, "C04");
     expect(JSON.stringify(extra.getColumn(7).values)).toContain("Modalidad pendiente");
   });
@@ -179,9 +284,9 @@ describe("reconciliation workbook", () => {
       findings.forEach((finding) => {
         const row = findingRow(sheet, finding);
         expect(values(row).slice(3, 6)).toEqual([
-          finding.actual ?? "Pendiente",
-          finding.expected ?? "Pendiente",
-          finding.delta ?? "Pendiente",
+          finding.actual,
+          finding.expected ?? (finding.status === "Falta fuente" ? "Pendiente" : null),
+          finding.delta ?? (finding.status === "Falta fuente" ? "Pendiente" : null),
         ]);
       });
     }
@@ -240,9 +345,9 @@ describe("reconciliation workbook", () => {
       "Sin filas comparables",
       "",
       "",
-      "Pendiente",
-      "Pendiente",
-      "Pendiente",
+      null,
+      null,
+      null,
       "Revisar identidad y estructura del informe",
     ]);
     expect(sheet.autoFilter).toBe("A1:G2");
@@ -432,6 +537,8 @@ describe("reconciliation workbook", () => {
   it("keeps both causes and user-supplied exception text, and identifies orphaned reviews without IDs", async () => {
     const input = dossier();
     const [first, second, third] = input.result.findings;
+    first.status = "No comparable";
+    third.status = "No comparable";
     first.reason =
       "Persona ausente de esta ejecución; no acredita alta o baja laboral. Falta fuente independiente para este control.";
     second.reason =

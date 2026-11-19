@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Cuadre: vacíos y motivos breves — 2026-11-19
+
+- [x] Vacíos conservados en Excel, parámetros y datos; cero explícito conservado.
+      «Pendiente» solo en esperado/diferencia por fuente o ejecución anterior ausente.
+- [x] Filas coincidentes sin motivo visible; diferencias sin motivo con una frase
+      descriptiva de hasta 100 caracteres, sin inferir causas laborales.
+- [x] Presentación compartida por tabla, revisión, búsqueda y Excel; cálculos,
+      huellas, evidencias, recuentos y anotaciones almacenadas conservados.
+- [x] Anticipos conserva el pendiente por documento de cuotas/calendario no aportado,
+      confirmado por el usuario; sin cambios de cálculo en C12.
+- [x] Referencia real revisada en solo lectura: 420 motivos nuevos, cero motivos
+      visibles en coincidencias, pendientes numéricos solo en C12; original intacto.
+      Datos personales y archivo de referencia fuera del repositorio.
+- [x] 437 pruebas dirigidas correctas en 16 archivos y typecheck correcto.
+- [x] Suite completa: 235 archivos, 1.736 pruebas correctas y 2 omitidas, sin fallos.
+- [x] Compilación correcta (47 páginas); diff sin errores y estado revisado en davidev.
+- [x] Lint global ejecutado: 7 avisos y formato pendiente en 676 archivos anteriores.
+      Los 7 TypeScript modificados pasan lint y formato; sin reformateo general.
+
 ## Cuadre: tolerancia única y revisiones — 2026-11-18
 
 - [x] «Tolerancia EUR» sin propuesta, aplicada a importes, IRPF y comprobaciones

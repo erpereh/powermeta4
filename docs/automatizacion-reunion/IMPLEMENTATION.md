@@ -7,6 +7,34 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
+## Vacíos y motivos — 2026-11-19
+
+Tabla de resultados, diálogo de revisión y Excel comparten la presentación de
+los importes y motivos. Un valor vacío sigue vacío; el cero explícito se conserva.
+«Pendiente» se reserva para el esperado y la diferencia cuando falta una fuente
+independiente o la ejecución anterior. Un archivo cargado con datos vacíos,
+inválidos o reglas sin confirmar conserva el estado y su explicación, sin
+rellenar las celdas numéricas. Parámetros y fechas opcionales vacíos tampoco se
+sustituyen por «Pendiente».
+
+Los resultados «Coincide» no muestran motivo. En diferencias se conserva el
+motivo existente; si falta, se describe únicamente el cambio comprobable de
+importes en una frase de hasta 100 caracteres. No se deducen bajas, adscripciones
+ni regularizaciones. La búsqueda usa ese mismo texto visible. Las evidencias y
+motivos originales permanecen almacenados, con las mismas huellas y revisiones;
+no se recalcula ni se requiere actualizar las instantáneas o migrar la base.
+
+El usuario confirma que el ejemplo real incluye los archivos habituales pero
+no el documento de cuotas/calendario de anticipos: C12 conserva esos pendientes.
+La comprobación local del ejemplo, en solo lectura, genera las 420 descripciones
+que faltaban en diferencias y omite los motivos de las coincidencias. El original
+y los datos personales no se incorporan al repositorio.
+
+Verificación: 437 pruebas dirigidas; suite completa con 235 archivos, 1.736
+correctas y 2 omitidas, sin fallos. Typecheck y build (47 páginas) correctos;
+lint/formato de los 7 TypeScript modificados y diff sin errores. Lint global
+conserva 7 avisos y formato preexistente pendiente en 676 archivos.
+
 ## Parámetros y revisiones — 2026-11-18 (motor 1.4.1)
 
 «Tolerancia EUR» es el único umbral del cuadre (0,01 inicialmente): se aplica
