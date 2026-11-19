@@ -7,6 +7,66 @@ La herramienta `/tools/cuadre-nomina` permite crear expedientes parciales,
 guardarlos y completarlos con fuentes posteriores. La sociedad procede de la
 sesión; no hay escrituras ERP ni envío de datos al chat o a servicios externos.
 
+## Vacíos y motivos — 2026-11-19
+
+Tabla de resultados, diálogo de revisión y Excel comparten la presentación de
+los importes y motivos. Un valor vacío sigue vacío; el cero explícito se conserva.
+«Pendiente» se reserva para el esperado y la diferencia cuando falta una fuente
+independiente o la ejecución anterior. Un archivo cargado con datos vacíos,
+inválidos o reglas sin confirmar conserva el estado y su explicación, sin
+rellenar las celdas numéricas. Parámetros y fechas opcionales vacíos tampoco se
+sustituyen por «Pendiente».
+
+Los resultados «Coincide» no muestran motivo. En diferencias se conserva el
+motivo existente; si falta, se describe únicamente el cambio comprobable de
+importes en una frase de hasta 100 caracteres. No se deducen bajas, adscripciones
+ni regularizaciones. La búsqueda usa ese mismo texto visible. Las evidencias y
+motivos originales permanecen almacenados, con las mismas huellas y revisiones;
+no se recalcula ni se requiere actualizar las instantáneas o migrar la base.
+
+El usuario confirma que el ejemplo real incluye los archivos habituales pero
+no el documento de cuotas/calendario de anticipos: C12 conserva esos pendientes.
+La comprobación local del ejemplo, en solo lectura, genera las 420 descripciones
+que faltaban en diferencias y omite los motivos de las coincidencias. El original
+y los datos personales no se incorporan al repositorio.
+
+Verificación: 437 pruebas dirigidas; suite completa con 235 archivos, 1.736
+correctas y 2 omitidas, sin fallos. Typecheck y build (47 páginas) correctos;
+lint/formato de los 7 TypeScript modificados y diff sin errores. Lint global
+conserva 7 avisos y formato preexistente pendiente en 676 archivos.
+
+## Parámetros y revisiones — 2026-11-18 (motor 1.4.1)
+
+«Tolerancia EUR» es el único umbral del cuadre (0,01 inicialmente): se aplica
+a los importes en euros y a IRPF en puntos porcentuales, con el límite incluido.
+También rige las comprobaciones de fórmula de extras parciales y cambios a
+prorrateada. El redondeo monetario sigue siendo a céntimos; no se relajan las
+comprobaciones de identidad, configuración o coherencia de las capturas.
+El Excel muestra una sola tolerancia. El antiguo `percentageTolerance` se
+conserva como compatibilidad del JSON y se iguala a `tolerance` al guardar.
+Los expedientes de motores anteriores se recalculan al abrirlos, sin releer
+PeopleNet ni guardar automáticamente; solo cambian las huellas afectadas.
+
+Se conservan comida, tarjeta y las confirmaciones de reglas, aniversarios y
+unidades parciales. Tarifa/días de teletrabajo y la declaración manual de
+devengo completo solo aparecen si falta la captura automática correspondiente;
+una captura con incidencias no habilita esa vía manual. Los valores ocultos
+se conservan en el expediente.
+
+El diálogo de revisión usa el mismo motivo que el Excel exportado y omite el
+bloque si está vacío. Las tres decisiones admiten comentario opcional (máximo
+2.000 caracteres). En Revisión, el lápiz edita y la papelera retira únicamente
+la anotación local, incluso si está invalidada o su hallazgo ya no existe.
+`PATCH /api/payroll/reconciliation` admite `action: "removeReview"` con `id`,
+`revision` y `findingId`; mantiene sesión, sociedad y revisión optimista.
+No borra resultados, nóminas ni fuentes y no requiere migración.
+
+Verificación local: 356 pruebas dirigidas y suite completa con 1.655 correctas
+y 2 omitidas; typecheck y build correctos. Navegador en debug con base temporal
+a 1440/1024/768/390 px: sin overflow de página ni errores de consola, revisión
+sin comentario, edición/borrado por teclado y persistencia comprobados. No se
+han consultado nóminas reales ni modificado el SQLite habitual.
+
 ## C04: extras de junio y diciembre, IBER y COLL — 2026-11-18 (motor 1.4.0)
 
 Investigación en `M4PRENOMINA` (solo SELECT) con las ejecuciones de junio de 2026
@@ -699,13 +759,13 @@ habilitado; producción nunca la habilita.
    Los valores de octubre no se precargan como reglas universales.
 6. Abre un hallazgo para revisar operandos, referencias y comentarios. La
    revisión manual nunca cambia el delta. Nuevas evidencias invalidan las
-   revisiones afectadas. Desde **Revisión → Editar revisión** puedes cambiar
-   la decisión y el comentario guardados. Las decisiones «Diferencia justificada»
-   y «Requiere corrección manual» necesitan comentario. Cancelar descarta el
+   revisiones afectadas. Desde el lápiz de **Revisión** puedes cambiar
+   la decisión y el comentario opcional guardados. La papelera retira solo la
+   revisión; el resultado calculado se conserva. Cancelar descarta el
    borrador. Una revisión invalidada abre el resultado actual como Pendiente,
    con el comentario anterior editable y un aviso para revisarla de nuevo.
    Un hallazgo que ya no existe se identifica como «Hallazgo anterior» y no se
-   puede editar. Ante un conflicto, el formulario conserva el borrador y permite
+   puede editar, pero sí retirar su revisión. Ante un conflicto, el formulario conserva el borrador y permite
    volver a cargar el expediente antes de guardar.
 7. «Actualizar desde PeopleNet» abre el mismo selector; «Actualizar instantáneas»
    confirma las ejecuciones y relee sus datos, sin una casilla adicional.

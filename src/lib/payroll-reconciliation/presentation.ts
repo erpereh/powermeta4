@@ -1,6 +1,7 @@
 import { formatRunAt } from "@/components/tools/reports/payroll-results-format";
 import { CATEGORIES, METRICS } from "./catalogue";
-import type { Category, Parameters } from "./types";
+import { decimal } from "./decimal";
+import type { Category, Finding, Parameters } from "./types";
 
 export const metricLabel = (id: string): string =>
   METRICS.find((metric) => metric.id === id)?.header ??
@@ -19,17 +20,17 @@ const timestampFormat = new Intl.DateTimeFormat("es-ES", {
  * mssql), as in Resultados de nómina: never convert it to Madrid again.
  */
 export function reconciliationRunAt(value: string | undefined): string {
-  return value ? formatRunAt(value) : "Pendiente";
+  return value ? formatRunAt(value) : "";
 }
 
 export function reconciliationDate(value: string | undefined): string {
-  if (!value) return "Pendiente";
+  if (!value) return "";
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value.split("-").reverse().join("/");
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : timestampFormat.format(date);
 }
 
-/** Export-only wording: persisted reasons and review fingerprints stay intact. */
+/** Shared wording for the workbook and review dialog; persisted reasons stay intact. */
 const SHORT_REASONS: readonly (readonly [string, string])[] = [
   ["Falta ejecución anterior.", "Sin ejecución anterior"],
   [
@@ -91,6 +92,43 @@ export function exportReason(reason: string): string {
   return shortened + (exception < 0 ? "" : reason.slice(exception));
 }
 
+/** Missing values are pending only when their comparison source has not been supplied. */
+export function findingValue(
+  finding: Finding,
+  field: "actual" | "expected" | "delta",
+  hasPrevious: boolean,
+): string | null {
+  const missingSource =
+    finding.status === "Falta fuente" ||
+    (!hasPrevious && METRICS.some((metric) => metric.id === finding.metric && metric.monthly));
+  return finding[field] ?? (field !== "actual" && missingSource ? "Pendiente" : null);
+}
+
+/** Describe observed changes, preserving stored evidence and never inferring a labour cause. */
+export function findingReason(finding: Finding): string {
+  if (finding.status === "Coincide") return "";
+  const reason = exportReason(finding.reason);
+  if (reason.trim()) return reason;
+  if (finding.status !== "Con diferencia") return "";
+  const actual = decimal(finding.actual),
+    expected = decimal(finding.expected);
+  if (actual === null || expected === null || actual === expected) return "";
+  const metric = METRICS.find((item) => item.id === finding.metric);
+  if (metric?.monthly) {
+    const change = actual > expected ? "aumenta" : "disminuye";
+    if (metric.percentage) return `El IRPF ${change} respecto al mes anterior.`;
+    if (actual === BigInt(0)) return "Importe a cero este mes; el anterior tenía valor.";
+    if (expected === BigInt(0)) return "Importe distinto de cero este mes; el anterior era cero.";
+    return metric.id === "fixed"
+      ? `El total fijo ${change} respecto al mes anterior.`
+      : `El importe ${change} respecto al mes anterior.`;
+  }
+  if (actual === BigInt(0)) return "Importe en nómina a cero; la fuente indica un importe.";
+  return metric?.category
+    ? `Importe distinto al indicado en ${categoryLabel(metric.category)}.`
+    : "Importe distinto al esperado calculado.";
+}
+
 export function exportDiagnostic(message: string): string {
   const labeled = CATEGORIES.reduce(
     (text, category) =>
@@ -134,7 +172,6 @@ export const sourceFieldValue = (field: string, value: string | null): string | 
 export function exportParameters(parameters: Parameters): [string, string | null][] {
   return [
     ["Tolerancia EUR", parameters.tolerance],
-    ["Tolerancia puntos porcentuales", parameters.percentageTolerance],
     ["Teletrabajo: tarifa por día", parameters.teleworkRate],
     ["Teletrabajo: días con derecho", parameters.teleworkDays],
     ["Comida: tarifa por día", parameters.mealRate],

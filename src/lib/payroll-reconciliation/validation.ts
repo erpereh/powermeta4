@@ -45,7 +45,7 @@ export const identitySchema = z.object({
 });
 export const mutationSchema = identitySchema
   .extend({
-    action: z.enum(["parameters", "review", "refresh", "removeSource", "rename"]),
+    action: z.enum(["parameters", "review", "removeReview", "refresh", "removeSource", "rename"]),
     parameters: parametersSchema.optional(),
     findingId: z.string().max(30).optional(),
     fingerprint: z.string().length(64).optional(),

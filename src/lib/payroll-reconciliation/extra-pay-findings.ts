@@ -18,6 +18,7 @@ function automaticExpected(
   rows: number[],
   metric: Metric,
   period: string,
+  tolerance: bigint,
   unitsAccepted = false,
 ): Value {
   const automatic = current.extraPayAutomatic;
@@ -170,7 +171,7 @@ function automaticExpected(
         ((decimal(before.prices) ?? zero) * BigInt(semester.switchDays)) /
           BigInt(before.months * 180),
       );
-      if (paid !== null && magnitude(paid - value) <= cent)
+      if (paid !== null && magnitude(paid - value) <= tolerance)
         return {
           value,
           reason: `Pasó a prorrateada durante el semestre; parte no prorrateada: ${semester.switchDays}/180 días × precio medio de los ${before.months} meses previos (regla SSP_PAGA_EXTRA_${order} RULE111).`,
@@ -221,7 +222,7 @@ function automaticExpected(
       const holds =
         units !== null &&
         paid !== null &&
-        magnitude(paid - roundCents(multiply(value, units))) <= cent;
+        magnitude(paid - roundCents(multiply(value, units))) <= tolerance;
       // Accepted units still need the amount to be units × average price: anything else is a
       // Meta4 path this control does not reproduce (e.g. February hires in June 2026).
       if (unitsAccepted && units !== null && holds)
@@ -247,7 +248,7 @@ function automaticExpected(
     const units = decimal(extra.units);
     const proportional =
       units !== null && formula !== null && paid !== null
-        ? magnitude(paid - roundCents(multiply(formula, units))) <= cent
+        ? magnitude(paid - roundCents(multiply(formula, units))) <= tolerance
           ? ` El importe es la fórmula × unidades de devengo de Meta4 (${textDecimal(units)}).`
           : ` El importe no es la fórmula × unidades de devengo de Meta4 (${textDecimal(units)}).`
         : "";
@@ -281,6 +282,7 @@ export function automaticExtraFindings(
     groups.set(key, [...(groups.get(key) ?? []), index]);
   });
   const findings: Finding[] = [];
+  const tolerance = decimal(input.parameters.tolerance) ?? zero;
   for (const rows of groups.values()) {
     const row = current.rows[rows[0]];
     const entity = identity(row[entityColumn] ?? ""),
@@ -291,13 +293,13 @@ export function automaticExtraFindings(
         rows,
         metric,
         input.period,
+        tolerance,
         input.parameters.rulesConfirmed && input.parameters.extraUnitsAccepted === true,
       );
     // An accredited absence of obligation with an explicit zero is not a pending control.
     if (actual.value === BigInt(0) && expected.value === BigInt(0)) continue;
     const delta =
       actual.value === null || expected.value === null ? null : actual.value - expected.value;
-    const tolerance = decimal(input.parameters.tolerance) ?? BigInt(0);
     const record = {
       control: "C04" as const,
       metric: metric.id,

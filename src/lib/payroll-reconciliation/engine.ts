@@ -19,7 +19,7 @@ import type {
   SourceFact,
 } from "./types";
 
-export const ENGINE_VERSION = "1.4.0";
+export const ENGINE_VERSION = "1.4.1";
 const zero = BigInt(0);
 
 function population(data: Snapshot | null): Map<string, { rows: number[]; name: string }> {
@@ -282,8 +282,7 @@ export function reconcile(
       }
       const comparable = actual.value !== null && expected.value !== null;
       const delta = comparable ? actual.value! - expected.value! : null;
-      const tolerance =
-        decimal(metric.percentage ? parameters.percentageTolerance : parameters.tolerance) ?? zero;
+      const tolerance = decimal(parameters.tolerance) ?? zero;
       const evidence = [...actual.evidence, ...expected.evidence];
       const status: Finding["status"] = comparable
         ? magnitude(delta!) <= tolerance
@@ -337,7 +336,7 @@ export function reconcile(
                       : [],
           tolerance: textDecimal(tolerance),
           // Preserve fingerprints/reviews of unchanged controls, especially C12.
-          version: metric.control === "C04" ? ENGINE_VERSION : metric.monthly ? "1.1.0" : "1.0.0",
+          version: metric.control === "C04" ? "1.4.0" : metric.monthly ? "1.1.0" : "1.0.0",
         }),
       });
     }

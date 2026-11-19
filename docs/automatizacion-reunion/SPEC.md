@@ -166,6 +166,11 @@ exigir otra precisión; cambiarla obliga a recalcular. No ocultar filas pequeña
 ni sumar tolerancias por empleado para aprobar el total. Q03 debe contrastar
 estos defaults con el libro original.
 
+D: decisión del usuario del 2026-11-18: un único campo «Tolerancia EUR», sin
+el texto de propuesta, gobierna todos los controles. El mismo valor se mide
+en euros para importes y en puntos porcentuales para IRPF. Se elimina la
+tolerancia porcentual independiente; el redondeo monetario no cambia.
+
 P: separar dos ejes:
 
 | Eje      | Estados                                                                         | Significado                                      |
@@ -183,6 +188,21 @@ vigencia, cambio salarial/categoría o anotación externa. Sin lectura históric
 y vínculo temporal verificados, usar «Motivo desconocido — pendiente de
 revisión». No afirmar una causa económica por coexistencia de una IT (E04).
 Las anotaciones manuales se diferencian de las evidencias del servidor.
+
+D: decisión del usuario del 2026-11-18: el diálogo muestra el mismo motivo
+que el Excel exportado y no añade texto si está vacío. El comentario de
+revisión es opcional en las tres decisiones. Editar y borrar son botones de
+icono separados; borrar retira solo la anotación, conservando el hallazgo.
+
+D: decisión del usuario del 2026-11-19: conservar vacíos en las celdas sin valor;
+«Pendiente» solo en esperado/diferencia cuando falte realmente el archivo de
+contraste o la ejecución anterior. En el ejemplo falta el documento de
+cuotas/calendario de anticipos, confirmado por el usuario. Un archivo cargado
+con datos vacíos o reglas sin confirmar no justifica ese texto sustitutorio.
+Los motivos de coincidencias se ocultan; en diferencias se mantienen los motivos
+existentes y se completan los vacíos con una descripción factual de hasta 100
+caracteres, sin atribuir causas laborales no acreditadas. Esta presentación es
+común a pantalla y Excel; el cálculo, evidencias, recuentos y revisiones se conservan.
 
 ## 4. Catálogo funcional de controles
 

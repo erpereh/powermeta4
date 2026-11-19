@@ -5,6 +5,8 @@ import {
   exportDiagnostic,
   exportParameters,
   exportReason,
+  findingReason,
+  findingValue,
   metricLabel,
   reconciliationDate,
   reconciliationRunAt,
@@ -52,7 +54,7 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
       views: [{ state: "frozen", ySplit: 1 }],
     });
     sheet.addRow(headers);
-    for (const row of rows) sheet.addRow(row.map((value) => value ?? "Pendiente"));
+    for (const row of rows) sheet.addRow(row);
     sheet.getRow(1).font = { bold: true, color: { argb: PALETTE.text } };
     sheet.getRow(1).fill = {
       type: "pattern",
@@ -136,10 +138,19 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
               .join(" · ")
           : "Pendiente",
       ],
-      ["Anterior: ejecución", reconciliationRunAt(dossier.previous?.run.runAt)],
-      ["Anterior: fecha de paga", reconciliationDate(dossier.previous?.run.accruedOn)],
+      [
+        "Anterior: ejecución",
+        dossier.previous ? reconciliationRunAt(dossier.previous.run.runAt) : "Pendiente",
+      ],
+      [
+        "Anterior: fecha de paga",
+        dossier.previous ? reconciliationDate(dossier.previous.run.accruedOn) : "Pendiente",
+      ],
       ["Anterior: frecuencia", dossier.previous?.run.payFrequency ?? "Pendiente"],
-      ["Anterior: captura", reconciliationDate(dossier.previous?.capturedAt)],
+      [
+        "Anterior: captura",
+        dossier.previous ? reconciliationDate(dossier.previous.capturedAt) : "Pendiente",
+      ],
       [
         "Anterior: base PeopleNet",
         dossier.previous ? originLabel(dossier.previous.origin) : "Pendiente",
@@ -240,10 +251,10 @@ export async function exportDossier(dossier: Dossier): Promise<Uint8Array> {
             finding.employeeId,
             finding.name,
             metricLabel(finding.metric),
-            finding.actual,
-            finding.expected,
-            finding.delta,
-            exportReason(finding.reason),
+            findingValue(finding, "actual", dossier.previous !== null),
+            findingValue(finding, "expected", dossier.previous !== null),
+            findingValue(finding, "delta", dossier.previous !== null),
+            findingReason(finding),
           ])
         : noExtraDue
           ? [

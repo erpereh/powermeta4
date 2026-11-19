@@ -129,7 +129,7 @@ describe("report run time in the export", () => {
     // Report exported as Normal_Inf ..._202610161141 corresponds to run 11:39:57.
     expect(reconciliationRunAt("2026-10-16T11:39:57.000Z")).toContain("11:39:57");
     expect(reconciliationRunAt("2026-10-28T09:11:14.000Z")).toContain("09:11:14");
-    expect(reconciliationRunAt(undefined)).toBe("Pendiente");
+    expect(reconciliationRunAt(undefined)).toBe("");
   });
 });
 

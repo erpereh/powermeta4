@@ -156,6 +156,26 @@ describe("C04 third extra at the average price of the accrual year (RULE111 10/2
     expect(third(input)?.reason).toContain("no es unidades × precio medio");
   });
 
+  it.each([
+    ["0", "966.67", "Coincide"],
+    ["0", "966.68", "No comparable"],
+    ["0.05", "966.72", "Coincide"],
+    ["0.05", "966.62", "Coincide"],
+    ["0.05", "966.73", "No comparable"],
+  ])("uses tolerance %s to accredit partial units paid at %s", (tolerance, amount, status) => {
+    const input = fixture();
+    input.parameters = {
+      ...input.parameters,
+      tolerance,
+      rulesConfirmed: true,
+      extraUnitsAccepted: true,
+    };
+    paid(input, amount, "0.5");
+    capture(input);
+    expect(third(input)?.status).toBe(status);
+    if (status === "Coincide") expect(third(input)?.expected).toBe("966.67");
+  });
+
   it("pays apart the months before a change to prorated inside the year, not before a hire", () => {
     const input = fixture();
     input.data.values = [1, 2, 3].map((order) => ({
@@ -237,6 +257,15 @@ describe("C04 June and December extras at the semester average (SSP_PAGA_EXTRA_1
     capture(input, price({ history: june(), assignments: [switched] }));
     expect(finding(input, 1)).toMatchObject({ status: "Coincide", expected: "950" });
     expect(finding(input, 1)?.reason).toContain("90/180 días");
+    paid(input, "950.05", "0", 1);
+    capture(input, price({ history: june(), assignments: [switched] }));
+    expect(finding(input, 1)?.status).toBe("No comparable");
+    input.parameters.tolerance = "0.05";
+    expect(finding(input, 1)).toMatchObject({ status: "Coincide", expected: "950", delta: "0.05" });
+    input.parameters.tolerance = "0";
+    paid(input, "950.01", "0", 1);
+    capture(input, price({ history: june(), assignments: [switched] }));
+    expect(finding(input, 1)?.status).toBe("No comparable");
     // Days discounted for absences are not reproduced: pending, never a difference.
     paid(input, "427.5", "0", 1);
     capture(input, price({ history: june(), assignments: [switched] }));

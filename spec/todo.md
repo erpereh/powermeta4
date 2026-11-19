@@ -23,6 +23,42 @@
       user`, subtarea con error). Comprobado en PRE: tarea 109999 sin error.
 - [ ] Borrar en PRE la persona ficticia de la prueba si RRHH lo pide.
 
+## Cuadre: vacíos y motivos breves — 2026-11-19
+
+- [x] Vacíos conservados en Excel, parámetros y datos; cero explícito conservado.
+      «Pendiente» solo en esperado/diferencia por fuente o ejecución anterior ausente.
+- [x] Filas coincidentes sin motivo visible; diferencias sin motivo con una frase
+      descriptiva de hasta 100 caracteres, sin inferir causas laborales.
+- [x] Presentación compartida por tabla, revisión, búsqueda y Excel; cálculos,
+      huellas, evidencias, recuentos y anotaciones almacenadas conservados.
+- [x] Anticipos conserva el pendiente por documento de cuotas/calendario no aportado,
+      confirmado por el usuario; sin cambios de cálculo en C12.
+- [x] Referencia real revisada en solo lectura: 420 motivos nuevos, cero motivos
+      visibles en coincidencias, pendientes numéricos solo en C12; original intacto.
+      Datos personales y archivo de referencia fuera del repositorio.
+- [x] 437 pruebas dirigidas correctas en 16 archivos y typecheck correcto.
+- [x] Suite completa: 235 archivos, 1.736 pruebas correctas y 2 omitidas, sin fallos.
+- [x] Compilación correcta (47 páginas); diff sin errores y estado revisado en davidev.
+- [x] Lint global ejecutado: 7 avisos y formato pendiente en 676 archivos anteriores.
+      Los 7 TypeScript modificados pasan lint y formato; sin reformateo general.
+
+## Cuadre: tolerancia única y revisiones — 2026-11-18
+
+- [x] «Tolerancia EUR» sin propuesta, aplicada a importes, IRPF y comprobaciones
+      de extras; un único umbral en el Excel y alias antiguo sincronizado al guardar.
+- [x] Parámetros necesarios conservados; ajustes antiguos de teletrabajo y
+      devengo completo visibles solo sin la captura automática correspondiente.
+- [x] Motivo igual al Excel o ausente; comentario opcional con máximo de 2.000 caracteres.
+- [x] Lápiz y papelera accesibles; borrado solo de la anotación, con validación de
+      sesión, sociedad y revisión, incluidos hallazgos anteriores o invalidados.
+- [x] Typecheck y 356 pruebas dirigidas correctas en 15 archivos.
+- [x] Suite completa: 234 archivos, 1.655 pruebas correctas y 2 omitidas;
+      build correcto (47 páginas), `git diff --check` y formato de los 14 TypeScript
+      modificados correctos. Lint global conserva 7 avisos y formato anterior pendiente.
+- [x] Navegador en debug con base temporal: 1440/1024/768/390 px sin overflow de
+      página ni errores de consola; guardar sin comentario, edición por teclado,
+      borrado, persistencia tras recargar y resultado original conservado.
+
 ## Informe «Primavera» (Portugal) — 2026-11-18
 
 - [x] Acción «Primavera» en Informes (`/tools/reports/primavera`) con la consulta de
@@ -816,7 +852,6 @@ Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.
       formulario comprobado a 390 px y certificado en móvil y escritorio.
       Sin errores/avisos de consola en el pase final. Diff/estado Git revisados
       y `git diff --check` correcto. Sin comprobar datos reales en Meta4/VM.
-
 
 ## Proyecciones: descargas y presentación PDF/Excel — 2026-10-19
 

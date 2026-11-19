@@ -1,6 +1,14 @@
 "use client";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { FileSpreadsheet, Plus, Download, RefreshCw, FolderOpen, Trash2 } from "lucide-react";
+import {
+  FileSpreadsheet,
+  Plus,
+  Download,
+  RefreshCw,
+  FolderOpen,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import {
   Button,
   Input,
@@ -15,7 +23,12 @@ import {
 } from "@/components/system";
 import { useWorkspaceStore } from "@/stores/use-workspace-store";
 import { METRICS } from "@/lib/payroll-reconciliation/catalogue";
-import { metricLabel, reconciliationDate } from "@/lib/payroll-reconciliation/presentation";
+import {
+  findingReason,
+  findingValue,
+  metricLabel,
+  reconciliationDate,
+} from "@/lib/payroll-reconciliation/presentation";
 import type {
   Annotation,
   Category,
@@ -176,7 +189,7 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
         (finding) =>
           (control === "all" || finding.control === control) &&
           (status === "all" || finding.status === status) &&
-          `${finding.employeeId} ${finding.name} ${finding.reason}`
+          `${finding.employeeId} ${finding.name} ${findingReason(finding)}`
             .toLocaleLowerCase()
             .includes(search.toLocaleLowerCase()),
       ) ?? [],
@@ -438,6 +451,8 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                     <ParametersForm
                       key={`${dossier.id}:${dossier.revision}`}
                       parameters={dossier.parameters}
+                      automaticTelework={Boolean(dossier.current.teleworkAutomatic)}
+                      automaticExtras={Boolean(dossier.current.extraPayAutomatic)}
                       busy={busy}
                       onSave={(parameters: Parameters) =>
                         void mutate({ action: "parameters", parameters })
@@ -496,7 +511,11 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                       {findings.length} filas. Abre una fila para ver operandos, evidencias y
                       registrar la revisión.
                     </p>
-                    <FindingTable findings={findings} showFinding={showFinding} />
+                    <FindingTable
+                      findings={findings}
+                      hasPrevious={dossier.previous !== null}
+                      showFinding={showFinding}
+                    />
                   </div>
                 </RetainedPane>
               </TabsContent>
@@ -520,7 +539,8 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                 <div className="space-y-4 pt-4">
                   <p className="text-sm text-muted-foreground">
                     Las decisiones conservan el resultado calculado. Una evidencia modificada
-                    invalida su revisión.
+                    invalida su revisión. Borrar una revisión solo retira la decisión y su
+                    comentario; el resultado del cuadre se conserva.
                   </p>
                   <Table
                     data={reviews}
@@ -548,7 +568,7 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                           ),
                       },
                       { key: "state", header: "Decisión", width: "180px" },
-                      { key: "comment", header: "Comentario", width: "240px" },
+                      { key: "comment", header: "Comentario", width: "200px" },
                       {
                         key: "at",
                         header: "Fecha",
@@ -569,23 +589,44 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
                       {
                         key: "actions",
                         header: "Acciones",
-                        width: "180px",
+                        width: "112px",
                         cell: (row) => (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={busy || !row.finding}
-                            aria-label={
-                              row.finding
-                                ? `Editar revisión de ${row.finding.employeeId}, ${row.finding.control}, ${metricLabel(row.finding.metric)}`
-                                : "Editar revisión de hallazgo anterior"
-                            }
-                            onClick={() => {
-                              if (row.finding) showFinding(row.finding);
-                            }}
-                          >
-                            Editar revisión
-                          </Button>
+                          <div className="flex gap-2">
+                            <Tooltip content="Editar revisión">
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                disabled={busy || !row.finding}
+                                aria-label={
+                                  row.finding
+                                    ? `Editar revisión de ${row.finding.employeeId}, ${row.finding.control}, ${metricLabel(row.finding.metric)}`
+                                    : "Editar revisión de hallazgo anterior"
+                                }
+                                onClick={() => {
+                                  if (row.finding) showFinding(row.finding);
+                                }}
+                              >
+                                <Pencil aria-hidden="true" className="size-4" />
+                              </Button>
+                            </Tooltip>
+                            <Tooltip content="Borrar revisión">
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                disabled={busy}
+                                aria-label={
+                                  row.finding
+                                    ? `Borrar revisión de ${row.finding.employeeId}, ${row.finding.control}, ${metricLabel(row.finding.metric)}`
+                                    : "Borrar revisión de hallazgo anterior"
+                                }
+                                onClick={() =>
+                                  void mutate({ action: "removeReview", findingId: row.findingId })
+                                }
+                              >
+                                <Trash2 aria-hidden="true" className="size-4" />
+                              </Button>
+                            </Tooltip>
+                          </div>
                         ),
                       },
                     ]}
@@ -739,6 +780,7 @@ function ReconciliationFrame({ companyId, demo }: { companyId: string | null; de
           <ReviewFields
             key={selected.id}
             selected={selected}
+            hasPrevious={Boolean(dossier?.previous)}
             annotation={dossier?.annotations.find((item) => item.findingId === selected.id)}
             busy={busy}
             onCancel={() => setSelected(null)}
@@ -780,9 +822,11 @@ function RetainedPane({ active, children }: { active: boolean; children: ReactNo
 
 const FindingTable = memo(function FindingTable({
   findings,
+  hasPrevious,
   showFinding,
 }: {
   findings: Finding[];
+  hasPrevious: boolean;
   showFinding: (finding: Finding) => void;
 }) {
   return (
@@ -807,19 +851,19 @@ const FindingTable = memo(function FindingTable({
           key: "actual",
           header: "Actual",
           width: "130px",
-          cell: (row) => row.actual ?? "Pendiente",
+          cell: (row) => findingValue(row, "actual", hasPrevious) ?? "",
         },
         {
           key: "expected",
           header: "Anterior / esperado",
           width: "150px",
-          cell: (row) => row.expected ?? "Pendiente",
+          cell: (row) => findingValue(row, "expected", hasPrevious) ?? "",
         },
         {
           key: "delta",
           header: "Diferencia",
           width: "130px",
-          cell: (row) => row.delta ?? "—",
+          cell: (row) => findingValue(row, "delta", hasPrevious) ?? "",
         },
         { key: "status", header: "Resultado", width: "160px" },
       ]}
@@ -830,12 +874,14 @@ const FindingTable = memo(function FindingTable({
 /** El borrador se actualiza sin volver a renderizar las tablas del expediente. */
 function ReviewFields({
   selected,
+  hasPrevious,
   annotation,
   busy,
   onCancel,
   onSave,
 }: {
   selected: Finding;
+  hasPrevious: boolean;
   annotation?: Annotation;
   busy: boolean;
   onCancel: () => void;
@@ -850,6 +896,7 @@ function ReviewFields({
   const [comment, setComment] = useState(annotation?.comment ?? "");
   const [reviewInvalidated, setReviewInvalidated] = useState(invalidated);
   const fingerprint = useRef(selected.fingerprint);
+  const reason = findingReason(selected);
   useEffect(() => {
     if (fingerprint.current !== selected.fingerprint) {
       fingerprint.current = selected.fingerprint;
@@ -870,11 +917,11 @@ function ReviewFields({
         {METRICS.find((metric) => metric.id === selected.metric)?.header}
       </p>
       <p>
-        {selected.status} · actual {selected.actual ?? "pendiente"} · esperado{" "}
-        {selected.expected ?? "pendiente"} · diferencia {selected.delta ?? "pendiente"}{" "}
-        {selected.unit}
+        {selected.status} · actual {findingValue(selected, "actual", hasPrevious)} · esperado{" "}
+        {findingValue(selected, "expected", hasPrevious)} · diferencia{" "}
+        {findingValue(selected, "delta", hasPrevious)} {selected.unit}
       </p>
-      <p className="text-sm">{selected.reason || "Motivo desconocido — pendiente de revisión."}</p>
+      {reason && <p className="text-sm">{reason}</p>}
       <ul className="max-h-40 list-disc overflow-auto break-all pl-5 text-xs text-muted-foreground">
         {selected.evidence.map((evidence, index) => (
           <li key={index}>{evidence}</li>
@@ -901,16 +948,14 @@ function ReviewFields({
         value={comment}
         onChange={setComment}
         maxLength={2000}
+        placeholder="Opcional"
         disabled={busy}
       />
       <div className="flex flex-wrap justify-end gap-2">
         <Button variant="outline" disabled={busy} onClick={onCancel}>
           Cancelar
         </Button>
-        <Button
-          disabled={busy || (reviewState !== "Pendiente" && !comment.trim())}
-          onClick={() => onSave(reviewState, comment)}
-        >
+        <Button disabled={busy} onClick={() => onSave(reviewState, comment)}>
           Guardar revisión
         </Button>
       </div>
@@ -940,8 +985,8 @@ const SnapshotTable = memo(function SnapshotTable({
         Informe {data.run.reportId} · paga {data.run.accruedOn} · capturado{" "}
         {new Date(data.capturedAt).toLocaleString("es-ES")}
         {data.origin ? ` desde ${data.origin.server} / ${data.origin.database}` : ""} ·{" "}
-        {data.rows.length} filas. Se conservan
-        las columnas necesarias para el cuadre; NIF y cuentas bancarias se excluyen.
+        {data.rows.length} filas. Se conservan las columnas necesarias para el cuadre; NIF y cuentas
+        bancarias se excluyen.
       </p>
       <Input label="Buscar en los datos" value={search} onChange={setSearch} />
       <Table

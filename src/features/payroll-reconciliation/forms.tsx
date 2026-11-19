@@ -1,5 +1,5 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import {
   Button,
   Checkbox,
@@ -349,30 +349,28 @@ export function SelectionForm({
 
 export function ParametersForm({
   parameters,
+  automaticTelework,
+  automaticExtras,
   busy,
   onSave,
 }: {
   parameters: Parameters;
+  automaticTelework: boolean;
+  automaticExtras: boolean;
   busy: boolean;
   onSave: (parameters: Parameters) => void;
 }) {
   const [draft, setDraft] = useState(parameters);
+  const toleranceHelpId = useId();
   const field = (
-    key:
-      | "tolerance"
-      | "percentageTolerance"
-      | "teleworkRate"
-      | "teleworkDays"
-      | "mealRate"
-      | "mealDays"
-      | "cardRate"
-      | "cardBase",
+    key: "teleworkRate" | "teleworkDays" | "mealRate" | "mealDays" | "cardRate" | "cardBase",
     label: string,
   ) => (
     <Input
       key={key}
       label={label}
       inputMode="decimal"
+      disabled={busy}
       value={draft[key] ?? ""}
       onChange={(value) => setDraft((current) => ({ ...current, [key]: value || null }))}
     />
@@ -382,7 +380,7 @@ export function ParametersForm({
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        onSave(draft);
+        if (!busy) onSave({ ...draft, percentageTolerance: draft.tolerance });
       }}
     >
       <p className="text-sm text-muted-foreground">
@@ -390,41 +388,64 @@ export function ParametersForm({
         Confirma las vigencias y usa excepciones por persona cuando corresponda.
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {field("tolerance", "Tolerancia EUR (propuesta: 0,01)")}
-        {field("percentageTolerance", "Tolerancia puntos porcentuales")}
-        {field("teleworkRate", "Teletrabajo: tarifa por día")}
-        {field("teleworkDays", "Teletrabajo: días con derecho")}
+        <div className="space-y-2">
+          <Input
+            label="Tolerancia EUR"
+            inputMode="decimal"
+            value={draft.tolerance}
+            onChange={(value) => setDraft((current) => ({ ...current, tolerance: value }))}
+            required
+            disabled={busy}
+            aria-describedby={toleranceHelpId}
+          />
+          <p id={toleranceHelpId} className="text-xs text-muted-foreground">
+            Se aplica a todos los controles: en euros para importes y en puntos porcentuales para
+            IRPF.
+          </p>
+        </div>
+        {!automaticTelework && (
+          <>
+            {field("teleworkRate", "Teletrabajo: tarifa por día")}
+            {field("teleworkDays", "Teletrabajo: días con derecho")}
+          </>
+        )}
         {field("mealRate", "Comida: tarifa por día")}
         {field("mealDays", "Comida: días de derecho antes de ausencias")}
         {field("cardRate", "Tarjeta: tarifa del periodo")}
         {field("cardBase", "Tarjeta: base del periodo")}
       </div>
-      <p className="text-sm text-muted-foreground">
-        Las extras se comprueban con los datos de PeopleNet al actualizar las instantáneas. Los dos
-        ajustes siguientes se conservan para expedientes anteriores sin lectura automática.
-      </p>
-      <Choice
-        label="Paga extra para devengo completo"
-        value={draft.extraMetric}
-        onChange={(value) => setDraft({ ...draft, extraMetric: value })}
-        items={[1, 2, 3, 4].map((number) => ({
-          id: `extra${number}`,
-          name: `Paga extra ${number}`,
-        }))}
-      />
-      <Input
-        label="Matrículas con devengo completo acreditado (separadas por coma)"
-        value={draft.extraFullEmployeeIds.join(", ")}
-        onChange={(value) =>
-          setDraft({
-            ...draft,
-            extraFullEmployeeIds: value
-              .split(",")
-              .map((id) => id.trim())
-              .filter(Boolean),
-          })
-        }
-      />
+      {!automaticExtras && (
+        <>
+          <p className="text-sm text-muted-foreground">
+            Este expediente no tiene lectura automática de extras. Puedes actualizar las
+            instantáneas desde PeopleNet o acreditar el devengo completo con estos ajustes.
+          </p>
+          <Choice
+            label="Paga extra para devengo completo"
+            value={draft.extraMetric}
+            disabled={busy}
+            onChange={(value) => setDraft({ ...draft, extraMetric: value })}
+            items={[1, 2, 3, 4].map((number) => ({
+              id: `extra${number}`,
+              name: `Paga extra ${number}`,
+            }))}
+          />
+          <Input
+            label="Matrículas con devengo completo acreditado (separadas por coma)"
+            value={draft.extraFullEmployeeIds.join(", ")}
+            disabled={busy}
+            onChange={(value) =>
+              setDraft({
+                ...draft,
+                extraFullEmployeeIds: value
+                  .split(",")
+                  .map((id) => id.trim())
+                  .filter(Boolean),
+              })
+            }
+          />
+        </>
+      )}
       <Checkbox
         checked={draft.anniversaryFullBase}
         onCheckedChange={(value) => setDraft({ ...draft, anniversaryFullBase: value })}
