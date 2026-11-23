@@ -23,10 +23,12 @@ import {
   type HireValidationContext,
 } from "@/lib/meta4/hire/validate";
 
+import { HireBulkControls, type HireBulkLoadedPerson } from "./hire-form/bulk-controls";
 import { HireCatalogsProvider } from "./hire-form/catalogs";
 import { DevTestDataControls } from "./hire-form/dev-test-controls";
 import {
   createHirePersonDraft,
+  draftFromBulkValues,
   HireDraftProvider,
   toHirePersonInput,
   type HireBranches,
@@ -100,7 +102,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<FormError | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<{ message: string; note?: string } | null>(null);
   const [feedback, setFeedback] = useState<Readonly<Record<number, PersonFeedback>>>({});
   const nextId = useRef(2);
 
@@ -162,7 +164,10 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
   };
 
   const confirmation = useMemo(
-    () => `Se van a procesar ${people.length} personas en Meta4`,
+    () =>
+      people.length === 1
+        ? "Se va a dar de alta 1 persona en Meta4."
+        : `Se van a dar de alta ${people.length} personas en Meta4, de una en una: cada una espera a que el planificador termine la anterior (en torno a un minuto por persona).`,
     [people.length],
   );
 
@@ -220,6 +225,28 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
     }
     setError(null);
     return true;
+  };
+
+  /**
+   * People from the bulk Excel replace an untouched first person and are added
+   * after the rest; their problems show as if launch had been attempted.
+   */
+  const loadBulkPeople = (loaded: readonly HireBulkLoadedPerson[]) => {
+    setSuccess(null);
+    setError(null);
+    const drafts = loaded.map((person) =>
+      draftFromBulkValues(nextId.current++, person.values, person.cityName),
+    );
+    const first = drafts[0];
+    if (!first) return;
+    const pristine = JSON.stringify(toHirePersonInput(createHirePersonDraft(0)));
+    setPeople((existing) => [
+      ...existing.filter((draft) => JSON.stringify(toHirePersonInput(draft)) !== pristine),
+      ...drafts,
+    ]);
+    markAttempted(drafts.map((draft) => draft.id));
+    setExpandedId(first.id);
+    setActiveTab("personal");
   };
 
   const addPerson = () => {
@@ -303,7 +330,15 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
         });
         return;
       }
-      setSuccess(`Alta enviada correctamente · ${result.data.fileName}`);
+      const { personCount, personIds, fileName, counterNote } = result.data;
+      const ids =
+        personIds.length === 0
+          ? ""
+          : ` (${personIds.length === 1 ? "ID" : "IDs"} ${personIds.join(", ")})`;
+      setSuccess({
+        message: `${personCount === 1 ? "Alta de 1 persona completada" : `Alta de ${personCount} personas completada`} en Meta4${ids} · ${fileName}`,
+        ...(counterNote ? { note: counterNote } : {}),
+      });
       setPeople([createHirePersonDraft(nextId.current++)]);
       setExpandedId(nextId.current - 1);
       setActiveTab("personal");
@@ -323,6 +358,11 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
           Los rótulos rojos indican un mapping Excel por confirmar. Esos valores permanecen en el
           borrador local; los campos integrados se envían al confirmar el alta.
         </Callout>
+
+        <HireBulkControls
+          disabled={pending || confirmOpen || catalogs.status !== "ready"}
+          onLoad={loadBulkPeople}
+        />
 
         <div className="flex flex-col gap-3">
           {people.map((draft, index) => {
@@ -492,9 +532,10 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
           </div>
         ) : null}
         {success ? (
-          <p role="status" className="text-sm text-foreground">
-            {success}
-          </p>
+          <div role="status" className="space-y-1 text-sm">
+            <p className="text-foreground">{success.message}</p>
+            {success.note ? <p className="text-muted-foreground">{success.note}</p> : null}
+          </div>
         ) : null}
 
         <div className="sticky bottom-0 z-10 -mx-4 mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
@@ -537,7 +578,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                   void submitHire();
                 }}
               >
-                {pending ? "Enviando..." : "Confirmar"}
+                {pending ? "Dando de alta…" : "Confirmar"}
               </Button>
             </>
           }

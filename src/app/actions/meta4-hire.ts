@@ -14,6 +14,8 @@ import type { ActionResult } from "@/lib/local-database/dtos";
 export type HireActionData = {
   personCount: number;
   fileName: string;
+  personIds: string[];
+  counterNote?: string;
 };
 
 /** Validation problems and PeopleNet rejections come back per person and field. */
@@ -60,7 +62,15 @@ export async function launchMeta4HireAction(people: unknown): Promise<HireAction
       // Serialized so the dev log keeps the details (it prints objects as {}).
       log: (message, details) => console.info(`[${message}] ${JSON.stringify(details)}`),
     });
-    return { ok: true, data: { personCount: result.personCount, fileName: result.fileName } };
+    return {
+      ok: true,
+      data: {
+        personCount: result.personCount,
+        fileName: result.fileName,
+        personIds: result.personIds,
+        ...(result.counterNote ? { counterNote: result.counterNote } : {}),
+      },
+    };
   } catch (error) {
     const resolved = resolveHireErrorMessage(error);
     const issues = isMeta4HireError(error) ? error.issues : [];

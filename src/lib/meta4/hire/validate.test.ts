@@ -194,7 +194,7 @@ describe("parseHirePeople", () => {
       new Set(["postalCode", "firstName", "email"]),
     );
     try {
-      parseHirePeople([validPerson, { ...validPerson, firstName: "" }]);
+      parseHirePeople([validPerson, { ...validPerson, documentNumber: "00000001R", firstName: "" }]);
       expect.unreachable();
     } catch (error) {
       expect(error).toBeInstanceOf(Meta4HireError);

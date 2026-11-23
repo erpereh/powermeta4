@@ -10,6 +10,7 @@ describe("hire filenames", () => {
     const when = new Date(2026, 8, 22, 11, 12, 34);
     expect(formatHireTimestamp(when)).toBe("2026-09-22_11-12-34");
     expect(buildHireFileName(when)).toBe("AltaPersonas_2026-09-22_11-12-34.xls");
+    expect(buildHireFileName(when, 2)).toBe("AltaPersonas_2026-09-22_11-12-34_02.xls");
   });
 
   it("fits the scheduled task name so Meta4 keeps the .xls extension", () => {

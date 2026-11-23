@@ -34,6 +34,13 @@ export const HIRE_TEMPLATE_SHEET_NAMES = [
   "SRCO_PARAM_EXCEL",
 ] as const;
 
+/**
+ * «ID PERSONA» (SRCO_PA_HIRE.SRCO_ARG_ID_PERSON), empty in the template.
+ * SRCO_BLOCK_BEFORE_PERSIST_CO only takes M4CSP_BLOCK_SEQ when it is empty, so
+ * the server writes here the free ID it chose. Never typed by the user.
+ */
+export const HIRE_PERSON_ID_COLUMN = "G";
+
 /** Display + mapped real_* / duplicate columns written from UI input. */
 export const MANUAL_COLUMNS = {
   firstName: ["R"],

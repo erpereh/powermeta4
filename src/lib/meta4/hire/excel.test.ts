@@ -17,6 +17,7 @@ import { hireExtraFixture } from "./test-fixtures";
 import {
   FIRST_PERSON_ROW,
   HIRE_DATA_SHEET,
+  HIRE_PERSON_ID_COLUMN,
   HIRE_TEMPLATE_SHEET_NAMES,
   WRITTEN_COLUMNS,
   toExcelSerialDate,
@@ -308,6 +309,23 @@ try {
 };
 
 describe.skipIf(!canEdit)("Excel preserves Hire_1_PERSONA", () => {
+  it("writes the chosen person ID in «ID PERSONA» as text, one per row", async () => {
+    const bytes = await editNativeHireWorkbook(
+      templatePath,
+      [person("A", "2026-10-02"), person("B", "2026-10-02")],
+      { ...nativeOptions(), personIds: ["1821", "0028"] },
+    );
+    const sheet = readWorkbook(bytes).Sheets[HIRE_DATA_SHEET];
+    expect(sheet?.[`${HIRE_PERSON_ID_COLUMN}${FIRST_PERSON_ROW}`]).toMatchObject({
+      t: "s",
+      v: "1821",
+    });
+    expect(sheet?.[`${HIRE_PERSON_ID_COLUMN}${FIRST_PERSON_ROW + 1}`]).toMatchObject({
+      t: "s",
+      v: "0028",
+    });
+  });
+
   it("changes only manual cells for one person and keeps workbook structure", async () => {
     const templateBytes = readFileSync(templatePath);
     const templateSize = statSync(templatePath).size;

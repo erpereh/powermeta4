@@ -14,9 +14,47 @@ import { Meta4HireError } from "./errors";
 import { createSerializedQueue } from "./mutex";
 import { launchMeta4Hire } from "./service";
 import { hireExtraFixture } from "./test-fixtures";
+import type { EditHireWorkbookOptions } from "./excel";
+import type { HireImportOutcome } from "./import-status";
 import type { HirePerson } from "./types";
 
 const loadCatalogs = vi.hoisted(() => vi.fn());
+const findExistingHireDocuments = vi.hoisted(() =>
+  vi.fn(async (_documents: readonly string[]) => new Map<string, string>()),
+);
+type IdChoice = {
+  id: string;
+  sequence: number;
+  process: "STD_PERSON" | "STD_PERSON_BEC";
+  counter: number;
+};
+const chooseHirePersonId = vi.hoisted(() =>
+  vi.fn(
+    async (
+      _person: { documentNumber: string },
+      _society: string,
+      _reserved: ReadonlySet<string>,
+    ): Promise<IdChoice | null> => null,
+  ),
+);
+const waitForHireImport = vi.hoisted(() =>
+  vi.fn<(fileName: string) => Promise<HireImportOutcome>>(async () => ({
+    state: "done",
+    taskId: "1",
+    total: 1,
+    errors: 0,
+    messages: [],
+  })),
+);
+const findPendingHireImports = vi.hoisted(() =>
+  vi.fn(async (_society: string) => [] as { taskId: string; fileName: string }[]),
+);
+vi.mock("./import-status", () => ({ waitForHireImport, findPendingHireImports }));
+vi.mock("./existing-people", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./existing-people")>()),
+  findExistingHireDocuments,
+  chooseHirePersonId,
+}));
 vi.mock("./catalog-queries", () => ({
   loadHireCatalogsForLaunch: loadCatalogs,
 }));
@@ -309,6 +347,328 @@ describe("launchMeta4Hire service", () => {
     expect(exampleFilePath.endsWith(`\\${exampleFileName}`)).toBe(true);
     expect(exampleFilePath).not.toBe(IMPORT_DIRECTORY);
     expect(writeHireFile.mock.calls.at(0)?.[1]).toBe(preserved);
+  });
+
+  it("stops before Excel when a document already exists in PeopleNet or repeats in the batch", async () => {
+    const editHireWorkbook = vi.fn(async () => Buffer.from("x"));
+    const executeSoap = vi.fn();
+    const options = {
+      getOperationalContext: async () => ({
+        mode: "meta4" as const,
+        username: "user",
+        society: "CYC" as const,
+        jSessionId: "session",
+        companyId: "company-cyc",
+      }),
+      executeSoap,
+      editHireWorkbook,
+      writeHireFile: async () => undefined,
+      verifyHireFile: async () => undefined,
+      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+      hireDirectory: IMPORT_DIRECTORY,
+      serialize: createSerializedQueue(),
+      readImportLog: async () => null,
+    };
+
+    findExistingHireDocuments.mockResolvedValueOnce(new Map([["00000000T", "1815"]]));
+    const existing = await launchMeta4Hire(AUTH_SESSION, [person], options).catch(
+      (error: unknown) => error,
+    );
+    expect(existing).toBeInstanceOf(Meta4HireError);
+    expect((existing as Meta4HireError).issues).toEqual([
+      expect.objectContaining({
+        person: 1,
+        field: "documentNumber",
+        message: expect.stringContaining("1815"),
+      }),
+    ]);
+    expect(findExistingHireDocuments).toHaveBeenLastCalledWith(["00000000T"]);
+
+    const repeated = await launchMeta4Hire(
+      AUTH_SESSION,
+      [person, { ...person, documentNumber: "00000000-t" }],
+      options,
+    ).catch((error: unknown) => error);
+    expect((repeated as Meta4HireError).issues).toEqual([
+      expect.objectContaining({
+        person: 2,
+        field: "documentNumber",
+        message: expect.stringContaining("Persona 1"),
+      }),
+    ]);
+    expect(editHireWorkbook).not.toHaveBeenCalled();
+    expect(executeSoap).not.toHaveBeenCalled();
+
+    chooseHirePersonId.mockRejectedValueOnce(
+      new Meta4HireError(
+        "META4_HIRE_VALIDATION",
+        "El contador de personas de Meta4 está muy atrasado.",
+        [
+          {
+            message:
+              "Los 50 IDs siguientes al contador (STD_PERSON = 1764) ya existen en PeopleNet.",
+          },
+        ],
+      ),
+    );
+    const behind = await launchMeta4Hire(AUTH_SESSION, [person], options).catch(
+      (error: unknown) => error,
+    );
+    expect((behind as Meta4HireError).issues).toEqual([
+      expect.objectContaining({ person: 1, message: expect.stringContaining("STD_PERSON = 1764") }),
+    ]);
+    expect(editHireWorkbook).not.toHaveBeenCalled();
+  });
+
+  describe("one import per person", () => {
+    const people = [1, 2, 3].map((index) => ({
+      ...person,
+      firstName: `Persona${index}`,
+      documentNumber: ["00000001R", "00000002W", "00000003A"][index - 1] ?? "",
+    }));
+    const countingSoap = () => {
+      let calls = 0;
+      const execute: SoapExecute = async (operation) => {
+        calls += 1;
+        return operation.parseResponse(new Response(successBody, { status: 200 }));
+      };
+      return { execute, calls: () => calls };
+    };
+    const batchOptions = (executeSoap: SoapExecute) => ({
+      getOperationalContext: async () => ({
+        mode: "meta4" as const,
+        username: "user",
+        society: "CYC" as const,
+        jSessionId: "session",
+        companyId: "company-cyc",
+      }),
+      executeSoap,
+      writeHireFile: async () => undefined,
+      verifyHireFile: async () => undefined,
+      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
+      hireDirectory: IMPORT_DIRECTORY,
+      now: () => HIRE_NOW,
+      serialize: createSerializedQueue(),
+      readImportLog: async () => null,
+    });
+
+    it("writes one file per person and waits for each import before the next", async () => {
+      const order: string[] = [];
+      const editHireWorkbook = vi.fn(async (_template: string, batch: readonly HirePerson[]) => {
+        order.push(`excel:${batch.map((entry) => entry.firstName).join(",")}`);
+        return Buffer.from("x");
+      });
+      const executeSoap: SoapExecute = async (operation) => {
+        order.push(`soap:${/AltaPersonas_[^<]+/.exec(operation.xml)?.[0] ?? ""}`);
+        return operation.parseResponse(new Response(successBody, { status: 200 }));
+      };
+      waitForHireImport.mockImplementation(async (fileName: string) => {
+        order.push(`wait:${fileName}`);
+        return { state: "done", taskId: "1", total: 1, errors: 0, messages: [] };
+      });
+      chooseHirePersonId.mockImplementation(async (entry) => {
+        order.push(`id:${entry.documentNumber}`);
+        return null;
+      });
+
+      const result = await launchMeta4Hire(AUTH_SESSION, people, {
+        ...batchOptions(executeSoap),
+        editHireWorkbook,
+      });
+
+      const names = [1, 2, 3].map((index) => `AltaPersonas_2026-09-22_11-12-34_0${index}.xls`);
+      expect(order).toEqual(
+        names.flatMap((name, index) => [
+          `id:${people[index]?.documentNumber ?? ""}`,
+          `excel:Persona${index + 1}`,
+          `soap:${name}`,
+          `wait:${name}`,
+        ]),
+      );
+      expect(result.personCount).toBe(3);
+      expect(result.fileName).toBe(names.join(", "));
+      waitForHireImport.mockReset();
+      chooseHirePersonId.mockReset();
+    });
+
+    it("stops after a rejected person and says who is already hired", async () => {
+      const soap = countingSoap();
+      waitForHireImport
+        .mockResolvedValueOnce({ state: "done", taskId: "1", total: 1, errors: 0, messages: [] })
+        .mockResolvedValueOnce({
+          state: "done",
+          taskId: "2",
+          total: 1,
+          errors: 1,
+          messages: ['El campo "Fusion ID" está vacío.'],
+        });
+
+      const error = await launchMeta4Hire(AUTH_SESSION, people, {
+        ...batchOptions(soap.execute),
+        editHireWorkbook: async () => Buffer.from("x"),
+      }).catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(Meta4HireError);
+      expect((error as Meta4HireError).message).toBe(
+        "Se ha dado de alta a 1 de 3 personas (Persona 1). PeopleNet rechazó el alta.",
+      );
+      expect((error as Meta4HireError).issues).toEqual([
+        { person: 2, message: 'El campo "Fusion ID" está vacío.' },
+        { message: "No se han lanzado las personas 3 a 3." },
+      ]);
+      expect(soap.calls()).toBe(2);
+      waitForHireImport.mockReset();
+      chooseHirePersonId.mockReset();
+    });
+
+    /** Meta4 leaves the counter at 1819: each person takes the next ID nobody holds. */
+    const stuckCounter = async (
+      _entry: { documentNumber: string },
+      _society: string,
+      reserved: ReadonlySet<string>,
+    ): Promise<IdChoice> => {
+      let sequence = 1820;
+      while (reserved.has(String(sequence))) sequence += 1;
+      return { id: String(sequence), sequence, process: "STD_PERSON", counter: 1819 };
+    };
+    /** The batch check sees nobody; each later lookup finds the person just created. */
+    const createdAs = (ids: ReadonlyMap<string, string>) => async (documents: readonly string[]) =>
+      documents.length > 1
+        ? new Map<string, string>()
+        : new Map(
+            documents.flatMap((document) => {
+              const id = ids.get(document);
+              return id ? [[document, id] as const] : [];
+            }),
+          );
+
+    it("writes a free ID in each file although Meta4 does not move the counter", async () => {
+      const soap = countingSoap();
+      chooseHirePersonId.mockImplementation(stuckCounter);
+      findExistingHireDocuments.mockImplementation(
+        createdAs(
+          new Map([
+            ["00000001R", "1820"],
+            ["00000002W", "1821"],
+            ["00000003A", "1822"],
+          ]),
+        ),
+      );
+      const editHireWorkbook = vi.fn(
+        async (
+          _template: string,
+          _batch: readonly HirePerson[],
+          _options?: EditHireWorkbookOptions,
+        ) => Buffer.from("x"),
+      );
+
+      const result = await launchMeta4Hire(AUTH_SESSION, people, {
+        ...batchOptions(soap.execute),
+        editHireWorkbook,
+        readCounters: async () => new Map([["STD_PERSON", 1819] as const]),
+      });
+
+      expect(editHireWorkbook.mock.calls.map((call) => call[2]?.personIds)).toEqual([
+        ["1820"],
+        ["1821"],
+        ["1822"],
+      ]);
+      expect(result.personIds).toEqual(["1820", "1821", "1822"]);
+      expect(result.counterNote).toBe(
+        "El contador de personas de Meta4 no ha subido: pon STD_PERSON en 1822 en M4CSP_BLOCK_SEQ; ahora está en 1819, para que un alta hecha en Meta4 no choque con estos IDs.",
+      );
+      expect(soap.calls()).toBe(3);
+      chooseHirePersonId.mockReset();
+      findExistingHireDocuments.mockReset();
+    });
+
+    it("stops when Meta4 created the person with another ID", async () => {
+      const soap = countingSoap();
+      chooseHirePersonId.mockImplementation(stuckCounter);
+      findExistingHireDocuments.mockImplementation(
+        createdAs(
+          new Map([
+            ["00000001R", "1820"],
+            ["00000002W", "1819"],
+          ]),
+        ),
+      );
+
+      const error = await launchMeta4Hire(AUTH_SESSION, people, {
+        ...batchOptions(soap.execute),
+        editHireWorkbook: async () => Buffer.from("x"),
+        readCounters: async () => new Map([["STD_PERSON", 1819] as const]),
+      }).catch((caught: unknown) => caught);
+
+      expect((error as Meta4HireError).message).toBe(
+        "Se ha dado de alta a 1 de 3 personas (Persona 1: ID 1820). Meta4 ha dado de alta a la persona con el ID 1819, no con el 1821 del fichero.",
+      );
+      expect((error as Meta4HireError).issues).toEqual([
+        expect.objectContaining({ person: 2, message: expect.stringContaining("ID PERSONA") }),
+        { message: "No se han lanzado las personas 3 a 3." },
+        { message: expect.stringContaining("STD_PERSON en 1820") },
+      ]);
+      expect(soap.calls()).toBe(2);
+      chooseHirePersonId.mockReset();
+      findExistingHireDocuments.mockReset();
+    });
+
+    it("reports an import the scheduler did not finish", async () => {
+      const soap = countingSoap();
+      waitForHireImport.mockResolvedValueOnce({ state: "timeout" });
+
+      const error = await launchMeta4Hire(AUTH_SESSION, [person], {
+        ...batchOptions(soap.execute),
+        editHireWorkbook: async () => Buffer.from("x"),
+      }).catch((caught: unknown) => caught);
+
+      expect((error as Meta4HireError).code).toBe("META4_HIRE_IMPORT_FAILED");
+      expect((error as Meta4HireError).issues[0]?.message).toContain(
+        "AltaPersonas_2026-09-22_11-12-34.xls",
+      );
+      waitForHireImport.mockReset();
+      chooseHirePersonId.mockReset();
+    });
+
+    it("does not launch while a hire import is still queued", async () => {
+      const soap = countingSoap();
+      findPendingHireImports.mockResolvedValueOnce([
+        { taskId: "110003", fileName: "AltaPersonas_2026-11-23_13-14-37_01.xls" },
+      ]);
+      const error = await launchMeta4Hire(AUTH_SESSION, people, {
+        ...batchOptions(soap.execute),
+        editHireWorkbook: async () => Buffer.from("x"),
+      }).catch((caught: unknown) => caught);
+      expect((error as Meta4HireError).message).toMatch(/^Hay altas pendientes/);
+      expect((error as Meta4HireError).issues).toEqual([
+        { message: expect.stringContaining("tarea 110003") },
+      ]);
+      expect(soap.calls()).toBe(0);
+    });
+
+    it("says which people did not start when the first one stays queued", async () => {
+      const soap = countingSoap();
+      waitForHireImport.mockResolvedValueOnce({ state: "timeout" });
+
+      const error = await launchMeta4Hire(AUTH_SESSION, people, {
+        ...batchOptions(soap.execute),
+        editHireWorkbook: async () => Buffer.from("x"),
+      }).catch((caught: unknown) => caught);
+
+      expect((error as Meta4HireError).message).toBe(
+        "El planificador de Meta4 no ha ejecutado la importación a tiempo.",
+      );
+      expect((error as Meta4HireError).issues).toEqual([
+        expect.objectContaining({
+          person: 1,
+          message: expect.stringContaining("sigue en la cola"),
+        }),
+        { message: "No se han lanzado las personas 2 a 3." },
+      ]);
+      expect(soap.calls()).toBe(1);
+      waitForHireImport.mockReset();
+      chooseHirePersonId.mockReset();
+    });
   });
 
   it("never accepts a client society and keeps logs free of personal data", async () => {

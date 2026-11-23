@@ -21,6 +21,7 @@ import {
   HIRE_COST_CENTER_LIST_VALUE,
   HIRE_DATA_SHEET,
   HIRE_IMPORT_HEADERS,
+  HIRE_PERSON_ID_COLUMN,
   MANUAL_COLUMNS,
   toExcelSerialDate,
   toExcelSerialDateTime,
@@ -452,7 +453,7 @@ const bankCells = (person: HirePerson): CellEdit[] => {
   ];
 };
 
-const cellsForPerson = (person: HirePerson): CellEdit[] => {
+const cellsForPerson = (person: HirePerson, personId = ""): CellEdit[] => {
   const hireSerial = toExcelSerialDate(person.hireDate);
   return [
     ...textCells(MANUAL_COLUMNS.firstName, person.firstName),
@@ -555,6 +556,8 @@ const cellsForPerson = (person: HirePerson): CellEdit[] => {
     ...checkCells(MANUAL_COLUMNS.timeManagementPay, person.timeManagementPay, "number"),
     ...bankCells(person),
     ...literalCells(MANUAL_COLUMNS.project, HIRE_COST_CENTER_LIST_VALUE),
+    // Without an ID the template cell stays empty and Meta4 takes its counter.
+    ...(personId === "" ? [] : literalCells([HIRE_PERSON_ID_COLUMN], personId)),
   ];
 };
 
@@ -609,6 +612,7 @@ const runExcel = async (
 export const writeHireEditFiles = async (
   directory: string,
   people: readonly HirePerson[],
+  personIds: readonly string[] = [],
 ): Promise<{ scriptPath: string; instructionsPath: string }> => {
   const scriptPath = path.join(directory, "edit-hire.ps1");
   const instructionsPath = path.join(directory, "instructions.json");
@@ -616,7 +620,7 @@ export const writeHireEditFiles = async (
     sheetName: HIRE_DATA_SHEET,
     templateRow: FIRST_PERSON_ROW,
     rows: people.map((person, index) => {
-      const cells = cellsForPerson(person);
+      const cells = cellsForPerson(person, personIds[index]);
       return {
         row: FIRST_PERSON_ROW + index,
         copyFromTemplate: index > 0,
@@ -636,6 +640,11 @@ export const assertOle2Buffer = (bytes: Buffer): void => {
   }
 };
 
+export type EditHireWorkbookOptions = ExcelRunOptions & {
+  /** Person ID for each row («ID PERSONA»); empty or missing leaves it to Meta4. */
+  personIds?: readonly string[];
+};
+
 /**
  * Copies Hire_1_PERSONA.xls, binds three missing import headers and edits the manual cells.
  * The original template is never opened. The returned bytes are Excel's save.
@@ -643,14 +652,14 @@ export const assertOle2Buffer = (bytes: Buffer): void => {
 export const editHireWorkbook = async (
   templatePath: string,
   people: readonly HirePerson[],
-  options: ExcelRunOptions = {},
+  { personIds = [], ...options }: EditHireWorkbookOptions = {},
 ): Promise<Buffer> => {
   const directory = await mkdtemp(path.join(tmpdir(), "hire-edit-"));
   const workbookPath = path.join(directory, "Hire.xls");
   try {
     await copyFile(templatePath, workbookPath);
     await stripMarkOfTheWeb(workbookPath);
-    const { scriptPath, instructionsPath } = await writeHireEditFiles(directory, people);
+    const { scriptPath, instructionsPath } = await writeHireEditFiles(directory, people, personIds);
     await runExcel(scriptPath, workbookPath, instructionsPath, {
       ...options,
       deadline: options.deadline ?? Date.now() + 180_000,

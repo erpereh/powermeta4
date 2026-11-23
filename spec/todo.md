@@ -1,5 +1,46 @@
 # powermeta4 - estado de tareas
 
+## Alta de personas: documentos repetidos y carga desde Excel — 2026-11-23
+
+- [x] Causa de «los siguientes se escriben sobre los anteriores»: Meta4 busca la
+      persona por documento y modifica la existente. Las altas 109997, 109999 y
+      110000 modificaron la misma persona (1815, documento `90000001N`), porque el
+      relleno de prueba repetía `90000001…` tras recargar.
+- [x] El relleno de prueba genera un DNI distinto en cada pulsación.
+- [x] Antes de escribir el Excel se bloquea un documento repetido en el lote o
+      que ya existe en `STD_PERSON` (SELECT), con el aviso por persona.
+- [x] Excel de dos lotes de 3 personas generado con Excel COM en local: 537/537
+      celdas correctas por lote y sin restos del anterior (sin enviar a Meta4).
+- [x] Plantilla «Descargar plantilla» (`/api/hire/bulk-template`) con desplegables
+      de los catálogos de la sociedad y carga «Cargar Excel» (`/api/hire/bulk-import`)
+      que llena el formulario para revisar. Admite ID sin ceros, nombres, fechas
+      DD/MM/AAAA, Sí/No y busca la población por nombre.
+- [x] Prueba en PRE (tarea 110001, 3 personas, 0 errores): las tres se escribieron
+      en la persona 1815. Causa real: el contador `M4CSP_BLOCK_SEQ` (CYC,
+      `STD_PERSON`) está en 1814 desde el 2026-09-30 y no avanza con la
+      importación; Meta4 da siempre la 1815, que ya existe, y la sobrescribe.
+- [x] powermeta4 calcula los ID que daría Meta4 (contador + 1 por persona, «BC»
+      en becarios, 4 dígitos en COLL) y bloquea el alta si alguno ya existe.
+      Contra PRE: planificados 1815–1817, ocupados 1815 y 1817 → bloqueado.
+- [x] Contador de CYC subido a 1817 por el usuario (comprobado: 1818–1820 libres).
+- [x] Prueba en PRE (tarea 110002): las 3 filas de un mismo Excel acabaron en la
+      persona 1818 (periodos 1, 2 y 3 en `M4SSP_ALTA_MASIVA_LOG`): Meta4 calcula el
+      ID solo en la primera fila y reutiliza `SRCO_ARG_ID_PERSON` en las demás.
+- [x] Una importación por persona (`_01`, `_02`…): antes de cada una se comprueba
+      el ID libre y se espera a que el planificador la termine (`M4RJS_*`,
+      `M4RCH_HIST_IMP_EXP`); el motivo de un rechazo sale de la traza. Si una
+      falla se para el resto y se dice quién quedó dado de alta.
+- [x] Prueba en PRE con una importación por persona: tareas 110003 y 110004
+      crearon 1819 y 1820 (1 fila, 0 errores, un periodo), pero el contador se
+      quedó en 1818 y 1819; la persona 2 se paró sin enviarse.
+- [x] El fichero lleva el ID en «ID PERSONA» (G, `SRCO_ARG_ID_PERSON`): primer ID
+      libre desde el contador + 1, comprobado después en `STD_PERSON`; aviso para
+      subir el contador al terminar.
+- [ ] Probar en PRE 3 personas con el ID en el fichero (contador en 1819: se
+      esperan 1821, 1822 y 1823).
+- [ ] Meta4: traza de `SRCO_SAVE_HIRE` para confirmar la resta FADRAO tras un
+      alta correcta, corregirla y limpiar las personas 1815 y 1818 de PRE.
+
 ## Alta de personas: Fusion ID, ID Atradius, nombre y rol — 2026-11-19
 
 - [x] Diagnóstico en PRE (solo SELECT): todas las importaciones desde el 2026-10-01

@@ -8,10 +8,13 @@ export const formatHireTimestamp = (date: Date): string =>
 /**
  * Without the username: Meta4 uses the file name as the scheduled task name
  * (M4RJS_SCHED_TASKS.SCHED_TASK_NAME, 50 characters) and cut ".xls" to ".xl".
- * Launches are serialized, so the timestamp keeps names unique.
+ * Launches are serialized, so the timestamp keeps names unique; a batch adds
+ * the person number (_01, _02…), one import per person.
  */
-export const buildHireFileName = (date: Date): string =>
-  `AltaPersonas_${formatHireTimestamp(date)}.xls`;
+export const buildHireFileName = (date: Date, sequence?: number): string =>
+  `AltaPersonas_${formatHireTimestamp(date)}${
+    sequence === undefined ? "" : `_${String(sequence).padStart(2, "0")}`
+  }.xls`;
 
 export const buildHireFilePath = (directory: string, fileName: string): string =>
   path.win32.join(directory.replace(/[\\/]+$/, ""), fileName);

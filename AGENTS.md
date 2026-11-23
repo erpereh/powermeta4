@@ -242,9 +242,15 @@ El alta de personas es la excepción de escritura ERP aprobada: Excel COM edita
 una copia de `Hire_1_PERSONA.xls` y solo sustituye los campos de la UI
 (incluidas columnas duplicadas como `AY`/`IQ`). El fichero se escribe en un
 nombre `AltaPersonas_<fecha>.xls` (sin usuario: Meta4 lo usa como nombre de la
-planificación, de 50 caracteres) dentro del directorio
-`META4_HIRE_FILE_PATH` y esa misma ruta se envía a
-`SRTC_LAUNCH_IMPORT`, derivado de `META4_BASE_URL`. No
+planificación, de 50 caracteres; `_01`, `_02`… con varias personas) dentro del
+directorio `META4_HIRE_FILE_PATH` y esa misma ruta se envía a
+`SRTC_LAUNCH_IMPORT`, derivado de `META4_BASE_URL`. Se lanza una importación
+por persona y se espera, leyendo con `SELECT` `M4RJS_*` y
+`M4RCH_HIST_IMP_EXP`, a que el planificador termine cada una: en un mismo
+fichero Meta4 reutiliza el ID de la primera fila. Como Meta4 no guarda el
+contador tras el alta, cada fichero lleva en «ID PERSONA» (G) el primer ID
+libre desde `M4CSP_BLOCK_SEQ` + 1, se comprueba después en `STD_PERSON` que la
+persona tiene ese ID y se avisa si el contador queda por debajo. No
 persiste datos personales en SQLite. La entidad legal (CH/CI) se elige del
 catálogo `STD_LEG_ENT` de la sociedad activa: la de la plantilla (`ACYC_ES`)
 solo existe en CYC. Contra PeopleNet solo se ejecutan `SELECT`; nunca
@@ -255,6 +261,12 @@ los que dependen de sociedad filtran `ID_ORGANIZATION` por la sociedad del
 contexto operativo, nunca por un valor del navegador. `GET /api/hire/places`
 (Node.js, requiere sesión) busca poblaciones en PeopleNet porque
 `STD_GEO_PLACE` es demasiado grande para enviarse entera al formulario.
+`GET /api/hire/bulk-template` y `POST /api/hire/bulk-import` (Node.js, requieren
+sesión) descargan la plantilla Excel de altas con los catálogos de la sociedad
+y leen la plantilla rellena para revisar las personas en el formulario; no
+lanzan el alta ni guardan ficheros. Antes de lanzar, el alta comprueba con
+`SELECT` en `STD_PERSON` que ningún documento exista ni se repita en el lote:
+Meta4 modifica la persona existente con el mismo documento en vez de crearla.
 «Consultar una nómina» lee los recibos de PeopleNet con la plantilla `RECIBO`
 de Meta4 y la sociedad del contexto operativo. `POST /api/payroll/receipts/export`
 (Node.js, requiere sesión) descarga en PDF (`pdf-lib`) o Excel (`exceljs`) las

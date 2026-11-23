@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-11-23 - Alta de personas: documentos repetidos y carga desde Excel
+
+- Las altas de prueba 109997, 109999 y 110000 no crearon personas: Meta4
+  encontró el documento `90000001N` y modificó tres veces la persona 1815. El
+  relleno de prueba repetía `90000001…` tras recargar la página.
+- El relleno de prueba genera un DNI distinto en cada pulsación. El alta se
+  bloquea, antes de escribir el Excel, si un documento se repite en el lote o ya
+  existe en `STD_PERSON` (SELECT parametrizada), con el aviso en la persona.
+- Nueva carga de varias personas: «Descargar plantilla» genera un .xlsx con una
+  fila por persona, claves técnicas en la fila 2, desplegables de los catálogos
+  de la sociedad (hoja «Catálogos») e instrucciones. «Cargar Excel» lo lee en
+  servidor y llena el formulario para revisarlo; no lanza el alta. Admite ID sin
+  los ceros que quita Excel, nombres de catálogo, fechas DD/MM/AAAA, Sí/No,
+  opciones por su texto y busca la población por nombre (completando provincia,
+  comunidad y país). Las opciones obvias (Puesto, IBAN, jornada completa…) se
+  deducen si se dejan vacías.
+- Prueba en PRE (tarea 110001): 3 personas con documentos nuevos y 0 errores
+  terminaron todas en la persona 1815. El contador `M4CSP_BLOCK_SEQ` (CYC,
+  `STD_PERSON`) está en 1814 desde el 2026-09-30: Meta4 asigna siempre 1815, que
+  ya existe, y la sobrescribe. powermeta4 lee ahora ese contador y bloquea el alta
+  si algún ID que asignaría Meta4 ya existe en `STD_PERSON` (contra PRE:
+  1815–1817 planificados, 1815 y 1817 ocupados → bloqueado).
+- Un Excel con varias personas no sirve: en la importación 110002 las 3 filas
+  acabaron en la persona 1818 (periodos 1, 2 y 3), porque Meta4 solo calcula el
+  ID en la primera fila. powermeta4 lanza ahora una importación por persona
+  (`AltaPersonas_<fecha>_01.xls`, `_02`…), comprueba antes de cada una que el
+  ID que daría el contador está libre y espera a que el planificador la termine
+  (SELECT en `M4RJS_SCHED_TASKS`, `M4RJS_TASK_EXE` y `M4RCH_HIST_IMP_EXP`). Un
+  rechazo muestra el motivo de la traza; si falla una persona se paran las
+  siguientes y se indica cuántas quedaron dadas de alta.
+- Con una importación por persona, PRE creó 1819 y 1820 (tareas 110003 y
+  110004, 0 errores) pero el contador `M4CSP_BLOCK_SEQ` no subió, y la persona 2
+  se paró por el aviso de ID ocupado. Como `SRCO_BLOCK_BEFORE_PERSIST_CO` solo
+  usa el contador con `SRCO_ARG_ID_PERSON` vacío, cada fichero lleva ahora en
+  «ID PERSONA» (G) el primer ID libre desde el contador + 1 (sin persona en
+  `STD_PERSON` ni dado en el lote). Tras la importación se comprueba en
+  `STD_PERSON` que la persona tiene ese ID y, si no, se paran las siguientes. El
+  resultado muestra los IDs y avisa si el contador ha quedado por debajo.
+- Comprobado en local con Excel COM: dos lotes de 3 personas, 537/537 celdas
+  correctas en cada uno y fila siguiente vacía. Plantilla con catálogos reales de
+  CYC en PRE: 452 KB, abre en Excel con sus desplegables.
+
 ## 2026-11-19 - Alta de personas: Fusion ID, ID Atradius, nombre de fichero y correo
 
 - Diagnóstico en PRE (solo SELECT): la planificación `BP_LAUNCH_IMPORT_ASAP_JS`

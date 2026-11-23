@@ -5,7 +5,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import type { HirePersonInput } from "@/lib/meta4/hire/types";
 import { lastGeoSegment } from "@/lib/meta4/hire/catalogs";
 
-import type { CurrentFieldId, PendingFieldId } from "./field-metadata";
+import { HIRE_FIELD_META, type CurrentFieldId, type PendingFieldId } from "./field-metadata";
 
 export type PendingValueKey =
   | PendingFieldId
@@ -113,6 +113,98 @@ export const createHirePersonDraft = (id: number): HirePersonDraft => ({
     bankFormatChoice: "",
   },
 });
+
+const pick = <T extends string>(allowed: readonly T[], value: string): T | undefined =>
+  allowed.find((candidate) => candidate === value);
+
+const setBranch = (branches: HireBranches, key: string, value: string): boolean => {
+  switch (key) {
+    case "positionChoice": {
+      const choice = pick(["", "job", "position"] as const, value);
+      if (choice !== undefined) branches.positionChoice = choice;
+      return true;
+    }
+    case "occupationType": {
+      const choice = pick(["", "hours", "ejc", "headcount"] as const, value);
+      if (choice !== undefined) branches.occupationType = choice;
+      return true;
+    }
+    case "ssNumberChoice": {
+      const choice = pick(["", "assigned", "unassigned"] as const, value);
+      if (choice !== undefined) branches.ssNumberChoice = choice;
+      return true;
+    }
+    case "scheduleChoice": {
+      const choice = pick(["", "full", "partial"] as const, value);
+      if (choice !== undefined) branches.scheduleChoice = choice;
+      return true;
+    }
+    case "disabilityChoice": {
+      const choice = pick(["", "without", "with"] as const, value);
+      if (choice !== undefined) branches.disabilityChoice = choice;
+      return true;
+    }
+    case "bankFormatChoice": {
+      const choice = pick(["", "iban", "other"] as const, value);
+      if (choice !== undefined) branches.bankFormatChoice = choice;
+      return true;
+    }
+    default:
+      return false;
+  }
+};
+
+const CURRENT_KEYS = new Set<string>(Object.keys(createHirePersonDraft(0).current));
+const isCurrentKey = (key: string): key is CurrentFieldId => CURRENT_KEYS.has(key);
+
+const COMPOUND_PENDING_KEYS = new Set<string>([
+  "phonePrefix",
+  "phoneNumber",
+  "mobilePrefix",
+  "mobileNumber",
+  "addressLine1",
+  "addressLine2",
+  "ssNumberPrefix",
+  "ssNumberBody",
+  "ssNumberSuffix",
+  "replacedSsPrefix",
+  "replacedSsBody",
+  "replacedSsSuffix",
+]);
+const isPendingFieldKey = (key: string): key is PendingFieldId =>
+  Object.hasOwn(HIRE_FIELD_META, key) && !isCurrentKey(key);
+const isPendingValueKey = (key: string): key is PendingValueKey =>
+  isPendingFieldKey(key) || COMPOUND_PENDING_KEYS.has(key);
+
+/** Values read from the bulk Excel, keyed like HirePerson. */
+export type HireBulkDraftValues = Partial<Record<string, string | boolean>>;
+
+/**
+ * Draft for one person of the bulk Excel: catalog and base fields go to
+ * `current`, choices to `branches`, Sí/No to `pendingChecks`, the rest to
+ * `pendingValues`, exactly where the form would have put them.
+ */
+export const draftFromBulkValues = (
+  id: number,
+  values: HireBulkDraftValues,
+  cityName: string,
+): HirePersonDraft => {
+  const draft = createHirePersonDraft(id);
+  for (const [key, value] of Object.entries(values)) {
+    if (value === undefined) continue;
+    if (typeof value === "boolean") {
+      if (isPendingFieldKey(key)) draft.pendingChecks[key] = value;
+    } else if (setBranch(draft.branches, key, value)) {
+      continue;
+    } else if (isCurrentKey(key)) {
+      draft.current[key] = value;
+    } else if (isPendingValueKey(key)) {
+      draft.pendingValues[key] = value;
+    }
+  }
+  if (cityName) draft.pendingValues.cityName = cityName;
+  return draft;
+};
 
 /** Project only confirmed mappings; retained values from inactive branches stay local. */
 export const toHirePersonInput = ({

@@ -11,6 +11,7 @@ import {
   createDevHirePersonDraft,
   findDevTestPlace,
   loadDevHirePersonDraft,
+  testDocument,
 } from "./dev-test-data";
 import { toHirePersonInput } from "./draft";
 
@@ -71,6 +72,17 @@ const now = new Date(2026, 8, 29, 0, 30);
 afterEach(() => vi.restoreAllMocks());
 
 describe("development hire test data", () => {
+  it("gives a new valid NIF on every fill so Meta4 never reuses a person", () => {
+    const first = new Date(2026, 10, 23, 10, 0, 0);
+    const later = new Date(2026, 10, 23, 10, 0, 7);
+    const documents = [testDocument(1, first), testDocument(2, first), testDocument(1, later)];
+    expect(new Set(documents).size).toBe(3);
+    for (const document of documents) {
+      expect(document).toMatch(/^9\d{7}[A-Z]$/);
+      expect(document.at(-1)).toBe("TRWAGMYFPDXBNJZSQVHLCKE"[Number(document.slice(0, 8)) % 23]);
+    }
+  });
+
   it("builds a valid person from the supplied catalogs without changing them", () => {
     const draft = createDevHirePersonDraft(7, state, place, now);
     const person = parseHirePerson({ ...toHirePersonInput(draft), fusionId: "9998" });

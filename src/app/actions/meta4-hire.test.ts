@@ -102,6 +102,7 @@ describe("launchMeta4HireAction", () => {
       returnCode: "0.0",
       fileName: "AltaPersonas_2026-09-22_11-12-34.xls",
       filePath: String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\AltaPersonas_2026-09-22_11-12-34.xls`,
+      personIds: ["1821"],
     });
 
     const result = await launchMeta4HireAction([person]);
