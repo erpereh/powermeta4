@@ -31,10 +31,10 @@ const textContent = (content: MessageContent): string => {
     .join("");
 };
 
-export const buildChatHistory = (
+export const getChatAncestors = (
   messages: readonly Message[],
   assistantMessageId: string,
-): ChatHistoryMessage[] => {
+): Message[] => {
   const messagesById = new Map(messages.map((message) => [message.id, message]));
   const ancestors: Message[] = [];
   const visited = new Set<string>();
@@ -49,11 +49,16 @@ export const buildChatHistory = (
     currentId = current.parentMessageId ?? null;
   }
 
-  return ancestors
-    .reverse()
-    .slice(0, -1)
-    .flatMap((message) => {
-      const content = textContent(message.content);
-      return content.trim() ? [{ role: message.role, content }] : [];
-    });
+  return ancestors.reverse().slice(0, -1);
 };
+
+export const toChatHistory = (ancestors: readonly Message[]): ChatHistoryMessage[] =>
+  ancestors.flatMap((message) => {
+    const content = textContent(message.content);
+    return content.trim() ? [{ role: message.role, content }] : [];
+  });
+
+export const buildChatHistory = (
+  messages: readonly Message[],
+  assistantMessageId: string,
+): ChatHistoryMessage[] => toChatHistory(getChatAncestors(messages, assistantMessageId));

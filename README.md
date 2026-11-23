@@ -72,15 +72,22 @@ estado seguro `{ configured, model }` y muestra `IA · <AI_MODEL>` o
 
 El transcript visible en SQLite conserva el texto real, ramas, edición,
 regeneración y reload. Para cada ejecución el servidor sigue
-`parentMessageId` desde el mensaje asistente en curso y envía únicamente
-ancestros `user`/`assistant` con texto no vacío. Excluye el placeholder actual,
-partes no textuales, system prompts, tools, function calling y cualquier dato
-de Meta4. El cliente compatible normaliza la raíz de `AI_BASE_URL` a
+`parentMessageId` desde el mensaje asistente en curso. Envía el texto de los
+ancestros `user`/`assistant`, las reglas del asistente y el contexto
+seleccionado de manuales y adjuntos. El cliente compatible normaliza la raíz de `AI_BASE_URL` a
 `/chat/completions`, envía `{ model, messages, stream: true }`, procesa SSE y
 persiste contenido incremental y estados `complete`, `cancelled` o `failed`.
 El esquema actual es `DATABASE_SCHEMA_VERSION = 11`; la migración 009 elimina
 la infraestructura exclusiva del agente y las configuraciones de proveedor,
 sin tocar conversaciones, mensajes, attachments ni el grafo de padres.
+
+El clip y el arrastre admiten PDF con texto, TXT, Markdown, CSV y XLSX.
+Los archivos se conservan localmente con el mensaje y el servidor comparte
+su texto con el proveedor de IA al enviar una consulta. El panel «Fuentes»
+muestra los manuales y adjuntos usados en cada respuesta.
+`npm run kb:ingest -- --lexical` construye el índice local y
+`npm run kb:ingest` incorpora embeddings.
+Configuración y evaluación en la [guía del RAG](docs/knowledge-base-rag.md).
 
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Tras un login Meta4 real se consulta el perfil de usuario

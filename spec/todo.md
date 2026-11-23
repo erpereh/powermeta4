@@ -1,5 +1,29 @@
 # powermeta4 - estado de tareas
 
+## Chat, RAG y fuentes — 2026-11-23
+
+- [x] Índice FTS5 local con 74 manuales y 17.782 fragmentos. Embeddings de
+      Gemini a 768 dimensiones, en lotes reanudables con prioridad para LN4 y nómina.
+- [x] Recuperación híbrida, códigos exactos, referencias por turno y seguimiento
+      de la rama. Evaluación con 480 vectores: de 4/10 a 10/10 referencias
+      válidas entre las seis primeras y de 2/4 a 0/4 falsos positivos.
+- [x] Adjuntar y descargar PDF con texto, TXT, Markdown, CSV y XLSX.
+      Fuentes por respuesta, panel de escritorio y Drawer beUI en móvil.
+- [x] Loader beUI, foco neutro y posición estable del composer al abrir
+      categorías o seleccionar una sugerencia.
+- [x] DEBUG en Chrome: carga y retirada local de la nómina real, lectura
+      local con proveedor simulado, nómina ficticia y XLSX ficticio con Gemini.
+      Verificados descarga, apertura del manual, recarga, aislamiento de empresa,
+      ramas, edición, regeneración y cancelación.
+- [ ] Completar los embeddings del corpus aprovechando la reanudación por lotes.
+      Quedaron 840 vectores, incluido el manual completo de LN4, antes de
+      alcanzar la cuota de Gemini.
+- [x] `npm test` con 1.734 pruebas correctas y dos omitidas. Revisión final
+      de las áreas modificadas con 127 pruebas correctas.
+- [x] Typecheck, build, formato de los archivos TypeScript cambiados y
+      `git diff --check` correctos. El lint global sigue señalando 676
+      archivos con formato previo pendiente.
+
 ## Alta de personas: Fusion ID, ID Atradius, nombre y rol — 2026-11-19
 
 - [x] Diagnóstico en PRE (solo SELECT): todas las importaciones desde el 2026-10-01
@@ -2857,7 +2881,7 @@ vigente del chat global.
       configuradas por el usuario.
 - [ ] Incorporar permisos reales, invitaciones y administración completa de
       empresas.
-- [ ] Implementar operaciones ERP externas y subida real de adjuntos.
+- [ ] Implementar operaciones ERP externas pendientes.
 - [ ] Añadir pruebas E2E en un entorno desplegado.
 
 Las acciones ERP actuales son un catálogo local honesto; no simulan

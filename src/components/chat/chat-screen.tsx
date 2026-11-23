@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useId, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
 import { Thread } from "@/components/assistant-ui/thread";
 import { useWorkspaceHydrated } from "@/components/app-shell/app-shell";
 import { ChatRuntimeProvider } from "@/components/chat/chat-runtime-provider";
-import {
-  createConversationAction,
-  selectConversationAction,
-} from "@/app/actions/workspace";
+import { ChatSources } from "@/components/chat/chat-sources";
+import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { createConversationAction, selectConversationAction } from "@/app/actions/workspace";
 import { hydrateWorkspaceStore, useWorkspaceStore } from "@/stores/use-workspace-store";
 import { createClientMutationId } from "@/lib/client-mutation-id";
-import { PageHeader } from "@/components/system";
+import { Drawer, PageHeader } from "@/components/system";
 import type { GlobalChatStatus } from "@/lib/chat/global-chat-client";
 import type { CompanyId } from "@/types/workspace";
 
@@ -20,6 +20,14 @@ type ChatScreenProps = {
   requestedChatId?: string;
   chatStatus: GlobalChatStatus;
 };
+
+const sourcesMedia = "(min-width: 64rem)";
+const subscribeSourcesMedia = (onChange: () => void) => {
+  const query = window.matchMedia(sourcesMedia);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+const isWideScreen = () => window.matchMedia(sourcesMedia).matches;
 
 export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
   const router = useRouter();
@@ -30,6 +38,9 @@ export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
   );
   const createChat = useWorkspaceStore((state) => state.createChat);
   const selectChat = useWorkspaceStore((state) => state.selectChat);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const sourcesId = useId();
+  const wideScreen = useSyncExternalStore(subscribeSourcesMedia, isWideScreen, () => false);
   const activeChat = requestedChatId
     ? workspace?.chats.find((chat) => chat.id === requestedChatId)
     : workspace?.chats.find((chat) => chat.id === workspace.activeChatId);
@@ -83,17 +94,53 @@ export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
             {activeChat.title}
           </h1>
         }
+        actions={
+          <TooltipIconButton
+            tooltip={sourcesOpen ? "Ocultar fuentes" : "Mostrar fuentes"}
+            type="button"
+            aria-expanded={sourcesOpen}
+            aria-controls={sourcesOpen ? sourcesId : undefined}
+            aria-label="Fuentes"
+            variant={sourcesOpen ? "secondary" : "ghost"}
+            onClick={() => setSourcesOpen((open) => !open)}
+          >
+            {sourcesOpen ? (
+              <PanelRightClose className="size-4" />
+            ) : (
+              <PanelRightOpen className="size-4" />
+            )}
+          </TooltipIconButton>
+        }
       />
 
-      <div className="min-h-0 flex-1">
-        <ChatRuntimeProvider
-          key={`${companyId}:${activeChat.id}`}
-          companyId={companyId as CompanyId}
-          chatId={activeChat.id}
-          chatStatus={chatStatus}
-        >
-          <Thread chatStatus={chatStatus} />
-        </ChatRuntimeProvider>
+      <div className="flex min-h-0 min-w-0 flex-1">
+        <div className="min-w-0 flex-1">
+          <ChatRuntimeProvider
+            key={`${companyId}:${activeChat.id}`}
+            companyId={companyId as CompanyId}
+            chatId={activeChat.id}
+            chatStatus={chatStatus}
+          >
+            <Thread chatStatus={chatStatus} />
+          </ChatRuntimeProvider>
+        </div>
+        {wideScreen && sourcesOpen ? (
+          <aside
+            id={sourcesId}
+            aria-label="Fuentes"
+            className="w-[min(22rem,32vw)] shrink-0 overflow-y-auto overscroll-contain border-s border-border px-4 py-4"
+          >
+            <h2 className="mb-4 text-sm font-semibold">Fuentes</h2>
+            <ChatSources chat={activeChat} companyId={companyId} />
+          </aside>
+        ) : null}
+        {!wideScreen && sourcesOpen ? (
+          <Drawer open={sourcesOpen} onOpenChange={setSourcesOpen} title="Fuentes">
+            <div id={sourcesId}>
+              <ChatSources chat={activeChat} companyId={companyId} />
+            </div>
+          </Drawer>
+        ) : null}
       </div>
     </main>
   );

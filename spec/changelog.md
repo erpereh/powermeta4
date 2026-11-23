@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-11-23 - RAG híbrido, adjuntos y panel de fuentes
+
+- El chat guarda los adjuntos con el mensaje, extrae texto localmente y
+  envía al proveedor las referencias de la rama activa. El panel derecho
+  abre los manuales por página y descarga los adjuntos usados en cada turno.
+- La ingesta local publica 74 manuales y 17.782 fragmentos en FTS5.
+  La indexación vectorial de Gemini continúa por lotes y conserva su avance
+  al alcanzar la cuota. Quedaron 840 vectores, incluido el manual completo
+  de LN4. OpenRouter devolvió HTTP 410 para el modelo anterior.
+- Evaluación sobre el mismo índice con 480 vectores: 4/10 → 10/10 consultas
+  con referencia válida entre las seis primeras, 2/4 → 0/4 falsos positivos
+  y mediana de ranking de 45 → 41 ms, excluyendo la red de embeddings.
+- El composer usa adjuntos y Loader de beUI, foco neutro y recomendaciones
+  sin desplazamiento del campo. La hidratación activa conserva las respuestas
+  en curso y el arranque recupera las ejecuciones interrumpidas.
+- DEBUG y Chrome verificados con la nómina real en local y una nómina y un
+  XLSX ficticios con Gemini. Suite completa con 1.734 casos correctos y dos
+  omitidos. Revisión dirigida final con 127 correctos. Typecheck, build y
+  formato de los TypeScript tocados correctos. Lint global pendiente en
+  676 archivos previos.
+
 ## 2026-11-19 - Alta de personas: Fusion ID, ID Atradius, nombre de fichero y correo
 
 - Diagnóstico en PRE (solo SELECT): la planificación `BP_LAUNCH_IMPORT_ASAP_JS`

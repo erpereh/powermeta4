@@ -26,6 +26,7 @@
 
 # Private payroll reconciliation sources supplied by the client
 /docs/automatizacion-reunion/fuentes_cuadres_cierre_de_nómina/
+/fuentes/nominaprueba.pdf
 
 # production
 /build

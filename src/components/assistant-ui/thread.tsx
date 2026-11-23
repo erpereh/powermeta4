@@ -11,6 +11,7 @@ import {
   MessagePrimitive,
   ThreadPrimitive,
   type AssistantState,
+  useAuiEvent,
   useAuiState,
 } from "@assistant-ui/react";
 import {
@@ -35,16 +36,10 @@ import {
 } from "@/components/assistant-ui/user-message-layout";
 import { PowermetaLogo } from "@/components/branding/powermeta-logo";
 import { ErpRecommendations } from "@/components/chat/erp-recommendations";
-import {
-  Badge,
-  Button,
-  MessageBubble,
-  MessageBubbleContent,
-  ThinkingShimmer,
-} from "@/components/system";
+import { ChatAttachmentList, SentChatAttachments } from "@/components/chat/chat-attachments";
+import { Badge, Button, MessageBubble, MessageBubbleContent, Loader } from "@/components/system";
 import { getChatStatusLabel, isChatSendDisabled, type ChatStatus } from "@/lib/chat/chat-status";
 import { cn } from "@/lib/utils";
-import { DevelopmentText } from "@/components/system/development-text";
 
 type ThreadProps = {
   chatStatus: ChatStatus;
@@ -74,7 +69,7 @@ export function Thread({ chatStatus }: ThreadProps) {
         <div
           className={cn(
             "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-3 pt-3 sm:px-4 sm:pt-4",
-            isEmpty && "justify-center",
+            isEmpty && "pt-[clamp(1.5rem,13svh,9rem)] sm:pt-[clamp(2rem,18svh,10rem)]",
           )}
         >
           <AuiIf condition={isNewChatView}>
@@ -117,7 +112,7 @@ type ThreadSuggestionsProps = {
 };
 
 const ThreadSuggestions: FC<ThreadSuggestionsProps> = ({ inputRef }) => (
-  <div className="flex w-full flex-col px-1 pb-1 pt-1">
+  <div className="max-h-[min(32svh,14rem)] w-full overflow-y-auto overscroll-contain px-1 pb-1 pt-1">
     <ErpRecommendations inputRef={inputRef} />
   </div>
 );
@@ -150,22 +145,69 @@ type ComposerProps = ThreadProps & {
 
 const Composer = ({ inputRef, chatStatus }: ComposerProps) => {
   const statusLabel = getChatStatusLabel(chatStatus);
+  const running = useAuiState((state) => state.thread.isRunning);
+  const blockedByAttachment = useAuiState((state) =>
+    state.composer.attachments.some(
+      ({ status }) => status.type === "running" || status.type === "incomplete",
+    ),
+  );
+  const [attachmentError, setAttachmentError] = useState("");
+  useAuiEvent("composer.attachmentAddError", ({ reason, message, attachmentId }) => {
+    if (attachmentId) return;
+    setAttachmentError(
+      reason === "not-accepted" ? "Usa PDF con texto, TXT, Markdown, CSV o XLSX." : message,
+    );
+  });
+  useAuiEvent("composer.send", () => setAttachmentError(""));
   return (
-    <ComposerPrimitive.Root className="relative flex w-full flex-col">
-      <div className="flex w-full flex-col gap-2 rounded-(--composer-radius) border border-border bg-card p-(--composer-padding) shadow-md transition-[border-color] focus-within:border-ring">
+    <ComposerPrimitive.Root
+      className="relative flex w-full flex-col"
+      onSubmit={(event) => {
+        if (blockedByAttachment) event.preventDefault();
+      }}
+    >
+      <ComposerPrimitive.AttachmentDropzone
+        disabled={running}
+        onDropCapture={(event) => {
+          if (running) event.preventDefault();
+          else setAttachmentError("");
+        }}
+        className="flex w-full flex-col gap-2 rounded-(--composer-radius) border border-border bg-card p-(--composer-padding) shadow-md data-[dragging=true]:border-muted-foreground"
+      >
+        <ChatAttachmentList />
         <ComposerPrimitive.Input
           ref={inputRef}
           placeholder="Escribe un mensaje..."
-          className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2 py-1 text-sm leading-6 outline-none placeholder:text-muted-foreground sm:text-base"
+          className="max-h-32 min-h-10 w-full resize-none rounded-lg bg-transparent px-2 py-1 text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-muted-foreground/50 sm:text-base"
           rows={1}
           autoFocus
           enterKeyHint="send"
           aria-label="Mensaje"
           unstable_insertNewlineOnTouchEnter
+          onKeyDown={(event) => {
+            if (
+              blockedByAttachment &&
+              event.key === "Enter" &&
+              !event.shiftKey &&
+              !event.nativeEvent.isComposing
+            ) {
+              event.preventDefault();
+            }
+          }}
         />
         <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
           <div className="flex min-w-0 items-center gap-1.5">
-            <AttachmentButton />
+            <ComposerPrimitive.AddAttachment asChild>
+              <TooltipIconButton
+                tooltip="Adjuntar archivo"
+                type="button"
+                variant="ghost"
+                disabled={running}
+                onClick={() => setAttachmentError("")}
+              >
+                <Paperclip className="size-4" />
+              </TooltipIconButton>
+            </ComposerPrimitive.AddAttachment>
             {statusLabel ? (
               <p className="truncate px-1.5 text-xs text-muted-foreground" role="status">
                 {statusLabel}
@@ -180,7 +222,7 @@ const Composer = ({ inputRef, chatStatus }: ComposerProps) => {
                   type="button"
                   variant="primary"
                   aria-label="Enviar mensaje"
-                  disabled={isChatSendDisabled(chatStatus, false)}
+                  disabled={isChatSendDisabled(chatStatus, false) || blockedByAttachment}
                 >
                   <ArrowUp className="size-4" />
                 </TooltipIconButton>
@@ -200,33 +242,13 @@ const Composer = ({ inputRef, chatStatus }: ComposerProps) => {
             </AuiIf>
           </div>
         </div>
-      </div>
+        {attachmentError ? (
+          <p role="alert" className="px-2 text-xs text-destructive">
+            {attachmentError}
+          </p>
+        ) : null}
+      </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
-  );
-};
-
-const AttachmentButton: FC = () => {
-  const [noticeVisible, setNoticeVisible] = useState(false);
-
-  return (
-    <div className="flex items-center gap-2">
-      <TooltipIconButton
-        tooltip="Adjuntar archivo"
-        type="button"
-        variant="ghost"
-        aria-label="Adjuntar archivo"
-        onClick={() => setNoticeVisible(true)}
-      >
-        <Paperclip className="size-4" />
-      </TooltipIconButton>
-      {noticeVisible && (
-        <span role="status" className="max-w-44 text-xs text-muted-foreground">
-          <DevelopmentText presentation="La carga de archivos no está disponible.">
-            La carga de archivos estará disponible próximamente.
-          </DevelopmentText>
-        </span>
-      )}
-    </div>
   );
 };
 
@@ -259,17 +281,23 @@ const AssistantMessage: FC = () => {
       <MessageBubble variant="ghost" align="start" animateIn={false} className="px-1">
         <MessageBubbleContent className="max-w-none w-full px-1 py-0">
           <div className="leading-7 wrap-break-word text-sm sm:text-[0.9375rem]">
-            <MessagePrimitive.Parts components={{ Text: MarkdownText }} />
+            <AuiIf condition={(state) => state.message.parts.length > 0}>
+              <MessagePrimitive.Parts components={{ Text: MarkdownText }} />
+            </AuiIf>
             <AuiIf
               condition={(state) =>
                 state.message.status?.type === "running" && state.message.parts.length === 0
               }
             >
-              <span aria-label="Escribiendo" role="status">
-                <ThinkingShimmer className="text-sm text-muted-foreground">
-                  Escribiendo
-                </ThinkingShimmer>
-              </span>
+              <div className="inline-flex min-h-7 items-center gap-2 text-sm text-muted-foreground">
+                <Loader
+                  variant="dots"
+                  size={18}
+                  label="Escribiendo…"
+                  className="text-muted-foreground"
+                />
+                <span aria-hidden="true">Escribiendo…</span>
+              </div>
             </AuiIf>
             {statusMeta ? (
               <div className="mt-2">
@@ -340,6 +368,7 @@ const UserMessage: FC = () => (
   <MessagePrimitive.Root className={USER_MESSAGE_ROOT_CLASS} data-role="user">
     <MessageBubble variant="soft" align="end" animateIn={false}>
       <MessageBubbleContent className={USER_MESSAGE_BUBBLE_CLASS}>
+        <SentChatAttachments />
         <MessagePrimitive.Parts />
       </MessageBubbleContent>
     </MessageBubble>
@@ -359,9 +388,11 @@ const UserMessage: FC = () => (
 const EditComposer: FC = () => (
   <MessagePrimitive.Root className="flex flex-col px-2">
     <ComposerPrimitive.Root className="ms-auto flex w-full max-w-[85%] flex-col gap-2 rounded-xl border border-border bg-card p-2 shadow-sm">
+      <ChatAttachmentList />
       <ComposerPrimitive.Input
         className="min-h-14 w-full resize-none bg-transparent px-2 py-1.5 text-sm outline-none"
         autoFocus
+        addAttachmentOnPaste={false}
       />
       <div className="flex items-center justify-end gap-2">
         <ComposerPrimitive.Cancel asChild>

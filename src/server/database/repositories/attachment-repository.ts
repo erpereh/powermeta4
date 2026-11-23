@@ -3,6 +3,8 @@ import "server-only";
 import type { DatabaseSync } from "node:sqlite";
 
 import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
+import { readChatAttachments, type ChatAttachment } from "@/lib/chat/chat-data";
+import type { MessageContent } from "@/types/chat";
 import type { CompanyId } from "@/types/workspace";
 
 import { getDatabase } from "../client";
@@ -107,4 +109,52 @@ export const createAttachmentRepository = (database: DatabaseSync = getDatabase(
           })
         : withTransaction(database, operation);
     }),
+  get: (companyId: CompanyId, conversationId: string, id: string): PersistedAttachment | null => {
+    const row = database
+      .prepare(
+        `SELECT attachments.* FROM attachments
+       JOIN conversations ON conversations.id = attachments.conversation_id
+       WHERE attachments.id = ? AND attachments.conversation_id = ? AND conversations.company_id = ?`,
+      )
+      .get(id, conversationId, companyId);
+    return row ? map(row) : null;
+  },
 });
+
+export const toChatAttachment = (attachment: PersistedAttachment): ChatAttachment => ({
+  id: attachment.id,
+  name: attachment.fileName,
+  mimeType: attachment.mimeType,
+  sizeBytes: attachment.sizeBytes,
+});
+
+export function bindChatAttachments(
+  database: DatabaseSync,
+  input: {
+    companyId: CompanyId;
+    conversationId: string;
+    messageId: string;
+    ids: readonly string[];
+    sourceContent: MessageContent;
+  },
+): ChatAttachment[] {
+  const repository = createAttachmentRepository(database);
+  const inherited = new Set(readChatAttachments(input.sourceContent).map(({ id }) => id));
+  return input.ids.map((id) => {
+    const attachment = repository.get(input.companyId, input.conversationId, id);
+    if (
+      !attachment ||
+      (attachment.messageId !== null &&
+        attachment.messageId !== input.messageId &&
+        !inherited.has(id))
+    ) {
+      throw new Error("Un adjunto ya no está disponible para este mensaje.");
+    }
+    if (attachment.messageId === null) {
+      database
+        .prepare("UPDATE attachments SET message_id = ? WHERE id = ?")
+        .run(input.messageId, id);
+    }
+    return toChatAttachment(attachment);
+  });
+}

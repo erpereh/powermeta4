@@ -376,9 +376,15 @@ Los mensajes operativos de la explicación IA y el chat conservan su comportamie
 
 El Thread conserva `ExternalStoreRuntime` y una sola instancia de
 `ComposerPrimitive.Root`, un único `Viewport` y un `ViewportFooter` integrado.
-El estado vacío centra el welcome y el composer; al iniciar una conversación
-el footer se vuelve sticky dentro del viewport, nunca `fixed` respecto de la
-ventana.
+El estado vacío mantiene el welcome y el composer a una altura estable. Las
+recomendaciones tienen su propio desplazamiento bajo el composer. Al iniciar
+una conversación el footer se vuelve sticky dentro del viewport.
+
+El clip y el arrastre añaden archivos al composer. La lista usa las filas
+de carga de beUI a través de la fachada y el indicador «Escribiendo…» usa
+`Loader` con tres puntos. El foco de teclado usa un contorno neutro.
+El botón «Fuentes» en la cabecera abre el panel derecho en escritorio y el
+`Drawer` en móvil. Las referencias se muestran por turno de la rama activa.
 
 Las recomendaciones contextuales tienen dos niveles: categorías y acciones.
 No hay selección inicial. Las acciones usan `ThreadPrimitive.Suggestion` con
@@ -395,11 +401,10 @@ Los favoritos se derivan de `Chat.favorite`; no se crean arrays paralelos.
 
 El historial pintado en el Thread es el transcript SQLite real. Cada ejecución
 reconstruye la rama exacta desde el `parentMessageId` del mensaje asistente en
-curso y envía al endpoint únicamente texto no vacío de mensajes `user` y
-`assistant`; excluye el placeholder actual y partes no textuales. El endpoint
-no recibe system prompts, tools, function calling ni datos de Meta4. Se
-conservan streaming, cancelación, estados persistidos, edición, regeneración,
-ramas y `headMessageId`.
+curso y envía el texto de mensajes `user` y `assistant`, las instrucciones
+del asistente y los fragmentos de manuales y adjuntos elegidos en el servidor.
+Se conservan streaming, cancelación, estados persistidos, edición,
+regeneración, ramas y `headMessageId`.
 
 ## Recibo de nómina
 

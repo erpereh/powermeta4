@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   streamResponse: vi.fn(),
   getChatProvider: vi.fn(),
   retrieveRelevantChunks: vi.fn(),
+  setMessageSources: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/session", () => ({
@@ -20,13 +21,14 @@ vi.mock("@/lib/auth/session", () => ({
   deleteSessionCookie: mocks.deleteSessionCookie,
 }));
 vi.mock("@/lib/workspace/service", () => ({
-  getWorkspaceSnapshot: mocks.getWorkspaceSnapshot,
+  getWorkspaceScope: mocks.getWorkspaceSnapshot,
   getWorkspaceRepository: mocks.getWorkspaceRepository,
 }));
 vi.mock("@/lib/ai/get-chat-provider", () => ({
   getChatProvider: mocks.getChatProvider,
 }));
-vi.mock("@/lib/knowledge/retrieval-service", () => ({
+vi.mock(import("@/lib/knowledge/retrieval-service"), async (original) => ({
+  ...(await original()),
   retrieveRelevantChunks: mocks.retrieveRelevantChunks,
 }));
 
@@ -64,7 +66,7 @@ const message = (
   parentMessageId,
   content: text ? [{ type: "text", text }] : [],
   createdAt: at,
-  status: "complete",
+  status: id === "assistant-target" && role === "assistant" ? "running" : "complete",
 });
 
 const chat = (messages: Message[]): Chat => ({
@@ -105,10 +107,15 @@ beforeEach(() => {
   mocks.streamResponse.mockReset();
   mocks.getChatProvider.mockReset();
   mocks.retrieveRelevantChunks.mockReset();
+  mocks.setMessageSources.mockReset();
 
   mocks.getCurrentAuthContext.mockResolvedValue({ authContext });
   mocks.getWorkspaceSnapshot.mockResolvedValue(snapshot);
-  mocks.getWorkspaceRepository.mockReturnValue({ getConversation: mocks.getConversation });
+  mocks.setMessageSources.mockResolvedValue(true);
+  mocks.getWorkspaceRepository.mockReturnValue({
+    getConversation: mocks.getConversation,
+    setMessageSources: mocks.setMessageSources,
+  });
   mocks.getConversation.mockResolvedValue(
     chat([
       message("user-1", "user", null, "Hola"),
@@ -205,7 +212,7 @@ describe("POST /api/chat/run", () => {
     // Retrieval runs against the actual latest question, not the whole
     // history, and the provider only ever receives a system message plus
     // the conversation - never a direct call to a concrete provider API.
-    expect(mocks.retrieveRelevantChunks).toHaveBeenCalledWith("Siguiente");
+    expect(mocks.retrieveRelevantChunks).toHaveBeenCalledWith("Siguiente", expect.any(Object));
     const call = mocks.streamResponse.mock.calls[0]?.[0];
     expect(call.messages[0]).toMatchObject({ role: "system" });
     expect(call.messages.slice(1)).toEqual([
@@ -216,7 +223,7 @@ describe("POST /api/chat/run", () => {
     expect(call.abortSignal).toBeInstanceOf(AbortSignal);
   });
 
-  it("includes retrieved manual excerpts in the system message sent to the provider", async () => {
+  it("sends retrieved excerpts as data and records the actual sources", async () => {
     mocks.retrieveRelevantChunks.mockResolvedValue([
       {
         chunkId: "c1",
@@ -229,11 +236,19 @@ describe("POST /api/chat/run", () => {
       },
     ]);
 
-    await POST(request(validBody));
+    const response = await POST(request(validBody));
+    expect(parseSse(await response.text())).toContainEqual({
+      type: "sources",
+      sources: [
+        { kind: "manual", id: "d1", name: "Manual de Instalación.pdf", page: 37, version: 1 },
+      ],
+    });
 
     const call = mocks.streamResponse.mock.calls[0]?.[0];
-    expect(call.messages[0].content).toContain("Manual de Instalación.pdf, p.37");
-    expect(call.messages[0].content).toContain("16 bar");
+    expect(call.messages[0].content).not.toContain("16 bar");
+    expect(call.messages[1].content).toContain('"pagina":37');
+    expect(call.messages[1].content).toContain("16 bar");
+    expect(call.messages[2]).toEqual({ role: "user", content: "Hola" });
   });
 
   it("degrades to no-context instead of failing the turn when retrieval throws", async () => {
@@ -242,6 +257,7 @@ describe("POST /api/chat/run", () => {
     const response = await POST(request(validBody));
 
     expect(response.status).toBe(200);
+    await response.text();
     const call = mocks.streamResponse.mock.calls[0]?.[0];
     expect(call.messages[0].content).toContain(NO_ANSWER_SENTENCE);
   });
@@ -301,7 +317,8 @@ describe("POST /api/chat/run", () => {
         yield delta;
       }
       await new Promise<void>((resolve) => {
-        abortSignal?.addEventListener("abort", () => resolve(), { once: true });
+        if (abortSignal?.aborted) resolve();
+        else abortSignal?.addEventListener("abort", () => resolve(), { once: true });
       });
       throw Object.assign(new Error("aborted"), { name: "AbortError" });
     });
