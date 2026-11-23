@@ -1,5 +1,11 @@
 # powermeta4 - estado de tareas
 
+## Edición de mensajes del chat — 2026-11-23
+
+- [x] Lápiz en el margen derecho de la burbuja del usuario, con la alineación
+      original del mensaje. Comprobado en Chrome a 1360, 820, 390 y 320 px
+      con mensajes cortos y largos. La edición se abre con Enter.
+
 ## Chat, RAG y fuentes — 2026-11-23
 
 - [x] Índice FTS5 local con 74 manuales y 17.782 fragmentos. Embeddings de

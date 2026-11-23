@@ -366,22 +366,22 @@ const AssistantActionBar: FC = () => (
 
 const UserMessage: FC = () => (
   <MessagePrimitive.Root className={USER_MESSAGE_ROOT_CLASS} data-role="user">
-    <MessageBubble variant="soft" align="end" animateIn={false}>
+    <MessageBubble variant="soft" align="end" animateIn={false} className="relative">
       <MessageBubbleContent className={USER_MESSAGE_BUBBLE_CLASS}>
         <SentChatAttachments />
         <MessagePrimitive.Parts />
       </MessageBubbleContent>
+      <ActionBarPrimitive.Root className="absolute start-full top-1/2 -ms-2 -translate-y-1/2 sm:-ms-1">
+        <ActionBarPrimitive.Edit asChild>
+          <TooltipIconButton tooltip="Editar" aria-label="Editar mensaje" variant="ghost">
+            <Pencil className="size-4 translate-x-1 sm:translate-x-0.5" />
+          </TooltipIconButton>
+        </ActionBarPrimitive.Edit>
+      </ActionBarPrimitive.Root>
     </MessageBubble>
     <div className="flex w-full justify-end">
       <BranchPicker />
     </div>
-    <ActionBarPrimitive.Root className="absolute start-0 top-1/2 -translate-x-full -translate-y-1/2 pe-1">
-      <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip="Editar" aria-label="Editar mensaje" variant="ghost">
-          <Pencil className="size-4" />
-        </TooltipIconButton>
-      </ActionBarPrimitive.Edit>
-    </ActionBarPrimitive.Root>
   </MessagePrimitive.Root>
 );
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-23 - Lápiz de edición junto al mensaje
+
+- El botón «Editar mensaje» se coloca en el margen derecho. La burbuja del
+  usuario conserva su alineación original.
+- Chrome comprobado a 1360, 820, 390 y 320 px con mensajes cortos y largos,
+  sin desbordamiento horizontal y con activación por teclado.
+
 ## 2026-11-23 - RAG híbrido, adjuntos y panel de fuentes
 
 - El chat guarda los adjuntos con el mensaje, extrae texto localmente y
