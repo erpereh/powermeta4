@@ -18,6 +18,10 @@ export type EmbeddingStatus = {
 export interface EmbeddingProvider {
   readonly name: string;
   /** Order-preserving: result[i] is the embedding for texts[i]. */
-  embed(texts: readonly string[], taskType: EmbeddingTaskType): Promise<number[][]>;
+  embed(
+    texts: readonly string[],
+    taskType: EmbeddingTaskType,
+    signal?: AbortSignal,
+  ): Promise<number[][]>;
   getStatus(): EmbeddingStatus;
 }

@@ -9,7 +9,7 @@ import {
   type KnowledgeRepository,
 } from "@/server/database/repositories/knowledge-repository";
 
-import { retrieveRelevantChunks } from "./retrieval-service";
+import { buildRetrievalQuestion, retrieveRelevantChunks } from "./retrieval-service";
 
 const databases: DatabaseSync[] = [];
 
@@ -68,6 +68,7 @@ describe("retrieveRelevantChunks", () => {
       { id: "chunk-c", text: "Presión de trabajo recomendada.", embedding: [0.9, 0.1, 0] },
     ]);
     const embeddingProvider = createMockEmbeddingProvider({
+      model: "test-model",
       vectorFor: () => [1, 0, 0],
     });
 
@@ -93,7 +94,10 @@ describe("retrieveRelevantChunks", () => {
       { id: "chunk-a", text: "Contenido relacionado.", embedding: [1, 0, 0] },
       { id: "chunk-b", text: "Contenido no relacionado.", embedding: [0, 1, 0] },
     ]);
-    const embeddingProvider = createMockEmbeddingProvider({ vectorFor: () => [1, 0, 0] });
+    const embeddingProvider = createMockEmbeddingProvider({
+      model: "test-model",
+      vectorFor: () => [1, 0, 0],
+    });
 
     const results = await retrieveRelevantChunks("pregunta", {
       repository,
@@ -110,7 +114,10 @@ describe("retrieveRelevantChunks", () => {
     seedDocumentWithChunks(repository, [
       { id: "chunk-a", text: "Contenido no relacionado en absoluto.", embedding: [0, 1, 0] },
     ]);
-    const embeddingProvider = createMockEmbeddingProvider({ vectorFor: () => [1, 0, 0] });
+    const embeddingProvider = createMockEmbeddingProvider({
+      model: "test-model",
+      vectorFor: () => [1, 0, 0],
+    });
 
     const results = await retrieveRelevantChunks("pregunta totalmente ajena", {
       repository,
@@ -126,8 +133,16 @@ describe("retrieveRelevantChunks", () => {
     // Both chunks are equidistant (cosine 0.6) from the question embedding;
     // only "codigo especial ABC123" also matches the question's keywords.
     seedDocumentWithChunks(repository, [
-      { id: "chunk-keyword", text: "El codigo especial ABC123 identifica la pieza.", embedding: [0.6, 0.8, 0] },
-      { id: "chunk-plain", text: "Otro contenido cualquiera sin relación textual.", embedding: [0.6, 0.8, 0] },
+      {
+        id: "chunk-keyword",
+        text: "El codigo especial ABC123 identifica la pieza.",
+        embedding: [0.6, 0.8, 0],
+      },
+      {
+        id: "chunk-plain",
+        text: "Otro contenido cualquiera sin relación textual.",
+        embedding: [0.6, 0.8, 0],
+      },
     ]);
     const embeddingProvider = createMockEmbeddingProvider({ vectorFor: () => [1, 0, 0] });
 
@@ -146,6 +161,32 @@ describe("retrieveRelevantChunks", () => {
     const embeddingProvider = createMockEmbeddingProvider({ configured: false });
 
     expect(await retrieveRelevantChunks("pregunta", { repository, embeddingProvider })).toEqual([]);
+  });
+
+  it("still retrieves an exact code when an embedding request fails", async () => {
+    const repository = createRepository();
+    seedDocumentWithChunks(repository, [
+      { id: "chunk-a", text: "El código M4_NUMBER indica el tipo numérico.", embedding: [1, 0, 0] },
+      { id: "chunk-b", text: "El código M4_STRING indica el tipo texto.", embedding: [0, 1, 0] },
+    ]);
+    const embeddingProvider = createMockEmbeddingProvider({ model: "test-model" });
+    embeddingProvider.embed = async () => {
+      throw new Error("Cuota de prueba");
+    };
+
+    const results = await retrieveRelevantChunks("¿Qué significa M4_NUMBER?", {
+      repository,
+      embeddingProvider,
+    });
+    expect(results.map(({ chunkId }) => chunkId)).toEqual(["chunk-a"]);
+  });
+
+  it("uses the previous question only for an abbreviated follow-up", () => {
+    const previous = "¿Cómo se configura la consulta de nómina?";
+    expect(buildRetrievalQuestion("en la app de PeopleNet directamente", previous)).toContain(
+      previous,
+    );
+    expect(buildRetrievalQuestion("¿Qué es SAML?", previous)).toBe("¿Qué es SAML?");
   });
 
   it("returns [] when the knowledge base has no chunks yet", async () => {

@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-11-23 - Consultas de PeopleNet desde el chat
+
+- Consultas locales de las siete acciones de lectura de Inicio, con filtros,
+  cálculos, seguimientos por rama y resultados paginados. El alta sigue en su
+  pantalla de Inicio.
+- Cada consulta vuelve a validar el workspace y la sesión. El historial
+  guarda la pregunta y una referencia que permite volver a leer los datos.
+  Los turnos operativos quedan fuera del RAG y del proveedor de IA.
+- Probadas las siete acciones con datos ficticios en Chrome DEBUG, incluida
+  la reapertura con teclado y la paginación en móvil de 320 px. Pendiente
+  contrastar las lecturas reales en la máquina con acceso a PeopleNet.
+- Suite completa con 1.750 aprobadas y dos omitidas. Typecheck, build,
+  formato del TypeScript tocado y diff correctos. El lint general mantiene
+  673 archivos con problemas de formato preexistentes.
+
+## 2026-11-23 - Lápiz de edición junto al mensaje
+
+- El botón «Editar mensaje» se coloca en el margen derecho. La burbuja del
+  usuario conserva su alineación original.
+- Chrome comprobado a 1360, 820, 390 y 320 px con mensajes cortos y largos,
+  sin desbordamiento horizontal y con activación por teclado.
+
+## 2026-11-23 - RAG híbrido, adjuntos y panel de fuentes
+
+- El chat guarda los adjuntos con el mensaje, extrae texto localmente y
+  envía al proveedor las referencias de la rama activa. El panel derecho
+  abre los manuales por página y descarga los adjuntos usados en cada turno.
+- La ingesta local publica 74 manuales y 17.782 fragmentos en FTS5.
+  La indexación vectorial de Gemini continúa por lotes y conserva su avance
+  al alcanzar la cuota. Quedaron 840 vectores, incluido el manual completo
+  de LN4. OpenRouter devolvió HTTP 410 para el modelo anterior.
+- Evaluación sobre el mismo índice con 480 vectores: 4/10 → 10/10 consultas
+  con referencia válida entre las seis primeras, 2/4 → 0/4 falsos positivos
+  y mediana de ranking de 45 → 41 ms, excluyendo la red de embeddings.
+- El composer usa adjuntos y Loader de beUI, foco neutro y recomendaciones
+  sin desplazamiento del campo. La hidratación activa conserva las respuestas
+  en curso y el arranque recupera las ejecuciones interrumpidas.
+- DEBUG y Chrome verificados con la nómina real en local y una nómina y un
+  XLSX ficticios con Gemini. Suite completa con 1.734 casos correctos y dos
+  omitidos. Revisión dirigida final con 127 correctos. Typecheck, build y
+  formato de los TypeScript tocados correctos. Lint global pendiente en
+  676 archivos previos.
+
 ## 2026-11-23 - Alta de personas: documentos repetidos y carga desde Excel
 
 - Las altas de prueba 109997, 109999 y 110000 no crearon personas: Meta4

@@ -1,161 +1,75 @@
-# Base de conocimiento (RAG sobre manuales PDF)
+# RAG y adjuntos del chat
 
-El chat puede responder basándose en manuales PDF indexados de antemano, en
-lugar de solo con lo que el modelo ya sabe. Responde como un experto de
-PeopleNet que ya conoce esa información, no como un buscador de
-documentación: nunca dice "según el manual" ni cita página o fragmento (ver
-[Persona y umbral de confianza](#persona-y-umbral-de-confianza)).
+El chat de powermeta4 combina el historial de la rama activa, fragmentos de
+manuales de PeopleNet y texto extraído de los archivos que el usuario adjunta.
+El botón **Fuentes** abre las referencias de cada respuesta. Los manuales
+enlazan a la página utilizada y los adjuntos se pueden descargar.
 
-## Arquitectura
+## Indexar los manuales
 
-```
-PDF (offline, npm run kb:ingest)
-  → extracción de texto por página (unpdf)
-  → limpieza de cabeceras/pies de página repetidos
-  → división en fragmentos con solape (por página, nunca cruzan página)
-  → embedding por fragmento
-  → kb_documents / kb_chunks (+ índice FTS5 kb_chunks_fts)
-
-Pregunta del usuario (por turno, en /api/chat/run)
-  → embedding de la pregunta
-  → similitud coseno sobre los vectores + candidatos por palabra clave (FTS5)
-  → top-K por encima de un umbral de confianza
-  → system message con ese contexto como DATO interno (nunca citado)
-  → proveedor de IA configurado → respuesta, en tono de experto PeopleNet
+```powershell
+npm run kb:ingest -- --lexical
+npm run kb:ingest -- --max-vectors=120
+npm run kb:evaluate -- --lexical
+npm run kb:evaluate
 ```
 
-Todo lo relacionado con "hablar con un proveedor de IA" vive en
-`src/lib/ai/`: una interfaz de chat (`chat-provider.ts`) y una de embeddings
-(`embedding-provider.ts`), con una única implementación hoy
-(`providers/http-compatible.ts`) que habla el protocolo HTTP estándar ya
-configurado en `AI_BASE_URL`/`AI_API_KEY`. Ni el chat ni el módulo de
-conocimiento (`src/lib/knowledge/`) llaman a ese protocolo directamente:
-piden la implementación activa a `getChatProvider()` / `getEmbeddingProvider()`.
+La ingesta carga `.env.local` y recorre `KB_SOURCE_DIR`. Extrae el texto por
+página, limpia cabeceras y pies repetidos y publica los fragmentos de cada PDF
+juntos en SQLite. El archivo original queda bajo `uploads/manuals/`.
+La ruta de origen identifica el documento y su huella permite omitir archivos
+sin cambios. Las referencias guardan la versión del PDF que se consultó.
 
-## Base de datos
+El índice FTS5 queda disponible al acabar la extracción. La ingesta normal
+continúa con los embeddings en lotes y prioriza LN4 y nómina. Los lotes
+completados se guardan y una ejecución posterior continúa por los fragmentos
+pendientes. `--lexical` usa solo recursos locales. `--max-vectors=N` limita
+los vectores generados en esa ejecución. Los límites temporales se reintentan
+respetando el plazo indicado por el proveedor. Los demás límites conservan el
+avance y detienen la ingesta vectorial.
 
-Dos tablas nuevas (migración `010_knowledge_base.sql`), sin tocar ninguna
-tabla existente:
+La conexión de embeddings puede ser independiente. Si `EMBEDDING_BASE_URL`
+y `EMBEDDING_API_KEY` están vacías, se usan las variables del chat. El
+entorno de desarrollo se comprobó con `EMBEDDING_MODEL=gemini-embedding-001`,
+`EMBEDDING_DIMENSIONS=768` y `KB_MIN_SCORE=0.55`.
+El índice semántico compara únicamente vectores del modelo activo y de la
+dimensión de consulta. El umbral se ajusta contra preguntas conocidas cada
+vez que se cambia de modelo. `KB_TOP_K` controla la selección y el chat envía
+hasta seis fragmentos. El tamaño y solape predeterminados de fragmento son
+1.200 y 150 caracteres.
 
-- `kb_documents`: un PDF indexado (ruta, checksum, nº de versión, modelo de
-  embeddings usado, fecha de indexación...). Los PDF en sí no se guardan en
-  la base de datos, se copian a `data/uploads/manuals/` (por eso quedan
-  incluidos automáticamente en los backups existentes) y la tabla solo
-  guarda la referencia.
-- `kb_chunks`: cada fragmento (texto, página, sección si se detectó,
-  posición, y el vector de embedding como BLOB).
-- `kb_chunks_fts`: índice FTS5 para la búsqueda por palabra clave.
+La consulta fusiona similitud semántica con FTS5, da prioridad a identificadores
+exactos y limita fragmentos repetidos. Los seguimientos breves pueden incorporar
+la pregunta anterior de la misma rama. Si los embeddings fallan o faltan,
+se usan coincidencias léxicas con suficiente cobertura.
+`kb:evaluate` compara el ranking anterior y el actual sobre el mismo índice,
+incluye seguimientos y preguntas ajenas al dominio e informa de aciertos,
+falsos positivos y latencia. En la prueba vectorial, ambas evaluaciones
+comparten el vector de la misma pregunta cuando es posible.
 
-No hay `company_id`: los manuales son conocimiento global del proyecto, no
-datos por empresa.
+## Adjuntar archivos
 
-Como el cliente de sqlite del proyecto tiene deshabilitada la carga de
-extensiones nativas (`enableLoadExtension(false)`), no se usa ninguna
-extensión de vectores: la búsqueda semántica hace un escaneo en memoria con
-similitud coseno sobre los vectores guardados. Es válido hasta varias
-decenas de miles de fragmentos; si la colección crece mucho más allá de eso,
-la vía de escape es sustituir ese escaneo por un índice de vecinos más
-cercanos, sin tocar el resto de la arquitectura.
+El clip y el arrastre admiten hasta tres archivos por mensaje de 5 MiB cada
+uno. Se leen PDF con texto (hasta 80 páginas), TXT, Markdown, CSV y XLSX.
+Los textos y CSV se leen en UTF-8 y los Excel usan los valores guardados en
+las celdas. Si la selección de contexto recorta un archivo o quedan páginas
+sin texto, la fuente está marcada como lectura parcial.
 
-## Cómo añadir o actualizar manuales
+Los originales quedan en `uploads/chat/`, asociados a la conversación y a
+su mensaje de usuario. SQLite conserva las referencias al adjunto en la rama.
+El servidor comprueba sesión, empresa y conversación para subir y descargar.
+La edición puede conservar o retirar adjuntos de la nueva rama y regenerar
+respuestas reutiliza los adjuntos de sus mensajes anteriores. La copia local
+incluye la base y los archivos gestionados.
 
-1. Coloca los PDF en la carpeta que apunte `KB_SOURCE_DIR` (en `.env.local`).
-   La ingesta recorre todas sus subcarpetas, por lo que se puede mantener la
-   clasificación `configuracion/`, `usuario/` y `tecnologia/` de
-   `manuales/oficiales/`.
-2. Ejecuta `npm run kb:ingest`.
+Al enviar una pregunta, el chat pasa al proveedor solo texto de los
+adjuntos utilizados, con un presupuesto de 24.000 caracteres por turno.
+El proveedor de embeddings recibe únicamente la consulta de búsqueda.
+El texto extraído se mantiene fuera del índice de manuales. Tanto los PDF de
+referencia como los adjuntos se incorporan en un bloque de datos separado de
+las instrucciones del sistema y de la pregunta actual.
 
-Un PDF cuyo contenido no ha cambiado (mismo hash) y cuyo modelo de
-embeddings sigue siendo el mismo se omite. Un PDF nuevo se indexa. Un PDF
-modificado se reindexa por completo (se sustituyen sus fragmentos, no se
-duplican). Nada de esto ocurre al hacer una pregunta en el chat: la ingesta
-es siempre un paso aparte, manual.
-
-## Configuración (variables de entorno)
-
-| Variable | Qué hace |
-|---|---|
-| `AI_PROVIDER` | Implementación de chat activa (`http-compatible` es la única incluida). |
-| `EMBEDDING_PROVIDER` | Implementación de embeddings activa (idem). |
-| `EMBEDDING_MODEL` | Modelo de embeddings a usar. |
-| `EMBEDDING_BASE_URL` / `EMBEDDING_API_KEY` | Endpoint y clave para los embeddings, independientes de `AI_BASE_URL`/`AI_API_KEY` (el chat). Opcionales: si no se ponen, los embeddings usan la misma conexión que el chat. Así el chat puede ir por un proveedor y los embeddings por otro completamente distinto. |
-| `EMBEDDING_DIMENSIONS` | Dimensión del vector pedida al proveedor. Déjala sin definir si el modelo tiene un tamaño fijo (algunos rechazan cualquier otro valor). |
-| `KB_SOURCE_DIR` | Carpeta con los PDF a indexar (usada solo por `kb:ingest`). |
-| `KB_CHUNK_SIZE_CHARS` / `KB_CHUNK_OVERLAP_CHARS` | Tamaño y solape de los fragmentos. |
-| `KB_TOP_K` | Cuántos fragmentos como máximo se recuperan por pregunta. |
-| `KB_MIN_SCORE` | Umbral de confianza; por debajo, se descarta el fragmento en vez de arriesgarse a citarlo. **Específico del modelo de embeddings configurado**, ver más abajo. |
-
-El tamaño/solape de fragmento (1200/150 caracteres) y `KB_TOP_K` (6) están
-calibrados sobre manuales reales de este proyecto (~2.300-3.500 caracteres
-por página) y no dependen del modelo de embeddings; ajústalos si el tipo de
-documentación cambia mucho.
-
-`KB_MIN_SCORE` sí depende por completo del modelo de embeddings: cada modelo
-tiene su propio rango "normal" de similitud coseno, y no son comparables
-entre sí. Con `gemini-embedding-001` las preguntas relevantes puntuaban
-~0.65-0.77 y hacía falta un umbral alto (0.55) para descartar ruido. Con
-`nvidia/nemotron-3-embed-1b:free` (OpenRouter) los números son mucho más
-bajos en términos absolutos: medido sobre los mismos manuales, las preguntas
-sin relación apenas llegan a ~0.09, y las preguntas con respuesta real
-puntúan ~0.29 o más - por eso su umbral es 0.2, no 0.55. **Si cambias
-`EMBEDDING_MODEL`, tienes que recalibrar `KB_MIN_SCORE`** (ver la sección
-siguiente); usar el umbral del modelo anterior puede dejar el chat sin
-resultados nunca (umbral demasiado alto) o citando fragmentos poco
-relevantes (demasiado bajo).
-
-## Cambiar de proveedor de IA o de embeddings
-
-Ninguna otra parte de la aplicación sabe qué proveedor está activo. Añadir
-uno nuevo es: crear el archivo en `src/lib/ai/providers/`, añadir un `case`
-en `get-chat-provider.ts` o `get-embedding-provider.ts`, y seleccionarlo con
-`AI_PROVIDER`/`EMBEDDING_PROVIDER` en `.env.local` - sin tocar el chat ni el
-módulo de conocimiento.
-
-Si el nuevo modelo de embeddings tiene una dimensión distinta, basta con
-volver a ejecutar `npm run kb:ingest`: `ingest.ts` detecta que el
-`embedding_model` guardado no coincide con el configurado y reindexa cada
-documento automáticamente.
-
-## Cómo recalibrar `KB_MIN_SCORE` tras cambiar de modelo de embeddings
-
-1. Reindexa con el modelo nuevo (`npm run kb:ingest`).
-2. Compara las puntuaciones en bruto (sin filtrar) de un par de preguntas
-   con respuesta real en los manuales frente a un par de preguntas sin
-   relación ninguna, por ejemplo:
-   ```ts
-   const vectors = createKnowledgeRepository().getAllChunkVectors();
-   const [q] = await getEmbeddingProvider().embed([pregunta], "query");
-   vectors.map(v => cosineSimilarity(q, v.embedding)).sort((a, b) => b - a).slice(0, 3);
-   ```
-3. Elige un `KB_MIN_SCORE` entre el techo de las irrelevantes y el suelo de
-   las relevantes (con margen de seguridad a ambos lados).
-
-## Persona y umbral de confianza
-
-El chat responde como **PowerMeta4**, un asistente experto en PeopleNet/
-Meta4 - no como un buscador de documentación. El system message
-(`src/lib/knowledge/prompt.ts`) le prohíbe explícitamente decir "según el
-manual", "en la página X", "la documentación indica" o mencionar de
-cualquier forma que existen manuales, PDFs, fragmentos, embeddings o un
-proceso de búsqueda; debe responder como si ya conociera la información por
-su propia experiencia con el producto.
-
-Cada fragmento recuperado sí sigue llevando documento y página como
-metadato **interno** (útil para que el modelo note si dos fuentes se
-contradicen, y para el log de trazabilidad del lado servidor en
-`route.ts`), pero las reglas dejan claro que eso es solo para su
-razonamiento, nunca algo que deba repetir en la respuesta.
-
-Si no se recupera ningún fragmento por encima de `KB_MIN_SCORE`, el chat no
-intenta responder con conocimiento general: debe decir, con sus propias
-palabras y sin mencionar manuales, que no tiene información suficiente para
-responder con seguridad (frase base en `NO_ANSWER_SENTENCE`).
-
-## Seguridad frente a contenido de los PDF
-
-El bloque de contexto interno se manda siempre como DATO, nunca como
-instrucción: el system message le dice explícitamente al modelo que ignore
-cualquier texto dentro de los manuales que intente darle órdenes o cambiar
-las reglas, y que nunca revele que ese contexto existe. La pregunta real del
-usuario viaja aparte, en los mensajes de la conversación, nunca mezclada
-dentro del bloque de contexto.
+Para probar el flujo, se puede adjuntar un recibo de prueba y pedir los
+conceptos e importes junto con un ejemplo de sintaxis LN4. Las equivalencias
+sin respaldo se dejan pendientes. También se puede subir un XLSX con medidas
+ficticias y pedir una comparación entre filas u hojas.

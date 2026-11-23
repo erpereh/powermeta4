@@ -28,7 +28,11 @@ vi.mock("@/app/actions/workspace", () => ({
 
 vi.mock("@/stores/use-workspace-store", () => ({
   hydrateWorkspaceStore: vi.fn(),
-  useWorkspaceStore: (selector: (state: typeof workspaceState & { createChat: () => string; selectChat: () => void }) => unknown) =>
+  useWorkspaceStore: (
+    selector: (
+      state: typeof workspaceState & { createChat: () => string; selectChat: () => void },
+    ) => unknown,
+  ) =>
     selector({
       ...workspaceState,
       createChat: () => "chat-1",
@@ -37,20 +41,19 @@ vi.mock("@/stores/use-workspace-store", () => ({
 }));
 
 vi.mock("@/components/chat/chat-runtime-provider", () => ({
-  ChatRuntimeProvider: ({ children, chatStatus }: { children: ReactNode; chatStatus: GlobalChatStatus }) => (
-    <div data-testid="runtime" data-configured={String(chatStatus.configured)} data-model={chatStatus.model ?? "none"}>
-      {children}
-    </div>
-  ),
+  ChatRuntimeProvider: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock("@/components/assistant-ui/thread", () => ({
   // Mirrors src/lib/chat/chat-status.ts's getChatStatusLabel: no label at
   // all once configured - never reveals which model/provider is active.
   Thread: ({ chatStatus }: { chatStatus: GlobalChatStatus }) => (
-    <div>
+    <div
+      data-testid="thread"
+      data-configured={String(chatStatus.configured)}
+      data-model={chatStatus.model ?? "none"}
+    >
       <p>{chatStatus.configured && chatStatus.model ? "" : "IA no configurada"}</p>
-      <button type="button" disabled={!chatStatus.configured}>Enviar mensaje</button>
     </div>
   ),
 }));
@@ -101,22 +104,20 @@ const renderChat = (chatStatus: GlobalChatStatus) =>
   );
 
 describe("ChatScreen global chat status", () => {
-  it("forwards an incomplete global configuration and blocks send", () => {
+  it("forwards an incomplete external provider configuration to the thread", () => {
     renderChat({ configured: false, model: null });
 
     expect(screen.getByText("IA no configurada")).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Enviar mensaje" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByTestId("runtime").getAttribute("data-configured")).toBe("false");
-    expect(screen.getByTestId("runtime").getAttribute("data-model")).toBe("none");
+    expect(screen.getByTestId("thread").getAttribute("data-configured")).toBe("false");
+    expect(screen.getByTestId("thread").getAttribute("data-model")).toBe("none");
   });
 
   it("forwards the configured model internally without ever displaying it", () => {
     renderChat({ configured: true, model: "gemini-2.5-flash" });
 
     expect(screen.queryByText(/gemini/i)).toBeNull();
-    expect((screen.getByRole("button", { name: "Enviar mensaje" }) as HTMLButtonElement).disabled).toBe(false);
-    expect(screen.getByTestId("runtime").getAttribute("data-configured")).toBe("true");
-    expect(screen.getByTestId("runtime").getAttribute("data-model")).toBe("gemini-2.5-flash");
+    expect(screen.getByTestId("thread").getAttribute("data-configured")).toBe("true");
+    expect(screen.getByTestId("thread").getAttribute("data-model")).toBe("gemini-2.5-flash");
     expect(screen.queryByRole("combobox")).toBeNull();
   });
 });

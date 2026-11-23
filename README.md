@@ -63,24 +63,39 @@ Las conversaciones conservan ramas mediante `parentMessageId`,
 assistant-ui. Los mensajes `running` abandonados se recuperan como
 `incomplete` y no se reanudan automáticamente.
 
-El chat usa `POST /api/chat/run` (SSE, Node.js) y un endpoint
+El chat documental usa `POST /api/chat/run` (SSE, Node.js) y un endpoint
 OpenAI-compatible global configurado exclusivamente en el servidor mediante
 `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`. Las tres variables son obligatorias;
 no se guardan en SQLite ni se exponen al navegador. La UI solo recibe el
-estado seguro `{ configured, model }` y muestra `IA · <AI_MODEL>` o
-`IA no configurada`.
+estado seguro `{ configured, model }` y avisa cuando falta la configuración.
 
 El transcript visible en SQLite conserva el texto real, ramas, edición,
 regeneración y reload. Para cada ejecución el servidor sigue
-`parentMessageId` desde el mensaje asistente en curso y envía únicamente
-ancestros `user`/`assistant` con texto no vacío. Excluye el placeholder actual,
-partes no textuales, system prompts, tools, function calling y cualquier dato
-de Meta4. El cliente compatible normaliza la raíz de `AI_BASE_URL` a
+`parentMessageId` desde el mensaje asistente en curso. Envía el texto de los
+ancestros documentales `user`/`assistant`, las reglas del asistente y el contexto
+seleccionado de manuales y adjuntos. El cliente compatible normaliza la raíz de `AI_BASE_URL` a
 `/chat/completions`, envía `{ model, messages, stream: true }`, procesa SSE y
 persiste contenido incremental y estados `complete`, `cancelled` o `failed`.
 El esquema actual es `DATABASE_SCHEMA_VERSION = 11`; la migración 009 elimina
 la infraestructura exclusiva del agente y las configuraciones de proveedor,
 sin tocar conversaciones, mensajes, attachments ni el grafo de padres.
+
+El clip y el arrastre admiten PDF con texto, TXT, Markdown, CSV y XLSX.
+Los archivos se conservan localmente con el mensaje y el servidor comparte
+su texto con el proveedor de IA al enviar una consulta documental. El panel «Fuentes»
+muestra los manuales y adjuntos usados en cada respuesta.
+`npm run kb:ingest -- --lexical` construye el índice local y
+`npm run kb:ingest` incorpora embeddings.
+Configuración y evaluación en la [guía del RAG](docs/knowledge-base-rag.md).
+
+El chat detecta consultas de usuarios, recibos de nómina, quinquenal,
+resultados de nómina, proyecciones, certificado de retenciones y Primavera.
+Por ejemplo, «Consulta la nómina de matrícula 90001 de octubre de 2026»
+funciona con datos ficticios en DEBUG. Con sesión Meta4 usa el alcance de
+la acción de Inicio y la sociedad resuelta en servidor. Usa `PeopleNet:`
+para indicar que una pregunta ambigua pide datos operativos. Las filas no
+se envían al proveedor ni se guardan en el transcript. «Ver resultado»
+vuelve a consultar la referencia del turno con la sesión vigente.
 
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Tras un login Meta4 real se consulta el perfil de usuario
@@ -353,5 +368,6 @@ y los límites reales de esta captura están en la guía de continuidad.
 Los [detalles del diagnóstico](docs/portal/implementacion/evidencias-vm/README.md)
 describen su operación, sin convertirla en un paso obligatorio de este cierre.
 
-Las acciones ERP actuales son un catálogo local honesto; no ejecutan
-operaciones externas ni representan sincronización con un sistema real.
+Inicio indica qué acciones ERP están disponibles. Las consultas implementadas
+leen PeopleNet en servidor con la sesión operativa y la sociedad activa.
+El alta de personas se ejecuta desde su formulario de Inicio.

@@ -102,8 +102,8 @@ describe("ingestManualsDirectory", () => {
     expect(documents).toHaveLength(1);
     expect(documents[0]).toMatchObject({
       originalFileName: "Manual de prueba.pdf",
-      fileName: "manual-de-prueba.pdf",
-      relativePath: "uploads/manuals/manual-de-prueba.pdf",
+      fileName: expect.stringMatching(/-manual-de-prueba\.pdf$/),
+      relativePath: expect.stringMatching(/^uploads\/manuals\/.*-manual-de-prueba\.pdf$/),
       version: 1,
       embeddingDims: 16,
     });
@@ -111,9 +111,9 @@ describe("ingestManualsDirectory", () => {
     expect(repository.getAllChunkVectors().length).toBeGreaterThan(0);
 
     const copiedFiles = await readdir(path.join(uploadsDir, "manuals"));
-    expect(copiedFiles).toEqual(["manual-de-prueba.pdf"]);
+    expect(copiedFiles).toEqual([documents[0]?.fileName]);
     const copiedContent = await readFile(
-      path.join(uploadsDir, "manuals", "manual-de-prueba.pdf"),
+      path.join(uploadsDir, "manuals", copiedFiles[0] ?? ""),
       "utf8",
     );
     expect(copiedContent).toContain("presión máxima de la válvula X");

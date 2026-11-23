@@ -225,11 +225,13 @@ function FileUploadRow({
   onRemove,
   onRetry,
   classNames,
+  removeLabel,
 }: {
   item: FileUploadItem;
   onRemove: (item: FileUploadItem) => void;
   onRetry?: (item: FileUploadItem) => void;
   classNames?: FileUploadClassNames;
+  removeLabel?: (item: FileUploadItem) => string;
 }) {
   const reduce = useReducedMotion();
   const status = item.status ?? "queued";
@@ -290,7 +292,7 @@ function FileUploadRow({
               <button
                 type="button"
                 onClick={() => onRemove(item)}
-                aria-label={`Remove ${item.name}`}
+                aria-label={removeLabel?.(item) ?? `Remove ${item.name}`}
                 className={cn(
                   "grid h-7 w-7 place-items-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground active:scale-95",
                   classNames?.action,
@@ -339,10 +341,17 @@ export interface FileUploadListProps {
   onRemove: (item: FileUploadItem) => void;
   onRetry?: (item: FileUploadItem) => void;
   classNames?: FileUploadClassNames;
+  removeLabel?: (item: FileUploadItem) => string;
 }
 
 /** The same queue rows without a second upload control or independent state. */
-export function FileUploadList({ items, onRemove, onRetry, classNames }: FileUploadListProps) {
+export function FileUploadList({
+  items,
+  onRemove,
+  onRetry,
+  classNames,
+  removeLabel,
+}: FileUploadListProps) {
   return (
     <ul className={cn("space-y-2", classNames?.queue)}>
       <AnimatePresence initial={false}>
@@ -353,6 +362,7 @@ export function FileUploadList({ items, onRemove, onRetry, classNames }: FileUpl
             onRemove={onRemove}
             onRetry={onRetry}
             classNames={classNames}
+            removeLabel={removeLabel}
           />
         ))}
       </AnimatePresence>

@@ -11,7 +11,11 @@ import type {
 } from "@/types/chat";
 import type { Company, CompanyId } from "@/types/workspace";
 
-import { getWorkspaceRepository, getWorkspaceSnapshot } from "@/lib/workspace/service";
+import {
+  getWorkspaceRepository,
+  getWorkspaceScope,
+  getWorkspaceSnapshot,
+} from "@/lib/workspace/service";
 
 const ok = <T>(data: T): ActionResult<T> => ({ ok: true, data });
 
@@ -209,10 +213,18 @@ export async function upsertMessageAction(input: {
   generationId?: string | null;
   sequence?: number;
   errorCode?: string | null;
+  attachmentIds?: readonly string[];
+  editSourceId?: string;
   clientMutationId?: string;
 }): Promise<ActionResult<Message>> {
   try {
-    await requireAuthContext();
+    const session = await requireAuthContext();
+    if (input.attachmentIds?.length) {
+      const scope = await getWorkspaceScope(session.authContext);
+      if (!scope.companies.some(({ id }) => id === input.companyId)) {
+        throw new Error("La empresa de los adjuntos no está disponible en esta sesión.");
+      }
+    }
     return ok(
       await getWorkspaceRepository().upsertMessage({
         ...input,

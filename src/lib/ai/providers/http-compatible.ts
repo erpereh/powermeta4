@@ -2,7 +2,11 @@ import "server-only";
 
 import { getGlobalChatStatus, streamGlobalChat } from "@/lib/chat/global-chat-client";
 import type { ChatProvider } from "@/lib/ai/chat-provider";
-import type { EmbeddingProvider, EmbeddingStatus, EmbeddingTaskType } from "@/lib/ai/embedding-provider";
+import type {
+  EmbeddingProvider,
+  EmbeddingStatus,
+  EmbeddingTaskType,
+} from "@/lib/ai/embedding-provider";
 
 /**
  * The one provider implementation the app ships with: it speaks the
@@ -50,7 +54,10 @@ const EMBEDDING_ERROR_MESSAGES: Record<EmbeddingErrorCode, string> = {
 };
 
 export class EmbeddingProviderError extends Error {
-  constructor(readonly code: EmbeddingErrorCode) {
+  constructor(
+    readonly code: EmbeddingErrorCode,
+    readonly retryAfterMs?: number,
+  ) {
     super(EMBEDDING_ERROR_MESSAGES[code]);
     this.name = "EmbeddingProviderError";
   }
@@ -60,7 +67,12 @@ const EMBEDDINGS_PATH = "/embeddings";
 const CHAT_COMPLETIONS_PATH = "/chat/completions";
 
 const requiredSetting = (
-  name: "AI_BASE_URL" | "AI_API_KEY" | "EMBEDDING_MODEL" | "EMBEDDING_BASE_URL" | "EMBEDDING_API_KEY",
+  name:
+    | "AI_BASE_URL"
+    | "AI_API_KEY"
+    | "EMBEDDING_MODEL"
+    | "EMBEDDING_BASE_URL"
+    | "EMBEDDING_API_KEY",
 ): string => {
   const value = process.env[name]?.trim();
   if (!value) throw new EmbeddingConfigurationError();
@@ -120,6 +132,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const errorForStatus = (status: number): EmbeddingProviderError => {
   if (status === 401 || status === 403) return new EmbeddingProviderError("EMBEDDING_AUTH_FAILED");
   if (status === 404) return new EmbeddingProviderError("EMBEDDING_MODEL_NOT_FOUND");
+  if (status === 410) return new EmbeddingProviderError("EMBEDDING_MODEL_NOT_FOUND");
   if (status === 429) return new EmbeddingProviderError("EMBEDDING_RATE_LIMITED");
   return new EmbeddingProviderError("EMBEDDING_INVALID_RESPONSE");
 };
@@ -145,12 +158,18 @@ const parseEmbeddingItem = (value: unknown): { index: number; embedding: number[
 // back, in order, regardless of how many requests that took underneath.
 const MAX_BATCH_SIZE = 100;
 
-const embedOneRequest = async (texts: readonly string[]): Promise<number[][]> => {
+const embedOneRequest = async (
+  texts: readonly string[],
+  signal?: AbortSignal,
+): Promise<number[][]> => {
   const configuration = readEmbeddingConfiguration();
   let response: Response;
   try {
     response = await fetch(configuration.endpoint, {
       method: "POST",
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(45000)])
+        : AbortSignal.timeout(45000),
       headers: {
         Authorization: `Bearer ${configuration.apiKey}`,
         "Content-Type": "application/json",
@@ -163,8 +182,40 @@ const embedOneRequest = async (texts: readonly string[]): Promise<number[][]> =>
         ...(configuration.dimensions ? { dimensions: configuration.dimensions } : {}),
       }),
     });
-  } catch {
+  } catch (error) {
+    if (signal?.aborted) throw error;
     throw new EmbeddingProviderError("EMBEDDING_NETWORK_ERROR");
+  }
+  if (response.status === 429) {
+    const payload: unknown = await response.json().catch(() => null);
+    const details =
+      isRecord(payload) && isRecord(payload.error) && Array.isArray(payload.error.details)
+        ? payload.error.details
+        : [];
+    const retry = details.find(
+      (detail: unknown) => isRecord(detail) && typeof detail.retryDelay === "string",
+    );
+    const daily = details.some(
+      (detail: unknown) =>
+        isRecord(detail) &&
+        Array.isArray(detail.violations) &&
+        detail.violations.some(
+          (violation: unknown) =>
+            isRecord(violation) &&
+            typeof violation.quotaId === "string" &&
+            violation.quotaId.includes("PerDay"),
+        ),
+    );
+    const seconds =
+      isRecord(retry) &&
+      typeof retry.retryDelay === "string" &&
+      /^\d+(\.\d+)?s$/.test(retry.retryDelay)
+        ? Number(retry.retryDelay.slice(0, -1))
+        : Number(response.headers.get("retry-after"));
+    throw new EmbeddingProviderError(
+      "EMBEDDING_RATE_LIMITED",
+      !daily && seconds > 0 && seconds <= 60 ? Math.ceil(seconds * 1000) : undefined,
+    );
   }
   if (!response.ok) throw errorForStatus(response.status);
 
@@ -207,10 +258,11 @@ const chunk = <T>(items: readonly T[], size: number): T[][] => {
 const embedBatch = async (
   texts: readonly string[],
   _taskType: EmbeddingTaskType,
+  signal?: AbortSignal,
 ): Promise<number[][]> => {
   const results: number[][] = [];
   for (const group of chunk(texts, MAX_BATCH_SIZE)) {
-    results.push(...(await embedOneRequest(group)));
+    results.push(...(await embedOneRequest(group, signal)));
   }
   return results;
 };

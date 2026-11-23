@@ -1,4 +1,5 @@
 import type { MessageContent } from "@/types/chat";
+import { sourcesSchema, type ChatSource } from "./chat-data";
 
 export class ChatRuntimeAdapterError extends Error {
   constructor(
@@ -12,9 +13,13 @@ export class ChatRuntimeAdapterError extends Error {
 
 type InternalChatEvent =
   | { type: "content"; content: TextMessageContent }
+  | { type: "sources"; sources: ChatSource[] }
   | { type: "error"; errorCode: string; message: string };
 
 type TextMessageContent = Array<{ type: "text"; text: string }>;
+type StreamUpdate =
+  | { content: MessageContent; sources?: never }
+  | { sources: ChatSource[]; content?: never };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -68,6 +73,10 @@ const parseSseEvent = (block: string): InternalChatEvent | null => {
     }
     return { type: "content", content };
   }
+  if (payload.type === "sources") {
+    const parsed = sourcesSchema.safeParse(payload.sources);
+    if (parsed.success) return { type: "sources", sources: parsed.data };
+  }
   if (
     payload.type === "error" &&
     typeof payload.errorCode === "string" &&
@@ -88,7 +97,7 @@ export async function* runGlobalChatStream(options: {
   conversationId: string | undefined;
   assistantMessageId: string | undefined;
   abortSignal?: AbortSignal;
-}): AsyncGenerator<{ content: MessageContent }> {
+}): AsyncGenerator<StreamUpdate> {
   let response: Response;
   try {
     response = await fetch("/api/chat/run", {
@@ -121,10 +130,14 @@ export async function* runGlobalChatStream(options: {
   let buffer = "";
   let receivedText = false;
 
-  const consume = function* (block: string): Generator<{ content: MessageContent }> {
+  const consume = function* (block: string): Generator<StreamUpdate> {
     const event = parseSseEvent(block);
     if (!event) return;
     if (event.type === "error") throw new ChatRuntimeAdapterError(event.errorCode, event.message);
+    if (event.type === "sources") {
+      yield { sources: event.sources };
+      return;
+    }
     if (event.content.some((part) => part.text.trim())) receivedText = true;
     yield { content: event.content };
   };

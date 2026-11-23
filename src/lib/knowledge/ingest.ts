@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import type { EmbeddingProvider } from "@/lib/ai/embedding-provider";
@@ -37,6 +37,8 @@ export type IngestOptions = {
   /** Injected for tests, so they don't need a real parseable PDF fixture. */
   extractPdf?: (data: Uint8Array) => Promise<ExtractedPdf>;
   log?: (outcome: IngestOutcome) => void;
+  prioritizePayroll?: boolean;
+  lexicalOnly?: boolean;
 };
 
 /** ASCII, hyphenated, lower-case, bounded length - safe to use as a file
@@ -90,47 +92,65 @@ export const ingestManualsDirectory = async (options: IngestOptions): Promise<In
   await mkdir(manualsDir, { recursive: true });
 
   const embeddingStatus = embeddingProvider.getStatus();
-  if (!embeddingStatus.configured || !embeddingStatus.model) {
+  if (!options.lexicalOnly && (!embeddingStatus.configured || !embeddingStatus.model)) {
     throw new Error(
       "El proveedor de embeddings no está configurado (revisa EMBEDDING_MODEL/AI_BASE_URL/AI_API_KEY).",
     );
   }
-  const embeddingModel = embeddingStatus.model;
+  const embeddingModel = options.lexicalOnly ? "lexical" : (embeddingStatus.model ?? "lexical");
 
   const ingestOneFile = async (originalFileName: string): Promise<IngestOutcome> => {
     const sourcePath = path.join(options.sourceDir, originalFileName);
     const bytes = new Uint8Array(await readFile(sourcePath));
     const checksum = sha256(bytes);
-    const storedFileName = sanitizeFileName(originalFileName);
-    const relativePath = ["uploads", MANUALS_SUBDIR, storedFileName].join("/");
-
-    const existing = repository.findDocumentByPath(relativePath);
-    if (existing && existing.checksum === checksum && existing.embeddingModel === embeddingModel) {
+    const sourceKey = sha256(Buffer.from(originalFileName));
+    const slug = sanitizeFileName(path.posix.basename(originalFileName));
+    const storedFileName = `${sourceKey.slice(0, 16)}-${checksum.slice(0, 16)}-${slug}`;
+    const relativePath = `uploads/${MANUALS_SUBDIR}/${storedFileName}`;
+    const existing = documentsBySource.get(originalFileName);
+    const recipe = { source: originalFileName, ...chunking };
+    if (
+      existing &&
+      existing.checksum === checksum &&
+      (options.lexicalOnly || existing.embeddingModel === embeddingModel) &&
+      (options.lexicalOnly ||
+        !embeddingStatus.dimensions ||
+        existing.embeddingDims === embeddingStatus.dimensions) &&
+      existing.metadata.chunkSizeChars === chunking.chunkSizeChars &&
+      existing.metadata.overlapChars === chunking.overlapChars
+    ) {
       return { status: "skipped", fileName: originalFileName, reason: "sin cambios" };
     }
 
-    // Copy into managed storage (data/uploads/manuals) so it's included in
-    // backups and referenced by a validated relative path, same convention
-    // as attachment-repository.ts.
-    await writeFile(path.join(manualsDir, storedFileName), bytes);
-
-    const extracted = await extractPdf(bytes);
+    const extracted = await extractPdf(bytes.slice());
     const cleanedPages = cleanRepeatedBoilerplate(extracted.pages);
     const documentChunks = chunkDocument(cleanedPages, chunking);
     if (documentChunks.length === 0) {
       throw new Error("No se extrajo texto del PDF (¿está escaneado como imagen?).");
     }
 
-    const embeddings = await embeddingProvider.embed(
-      documentChunks.map((chunk) => chunk.text),
-      "document",
-    );
+    const embeddings = options.lexicalOnly
+      ? documentChunks.map(() => [])
+      : await embeddingProvider.embed(
+          documentChunks.map((chunk) => chunk.text),
+          "document",
+        );
     if (embeddings.length !== documentChunks.length) {
       throw new Error("El proveedor de embeddings devolvió un número de vectores inesperado.");
     }
-    const embeddingDims = embeddings[0]?.length ?? 0;
+    const embeddingDims = options.lexicalOnly ? 1 : (embeddings[0]?.length ?? 0);
 
-    const { document, created } = repository.upsertDocument({
+    if (
+      !options.lexicalOnly &&
+      (!embeddingDims ||
+        embeddings.some(
+          (vector) =>
+            vector.length !== embeddingDims || vector.some((value) => !Number.isFinite(value)),
+        ))
+    ) {
+      throw new Error("El proveedor de embeddings devolvió vectores incompatibles.");
+    }
+    const documentInput = {
       id: existing?.id ?? randomUUID(),
       fileName: storedFileName,
       originalFileName,
@@ -138,10 +158,10 @@ export const ingestManualsDirectory = async (options: IngestOptions): Promise<In
       checksum,
       byteSize: bytes.byteLength,
       pageCount: extracted.pageCount,
-      metadata: {},
+      metadata: recipe,
       embeddingModel,
       embeddingDims,
-    });
+    };
 
     const chunkInputs: KnowledgeChunkInput[] = documentChunks.map((chunk, index) => ({
       id: randomUUID(),
@@ -155,27 +175,61 @@ export const ingestManualsDirectory = async (options: IngestOptions): Promise<In
       embeddingModel,
       embeddingDims,
     }));
-    repository.replaceChunks(document.id, chunkInputs);
+    const storedPath = path.join(manualsDir, storedFileName);
+    if (existing?.relativePath !== relativePath) await writeFile(storedPath, bytes);
+    try {
+      repository.publishDocument(documentInput, chunkInputs);
+    } catch (error) {
+      if (existing?.relativePath !== relativePath) await rm(storedPath, { force: true });
+      throw error;
+    }
+    if (
+      existing &&
+      existing.relativePath !== relativePath &&
+      existing.relativePath.startsWith("uploads/manuals/") &&
+      path.posix.dirname(existing.relativePath) === "uploads/manuals"
+    ) {
+      await rm(path.join(manualsDir, path.posix.basename(existing.relativePath)), { force: true });
+    }
 
     return {
-      status: created ? "created" : "reindexed",
+      status: existing ? "reindexed" : "created",
       fileName: originalFileName,
       chunkCount: documentChunks.length,
     };
   };
 
+  const documentsBySource = new Map(
+    repository
+      .listDocuments()
+      .map((document) => [
+        typeof document.metadata.source === "string"
+          ? document.metadata.source
+          : document.originalFileName,
+        document,
+      ]),
+  );
   const fileNames = await listSourcePdfFiles(options.sourceDir);
+  if (options.prioritizePayroll) {
+    const priority = (file: string) =>
+      /Lenguaje_LN4|Elementos_de_Nómina|GestionNomina/i.test(file) ? 0 : 1;
+    fileNames.sort((left, right) => priority(left) - priority(right));
+  }
   const outcomes: IngestOutcome[] = [];
   for (const fileName of fileNames) {
-    const outcome = await ingestOneFile(fileName).catch(
-      (error: unknown): IngestOutcome => ({
+    let quotaReached = false;
+    const outcome = await ingestOneFile(fileName).catch((error: unknown): IngestOutcome => {
+      quotaReached =
+        error instanceof Error && "code" in error && error.code === "EMBEDDING_RATE_LIMITED";
+      return {
         status: "error",
         fileName,
         message: error instanceof Error ? error.message : "Error desconocido.",
-      }),
-    );
+      };
+    });
     outcomes.push(outcome);
     options.log?.(outcome);
+    if (quotaReached) break;
   }
   return { outcomes };
 };

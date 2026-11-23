@@ -18,7 +18,18 @@ import {
   updateMessageAction,
 } from "@/app/actions/workspace";
 import { runGlobalChatStream } from "@/lib/chat/chat-runtime-adapter";
-import { isChatSendDisabled, type ChatStatus } from "@/lib/chat/chat-status";
+import { PeopleNetChatContext } from "@/components/chat/peoplenet-card";
+import { detectPeopleNetTurn } from "@/lib/chat/peoplenet-query";
+import {
+  createChatAttachmentAdapter,
+  getRuntimeAttachments,
+} from "@/lib/chat/chat-attachment-adapter";
+import {
+  withChatAttachments,
+  withChatSources,
+  type ChatAttachment,
+  type ChatSource,
+} from "@/lib/chat/chat-data";
 import { toExportedMessageRepository } from "@/lib/chat/message-repository";
 import {
   getCaughtErrorCode,
@@ -43,12 +54,13 @@ type ChatRuntimeProviderProps = {
   companyId: CompanyId;
   chatId: string;
   children: ReactNode;
-  chatStatus: ChatStatus;
 };
 
 type RunOptions = {
   userMessage?: Message;
   preserveUserMessage?: boolean;
+  attachments?: ChatAttachment[];
+  editSourceId?: string;
 };
 
 const createRuntimeId = () => crypto.randomUUID();
@@ -77,12 +89,7 @@ const mergeMessages = (messages: readonly Message[], additions: readonly Message
 const actionFailed = (result: { ok: boolean; message?: string }) =>
   !result.ok ? new Error(result.message ?? "No se pudo guardar el cambio.") : null;
 
-export function ChatRuntimeProvider({
-  companyId,
-  chatId,
-  children,
-  chatStatus,
-}: ChatRuntimeProviderProps) {
+export function ChatRuntimeProvider({ companyId, chatId, children }: ChatRuntimeProviderProps) {
   const chat = useWorkspaceStore((state) =>
     getChat(state.workspaces[companyId]?.chats ?? [], chatId),
   );
@@ -94,6 +101,11 @@ export function ChatRuntimeProvider({
   const controllerRef = useRef<AbortController | null>(null);
   const schedulerRef = useRef<StreamingPersistenceScheduler | null>(null);
   const [runningMessageId, setRunningMessageId] = useState<string | null>(null);
+  const [autoOpenMessageId, setAutoOpenMessageId] = useState<string | null>(null);
+  const attachmentAdapter = useMemo(
+    () => createChatAttachmentAdapter(companyId, chatId),
+    [companyId, chatId],
+  );
 
   const messageRepository = useMemo<ExportedMessageRepository>(() => {
     if (!chat) return { headId: null, messages: [] };
@@ -108,14 +120,15 @@ export function ChatRuntimeProvider({
       runConfig: AppendMessage["runConfig"] = {},
       options: RunOptions = {},
     ): Promise<void> => {
-      const cleanInput = input.trim();
+      const attached = options.attachments ?? [];
+      const cleanInput = input.trim() || (attached.length ? "Resume los archivos adjuntos." : "");
       if (!cleanInput || controllerRef.current) return;
       const userMessage: Message = options.userMessage ?? {
         id: createRuntimeId(),
         conversationId: chatId,
         role: "user",
         parentMessageId: parentId,
-        content: [{ type: "text", text: cleanInput }],
+        content: withChatAttachments([{ type: "text", text: cleanInput }], attached),
         createdAt: new Date().toISOString(),
         status: "complete",
         sequence: 0,
@@ -144,6 +157,14 @@ export function ChatRuntimeProvider({
       const scheduler = createStreamingPersistenceScheduler();
       schedulerRef.current = scheduler;
       let latestContent: MessageContent = [];
+      let sources: ChatSource[] = [];
+      const showContent = (content: MessageContent) =>
+        setMessageContent(
+          chatId,
+          assistantMessage.id,
+          withChatSources(content, sources),
+          companyId,
+        );
       let sequence = 0;
       let persistenceError: Error | null = null;
 
@@ -191,6 +212,8 @@ export function ChatRuntimeProvider({
             content: userMessage.content,
             status: "complete",
             parentMessageId: userMessage.parentMessageId,
+            attachmentIds: attached.map(({ id }) => id),
+            editSourceId: options.editSourceId,
             clientMutationId: createRuntimeId(),
           });
           const userError = actionFailed(userResult);
@@ -202,7 +225,10 @@ export function ChatRuntimeProvider({
           chatId,
         );
         if (currentChat?.title === "Nuevo chat") {
-          const title = cleanInput.slice(0, 56);
+          const title =
+            detectPeopleNetTurn(cleanInput).kind === "general"
+              ? cleanInput.slice(0, 56)
+              : "Consulta de PeopleNet";
           setChatTitle(chatId, title, companyId);
           const titleResult = await updateConversationAction(
             companyId,
@@ -238,10 +264,15 @@ export function ChatRuntimeProvider({
 
         for await (const result of stream) {
           if (controller.signal.aborted) break;
-          const nextContent = (result.content ?? []) as MessageContent;
+          if (result.sources) {
+            sources = result.sources;
+            showContent(latestContent);
+            continue;
+          }
+          const nextContent = result.content ?? [];
           if (!Array.isArray(nextContent) || nextContent.length === 0) continue;
           latestContent = nextContent;
-          setMessageContent(chatId, assistantMessage.id, latestContent, companyId);
+          showContent(latestContent);
           scheduler.push(getContentText(latestContent), persistPartial);
         }
 
@@ -265,7 +296,9 @@ export function ChatRuntimeProvider({
         });
         const finalError = actionFailed(finalResult);
         if (finalError) throw finalError;
-        setMessageContent(chatId, assistantMessage.id, finalContent, companyId);
+        if (finalStatus === "complete" && sources.some(({ kind }) => kind === "peoplenet"))
+          setAutoOpenMessageId(assistantMessage.id);
+        showContent(finalContent);
         setMessageStatus(chatId, assistantMessage.id, finalStatus, companyId);
       } catch (error) {
         const interruptedStatus: Extract<PersistedMessageStatus, "cancelled" | "failed"> =
@@ -298,10 +331,11 @@ export function ChatRuntimeProvider({
         } catch {
           // The persisted terminal state is best effort after an earlier storage failure.
         }
-        setMessageContent(chatId, assistantMessage.id, failedContent, companyId);
+        showContent(failedContent);
         setMessageStatus(chatId, assistantMessage.id, interruptedStatus, companyId);
         await hydrateWorkspaceStore();
       } finally {
+        attachmentAdapter.release(attached.map(({ id }) => id));
         scheduler.dispose();
         if (schedulerRef.current === scheduler) schedulerRef.current = null;
         if (controllerRef.current === controller) controllerRef.current = null;
@@ -309,6 +343,7 @@ export function ChatRuntimeProvider({
       }
     },
     [
+      attachmentAdapter,
       chatId,
       companyId,
       setChatHead,
@@ -331,6 +366,7 @@ export function ChatRuntimeProvider({
         visibleMessages(currentChat),
         message.parentId,
         message.runConfig,
+        { attachments: getRuntimeAttachments(message.attachments ?? []) },
       );
     },
     [chatId, companyId, runConversation],
@@ -351,6 +387,10 @@ export function ChatRuntimeProvider({
         baseMessages,
         message.parentId,
         message.runConfig,
+        {
+          attachments: getRuntimeAttachments(message.attachments ?? []),
+          editSourceId: message.sourceId ?? undefined,
+        },
       );
     },
     [chatId, companyId, runConversation],
@@ -384,6 +424,7 @@ export function ChatRuntimeProvider({
 
   const onBranchChange = useCallback(
     (event: { headId: string | null }) => {
+      setAutoOpenMessageId(null);
       setChatHead(chatId, event.headId, companyId);
       void setConversationHeadAction({
         companyId,
@@ -412,15 +453,17 @@ export function ChatRuntimeProvider({
         messageRepository,
         convertMessage: (message: ThreadMessage) => message,
         isRunning: runningMessageId !== null,
-        isSendDisabled: isChatSendDisabled(chatStatus, runningMessageId !== null),
+        isSendDisabled: runningMessageId !== null,
         setMessages: () => undefined,
         unstable_onBranchChange: onBranchChange,
         onNew,
         onEdit,
         onReload,
         onCancel,
+        adapters: { attachments: attachmentAdapter },
       }),
       [
+        attachmentAdapter,
         messageRepository,
         onBranchChange,
         onCancel,
@@ -428,14 +471,17 @@ export function ChatRuntimeProvider({
         onNew,
         onReload,
         runningMessageId,
-        chatStatus,
       ],
     ),
   );
 
+  const peopleNetContext = useMemo(
+    () => ({ companyId, chatId, autoOpenMessageId }),
+    [companyId, chatId, autoOpenMessageId],
+  );
   return (
-    <AssistantRuntimeProvider runtime={runtime}>
-      {children}
-    </AssistantRuntimeProvider>
+    <PeopleNetChatContext.Provider value={peopleNetContext}>
+      <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>
+    </PeopleNetChatContext.Provider>
   );
 }

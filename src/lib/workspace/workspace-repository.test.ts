@@ -6,6 +6,8 @@ import { bootstrapDatabase } from "@/server/database/bootstrap";
 import { runMigrations } from "@/server/database/migrations";
 import { createWorkspaceRepository } from "@/lib/workspace/repository";
 import { createCompanyRepository } from "@/server/database/repositories/company-repository";
+import { createAttachmentRepository } from "@/server/database/repositories/attachment-repository";
+import { readChatAttachments, readChatSources } from "@/lib/chat/chat-data";
 
 const databases: DatabaseSync[] = [];
 const AUTH = {
@@ -270,7 +272,7 @@ describe("workspace repository", () => {
   });
 
   it("recovers abandoned running messages as incomplete without resuming them", async () => {
-    const { repository } = createRepository();
+    const { database, repository } = createRepository();
     const company = (await repository.getSnapshot(AUTH)).companies[0];
     if (!company) throw new Error("The bootstrap company was not created");
     const conversation = await repository.createConversation(company.id, "conversation-recovery");
@@ -285,10 +287,101 @@ describe("workspace repository", () => {
       sequence: 2,
     });
 
-    const snapshot = await repository.getSnapshot(AUTH);
+    expect(
+      (await repository.getSnapshot(AUTH)).workspaces[company.id]?.chats[0]?.messages[0]?.status,
+    ).toBe("running");
+    const snapshot = await createWorkspaceRepository(database).getSnapshot(AUTH);
     const recovered = snapshot.workspaces[company.id]?.chats[0]?.messages[0];
     expect(recovered).toMatchObject({ status: "incomplete", errorCode: "PROCESS_RESTARTED" });
     expect(snapshot.workspaces[company.id]?.chats[0]?.headMessageId).toBe("assistant-abandoned");
+  });
+
+  it("links attachments to the right conversation, copies references on edit and preserves server sources", async () => {
+    const { database, repository } = createRepository();
+    const { activeCompanyId: first } = await repository.getSnapshot(AUTH);
+    if (!first) throw new Error("Company missing");
+    const second = await repository.createCompany({ name: "Otra empresa" });
+    await repository.createConversation(first, "original");
+    await repository.createConversation(second.id, "different");
+    const attachmentId = "b6694644-55e6-40da-a8ea-0f0cd02986ba";
+    await createAttachmentRepository(database).create({
+      companyId: first,
+      conversationId: "original",
+      id: attachmentId,
+      fileName: "ejemplo.txt",
+      mimeType: "text/plain",
+      sizeBytes: 3,
+      checksum: "sha-example",
+      relativePath: `uploads/chat/${attachmentId}`,
+    });
+    const input = {
+      role: "user" as const,
+      status: "complete" as const,
+      content: [{ type: "text" as const, text: "Resume" }],
+      attachmentIds: [attachmentId],
+    };
+    await expect(
+      repository.upsertMessage({
+        ...input,
+        companyId: second.id,
+        conversationId: "different",
+        id: "wrong",
+      }),
+    ).rejects.toThrow("no está disponible");
+    const user = await repository.upsertMessage({
+      ...input,
+      companyId: first,
+      conversationId: "original",
+      id: "user-1",
+    });
+    const edit = await repository.upsertMessage({
+      ...input,
+      companyId: first,
+      conversationId: "original",
+      id: "user-2",
+      editSourceId: user.id,
+    });
+    expect(readChatAttachments(edit.content)).toEqual(readChatAttachments(user.content));
+    expect(readChatAttachments(edit.content)[0]?.id).toBe(attachmentId);
+
+    await repository.upsertMessage({
+      companyId: first,
+      conversationId: "original",
+      id: "assistant-1",
+      role: "assistant",
+      parentMessageId: edit.id,
+      status: "running",
+      content: [],
+    });
+    const sources = [
+      { kind: "manual" as const, id: "manual", name: "LN4.pdf", page: 33, version: 1 },
+    ];
+    expect(await repository.setMessageSources(first, "original", "assistant-1", sources)).toBe(
+      true,
+    );
+    await repository.updateMessage({
+      companyId: first,
+      conversationId: "original",
+      messageId: "assistant-1",
+      content: [{ type: "text", text: "Parcial" }],
+      sequence: 1,
+    });
+    const complete = await repository.finalizeMessage({
+      companyId: first,
+      conversationId: "original",
+      messageId: "assistant-1",
+      content: [{ type: "text", text: "Respuesta" }],
+      status: "complete",
+      sequence: 2,
+    });
+    expect(readChatSources(complete.content)).toEqual(sources);
+    expect(
+      readChatSources(
+        (await repository.getConversation(first, "original")).messages.find(
+          ({ id }) => id === "assistant-1",
+        )?.content ?? [],
+      ),
+    ).toEqual(sources);
   });
 
   it("persists user content 1013 exactly, without a newline", async () => {

@@ -6,6 +6,8 @@ import {
 } from "@assistant-ui/react";
 
 import { toAssistantUiMessageStatus } from "@/lib/chat/message-status";
+import { readChatAttachments, stripInternalParts } from "@/lib/chat/chat-data";
+import { toRuntimeAttachment } from "@/lib/chat/chat-attachment-adapter";
 import type { Message, MessageContent } from "@/types/chat";
 
 export const getMessagePlainText = (content: MessageContent): string => {
@@ -20,9 +22,7 @@ const assistantStatus = (message: Message): RuntimeMessageStatus =>
   toAssistantUiMessageStatus(
     message.status,
     message.errorCode,
-    message.status === "failed" && !message.errorCode
-      ? getMessagePlainText(message.content)
-      : null,
+    message.status === "failed" && !message.errorCode ? getMessagePlainText(message.content) : null,
   );
 
 export const toThreadMessageLike = (message: Message): ThreadMessageLike =>
@@ -31,20 +31,19 @@ export const toThreadMessageLike = (message: Message): ThreadMessageLike =>
         role: message.role,
         id: message.id,
         createdAt: new Date(message.createdAt),
-        content: message.content,
+        content: stripInternalParts(message.content),
         status: assistantStatus(message),
       }
     : {
         role: message.role,
         id: message.id,
         createdAt: new Date(message.createdAt),
-        content: message.content,
+        content: stripInternalParts(message.content),
+        attachments: readChatAttachments(message.content).map(toRuntimeAttachment),
       };
 
 export const toThreadMessage = (message: Message): ThreadMessage => {
   const status: RuntimeMessageStatus =
-    message.role === "assistant"
-      ? assistantStatus(message)
-      : { type: "complete", reason: "stop" };
+    message.role === "assistant" ? assistantStatus(message) : { type: "complete", reason: "stop" };
   return fromThreadMessageLike(toThreadMessageLike(message), message.id, status);
 };

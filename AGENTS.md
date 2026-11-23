@@ -7,8 +7,9 @@ organizar herramientas operativas por workspace de empresa. La autenticación y
 los datos de producto viven en SQLite local. El chat usa una única configuración
 OpenAI-compatible global y server-side mediante `AI_BASE_URL`, `AI_API_KEY` y
 `AI_MODEL`; no hay configuración por empresa ni picker interactivo. El modelo
-solo recibe texto de la rama de conversación seleccionada: no recibe datos,
-contexto ni resultados de Meta4.
+recibe texto de la rama seleccionada, referencias de manuales y texto
+extraído de los archivos que adjunta el usuario en los turnos documentales.
+Las consultas operativas del chat se resuelven localmente con los lectores de Inicio.
 
 ## Fuentes de verdad y orden de lectura
 
@@ -81,18 +82,30 @@ anterior se eliminan mediante la migración `009_remove_agent_and_provider_confi
 las migraciones 006/007 se conservan únicamente como historia de esquema.
 
 `POST /api/chat/run` valida sesión, empresa, conversación y mensaje asistente,
-reconstruye la rama exacta con `parentMessageId` y envía únicamente ancestros
-`user`/`assistant` con texto no vacío. Excluye el placeholder asistente actual,
-partes no textuales, system prompts, tools y function calling.
+reconstruye la rama exacta con `parentMessageId` y envía ancestros documentales
+`user`/`assistant` con texto no vacío, instrucciones del sistema del servidor
+y un bloque delimitado de datos de manuales y adjuntos. Excluye el placeholder
+actual, las partes internas de la UI, los turnos operativos, tools y function calling.
+
+Los adjuntos del chat se guardan localmente por conversación y mensaje y se
+resuelven solo en la rama activa. El texto extraído queda fuera del índice de
+manuales y del proveedor de embeddings. Las fuentes persistidas por turno
+las genera el servidor a partir de los datos enviados al modelo. Los endpoints
+de adjuntos y fuentes requieren sesión y resuelven rutas gestionadas en servidor.
 
 El cliente server-only normaliza `AI_BASE_URL` a `/chat/completions`, envía
 `model`, `messages` y `stream: true`, y procesa solo deltas textuales SSE.
 `AI_API_KEY` nunca sale del servidor. La UI solo recibe `{ configured, model }`;
-si falta una variable muestra `IA no configurada` y bloquea el envío.
+si falta una variable muestra `IA no configurada`. Las consultas de PeopleNet
+funcionan con la configuración y sesión propias de Meta4.
 
-El chat no importa ni invoca SOAP, resolvers, privacidad ni herramientas. Las
-herramientas SOAP y el Registro Retributivo siguen siendo funciones normales de
-producto fuera del chat. La sociedad no la elige el navegador.
+El chat detecta las siete consultas de Inicio con reglas locales. Usa lectores
+de solo lectura, valida sociedad y conversación en servidor, y excluye el alta.
+`POST /api/chat/peoplenet/result` reconstruye la consulta desde la rama del
+turno guardado y vuelve a validar la sesión y el workspace. SQLite guarda la
+pregunta y la referencia del turno. Las filas solo viven en memoria mientras se
+muestran. DEBUG utiliza muestras ficticias y el proveedor externo no recibe
+las preguntas, los archivos ni los resultados de los turnos de PeopleNet.
 
 ## Herramientas y recomendaciones
 

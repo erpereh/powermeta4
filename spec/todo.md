@@ -1,5 +1,50 @@
 # powermeta4 - estado de tareas
 
+## Consultas de PeopleNet desde el chat — 2026-11-23
+
+- [x] Resolver en local las siete acciones de lectura de Inicio con filtros,
+      cálculos, seguimiento por rama, tablas paginadas y reapertura autenticada.
+- [x] Mantener las consultas operativas fuera de la generación y recuperación
+      externas. Guardar la referencia del turno en el historial.
+- [x] Probar las siete acciones en Chrome DEBUG, el seguimiento, la paginación,
+      la reapertura con teclado y el ancho de 320 px.
+- [x] Suite completa con 1.750 aprobadas y dos omitidas. Pasaron 100 pruebas
+      del chat y repositorio en la comprobación específica y 30 del
+      enrutamiento y las consultas tras el ajuste final. Typecheck, build
+      y diff correctos. Lint general con 673 archivos pendientes de formato.
+- [ ] Contrastar las consultas con las pantallas de Inicio en la máquina con
+      acceso a PeopleNet y una sesión Meta4 real.
+
+## Edición de mensajes del chat — 2026-11-23
+
+- [x] Lápiz en el margen derecho de la burbuja del usuario, con la alineación
+      original del mensaje. Comprobado en Chrome a 1360, 820, 390 y 320 px
+      con mensajes cortos y largos. La edición se abre con Enter.
+
+## Chat, RAG y fuentes — 2026-11-23
+
+- [x] Índice FTS5 local con 74 manuales y 17.782 fragmentos. Embeddings de
+      Gemini a 768 dimensiones, en lotes reanudables con prioridad para LN4 y nómina.
+- [x] Recuperación híbrida, códigos exactos, referencias por turno y seguimiento
+      de la rama. Evaluación con 480 vectores: de 4/10 a 10/10 referencias
+      válidas entre las seis primeras y de 2/4 a 0/4 falsos positivos.
+- [x] Adjuntar y descargar PDF con texto, TXT, Markdown, CSV y XLSX.
+      Fuentes por respuesta, panel de escritorio y Drawer beUI en móvil.
+- [x] Loader beUI, foco neutro y posición estable del composer al abrir
+      categorías o seleccionar una sugerencia.
+- [x] DEBUG en Chrome: carga y retirada local de la nómina real, lectura
+      local con proveedor simulado, nómina ficticia y XLSX ficticio con Gemini.
+      Verificados descarga, apertura del manual, recarga, aislamiento de empresa,
+      ramas, edición, regeneración y cancelación.
+- [ ] Completar los embeddings del corpus aprovechando la reanudación por lotes.
+      Quedaron 840 vectores, incluido el manual completo de LN4, antes de
+      alcanzar la cuota de Gemini.
+- [x] `npm test` con 1.734 pruebas correctas y dos omitidas. Revisión final
+      de las áreas modificadas con 127 pruebas correctas.
+- [x] Typecheck, build, formato de los archivos TypeScript cambiados y
+      `git diff --check` correctos. El lint global sigue señalando 676
+      archivos con formato previo pendiente.
+
 ## Alta de personas: documentos repetidos y carga desde Excel — 2026-11-23
 
 - [x] Causa de «los siguientes se escriben sobre los anteriores»: Meta4 busca la
@@ -2898,7 +2943,7 @@ vigente del chat global.
       configuradas por el usuario.
 - [ ] Incorporar permisos reales, invitaciones y administración completa de
       empresas.
-- [ ] Implementar operaciones ERP externas y subida real de adjuntos.
+- [ ] Implementar operaciones ERP externas pendientes.
 - [ ] Añadir pruebas E2E en un entorno desplegado.
 
 Las acciones ERP actuales son un catálogo local honesto; no simulan

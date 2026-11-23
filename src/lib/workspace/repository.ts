@@ -3,6 +3,16 @@ import "server-only";
 import type { DatabaseSync } from "node:sqlite";
 
 import { isChatColorName, isChatIconName } from "@/lib/chat-customization";
+import {
+  MAX_ATTACHMENTS,
+  attachmentSchema,
+  readChatSources,
+  stripInternalParts,
+  withChatAttachments,
+  withChatSources,
+  type ChatSource,
+} from "@/lib/chat/chat-data";
+import { removeManagedChatFiles } from "@/lib/chat/file-storage";
 import { withRepositoryWrite } from "@/lib/backups/maintenance-lock";
 import { getTool } from "@/lib/tools/registry";
 import { bootstrapDatabase } from "@/server/database/bootstrap";
@@ -11,6 +21,7 @@ import { runIdempotent } from "@/server/database/idempotency";
 import { withTransaction } from "@/server/database/transaction";
 import { BACKUP_VERSION, DATABASE_SCHEMA_VERSION } from "@/server/database/version";
 import { createCompanyRepository } from "@/server/database/repositories/company-repository";
+import { bindChatAttachments } from "@/server/database/repositories/attachment-repository";
 import type { WorkspaceSnapshot } from "@/lib/local-database/dtos";
 import { META4_SOCIETIES, orderMeta4Societies } from "@/lib/meta4/societies";
 import type { AuthView } from "@/types/session";
@@ -63,6 +74,10 @@ const parseContent = (value: unknown): MessageContent => {
   const parsed = safeJsonParse(value);
   return Array.isArray(parsed) ? (parsed as MessageContent) : [];
 };
+const serializeAssistantUpdate = (content: MessageContent, existing: unknown) =>
+  serializeContent(
+    withChatSources(stripInternalParts(content), readChatSources(parseContent(existing))),
+  );
 const stringValue = (value: unknown, fallback = ""): string =>
   typeof value === "string" ? value : fallback;
 const nullableString = (value: unknown): string | null =>
@@ -230,6 +245,7 @@ const recoverInterruptedMessages = (database: DatabaseSync): void => {
 export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()) => {
   const companyRepository = createCompanyRepository(database);
   const getCompanies = (): Company[] => companyRepository.list();
+  let recoveredOnHydration = false;
 
   const getActiveCompanyId = async (companies: readonly Company[]): Promise<CompanyId | null> => {
     const stored = database
@@ -286,10 +302,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
     };
   };
 
-  const getSnapshot = async (auth: AuthView): Promise<WorkspaceSnapshot> => {
-    await withRepositoryWrite(async () => {
-      withTransaction(database, () => recoverInterruptedMessages(database));
-    });
+  const getScope = async (auth: AuthView) => {
     let companies = getCompanies();
     if (companies.length === 0) {
       await withRepositoryWrite(async () => {
@@ -314,6 +327,18 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
         });
     }
     const activeCompanyId = await getActiveCompanyId(companies);
+    return { companies, activeCompanyId };
+  };
+
+  const getSnapshot = async (auth: AuthView): Promise<WorkspaceSnapshot> => {
+    if (!recoveredOnHydration) {
+      await withRepositoryWrite(() => {
+        if (recoveredOnHydration) return;
+        withTransaction(database, () => recoverInterruptedMessages(database));
+        recoveredOnHydration = true;
+      });
+    }
+    const { companies, activeCompanyId } = await getScope(auth);
     const workspaces: Partial<Record<CompanyId, WorkspaceData>> = {};
     for (const company of companies) workspaces[company.id] = getWorkspaceData(company);
     return {
@@ -370,10 +395,18 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
     clientMutationId?: string,
   ): Promise<CompanyId> =>
     withRepositoryWrite(async () => {
+      let files: string[] = [];
       const operation = () => {
         const companies = getCompanies();
         if (companies.length <= 1) throw new Error("No se puede eliminar la última empresa.");
         ensureCompany(database, companyId);
+        files = database
+          .prepare(
+            `SELECT relative_path FROM attachments JOIN conversations ON conversations.id = conversation_id
+           WHERE conversations.company_id = ? AND relative_path LIKE 'uploads/chat/%'`,
+          )
+          .all(companyId)
+          .map((row) => String(row.relative_path));
         database.prepare("DELETE FROM companies WHERE id = ?").run(companyId);
         const remaining = getCompanies();
         const activeCompanyId = remaining[0]?.id;
@@ -381,7 +414,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
         updateSetting(database, "app_settings", ACTIVE_COMPANY_SETTING_KEY, activeCompanyId);
         return activeCompanyId;
       };
-      return clientMutationId
+      const result = clientMutationId
         ? runIdempotent(database, {
             clientMutationId,
             operation: "company.delete",
@@ -390,6 +423,8 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
             execute: operation,
           })
         : withTransaction(database, operation);
+      await removeManagedChatFiles(files);
+      return result;
     });
 
   const setActiveCompany = async (companyId: CompanyId, clientMutationId?: string) =>
@@ -554,8 +589,15 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
     clientMutationId?: string,
   ) =>
     withRepositoryWrite(async () => {
+      let files: string[] = [];
       const operation = () => {
         ensureConversation(database, companyId, conversationId);
+        files = database
+          .prepare(
+            "SELECT relative_path FROM attachments WHERE conversation_id = ? AND relative_path LIKE 'uploads/chat/%'",
+          )
+          .all(conversationId)
+          .map((row) => String(row.relative_path));
         database.prepare("DELETE FROM conversations WHERE id = ?").run(conversationId);
         return null;
       };
@@ -570,6 +612,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
       } else {
         withTransaction(database, operation);
       }
+      await removeManagedChatFiles(files);
     });
 
   const upsertMessageSync = (input: {
@@ -583,6 +626,8 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
     generationId?: string | null;
     sequence?: number;
     errorCode?: string | null;
+    attachmentIds?: readonly string[];
+    editSourceId?: string;
   }): Message => {
     ensureConversation(database, input.companyId, input.conversationId);
     const errorCode = validateErrorCode(input.errorCode);
@@ -607,7 +652,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
           "UPDATE messages SET content_json = ?, status = ?, generation_id = ?, sequence = ?, error_code = ?, updated_at = ? WHERE id = ?",
         )
         .run(
-          serializeContent(input.content),
+          serializeAssistantUpdate(input.content, existing.content_json),
           input.status,
           input.generationId ?? null,
           sequence,
@@ -620,6 +665,16 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
       );
     }
     const timestamp = now();
+    const content = stripInternalParts(input.content);
+    const attachmentIds = input.attachmentIds ?? [];
+    if (
+      attachmentIds.length > MAX_ATTACHMENTS ||
+      new Set(attachmentIds).size !== attachmentIds.length ||
+      attachmentIds.some((id) => !attachmentSchema.shape.id.safeParse(id).success) ||
+      (input.role !== "user" && attachmentIds.length)
+    ) {
+      throw new Error("Los adjuntos del mensaje no son válidos.");
+    }
     database
       .prepare(
         "INSERT INTO messages (id, conversation_id, parent_message_id, role, content_json, status, generation_id, sequence, error_code, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -629,7 +684,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
         input.conversationId,
         input.parentMessageId ?? null,
         input.role,
-        serializeContent(input.content),
+        serializeContent(content),
         input.status,
         input.generationId ?? null,
         sequence,
@@ -637,6 +692,25 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
         timestamp,
         timestamp,
       );
+    if (attachmentIds.length) {
+      const editSource = input.editSourceId
+        ? database
+            .prepare(
+              "SELECT content_json FROM messages WHERE id = ? AND conversation_id = ? AND role = 'user' AND parent_message_id IS ?",
+            )
+            .get(input.editSourceId, input.conversationId, input.parentMessageId ?? null)
+        : undefined;
+      const attachments = bindChatAttachments(database, {
+        companyId: input.companyId,
+        conversationId: input.conversationId,
+        messageId: input.id,
+        ids: attachmentIds,
+        sourceContent: parseContent(editSource?.content_json),
+      });
+      database
+        .prepare("UPDATE messages SET content_json = ? WHERE id = ?")
+        .run(serializeContent(withChatAttachments(content, attachments)), input.id);
+    }
     return mapMessage(database.prepare("SELECT * FROM messages WHERE id = ?").get(input.id) as Row);
   };
 
@@ -707,7 +781,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
             "UPDATE messages SET content_json = COALESCE(?, content_json), status = COALESCE(?, status), generation_id = COALESCE(?, generation_id), sequence = ?, error_code = ?, updated_at = ? WHERE id = ?",
           )
           .run(
-            input.content ? serializeContent(input.content) : null,
+            input.content ? serializeAssistantUpdate(input.content, existing.content_json) : null,
             input.status ?? null,
             input.generationId ?? null,
             requestedSequence,
@@ -779,7 +853,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
             "UPDATE messages SET content_json = COALESCE(?, content_json), status = ?, generation_id = COALESCE(?, generation_id), sequence = ?, error_code = ?, updated_at = ? WHERE id = ?",
           )
           .run(
-            input.content ? serializeContent(input.content) : null,
+            input.content ? serializeAssistantUpdate(input.content, existing.content_json) : null,
             input.status,
             input.generationId ?? null,
             input.sequence,
@@ -882,6 +956,7 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
 
   return {
     getSnapshot,
+    getScope,
     getConversation,
     createCompany,
     deleteCompany,
@@ -891,6 +966,28 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
     deleteConversation,
     setActiveConversation,
     upsertMessage,
+    setMessageSources: (
+      companyId: CompanyId,
+      conversationId: string,
+      messageId: string,
+      sources: ChatSource[],
+    ) =>
+      withRepositoryWrite(() => {
+        ensureConversation(database, companyId, conversationId);
+        const message = database
+          .prepare(
+            "SELECT content_json FROM messages WHERE id = ? AND conversation_id = ? AND role = 'assistant' AND status = 'running'",
+          )
+          .get(messageId, conversationId);
+        if (!message) return false;
+        database
+          .prepare("UPDATE messages SET content_json = ? WHERE id = ?")
+          .run(
+            serializeContent(withChatSources(parseContent(message.content_json), sources)),
+            messageId,
+          );
+        return true;
+      }),
     updateMessage,
     finalizeMessage,
     setConversationHead,
