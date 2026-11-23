@@ -18,6 +18,8 @@ import {
   updateMessageAction,
 } from "@/app/actions/workspace";
 import { runGlobalChatStream } from "@/lib/chat/chat-runtime-adapter";
+import { PeopleNetChatContext } from "@/components/chat/peoplenet-card";
+import { detectPeopleNetTurn } from "@/lib/chat/peoplenet-query";
 import {
   createChatAttachmentAdapter,
   getRuntimeAttachments,
@@ -28,7 +30,6 @@ import {
   type ChatAttachment,
   type ChatSource,
 } from "@/lib/chat/chat-data";
-import { isChatSendDisabled, type ChatStatus } from "@/lib/chat/chat-status";
 import { toExportedMessageRepository } from "@/lib/chat/message-repository";
 import {
   getCaughtErrorCode,
@@ -53,7 +54,6 @@ type ChatRuntimeProviderProps = {
   companyId: CompanyId;
   chatId: string;
   children: ReactNode;
-  chatStatus: ChatStatus;
 };
 
 type RunOptions = {
@@ -89,12 +89,7 @@ const mergeMessages = (messages: readonly Message[], additions: readonly Message
 const actionFailed = (result: { ok: boolean; message?: string }) =>
   !result.ok ? new Error(result.message ?? "No se pudo guardar el cambio.") : null;
 
-export function ChatRuntimeProvider({
-  companyId,
-  chatId,
-  children,
-  chatStatus,
-}: ChatRuntimeProviderProps) {
+export function ChatRuntimeProvider({ companyId, chatId, children }: ChatRuntimeProviderProps) {
   const chat = useWorkspaceStore((state) =>
     getChat(state.workspaces[companyId]?.chats ?? [], chatId),
   );
@@ -106,6 +101,7 @@ export function ChatRuntimeProvider({
   const controllerRef = useRef<AbortController | null>(null);
   const schedulerRef = useRef<StreamingPersistenceScheduler | null>(null);
   const [runningMessageId, setRunningMessageId] = useState<string | null>(null);
+  const [autoOpenMessageId, setAutoOpenMessageId] = useState<string | null>(null);
   const attachmentAdapter = useMemo(
     () => createChatAttachmentAdapter(companyId, chatId),
     [companyId, chatId],
@@ -229,7 +225,10 @@ export function ChatRuntimeProvider({
           chatId,
         );
         if (currentChat?.title === "Nuevo chat") {
-          const title = cleanInput.slice(0, 56);
+          const title =
+            detectPeopleNetTurn(cleanInput).kind === "general"
+              ? cleanInput.slice(0, 56)
+              : "Consulta de PeopleNet";
           setChatTitle(chatId, title, companyId);
           const titleResult = await updateConversationAction(
             companyId,
@@ -297,6 +296,8 @@ export function ChatRuntimeProvider({
         });
         const finalError = actionFailed(finalResult);
         if (finalError) throw finalError;
+        if (finalStatus === "complete" && sources.some(({ kind }) => kind === "peoplenet"))
+          setAutoOpenMessageId(assistantMessage.id);
         showContent(finalContent);
         setMessageStatus(chatId, assistantMessage.id, finalStatus, companyId);
       } catch (error) {
@@ -423,6 +424,7 @@ export function ChatRuntimeProvider({
 
   const onBranchChange = useCallback(
     (event: { headId: string | null }) => {
+      setAutoOpenMessageId(null);
       setChatHead(chatId, event.headId, companyId);
       void setConversationHeadAction({
         companyId,
@@ -451,7 +453,7 @@ export function ChatRuntimeProvider({
         messageRepository,
         convertMessage: (message: ThreadMessage) => message,
         isRunning: runningMessageId !== null,
-        isSendDisabled: isChatSendDisabled(chatStatus, runningMessageId !== null),
+        isSendDisabled: runningMessageId !== null,
         setMessages: () => undefined,
         unstable_onBranchChange: onBranchChange,
         onNew,
@@ -469,10 +471,17 @@ export function ChatRuntimeProvider({
         onNew,
         onReload,
         runningMessageId,
-        chatStatus,
       ],
     ),
   );
 
-  return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
+  const peopleNetContext = useMemo(
+    () => ({ companyId, chatId, autoOpenMessageId }),
+    [companyId, chatId, autoOpenMessageId],
+  );
+  return (
+    <PeopleNetChatContext.Provider value={peopleNetContext}>
+      <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>
+    </PeopleNetChatContext.Provider>
+  );
 }

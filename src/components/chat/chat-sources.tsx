@@ -25,7 +25,7 @@ export function ChatSources({ chat, companyId }: { chat: Chat; companyId: string
   const byId = new Map(branch.map((message) => [message.id, message]));
   const turns = branch.toReversed().flatMap((message) => {
     if (message.role !== "assistant") return [];
-    const sources = readChatSources(message.content);
+    const sources = readChatSources(message.content).filter(({ kind }) => kind !== "peoplenet");
     if (!sources.length) return [];
     const question = byId.get(message.parentMessageId ?? "");
     return [

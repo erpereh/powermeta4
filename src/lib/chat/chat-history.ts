@@ -22,7 +22,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isTextPart = (value: unknown): value is { type: "text"; text: string } =>
   isRecord(value) && value.type === "text" && typeof value.text === "string";
 
-const textContent = (content: MessageContent): string => {
+export const textContent = (content: MessageContent): string => {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
   return content

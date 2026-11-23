@@ -1,5 +1,20 @@
 # powermeta4 - estado de tareas
 
+## Consultas de PeopleNet desde el chat — 2026-11-23
+
+- [x] Resolver en local las siete acciones de lectura de Inicio con filtros,
+      cálculos, seguimiento por rama, tablas paginadas y reapertura autenticada.
+- [x] Mantener las consultas operativas fuera de la generación y recuperación
+      externas. Guardar la referencia del turno en el historial.
+- [x] Probar las siete acciones en Chrome DEBUG, el seguimiento, la paginación,
+      la reapertura con teclado y el ancho de 320 px.
+- [x] Suite completa con 1.750 aprobadas y dos omitidas. Pasaron 100 pruebas
+      del chat y repositorio en la comprobación específica y 30 del
+      enrutamiento y las consultas tras el ajuste final. Typecheck, build
+      y diff correctos. Lint general con 673 archivos pendientes de formato.
+- [ ] Contrastar las consultas con las pantallas de Inicio en la máquina con
+      acceso a PeopleNet y una sesión Meta4 real.
+
 ## Edición de mensajes del chat — 2026-11-23
 
 - [x] Lápiz en el margen derecho de la burbuja del usuario, con la alineación

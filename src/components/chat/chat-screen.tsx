@@ -119,7 +119,6 @@ export function ChatScreen({ requestedChatId, chatStatus }: ChatScreenProps) {
             key={`${companyId}:${activeChat.id}`}
             companyId={companyId as CompanyId}
             chatId={activeChat.id}
-            chatStatus={chatStatus}
           >
             <Thread chatStatus={chatStatus} />
           </ChatRuntimeProvider>

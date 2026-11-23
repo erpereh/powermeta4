@@ -6,6 +6,7 @@ import { getChatProvider } from "@/lib/ai/get-chat-provider";
 import { ChatHistoryError, getChatAncestors, toChatHistory } from "@/lib/chat/chat-history";
 import { attachmentRefsFromBranch, type ChatSource } from "@/lib/chat/chat-data";
 import { loadChatAttachmentContext } from "@/lib/chat/attachment-service";
+import { getPeopleNetBranch } from "@/lib/chat/peoplenet-branch";
 import { getWorkspaceRepository, getWorkspaceScope } from "@/lib/workspace/service";
 import { buildChatContext, buildRagSystemMessage } from "@/lib/knowledge/prompt";
 import { buildRetrievalQuestion, retrieveRelevantChunks } from "@/lib/knowledge/retrieval-service";
@@ -126,14 +127,14 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  const messages = toChatHistory(branch);
+  const { turn, publicHistory } = getPeopleNetBranch(branch);
+  const messages = toChatHistory(publicHistory);
   const [latest, previous] = messages
     .filter((message) => message.role === "user")
     .slice(-2)
     .reverse();
   const question = buildRetrievalQuestion(latest?.content ?? "", previous?.content);
-  const refs = attachmentRefsFromBranch(branch);
-  const chatProvider = getChatProvider();
+  const refs = attachmentRefsFromBranch(publicHistory);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -149,6 +150,43 @@ export async function POST(request: Request) {
       };
 
       try {
+        if (turn.kind !== "general") {
+          if (turn.kind === "query") {
+            const sources: ChatSource[] = [
+              { kind: "peoplenet", id: turn.query.action, name: "PeopleNet" },
+            ];
+            if (
+              request.signal.aborted ||
+              !(await getWorkspaceRepository().setMessageSources(
+                companyId,
+                conversationId,
+                assistantMessageId,
+                sources,
+              ))
+            )
+              return;
+            if (!send({ type: "sources", sources })) return;
+          }
+          send({
+            type: "content",
+            content: [
+              {
+                type: "text",
+                text: turn.kind === "clarify" ? turn.text : "Consulta de PeopleNet",
+              },
+            ],
+          });
+          return;
+        }
+        const chatProvider = getChatProvider();
+        if (!chatProvider.getStatus().configured) {
+          send({
+            type: "error",
+            errorCode: "CHAT_CONFIG_UNAVAILABLE",
+            message: "IA no configurada. Puedes seguir consultando datos de PeopleNet.",
+          });
+          return;
+        }
         const [retrieved, attachments] = await Promise.all([
           retrieveRelevantChunks(question, { signal: request.signal }).catch((error: unknown) => {
             if (request.signal.aborted) throw error;

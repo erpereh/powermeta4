@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { Message, MessageContent } from "@/types/chat";
+import { PEOPLENET_ACTIONS } from "./peoplenet-query";
 
 export const MAX_ATTACHMENTS = 3;
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -40,6 +41,11 @@ export const sourcesSchema = z
         id: z.string().uuid(),
         name: z.string(),
         partial: z.boolean(),
+      }),
+      z.object({
+        kind: z.literal("peoplenet"),
+        id: z.enum(PEOPLENET_ACTIONS),
+        name: z.literal("PeopleNet"),
       }),
     ]),
   )

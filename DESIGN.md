@@ -394,17 +394,24 @@ duplicar el estado del composer.
 El chat es global para todos los workspaces locales y se configura
 server-side con `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`. El composer no
 muestra el modelo ni el proveedor. Si falta cualquier variable muestra
-`IA no configurada` y desactiva Enviar. No hay picker, CRUD de
+`IA no configurada` y permite enviar consultas de PeopleNet. No hay picker, CRUD de
 proveedores ni preferencias de proveedor en la interfaz.
 
 Los favoritos se derivan de `Chat.favorite`; no se crean arrays paralelos.
 
 El historial pintado en el Thread es el transcript SQLite real. Cada ejecución
 reconstruye la rama exacta desde el `parentMessageId` del mensaje asistente en
-curso y envía el texto de mensajes `user` y `assistant`, las instrucciones
-del asistente y los fragmentos de manuales y adjuntos elegidos en el servidor.
+curso. Los turnos documentales envían al modelo el texto correspondiente,
+las instrucciones del asistente y los fragmentos de manuales y adjuntos
+elegidos en el servidor.
 Se conservan streaming, cancelación, estados persistidos, edición,
 regeneración, ramas y `headMessageId`.
+
+Las consultas de PeopleNet aparecen como tarjetas en el mensaje del asistente.
+El primer resultado se abre al completar el turno. «Ver resultado» vuelve a
+leer los datos con la sesión y la sociedad vigentes. Las tablas paginan a 25
+filas y su desplazamiento horizontal queda dentro de la tarjeta. La acción de
+Inicio figura como enlace de origen y las muestras llevan la etiqueta DEBUG.
 
 ## Recibo de nómina
 

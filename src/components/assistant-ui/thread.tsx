@@ -37,8 +37,9 @@ import {
 import { PowermetaLogo } from "@/components/branding/powermeta-logo";
 import { ErpRecommendations } from "@/components/chat/erp-recommendations";
 import { ChatAttachmentList, SentChatAttachments } from "@/components/chat/chat-attachments";
+import { PeopleNetCard } from "@/components/chat/peoplenet-card";
 import { Badge, Button, MessageBubble, MessageBubbleContent, Loader } from "@/components/system";
-import { getChatStatusLabel, isChatSendDisabled, type ChatStatus } from "@/lib/chat/chat-status";
+import { getChatStatusLabel, type ChatStatus } from "@/lib/chat/chat-status";
 import { cn } from "@/lib/utils";
 
 type ThreadProps = {
@@ -210,7 +211,7 @@ const Composer = ({ inputRef, chatStatus }: ComposerProps) => {
             </ComposerPrimitive.AddAttachment>
             {statusLabel ? (
               <p className="truncate px-1.5 text-xs text-muted-foreground" role="status">
-                {statusLabel}
+                {statusLabel} · Consultas de PeopleNet disponibles
               </p>
             ) : null}
           </div>
@@ -222,7 +223,7 @@ const Composer = ({ inputRef, chatStatus }: ComposerProps) => {
                   type="button"
                   variant="primary"
                   aria-label="Enviar mensaje"
-                  disabled={isChatSendDisabled(chatStatus, false) || blockedByAttachment}
+                  disabled={blockedByAttachment}
                 >
                   <ArrowUp className="size-4" />
                 </TooltipIconButton>
@@ -314,6 +315,7 @@ const AssistantMessage: FC = () => {
           </div>
         </MessageBubbleContent>
       </MessageBubble>
+      <PeopleNetCard />
       <div className="ms-1 flex min-h-8 items-center gap-1">
         <BranchPicker />
         <AssistantActionBar />

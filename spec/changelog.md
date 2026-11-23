@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-23 - Consultas de PeopleNet desde el chat
+
+- Consultas locales de las siete acciones de lectura de Inicio, con filtros,
+  cálculos, seguimientos por rama y resultados paginados. El alta sigue en su
+  pantalla de Inicio.
+- Cada consulta vuelve a validar el workspace y la sesión. El historial
+  guarda la pregunta y una referencia que permite volver a leer los datos.
+  Los turnos operativos quedan fuera del RAG y del proveedor de IA.
+- Probadas las siete acciones con datos ficticios en Chrome DEBUG, incluida
+  la reapertura con teclado y la paginación en móvil de 320 px. Pendiente
+  contrastar las lecturas reales en la máquina con acceso a PeopleNet.
+- Suite completa con 1.750 aprobadas y dos omitidas. Typecheck, build,
+  formato del TypeScript tocado y diff correctos. El lint general mantiene
+  673 archivos con problemas de formato preexistentes.
+
 ## 2026-11-23 - Lápiz de edición junto al mensaje
 
 - El botón «Editar mensaje» se coloca en el margen derecho. La burbuja del

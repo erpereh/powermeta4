@@ -134,6 +134,39 @@ beforeEach(() => {
 });
 
 describe("POST /api/chat/run", () => {
+  it("routes PeopleNet before accessing the external provider", async () => {
+    mocks.getConversation.mockResolvedValue(
+      chat([
+        message("user-1", "user", null, "Listado de usuarios con correo principal"),
+        message("assistant-target", "assistant", "user-1", ""),
+      ]),
+    );
+    const response = await POST(request(validBody));
+    expect(parseSse(await response.text())).toEqual([
+      { type: "sources", sources: [{ kind: "peoplenet", id: "users.consult", name: "PeopleNet" }] },
+      { type: "content", content: [{ type: "text", text: "Consulta de PeopleNet" }] },
+    ]);
+    expect(mocks.setMessageSources).toHaveBeenCalledOnce();
+    expect(mocks.getChatProvider).not.toHaveBeenCalled();
+    expect(mocks.retrieveRelevantChunks).not.toHaveBeenCalled();
+  });
+
+  it("omits earlier operational requests and answers from generation and embeddings", async () => {
+    mocks.getConversation.mockResolvedValue(
+      chat([
+        message("user-1", "user", null, "Consulta la nómina de matrícula 90001 de octubre de 2026"),
+        message("assistant-1", "assistant", "user-1", "Líquido de 123 EUR"),
+        message("user-2", "user", "assistant-1", "¿Cómo se configura el débito en LN4?"),
+        message("assistant-target", "assistant", "user-2", ""),
+      ]),
+    );
+    const response = await POST(request(validBody));
+    await response.text();
+    expect(mocks.streamResponse).toHaveBeenCalled();
+    expect(mocks.retrieveRelevantChunks.mock.calls[0]?.[0]).not.toContain("90001");
+    expect(JSON.stringify(mocks.streamResponse.mock.calls)).not.toMatch(/90001|123 EUR/);
+  });
+
   it("rejects a request without a session and clears the invalid cookie", async () => {
     mocks.getCurrentAuthContext.mockResolvedValue(null);
 
