@@ -24,6 +24,7 @@
     "portal:readonly-audit": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/portal/readonly-audit.ts",
     "quinquenal:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/quinquenal/verificar.ts",
     "retributivo:verify": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/registro-retributivo/verificar.ts",
+    "hire:model": "cross-env NODE_OPTIONS=--use-system-ca node --conditions=react-server --import tsx scripts/meta4/hire-model.ts && oxfmt src/lib/meta4/hire/direct/model.generated.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "format": "oxfmt --check",

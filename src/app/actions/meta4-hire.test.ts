@@ -99,20 +99,21 @@ describe("launchMeta4HireAction", () => {
     });
     launchHire.mockResolvedValue({
       personCount: 1,
-      returnCode: "0.0",
-      fileName: "AltaPersonas_2026-09-22_11-12-34.xls",
-      filePath: String.raw`\\WMETA4PRE2\powermeta4\import_users_excel\AltaPersonas_2026-09-22_11-12-34.xls`,
       personIds: ["1821"],
+      warnings: ["Persona 1: ya hay otra persona con el mismo nombre en PeopleNet."],
     });
 
     const result = await launchMeta4HireAction([person]);
     expect(result).toEqual({
       ok: true,
-      data: { personCount: 1, fileName: "AltaPersonas_2026-09-22_11-12-34.xls" },
+      data: {
+        personCount: 1,
+        personIds: ["1821"],
+        note: "Persona 1: ya hay otra persona con el mismo nombre en PeopleNet.",
+      },
     });
     expect(launchHire).toHaveBeenCalledTimes(1);
     expect(JSON.stringify(result)).not.toContain(person.email);
-    expect(JSON.stringify(result)).not.toContain("WMETA4PRE2");
   });
 
   it("returns a validation error before calling Meta4", async () => {

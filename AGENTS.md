@@ -246,28 +246,31 @@ conversación en servidor. `POST /api/chat/run` es el runtime de chat
 `POST /api/users/export` (Node.js, requiere sesión) descarga en Excel el
 listado de usuarios filtrado y, en la hoja «Detalle», la ficha de cada persona:
 recibe solo el texto de búsqueda y vuelve a leer en servidor, sin guardar ficheros.
-`/tools/users/new` es el alta de personas Meta4 (`SRTC_LAUNCH_IMPORT`). Las
+`/tools/users/new` es el alta de personas en PeopleNet (alta directa). Las
 rutas antiguas `/tools/users/search` y `/tools/users/[userId]` solo redirigen
 a `/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
 
 No añadir APIs ficticias, permisos reales, invitaciones ni persistencia remota.
-El alta de personas es la excepción de escritura ERP aprobada: Excel COM edita
-una copia de `Hire_1_PERSONA.xls` y solo sustituye los campos de la UI
-(incluidas columnas duplicadas como `AY`/`IQ`). El fichero se escribe en un
-nombre `AltaPersonas_<fecha>.xls` (sin usuario: Meta4 lo usa como nombre de la
-planificación, de 50 caracteres; `_01`, `_02`… con varias personas) dentro del
-directorio `META4_HIRE_FILE_PATH` y esa misma ruta se envía a
-`SRTC_LAUNCH_IMPORT`, derivado de `META4_BASE_URL`. Se lanza una importación
-por persona y se espera, leyendo con `SELECT` `M4RJS_*` y
-`M4RCH_HIST_IMP_EXP`, a que el planificador termine cada una: en un mismo
-fichero Meta4 reutiliza el ID de la primera fila. Como Meta4 no guarda el
-contador tras el alta, cada fichero lleva en «ID PERSONA» (G) el primer ID
-libre desde `M4CSP_BLOCK_SEQ` + 1, se comprueba después en `STD_PERSON` que la
-persona tiene ese ID y se avisa si el contador queda por debajo. No
-persiste datos personales en SQLite. La entidad legal (CH/CI) se elige del
-catálogo `STD_LEG_ENT` de la sociedad activa: la de la plantilla (`ACYC_ES`)
-solo existe en CYC. Contra PeopleNet solo se ejecutan `SELECT`; nunca
-`UPDATE`, `DELETE` ni `INSERT`.
+El alta de personas es la excepción de escritura ERP aprobada. Contra
+PeopleNet solo se ejecutan `SELECT`; nunca `UPDATE`, `DELETE` ni `INSERT`,
+con una única excepción aprobada por el usuario el 2026-11-24, que sustituyó
+la importación del Excel por SOAP (`SRTC_LAUNCH_IMPORT`, retirada): el alta
+directa (`src/lib/meta4/hire/direct`). Graba cada persona como la categoría
+`SAVE_HIRE` de Meta4, en una transacción SQL Server: vuelve a comprobar con
+bloqueo que el ID y el documento están libres, hace `INSERT` solo en las tablas
+del modelo generado (`npm run hire:model`, solo `SELECT` del diccionario y de
+la plantilla `Hire_1_PERSONA.xls`), numera la auditoría `AUC_*` con
+`M4RDC_SEQUENCE` y sube `M4CSP_BLOCK_SEQ` con un `UPDATE` que solo aumenta.
+El ID es el primero libre desde `M4CSP_BLOCK_SEQ` + 1 y se comprueba después en
+`STD_PERSON`. `ID_SECUSER`/`ID_APPROLE` son el usuario de `M4RSC_APPUSER` y el
+rol de su conexión, y el alta se rechaza si la máscara del rol no puede
+insertar (`M4RDC_SEC_LOBJ`), como Meta4. Usa una conexión aparte
+(`PEOPLENET_DB_WRITE_*`); la de `PEOPLENET_DB_*` sigue siendo de lectura.
+`META4_HIRE_MODE=plan` simula con lecturas reales sin grabar. El plan
+(`plan.ts`) es puro y explica cada regla traducida del LN4 en
+[docs/alta-modelo-peoplenet.md](docs/alta-modelo-peoplenet.md). No persiste
+datos personales en SQLite. La entidad legal (CH/CI) se elige del catálogo
+`STD_LEG_ENT` de la sociedad activa.
 Los catálogos del alta se leen de la base PeopleNet (SQL Server) solo en
 servidor, con `PEOPLENET_DB_*` y únicamente consultas `SELECT` parametrizadas;
 los que dependen de sociedad filtran `ID_ORGANIZATION` por la sociedad del

@@ -86,6 +86,60 @@
 - [ ] Meta4: traza de `SRCO_SAVE_HIRE` para confirmar la resta FADRAO tras un
       alta correcta, corregirla y limpiar las personas 1815 y 1818 de PRE.
 
+## Alta de personas con `INSERT` directo — análisis 2026-11-24
+
+- [x] Modelo del alta de Meta4 en [docs/alta-modelo-peoplenet.md](../docs/alta-modelo-peoplenet.md):
+      categoría `SAVE_HIRE` (108 grupos, 24 métodos LN4), tabla y columna de
+      cada ítem, perfil agregado de 69 altas CYC de 2026 y auditoría `AUC_*`
+      (`M4RDC_SEQUENCE`). Solo `SELECT`, sin datos personales.
+- [x] Traducidas las reglas de persona, periodo y rol. Las columnas sin mapeo
+      salen de los tipos extendidos de Meta4 (fechas de fin, indicadores,
+      ordinales `MAX + 1`, auditoría con `M4RDC_SEQUENCE`), de la clave del
+      nodo padre, de la fecha de alta o de diez reglas LN4 (nombre, dirección,
+      banco, rol, estructura, agrupación, experiencia). Todas comprobadas con
+      recuentos sobre 69 altas; ninguna queda sin explicar.
+- [x] Validaciones traducidas con la configuración real de Meta4
+      (`M4RAV_APP_VAL_LG1`): fecha de nacimiento, duplicidad por
+      `SCO_GB_NAME` (aviso), dirección española, IBAN (formato, ISO 13616 y
+      descomposición), BIC obligatorio desde `M4SSP_BANK_BIC_CODES`, cuenta
+      repetida, contacto principal, datos de pago y familia. powermeta4 ya
+      cubre fecha, dirección, IBAN, documento e ID.
+- [x] Alta directa (`META4_HIRE_MODE=direct`, `src/lib/meta4/hire/direct`):
+      modelo generado del diccionario y la plantilla (`npm run hire:model`),
+      plan puro, consultas previas, escritura en una transacción con
+      auditoría y contador, y enrutado desde `launchMeta4Hire`. Deduce y
+      exige el BIC, avisa de nombre duplicado y deriva el IBAN, la cuenta y
+      los ordinales.
+- [x] Plan contrastado con el perfil de las 69 altas CYC de 2026: mismas
+      tablas, mismas filas por persona y mismas columnas, salvo los campos
+      que la persona de prueba deja vacíos.
+- [x] Usuario de escritura: el de `PEOPLENET_DB_USER` ya puede escribir (el
+      mismo de DBeaver); `PEOPLENET_DB_WRITE_USE_READ_USER=true` lo reutiliza.
+- [x] Prueba en prenómina con `META4_HIRE_MODE=direct` (2026-11-24): persona
+      1829 grabada en 34 tablas y 4 de auditoría; columnas como las altas de
+      Meta4 y contador subido.
+- [x] `ID_SECUSER`/`ID_APPROLE` como Meta4 (usuario de `M4RSC_APPUSER` y rol de
+      la conexión) y seguridad de inserción del rol (`M4RDC_SEC_LOBJ`): con
+      `M4EMPLOYEE` se rechaza antes de grabar, como Meta4.
+- [ ] Usuario de pruebas con rol de máscara `M4ADM` (p. ej. `M4_USER_RRHH`) en
+      prenómina: la copia diaria de PRO deja el usuario solo con `M4EMPLOYEE`.
+- [ ] Abrir la 1829 en Meta4 (prenómina) para confirmar que la muestra sin
+      refrescar la caché, antes de la copia diaria de PRO.
+- [ ] Prueba en PRE: alta directa de una persona, comparada fila a fila con
+      una dada de alta desde Meta4; comprobar la caché de Meta4.
+- [x] Quitado el camino SOAP/Excel (2026-11-24, a petición del usuario):
+      `excel.ts`, `excel-lifecycle.ts`, `soap.ts`, `parser.ts`,
+      `import-status.ts`, `import-log.ts`, `filename.ts`, `write-file.ts`, sus
+      tests y el proyecto `excel-native` de Vitest. El alta directa es el único
+      camino; `META4_HIRE_FILE_PATH`, `META4_HIRE_TEMPLATE_PATH` y
+      `META4_HIRE_MODE=direct` ya no se usan.
+- [ ] Traducir `CALCULA_VACIOS` y localizar la máscara de `STD_PERSON`
+      (`CSP_MASCARA`).
+- [ ] Aprobar la excepción a «solo `SELECT`», con un usuario de escritura
+      limitado a las tablas del alta.
+- [ ] Probar en PRE la caché de Meta4 y comparar una persona grabada por Meta4
+      con otra grabada por powermeta4.
+
 ## Alta de personas: Fusion ID, ID Atradius, nombre y rol — 2026-11-19
 
 - [x] Diagnóstico en PRE (solo SELECT): todas las importaciones desde el 2026-10-01
@@ -483,7 +537,7 @@ Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.
 - [ ] Segunda sesión: leer primero manifiesto/errores y cerrar solo contratos
       afectados, permisos y reglas virtuales acreditados; mantener pendientes
       explícitos los destinos sin estructura y las simulaciones sin reglas LN4.
-- [ ] Repetir la integración Excel COM del alta en un entorno donde termine.
+- [x] ~~Repetir la integración Excel COM del alta~~: el alta ya no usa Excel COM.
 
 ## Formularios de expedientes simplificados — 2026-11-05
 

@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -199,7 +199,7 @@ describe("UsersHireForm", () => {
     await typeFusionId(user);
     expect(inputValue("Fusion ID")).toBe("9998");
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
-    expect(screen.getByText("Se va a dar de alta 1 persona en Meta4.")).toBeTruthy();
+    expect(screen.getByText("Se va a dar de alta 1 persona en PeopleNet.")).toBeTruthy();
     expect(launchHire).not.toHaveBeenCalled();
   });
 
@@ -222,7 +222,7 @@ describe("UsersHireForm", () => {
     expect(screen.getByText(`${firstDocument} · persona-1@example.test`)).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
     expect(
-      screen.getByText(/^Se van a dar de alta 2 personas en Meta4, de una en una/),
+      screen.getByText(/^Se van a dar de alta 2 personas en PeopleNet, de una en una/),
     ).toBeTruthy();
     expect(launchHire).not.toHaveBeenCalled();
   });
@@ -1012,7 +1012,7 @@ describe("UsersHireForm", () => {
   it("retains the four fields between people and tabs and submits each person's own values", async () => {
     launchHire.mockResolvedValue({
       ok: true,
-      data: { personCount: 2, fileName: "four-fields.xls", personIds: [] },
+      data: { personCount: 2, personIds: [] },
     });
     const user = userEvent.setup({ delay: null });
     render(<UsersHireForm catalogs={CATALOGS} />);
@@ -1082,14 +1082,45 @@ describe("UsersHireForm", () => {
     ]);
   }, 60_000);
 
+  it("shows a launch error that is not tied to a field in a modal", async () => {
+    launchHire.mockResolvedValue({
+      ok: false,
+      errorCode: "META4_HIRE_VALIDATION",
+      message: "Meta4 no permite dar de alta con el rol M4EMPLOYEE.",
+      issues: [{ person: 1, message: "Conéctate a Meta4 con un rol de RRHH." }],
+    });
+    const user = userEvent.setup({ delay: null });
+    render(<UsersHireForm catalogs={CATALOGS} />);
+    await fillRequired(user, {
+      firstName: "Ana",
+      lastName1: "López",
+      documentNumber: "00000000T",
+      email: "ana@example.test",
+      hireDate: "2026-10-01",
+    });
+    await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "No se ha podido dar de alta" });
+    expect(within(dialog).getByRole("alert").textContent).toBe(
+      "Meta4 no permite dar de alta con el rol M4EMPLOYEE.Persona 1: Conéctate a Meta4 con un rol de RRHH.",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Entendido" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "No se ha podido dar de alta" })).toBeNull(),
+    );
+    expect(launchHire).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("button", { name: "Lanzar alta" })).toBeTruthy();
+  }, 60_000);
+
   it("removes a collapsed person and submits every remaining person", async () => {
     launchHire.mockResolvedValue({
       ok: true,
       data: {
         personCount: 2,
-        fileName: "Hire_user_2026-09-22_11-12-34.xls",
         personIds: ["1821", "1822"],
-        counterNote: "El contador de personas de Meta4 no ha subido: pon STD_PERSON en 1822.",
+        note: "Persona 2: ya hay otra persona con el mismo nombre en PeopleNet.",
       },
     });
     const user = userEvent.setup({ delay: null });
@@ -1130,14 +1161,15 @@ describe("UsersHireForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
     expect(
-      screen.getByText(/^Se van a dar de alta 2 personas en Meta4, de una en una/),
+      screen.getByText(/^Se van a dar de alta 2 personas en PeopleNet, de una en una/),
     ).toBeTruthy();
     expect(launchHire).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Confirmar" }));
 
     expect(launchHire).toHaveBeenCalledTimes(1);
     expect((await screen.findByRole("status")).textContent).toBe(
-      "Alta de 2 personas completada en Meta4 (IDs 1821, 1822) · Hire_user_2026-09-22_11-12-34.xls",
+      "Alta de 2 personas completada en PeopleNet (IDs 1821, 1822)" +
+        "Persona 2: ya hay otra persona con el mismo nombre en PeopleNet.",
     );
     expect(launchHire.mock.calls.at(0)?.at(0)).toMatchObject([
       {

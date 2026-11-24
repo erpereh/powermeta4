@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getPeopleNetConfig, PeopleNetConfigError } from "./client";
+import { getPeopleNetConfig, getPeopleNetWriteConfig, PeopleNetConfigError } from "./client";
 
 const ENV = {
   PEOPLENET_DB_HOST: "db-host",
@@ -44,5 +44,33 @@ describe("getPeopleNetConfig", () => {
     expect(call).toThrow(PeopleNetConfigError);
     expect(call).toThrow("PEOPLENET_DB_NAME, PEOPLENET_DB_USER");
     expect(call).not.toThrow(/secret/);
+  });
+});
+
+describe("getPeopleNetWriteConfig", () => {
+  it("stays off until a write user is configured", () => {
+    expect(getPeopleNetWriteConfig({ ...ENV, NODE_ENV: "test" })).toBeNull();
+  });
+
+  it("uses its own user, or the read user when explicitly allowed", () => {
+    expect(
+      getPeopleNetWriteConfig({
+        ...ENV,
+        NODE_ENV: "test",
+        PEOPLENET_DB_WRITE_USER: "writer",
+        PEOPLENET_DB_WRITE_PASSWORD: "other",
+      }),
+    ).toMatchObject({ server: "db-host", database: "M4DB", user: "writer", password: "other" });
+    expect(
+      getPeopleNetWriteConfig({
+        ...ENV,
+        NODE_ENV: "test",
+        PEOPLENET_DB_WRITE_USE_READ_USER: "true",
+      }),
+    ).toMatchObject({
+      user: "reader",
+      password: "secret",
+      options: { appName: "powermeta4-hire" },
+    });
   });
 });

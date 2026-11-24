@@ -107,9 +107,15 @@ El listado de usuarios consulta `M4ORO_EMPLEADOS` en PeopleNet con la
 sociedad activa resuelta en el servidor y no persiste resultados en SQLite.
 El detalle consulta `M4ORO_EMPLEADOS` por matrícula y sociedad activa, y
 `STD_EMAIL` por persona, mediante la misma conexión de solo lectura. El alta de
-personas (`SRTC_LAUNCH_IMPORT`) copia `Hire_1_PERSONA.xls`; Excel sustituye
-solo los campos de la UI y guarda un fichero con nombre de usuario y fecha en
-el directorio `META4_HIRE_FILE_PATH`.
+personas graba cada persona en las tablas de PeopleNet como lo hace la
+categoría `SAVE_HIRE` de Meta4, en una transacción por persona y con el usuario
+de escritura `PEOPLENET_DB_WRITE_*` (o el de lectura con
+`PEOPLENET_DB_WRITE_USE_READ_USER=true`); la importación del Excel por SOAP se
+retiró. El usuario de Meta4 necesita un rol que pueda insertar en esas tablas
+(máscara `M4ADM`, p. ej. `M4_USER_RRHH`). `META4_HIRE_MODE=plan` hace lo mismo
+con lecturas reales pero no graba y muestra las filas que insertaría. El modelo se genera con
+`npm run hire:model` (solo `SELECT` del diccionario) y se explica en
+[docs/alta-modelo-peoplenet.md](docs/alta-modelo-peoplenet.md).
 No guarda datos personales en SQLite. Los catálogos de Seguridad Social, Nómina y
 Datos de pago (documento, países, geografía, estado civil, Atradius, organización,
 moneda,

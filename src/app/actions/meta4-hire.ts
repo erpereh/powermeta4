@@ -13,9 +13,9 @@ import type { ActionResult } from "@/lib/local-database/dtos";
 
 export type HireActionData = {
   personCount: number;
-  fileName: string;
   personIds: string[];
-  counterNote?: string;
+  /** Meta4's warnings, joined. */
+  note?: string;
 };
 
 /** Validation problems and PeopleNet rejections come back per person and field. */
@@ -33,24 +33,21 @@ const resolveHireErrorMessage = (error: unknown): { errorCode: string; message: 
     return { errorCode: "SESSION_EXPIRED", message: error.message };
   }
   if (error instanceof Meta4SoapFaultError) {
-    // error.message already carries Meta4's own fault text ("SOAP Fault
-    // <code>: <faultstring>") - surfacing it (instead of a generic string)
-    // is what actually lets the person filling the form self-diagnose
-    // things like "empleado ya existe" without escalating to IT each time.
+    // Only the session and profile checks call Meta4 by SOAP now.
     return {
       errorCode: "SOAP_FAULT",
-      message: `Meta4 rechazó el alta de personas: ${error.message}`,
+      message: `Meta4 no ha podido comprobar tu sesión: ${error.message}`,
     };
   }
   if (error instanceof Meta4HttpError) {
     return {
       errorCode: "HTTP_ERROR",
-      message: "Meta4 no pudo completar el alta de personas.",
+      message: "Meta4 no ha podido comprobar tu sesión.",
     };
   }
   return {
     errorCode: "META4_HIRE_FETCH_FAILED",
-    message: "No se ha podido completar el alta de personas en Meta4.",
+    message: "No se ha podido completar el alta de personas en PeopleNet.",
   };
 };
 
@@ -58,17 +55,13 @@ export async function launchMeta4HireAction(people: unknown): Promise<HireAction
   try {
     const parsed = parseHirePeople(people);
     const authSession = await requireAuthContext();
-    const result = await launchMeta4Hire(authSession, parsed, {
-      // Serialized so the dev log keeps the details (it prints objects as {}).
-      log: (message, details) => console.info(`[${message}] ${JSON.stringify(details)}`),
-    });
+    const result = await launchMeta4Hire(authSession, parsed);
     return {
       ok: true,
       data: {
         personCount: result.personCount,
-        fileName: result.fileName,
         personIds: result.personIds,
-        ...(result.counterNote ? { counterNote: result.counterNote } : {}),
+        ...(result.warnings?.length ? { note: result.warnings.join(" ") } : {}),
       },
     };
   } catch (error) {
