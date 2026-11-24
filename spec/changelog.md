@@ -2,6 +2,12 @@
 
 ## 2026-11-24 - Alta directa en las tablas de PeopleNet
 
+- Persona 1830 abierta y editada en Meta4 (prenómina): la aplicación la muestra
+  y guarda cambios sin refrescar su caché. Queda confirmado que el alta directa
+  produce una persona válida para la lógica de Meta4, no solo para la base.
+- Documentado que el alta no crea usuario de aplicación (`SAVE_HIRE` no escribe
+  tablas `M4RSC_*`) y que su contraseña no viene de LDAP: se pone a mano con la
+  política de `USER_CREATION`. Se deja así.
 - Retirada la carga masiva por Excel del alta (ese Excel ya no se usa):
   «Descargar plantilla» y «Cargar Excel» del formulario, `bulk-template.ts`,
   `bulk-import.ts`, `bulk-places.ts`, `bulk-controls.tsx`, `bulk-columns.ts`,

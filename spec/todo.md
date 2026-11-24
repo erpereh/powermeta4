@@ -148,8 +148,10 @@
         `M4SCO_H_SAL_DATA` 14 %, la mayoría de tablas de nómina al 50 %).
       - El detalle y los porcentajes, en «Las tres sociedades» de
         [docs/alta-modelo-peoplenet.md](../docs/alta-modelo-peoplenet.md).
-- [ ] Abrir la 1830 en Meta4 (prenómina) para confirmar que la muestra sin
-      refrescar la caché, antes de la copia diaria de PRO.
+- [x] La 1830 abierta **y editada** en Meta4 (prenómina, 2026-11-24): la
+      aplicación la muestra y guarda cambios sobre ella sin refrescar su caché,
+      así que las filas que escribe el alta le valen a la lógica de Meta4, no
+      solo a la base de datos.
 - [ ] Prueba en PRE: alta directa de una persona, comparada fila a fila con
       una dada de alta desde Meta4; comprobar la caché de Meta4.
 - [x] Quitado el camino SOAP/Excel (2026-11-24, a petición del usuario):

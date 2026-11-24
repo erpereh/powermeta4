@@ -263,6 +263,23 @@ categoría, así que vienen de un cambio posterior del puesto.
 Al dar de alta, Meta4 escribe **una sola fila** por rol: 217 de los 225 roles
 de la muestra. Lo escriben 229/299 altas de CYC, 29/35 de IBER y 9/14 de COLL.
 
+#### El usuario de aplicación no es parte del alta
+
+Dar de alta a la persona y crearle usuario de PeopleNet son dos operaciones
+distintas: la categoría `SAVE_HIRE` no escribe ninguna tabla `M4RSC_*`, así que
+ni Meta4 ni powermeta4 crean usuario al dar el alta. Se hace después y a mano
+en «Usuarios de aplicación».
+
+La contraseña no viene del dominio. Hay cinco configuraciones de LDAP en
+`M4RSC_LOGON_LDAP`, pero `M4RSC_LDAPUSER_MAP` está vacía y los 1.203 usuarios
+de `M4RSC_APPUSER` tienen contraseña propia y `SSOWEB_TYPE` nulo. Al crearla,
+la sección `USER_CREATION` de `M4RAV_APP_VAL_LG1` exige de 8 a 15 caracteres,
+al menos una mayúscula y un dígito, ningún carácter especial obligatorio y que
+no contenga el usuario; `SCH_SESSION` guarda las 5 últimas y Meta4 puede
+generar una fuerte o enviar a la persona un enlace por correo para que la
+ponga ella. Decisión del usuario del 2026-11-24: se deja como está, powermeta4
+no crea usuarios de aplicación.
+
 #### Las tres sociedades
 
 El alta usa siempre la sociedad del contexto operativo: los catálogos filtran
