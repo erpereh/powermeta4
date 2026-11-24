@@ -178,6 +178,128 @@ eligen la española.
 | Familia | `SHCO_CHECK_OVERLAPPING_FAMILY`, `SHCO_CHECK_FAMILY` | sin solapes; solo si el alta trae familiares |
 | Fecha de inicio de pago | `SRCO_CHECK_DT_START_PAY` | no se aplica en CYC (`SCO_NEW_ROLE_DT_START_PAY = 0`) |
 
+#### Validación campo a campo (diccionario)
+
+Además de los métodos LN4 de la tabla anterior, Meta4 valida cada columna con
+el diccionario. Comprobado sobre los 1.153 campos de los objetos que escribe el
+alta (`npm run hire:model` ya trae tipo, longitud y obligatoriedad):
+
+| Nivel | Dónde | Alcance |
+|---|---|---|
+| Tipo, longitud y decimales | `M4RDC_EXTENDED_TPS` (`ID_M4_TYPE`, `PREC`, `SCALE`) | todos |
+| Obligatoriedad | `M4RDC_FIELDS.NOT_NULL = 1` | 342 campos |
+| Lista de valores | `ID_CONSTRAINT_FUNC` 11 (numérica) y 12 (texto), valores en `CONSTRAINT_ARGS` separados por `\|` | 62 campos |
+| Rango | `ID_CONSTRAINT_FUNC` 14 (numérico) y 15 (fechas), `mín\|máx` | 13 campos |
+| Integridad referencial | `M4RDC_RELATIONS` + `M4RDC_RLTION_FLDS` | 301 campos, 610 relaciones a 108 objetos |
+
+Detalles comprobados:
+
+- **Herencia por organización.** Las filas del alta llevan `ID_ORGANIZATION =
+  'CYC'`, pero los catálogos de la relación suelen estar en la organización
+  raíz `0000` (`STD_LU_HR_TYPE`, `M4SCO_PAYMENT_TYPE`, `M4SSP_TP_SALARIO`,
+  `M4SCO_X_REA_CHANGE`…). Al resolver una referencia hay que aceptar la
+  sociedad **o** `0000`; con solo la sociedad fallarían 19 relaciones que en
+  realidad son correctas.
+- **Sin excepciones por sociedad.** `M4RDC_FIELD_LOC_NOT_NULLS` y
+  `M4RDC_FIELD_LOC_SIZES` están vacías: ninguna sociedad cambia la
+  obligatoriedad ni el tamaño de un campo.
+- **`NOT_NULL` del diccionario y de SQL coinciden.** Ningún campo es
+  obligatorio en el diccionario y nulo en la tabla, así que la obligatoriedad
+  que ya usa `plan.ts` (de la columna SQL) cubre la de Meta4.
+- **Los rangos** son casi todos ordinales (`1|999999`). Los que afectan a datos
+  del formulario son `SCO_ROLE_W_HOURS` (1–100), `SSP_NUM_HORAS` y
+  `SSP_TIPO_HORAS` (0–10000), `CSP_ID_TIPO_JORNADA` (0–99) y
+  `SSP_CON_RED_VIVIEN` (0–9999).
+- **Campos sin formato.** El diccionario no valida el formato de los
+  identificadores de texto libre: `CSP_ID_FUSION` es `SCO_VARCHAR_30`,
+  `CSP_ID_ATRADIUS` es `SCO_VARCHAR15` y `STD_SSN` es texto de 14/20. El NIF,
+  el IBAN y el código postal los validan los métodos LN4, no el diccionario.
+
+Contraste ejecutado sobre las filas ya grabadas: persona 1830 (alta de
+powermeta4) 0 fallos sobre 169 obligatorios, 30 listas, 10 rangos, 260
+longitudes y 103 referencias; altas reales de Meta4 1822 y 10496, 0 fallos con
+las mismas reglas. Un alta simulada también pasa las 31 listas, 8 rangos y 277
+longitudes de sus valores.
+
+`npm run hire:model` guarda la lista (`allowed`) y el rango (`range`) de cada
+columna, y `plan.ts` los comprueba en `assertConstraints`, tanto al convertir
+un valor como al numerar un ordinal. El error nombra la columna y los valores
+admitidos, nunca el valor que escribió la persona. En el modelo actual son 106
+columnas con lista y 18 con rango; un alta escribe 41 de ellas.
+
+#### `CALCULA_VACIOS`: la agrupación de categoría
+
+`M4CSP_H_HR_JOB_AGRUPA_CAT` no sale del formulario: la calcula el método
+`CSP_TK_MT_H_HR_JOB_AGRUPA_CAT.CALCULA_VACIOS` tras grabar el rol. Traducido
+del LN4, para un alta (una persona nueva, un rol):
+
+1. **Categoría del puesto** (`CSP_GET_CATEGORIA_JOB` sobre `STD_HT_JOB_DEF`,
+   conectado por `STD_ID_JOB_CODE`): el periodo que cubre la fecha de alta;
+   si no hay, el abierto (`STD_DT_END >= hoy`); si no, el último. Sin
+   categoría no se escribe ninguna fila.
+2. **Indicador de organigrama**: `CSP_GET_HR_ORGANIGRAMA` (`M4SCO_H_HR_RESP`
+   con `SCO_ID_TYPE_RESP = 'R_FUN'`, conectado por persona y fechas del rol)
+   da `1`; si no hay, la familia interna del puesto
+   (`STD_HT_JOB_DEF` → `STD_LU_JOB_INT_CLA` → `STD_LU_JOB_INT_FAM`) da `1`
+   cuando es `RD`, `RDS`, `RA`, `RU`, `RS` o `RGC`, y `0` en los demás casos.
+3. **Agrupación** (`CSP_JOB_AGRUPA_CAT.OBTENER_ID_AGRUPACION`): busca en
+   `M4CSP_HR_JOB_AGRUPA_CAT` la categoría junto con el indicador y, si no la
+   encuentra, solo por categoría.
+4. **Fila**: `ID_HR`, `DT_START` (fecha de alta), `DT_END`, `ID_JOB_CODE`,
+   `SCO_OR_HR_ROLE` y la agrupación.
+
+**Lo que hace powermeta4 y por qué.** El catálogo tiene 11 filas, todas de
+2020 y en la organización `0000`. Nueve llevan `ES_ORGANIGRAMA = '2'`, que
+vale para cualquier indicador; solo `I3` tiene dos entradas (`1` → `02`,
+`0` → `03`) y `III8` una (`0` → `04`). Contrastando las 366 filas de las
+altas reales desde 2024, el paso 2 **no decide nunca**: todas las `I3`
+guardadas llevan `02`, también las de personas sin responsabilidad funcional
+y con familias fuera de la lista. Por eso `lookups.ts` resuelve por categoría
+tomando la agrupación menor, que reproduce 359 de las 366 filas (98 %); en
+las creadas en el propio alta, 227 de 233 (97 %). Las 7 restantes son `III8`
+y una `I3` cuyo valor guardado (`03`) no corresponde a ninguna entrada de su
+categoría, así que vienen de un cambio posterior del puesto.
+
+Al dar de alta, Meta4 escribe **una sola fila** por rol: 217 de los 225 roles
+de la muestra. Lo escriben 229/299 altas de CYC, 29/35 de IBER y 9/14 de COLL.
+
+#### Las tres sociedades
+
+El alta usa siempre la sociedad del contexto operativo: los catálogos filtran
+por ella, el contador `M4CSP_BLOCK_SEQ` es suyo y la entidad legal sale de su
+`STD_LEG_ENT`. No hay ninguna sociedad fija en el código.
+
+Lo que **no** cambia entre sociedades, comprobado:
+
+- La categoría `SAVE_HIRE` y sus grupos: `M4RCH_CATEGORY_GRP`, `M4RCH_GROUPS`,
+  `M4RCH_GROUP_MAPP` y `M4RCH_ITEMS_MAPPED` no tienen columna de organización,
+  así que `model.generated.json` vale para las tres.
+- Las reglas del diccionario (tipo, longitud, obligatoriedad, listas, rangos y
+  relaciones): son globales y `M4RDC_FIELD_LOC_NOT_NULLS` / `_SIZES` están
+  vacías.
+- La configuración del alta (`CALC_MODE`, `SSP_SOLICITAR_BIC`,
+  `SCO_NEW_ROLE_DT_START_PAY`) está en `M4RAV_APP_VAL_LG1` como `*ALL*`.
+
+Lo que **sí** cambia son los datos. Perfil de las altas reales desde 2024
+(CYC 299, IBER 35, COLL 14), tablas que escribe cada sociedad:
+
+| Tabla | CYC | IBER | COLL | Catálogo |
+|---|---|---|---|---|
+| `M4CSP_H_CAT_PER_CYC` | 0 % | 100 % | 29 % | sin valores en CYC; IBER 11, COLL 9 |
+| `M4CSP_H_CAT_TEORICA` | 1 % | 100 % | 43 % | CYC 1, IBER 49, COLL 6 |
+| `M4CSP_H_EQUIV_CAT_JOB_CYC` | 0 % | 100 % | 29 % | sin valores en CYC; IBER 8, COLL 8 |
+
+Pese al nombre, las tres son de IBER y COLL: CYC no las usa porque sus
+catálogos no tienen valores para esa sociedad. Las alimentan tres items de
+`SRCO_PA_HIRE_WIZ_ORG` (`CSP_ID_CAT_PER_CYC`, `ID_CAT_TEORICA`,
+`CSP_ID_EQUIV_CAT_JOB_CYC`) que **no están en la plantilla
+`Hire_1_PERSONA.xls` ni en el formulario de powermeta4**, así que ni la
+importación por SOAP ni el alta directa las escribían.
+
+Por eso el alta está contrastada solo con CYC. Antes de usarla en IBER hay que
+añadir esos tres campos, y en COLL repetir el contraste: con 14 altas su perfil
+es más ligero (`M4SCO_H_SAL_DATA` 14 %, la mayoría de tablas de nómina al 50 %).
+
 #### Qué valida ya powermeta4
 
 El formulario y la carga masiva ya validan, en `src/lib/meta4/hire/validate.ts`,

@@ -50,7 +50,31 @@ const HEADER_ROW = FIRST_PERSON_ROW - 1;
  * Written outside the transfer copies: the role's job history (from the role's
  * job code), SRCO_SAVE_HIRE (SRSP) retirement row and CSP_ACT_CV experience.
  */
-const EXTRA_TABLES = ["M4SCO_H_HR_JOB", "M4CSP_H_COMP_JUBILACION", "STD_HR_PREV_JOBS"];
+const EXTRA_TABLES = [
+  "M4SCO_H_HR_JOB",
+  "M4CSP_H_COMP_JUBILACION",
+  "STD_HR_PREV_JOBS",
+  "M4CSP_H_HR_JOB_AGRUPA_CAT",
+];
+
+/**
+ * Value constraint of an extended type: `ID_CONSTRAINT_FUNC` 11 and 12 list the
+ * accepted values in `CONSTRAINT_ARGS`, 14 and 15 give `min|max` for numbers
+ * and dates. 1 is "no constraint".
+ */
+const constraintOf = (func: string, args: string): Pick<HireModelColumn, "allowed" | "range"> => {
+  const parts = args.split("|");
+  if (func === "11" || func === "12") {
+    const allowed = parts.filter((part) => part !== "");
+    return allowed.length > 0 ? { allowed } : {};
+  }
+  if (func === "14" || func === "15") {
+    const [min, max] = parts;
+    if (!min || !max) return {};
+    return { range: { kind: func === "14" ? "number" : "date", min, max } };
+  }
+  return {};
+};
 
 const rank = (t3: string): number => HIRE_T3.indexOf(t3 as (typeof HIRE_T3)[number]);
 const s = (value: unknown): string => text(value) ?? "";
@@ -299,7 +323,8 @@ const main = async () => {
     const columnRows = await q(`
       SELECT c.TABLE_NAME, c.COLUMN_NAME, c.ORDINAL_POSITION, c.DATA_TYPE, c.CHARACTER_MAXIMUM_LENGTH AS LEN, c.NUMERIC_PRECISION AS PREC,
              c.NUMERIC_SCALE AS SCALE, c.IS_NULLABLE, c.COLUMN_DEFAULT, r.ID_OBJECT, r.ID_FIELD, f.ID_TYPE, f.POS_PK, f.NOT_NULL,
-             CAST(e.ID_DEFAULT_FUNC AS varchar(5)) AS DF, e.DEFAULT_ARGS
+             CAST(e.ID_DEFAULT_FUNC AS varchar(5)) AS DF, e.DEFAULT_ARGS,
+             CAST(e.ID_CONSTRAINT_FUNC AS varchar(5)) AS CF, e.CONSTRAINT_ARGS
       FROM INFORMATION_SCHEMA.COLUMNS c
       LEFT JOIN M4RDC_REAL_FIELDS r ON r.ID_REAL_OBJECT = c.TABLE_NAME AND r.ID_REAL_FIELD = c.COLUMN_NAME
       LEFT JOIN M4RDC_FIELDS f ON f.ID_OBJECT = r.ID_OBJECT AND f.ID_FIELD = r.ID_FIELD
@@ -329,6 +354,7 @@ const main = async () => {
             ...(s(row.COLUMN_DEFAULT) ? { sqlDefault: true } : {}),
             ...(s(row.DF) && s(row.DF) !== "1" ? { defaultFunction: Number(row.DF) } : {}),
             ...(s(row.DEFAULT_ARGS) ? { defaultArgs: s(row.DEFAULT_ARGS) } : {}),
+            ...constraintOf(s(row.CF), s(row.CONSTRAINT_ARGS)),
           }),
         );
       tableModel[table] = { object: s(object?.ID_OBJECT), ...(audit ? { audit } : {}), columns };

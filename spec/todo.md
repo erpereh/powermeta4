@@ -121,9 +121,32 @@
 - [x] `ID_SECUSER`/`ID_APPROLE` como Meta4 (usuario de `M4RSC_APPUSER` y rol de
       la conexión) y seguridad de inserción del rol (`M4RDC_SEC_LOBJ`): con
       `M4EMPLOYEE` se rechaza antes de grabar, como Meta4.
-- [ ] Usuario de pruebas con rol de máscara `M4ADM` (p. ej. `M4_USER_RRHH`) en
-      prenómina: la copia diaria de PRO deja el usuario solo con `M4EMPLOYEE`.
-- [ ] Abrir la 1829 en Meta4 (prenómina) para confirmar que la muestra sin
+- [x] Usuario de pruebas con rol de máscara `M4ADM` en prenómina:
+      `SOFIA.ELICES` (rol `M4_USER`). Alta 1830 correcta (2026-11-24).
+- [x] Comprobado que el modelo y las validaciones valen para las tres
+      sociedades: `SAVE_HIRE`, el diccionario y la configuración no dependen de
+      la organización, y la sociedad del contexto ya elige catálogos, contador
+      y entidad legal.
+- [ ] **Aplazado hasta que se aborde IBER** (decisión del usuario del
+      2026-11-24). El alta está contrastada solo con CYC; para IBER faltan tres
+      campos y para COLL falta el contraste. Lo necesario para retomarlo:
+      - Añadir al formulario, en la pestaña Organización, los items de
+        `SRCO_PA_HIRE_WIZ_ORG`: `CSP_ID_CAT_PER_CYC`, `ID_CAT_TEORICA`
+        («ID Categoría Teórica») y `CSP_ID_EQUIV_CAT_JOB_CYC`. Sus catálogos
+        son `M4CSP_CAT_PER_CYC`, `M4CSP_CAT_TEORICA` y
+        `M4CSP_EQUIV_CAT_JOB_CYC`, filtrados por `ID_ORGANIZATION`.
+      - Mostrarlos solo cuando la sociedad activa tenga valores: CYC tiene 0, 1
+        y 0; IBER 11, 49 y 8; COLL 9, 6 y 8. Así en CYC no aparecen.
+      - Los grupos ya están en `model.generated.json`
+        (`GRP_CSP_H_CAT_PER_CYC`, `GRP_CSP_H_HR_CAT_TEORICA`,
+        `CSP_EQUIV_CAT_JOB_CYC`): basta con que el item traiga valor para que
+        `plan.ts` escriba la fila, no hace falta tocar el plan.
+      - Después, un alta de prueba en IBER contrastada como la 1830 de CYC, y
+        el mismo contraste para COLL (14 altas, perfil más ligero:
+        `M4SCO_H_SAL_DATA` 14 %, la mayoría de tablas de nómina al 50 %).
+      - El detalle y los porcentajes, en «Las tres sociedades» de
+        [docs/alta-modelo-peoplenet.md](../docs/alta-modelo-peoplenet.md).
+- [ ] Abrir la 1830 en Meta4 (prenómina) para confirmar que la muestra sin
       refrescar la caché, antes de la copia diaria de PRO.
 - [ ] Prueba en PRE: alta directa de una persona, comparada fila a fila con
       una dada de alta desde Meta4; comprobar la caché de Meta4.
@@ -133,8 +156,12 @@
       tests y el proyecto `excel-native` de Vitest. El alta directa es el único
       camino; `META4_HIRE_FILE_PATH`, `META4_HIRE_TEMPLATE_PATH` y
       `META4_HIRE_MODE=direct` ya no se usan.
-- [ ] Traducir `CALCULA_VACIOS` y localizar la máscara de `STD_PERSON`
-      (`CSP_MASCARA`).
+- [x] `CALCULA_VACIOS` traducido (2026-11-24): el alta escribe
+      `M4CSP_H_HR_JOB_AGRUPA_CAT` con la agrupación de la categoría del puesto,
+      leída en `lookups.ts`. Reproduce 359/366 filas reales (98 %) y 227/233 de
+      las creadas en el alta. Detalle en `docs/alta-modelo-peoplenet.md`.
+- [ ] Localizar la máscara de `STD_PERSON` (`CSP_MASCARA`), menor: los IDs de
+      CYC tienen 4 cifras y el alta ya los genera así.
 - [ ] Aprobar la excepción a «solo `SELECT`», con un usuario de escritura
       limitado a las tablas del alta.
 - [ ] Probar en PRE la caché de Meta4 y comparar una persona grabada por Meta4

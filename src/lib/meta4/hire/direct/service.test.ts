@@ -81,6 +81,7 @@ const lookups: HireLookups = {
   provinceName: "Madrid",
   countryName: "España",
   bic: "BSCHESMMXXX",
+  categoryGroup: "02",
 };
 
 const deps = (overrides: Partial<DirectHireDeps> = {}) => {

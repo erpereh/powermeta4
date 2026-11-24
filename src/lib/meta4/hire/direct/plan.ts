@@ -36,6 +36,8 @@ export type HireLookups = {
   countryName: string | null;
   /** `M4SSP_BANK_BIC_CODES` for the bank of a Spanish IBAN. */
   bic: string | null;
+  /** `CALCULA_VACIOS`: category grouping of the role's job, or null if it has none. */
+  categoryGroup: string | null;
 };
 
 export type HirePlanInput = {
@@ -165,13 +167,44 @@ const isoToDate = (value: string): Date | null => {
 const planError = (message: string, detail: string): Meta4HireError =>
   new Meta4HireError("META4_HIRE_VALIDATION", message, [{ message: detail }]);
 
+/**
+ * Value list and range of the column's extended type, as Meta4's LDB checks
+ * them (`M4RDC_EXTENDED_TPS.ID_CONSTRAINT_FUNC`). Errors name the column and
+ * the accepted values, never the value the person typed.
+ */
+const assertConstraints = (table: string, column: HireModelColumn, text: string): void => {
+  if (column.allowed && !column.allowed.includes(text)) {
+    throw planError(
+      "Un dato del alta no es uno de los valores que admite PeopleNet.",
+      `${table}.${column.name}: admite ${column.allowed.join(", ")}.`,
+    );
+  }
+  if (!column.range) return;
+  const { min, max } = column.range;
+  const number = Number(text);
+  const outside =
+    column.range.kind === "number"
+      ? Number.isFinite(number) && (number < Number(min) || number > Number(max))
+      : text < min || text > max;
+  if (outside) {
+    throw planError(
+      "Un dato del alta está fuera del rango que admite PeopleNet.",
+      `${table}.${column.name}: de ${min} a ${max}.`,
+    );
+  }
+};
+
 /** Converts an item value to the column's SQL type; never echoes the value in errors. */
 const toSql = (table: string, column: HireModelColumn, value: ItemValue | Date): SqlScalar => {
   if (value === null || value === "") return null;
-  if (value instanceof Date) return value;
+  if (value instanceof Date) {
+    assertConstraints(table, column, value.toISOString().slice(0, 10));
+    return value;
+  }
   if (isDateType(column.sqlType)) {
     const date = typeof value === "number" ? excelSerialToDate(value) : isoToDate(value);
     if (!date) throw planError("Una fecha del alta no es válida.", `${table}.${column.name}`);
+    assertConstraints(table, column, date.toISOString().slice(0, 10));
     return date;
   }
   if (isNumberType(column.sqlType)) {
@@ -179,6 +212,7 @@ const toSql = (table: string, column: HireModelColumn, value: ItemValue | Date):
     if (!Number.isFinite(number)) {
       throw planError("Un número del alta no es válido.", `${table}.${column.name}`);
     }
+    assertConstraints(table, column, String(number));
     return number;
   }
   const text = typeof value === "number" ? String(value) : value;
@@ -188,6 +222,7 @@ const toSql = (table: string, column: HireModelColumn, value: ItemValue | Date):
       `${table}.${column.name}: máximo ${column.length} caracteres.`,
     );
   }
+  assertConstraints(table, column, text);
   return text;
 };
 
@@ -459,6 +494,18 @@ const afterSaveRows = (
       ]),
     });
   }
+  // CSP_TK_MT_H_HR_JOB_AGRUPA_CAT.CALCULA_VACIOS: grouping of the job's category.
+  if (jobCode && input.lookups.categoryGroup) {
+    extra.push({
+      table: "M4CSP_H_HR_JOB_AGRUPA_CAT",
+      values: new Map<string, ItemValue | Date>([
+        ["ID_JOB_CODE", jobCode],
+        ["ID_JOB_AGRUPACION_CATEGORIA", input.lookups.categoryGroup],
+        ["DT_START", input.person.hireDate],
+        ["DT_END", END_OF_TIME],
+      ]),
+    });
+  }
   const job = jobCode;
   if (job) {
     extra.push({
@@ -505,6 +552,7 @@ const finishRows = (
       const key = `${draft.table}.${column.name}|${column.pk === undefined ? "" : scope}`;
       const next = (nextOrdinal.get(key) ?? 0) + 1;
       nextOrdinal.set(key, next);
+      assertConstraints(draft.table, column, String(next));
       values[column.name] = next;
     }
     const missing = definition.columns.filter(

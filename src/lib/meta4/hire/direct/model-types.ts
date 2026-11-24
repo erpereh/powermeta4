@@ -45,6 +45,13 @@ export type HireModelColumn = {
   /** `M4RDC_EXTENDED_TPS.ID_DEFAULT_FUNC` when it sets a value (not 1). */
   defaultFunction?: number;
   defaultArgs?: string;
+  /**
+   * Only values Meta4 accepts, from `CONSTRAINT_ARGS` of the extended type
+   * (`ID_CONSTRAINT_FUNC` 11 numeric / 12 text).
+   */
+  allowed?: string[];
+  /** Range Meta4 accepts (`ID_CONSTRAINT_FUNC` 14 numbers, 15 dates). */
+  range?: { kind: "number" | "date"; min: string; max: string };
 };
 
 export type HireModelTable = {

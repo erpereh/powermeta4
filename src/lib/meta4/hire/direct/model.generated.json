@@ -5466,7 +5466,8 @@
           "type": "ID_ORG_MONO",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "ID_ORDER",
@@ -5507,7 +5508,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "DT_OPER",
@@ -5565,7 +5567,8 @@
           "type": "CHK_APP_10_D0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "STD_COMMENT",
@@ -5647,7 +5650,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "SCO_OR_HR_ROLE",
@@ -5666,7 +5670,12 @@
           "scale": 0,
           "required": true,
           "type": "STD_NUMBER_2",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "0",
+            "max": "99"
+          }
         },
         {
           "name": "DT_OPER",
@@ -5738,7 +5747,8 @@
           "type": "SCO_MAIN_ROLE",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SCO_ID_INT_RO_TY",
@@ -5773,7 +5783,8 @@
           "type": "CHK_S_10_D0",
           "sqlDefault": true,
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SUK_DT_END_TRAINEE",
@@ -5864,7 +5875,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "DT_OPER",
@@ -6000,7 +6012,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "DT_OPER",
@@ -6117,7 +6130,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "SSP_OR_HR_PERIOD",
@@ -6267,7 +6281,8 @@
           "type": "SSP_CHECK_S_N_DEF_N",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_INCAPACITADO_R",
@@ -6283,7 +6298,8 @@
           "type": "SSP_CHECK_S_N_DEF_N",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_PORC_MINUSVAL",
@@ -6310,7 +6326,8 @@
           "type": "SSP_CHECK_S_N_DEF_N",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_NUSS_SUST",
@@ -6326,7 +6343,8 @@
           "type": "SSP_CHECK_S_N_DEF_N",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_MUJER_24",
@@ -6335,13 +6353,15 @@
           "type": "SSP_CHECK_S_N_DEF_N",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_AFI_REG_INTERN",
           "sqlType": "varchar",
           "length": 1,
-          "type": "SCO_CHECK_NO_DEFAULT"
+          "type": "SCO_CHECK_NO_DEFAULT",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_CONTRAT_RELEVO",
@@ -6350,7 +6370,8 @@
           "type": "SSP_CHECK_S_N_DEF_N",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_ID_MUJER_REINC",
@@ -6362,7 +6383,8 @@
           "name": "SSP_EXCLUIDO_F_AFI",
           "sqlType": "varchar",
           "length": 1,
-          "type": "SCO_CHECK_NO_DEFAULT"
+          "type": "SCO_CHECK_NO_DEFAULT",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_FEC_INI_C_PROR",
@@ -6388,7 +6410,8 @@
           "type": "SSP_CHECK_S_N_DEF_N",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "ID_SECUSER",
@@ -6427,7 +6450,8 @@
           "type": "CHECK_DEFAULT_0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_ID_COLEC_TRAB",
@@ -6496,7 +6520,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "SCO_OR_HR_PERIOD",
@@ -6648,7 +6673,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "SCO_DT_END",
@@ -6756,7 +6782,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "STD_OR_HR_PERIOD",
@@ -6893,7 +6920,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "SCO_DT_START",
@@ -7026,7 +7054,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "DT_OPER",
@@ -7153,7 +7182,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "DT_OPER",
@@ -7284,7 +7314,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "SCO_DT_START",
@@ -7451,7 +7482,8 @@
           "type": "ID_ORG_MONO",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "ID_ORDER",
@@ -7479,7 +7511,12 @@
           "pk": 2,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "ID_TYPE",
@@ -7494,7 +7531,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "SCO_DT_END",
@@ -7689,7 +7727,8 @@
           "type": "ID_ORG_MONO",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "ID_ORDER",
@@ -7717,7 +7756,12 @@
           "pk": 2,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "ID_TYPE",
@@ -7732,7 +7776,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "DT_OPER",
@@ -7827,7 +7872,8 @@
           "name": "STD_MAILING_CHEC",
           "sqlType": "varchar",
           "length": 1,
-          "type": "SCO_CHECK_NO_DEFAULT"
+          "type": "SCO_CHECK_NO_DEFAULT",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_ESCALERA",
@@ -7945,7 +7991,8 @@
           "type": "ID_ORG_MONO",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "ID_ORDER",
@@ -7973,7 +8020,12 @@
           "pk": 2,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "ID_TYPE",
@@ -7988,7 +8040,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "DT_OPER",
@@ -8099,7 +8152,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "STD_OR_HR_PERIOD",
@@ -8175,7 +8229,8 @@
           "type": "CHK_APP_10_D0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "STD_ID_HR_TYPE",
@@ -8197,7 +8252,8 @@
           "type": "CHK_APP_10_D0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "STD_ID_EXTERN_ORG",
@@ -8213,7 +8269,8 @@
           "type": "CHK_S_10_D0",
           "sqlDefault": true,
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SSP_NUM_MATRICULA",
@@ -8417,7 +8474,8 @@
           "type": "ID_ORG_MONO",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "ID_ORDER",
@@ -8457,7 +8515,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "DT_OPER",
@@ -8663,7 +8722,8 @@
           "sqlType": "numeric",
           "precision": 1,
           "scale": 0,
-          "type": "BOOLEAN"
+          "type": "BOOLEAN",
+          "allowed": ["0", "1", "-1"]
         },
         {
           "name": "SCO_GB_NAME",
@@ -8692,7 +8752,8 @@
           "type": "CHK_S_10_D0",
           "sqlDefault": true,
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SUS_ID_VET_DIS_TY",
@@ -8731,7 +8792,8 @@
           "type": "SCO_CHECK_DEFAULT_0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "ID_SECUSER",
@@ -8771,7 +8833,8 @@
           "type": "ID_ORG_MONO",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "ID_ORDER",
@@ -8804,7 +8867,8 @@
           "name": "ID_UPDT_TYPE",
           "sqlType": "varchar",
           "length": 1,
-          "type": "UPDT_TYPE"
+          "type": "UPDT_TYPE",
+          "allowed": ["N", "O"]
         },
         {
           "name": "STD_OR_PHONE",
@@ -8814,7 +8878,12 @@
           "pk": 2,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "DT_OPER",
@@ -9336,6 +9405,84 @@
         }
       ]
     },
+    "M4CSP_H_HR_JOB_AGRUPA_CAT": {
+      "object": "CSP_H_HR_JOB_AGRUPA_CAT",
+      "columns": [
+        {
+          "name": "ID_ORGANIZATION",
+          "sqlType": "varchar",
+          "length": 4,
+          "pk": 5,
+          "required": true,
+          "type": "ID_ORG_MULTI"
+        },
+        {
+          "name": "ID_HR",
+          "sqlType": "varchar",
+          "length": 9,
+          "pk": 1,
+          "required": true,
+          "type": "STD_ID_HR"
+        },
+        {
+          "name": "SCO_OR_HR_ROLE",
+          "sqlType": "numeric",
+          "precision": 4,
+          "scale": 0,
+          "pk": 3,
+          "required": true,
+          "type": "SCO_OR_HR_ROLE",
+          "defaultFunction": 10
+        },
+        {
+          "name": "DT_START",
+          "sqlType": "datetime",
+          "pk": 2,
+          "required": true,
+          "type": "START_DATE"
+        },
+        {
+          "name": "ID_JOB_CODE",
+          "sqlType": "varchar",
+          "length": 10,
+          "pk": 4,
+          "required": true,
+          "type": "STD_ID_JOB_CODE"
+        },
+        {
+          "name": "DT_END",
+          "sqlType": "datetime",
+          "type": "END_DATE",
+          "sqlDefault": true,
+          "defaultFunction": 8,
+          "defaultArgs": "4000-01-01"
+        },
+        {
+          "name": "ID_JOB_AGRUPACION_CATEGORIA",
+          "sqlType": "varchar",
+          "length": 4,
+          "type": "ID_SHORT_STRING"
+        },
+        {
+          "name": "ID_APPROLE",
+          "sqlType": "varchar",
+          "length": 30,
+          "type": "LOGIC_NAME"
+        },
+        {
+          "name": "ID_SECUSER",
+          "sqlType": "varchar",
+          "length": 30,
+          "type": "LOGIC_NAME"
+        },
+        {
+          "name": "DT_LAST_UPDATE",
+          "sqlType": "datetime",
+          "type": "DATE_TRANS",
+          "defaultFunction": 3
+        }
+      ]
+    },
     "M4CSP_H_MOD_VAR": {
       "object": "CSP_H_MOD_VAR",
       "columns": [
@@ -9527,7 +9674,12 @@
           "scale": 0,
           "required": true,
           "type": "STD_NUMBER_2",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "0",
+            "max": "99"
+          }
         },
         {
           "name": "SCO_DT_START",
@@ -9590,7 +9742,8 @@
           "length": 1,
           "type": "SCO_MAIN_ROLE",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SCO_ID_INT_RO_TY",
@@ -9630,7 +9783,8 @@
           "scale": 0,
           "type": "CHK_S_10_D0",
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "ID_SECUSER",
@@ -10258,7 +10412,8 @@
           "sqlType": "varchar",
           "length": 1,
           "required": true,
-          "type": "SCO_ID_COMPL"
+          "type": "SCO_ID_COMPL",
+          "allowed": ["0", "1", "2"]
         },
         {
           "name": "SCO_NUM_HOURS",
@@ -10433,7 +10588,12 @@
           "sqlType": "numeric",
           "precision": 5,
           "scale": 2,
-          "type": "SCO_WEEK_HOURS"
+          "type": "SCO_WEEK_HOURS",
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "100"
+          }
         },
         {
           "name": "SCO_FULL_TIME",
@@ -10441,7 +10601,8 @@
           "length": 1,
           "type": "CHK_APP_10_D0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SCO_OR_HR_ROLE",
@@ -10962,7 +11123,8 @@
           "scale": 0,
           "type": "PROJECTION_FIELD",
           "defaultFunction": 6,
-          "defaultArgs": "1"
+          "defaultArgs": "1",
+          "allowed": ["1", "2", "3", "4", "5", "6"]
         },
         {
           "name": "DT_START",
@@ -11138,7 +11300,8 @@
           "scale": 0,
           "type": "PROJECTION_FIELD",
           "defaultFunction": 6,
-          "defaultArgs": "1"
+          "defaultArgs": "1",
+          "allowed": ["1", "2", "3", "4", "5", "6"]
         },
         {
           "name": "DT_COR_START",
@@ -11288,7 +11451,12 @@
           "pk": 4,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "SCO_DT_START",
@@ -11310,7 +11478,8 @@
           "required": true,
           "type": "CHK_BUTTON",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SCO_ID_PERSON",
@@ -11330,7 +11499,12 @@
           "precision": 6,
           "scale": 0,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "SCO_ID_PAYM_TYPE",
@@ -11365,7 +11539,8 @@
           "length": 1,
           "type": "CHK_LE_COMPBANK",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SCO_COMMENT",
@@ -11522,7 +11697,8 @@
           "scale": 0,
           "type": "PROJECTION_FIELD",
           "defaultFunction": 6,
-          "defaultArgs": "1"
+          "defaultArgs": "1",
+          "allowed": ["1", "2", "3", "4", "5", "6"]
         },
         {
           "name": "SCO_COMMENT",
@@ -11570,7 +11746,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "SCO_ID_PERSON",
@@ -11588,7 +11765,12 @@
           "pk": 2,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "SCO_DT_END",
@@ -11850,7 +12032,8 @@
           "required": true,
           "type": "CHK_APP_10_D1",
           "defaultFunction": 7,
-          "defaultArgs": "1"
+          "defaultArgs": "1",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SCO_ID_INP_PAYPERI",
@@ -11930,7 +12113,8 @@
           "length": 1,
           "type": "CHK_APP_10_D0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SCO_CK_HALFDAYS_END",
@@ -11938,7 +12122,8 @@
           "length": 1,
           "type": "CHK_APP_10_D0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SCO_CK_HALFDAY",
@@ -11946,7 +12131,8 @@
           "length": 1,
           "type": "CHK_APP_10_D0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SSP_CK_NO_PER_CAR",
@@ -11955,7 +12141,8 @@
           "type": "CHECK_DEFAULT_0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_MOTIVO_SOLICITUD_MA_PA",
@@ -12213,7 +12400,8 @@
           "required": true,
           "type": "CHK_APP_10_D1",
           "defaultFunction": 7,
-          "defaultArgs": "1"
+          "defaultArgs": "1",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SCO_ID_INP_PAYPERI",
@@ -12366,7 +12554,8 @@
           "scale": 0,
           "type": "PROJECTION_FIELD",
           "defaultFunction": 6,
-          "defaultArgs": "1"
+          "defaultArgs": "1",
+          "allowed": ["1", "2", "3", "4", "5", "6"]
         },
         {
           "name": "SCO_COMMENT",
@@ -12462,7 +12651,12 @@
           "precision": 4,
           "scale": 0,
           "type": "STD_NUMBER_4",
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "range": {
+            "kind": "number",
+            "min": "0",
+            "max": "9999"
+          }
         },
         {
           "name": "ID_APPROLE",
@@ -12919,7 +13113,8 @@
           "length": 1,
           "type": "SSP_CHECK_S_N_DEF_N",
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_INCAPACITADO_R",
@@ -12933,7 +13128,8 @@
           "length": 1,
           "type": "SSP_CHECK_S_N_DEF_N",
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_PORC_MINUSVAL",
@@ -12959,7 +13155,8 @@
           "length": 1,
           "type": "SSP_CHECK_S_N_DEF_N",
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_NUSS_SUST",
@@ -12980,7 +13177,8 @@
           "length": 1,
           "type": "SSP_CHECK_S_N_DEF_N",
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "ID_SECUSER",
@@ -12994,7 +13192,8 @@
           "length": 1,
           "type": "SSP_CHECK_S_N_DEF_N",
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "DT_LAST_UPDATE",
@@ -13006,7 +13205,8 @@
           "name": "SSP_AFI_REG_INTERN",
           "sqlType": "varchar",
           "length": 1,
-          "type": "SCO_CHECK_NO_DEFAULT"
+          "type": "SCO_CHECK_NO_DEFAULT",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_CONTRAT_RELEVO",
@@ -13014,7 +13214,8 @@
           "length": 1,
           "type": "SSP_CHECK_S_N_DEF_N",
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_ID_MUJER_REINC",
@@ -13026,7 +13227,8 @@
           "name": "SSP_EXCLUIDO_F_AFI",
           "sqlType": "varchar",
           "length": 1,
-          "type": "SCO_CHECK_NO_DEFAULT"
+          "type": "SCO_CHECK_NO_DEFAULT",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_FEC_INI_C_PROR",
@@ -13046,7 +13248,8 @@
           "type": "SSP_CHECK_S_N_DEF_N",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_CK_IGN_CTRL_DUR_MAX",
@@ -13055,7 +13258,8 @@
           "type": "CHECK_DEFAULT_0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_ID_COLEC_TRAB",
@@ -13321,7 +13525,8 @@
           "scale": 0,
           "type": "PROJECTION_FIELD",
           "defaultFunction": 6,
-          "defaultArgs": "1"
+          "defaultArgs": "1",
+          "allowed": ["1", "2", "3", "4", "5", "6"]
         },
         {
           "name": "ID_APPROLE",
@@ -13945,7 +14150,8 @@
           "length": 1,
           "type": "SSP_CHECK_S_N_DEF_0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_NUM_ASCEN_ENTE",
@@ -14261,28 +14467,32 @@
           "scale": 0,
           "type": "CHK_F_BOOL",
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SSP_COMPUTO_1_HIJO",
           "sqlType": "varchar",
           "length": 1,
           "type": "SSP_COMPUTO_HIJO",
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1", "2"]
         },
         {
           "name": "SSP_COMPUTO_2_HIJO",
           "sqlType": "varchar",
           "length": 1,
           "type": "SSP_COMPUTO_HIJO",
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1", "2"]
         },
         {
           "name": "SSP_COMPUTO_3_HIJO",
           "sqlType": "varchar",
           "length": 1,
           "type": "SSP_COMPUTO_HIJO",
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1", "2"]
         },
         {
           "name": "SSP_RED_VIVIENDA2",
@@ -14376,7 +14586,8 @@
           "type": "SSP_CHECK_S_N_DEF_0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         }
       ]
     },
@@ -14649,7 +14860,12 @@
           "sqlType": "numeric",
           "precision": 6,
           "scale": 2,
-          "type": "SSP_NUM_HORAS"
+          "type": "SSP_NUM_HORAS",
+          "range": {
+            "kind": "number",
+            "min": "0",
+            "max": "10000"
+          }
         },
         {
           "name": "DT_LAST_UPDATE",
@@ -14662,7 +14878,12 @@
           "sqlType": "numeric",
           "precision": 6,
           "scale": 2,
-          "type": "SSP_NUM_HORAS"
+          "type": "SSP_NUM_HORAS",
+          "range": {
+            "kind": "number",
+            "min": "0",
+            "max": "10000"
+          }
         }
       ]
     },
@@ -14926,7 +15147,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "SSP_ID_TP_DOC",
@@ -14963,7 +15185,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "SSP_ID_TP_DOC",
@@ -15000,7 +15223,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "SSP_ID_TP_DOC",
@@ -15445,7 +15669,8 @@
           "length": 1,
           "type": "SSP_CHECK_S_N_DEF_N",
           "defaultFunction": 7,
-          "defaultArgs": "N"
+          "defaultArgs": "N",
+          "allowed": ["S", "N"]
         },
         {
           "name": "SSP_BONOF_CONTIN_C",
@@ -15684,7 +15909,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_PERSON",
@@ -15702,7 +15928,12 @@
           "pk": 2,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "STD_DT_START",
@@ -15789,7 +16020,8 @@
           "name": "STD_MAILING_CHEC",
           "sqlType": "varchar",
           "length": 1,
-          "type": "SCO_CHECK_NO_DEFAULT"
+          "type": "SCO_CHECK_NO_DEFAULT",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_ESCALERA",
@@ -15895,7 +16127,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_PERSON",
@@ -15913,7 +16146,12 @@
           "pk": 2,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "STD_DT_START",
@@ -15973,7 +16211,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "SSP_ID_MINUSVALIA",
@@ -16025,7 +16264,8 @@
           "length": 1,
           "type": "CHK_APP_10_D0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "STD_ID_FAMILY_PERS",
@@ -16047,14 +16287,20 @@
           "scale": 0,
           "type": "CHK_S_10_D0",
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SSP_CONV_DESCENDIE",
           "sqlType": "numeric",
           "precision": 1,
           "scale": 0,
-          "type": "NUMBER1_1_9"
+          "type": "NUMBER1_1_9",
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "9"
+          }
         },
         {
           "name": "SSP_CK_NIV_RENT_AS",
@@ -16063,7 +16309,8 @@
           "scale": 0,
           "type": "CHK_S_10_D0",
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SSP_IRPF_ADOPTADO",
@@ -16079,7 +16326,8 @@
           "sqlType": "varchar",
           "length": 1,
           "type": "CHK_STD_CHECK",
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SSP_IRPF_FEC_ADOP",
@@ -16091,14 +16339,16 @@
           "sqlType": "varchar",
           "length": 1,
           "type": "CHK_STD_CHECK",
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "SCO_STUDENT",
           "sqlType": "numeric",
           "precision": 1,
           "scale": 0,
-          "type": "BOOLEAN"
+          "type": "BOOLEAN",
+          "allowed": ["0", "1", "-1"]
         },
         {
           "name": "DT_LAST_UPDATE",
@@ -16131,7 +16381,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_HR",
@@ -16279,7 +16530,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_HR",
@@ -16337,7 +16589,8 @@
           "length": 1,
           "type": "CHK_APP_10_D0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "DT_END",
@@ -16458,7 +16711,8 @@
           "length": 1,
           "type": "CHK_APP_10_D0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "STD_ID_HR_TYPE",
@@ -16479,7 +16733,8 @@
           "length": 1,
           "type": "CHK_APP_10_D0",
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "STD_ID_EXTERN_ORG",
@@ -16494,7 +16749,8 @@
           "scale": 0,
           "type": "CHK_S_10_D0",
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SSP_NUM_MATRICULA",
@@ -16674,7 +16930,12 @@
           "scale": 0,
           "required": true,
           "type": "STD_NUMBER_2",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "0",
+            "max": "99"
+          }
         },
         {
           "name": "SSP_CHK_VAC_PROR",
@@ -16699,7 +16960,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_HR",
@@ -16862,7 +17124,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_HR",
@@ -16931,7 +17194,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_PERSON",
@@ -17145,7 +17409,8 @@
           "sqlType": "numeric",
           "precision": 1,
           "scale": 0,
-          "type": "BOOLEAN"
+          "type": "BOOLEAN",
+          "allowed": ["0", "1", "-1"]
         },
         {
           "name": "ID_APPROLE",
@@ -17191,7 +17456,8 @@
           "scale": 0,
           "type": "CHK_S_10_D0",
           "defaultFunction": 6,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["0", "1"]
         },
         {
           "name": "SUS_ID_VET_DIS_TY",
@@ -17218,7 +17484,8 @@
           "type": "SCO_CHECK_DEFAULT_0",
           "sqlDefault": true,
           "defaultFunction": 7,
-          "defaultArgs": "0"
+          "defaultArgs": "0",
+          "allowed": ["1", "0"]
         },
         {
           "name": "CSP_ID_ATRADIUS",
@@ -17246,7 +17513,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_PERSON",
@@ -17282,7 +17550,8 @@
           "required": true,
           "type": "ID_ORG_MONO",
           "defaultFunction": 7,
-          "defaultArgs": "0000"
+          "defaultArgs": "0000",
+          "allowed": ["0000"]
         },
         {
           "name": "STD_ID_PERSON",
@@ -17300,7 +17569,12 @@
           "pk": 2,
           "required": true,
           "type": "STD_ORDINAL_6",
-          "defaultFunction": 10
+          "defaultFunction": 10,
+          "range": {
+            "kind": "number",
+            "min": "1",
+            "max": "999999"
+          }
         },
         {
           "name": "STD_DT_START",

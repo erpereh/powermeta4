@@ -19,6 +19,33 @@
     a 1829 en la misma transacción.
   - Las columnas coinciden con el perfil de las altas de Meta4, salvo los
     campos opcionales que el botón de prueba deja vacíos.
+- Traducido `CALCULA_VACIOS`: el alta escribe `M4CSP_H_HR_JOB_AGRUPA_CAT`, la
+  agrupación de categoría del puesto, que antes faltaba (la tienen 229/299
+  altas reales de CYC). `lookups.ts` lee la categoría del puesto en
+  `STD_HT_JOB_DEF` (periodo de la fecha de alta, luego el abierto, luego el
+  último) y su agrupación en `M4CSP_HR_JOB_AGRUPA_CAT`; `plan.ts` añade la fila
+  tras el rol y la omite si el puesto no tiene agrupación. Reproduce 359 de las
+  366 filas reales (98 %). Dos tests nuevos y la tabla añadida al modelo
+  (`npm run hire:model`, 80 tablas).
+- Validación campo a campo como el diccionario de Meta4. `npm run hire:model`
+  guarda de `M4RDC_EXTENDED_TPS` la lista de valores (`ID_CONSTRAINT_FUNC` 11 y
+  12) y el rango (14 y 15) de cada columna: 106 con lista y 18 con rango.
+  `plan.ts` los comprueba al convertir cada valor y al numerar los ordinales, y
+  el error nombra la columna y lo admitido, nunca el dato. Tres tests nuevos.
+  Comprobado contra PeopleNet: las 41 columnas con regla que escribe un alta
+  las cumplen, y las personas 1830 (nuestra) y 1822/10496 (altas de Meta4)
+  pasan las mismas reglas sobre lo ya grabado, con 0 fallos.
+- Analizada toda la validación del alta en PeopleNet (cinco niveles:
+  tipo/longitud, obligatoriedad, lista, rango e integridad referencial) en
+  `docs/alta-modelo-peoplenet.md`. Los catálogos se resuelven subiendo por el
+  árbol de organizaciones (la sociedad o `0000`), no hay excepciones por
+  sociedad y los identificadores de texto libre (`CSP_ID_FUSION`,
+  `CSP_ID_ATRADIUS`, `STD_SSN`) no tienen formato en el diccionario.
+- Segunda alta en prenómina con un usuario de RRHH (`SOFIA.ELICES`, rol
+  `M4_USER`): persona 1830 en las mismas 34 tablas y 4 de auditoría, con
+  `ID_SECUSER`/`ID_APPROLE` correctos y el contador en 1830. Confirma la
+  comprobación de permisos: con `M4EMPLOYEE` se rechazaba y con rol de RRHH
+  graba.
 - Usuario y rol de las filas como Meta4: `ID_SECUSER` es `ID_APP_USER` tal como
   está en `M4RSC_APPUSER` e `ID_APPROLE` el rol de la conexión
   (`ID_APP_ROLE_CON`, o el por defecto si falta). Coincide en todas las altas

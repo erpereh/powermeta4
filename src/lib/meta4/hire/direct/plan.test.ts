@@ -4,7 +4,7 @@ import { Meta4HireError } from "../errors";
 import { hireExtraFixture } from "../test-fixtures";
 import type { HirePerson } from "../types";
 import modelJson from "./model.generated.json";
-import type { HireModel } from "./model-types";
+import type { HireModel, HireModelColumn } from "./model-types";
 import { AUDITED_TABLES, planHire, type HireLookups, type HirePlanInput } from "./plan";
 
 const model = modelJson as HireModel;
@@ -79,6 +79,7 @@ const lookups: HireLookups = {
   provinceName: "Madrid",
   countryName: "España",
   bic: "BSCHESMMXXX",
+  categoryGroup: "02",
 };
 
 const now = new Date(Date.UTC(2026, 10, 24, 9, 30));
@@ -94,6 +95,33 @@ const input = (overrides: Partial<HirePlanInput> = {}): HirePlanInput => ({
   lookups,
   ...overrides,
 });
+
+/** The same model with one extra constraint on a column the hire writes. */
+const withConstraint = (
+  table: string,
+  column: string,
+  constraint: Partial<HireModelColumn>,
+): HireModel => ({
+  ...model,
+  tables: {
+    ...model.tables,
+    [table]: {
+      ...model.tables[table]!,
+      columns: model.tables[table]!.columns.map((current) =>
+        current.name === column ? { ...current, ...constraint } : current,
+      ),
+    },
+  },
+});
+
+const caught = (run: () => unknown): unknown => {
+  try {
+    run();
+    return null;
+  } catch (error) {
+    return error;
+  }
+};
 
 const rowsOf = (plan: ReturnType<typeof planHire>, table: string) =>
   plan.rows.filter((row) => row.table === table);
@@ -132,6 +160,7 @@ describe("planHire", () => {
       "M4CSP_H_ATRADIUS_JOB",
       "M4CSP_H_CATEG_ATRADIUS",
       "M4CSP_H_COMP_JUBILACION",
+      "M4CSP_H_HR_JOB_AGRUPA_CAT",
       "STD_HR_PREV_JOBS",
     ]) {
       expect(rowsOf(plan, table), table).toHaveLength(1);
@@ -238,6 +267,20 @@ describe("planHire", () => {
     expect(rowsOf(plan, "STD_PHONE_FAX").map((row) => row.values.STD_OR_PHONE)).toEqual([1, 2]);
   });
 
+  it("adds the category grouping of the job, and skips it when the job has none", () => {
+    const row = only(planHire(input()), "M4CSP_H_HR_JOB_AGRUPA_CAT");
+    expect(row).toMatchObject({
+      ID_HR: "1830",
+      ID_JOB_CODE: person.job,
+      ID_JOB_AGRUPACION_CATEGORIA: "02",
+      SCO_OR_HR_ROLE: 1,
+    });
+    expect(row.DT_START).toEqual(new Date(Date.UTC(2026, 9, 1)));
+
+    const without = planHire(input({ lookups: { ...lookups, categoryGroup: null } }));
+    expect(rowsOf(without, "M4CSP_H_HR_JOB_AGRUPA_CAT")).toHaveLength(0);
+  });
+
   it("adds the after-save rows: retirement for employees, internal experience for the job", () => {
     const plan = planHire(input());
     expect(only(plan, "M4CSP_H_COMP_JUBILACION")).toMatchObject({
@@ -269,6 +312,61 @@ describe("planHire", () => {
   it("skips the annual gross row without amount and keeps it in skipped", () => {
     const plan = planHire(input());
     expect(rowsOf(plan, "M4SCO_PERIO_VALUES")).toHaveLength(0);
+  });
+
+  it("keeps the value lists and ranges Meta4 checks, and writes only valid values", () => {
+    // The generator must keep emitting them: they are the rules planHire enforces.
+    const constrained = Object.values(model.tables).flatMap((table) =>
+      table.columns.filter((column) => column.allowed ?? column.range),
+    );
+    expect(constrained.length).toBeGreaterThan(50);
+
+    const plan = planHire(input());
+    let checked = 0;
+    for (const row of [...plan.rows, ...plan.audit]) {
+      for (const [name, value] of Object.entries(row.values)) {
+        if (value === null) continue;
+        const column = model.tables[row.table]?.columns.find((current) => current.name === name);
+        if (column?.allowed) {
+          checked += 1;
+          expect(column.allowed, `${row.table}.${name}`).toContain(String(value));
+        }
+        if (column?.range) {
+          checked += 1;
+          expect(Number(value), `${row.table}.${name}`).toBeGreaterThanOrEqual(
+            Number(column.range.min),
+          );
+          expect(Number(value), `${row.table}.${name}`).toBeLessThanOrEqual(
+            Number(column.range.max),
+          );
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(30);
+  });
+
+  it("refuses a value outside the list Meta4 accepts, without echoing it", () => {
+    const error = caught(() =>
+      planHire(input({ model: withConstraint("STD_PERSON", "SCO_GB_NAME", { allowed: ["X"] }) })),
+    );
+    expect(error).toBeInstanceOf(Meta4HireError);
+    const issue = (error as Meta4HireError).issues[0]?.message ?? "";
+    expect(issue).toBe("STD_PERSON.SCO_GB_NAME: admite X.");
+    expect(issue).not.toContain(person.lastName1);
+  });
+
+  it("refuses a number outside the range Meta4 accepts", () => {
+    const error = caught(() =>
+      planHire(
+        input({
+          model: withConstraint("STD_EMAIL", "STD_OR_MAIL", {
+            range: { kind: "number", min: "5", max: "9" },
+          }),
+        }),
+      ),
+    );
+    expect(error).toBeInstanceOf(Meta4HireError);
+    expect((error as Meta4HireError).issues[0]?.message).toBe("STD_EMAIL.STD_OR_MAIL: de 5 a 9.");
   });
 
   it("refuses a plan that misses a required value, without echoing data", () => {
