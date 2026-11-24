@@ -2,6 +2,12 @@
 
 ## 2026-11-24 - Alta directa en las tablas de PeopleNet
 
+- Retirada la carga masiva por Excel del alta (ese Excel ya no se usa):
+  «Descargar plantilla» y «Cargar Excel» del formulario, `bulk-template.ts`,
+  `bulk-import.ts`, `bulk-places.ts`, `bulk-controls.tsx`, `bulk-columns.ts`,
+  `draftFromBulkValues` y las rutas `/api/hire/bulk-template` y
+  `/api/hire/bulk-import`, con sus tests. `/api/hire/places` se mantiene: lo usa
+  la búsqueda de población del formulario.
 - Retirada la importación del Excel por SOAP (`SRTC_LAUNCH_IMPORT`): el alta
   graba solo en las tablas de PeopleNet. `launchMeta4Hire` valida catálogos,
   reglas y documentos y llama al alta directa, en serie. Eliminados la edición

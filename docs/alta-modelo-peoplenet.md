@@ -302,7 +302,7 @@ es más ligero (`M4SCO_H_SAL_DATA` 14 %, la mayoría de tablas de nómina al 50 
 
 #### Qué valida ya powermeta4
 
-El formulario y la carga masiva ya validan, en `src/lib/meta4/hire/validate.ts`,
+El formulario ya valida, en `src/lib/meta4/hire/validate.ts`,
 `bank.ts` y `catalogs.ts`:
 
 - **Fecha de nacimiento:** anterior a la fecha de alta, con edad mínima. Es

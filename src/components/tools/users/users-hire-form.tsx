@@ -23,12 +23,10 @@ import {
   type HireValidationContext,
 } from "@/lib/meta4/hire/validate";
 
-import { HireBulkControls, type HireBulkLoadedPerson } from "./hire-form/bulk-controls";
 import { HireCatalogsProvider } from "./hire-form/catalogs";
 import { DevTestDataControls } from "./hire-form/dev-test-controls";
 import {
   createHirePersonDraft,
-  draftFromBulkValues,
   HireDraftProvider,
   toHirePersonInput,
   type HireBranches,
@@ -239,28 +237,6 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
     return true;
   };
 
-  /**
-   * People from the bulk Excel replace an untouched first person and are added
-   * after the rest; their problems show as if launch had been attempted.
-   */
-  const loadBulkPeople = (loaded: readonly HireBulkLoadedPerson[]) => {
-    setSuccess(null);
-    setError(null);
-    const drafts = loaded.map((person) =>
-      draftFromBulkValues(nextId.current++, person.values, person.cityName),
-    );
-    const first = drafts[0];
-    if (!first) return;
-    const pristine = JSON.stringify(toHirePersonInput(createHirePersonDraft(0)));
-    setPeople((existing) => [
-      ...existing.filter((draft) => JSON.stringify(toHirePersonInput(draft)) !== pristine),
-      ...drafts,
-    ]);
-    markAttempted(drafts.map((draft) => draft.id));
-    setExpandedId(first.id);
-    setActiveTab("personal");
-  };
-
   const addPerson = () => {
     setSuccess(null);
     if (!validateExpanded()) return;
@@ -374,11 +350,6 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
           Los rótulos rojos indican un dato que todavía no se graba en PeopleNet. Esos valores
           permanecen en el borrador local; los demás campos se graban al confirmar el alta.
         </Callout>
-
-        <HireBulkControls
-          disabled={pending || confirmOpen || catalogs.status !== "ready"}
-          onLoad={loadBulkPeople}
-        />
 
         <div className="flex flex-col gap-3">
           {people.map((draft, index) => {

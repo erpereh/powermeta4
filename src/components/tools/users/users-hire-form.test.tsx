@@ -227,53 +227,6 @@ describe("UsersHireForm", () => {
     expect(launchHire).not.toHaveBeenCalled();
   });
 
-  it("loads people from the bulk Excel into the form without launching the hire", async () => {
-    const user = userEvent.setup({ delay: null });
-    vi.mocked(fetch).mockImplementationOnce(async (input) => {
-      expect(String(input)).toBe("/api/hire/bulk-import");
-      return new Response(
-        JSON.stringify({
-          ok: true,
-          people: [
-            {
-              values: {
-                firstName: "Ana",
-                lastName1: "Excel",
-                documentNumber: "91000001H",
-                maritalStatus: "01",
-                positionChoice: "job",
-                keyEmployee: true,
-                fusionId: "9001",
-              },
-              cityName: "MADRID",
-            },
-            {
-              values: { firstName: "Luis", lastName1: "Excel", documentNumber: "91000002L" },
-              cityName: "",
-            },
-          ],
-          problems: ["Fila 4: ID Estado civil: «Viudo» no está en el catálogo de tu sociedad."],
-        }),
-        { status: 200 },
-      );
-    });
-    render(<UsersHireForm catalogs={CATALOGS} />);
-    expect(screen.getByRole("link", { name: "Descargar plantilla" }).getAttribute("href")).toBe(
-      "/api/hire/bulk-template",
-    );
-    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
-    if (!fileInput) throw new Error("Missing file input");
-    await user.upload(fileInput, new File(["x"], "altas.xlsx"));
-
-    expect(await screen.findByText(/Se han cargado 2 personas/)).toBeTruthy();
-    expect(screen.getByText(/«Viudo» no está en el catálogo/)).toBeTruthy();
-    expect(inputValue("Nombre")).toBe("Ana");
-    expect(inputValue("Núm. de documento")).toBe("91000001H");
-    expect(screen.getByText("Luis Excel")).toBeTruthy();
-    expect(screen.queryByText("Persona 3")).toBeNull();
-    expect(launchHire).not.toHaveBeenCalled();
-  });
-
   it("hides development controls in production", () => {
     vi.stubEnv("NODE_ENV", "production");
     render(<UsersHireForm catalogs={CATALOGS} />);

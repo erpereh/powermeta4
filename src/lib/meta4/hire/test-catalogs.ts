@@ -1,6 +1,6 @@
 import type { HireCatalogOption, HireCatalogs } from "./catalogs";
 
-/** Small catalogs shared by the hire form and bulk Excel tests. */
+/** Small catalogs shared by the hire form tests. */
 export const HIRE_TEST_CATALOGS: HireCatalogs = {
   currency: [
     { id: "EUR", name: "Euro" },

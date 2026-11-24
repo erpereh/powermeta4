@@ -277,10 +277,7 @@ los que dependen de sociedad filtran `ID_ORGANIZATION` por la sociedad del
 contexto operativo, nunca por un valor del navegador. `GET /api/hire/places`
 (Node.js, requiere sesión) busca poblaciones en PeopleNet porque
 `STD_GEO_PLACE` es demasiado grande para enviarse entera al formulario.
-`GET /api/hire/bulk-template` y `POST /api/hire/bulk-import` (Node.js, requieren
-sesión) descargan la plantilla Excel de altas con los catálogos de la sociedad
-y leen la plantilla rellena para revisar las personas en el formulario; no
-lanzan el alta ni guardan ficheros. Antes de lanzar, el alta comprueba con
+Antes de lanzar, el alta comprueba con
 `SELECT` en `STD_PERSON` que ningún documento exista ni se repita en el lote:
 Meta4 modifica la persona existente con el mismo documento en vez de crearla.
 «Consultar una nómina» lee los recibos de PeopleNet con la plantilla `RECIBO`

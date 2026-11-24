@@ -56,10 +56,12 @@
       que ya existe en `STD_PERSON` (SELECT), con el aviso por persona.
 - [x] Excel de dos lotes de 3 personas generado con Excel COM en local: 537/537
       celdas correctas por lote y sin restos del anterior (sin enviar a Meta4).
-- [x] Plantilla «Descargar plantilla» (`/api/hire/bulk-template`) con desplegables
-      de los catálogos de la sociedad y carga «Cargar Excel» (`/api/hire/bulk-import`)
-      que llena el formulario para revisar. Admite ID sin ceros, nombres, fechas
-      DD/MM/AAAA, Sí/No y busca la población por nombre.
+- [x] ~~Plantilla «Descargar plantilla» y carga «Cargar Excel»~~: retiradas el
+      2026-11-24 a petición del usuario, porque ese Excel ya no se usa. Estaban
+      en `bulk-template.ts`, `bulk-import.ts`, `bulk-places.ts`,
+      `bulk-controls.tsx`, `bulk-columns.ts` y las rutas
+      `/api/hire/bulk-template` y `/api/hire/bulk-import`; se recuperan del
+      historial de git si vuelven a hacer falta.
 - [x] Prueba en PRE (tarea 110001, 3 personas, 0 errores): las tres se escribieron
       en la persona 1815. Causa real: el contador `M4CSP_BLOCK_SEQ` (CYC,
       `STD_PERSON`) está en 1814 desde el 2026-09-30 y no avanza con la

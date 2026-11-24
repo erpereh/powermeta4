@@ -176,36 +176,6 @@ const isPendingFieldKey = (key: string): key is PendingFieldId =>
 const isPendingValueKey = (key: string): key is PendingValueKey =>
   isPendingFieldKey(key) || COMPOUND_PENDING_KEYS.has(key);
 
-/** Values read from the bulk Excel, keyed like HirePerson. */
-export type HireBulkDraftValues = Partial<Record<string, string | boolean>>;
-
-/**
- * Draft for one person of the bulk Excel: catalog and base fields go to
- * `current`, choices to `branches`, Sí/No to `pendingChecks`, the rest to
- * `pendingValues`, exactly where the form would have put them.
- */
-export const draftFromBulkValues = (
-  id: number,
-  values: HireBulkDraftValues,
-  cityName: string,
-): HirePersonDraft => {
-  const draft = createHirePersonDraft(id);
-  for (const [key, value] of Object.entries(values)) {
-    if (value === undefined) continue;
-    if (typeof value === "boolean") {
-      if (isPendingFieldKey(key)) draft.pendingChecks[key] = value;
-    } else if (setBranch(draft.branches, key, value)) {
-      continue;
-    } else if (isCurrentKey(key)) {
-      draft.current[key] = value;
-    } else if (isPendingValueKey(key)) {
-      draft.pendingValues[key] = value;
-    }
-  }
-  if (cityName) draft.pendingValues.cityName = cityName;
-  return draft;
-};
-
 /** Project only confirmed mappings; retained values from inactive branches stay local. */
 export const toHirePersonInput = ({
   current,
@@ -304,9 +274,11 @@ export const toHirePersonInput = ({
   keyEmployee: pendingChecks.keyEmployee ?? false,
   strategicEmployee: pendingChecks.strategicEmployee ?? false,
   ssNumberChoice: branches.ssNumberChoice,
-  ssNumberPrefix: branches.ssNumberChoice === "assigned" ? (pendingValues.ssNumberPrefix ?? "") : "",
+  ssNumberPrefix:
+    branches.ssNumberChoice === "assigned" ? (pendingValues.ssNumberPrefix ?? "") : "",
   ssNumberBody: branches.ssNumberChoice === "assigned" ? (pendingValues.ssNumberBody ?? "") : "",
-  ssNumberSuffix: branches.ssNumberChoice === "assigned" ? (pendingValues.ssNumberSuffix ?? "") : "",
+  ssNumberSuffix:
+    branches.ssNumberChoice === "assigned" ? (pendingValues.ssNumberSuffix ?? "") : "",
   contractEnd: pendingValues.contractEnd ?? "",
   scheduleChoice: branches.scheduleChoice,
   partialSchedulePercent:
@@ -340,8 +312,7 @@ export const toHirePersonInput = ({
   bankFormatChoice: branches.bankFormatChoice,
   iban: branches.bankFormatChoice === "iban" ? (pendingValues.iban ?? "") : "",
   bankBranch: branches.bankFormatChoice === "other" ? (pendingValues.bankBranch ?? "") : "",
-  accountNumber:
-    branches.bankFormatChoice === "other" ? (pendingValues.accountNumber ?? "") : "",
+  accountNumber: branches.bankFormatChoice === "other" ? (pendingValues.accountNumber ?? "") : "",
 });
 
 /** Active draft view for branch-specific UI. */
