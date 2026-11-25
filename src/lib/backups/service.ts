@@ -30,12 +30,13 @@ import { withBackupSnapshotLock, withMaintenanceLock } from "@/lib/backups/maint
 import { bootstrapDatabase } from "@/server/database/bootstrap";
 import { closeDatabase, getDatabase } from "@/server/database/client";
 import { ensureLocalDataDirectories, resolveLocalDataPaths } from "@/server/database/paths";
-import { validateMigrationHistory } from "@/server/database/migrations";
+import { runMigrations, validateMigrationHistory } from "@/server/database/migrations";
 import { withTransaction } from "@/server/database/transaction";
 import {
   BACKUP_DATABASE_PATH,
   BACKUP_VERSION,
   DATABASE_SCHEMA_VERSION,
+  LEGACY_RAG_SCHEMA_VERSION,
 } from "@/server/database/version";
 
 import { BACKUP_IMPORT_TTL_MS, getBackupLimits, type BackupLimits } from "./constants";
@@ -187,7 +188,10 @@ const requiredTables = [
   "payroll_reconciliation_dossiers",
 ];
 
-export const assertSqliteIntegrity = (databasePath: string): void => {
+export const assertSqliteIntegrity = (
+  databasePath: string,
+  schemaVersion: BackupManifest["databaseSchemaVersion"] = DATABASE_SCHEMA_VERSION,
+): void => {
   const database = new DatabaseSync(databasePath, {
     readOnly: true,
     enableForeignKeyConstraints: true,
@@ -209,7 +213,7 @@ export const assertSqliteIntegrity = (databasePath: string): void => {
       throw new Error("La copia SQLite contiene referencias no válidas.");
     }
     const userVersion = database.prepare("PRAGMA user_version").get() as { user_version: number };
-    if (userVersion.user_version !== DATABASE_SCHEMA_VERSION) {
+    if (userVersion.user_version !== schemaVersion) {
       throw new Error("La copia SQLite no tiene la versión de esquema admitida.");
     }
     const tables = new Set(
@@ -219,9 +223,17 @@ export const assertSqliteIntegrity = (databasePath: string): void => {
         }>
       ).map((row) => row.name),
     );
-    for (const table of requiredTables)
+    const oldKnowledgeTables = ["kb_documents", "kb_chunks", "kb_chunks_fts"];
+    const manualTables =
+      schemaVersion === LEGACY_RAG_SCHEMA_VERSION ? oldKnowledgeTables : ["legacy_manual_sources"];
+    for (const table of [...requiredTables, ...manualTables])
       if (!tables.has(table)) throw new Error("La copia SQLite no tiene el esquema requerido.");
-    validateMigrationHistory(database);
+    if (
+      schemaVersion === DATABASE_SCHEMA_VERSION &&
+      oldKnowledgeTables.some((table) => tables.has(table))
+    )
+      throw new Error("La copia SQLite contiene tablas del índice de manuales retirado.");
+    validateMigrationHistory(database, undefined, schemaVersion);
     for (const table of [
       "soap_sessions",
       "local_browser_sessions",
@@ -376,8 +388,22 @@ const writeInspectionDatabase = async (
 ): Promise<string> => {
   const databasePath = path.join(directory, "powermeta4.db");
   await writeFile(databasePath, inspected.databaseBytes, { flag: "wx" });
-  assertSqliteIntegrity(databasePath);
+  assertSqliteIntegrity(databasePath, inspected.manifest.databaseSchemaVersion);
   return databasePath;
+};
+
+const upgradeStagedBackup = (databasePath: string): void => {
+  const database = new DatabaseSync(databasePath, {
+    enableForeignKeyConstraints: true,
+    allowExtension: false,
+    timeout: 5000,
+  });
+  try {
+    runMigrations(database);
+  } finally {
+    database.close();
+  }
+  assertSqliteIntegrity(databasePath);
 };
 
 const copyUploadsFromZip = async (inspected: InspectedBackup, directory: string): Promise<void> => {
@@ -652,6 +678,8 @@ export const restoreBackup = async (
     );
     try {
       const stagedDatabasePath = await writeInspectionDatabase(inspected, stagingDirectory);
+      if (inspected.manifest.databaseSchemaVersion === LEGACY_RAG_SCHEMA_VERSION)
+        upgradeStagedBackup(stagedDatabasePath);
       const stagedUploadsPath = path.join(stagingDirectory, "uploads");
       await copyUploadsFromZip(inspected, stagedUploadsPath);
       const rollbackDatabasePath = path.join(rollbackDirectory, "powermeta4.db");

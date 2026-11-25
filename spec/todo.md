@@ -22,6 +22,126 @@
 - [x] Aclarado por qué `npm test` parecía no arrancar: vitest falla si el
       directorio de trabajo llega como `c:\Users\…` en minúscula; desde
       `C:/Users/...` la suite se ejecuta con normalidad.
+## Integración de ramas — 2026-11-25
+
+- [x] Integrar el alta directa de `salvadev` y el chatbot de `davidev`
+      sobre el historial compartido con `main`.
+- [x] Probar la instalación aislada con SQLite recién preparada y el ZIP
+      del RAG. Se conservaron la huella del índice y las citas se abrieron
+      con sesión. El proveedor local de prueba cubrió el chat general y
+      documental durante los errores de capacidad de Gemini.
+- [x] Actualizar la verificación de las pull requests para el alta directa y
+      la evidencia Git LFS.
+- [x] Ejecutar setup, typecheck, build y las pruebas del alta directa con
+      dobles de prueba. Pasaron 1.737 pruebas en aislamiento y 36 adicionales
+      con los archivos locales. Quedaron dos omisiones preexistentes.
+
+## Bloques de código del chat — 2026-11-25
+
+- [x] Unir la cabecera y el cuerpo del bloque Markdown, también cuando
+      aparece dentro de una lista. Chrome confirmó un hueco de 0 px a
+      1280 y 390 px y desplazamiento horizontal dentro del bloque.
+- [x] Aplicar fondo y relleno de código en línea solo fuera de los bloques.
+      Chrome confirmó tabulaciones y líneas vacías sobre el fondo continuo
+      del bloque a 1280 y 390 px.
+
+## Conversación general y consultas documentales — 2026-11-25
+
+- [x] Identificar al asistente general y documental como el asistente de
+      PowerMeta4. Comprobar que preguntar por su identidad, incluso citando
+      PowerMeta4 por su nombre, usa el chat general. Con Gemini se verificaron
+      la presentación, una pregunta general y una consulta de Préstamos con
+      cita que abre el PDF. Pasaron 39 pruebas dirigidas, typecheck y build.
+      La suite completa aprobó 1.781 pruebas y omitió dos. El lint mantiene
+      los 673 archivos con formato pendiente.
+- [x] Enviar saludos, redacción y preguntas generales al asistente conversacional
+      sin consultar manuales ni generar embeddings de búsqueda.
+- [x] Conservar la recuperación y las citas del alta y de sus seguimientos
+      en la rama activa. Distinguir los cambios de tema y las lecturas
+      operativas de PeopleNet.
+- [x] Acotar el contexto de los adjuntos a los turnos que los usan y mantener
+      sus instrucciones fuera del prompt del sistema.
+- [x] Probar con Gemini en el chat habitual un saludo, el alta, su seguimiento,
+      un cambio de tema y consultas generales. Abren los PDF citados. El
+      identificador del motor de Búsqueda se responde con el flujo correcto.
+- [x] Repetir el saludo en una rama que contiene la respuesta errónea sobre
+      correo y verificar la despedida justo después de una consulta al RAG.
+      Pasaron los seis casos de la segunda prueba HTTP.
+- [x] Suite completa con 1.776 pruebas aprobadas y dos omitidas. Tras los
+      últimos ajustes se repitió la suite unitaria con 1.481 aprobadas, dos
+      omitidas y 50 comprobaciones dirigidas aprobadas. Typecheck, build y
+      comprobación del diff correctos. El lint conserva los mismos 673
+      archivos con formato pendiente.
+
+## Reconstrucción del RAG — 2026-11-24
+
+- [x] Generación candidata en almacenamiento SQLite independiente. Cotejados
+      los 440 archivos (439 PDF y el catálogo), sus SHA-256 y las 13.598
+      páginas. El índice contiene 24.150 fragmentos y el inventario no tiene
+      páginas con contenido sin representar ni revisiones pendientes.
+- [x] Ingesta por lotes reanudables con Nemotron de 4096 dimensiones, paso
+      secuencial por las cinco claves al agotarse su cuota diaria y tratamiento
+      local de rechazos de contenido.
+- [x] Exportación e importación independiente verificadas con una generación
+      de prueba. Los vectores y el PDF original sobreviven al traslado.
+- [x] Evaluación iterativa del candidato parcial desde el chat autenticado
+      con Gemini. 28/30 respuestas documentales correctas con fuentes y
+      9/10 casos de insuficiencia reconocidos (37/40). Las referencias
+      abrieron el PDF con sesión y quedaron protegidas sin ella.
+      Los casos fallidos cubren el puerto del ejemplo LDAP, los ejemplos
+      de la introducción de SSE y la aclaración ante un dato de nómina real.
+- [x] Recuperación local con vectores de consulta en caché, p50 86 ms y
+      p95 116 ms. En la evaluación HTTP, primer texto p50 9,31 s y
+      p95 27,62 s. Respuesta completa p50 9,56 s y p95 28,32 s.
+- [x] Suite completa con 1.757 pruebas aprobadas y dos omitidas. Al
+      finalizar los ajustes del chat pasaron 27 pruebas dirigidas,
+      typecheck, build y `git diff --check`. Lint global con 673 archivos
+      de formato pendiente.
+- [x] Verificada la rotación real de las claves 1 a 2, 2 a 3 y 3 a 4 sin perder
+      progreso. La suite de esa revisión obtuvo 1.760 pruebas aprobadas
+      y dos omitidas. Las siete pruebas dirigidas, typecheck y build
+      pasaron tras el ajuste de OCR.
+- [x] La aceptación sella el SHA-256 de la SQLite evaluada. Una prueba
+      reproduce la preparación sin activar, el rechazo por huella incorrecta
+      y la exportación e importación manteniendo los bytes del índice.
+- [x] Restaurada una copia local de la instalación en una raíz aislada.
+      Recuperados 19 chats, 65 mensajes y 7 adjuntos. La base reconciliada
+      se validó en esquema 12 con esos tres recuentos a cero y los registros
+      ajenos al chat cotejados. La copia conserva los 81 archivos gestionados.
+- [x] Probada la importación de un backup de esquema 11 de `davidev`.
+      Mantiene las citas, sus PDF y la versión del documento tras aplicar
+      la migración 012 en la copia en preparación.
+- [x] Comprobaciones de la preparación. Pasaron 1.763 pruebas y se
+      omitieron dos. Typecheck, build y comprobación del diff correctos.
+      El lint encontró los mismos 673 archivos de formato que la
+      ejecución anterior.
+- [x] Aplicado el OCR de Préstamos en el candidato. La pasada reparó diez
+      páginas y dejó 738 páginas con OCR o mixtas.
+- [x] Vectorización completa tras reanudar el 25 de noviembre. Hay 24.057
+      fragmentos vectorizados y 83 reservados para búsqueda local, con
+      cero pendientes, páginas en revisión o contenido sin fragmento.
+- [x] Evaluación HTTP de los 20 casos independientes con Gemini. Tras
+      reintentar dos errores de transporte y cotejar manuales y fuentes
+      se obtuvieron 15/20, con 11/15 documentales y 4/5 abstenciones.
+- [x] Ajustar el enrutamiento documental, las citas agrupadas y la recuperación
+      de variantes léxicas. El índice sellado superó la nueva muestra
+      independiente con Gemini. 19/20, 14/15 documentales fundamentadas y
+      5/5 abstenciones. El acta guarda el SHA-256 del SQLite evaluado.
+- [x] Exportar e importar el ZIP completo en una raíz vacía. La importación
+      conserva el SHA-256 del índice evaluado y abre los PDF desde el chat
+      autenticado de la instalación aislada.
+- [x] Cambiar la base activa y el puntero del RAG en la misma ventana de
+      mantenimiento. El chat habitual respondió con Gemini y abrió fuentes
+      nuevas e históricas. Se verificaron cero conversaciones, mensajes y
+      adjuntos activos y se recuperaron 74 referencias históricas por huella.
+      El respaldo conserva el historial, los archivos gestionados y el
+      índice anterior. La copia reconciliada conserva los datos ajenos al chat.
+- [x] Comprobaciones de la publicación. Pasaron 1.765 pruebas con dos omisiones,
+      typecheck, build, validación SQLite y comprobación del diff. El lint
+      sigue señalando los mismos 673 archivos de formato de la revisión previa.
+- [ ] Retirar el índice, los archivos y el código del RAG anterior cuando el
+      usuario dé el visto bueno. Mantener las referencias históricas y la
+      importación de backups de esquema 11.
 
 ## Consultas de PeopleNet desde el chat — 2026-11-23
 

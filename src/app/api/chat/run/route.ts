@@ -3,13 +3,35 @@ import { NextResponse } from "next/server";
 import { getCurrentAuthContext, deleteSessionCookie } from "@/lib/auth/session";
 import type { ChatMessage } from "@/lib/ai/chat-provider";
 import { getChatProvider } from "@/lib/ai/get-chat-provider";
-import { ChatHistoryError, getChatAncestors, toChatHistory } from "@/lib/chat/chat-history";
-import { attachmentRefsFromBranch, type ChatSource } from "@/lib/chat/chat-data";
+import {
+  ChatHistoryError,
+  getChatAncestors,
+  textContent,
+  toChatHistory,
+} from "@/lib/chat/chat-history";
+import {
+  attachmentRefsFromBranch,
+  readChatAttachments,
+  type ChatSource,
+} from "@/lib/chat/chat-data";
 import { loadChatAttachmentContext } from "@/lib/chat/attachment-service";
 import { getPeopleNetBranch } from "@/lib/chat/peoplenet-branch";
 import { getWorkspaceRepository, getWorkspaceScope } from "@/lib/workspace/service";
-import { buildChatContext, buildRagSystemMessage } from "@/lib/knowledge/prompt";
-import { buildRetrievalQuestion, retrieveRelevantChunks } from "@/lib/knowledge/retrieval-service";
+import { knowledgeRoot, readPointer } from "@/lib/knowledge/manuals/config";
+import {
+  citedSources,
+  groundedAnswer,
+  manualContext,
+  manualSystem,
+  NO_ANSWER_SENTENCE,
+} from "@/lib/knowledge/manuals/grounding";
+import { retrieveManuals, searchQuestion } from "@/lib/knowledge/manuals/retrieve";
+import {
+  buildChatContext,
+  buildGeneralSystemMessage,
+  buildRagSystemMessage,
+} from "@/lib/knowledge/prompt";
+import { retrieveRelevantChunks } from "@/lib/knowledge/retrieval-service";
 
 export const runtime = "nodejs";
 
@@ -38,6 +60,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const readId = (value: unknown): string | null =>
   typeof value === "string" && value.trim() && value.length <= 160 ? value.trim() : null;
+
+const attachmentMention =
+  /\b(?:adjunt\w*|(?:el|ese|este|aquel|los|estos) (?:archivos?|pdfs?|xlsx|excel|csv|ficheros?|documentos?))\b/i;
 
 const encodeSse = (payload: InternalChatEvent): string => `data: ${JSON.stringify(payload)}\n\n`;
 
@@ -129,12 +154,35 @@ export async function POST(request: Request) {
 
   const { turn, publicHistory } = getPeopleNetBranch(branch);
   const messages = toChatHistory(publicHistory);
-  const [latest, previous] = messages
-    .filter((message) => message.role === "user")
-    .slice(-2)
-    .reverse();
-  const question = buildRetrievalQuestion(latest?.content ?? "", previous?.content);
-  const refs = attachmentRefsFromBranch(publicHistory);
+  const publicIds = new Set(publicHistory.map(({ id }) => id));
+  const users = branch.filter(({ role }) => role === "user");
+  let search = searchQuestion("");
+  let usesFiles = false;
+  for (const message of users) {
+    if (!publicIds.has(message.id)) {
+      search = searchQuestion("");
+      usesFiles = false;
+      continue;
+    }
+    const input = textContent(message.content);
+    search = searchQuestion(input, search.isDocumental ? search.text : undefined);
+    usesFiles =
+      Boolean(readChatAttachments(message.content).length) ||
+      attachmentMention.test(input) ||
+      (usesFiles && search.continuesTopic);
+  }
+  const availableFiles = attachmentRefsFromBranch(publicHistory);
+  const latestContent = users.at(-1)?.content ?? "";
+  const latestText = textContent(latestContent).toLowerCase();
+  const namedFiles = availableFiles.filter(({ name }) => latestText.includes(name.toLowerCase()));
+  const selectedFileIds = new Set(
+    [...namedFiles, ...readChatAttachments(latestContent)].map(({ id }) => id),
+  );
+  const refs = namedFiles.length
+    ? availableFiles.filter(({ id }) => selectedFileIds.has(id))
+    : usesFiles
+      ? availableFiles
+      : [];
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -172,7 +220,12 @@ export async function POST(request: Request) {
             content: [
               {
                 type: "text",
-                text: turn.kind === "clarify" ? turn.text : "Consulta de PeopleNet",
+                text:
+                  turn.kind === "unavailable"
+                    ? NO_ANSWER_SENTENCE
+                    : turn.kind === "clarify"
+                      ? turn.text
+                      : "Consulta de PeopleNet",
               },
             ],
           });
@@ -187,12 +240,94 @@ export async function POST(request: Request) {
           });
           return;
         }
+        if (search.isDocumental && search.needsLiveData && !refs.length) {
+          send({ type: "content", content: [{ type: "text", text: NO_ANSWER_SENTENCE }] });
+          return;
+        }
+        const root = search.isDocumental ? knowledgeRoot() : null;
+        const generation = root && (await readPointer(root, "active"));
+        if (root && generation) {
+          const [report, attachments] = await Promise.all([
+            retrieveManuals(search.text, { root, generation, signal: request.signal }).catch(
+              (error: unknown) => {
+                if (request.signal.aborted) throw error;
+                console.error("[rag] índice publicado no disponible para la consulta");
+                return null;
+              },
+            ),
+            loadChatAttachmentContext(companyId, conversationId, refs, request.signal),
+          ]);
+          request.signal.throwIfAborted();
+          const evidence = report?.evidence ?? [];
+          if (!evidence.length && !attachments.items.length && !refs.length) {
+            send({ type: "content", content: [{ type: "text", text: NO_ANSWER_SENTENCE }] });
+            return;
+          }
+          if (attachments.sources.length) {
+            if (
+              !(await getWorkspaceRepository().setMessageSources(
+                companyId,
+                conversationId,
+                assistantMessageId,
+                attachments.sources,
+              ))
+            )
+              return;
+            if (!send({ type: "sources", sources: attachments.sources })) return;
+          }
+          const providerMessages: ChatMessage[] = [
+            { role: "system", content: manualSystem(evidence, attachments.items.length > 0) },
+            ...messages,
+          ];
+          if (evidence.length || refs.length) {
+            providerMessages.splice(Math.max(1, providerMessages.length - 1), 0, {
+              role: "user",
+              content: manualContext(evidence, attachments.items, attachments.omitted),
+            });
+          }
+          let accumulated = "";
+          let shown = "";
+          const strict = evidence.length > 0 && refs.length === 0;
+          for await (const delta of chatProvider.streamResponse({
+            messages: providerMessages,
+            abortSignal: request.signal,
+          })) {
+            if (request.signal.aborted) return;
+            accumulated += delta;
+            const nextText = groundedAnswer(accumulated, evidence, strict, false);
+            if (nextText === shown) continue;
+            shown = nextText;
+            if (!send({ type: "content", content: [{ type: "text", text: shown }] })) return;
+          }
+          const validated = citedSources(accumulated, evidence);
+          if (validated.length) {
+            const sources = [...validated, ...attachments.sources];
+            if (
+              !(await getWorkspaceRepository().setMessageSources(
+                companyId,
+                conversationId,
+                assistantMessageId,
+                sources,
+              ))
+            )
+              return;
+            if (!send({ type: "sources", sources })) return;
+          }
+          const finished = groundedAnswer(accumulated, evidence, strict, true).trimEnd();
+          if (finished !== shown)
+            send({ type: "content", content: [{ type: "text", text: finished }] });
+          return;
+        }
         const [retrieved, attachments] = await Promise.all([
-          retrieveRelevantChunks(question, { signal: request.signal }).catch((error: unknown) => {
-            if (request.signal.aborted) throw error;
-            console.error("[knowledge] error durante la recuperación");
-            return [];
-          }),
+          search.isDocumental
+            ? retrieveRelevantChunks(search.text, { signal: request.signal }).catch(
+                (error: unknown) => {
+                  if (request.signal.aborted) throw error;
+                  console.error("[knowledge] error durante la recuperación");
+                  return [];
+                },
+              )
+            : Promise.resolve([]),
           loadChatAttachmentContext(companyId, conversationId, refs, request.signal),
         ]);
         request.signal.throwIfAborted();
@@ -211,10 +346,12 @@ export async function POST(request: Request) {
         const sources = [...manualSources.values(), ...attachments.sources];
         const systemMessage: ChatMessage = {
           role: "system",
-          content: buildRagSystemMessage({
-            hasManuals: chunks.length > 0,
-            hasAttachments: attachments.items.length > 0,
-          }),
+          content: search.isDocumental
+            ? buildRagSystemMessage({
+                hasManuals: chunks.length > 0,
+                hasAttachments: attachments.items.length > 0,
+              })
+            : buildGeneralSystemMessage(refs.length > 0),
         };
         const providerMessages: ChatMessage[] = [systemMessage, ...messages];
         if (chunks.length || refs.length) {

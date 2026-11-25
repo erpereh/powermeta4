@@ -263,11 +263,12 @@ bloque de correos aparte. Toda la fila es interactiva (foco por teclado,
 nativo de fila ni anidar controles dentro de las celdas.
 
 El alta de personas vive en `/tools/users/new`: formulario de 1..N personas
-con tarjetas colapsables en cliente, confirmación
-(«Se van a procesar X personas en Meta4») y Server Action. El servidor copia
-`Hire_1_PERSONA.xls` y Excel sustituye solo los campos de la UI. El fichero
-generado lleva el usuario Meta4 y la fecha, dentro del directorio configurado.
-Los datos personales no se persisten en SQLite.
+con tarjetas colapsables, confirmación y Server Action. El servidor valida
+los datos para la sociedad activa y realiza el alta directa en PeopleNet.
+Los errores de campo se muestran junto al dato y en un resumen encima de
+las pestañas. Los errores generales se muestran en un diálogo. El resultado
+muestra los IDs de las personas dadas de alta. Los datos personales no se
+persisten en SQLite.
 
 «Consultar una nómina» vive en `/tools/payroll/receipt` y adapta la ventana
 Meta4 «Ejecución del recibo de nómina»: matrícula, periodo de liquidación,

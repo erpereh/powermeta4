@@ -64,6 +64,141 @@
   La lógica de identidad se verificó también con un script tsx desechable. El
   primer intento de `npm test` falló por el directorio de trabajo en minúscula
   (ver la entrada anterior), no por la instalación.
+## 2026-11-25 - Integración del alta directa y el chat
+
+- El alta directa de `salvadev` y el asistente de `davidev` comparten una
+  revisión que conserva el historial de las tres ramas.
+- La verificación de la pull request descarga el diccionario Git LFS y revisa
+  el formato de los módulos del alta directa.
+- La importación en una raíz vacía conservó la huella SHA-256 del índice
+  aceptado y recuperó 440 documentos y 24.150 fragmentos. El chat por HTTP
+  respondió al saludo y a la pregunta de identidad sin manuales. La pregunta
+  de amortización devolvió una cita válida y el PDF autenticado. Se usó un
+  proveedor local de prueba porque Gemini devolvió errores de capacidad.
+- La plantilla de entorno conserva la conexión de escritura del alta y la
+  configuración de IA del chat. Se retiró el ejemplo comentado de credenciales.
+- En aislamiento pasaron 1.737 pruebas con 38 omitidas, además de
+  `npm run setup`, typecheck y build. Las pruebas del alta ejecutaron el
+  formulario y la lógica de escritura con dobles de prueba. Con los archivos
+  locales pasaron las 36 pruebas restantes y quedaron las dos omisiones
+  preexistentes. El lint global señala formato pendiente. La comprobación
+  de formato de los 15 archivos del alta seleccionados por CI pasó con LF.
+
+## 2026-11-25 - Bloques de código del chat
+
+- La cabecera y el bloque Markdown comparten contorno y fondo. Verificada
+  su unión en Chrome en escritorio y móvil, también dentro de listas.
+- Las tabulaciones y las líneas vacías del bloque se dibujan sobre un fondo
+  continuo. El resaltado con fondo se aplica al código dentro de un párrafo.
+
+## 2026-11-25 - Enrutamiento del chat general y documental
+
+- El asistente se identifica como parte de PowerMeta4 en ambos modos. Las
+  preguntas por su identidad se resuelven como conversación general.
+- Los saludos, la redacción y las preguntas ajenas a PeopleNet usan el chat
+  general y su historial. La recuperación de manuales se limita a preguntas
+  documentales y seguimientos del mismo tema. Las lecturas operativas
+  conservan su ruta local.
+- Las respuestas de procedimientos priorizan los pasos y las etiquetas de
+  pantalla. Las referencias sustentan los detalles y el asistente corrige
+  premisas que contradicen las fuentes.
+- Los archivos adjuntos quedan como datos de referencia de los turnos que
+  los utilizan. Su contenido carece de autoridad sobre las instrucciones.
+- La prueba HTTP con Gemini pasó 16 casos en dos tandas en la instalación
+  habitual. Incluyó saludos con la respuesta anterior sobre correo en el
+  historial, el alta y su seguimiento con citas, un cambio de tema, SAML,
+  redacción y la abstención ante datos reales.
+- La suite completa pasó 1.776 pruebas con dos omitidas. La suite unitaria
+  final pasó 1.481 pruebas y dos omitidas. Typecheck, build y diff correctos.
+  El lint conserva el mismo conjunto de 673 archivos con formato pendiente.
+
+## 2026-11-25 - Publicación del RAG reconstruido
+
+- Las consultas documentales respetan las referencias a manuales y versiones.
+  Las citas agrupadas conservan las fuentes que corresponden al texto y la
+  recuperación reconoce variantes con pronombres enclíticos.
+- Gemini obtuvo 19/20 en la muestra independiente de aceptación, con 14/15
+  respuestas documentales fundamentadas y 5/5 abstenciones. El índice
+  publicado tiene SHA-256
+  `57de8f019d194db7617697531886437fe9dee2f1c41974bf4c211f567835c046`.
+- Fijado el ZIP completo con esa huella. La importación en una raíz vacía
+  recuperó 439 PDF, el catálogo local y 24.150 fragmentos. La recuperación
+  local con vectores de consulta en caché obtuvo 148 ms p50 y 166 ms p95.
+  Por HTTP, la respuesta completa tardó 2,88 s p50 y 27,53 s p95.
+- Cambiados juntos la base local reconciliada y el puntero del RAG. Se
+  conservan los datos ajenos al chat y 74 referencias a fuentes históricas.
+  Cero conversaciones, mensajes y adjuntos en la base activa. Se verificaron
+  el chat autenticado y la descarga de fuentes nuevas e históricas tanto
+  en aislamiento como en la instalación habitual.
+- La copia de reversión conserva los 19 chats, 65 mensajes, siete adjuntos
+  y el índice anterior. Su retirada definitiva queda pendiente de la
+  aprobación del usuario.
+- Pasaron 1.765 pruebas con dos omisiones, typecheck, build, validación SQLite
+  y `git diff --check`. El lint sigue señalando los mismos 673 archivos de
+  formato que en la revisión previa.
+
+## 2026-11-25 - Ingesta RAG completa y evaluación de aceptación
+
+- Ingesta completada en la generación existente. Cero pendientes y 24.150
+  fragmentos en total, con 24.057 vectorizados y 83 de búsqueda local tras
+  rechazo del proveedor.
+- La prueba HTTP de la copia sellada obtuvo 15/20, con 11/15 documentales y
+  4/5 abstenciones. Tres turnos se dirigieron a consultas operativas,
+  uno quedó sin fuentes utilizables y otro presentó como automática una
+  acción sugerida. Esa ejecución quedó por debajo del umbral de aceptación.
+- Recuperación híbrida aislada con caché p50 113 ms y p95 200 ms (17 casos).
+  En HTTP, primer texto p50 1,93 s y p95 26,32 s, respuesta completa
+  p50 2,50 s y p95 27,89 s (20 casos).
+- Typecheck y 40 pruebas dirigidas correctas. Git se revisó en `davidev`.
+
+## 2026-11-24 - Generación candidata del nuevo RAG
+
+- Índice independiente desde la biblioteca de manuales. Reconciliados
+  439 PDF, el catálogo Markdown, 13.598 páginas físicas y 24.150 fragmentos.
+  La revisión visual recuperó contenido de 67 figuras sin texto indexable.
+- Recuperación híbrida con búsqueda vectorial en worker, coincidencias
+  exactas, citas por página y respuestas que indican insuficiencia de datos.
+  Las consultas explícitamente documentales se distinguen de las lecturas
+  operativas de PeopleNet.
+- Exportación e importación independientes con comprobación de huellas,
+  integridad de SQLite y conservación de los PDF y vectores.
+- El candidato parcial obtuvo 37/40 en una evaluación iterativa con Gemini
+  mediante el chat autenticado, con 28 respuestas documentales correctas
+  y nueve casos de insuficiencia reconocidos. La mediana de recuperación
+  local fue 86 ms y la de respuesta completa por HTTP, 9,56 s.
+- Suite completa con 1.757 aprobadas y dos omitidas. Pasaron las 27 pruebas
+  dirigidas finales, typecheck, build y `git diff --check`. El lint global
+  mantiene 673 archivos de formato pendiente.
+- La ingesta recorre las cinco credenciales en orden cuando se agota la cuota
+  diaria de cada una. La ingesta comprobó los cambios reales de la primera
+  a la segunda, de la segunda a la tercera y de la tercera a la cuarta.
+  Las pruebas verificaron el recorrido hasta la quinta y el tratamiento de
+  los límites temporales y rechazos de contenido.
+- El OCR de celdas mal codificadas recuperó texto en diez páginas del manual
+  de configuración de Préstamos en una extracción local de prueba. Se
+  preparó una muestra de aceptación independiente de 40 casos. La publicación
+  y la retirada del índice anterior esperan la validación completa.
+- La suite de la revisión de rotación obtuvo 1.760 pruebas aprobadas y dos
+  omitidas. Tras la corrección OCR pasaron siete pruebas dirigidas, typecheck
+  y build. El lint global mantiene los 673 archivos con formato pendiente.
+- La aceptación HTTP comprueba la huella del SQLite autónomo antes y después
+  de la evaluación. Publicación y ZIP verifican y conservan esa huella.
+- Ensayadas la copia y restauración de la instalación habitual en una raíz
+  aislada. La restauración recuperó 19 chats, 65 mensajes y 7 adjuntos. La
+  base preparada para el cambio se validó con historial vacío y los datos
+  ajenos al chat cotejados. La migración 012 conserva los PDF citables al
+  restaurar una copia compatible de esquema 11.
+- Aplicada la reparación OCR de Préstamos en el candidato. El índice
+  contiene 738 páginas con OCR o mixtas y 24.150 fragmentos. Quedan
+  217 fragmentos elegibles por vectorizar tras la reparación. El cambio
+  de la instalación depende de la evaluación de la generación completa.
+- La preparación pasó 1.763 pruebas (dos omitidas), typecheck, build
+  y `git diff --check`. El lint global señaló los mismos 673 archivos
+  de formato que la ejecución previa.
+- Antes de iniciar la evaluación pendiente, se fijó un subconjunto de 20
+  casos independientes. La aceptación requiere 14 respuestas documentales
+  correctas y fundamentadas de 15 y 5 abstenciones de 5. La evaluación
+  espera a que la ingesta esté completa.
 
 ## 2026-11-24 - Alta directa en las tablas de PeopleNet
 

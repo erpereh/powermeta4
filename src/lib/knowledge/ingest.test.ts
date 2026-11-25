@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -6,7 +7,6 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createMockEmbeddingProvider } from "@/lib/ai/providers/mock-provider";
-import { runMigrations } from "@/server/database/migrations";
 import { createKnowledgeRepository } from "@/server/database/repositories/knowledge-repository";
 import type { ExtractedPdf } from "@/lib/knowledge/pdf-extraction";
 
@@ -29,7 +29,7 @@ const databases: DatabaseSync[] = [];
 const createRepository = () => {
   const database = new DatabaseSync(":memory:");
   database.exec("PRAGMA foreign_keys = ON");
-  runMigrations(database);
+  database.exec(readFileSync("src/server/database/migrations/010_knowledge_base.sql", "utf8"));
   databases.push(database);
   return createKnowledgeRepository(database);
 };

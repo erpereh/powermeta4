@@ -92,10 +92,13 @@ anterior se eliminan mediante la migración `009_remove_agent_and_provider_confi
 las migraciones 006/007 se conservan únicamente como historia de esquema.
 
 `POST /api/chat/run` valida sesión, empresa, conversación y mensaje asistente,
-reconstruye la rama exacta con `parentMessageId` y envía ancestros documentales
-`user`/`assistant` con texto no vacío, instrucciones del sistema del servidor
-y un bloque delimitado de datos de manuales y adjuntos. Excluye el placeholder
-actual, las partes internas de la UI, los turnos operativos, tools y function calling.
+reconstruye la rama exacta con `parentMessageId`. El asistente de PowerMeta4
+usa conversación general para saludos y preguntas ajenas a PeopleNet.
+Consulta los manuales en preguntas documentales y seguimientos del mismo
+tema. Envía los ancestros `user`/`assistant` con texto no vacío y las
+instrucciones del sistema del servidor. Los manuales y adjuntos pertinentes
+van en bloques delimitados como datos. Excluye el placeholder actual, las
+partes internas de la UI, los turnos operativos, tools y function calling.
 
 Los adjuntos del chat se guardan localmente por conversación y mensaje y se
 resuelven solo en la rama activa. El texto extraído queda fuera del índice de

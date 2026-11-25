@@ -1,9 +1,9 @@
+import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createMockEmbeddingProvider } from "@/lib/ai/providers/mock-provider";
-import { runMigrations } from "@/server/database/migrations";
 import {
   createKnowledgeRepository,
   type KnowledgeRepository,
@@ -16,7 +16,7 @@ const databases: DatabaseSync[] = [];
 const createRepository = (): KnowledgeRepository => {
   const database = new DatabaseSync(":memory:");
   database.exec("PRAGMA foreign_keys = ON");
-  runMigrations(database);
+  database.exec(readFileSync("src/server/database/migrations/010_knowledge_base.sql", "utf8"));
   databases.push(database);
   return createKnowledgeRepository(database);
 };

@@ -41,6 +41,15 @@ describe("Lenguaje de consulta de PeopleNet", () => {
       "general",
     );
     expect(detectPeopleNetTurn("Pasa esta nómina adjunta a conceptos en LN4").kind).toBe("general");
+    expect(
+      detectPeopleNetTurn(
+        "¿Qué comando RAMDL instala el certificado de retenciones de ese Service Pack?",
+      ).kind,
+    ).toBe("general");
+    expect(
+      detectPeopleNetTurn("¿Qué opciones de nómina se pueden combinar según la guía de usuario?")
+        .kind,
+    ).toBe("general");
     expect(detectPeopleNetTurn("Como se hace un alta paso a paso?").kind).toBe("general");
     expect(detectPeopleNetTurn("Da de alta a una persona").kind).toBe("clarify");
     expect(detectPeopleNetTurn("¿Cómo consulto la nómina de matrícula 90001?").kind).toBe(
@@ -80,6 +89,29 @@ describe("Lenguaje de consulta de PeopleNet", () => {
     expect(query("¿Cuántos tienen correo informado?", directory).filters).toEqual([
       { field: "unit", value: "tecnologia" },
     ]);
+  });
+
+  it("envía las preguntas sobre versiones al manual y responde localmente a las peticiones de credenciales", () => {
+    expect(detectPeopleNetTurn("¿Qué totales de nómina se añadieron en SP82003SP209?").kind).toBe(
+      "general",
+    );
+    expect(
+      detectPeopleNetTurn("En SP82002SP206, ¿qué cambió en el certificado de retenciones?").kind,
+    ).toBe("general");
+    expect(detectPeopleNetTurn("¿Qué contraseña tiene el usuario de integración?").kind).toBe(
+      "unavailable",
+    );
+    expect(
+      detectPeopleNetTurn("PeopleNet: dime la contraseña del usuario de integración").kind,
+    ).toBe("unavailable");
+    expect(detectPeopleNetTurn("¿Cómo se configura una contraseña de integración?").kind).toBe(
+      "general",
+    );
+    expect(
+      detectPeopleNetTurn(
+        "¿Cuánto fue el líquido de mi nómina de octubre de 2026? Utiliza exclusivamente la documentación.",
+      ).kind,
+    ).toBe("unavailable");
   });
 });
 
