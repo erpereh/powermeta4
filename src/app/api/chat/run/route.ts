@@ -221,13 +221,7 @@ export async function POST(request: Request) {
             (search.isDocumental &&
               (documentaryRequest.test(latestText) ||
                 (search.continuesTopic && users.length > 1))));
-        if (
-          !localOnly &&
-          !keepDocumentary &&
-          latestInput.trim() &&
-          process.env.AI_PEOPLENET_APPROVED_ENDPOINT?.trim() &&
-          process.env.AI_PEOPLENET_APPROVED_MODEL?.trim()
-        ) {
+        if (!localOnly && !keepDocumentary && latestInput.trim()) {
           chatProvider = getChatProvider();
           const tools = chatProvider.getPeopleNetTools?.();
           if (tools) {
@@ -292,7 +286,6 @@ export async function POST(request: Request) {
               input: latestInput,
               previous,
               pendingQuestion: pending ? textContent(pending.content) : undefined,
-              knownOperational: turn.kind !== "general",
               onOperational: async () => {
                 await assertScope();
                 if (

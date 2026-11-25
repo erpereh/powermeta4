@@ -9,8 +9,8 @@ OpenAI-compatible global y server-side mediante `AI_BASE_URL`, `AI_API_KEY` y
 `AI_MODEL`; no hay configuración por empresa ni picker interactivo. El modelo
 recibe texto de la rama seleccionada, referencias de manuales y texto
 extraído de los archivos que adjunta el usuario en los turnos documentales.
-Las consultas operativas del chat se ejecutan con los lectores de Inicio. Un
-proveedor expresamente autorizado puede seleccionar y encadenar esas lecturas.
+Las consultas operativas del chat se ejecutan con los lectores de Inicio. El
+modelo global configurado en el servidor puede seleccionar y encadenar esas lecturas.
 
 ## Fuentes de verdad y orden de lectura
 
@@ -104,12 +104,13 @@ si falta una variable muestra `IA no configurada`. Las consultas de PeopleNet
 funcionan con la configuración y sesión propias de Meta4.
 
 El registro server-only de Function Calling contiene las siete lecturas de
-Inicio, enlazadas por su ID de acción. El alta queda fuera. Para habilitarlo,
-`AI_PEOPLENET_APPROVED_ENDPOINT` y `AI_PEOPLENET_APPROVED_MODEL` deben coincidir
-con el endpoint normalizado y el modelo del chat global. Las consultas locales
-siguen disponibles cuando falta esa autorización o el proveedor rechaza las
-Tools. Antes de cada lectura se valida sesión, conversación y sociedad activa.
-El proveedor autorizado recibe métricas mínimas, estados y referencias opacas.
+Inicio, enlazadas por su ID de acción. El alta queda fuera. Usa el endpoint
+y el modelo configurados mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`.
+La elección del proveedor en el servidor fija el destino de las métricas
+minimizadas. Las consultas locales siguen disponibles cuando falta la
+configuración o el modelo rechaza o ignora las Tools. Antes de cada lectura
+se valida sesión, conversación y sociedad activa.
+El proveedor configurado recibe métricas mínimas, estados y referencias opacas.
 Identidades obtenidas de PeopleNet, tablas completas, archivos, enlaces y
 cálculos permanecen en servidor. DEBUG usa solo muestras ficticias.
 

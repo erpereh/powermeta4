@@ -5,10 +5,11 @@
 - El chat incorpora las siete lecturas de PeopleNet de Inicio con un registro
   validado en servidor, llamadas encadenadas y cálculos sobre referencias de
   la rama. Las tarjetas muestran tablas, cálculos y documentos disponibles.
-- El proveedor recibe métricas minimizadas solo cuando el endpoint y el modelo
-  están autorizados por la configuración. La ruta local sigue disponible.
-  Las recetas de consulta se cifran con DPAPI CurrentUser, y las filas e
-  importes devueltos permanecen en memoria.
+- Function Calling usa las tres variables globales de IA del chat. El
+  proveedor configurado recibe métricas minimizadas. La ruta local sigue
+  disponible si el proveedor rechaza o ignora las herramientas. Las recetas
+  de consulta se cifran con DPAPI CurrentUser, y las filas e importes
+  devueltos permanecen en memoria.
 - Pasaron 98 pruebas dirigidas, typecheck, build y formato del TypeScript
   modificado. La verificación real de PeopleNet, DPAPI y del protocolo del
   proveedor queda pendiente en la VM.

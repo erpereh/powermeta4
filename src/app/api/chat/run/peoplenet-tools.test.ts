@@ -32,7 +32,8 @@ import { POST as run } from "./route";
 import { POST as result } from "../peoplenet/result/route";
 
 const scope = { activeCompanyId: "company", companies: [{ id: "company" }, { id: "otro" }] };
-const endpoint = "https://authorized.invalid/openai/chat/completions";
+const baseUrl = "https://provider.invalid/api/v1";
+const endpoint = baseUrl + "/chat/completions";
 const common = { companyId: "company", conversationId: "chat" };
 let transcript: Message[];
 let ciphertexts: Map<string, string>;
@@ -133,11 +134,9 @@ beforeEach(() => {
   vi.stubEnv("NODE_ENV", "development");
   vi.stubEnv("POWERMETA4_DEBUG_AUTH", "true");
   vi.stubEnv("AI_PROVIDER", "http-compatible");
-  vi.stubEnv("AI_BASE_URL", endpoint);
+  vi.stubEnv("AI_BASE_URL", baseUrl);
   vi.stubEnv("AI_API_KEY", "debug-fake-key");
   vi.stubEnv("AI_MODEL", "debug-tools");
-  vi.stubEnv("AI_PEOPLENET_APPROVED_ENDPOINT", endpoint);
-  vi.stubEnv("AI_PEOPLENET_APPROVED_MODEL", "debug-tools");
   fake.session.mockResolvedValue({
     sessionId: "debug",
     authContext: {
@@ -403,20 +402,29 @@ describe("Function Calling de PeopleNet con fixtures DEBUG", () => {
     });
   });
 
-  it("resuelve localmente si el modelo difiere del autorizado o no soporta herramientas", async () => {
-    vi.stubEnv("AI_PEOPLENET_APPROVED_MODEL", "another-model");
-    const fetch = stubProvider(() =>
-      Response.json({ error: { code: "tools_not_supported" } }, { status: 400 }),
+  it("resuelve localmente si falta la configuración o el modelo rechaza o ignora las herramientas", async () => {
+    vi.stubEnv("AI_API_KEY", "");
+    const fetch = stubProvider((_body, round) =>
+      round === 0
+        ? Response.json(
+            { error: { message: "No endpoints found that support tool use" } },
+            { status: 404 },
+          )
+        : reply(undefined, "Puedo ayudarte con el listado."),
     );
     expect(await answer(start("Listado de usuarios con correo principal"))).toContain(
       '"kind":"peoplenet"',
     );
     expect(fetch).not.toHaveBeenCalled();
-    vi.stubEnv("AI_PEOPLENET_APPROVED_MODEL", "debug-tools");
+    vi.stubEnv("AI_API_KEY", "debug-fake-key");
     expect(await answer(start("Listado de usuarios con correo principal", "fallback"))).toContain(
       '"kind":"peoplenet"',
     );
     expect(fetch).toHaveBeenCalledOnce();
+    expect(await answer(start("Listado de usuarios con correo principal", "plain"))).toContain(
+      '"kind":"peoplenet"',
+    );
+    expect(fetch).toHaveBeenCalledTimes(2);
     expect(fake.protect).not.toHaveBeenCalled();
   });
 
@@ -428,7 +436,7 @@ describe("Function Calling de PeopleNet con fixtures DEBUG", () => {
     const fetch = vi.fn(async (_url: string, init: RequestInit) => {
       const body = String(init.body);
       expect(body).not.toContain("90001");
-      if (JSON.parse(body).stream === false) return reply(undefined, "GENERAL");
+      if (JSON.parse(body).stream === false) return reply(undefined, "Hola, soy el asistente.");
       return new Response('data: {"choices":[{"delta":{"content":"Hola"}}]}\n\ndata: [DONE]\n\n');
     });
     vi.stubGlobal("fetch", fetch);

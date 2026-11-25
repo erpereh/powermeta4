@@ -2,7 +2,6 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import type { ChatToolCall, ChatToolMessage, ChatTools } from "@/lib/ai/chat-provider";
-import { normalizeUsersSearch } from "@/lib/meta4/users/list-filter";
 import { analyzePeopleNet } from "./peoplenet-analysis";
 import type { ChatSource } from "./chat-data";
 import {
@@ -48,7 +47,7 @@ const operationalContext: ChatSource = {
 };
 
 type RunOutcome =
-  | { kind: "general" | "unsupported" }
+  | { kind: "fallback" }
   | {
       kind: "operational";
       text: string;
@@ -128,12 +127,6 @@ const callArguments = (call: ChatToolCall): unknown => {
   }
 };
 
-const providerDoesNotSupportTools = (error: unknown) =>
-  typeof error === "object" &&
-  error !== null &&
-  "code" in error &&
-  error.code === "CHAT_TOOLS_UNSUPPORTED";
-
 const awaitInBudget = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> => {
   signal.throwIfAborted();
   return new Promise<T>((resolve, reject) => {
@@ -149,7 +142,6 @@ export async function runPeopleNetTools(
     input: string;
     previous: RunRecipe[];
     pendingQuestion?: string;
-    knownOperational: boolean;
     onOperational?: () => Promise<void>;
   },
 ): Promise<RunOutcome> {
@@ -364,12 +356,7 @@ export async function runPeopleNetTools(
       );
       const incoming = reply.tool_calls ?? [];
       if (!incoming.length) {
-        if (
-          !entered &&
-          !options.knownOperational &&
-          normalizeUsersSearch(reply.content ?? "").trim() === "general"
-        )
-          return { kind: "general" };
+        if (!entered) return { kind: "fallback" };
         return calls.size
           ? conclusion([...calls.keys()])
           : finish(
@@ -422,17 +409,15 @@ export async function runPeopleNetTools(
     );
   } catch (error) {
     if (options.signal.aborted || error instanceof PeopleNetScopeError) throw error;
+    if (!entered) return { kind: "fallback" };
     if (signal.aborted)
       return finish(
         "La consulta superó el tiempo disponible. Acota los filtros e inténtalo de nuevo.",
         true,
       );
-    if (!entered && providerDoesNotSupportTools(error)) return { kind: "unsupported" };
-    if (entered || options.knownOperational)
-      return finish(
-        "No se pudo completar la consulta de PeopleNet. Puedes revisar los resultados disponibles o reintentar.",
-        true,
-      );
-    throw error;
+    return finish(
+      "No se pudo completar la consulta de PeopleNet. Puedes revisar los resultados disponibles o reintentar.",
+      true,
+    );
   }
 }

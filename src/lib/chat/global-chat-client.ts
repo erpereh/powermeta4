@@ -15,7 +15,6 @@ export type GlobalChatErrorCode =
   | "CHAT_RATE_LIMITED"
   | "CHAT_SERVICE_UNAVAILABLE"
   | "CHAT_NETWORK_ERROR"
-  | "CHAT_TOOLS_UNSUPPORTED"
   | "CHAT_INVALID_RESPONSE";
 
 const ERROR_MESSAGES: Record<GlobalChatErrorCode, string> = {
@@ -26,7 +25,6 @@ const ERROR_MESSAGES: Record<GlobalChatErrorCode, string> = {
   CHAT_SERVICE_UNAVAILABLE:
     "El proveedor de chat está saturado ahora mismo. Inténtalo de nuevo en unos segundos.",
   CHAT_NETWORK_ERROR: "No se pudo conectar con el proveedor de chat.",
-  CHAT_TOOLS_UNSUPPORTED: "El proveedor configurado no admite consultas encadenadas.",
   CHAT_INVALID_RESPONSE: "La respuesta del proveedor de chat no es válida.",
 };
 
@@ -302,22 +300,14 @@ const toolResponse = z.object({
     )
     .length(1),
 });
-const unsupportedTools = z.object({
-  error: z.object({
-    param: z.string().optional(),
-    code: z.string().optional(),
-    message: z.string().max(3000).optional(),
-  }),
-});
-
-export function getApprovedGlobalChatTools(): ChatTools | undefined {
-  const configuration = getApprovedGlobalChatToolsConfiguration();
+export function getGlobalChatTools(): ChatTools | undefined {
+  const configuration = getToolChatConfiguration();
   if (!configuration) return;
 
   return {
     async complete({ messages, tools, abortSignal }) {
-      // Check the authorization at the network boundary as well as on path selection.
-      const current = getApprovedGlobalChatToolsConfiguration();
+      // Keep the same server-configured connection throughout a tool run.
+      const current = getToolChatConfiguration();
       if (
         !current ||
         current.endpoint !== configuration.endpoint ||
@@ -349,24 +339,8 @@ export function getApprovedGlobalChatTools(): ChatTools | undefined {
         if (isAbortError(error, abortSignal)) throw error;
         throw new GlobalChatError("CHAT_NETWORK_ERROR");
       }
-      if (!response.ok && response.status !== 400 && response.status !== 422)
-        throw errorForStatus(response.status);
-      const data: unknown = await readBoundedToolResponse(response);
-      if (!response.ok) {
-        const rejection = unsupportedTools.safeParse(data);
-        if (rejection.success) {
-          const { param, code, message } = rejection.data.error;
-          if (
-            code === "tools_not_supported" ||
-            (param === "tools" && code === "unsupported_parameter") ||
-            /\b(?:tools|function calling) (?:is |are )?not supported\b/i.test(message ?? "")
-          ) {
-            throw new GlobalChatError("CHAT_TOOLS_UNSUPPORTED");
-          }
-        }
-        throw errorForStatus(response.status);
-      }
-      const parsed = toolResponse.safeParse(data);
+      if (!response.ok) throw errorForStatus(response.status);
+      const parsed = toolResponse.safeParse(await readBoundedToolResponse(response));
       const choice = parsed.success ? parsed.data.choices[0] : undefined;
       if (!choice || choice.finish_reason === "length" || choice.finish_reason === "content_filter")
         throw new GlobalChatError("CHAT_INVALID_RESPONSE");
@@ -386,24 +360,13 @@ export function getApprovedGlobalChatTools(): ChatTools | undefined {
   };
 }
 
-function requiredApprovalEndpoint() {
-  const value = process.env.AI_PEOPLENET_APPROVED_ENDPOINT?.trim();
-  if (!value) return;
-  const endpoint = resolveGlobalChatCompletionsUrl(value);
-  const url = new URL(endpoint);
-  if (url.username || url.password) return;
-  if (url.protocol === "https:" || ["127.0.0.1", "[::1]", "localhost"].includes(url.hostname))
-    return endpoint;
-}
-
-function getApprovedGlobalChatToolsConfiguration() {
+function getToolChatConfiguration() {
   try {
-    const current = readGlobalChatConfiguration();
-    if (
-      current.endpoint === requiredApprovalEndpoint() &&
-      current.model === process.env.AI_PEOPLENET_APPROVED_MODEL?.trim()
-    )
-      return current;
+    const configuration = readGlobalChatConfiguration();
+    const url = new URL(configuration.endpoint);
+    if (url.username || url.password) return;
+    if (url.protocol === "https:" || ["127.0.0.1", "[::1]", "localhost"].includes(url.hostname))
+      return configuration;
   } catch (error) {
     if (!(error instanceof GlobalChatConfigurationError)) throw error;
   }
