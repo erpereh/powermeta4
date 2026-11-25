@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-25 - Bloques de código del chat
+
+- La cabecera y el bloque Markdown comparten contorno y fondo. Verificada
+  su unión en Chrome en escritorio y móvil, también dentro de listas.
+
 ## 2026-11-23 - Consultas de PeopleNet desde el chat
 
 - Consultas locales de las siete acciones de lectura de Inicio, con filtros,
