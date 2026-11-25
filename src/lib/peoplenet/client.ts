@@ -49,6 +49,29 @@ export const getPeopleNetConfig = (env: NodeJS.ProcessEnv = process.env): sql.co
 };
 
 /**
+ * Write connection for the hire only (PEOPLENET_DB_WRITE_USER / _PASSWORD on the
+ * same server and database). The read connection never gets write rights; null
+ * while the write user is not configured.
+ */
+export const getPeopleNetWriteConfig = (
+  env: NodeJS.ProcessEnv = process.env,
+): sql.config | null => {
+  // PEOPLENET_DB_WRITE_USE_READ_USER=true: the read user already has write rights
+  // (the same login used in DBeaver), so the hire reuses it instead of a copy of the password.
+  const reuse = readFlag(env.PEOPLENET_DB_WRITE_USE_READ_USER);
+  const user = reuse ? env.PEOPLENET_DB_USER?.trim() : env.PEOPLENET_DB_WRITE_USER?.trim();
+  const password = reuse ? env.PEOPLENET_DB_PASSWORD : env.PEOPLENET_DB_WRITE_PASSWORD;
+  if (!user || !password) return null;
+  return {
+    ...getPeopleNetConfig(env),
+    user,
+    password,
+    pool: { max: 2, min: 0, idleTimeoutMillis: 60_000 },
+    options: { ...getPeopleNetConfig(env).options, appName: "powermeta4-hire" },
+  };
+};
+
+/**
  * Non-reversible fingerprint of the effective connection. It lets a long-lived
  * process notice that `.env.local` now points elsewhere without keeping secrets.
  */
@@ -82,6 +105,34 @@ export const getPeopleNetTarget = (
 const poolCache = globalThis as typeof globalThis & {
   powermeta4PeopleNetPool?: Promise<sql.ConnectionPool>;
   powermeta4PeopleNetPoolKey?: string;
+  powermeta4PeopleNetWritePool?: Promise<sql.ConnectionPool>;
+  powermeta4PeopleNetWritePoolKey?: string;
+};
+
+/** Pool of the write connection; throws PeopleNetConfigError while it is not configured. */
+export const getPeopleNetWritePool = (): Promise<sql.ConnectionPool> => {
+  const config = getPeopleNetWriteConfig();
+  if (!config)
+    throw new PeopleNetConfigError(["PEOPLENET_DB_WRITE_USER", "PEOPLENET_DB_WRITE_PASSWORD"]);
+  const key = peopleNetConfigFingerprint(config);
+  const cached = poolCache.powermeta4PeopleNetWritePool;
+  if (cached && poolCache.powermeta4PeopleNetWritePoolKey === key) {
+    return cached.then((pool) => {
+      if (pool.connected || pool.connecting) return pool;
+      poolCache.powermeta4PeopleNetWritePool = undefined;
+      return getPeopleNetWritePool();
+    });
+  }
+  if (cached) void cached.then((pool) => pool.close()).catch(() => undefined);
+  const connecting = new sql.ConnectionPool(config).connect();
+  poolCache.powermeta4PeopleNetWritePool = connecting;
+  poolCache.powermeta4PeopleNetWritePoolKey = key;
+  connecting.catch(() => {
+    if (poolCache.powermeta4PeopleNetWritePool === connecting) {
+      poolCache.powermeta4PeopleNetWritePool = undefined;
+    }
+  });
+  return connecting;
 };
 
 export const getPeopleNetPool = (): Promise<sql.ConnectionPool> => {

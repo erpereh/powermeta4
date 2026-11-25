@@ -1,113 +1,32 @@
 import "server-only";
 
-import path from "node:path";
-
 import type { ResolvedAuthSession } from "@/lib/auth/service";
-import {
-  Meta4SessionRequiredError,
-  SessionExpiredError,
-} from "@/lib/meta4/authenticated-soap-client";
-import { Meta4HttpError } from "@/lib/meta4/client";
 import { getMeta4OperationalContext } from "@/lib/meta4/operational-context";
-import { Meta4ProfileError } from "@/lib/meta4/profile-errors";
-import { executeAuthenticatedSoap } from "@/lib/meta4/server";
-import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
 import type { Meta4Society } from "@/lib/meta4/societies";
 
-import { editHireWorkbook } from "./excel";
-import { Meta4HireError, isMeta4HireError } from "./errors";
-import { buildHireFileName, buildHireFilePath } from "./filename";
-import { readHireImportLog, type HireImportLogRow } from "./import-log";
-import { hireExecutionQueue, type SerializedTask } from "./mutex";
-import { parseLaunchImportResponse } from "./parser";
 import { loadHireCatalogsForLaunch } from "./catalog-queries";
 import { assertHireCatalogSelections, type HireCatalogs } from "./catalogs";
-import {
-  buildLaunchImportEnvelope,
-  getMeta4HireDirectory,
-  getMeta4HireTemplatePath,
-  getMeta4HireUrl,
-} from "./soap";
+import { launchDirectHire } from "./direct/service";
+import { Meta4HireError } from "./errors";
+import { assertNewHireDocuments, findExistingHireDocuments } from "./existing-people";
+import { hireExecutionQueue, type SerializedTask } from "./mutex";
 import type { HireLaunchResult, HirePerson } from "./types";
 import { parseHirePeople } from "./validate";
-import { verifyWrittenHireFile, writeHireFileAtomically } from "./write-file";
-
-export const HIRE_SOAP_TIMEOUT_MS = 60_000;
 
 export type LaunchMeta4HireDeps = {
   getOperationalContext?: typeof getMeta4OperationalContext;
-  executeSoap?: typeof executeAuthenticatedSoap;
   loadCatalogs?: (society: Meta4Society, placeIds: readonly string[]) => Promise<HireCatalogs>;
-  editHireWorkbook?: (templatePath: string, people: readonly HirePerson[]) => Promise<Buffer>;
-  writeHireFile?: typeof writeHireFileAtomically;
-  verifyHireFile?: (filePath: string) => Promise<void>;
-  hireUrl?: string;
-  hireDirectory?: string;
-  templatePath?: string;
-  now?: () => Date;
+  findExistingDocuments?: (documents: readonly string[]) => Promise<ReadonlyMap<string, string>>;
   serialize?: SerializedTask;
-  readImportLog?: (filePath: string) => Promise<readonly HireImportLogRow[] | null>;
-  log?: (message: string, details: Record<string, string>) => void;
+  directHire?: typeof launchDirectHire;
 };
-
-const isKnownSystemError = (error: unknown): boolean =>
-  error instanceof Meta4SessionRequiredError ||
-  error instanceof SessionExpiredError ||
-  error instanceof Meta4SoapFaultError ||
-  error instanceof Meta4HttpError ||
-  error instanceof Meta4ProfileError ||
-  isMeta4HireError(error);
-
-const safeLog = (log: LaunchMeta4HireDeps["log"], details: Record<string, string>): void => {
-  log?.("meta4-hire", details);
-};
-
-/** The import ran (or may have run) only after these outcomes; others never reached it. */
-const importMayHaveRun = (error: unknown): boolean =>
-  error instanceof Meta4SoapFaultError ||
-  (isMeta4HireError(error) && error.code === "META4_HIRE_IMPORT_FAILED");
 
 /**
- * PeopleNet's own log decides per person: its rejections become a controlled
- * error with each person's message. The text may contain personal data, so
- * only counts are logged here.
- */
-const rejectFromImportLog = async (
-  readImportLog: NonNullable<LaunchMeta4HireDeps["readImportLog"]>,
-  filePath: string,
-  log: LaunchMeta4HireDeps["log"],
-): Promise<void> => {
-  const rows = await readImportLog(filePath).catch(() => null);
-  if (!rows) return;
-  const failed = rows.filter((row) => row.failed);
-  safeLog(log, {
-    operation: "SRTC_LAUNCH_IMPORT",
-    code: failed.length > 0 ? "IMPORT_LOG_REJECTED" : "IMPORT_LOG_OK",
-    rows: String(rows.length),
-    failed: String(failed.length),
-  });
-  if (failed.length === 0) return;
-  const issues = failed.map((row) => ({
-    person: row.person,
-    message: row.message || "PeopleNet no indicó el motivo.",
-  }));
-  throw new Meta4HireError(
-    "META4_HIRE_IMPORT_REJECTED",
-    `PeopleNet rechazó el alta de ${issues.length === 1 ? "1 persona" : `${issues.length} personas`}.`,
-    issues,
-  );
-};
-
-const resolveTemplatePath = (templatePath: string): string =>
-  path.isAbsolute(templatePath)
-    ? templatePath
-    : path.resolve(/* turbopackIgnore: true */ process.cwd(), templatePath);
-
-/**
- * Copies Hire_1_PERSONA.xls, edits it with Excel, and launches SRTC_LAUNCH_IMPORT.
- * Catalog IDs are checked against the PeopleNet catalogs of the context society.
- * Operational context still gates DEBUG sessions before writing the file.
- * filePath is the same string used to write, verify, and fill ARG_PATH_FILE.
+ * Hire of people in PeopleNet, written in its tables as Meta4's SAVE_HIRE does
+ * (direct/). Before any write: the society comes from the server's operational
+ * context, every catalog ID is checked against that society, the form rules
+ * run with the catalog names and no document may exist or repeat (Meta4 would
+ * modify the existing person). Hires are serialized in this process.
  */
 export const launchMeta4Hire = async (
   authSession: ResolvedAuthSession,
@@ -115,13 +34,10 @@ export const launchMeta4Hire = async (
   deps: LaunchMeta4HireDeps = {},
 ): Promise<HireLaunchResult> => {
   const getContext = deps.getOperationalContext ?? getMeta4OperationalContext;
-  const executeSoap = deps.executeSoap ?? executeAuthenticatedSoap;
-  const editWorkbook = deps.editHireWorkbook ?? editHireWorkbook;
-  const writeHireFile = deps.writeHireFile ?? writeHireFileAtomically;
-  const verifyHireFile = deps.verifyHireFile ?? verifyWrittenHireFile;
-  const serialize = deps.serialize ?? hireExecutionQueue;
   const loadCatalogs = deps.loadCatalogs ?? loadHireCatalogsForLaunch;
-  const readImportLog = deps.readImportLog ?? readHireImportLog;
+  const findExisting = deps.findExistingDocuments ?? findExistingHireDocuments;
+  const directHire = deps.directHire ?? launchDirectHire;
+  const serialize = deps.serialize ?? hireExecutionQueue;
 
   const context = await getContext(authSession);
   const catalogs = await loadCatalogs(
@@ -131,120 +47,14 @@ export const launchMeta4Hire = async (
   assertHireCatalogSelections(people, catalogs, context.society);
   // Rules that need catalog names (document type) run once catalogs are loaded.
   const validated = parseHirePeople(people, { documentTypes: catalogs.documentType });
-  const directory = getMeta4HireDirectory(deps.hireDirectory);
-  const fileName = buildHireFileName(deps.now?.() ?? new Date());
-  const filePath = buildHireFilePath(directory, fileName);
-  const url = getMeta4HireUrl(deps.hireUrl);
-  const templatePath = resolveTemplatePath(getMeta4HireTemplatePath(deps.templatePath));
-  const xml = buildLaunchImportEnvelope(filePath);
-
-  const launchImport = (): Promise<HireLaunchResult> =>
-    executeSoap({
-      url,
-      xml,
-      timeoutMs: HIRE_SOAP_TIMEOUT_MS,
-      parseResponse: async (response) => {
-        const body = await response.text();
-
-        if (!response.ok) {
-          try {
-            parseLaunchImportResponse(body);
-          } catch (error) {
-            if (error instanceof Meta4SoapFaultError) {
-              // Safe to log verbatim: this call only ever sends
-              // ARG_ID_GROUP_INTERFACE/ARG_PATH_FILE/flags to Meta4, never
-              // any person field, so nothing personal can come back in a
-              // fault on this specific operation.
-              safeLog(deps.log, {
-                operation: "SRTC_LAUNCH_IMPORT",
-                status: String(response.status),
-                code: "SOAP_FAULT",
-                faultCode: error.code ?? "",
-                faultMessage: error.message,
-                personCount: String(people.length),
-              });
-              throw error;
-            }
-          }
-          safeLog(deps.log, {
-            operation: "SRTC_LAUNCH_IMPORT",
-            status: String(response.status),
-            code: "HTTP_ERROR",
-            personCount: String(people.length),
-          });
-          throw new Meta4HttpError(response.status);
-        }
-
-        try {
-          const parsed = parseLaunchImportResponse(body);
-          safeLog(deps.log, {
-            operation: "SRTC_LAUNCH_IMPORT",
-            status: String(response.status),
-            code: "OK",
-            personCount: String(people.length),
-          });
-          return {
-            personCount: people.length,
-            returnCode: parsed.returnCode,
-            fileName,
-            filePath,
-          };
-        } catch (error) {
-          if (error instanceof Meta4SoapFaultError) {
-            safeLog(deps.log, {
-              operation: "SRTC_LAUNCH_IMPORT",
-              status: String(response.status),
-              code: "SOAP_FAULT",
-              faultCode: error.code ?? "",
-              faultMessage: error.message,
-              personCount: String(people.length),
-            });
-            throw error;
-          }
-          if (isMeta4HireError(error)) {
-            safeLog(deps.log, {
-              operation: "SRTC_LAUNCH_IMPORT",
-              status: String(response.status),
-              code: error.code,
-              // Just Meta4's numeric return code / a fixed template
-              // string, per parseLaunchImportResponse - never person data.
-              detail: error.message,
-              personCount: String(people.length),
-            });
-            throw error;
-          }
-          throw error;
-        }
-      },
-    });
-
-  return serialize(async () => {
-    try {
-      const workbookBytes = await editWorkbook(templatePath, validated);
-      await writeHireFile(filePath, workbookBytes);
-      await verifyHireFile(filePath);
-
-      let launched: HireLaunchResult;
-      try {
-        launched = await launchImport();
-      } catch (error) {
-        if (importMayHaveRun(error)) await rejectFromImportLog(readImportLog, filePath, deps.log);
-        throw error;
-      }
-      await rejectFromImportLog(readImportLog, filePath, deps.log);
-      return launched;
-    } catch (error) {
-      if (isKnownSystemError(error)) throw error;
-      safeLog(deps.log, {
-        operation: "SRTC_LAUNCH_IMPORT",
-        status: "unknown",
-        code: "META4_HIRE_FETCH_FAILED",
-        personCount: String(people.length),
-      });
+  const existing = await findExisting(validated.map((person) => person.documentNumber)).catch(
+    () => {
       throw new Meta4HireError(
-        "META4_HIRE_FETCH_FAILED",
-        "No se ha podido completar el alta de personas en Meta4.",
+        "META4_HIRE_CATALOG_UNAVAILABLE",
+        "No se ha podido comprobar en PeopleNet si los documentos ya existen.",
       );
-    }
-  });
+    },
+  );
+  assertNewHireDocuments(validated, existing);
+  return serialize(() => directHire(context, validated));
 };

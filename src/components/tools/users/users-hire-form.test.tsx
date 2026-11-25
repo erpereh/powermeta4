@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -16,6 +16,7 @@ import {
 } from "./hire-form/draft";
 import { HIRE_FIELD_META, hireFieldLabelClass } from "./hire-form/field-metadata";
 import type { HireCatalogState } from "@/lib/meta4/hire/catalogs";
+import { HIRE_TEST_CATALOGS } from "@/lib/meta4/hire/test-catalogs";
 import { UsersHireForm } from "./users-hire-form";
 
 const launchHire = vi.mocked(launchMeta4HireAction);
@@ -23,90 +24,7 @@ const launchHire = vi.mocked(launchMeta4HireAction);
 const CATALOGS: HireCatalogState = {
   status: "ready",
   society: "CYC",
-  catalogs: {
-    currency: [
-      { id: "EUR", name: "Euro" },
-      { id: "USD", name: "Dolar" },
-    ],
-    paymentType: [
-      { id: "2", name: "Cheque" },
-      { id: "4", name: "Transferencia Bancaria" },
-    ],
-    companyBank: [
-      {
-        id: "0001",
-        name: "0001 - Crédito y Caución S.A.",
-        detail: "ES31 0182 3999 3100 0002 7755",
-      },
-      { id: "0003", name: "0003 ACYC_ES - ACYC España" },
-    ],
-    agreement: [{ id: "0001", name: "Convenio de Empresa" }],
-    adjustmentType: [
-      { id: "0", name: "Ninguno" },
-      { id: "1", name: "A bruto" },
-    ],
-    salaryType: [{ id: "1", name: "Mensual" }],
-    union: [{ id: "UGT", name: "Unión General de Trabajadores" }],
-    irpfType: [{ id: "NAC", name: "Nacional" }],
-    perceptionKey: [{ id: "A", name: "Empleados por cuenta ajena" }],
-    referenceModelWeek: [
-      { id: "001/1", name: "Logística", detail: "Semana 004" },
-      { id: "001/2", name: "Logística", detail: "Semana 005" },
-    ],
-    variableCompensationMode: [{ id: "1", name: "Modelo CYC" }],
-    tc1Header: [{ id: "0000", name: "Grupos sin Cotizaciones", detail: "20006589560" }],
-    tariffGroup: [{ id: "1", name: "Ingenieros y licenciados" }],
-    ssOccupation: [{ id: "a", name: "Personal en trabajos exclusivos de oficina" }],
-    ssAgreement: [{ id: "0000", name: "Sin Convenio" }],
-    contract: [
-      { id: "100/100", name: "Ordinario Indefinido", detail: "Ordinario indefinido tp completo" },
-      {
-        id: "100/100A",
-        name: "Ordinario Indefinido",
-        detail: "Contrato Mujer Reincorporada Indef",
-      },
-    ],
-    laborRelation: [{ id: "0100", name: "Personal de alta dirección" }],
-    reductionReason: [{ id: "001", name: "Cuidado de menor" }],
-    substitutionCause: [{ id: "1", name: "Sustitución por Excedencia" }],
-    unemploymentCondition: [{ id: "1", name: "Desempleado inscrito en la Oficina de Empleo." }],
-    specialLaborRelation: [{ id: "100", name: "Personal de Alta Dirección" }],
-    socialExclusion: [{ id: "1", name: "Exclusión social" }],
-    documentType: [
-      { id: "1", name: "NIF" },
-      { id: "2", name: "Pasaporte" },
-    ],
-    country: [{ id: "724", name: "España", detail: "ES" }],
-    nationality: [{ id: "724", name: "Española", detail: "España" }],
-    community: [
-      { id: "724/13", name: "Madrid", detail: "España" },
-      { id: "724/09", name: "Cataluña", detail: "España" },
-    ],
-    province: [
-      { id: "724/13/28", name: "Madrid", detail: "Madrid · España" },
-      { id: "724/09/08", name: "Barcelona", detail: "Cataluña · España" },
-    ],
-    place: [],
-    gender: [{ id: "2", name: "Mujer" }],
-    maritalStatus: [{ id: "01", name: "Soltero/a" }],
-    atradiusJob: [{ id: "0000", name: "Sin datos" }],
-    atradiusCategory: [{ id: "00", name: "Sin datos" }],
-    department: [{ id: "1001", name: "1001-295-Local Sales Costs 1-BRA" }],
-    locationType: [{ id: "1", name: "Domicilio" }],
-    roadType: [{ id: "CL", name: "Calle" }],
-    legalEntity: [
-      { id: "ACYC_ES", name: "ACYC España" },
-      { id: "ACYC_PT", name: "ACYC Portugal" },
-    ],
-    job: [{ id: "GR_ACAN", name: "Actuarial Analyst" }],
-    position: [{ id: "POS01", name: "Analista", detail: "CFO · Actuarial Analyst" }],
-    workUnit: [{ id: "00", name: "Pendiente de definir" }],
-    workLocation: [{ id: "724", name: "España", detail: "País" }],
-    category: [{ id: "I1", name: "Categoría I1" }],
-    startReason: [{ id: "001", name: "Nueva Alta" }],
-    structure: [{ id: "0", name: "Empleado" }],
-    functionalWorkCenter: [{ id: "O_CEN1", name: "Oficinas Centrales", detail: "Madrid" }],
-  },
+  catalogs: HIRE_TEST_CATALOGS,
 };
 
 const chooseOption = async (
@@ -254,10 +172,12 @@ describe("UsersHireForm", () => {
   it("queries Madrid and fills a valid development person regardless of province order without launching the hire", async () => {
     const user = userEvent.setup({ delay: null });
     render(
-      <UsersHireForm catalogs={{
-        ...CATALOGS,
-        catalogs: { ...CATALOGS.catalogs, province: [...CATALOGS.catalogs.province].reverse() },
-      }} />,
+      <UsersHireForm
+        catalogs={{
+          ...CATALOGS,
+          catalogs: { ...CATALOGS.catalogs, province: [...CATALOGS.catalogs.province].reverse() },
+        }}
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: "Rellenar datos de prueba" }));
@@ -266,7 +186,7 @@ describe("UsersHireForm", () => {
       signal: expect.any(AbortSignal),
     });
     expect(inputValue("Primer apellido")).toBe("Automática");
-    expect(inputValue("Núm. de documento")).toMatch(/^90000001[A-Z]$/);
+    expect(inputValue("Núm. de documento")).toMatch(/^9\d{7}[A-Z]$/);
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(launchHire).not.toHaveBeenCalled();
 
@@ -279,7 +199,7 @@ describe("UsersHireForm", () => {
     await typeFusionId(user);
     expect(inputValue("Fusion ID")).toBe("9998");
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
-    expect(screen.getByText("Se van a procesar 1 personas en Meta4")).toBeTruthy();
+    expect(screen.getByText("Se va a dar de alta 1 persona en PeopleNet.")).toBeTruthy();
     expect(launchHire).not.toHaveBeenCalled();
   });
 
@@ -301,7 +221,9 @@ describe("UsersHireForm", () => {
     expect(screen.getByText("Prueba Conservar Persona 1")).toBeTruthy();
     expect(screen.getByText(`${firstDocument} · persona-1@example.test`)).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
-    expect(screen.getByText("Se van a procesar 2 personas en Meta4")).toBeTruthy();
+    expect(
+      screen.getByText(/^Se van a dar de alta 2 personas en PeopleNet, de una en una/),
+    ).toBeTruthy();
     expect(launchHire).not.toHaveBeenCalled();
   });
 
@@ -346,7 +268,9 @@ describe("UsersHireForm", () => {
 
     let resolveSearch: ((response: Response) => void) | undefined;
     let signal: AbortSignal | null | undefined;
-    const response = new Promise<Response>((resolve) => { resolveSearch = resolve; });
+    const response = new Promise<Response>((resolve) => {
+      resolveSearch = resolve;
+    });
     vi.mocked(fetch).mockImplementationOnce((_input, init) => {
       signal = init?.signal;
       return response;
@@ -558,17 +482,62 @@ describe("UsersHireForm", () => {
     };
     const payload = toHirePersonInput(draft);
     expect(payload).toMatchObject({
-      position: "POS01", occupationType: "ejc", occupationHours: "", occupationEjc: "0.75", occupationHeadcount: "",
-      legalRepresentativeNif: "00001234X", birthDate: "1990-01-01", atradiusId: "00044",
-      phonePrefix: "0034", phoneNumber: "000123456", mobilePrefix: "0034", mobileNumber: "000600123",
-      addressLine1: "Calle Mayor", addressLine2: "Portal 2", streetNumber: "0005", buildingBlock: "B", staircase: "2", floor: "3", door: "A", postalCode: "08001",
-      keyEmployee: true, strategicEmployee: true,
-      ssNumberChoice: "assigned", ssNumberPrefix: "08", ssNumberBody: "0000123456", ssNumberSuffix: "02",
-      contractEnd: "2027-01-01T12:00", scheduleChoice: "partial", partialSchedulePercent: "50", hourType: "2", numberOfHours: "80", partialScheduleType: "I", weeklyWorkDays: "4", legalReductionPercent: "25",
-      replacedSsPrefix: "08", replacedSsBody: "0009876543", replacedSsSuffix: "01", disabilityChoice: "with", disabilityPercent: "33", contractSeniorityStart: "2024-01-01",
-      womanMaternity24: true, underrepresentedWoman: true, activeInsertionIncome: true, reliefContract: true, readmittedDisabled: true, firstSelfEmployedWorker: true,
-      probationDays: "15", probationEnd: "2026-11-01", additionalClause: "Cláusula", annualGross: "30000", seniorityDate: "2020-01-01", timeManagementPay: true,
-      bankFormatChoice: "other", iban: "", bankBranch: "00491500", accountNumber: "1234567890",
+      position: "POS01",
+      occupationType: "ejc",
+      occupationHours: "",
+      occupationEjc: "0.75",
+      occupationHeadcount: "",
+      legalRepresentativeNif: "00001234X",
+      birthDate: "1990-01-01",
+      atradiusId: "00044",
+      phonePrefix: "0034",
+      phoneNumber: "000123456",
+      mobilePrefix: "0034",
+      mobileNumber: "000600123",
+      addressLine1: "Calle Mayor",
+      addressLine2: "Portal 2",
+      streetNumber: "0005",
+      buildingBlock: "B",
+      staircase: "2",
+      floor: "3",
+      door: "A",
+      postalCode: "08001",
+      keyEmployee: true,
+      strategicEmployee: true,
+      ssNumberChoice: "assigned",
+      ssNumberPrefix: "08",
+      ssNumberBody: "0000123456",
+      ssNumberSuffix: "02",
+      contractEnd: "2027-01-01T12:00",
+      scheduleChoice: "partial",
+      partialSchedulePercent: "50",
+      hourType: "2",
+      numberOfHours: "80",
+      partialScheduleType: "I",
+      weeklyWorkDays: "4",
+      legalReductionPercent: "25",
+      replacedSsPrefix: "08",
+      replacedSsBody: "0009876543",
+      replacedSsSuffix: "01",
+      disabilityChoice: "with",
+      disabilityPercent: "33",
+      contractSeniorityStart: "2024-01-01",
+      womanMaternity24: true,
+      underrepresentedWoman: true,
+      activeInsertionIncome: true,
+      reliefContract: true,
+      readmittedDisabled: true,
+      firstSelfEmployedWorker: true,
+      probationDays: "15",
+      probationEnd: "2026-11-01",
+      additionalClause: "Cláusula",
+      annualGross: "30000",
+      seniorityDate: "2020-01-01",
+      timeManagementPay: true,
+      bankFormatChoice: "other",
+      iban: "",
+      bankBranch: "00491500",
+      accountNumber: "1234567890",
       birthCommunity: "13",
       department: "0010",
       referenceModelWeek: "001/02",
@@ -747,7 +716,10 @@ describe("UsersHireForm", () => {
     expect(
       (screen.getByRole("combobox", { name: "ID Puesto (según rama)" }) as HTMLInputElement).value,
     ).toBe("Actuarial Analyst");
-    expect(screen.getByDisplayValue("000000 · Sin Centro de Costo")).toHaveProperty("readOnly", true);
+    expect(screen.getByDisplayValue("000000 · Sin Centro de Costo")).toHaveProperty(
+      "readOnly",
+      true,
+    );
 
     const draft = createHirePersonDraft(1);
     draft.current.job = "GR_ACAN";
@@ -993,7 +965,7 @@ describe("UsersHireForm", () => {
   it("retains the four fields between people and tabs and submits each person's own values", async () => {
     launchHire.mockResolvedValue({
       ok: true,
-      data: { personCount: 2, fileName: "four-fields.xls" },
+      data: { personCount: 2, personIds: [] },
     });
     const user = userEvent.setup({ delay: null });
     render(<UsersHireForm catalogs={CATALOGS} />);
@@ -1063,10 +1035,46 @@ describe("UsersHireForm", () => {
     ]);
   }, 60_000);
 
+  it("shows a launch error that is not tied to a field in a modal", async () => {
+    launchHire.mockResolvedValue({
+      ok: false,
+      errorCode: "META4_HIRE_VALIDATION",
+      message: "Meta4 no permite dar de alta con el rol M4EMPLOYEE.",
+      issues: [{ person: 1, message: "Conéctate a Meta4 con un rol de RRHH." }],
+    });
+    const user = userEvent.setup({ delay: null });
+    render(<UsersHireForm catalogs={CATALOGS} />);
+    await fillRequired(user, {
+      firstName: "Ana",
+      lastName1: "López",
+      documentNumber: "00000000T",
+      email: "ana@example.test",
+      hireDate: "2026-10-01",
+    });
+    await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "No se ha podido dar de alta" });
+    expect(within(dialog).getByRole("alert").textContent).toBe(
+      "Meta4 no permite dar de alta con el rol M4EMPLOYEE.Persona 1: Conéctate a Meta4 con un rol de RRHH.",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Entendido" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "No se ha podido dar de alta" })).toBeNull(),
+    );
+    expect(launchHire).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("button", { name: "Lanzar alta" })).toBeTruthy();
+  }, 60_000);
+
   it("removes a collapsed person and submits every remaining person", async () => {
     launchHire.mockResolvedValue({
       ok: true,
-      data: { personCount: 2, fileName: "Hire_user_2026-09-22_11-12-34.xls" },
+      data: {
+        personCount: 2,
+        personIds: ["1821", "1822"],
+        note: "Persona 2: ya hay otra persona con el mismo nombre en PeopleNet.",
+      },
     });
     const user = userEvent.setup({ delay: null });
     render(<UsersHireForm catalogs={CATALOGS} />);
@@ -1105,13 +1113,16 @@ describe("UsersHireForm", () => {
     });
 
     await user.click(screen.getByRole("button", { name: "Lanzar alta" }));
-    expect(screen.getByText("Se van a procesar 2 personas en Meta4")).toBeTruthy();
+    expect(
+      screen.getByText(/^Se van a dar de alta 2 personas en PeopleNet, de una en una/),
+    ).toBeTruthy();
     expect(launchHire).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Confirmar" }));
 
     expect(launchHire).toHaveBeenCalledTimes(1);
     expect((await screen.findByRole("status")).textContent).toBe(
-      "Alta enviada correctamente · Hire_user_2026-09-22_11-12-34.xls",
+      "Alta de 2 personas completada en PeopleNet (IDs 1821, 1822)" +
+        "Persona 2: ya hay otra persona con el mismo nombre en PeopleNet.",
     );
     expect(launchHire.mock.calls.at(0)?.at(0)).toMatchObject([
       {

@@ -1066,6 +1066,31 @@ export const parseHirePeople = (value: unknown, context?: HireValidationContext)
     people.push(result.person);
     issues.push(...result.issues.map((issue) => ({ ...issue, person: index + 1 })));
   });
+  issues.push(...repeatedDocumentIssues(people));
   if (issues.length > 0) throw invalid(issues);
   return people;
+};
+
+/**
+ * Meta4 finds the person by document: two rows with the same one would end in a
+ * single person, the second overwriting the first.
+ */
+const repeatedDocumentIssues = (people: readonly HirePerson[]): Meta4HireIssue[] => {
+  const firstRow = new Map<string, number>();
+  const issues: Meta4HireIssue[] = [];
+  people.forEach((person, index) => {
+    const document = normalizeDocument(person.documentNumber);
+    if (!document) return;
+    const first = firstRow.get(document);
+    if (first === undefined) {
+      firstRow.set(document, index + 1);
+      return;
+    }
+    issues.push({
+      person: index + 1,
+      field: "documentNumber",
+      message: `Núm. de documento: repetido en la Persona ${first}; Meta4 escribiría las dos en la misma persona.`,
+    });
+  });
+  return issues;
 };

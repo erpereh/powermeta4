@@ -73,8 +73,12 @@ const searchDevTestPlace = async (
   }
 };
 
-const testDocument = (id: number): string => {
-  const number = 90_000_000 + id;
+/**
+ * Different on every fill: Meta4 finds the person by document, so reusing
+ * 90000001 after a reload modified the same PRE person on every test hire.
+ */
+export const testDocument = (id: number, now: Date): string => {
+  const number = 90_000_000 + ((Math.floor(now.getTime() / 1000) * 10 + id) % 9_000_000);
   return `${number}${"TRWAGMYFPDXBNJZSQVHLCKE"[number % 23]}`;
 };
 
@@ -117,7 +121,7 @@ export const createDevHirePersonDraft = (
   draft.current.firstName = "Prueba";
   draft.current.lastName1 = "Automática";
   draft.current.lastName2 = `Persona ${id}`;
-  draft.current.documentNumber = testDocument(id);
+  draft.current.documentNumber = testDocument(id, now);
   draft.current.email = `persona-${id}@example.test`;
   draft.current.hireDate = [
     String(now.getFullYear()),

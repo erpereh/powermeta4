@@ -1,25 +1,26 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { ResolvedAuthSession } from "@/lib/auth/service";
-import {
-  Meta4SessionRequiredError,
-  SessionExpiredError,
-  type AuthenticatedSoapOperation,
-} from "@/lib/meta4/authenticated-soap-client";
-import { Meta4HttpError } from "@/lib/meta4/client";
-import { Meta4SoapFaultError } from "@/lib/meta4/soap-xml";
 
-import { buildHireFileName, buildHireFilePath } from "./filename";
 import { Meta4HireError } from "./errors";
 import { createSerializedQueue } from "./mutex";
-import { launchMeta4Hire } from "./service";
+import { launchMeta4Hire, type LaunchMeta4HireDeps } from "./service";
 import { hireExtraFixture } from "./test-fixtures";
-import type { HirePerson } from "./types";
+import type { HireLaunchResult, HirePerson } from "./types";
 
 const loadCatalogs = vi.hoisted(() => vi.fn());
+const findExistingHireDocuments = vi.hoisted(() =>
+  vi.fn(async (_documents: readonly string[]) => new Map<string, string>()),
+);
+vi.mock("./existing-people", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./existing-people")>()),
+  findExistingHireDocuments,
+}));
 vi.mock("./catalog-queries", () => ({
   loadHireCatalogsForLaunch: loadCatalogs,
 }));
+vi.mock("./direct/service", () => ({ launchDirectHire: vi.fn() }));
+
 loadCatalogs.mockResolvedValue({
   currency: [{ id: "EUR", name: "Euro" }],
   paymentType: [{ id: "4", name: "Transferencia Bancaria" }],
@@ -72,13 +73,6 @@ loadCatalogs.mockResolvedValue({
   specialLaborRelation: [],
   socialExclusion: [],
 });
-
-const IMPORT_DIRECTORY = String.raw`\\WMETA4PRE2\powermeta4\import_users_excel`;
-const HIRE_NOW = new Date(2026, 8, 22, 11, 12, 34);
-const exampleFileName = buildHireFileName(HIRE_NOW);
-const exampleFilePath = buildHireFilePath(IMPORT_DIRECTORY, exampleFileName);
-
-type SoapExecute = <T>(operation: AuthenticatedSoapOperation<T>) => Promise<T>;
 
 const AUTH_SESSION = {
   sessionId: "internal-meta4-session",
@@ -152,16 +146,26 @@ const person: HirePerson = {
   accountCurrency: "",
 };
 
-const successBody = `
-  <soap:Envelope>
-    <soap:Body>
-      <SRTC_LAUNCH_IMPORTResponse>
-        <SRTC_LAUNCH_IMPORTReturn>
-          <return>0.0</return>
-        </SRTC_LAUNCH_IMPORTReturn>
-      </SRTC_LAUNCH_IMPORTResponse>
-    </soap:Body>
-  </soap:Envelope>`;
+const CYC_CONTEXT = {
+  mode: "meta4" as const,
+  username: "user",
+  society: "CYC" as const,
+  jSessionId: "session",
+  companyId: "company-cyc",
+};
+
+const hired: HireLaunchResult = { personCount: 1, personIds: ["1830"] };
+
+const setup = (overrides: LaunchMeta4HireDeps = {}) => {
+  const directHire = vi.fn(async (..._args: unknown[]) => hired);
+  const deps: LaunchMeta4HireDeps = {
+    getOperationalContext: async () => CYC_CONTEXT,
+    serialize: createSerializedQueue(),
+    directHire,
+    ...overrides,
+  };
+  return { directHire, deps };
+};
 
 describe("launchMeta4Hire service", () => {
   it.each([
@@ -169,43 +173,19 @@ describe("launchMeta4Hire service", () => {
     { field: "birthCommunity", value: "nonexistent", label: /ID Comunidad nacimiento/ },
     { field: "birthCommunity", value: "724/28", label: /ID Comunidad nacimiento/ },
     { field: "referenceModelWeek", value: "001/2", label: /Modelo\/Semana/ },
-  ] as const)("rejects invalid $field before editing Excel", async ({ field, value, label }) => {
-    const editHireWorkbook = vi.fn(async () => Buffer.from("excel-preserved-bytes"));
+  ] as const)("rejects invalid $field before writing", async ({ field, value, label }) => {
+    const { directHire, deps } = setup();
     await expect(
-      launchMeta4Hire(AUTH_SESSION, [{ ...person, [field]: value }], {
-        getOperationalContext: async () => ({
-          mode: "meta4",
-          username: "user",
-          society: "CYC",
-          jSessionId: "session",
-          companyId: "company-cyc",
-        }),
-        editHireWorkbook,
-        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-        hireDirectory: IMPORT_DIRECTORY,
-        serialize: createSerializedQueue(),
-        readImportLog: async () => null,
-      }),
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, [field]: value }], deps),
     ).rejects.toMatchObject({
       code: "META4_HIRE_VALIDATION",
       message: expect.stringMatching(label),
     });
-    expect(editHireWorkbook).not.toHaveBeenCalled();
+    expect(directHire).not.toHaveBeenCalled();
   });
 
   it("validates the raw birth community against its country and province and forwards the four fields", async () => {
-    const editHireWorkbook = vi.fn(async (_template: string, _people: readonly HirePerson[]) =>
-      Buffer.from("excel-preserved-bytes"),
-    );
-    const options = {
-      getOperationalContext: async () => ({
-        mode: "meta4" as const,
-        username: "user",
-        society: "CYC" as const,
-        jSessionId: "session",
-        companyId: "company-cyc",
-      }),
-      editHireWorkbook,
+    const { directHire, deps } = setup({
       loadCatalogs: async () => ({
         ...(await loadCatalogs()),
         country: [
@@ -218,15 +198,7 @@ describe("launchMeta4Hire service", () => {
           { id: "724/09", name: "Cataluña" },
         ],
       }),
-      executeSoap: (async (operation) =>
-        operation.parseResponse(new Response(successBody, { status: 200 }))) satisfies SoapExecute,
-      writeHireFile: async () => undefined,
-      verifyHireFile: async () => undefined,
-      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireDirectory: IMPORT_DIRECTORY,
-      serialize: createSerializedQueue(),
-      readImportLog: async () => null,
-    };
+    });
     const populated = {
       ...person,
       birthCountry: "724",
@@ -235,11 +207,11 @@ describe("launchMeta4Hire service", () => {
       extrasDate: "2024-02-29",
       referenceModelWeek: "001/1",
     };
-    await launchMeta4Hire(AUTH_SESSION, [populated], options);
-    expect(editHireWorkbook.mock.calls[0]?.[1]).toEqual([populated]);
-    editHireWorkbook.mockClear();
+    await launchMeta4Hire(AUTH_SESSION, [populated], deps);
+    expect(directHire.mock.calls[0]?.[1]).toEqual([populated]);
+    directHire.mockClear();
     await expect(
-      launchMeta4Hire(AUTH_SESSION, [{ ...populated, birthCommunity: "09" }], options),
+      launchMeta4Hire(AUTH_SESSION, [{ ...populated, birthCommunity: "09" }], deps),
     ).rejects.toMatchObject({
       message: expect.stringMatching(/Provincia nacimiento no pertenece a ID Comunidad nacimiento/),
     });
@@ -247,306 +219,118 @@ describe("launchMeta4Hire service", () => {
       launchMeta4Hire(
         AUTH_SESSION,
         [{ ...populated, birthCountry: "620", birthCommunity: "09", birthProvince: "" }],
-        options,
+        deps,
       ),
     ).rejects.toMatchObject({ message: expect.stringMatching(/ID Comunidad nacimiento/) });
-    expect(editHireWorkbook).not.toHaveBeenCalled();
+    expect(directHire).not.toHaveBeenCalled();
   });
 
-  it("writes and calls SOAP with the same import UNC path", async () => {
-    let callCount = 0;
-    const executeSoap: SoapExecute = async (operation) => {
-      callCount += 1;
-      expect(operation.url).toBe("https://example.test/SRTC_LAUNCH_IMPORT");
-      expect(operation.xml).toContain("ARG_ID_GROUP_INTERFACE>INIT_EMPLOYEES_FD<");
-      expect(operation.xml).toContain(`ARG_PATH_FILE>${exampleFilePath}<`);
-      expect(operation.xml).not.toContain(`ARG_PATH_FILE>${IMPORT_DIRECTORY}<`);
-      expect(operation.xml).not.toContain("SOAPAction");
-      expect(operation.xml).not.toContain("jsession-should-not-leak");
-      expect(operation.xml).not.toContain(person.firstName);
-      return operation.parseResponse(new Response(successBody, { status: 200 }));
-    };
-
-    const preserved = Buffer.from("excel-preserved-bytes");
-    const editHireWorkbook = vi.fn(async () => preserved);
-    const writeHireFile = vi.fn(async (_destination: string, _bytes: Buffer) => undefined);
-    const verifyHireFile = vi.fn(async (_destination: string) => undefined);
-
-    const result = await launchMeta4Hire(AUTH_SESSION, [person], {
-      getOperationalContext: async () => ({
-        mode: "meta4",
-        username: "JORGE.SALVADOR",
-        society: "CYC",
-        jSessionId: "jsession-should-not-leak",
-        companyId: "company-cyc",
+  it("stops before writing when a document already exists in PeopleNet or repeats in the batch", async () => {
+    const { directHire, deps } = setup();
+    findExistingHireDocuments.mockResolvedValueOnce(new Map([["00000000T", "1815"]]));
+    const existing = await launchMeta4Hire(AUTH_SESSION, [person], deps).catch(
+      (error: unknown) => error,
+    );
+    expect(existing).toBeInstanceOf(Meta4HireError);
+    expect((existing as Meta4HireError).issues).toEqual([
+      expect.objectContaining({
+        person: 1,
+        field: "documentNumber",
+        message: expect.stringContaining("1815"),
       }),
-      executeSoap,
-      editHireWorkbook,
-      writeHireFile,
-      verifyHireFile,
-      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireDirectory: IMPORT_DIRECTORY,
-      now: () => HIRE_NOW,
-      templatePath: "./fuentes/HIRE/Hire_1_PERSONA.xls",
-      serialize: createSerializedQueue(),
-      readImportLog: async () => null,
-    });
+    ]);
+    expect(findExistingHireDocuments).toHaveBeenLastCalledWith(["00000000T"]);
 
-    expect(result).toEqual({
-      personCount: 1,
-      returnCode: "0.0",
-      fileName: exampleFileName,
-      filePath: exampleFilePath,
-    });
-    expect(callCount).toBe(1);
-    expect(editHireWorkbook).toHaveBeenCalledTimes(1);
-    expect(writeHireFile).toHaveBeenCalledTimes(1);
-    expect(verifyHireFile).toHaveBeenCalledTimes(1);
-    expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(exampleFilePath);
-    expect(verifyHireFile.mock.calls.at(0)?.[0]).toBe(exampleFilePath);
-    expect(writeHireFile.mock.calls.at(0)?.[0]).toBe(verifyHireFile.mock.calls.at(0)?.[0]);
-    expect(exampleFileName).toBe("AltaPersonas_2026-09-22_11-12-34.xls");
-    expect(exampleFilePath.endsWith(`\\${exampleFileName}`)).toBe(true);
-    expect(exampleFilePath).not.toBe(IMPORT_DIRECTORY);
-    expect(writeHireFile.mock.calls.at(0)?.[1]).toBe(preserved);
-  });
-
-  it("never accepts a client society and keeps logs free of personal data", async () => {
-    const logs: Array<{ message: string; details: Record<string, string> }> = [];
-    const getOperationalContext = vi.fn(async () => ({
-      mode: "meta4" as const,
-      username: "user",
-      society: "IBER" as const,
-      jSessionId: "server-jsession",
-      companyId: "company-iber",
-    }));
-
-    await launchMeta4Hire(AUTH_SESSION, [person], {
-      getOperationalContext,
-      executeSoap: async (operation) => {
-        expect(operation.xml).not.toContain("CYC");
-        expect(operation.xml).toContain(
-          `ARG_PATH_FILE>${buildHireFilePath(IMPORT_DIRECTORY, buildHireFileName(HIRE_NOW))}<`,
-        );
-        return operation.parseResponse(new Response(successBody, { status: 200 }));
-      },
-      editHireWorkbook: async () => Buffer.from("excel-preserved-bytes"),
-      writeHireFile: async () => undefined,
-      verifyHireFile: async () => undefined,
-      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireDirectory: IMPORT_DIRECTORY,
-      now: () => HIRE_NOW,
-      serialize: createSerializedQueue(),
-      readImportLog: async () => null,
-      log: (message, details) => {
-        logs.push({ message, details });
-      },
-    });
-
-    expect(getOperationalContext).toHaveBeenCalledTimes(1);
-    expect(loadCatalogs).toHaveBeenLastCalledWith("IBER", ["724/28/28/28079"]);
-    expect(logs[0]?.details).toMatchObject({
-      operation: "SRTC_LAUNCH_IMPORT",
-      code: "OK",
-      personCount: "1",
-    });
-    const serialized = JSON.stringify(logs);
-    expect(serialized).not.toContain(person.firstName);
-    expect(serialized).not.toContain(person.email);
-    expect(serialized).not.toContain(person.documentNumber);
-  });
-
-  it("rethrows known system errors and wraps unclassified failures", async () => {
-    const common = {
-      getOperationalContext: async () => ({
-        mode: "meta4" as const,
-        username: "user",
-        society: "CYC" as const,
-        jSessionId: "jsession",
-        companyId: "company-cyc",
+    const repeated = await launchMeta4Hire(
+      AUTH_SESSION,
+      [person, { ...person, documentNumber: "00000000-t" }],
+      deps,
+    ).catch((error: unknown) => error);
+    expect((repeated as Meta4HireError).issues).toEqual([
+      expect.objectContaining({
+        person: 2,
+        field: "documentNumber",
+        message: expect.stringContaining("Persona 1"),
       }),
-      editHireWorkbook: async () => Buffer.from("excel-preserved-bytes"),
-      writeHireFile: async () => undefined,
-      verifyHireFile: async () => undefined,
-      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireDirectory: IMPORT_DIRECTORY,
-      now: () => HIRE_NOW,
-      serialize: createSerializedQueue(),
-      readImportLog: async () => null,
-    };
+    ]);
 
-    const known = [
-      new Meta4SessionRequiredError(),
-      new SessionExpiredError(),
-      new Meta4SoapFaultError("boom", "soap:Server"),
-      new Meta4HttpError(500),
-      new Meta4HireError("META4_HIRE_IMPORT_FAILED", "rechazado"),
-    ];
+    findExistingHireDocuments.mockRejectedValueOnce(new Error("timeout"));
+    await expect(launchMeta4Hire(AUTH_SESSION, [person], deps)).rejects.toMatchObject({
+      code: "META4_HIRE_CATALOG_UNAVAILABLE",
+    });
+    expect(directHire).not.toHaveBeenCalled();
+  });
 
-    for (const error of known) {
-      await expect(
-        launchMeta4Hire(AUTH_SESSION, [person], {
-          ...common,
-          editHireWorkbook: async () => {
-            throw error;
-          },
-        }),
-      ).rejects.toBe(error);
-    }
-
+  it("rejects payment IDs outside the society catalogs before writing", async () => {
+    const { directHire, deps } = setup();
     await expect(
-      launchMeta4Hire(AUTH_SESSION, [person], {
-        ...common,
-        editHireWorkbook: async () => {
-          throw new Error("disk melted");
-        },
-      }),
-    ).rejects.toMatchObject({ code: "META4_HIRE_FETCH_FAILED" });
-  });
-
-  it("rejects payment IDs outside the society catalogs before touching Excel", async () => {
-    const editHireWorkbook = vi.fn(async () => Buffer.from("excel-preserved-bytes"));
-    await expect(
-      launchMeta4Hire(AUTH_SESSION, [person, { ...person, companyBank: "0009" }], {
-        getOperationalContext: async () => ({
-          mode: "meta4" as const,
-          username: "user",
-          society: "CYC" as const,
-          jSessionId: "jsession",
-          companyId: "company-cyc",
-        }),
-        editHireWorkbook,
-        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-        hireDirectory: IMPORT_DIRECTORY,
-        serialize: createSerializedQueue(),
-        readImportLog: async () => null,
-      }),
+      launchMeta4Hire(AUTH_SESSION, [person, { ...person, companyBank: "0009" }], deps),
     ).rejects.toMatchObject({
       code: "META4_HIRE_VALIDATION",
       message: expect.stringMatching(/Persona 2: «0009» .*ID Banco empresa.*CYC/),
     });
-    expect(editHireWorkbook).not.toHaveBeenCalled();
-
     await expect(
-      launchMeta4Hire(AUTH_SESSION, [{ ...person, accountCurrency: "XXX" }], {
-        getOperationalContext: async () => ({
-          mode: "meta4" as const,
-          username: "user",
-          society: "CYC" as const,
-          jSessionId: "jsession",
-          companyId: "company-cyc",
-        }),
-        editHireWorkbook,
-        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-        hireDirectory: IMPORT_DIRECTORY,
-        serialize: createSerializedQueue(),
-        readImportLog: async () => null,
-      }),
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, accountCurrency: "XXX" }], deps),
     ).rejects.toMatchObject({ message: expect.stringMatching(/Moneda de la cuenta/) });
-
     await expect(
-      launchMeta4Hire(AUTH_SESSION, [{ ...person, legalEntity: "IBER" }], {
-        getOperationalContext: async () => ({
-          mode: "meta4" as const,
-          username: "user",
-          society: "CYC" as const,
-          jSessionId: "jsession",
-          companyId: "company-cyc",
-        }),
-        editHireWorkbook,
-        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-        hireDirectory: IMPORT_DIRECTORY,
-        serialize: createSerializedQueue(),
-        readImportLog: async () => null,
-      }),
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, legalEntity: "IBER" }], deps),
     ).rejects.toMatchObject({ message: expect.stringMatching(/«IBER» .*ID Empresa.*CYC/) });
-
     await expect(
-      launchMeta4Hire(AUTH_SESSION, [{ ...person, payrollAgreement: "0004" }], {
-        getOperationalContext: async () => ({
-          mode: "meta4" as const,
-          username: "user",
-          society: "CYC" as const,
-          jSessionId: "jsession",
-          companyId: "company-cyc",
-        }),
-        editHireWorkbook,
-        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-        hireDirectory: IMPORT_DIRECTORY,
-        serialize: createSerializedQueue(),
-        readImportLog: async () => null,
-      }),
+      launchMeta4Hire(AUTH_SESSION, [{ ...person, payrollAgreement: "0004" }], deps),
     ).rejects.toMatchObject({ message: expect.stringMatching(/«0004» .*ID Convenio.*CYC/) });
-
     await expect(
       launchMeta4Hire(AUTH_SESSION, [{ ...person, province: "724/08/08" }], {
-        getOperationalContext: async () => ({
-          mode: "meta4" as const,
-          username: "user",
-          society: "CYC" as const,
-          jSessionId: "jsession",
-          companyId: "company-cyc",
-        }),
+        ...deps,
         loadCatalogs: async () => ({
           ...(await loadCatalogs()),
           province: [{ id: "724/08/08", name: "Barcelona" }],
           community: [{ id: "724/28", name: "Madrid" }],
         }),
-        editHireWorkbook,
-        hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-        hireDirectory: IMPORT_DIRECTORY,
-        serialize: createSerializedQueue(),
-        readImportLog: async () => null,
       }),
     ).rejects.toMatchObject({
       message: expect.stringMatching(/ID Población no pertenece a ID Provincia/),
     });
-    expect(editHireWorkbook).not.toHaveBeenCalled();
+    expect(directHire).not.toHaveBeenCalled();
   });
 
-  it("turns PeopleNet log rejections into a controlled error without logging their text", async () => {
-    const logs: Array<Record<string, string>> = [];
-    const readImportLog = vi.fn(async (_filePath: string) => [
-      { person: 1, failed: true, message: 'La columna obligatoria "Proyecto" está vacía.' },
-    ]);
-    const options = {
-      getOperationalContext: async () => ({
-        mode: "meta4" as const,
-        username: "JORGE.SALVADOR",
-        society: "CYC" as const,
-        jSessionId: "jsession",
-        companyId: "company-cyc",
-      }),
-      executeSoap: (async (operation) =>
-        operation.parseResponse(new Response(successBody, { status: 200 }))) satisfies SoapExecute,
-      editHireWorkbook: async () => Buffer.from("xls"),
-      writeHireFile: async () => undefined,
-      verifyHireFile: async () => undefined,
-      hireUrl: "https://example.test/SRTC_LAUNCH_IMPORT",
-      hireDirectory: IMPORT_DIRECTORY,
-      now: () => HIRE_NOW,
-      templatePath: "./fuentes/HIRE/Hire_1_PERSONA.xls",
-      serialize: createSerializedQueue(),
-      readImportLog,
-      log: (_message: string, details: Record<string, string>) => {
-        logs.push(details);
-      },
-    };
+  it("takes the society from the server context, never from the client, and writes directly", async () => {
+    const getOperationalContext = vi.fn(async () => ({
+      ...CYC_CONTEXT,
+      society: "IBER" as const,
+      companyId: "company-iber",
+    }));
+    const { directHire, deps } = setup({ getOperationalContext });
+    const result = await launchMeta4Hire(AUTH_SESSION, [person], deps);
+    expect(result).toEqual(hired);
+    expect(getOperationalContext).toHaveBeenCalledTimes(1);
+    expect(loadCatalogs).toHaveBeenLastCalledWith("IBER", ["724/28/28/28079"]);
+    expect(directHire).toHaveBeenCalledTimes(1);
+    expect(directHire.mock.calls[0]?.[0]).toMatchObject({ society: "IBER", username: "user" });
+  });
 
-    const rejection = launchMeta4Hire(AUTH_SESSION, [person], options);
-    await expect(rejection).rejects.toBeInstanceOf(Meta4HireError);
-    await expect(rejection).rejects.toMatchObject({
-      code: "META4_HIRE_IMPORT_REJECTED",
-      message: "PeopleNet rechazó el alta de 1 persona.",
-      issues: [{ person: 1, message: 'La columna obligatoria "Proyecto" está vacía.' }],
+  it("serializes hires in this process", async () => {
+    const order: string[] = [];
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
     });
-    expect(readImportLog).toHaveBeenCalledWith(exampleFilePath);
-    expect(JSON.stringify(logs)).not.toContain("Proyecto");
-    expect(logs.at(-1)).toMatchObject({ code: "IMPORT_LOG_REJECTED", rows: "1", failed: "1" });
-
-    readImportLog.mockResolvedValueOnce([{ person: 1, failed: false, message: "" }]);
-    await expect(launchMeta4Hire(AUTH_SESSION, [person], options)).resolves.toMatchObject({
-      personCount: 1,
+    const directHire = vi.fn(async (_context: unknown, people: unknown) => {
+      const name = (people as HirePerson[])[0]?.firstName ?? "";
+      order.push(`start ${name}`);
+      if (name === "Ana") await gate;
+      order.push(`end ${name}`);
+      return hired;
     });
+    const { deps } = setup({ directHire });
+    const first = launchMeta4Hire(AUTH_SESSION, [person], deps);
+    const second = launchMeta4Hire(
+      AUTH_SESSION,
+      [{ ...person, firstName: "Luis", documentNumber: "11111111H" }],
+      deps,
+    );
+    await vi.waitFor(() => expect(order).toEqual(["start Ana"]));
+    release();
+    await Promise.all([first, second]);
+    expect(order).toEqual(["start Ana", "end Ana", "start Luis", "end Luis"]);
   });
 });

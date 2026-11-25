@@ -111,9 +111,15 @@ El listado de usuarios consulta `M4ORO_EMPLEADOS` en PeopleNet con la
 sociedad activa resuelta en el servidor y no persiste resultados en SQLite.
 El detalle consulta `M4ORO_EMPLEADOS` por matrícula y sociedad activa, y
 `STD_EMAIL` por persona, mediante la misma conexión de solo lectura. El alta de
-personas (`SRTC_LAUNCH_IMPORT`) copia `Hire_1_PERSONA.xls`; Excel sustituye
-solo los campos de la UI y guarda un fichero con nombre de usuario y fecha en
-el directorio `META4_HIRE_FILE_PATH`.
+personas graba cada persona en las tablas de PeopleNet como lo hace la
+categoría `SAVE_HIRE` de Meta4, en una transacción por persona y con el usuario
+de escritura `PEOPLENET_DB_WRITE_*` (o el de lectura con
+`PEOPLENET_DB_WRITE_USE_READ_USER=true`); la importación del Excel por SOAP se
+retiró. El usuario de Meta4 necesita un rol que pueda insertar en esas tablas
+(máscara `M4ADM`, p. ej. `M4_USER_RRHH`). `META4_HIRE_MODE=plan` hace lo mismo
+con lecturas reales pero no graba y muestra las filas que insertaría. El modelo se genera con
+`npm run hire:model` (solo `SELECT` del diccionario) y se explica en
+[docs/alta-modelo-peoplenet.md](docs/alta-modelo-peoplenet.md).
 No guarda datos personales en SQLite. Los catálogos de Seguridad Social, Nómina y
 Datos de pago (documento, países, geografía, estado civil, Atradius, organización,
 moneda,
@@ -195,7 +201,7 @@ y exportar el libro de cuadres. Las instantáneas solo se actualizan cuando se
 solicita expresamente. No escribe en PeopleNet ni envía datos al chat.
 
 Tras actualizar, ejecutar `npm run setup` con el servidor detenido para aplicar
-la migración 011 (esquema 11). Los expedientes se incluyen en backups y se
+las migraciones pendientes. Los expedientes se incluyen en backups y se
 conservan hasta borrado explícito; no se conservan los originales subidos.
 Las copias de esquemas anteriores requieren una instalación compatible.
 Si `setup` responde «migración desconocida o modificada», revisar
@@ -234,8 +240,8 @@ ese lock. Sesiones, imports pendientes, recibos de idempotencia y el perfil Meta
 cifrado se eliminan de la copia temporal. La exportación trabaja sobre una
 instantánea.
 
-La restauración admite `backupVersion` 1 con los esquemas 11 y 12 de
-`davidev`. Valida seguridad del ZIP, integridad SQLite, claves foráneas,
+La restauración admite `backupVersion` 1 con los esquemas 11 y 12.
+Valida seguridad del ZIP, integridad SQLite, claves foráneas,
 historial de migraciones y tablas requeridas. Actualiza las copias de
 esquema 11 en preparación, sustituye base y uploads con rollback conjunto
 e invalida la sesión para exigir un nuevo login.

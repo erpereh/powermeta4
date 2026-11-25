@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-11-25 - Integración del alta directa y el chat
+
+- El alta directa de `salvadev` y el asistente de `davidev` comparten una
+  revisión que conserva el historial de las tres ramas.
+- La verificación de la pull request descarga el diccionario Git LFS y revisa
+  el formato de los módulos del alta directa.
+- La importación en una raíz vacía conservó la huella SHA-256 del índice
+  aceptado y recuperó 440 documentos y 24.150 fragmentos. El chat por HTTP
+  respondió al saludo y a la pregunta de identidad sin manuales. La pregunta
+  de amortización devolvió una cita válida y el PDF autenticado. Se usó un
+  proveedor local de prueba porque Gemini devolvió errores de capacidad.
+- La plantilla de entorno conserva la conexión de escritura del alta y la
+  configuración de IA del chat. Se retiró el ejemplo comentado de credenciales.
+- En aislamiento pasaron 1.737 pruebas con 38 omitidas, además de
+  `npm run setup`, typecheck y build. Las pruebas del alta ejecutaron el
+  formulario y la lógica de escritura con dobles de prueba. Con los archivos
+  locales pasaron las 36 pruebas restantes y quedaron las dos omisiones
+  preexistentes. El lint global señala formato pendiente. La comprobación
+  de formato de los 15 archivos del alta seleccionados por CI pasó con LF.
+
 ## 2026-11-25 - Bloques de código del chat
 
 - La cabecera y el bloque Markdown comparten contorno y fondo. Verificada
@@ -116,6 +136,162 @@
   correctas y fundamentadas de 15 y 5 abstenciones de 5. La evaluación
   espera a que la ingesta esté completa.
 
+## 2026-11-24 - Alta directa en las tablas de PeopleNet
+
+- Persona 1830 abierta y editada en Meta4 (prenómina): la aplicación la muestra
+  y guarda cambios sin refrescar su caché. Queda confirmado que el alta directa
+  produce una persona válida para la lógica de Meta4, no solo para la base.
+- Documentado que el alta no crea usuario de aplicación (`SAVE_HIRE` no escribe
+  tablas `M4RSC_*`) y que su contraseña no viene de LDAP: se pone a mano con la
+  política de `USER_CREATION`. Se deja así.
+- Retirada la carga masiva por Excel del alta (ese Excel ya no se usa):
+  «Descargar plantilla» y «Cargar Excel» del formulario, `bulk-template.ts`,
+  `bulk-import.ts`, `bulk-places.ts`, `bulk-controls.tsx`, `bulk-columns.ts`,
+  `draftFromBulkValues` y las rutas `/api/hire/bulk-template` y
+  `/api/hire/bulk-import`, con sus tests. `/api/hire/places` se mantiene: lo usa
+  la búsqueda de población del formulario.
+- Retirada la importación del Excel por SOAP (`SRTC_LAUNCH_IMPORT`): el alta
+  graba solo en las tablas de PeopleNet. `launchMeta4Hire` valida catálogos,
+  reglas y documentos y llama al alta directa, en serie. Eliminados la edición
+  con Excel COM, la escritura en `META4_HIRE_FILE_PATH`, la espera del
+  planificador, la lectura del log de importación y sus tests; fuera también
+  `META4_SERVICE.hire` y el proyecto `excel-native` de Vitest. La plantilla
+  `Hire_1_PERSONA.xls`, `mapping.ts` y `cells.ts` se quedan: los usan el
+  generador del modelo y la carga masiva. El resultado ya no lleva fichero:
+  «Alta de N personas completada en PeopleNet (IDs …)» y los avisos de Meta4.
+  `META4_HIRE_MODE=plan` sigue simulando sin grabar.
+- Primera alta real en prenómina: persona 1829 (datos de prueba).
+  - Grabada en las 34 tablas del plan y en las 4 de auditoría, con 2 correos
+    y 2 teléfonos.
+  - Auditoría con `ID_EXECUTION` de `M4RDC_SEQUENCE`; contador de CYC subido
+    a 1829 en la misma transacción.
+  - Las columnas coinciden con el perfil de las altas de Meta4, salvo los
+    campos opcionales que el botón de prueba deja vacíos.
+- Traducido `CALCULA_VACIOS`: el alta escribe `M4CSP_H_HR_JOB_AGRUPA_CAT`, la
+  agrupación de categoría del puesto, que antes faltaba (la tienen 229/299
+  altas reales de CYC). `lookups.ts` lee la categoría del puesto en
+  `STD_HT_JOB_DEF` (periodo de la fecha de alta, luego el abierto, luego el
+  último) y su agrupación en `M4CSP_HR_JOB_AGRUPA_CAT`; `plan.ts` añade la fila
+  tras el rol y la omite si el puesto no tiene agrupación. Reproduce 359 de las
+  366 filas reales (98 %). Dos tests nuevos y la tabla añadida al modelo
+  (`npm run hire:model`, 80 tablas).
+- Validación campo a campo como el diccionario de Meta4. `npm run hire:model`
+  guarda de `M4RDC_EXTENDED_TPS` la lista de valores (`ID_CONSTRAINT_FUNC` 11 y
+  12) y el rango (14 y 15) de cada columna: 106 con lista y 18 con rango.
+  `plan.ts` los comprueba al convertir cada valor y al numerar los ordinales, y
+  el error nombra la columna y lo admitido, nunca el dato. Tres tests nuevos.
+  Comprobado contra PeopleNet: las 41 columnas con regla que escribe un alta
+  las cumplen, y las personas 1830 (nuestra) y 1822/10496 (altas de Meta4)
+  pasan las mismas reglas sobre lo ya grabado, con 0 fallos.
+- Analizada toda la validación del alta en PeopleNet (cinco niveles:
+  tipo/longitud, obligatoriedad, lista, rango e integridad referencial) en
+  `docs/alta-modelo-peoplenet.md`. Los catálogos se resuelven subiendo por el
+  árbol de organizaciones (la sociedad o `0000`), no hay excepciones por
+  sociedad y los identificadores de texto libre (`CSP_ID_FUSION`,
+  `CSP_ID_ATRADIUS`, `STD_SSN`) no tienen formato en el diccionario.
+- Segunda alta en prenómina con un usuario de RRHH (`SOFIA.ELICES`, rol
+  `M4_USER`): persona 1830 en las mismas 34 tablas y 4 de auditoría, con
+  `ID_SECUSER`/`ID_APPROLE` correctos y el contador en 1830. Confirma la
+  comprobación de permisos: con `M4EMPLOYEE` se rechazaba y con rol de RRHH
+  graba.
+- Usuario y rol de las filas como Meta4: `ID_SECUSER` es `ID_APP_USER` tal como
+  está en `M4RSC_APPUSER` e `ID_APPROLE` el rol de la conexión
+  (`ID_APP_ROLE_CON`, o el por defecto si falta). Coincide en todas las altas
+  2025–2026 de usuarios que siguen en `M4RSC_APPUSER`. Se retira la regla
+  provisional que cambiaba `M4EMPLOYEE` por `M4_USER`.
+- Los errores del lanzamiento que no son de un campo (PeopleNet, Meta4,
+  seguridad del rol) se muestran en un modal «No se ha podido dar de alta» en
+  vez de en el texto bajo el formulario; los de campo siguen marcados junto a
+  los campos. Test añadido (formulario 29/29).
+- «Datos por revisar de la Persona N» pasa encima de las pestañas (antes quedaba
+  bajo el formulario y no se veía) y la página se desplaza hasta él al revelar
+  los errores. Formulario 29/29.
+- Seguridad del rol como la LDB de Meta4: la máscara del rol
+  (`M4RSC_APPROLE.ID_RSM`) necesita `MASK_INS = 1` en `M4RDC_SEC_LOBJ` para el
+  objeto lógico de cada tabla; la máscara `M4ADM` (M4_USER, M4_USER_RRHH,
+  M4ADM…) no tiene restricciones. Si falta alguno se para antes de grabar con
+  un mensaje para la persona («Tu usuario de Meta4 no tiene permiso para dar de
+  alta a personas», su rol y qué pedir) y código `META4_HIRE_PERMISSION`; el rol,
+  la máscara y los objetos solo van al log del servidor. Con `M4EMPLOYEE` faltan 11, entre ellos
+  `CYC_H_ESTRUCTURA`, el mismo rechazo que daba el alta por SOAP. Tests
+  añadidos; 45/45 en el alta directa y su enrutado, typecheck y oxlint
+  correctos.
+
+- La nacionalidad es opcional en el formulario y Meta4 no crea `STD_HR_NAT`
+  sin ella: la tabla sale de `HIRE_CORE_TABLES` (el primer alta de prueba se
+  paraba con «Faltan datos… STD_HR_NAT»). Test añadido. Simulado sin grabar,
+  con los datos del botón de prueba, los catálogos y las consultas reales de
+  CYC: ID 1829, 36 filas en 34 tablas y 4 de auditoría.
+
+- `META4_HIRE_MODE=plan`: simulación con lecturas reales de PeopleNet (ID,
+  puesto, geografía, BIC, usuario) que no graba y muestra las filas por tabla.
+  `PEOPLENET_DB_WRITE_USE_READ_USER=true` reutiliza el usuario de lectura,
+  que ya tiene permisos de escritura. Los fallos inesperados al grabar dejan
+  en el log del servidor el mensaje de SQL Server, sin datos de la persona.
+  Comprobado con tests de `client.ts` y del servicio directo (42 en hire y
+  directo) y `npm run typecheck`.
+
+- Nuevo modo `META4_HIRE_MODE=direct`: el alta ya no prepara el Excel ni llama
+  a `SRTC_LAUNCH_IMPORT`. Graba cada persona en las tablas de PeopleNet como la
+  categoría `SAVE_HIRE` de Meta4, en una transacción. La transacción vuelve a
+  comprobar con bloqueo el ID y el documento, inserta solo en las tablas del
+  modelo, numera la auditoría con `M4RDC_SEQUENCE` y sube `M4CSP_BLOCK_SEQ`.
+  Usa la conexión aparte `PEOPLENET_DB_WRITE_*`. Sin el modo se mantiene el
+  camino SOAP.
+- `npm run hire:model` genera `src/lib/meta4/hire/direct/model.generated.json`
+  con solo `SELECT`, a partir del diccionario Meta4 y la plantilla. Recoge 92
+  grupos, 639 pasos y 79 tablas con su definición, y es determinista.
+- La conversión de persona a celdas se mueve a `cells.ts`, compartida por el
+  Excel y el alta directa.
+- Avisos nuevos en el resultado: persona con el mismo nombre (como el «Aceptar
+  o cancelar» de Meta4). Error si el banco de un IBAN español no tiene BIC.
+- Comprobado:
+  - `npm run typecheck`, oxlint y oxfmt sobre los archivos tocados;
+  - tests nuevos del plan, las reglas, el servicio directo, la escritura (con
+    `mssql` simulado) y el enrutado;
+  - comparación del plan de una persona de prueba con el perfil agregado de
+    las 69 altas CYC de 2026;
+  - `npm run build` correcto, `git diff --check` limpio y oxlint sin errores;
+  - `npm test`: 1753 tests pasan y 11 fallan por tiempo agotado en
+    copias de seguridad y en la auditoría de solo lectura del portal. Las
+    copias de seguridad y la evidencia de la VM pasan al repetirlas solas.
+    `readonly-audit-runner` falla en tests distintos en cada vuelta, también
+    con el `client.ts` original.
+- oxfmt marca casi todo el repositorio por los finales CRLF de la copia de
+  trabajo. Los archivos tocados, normalizados a LF, pasan.
+- No probado: la escritura contra PeopleNet, porque no hay usuario de
+  escritura.
+
+## 2026-11-24 - Análisis del modelo de alta de PeopleNet
+
+- Nuevo [docs/alta-modelo-peoplenet.md](../docs/alta-modelo-peoplenet.md) para
+  sustituir la importación SOAP por `INSERT`: flujo de `SRCO_SAVE_HIRE` y
+  `SAVE_HIRE`, orden de los métodos LN4, columnas de entrada, constantes y
+  calculadas de cada tabla, y auditoría `AUC_*`.
+- Comprobado solo con `SELECT` en `M4PRENOMINA`. El perfil cuenta filas y
+  columnas de 69 altas y solo muestra códigos técnicos que comparten al menos
+  10 filas. No hay cambios de código.
+- Añadida la lógica que hay que programar para grabar el alta: valores por
+  defecto de Meta4 (`M4RDC_EXTENDED_TPS`), herencia de claves, métodos
+  `SHCO_INSERT`, diez campos calculados y las validaciones que hay que
+  reproducir. Las tablas que se escriben después del alta (afiliación,
+  documentos de pago, usuario del portal, tarjetas, IRPF de nómina) se separan
+  de las que se graban con él.
+- Fórmulas comprobadas con recuentos agregados sobre 69 altas:
+  - nombre completo, 69/69;
+  - dirección completa, 78/78 exactas;
+  - cuenta, 65/65;
+  - BIC, 50/65;
+  - nombre del rol, 50/69 (el resto tiene el puesto renombrado después);
+  - fechas de inicio iguales a la de alta, 69/69.
+- Validaciones del alta traducidas, con dónde las lanza Meta4 (categorías
+  previas o `SHCO_INSERT`) y su configuración (`CALC_MODE = 0`,
+  `SSP_SOLICITAR_BIC = 1`, `SCO_NEW_ROLE_DT_START_PAY = 0`). Comprobado con
+  recuentos agregados sobre 65 cuentas:
+  - IBAN en grupos de 4, 65/65;
+  - descomposición del IBAN español (sucursal, DC y cuenta), 62/62;
+  - BIC desde el catálogo por banco, 60/62.
+
 ## 2026-11-23 - Consultas de PeopleNet desde el chat
 
 - Consultas locales de las siete acciones de lectura de Inicio, con filtros,
@@ -158,6 +334,53 @@
   omitidos. Revisión dirigida final con 127 correctos. Typecheck, build y
   formato de los TypeScript tocados correctos. Lint global pendiente en
   676 archivos previos.
+
+## 2026-11-23 - Alta de personas: documentos repetidos y carga desde Excel
+
+- Las altas de prueba 109997, 109999 y 110000 no crearon personas: Meta4
+  encontró el documento `90000001N` y modificó tres veces la persona 1815. El
+  relleno de prueba repetía `90000001…` tras recargar la página.
+- El relleno de prueba genera un DNI distinto en cada pulsación. El alta se
+  bloquea, antes de escribir el Excel, si un documento se repite en el lote o ya
+  existe en `STD_PERSON` (SELECT parametrizada), con el aviso en la persona.
+- Nueva carga de varias personas: «Descargar plantilla» genera un .xlsx con una
+  fila por persona, claves técnicas en la fila 2, desplegables de los catálogos
+  de la sociedad (hoja «Catálogos») e instrucciones. «Cargar Excel» lo lee en
+  servidor y llena el formulario para revisarlo; no lanza el alta. Admite ID sin
+  los ceros que quita Excel, nombres de catálogo, fechas DD/MM/AAAA, Sí/No,
+  opciones por su texto y busca la población por nombre (completando provincia,
+  comunidad y país). Las opciones obvias (Puesto, IBAN, jornada completa…) se
+  deducen si se dejan vacías.
+- Prueba en PRE (tarea 110001): 3 personas con documentos nuevos y 0 errores
+  terminaron todas en la persona 1815. El contador `M4CSP_BLOCK_SEQ` (CYC,
+  `STD_PERSON`) está en 1814 desde el 2026-09-30: Meta4 asigna siempre 1815, que
+  ya existe, y la sobrescribe. powermeta4 lee ahora ese contador y bloquea el alta
+  si algún ID que asignaría Meta4 ya existe en `STD_PERSON` (contra PRE:
+  1815–1817 planificados, 1815 y 1817 ocupados → bloqueado).
+- Un Excel con varias personas no sirve: en la importación 110002 las 3 filas
+  acabaron en la persona 1818 (periodos 1, 2 y 3), porque Meta4 solo calcula el
+  ID en la primera fila. powermeta4 lanza ahora una importación por persona
+  (`AltaPersonas_<fecha>_01.xls`, `_02`…), comprueba antes de cada una que el
+  ID que daría el contador está libre y espera a que el planificador la termine
+  (SELECT en `M4RJS_SCHED_TASKS`, `M4RJS_TASK_EXE` y `M4RCH_HIST_IMP_EXP`). Un
+  rechazo muestra el motivo de la traza; si falla una persona se paran las
+  siguientes y se indica cuántas quedaron dadas de alta.
+- Con una importación por persona, PRE creó 1819 y 1820 (tareas 110003 y
+  110004, 0 errores) pero el contador `M4CSP_BLOCK_SEQ` no subió, y la persona 2
+  se paró por el aviso de ID ocupado. Como `SRCO_BLOCK_BEFORE_PERSIST_CO` solo
+  usa el contador con `SRCO_ARG_ID_PERSON` vacío, cada fichero lleva ahora en
+  «ID PERSONA» (G) el primer ID libre desde el contador + 1 (sin persona en
+  `STD_PERSON` ni dado en el lote). Tras la importación se comprueba en
+  `STD_PERSON` que la persona tiene ese ID y, si no, se paran las siguientes. El
+  resultado muestra los IDs y avisa si el contador ha quedado por debajo.
+  Comprobado: typecheck y oxlint correctos; tests del alta, la acción y el
+  formulario 161/165 y, tras ajustar sus expectativas, los 4 restantes pasan
+  (incluido `hire-path`, que falla por tiempo con la máquina cargada); Excel
+  COM escribe «1821» y «0028» como texto en G6 y G7; `git diff --check`
+  correcto. Prueba en PRE pendiente.
+- Comprobado en local con Excel COM: dos lotes de 3 personas, 537/537 celdas
+  correctas en cada uno y fila siguiente vacía. Plantilla con catálogos reales de
+  CYC en PRE: 452 KB, abre en Excel con sus desplegables.
 
 ## 2026-11-19 - Alta de personas: Fusion ID, ID Atradius, nombre de fichero y correo
 

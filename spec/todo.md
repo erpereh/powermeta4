@@ -1,5 +1,19 @@
 # powermeta4 - estado de tareas
 
+## Integración de ramas — 2026-11-25
+
+- [x] Integrar el alta directa de `salvadev` y el chatbot de `davidev`
+      sobre el historial compartido con `main`.
+- [x] Probar la instalación aislada con SQLite recién preparada y el ZIP
+      del RAG. Se conservaron la huella del índice y las citas se abrieron
+      con sesión. El proveedor local de prueba cubrió el chat general y
+      documental durante los errores de capacidad de Gemini.
+- [x] Actualizar la verificación de las pull requests para el alta directa y
+      la evidencia Git LFS.
+- [x] Ejecutar setup, typecheck, build y las pruebas del alta directa con
+      dobles de prueba. Pasaron 1.737 pruebas en aislamiento y 36 adicionales
+      con los archivos locales. Quedaron dos omisiones preexistentes.
+
 ## Bloques de código del chat — 2026-11-25
 
 - [x] Unir la cabecera y el cuerpo del bloque Markdown, también cuando
@@ -151,6 +165,132 @@
 - [x] Typecheck, build, formato de los archivos TypeScript cambiados y
       `git diff --check` correctos. El lint global sigue señalando 676
       archivos con formato previo pendiente.
+
+## Alta de personas: documentos repetidos y carga desde Excel — 2026-11-23
+
+- [x] Causa de «los siguientes se escriben sobre los anteriores»: Meta4 busca la
+      persona por documento y modifica la existente. Las altas 109997, 109999 y
+      110000 modificaron la misma persona (1815, documento `90000001N`), porque el
+      relleno de prueba repetía `90000001…` tras recargar.
+- [x] El relleno de prueba genera un DNI distinto en cada pulsación.
+- [x] Antes de escribir el Excel se bloquea un documento repetido en el lote o
+      que ya existe en `STD_PERSON` (SELECT), con el aviso por persona.
+- [x] Excel de dos lotes de 3 personas generado con Excel COM en local: 537/537
+      celdas correctas por lote y sin restos del anterior (sin enviar a Meta4).
+- [x] ~~Plantilla «Descargar plantilla» y carga «Cargar Excel»~~: retiradas el
+      2026-11-24 a petición del usuario, porque ese Excel ya no se usa. Estaban
+      en `bulk-template.ts`, `bulk-import.ts`, `bulk-places.ts`,
+      `bulk-controls.tsx`, `bulk-columns.ts` y las rutas
+      `/api/hire/bulk-template` y `/api/hire/bulk-import`; se recuperan del
+      historial de git si vuelven a hacer falta.
+- [x] Prueba en PRE (tarea 110001, 3 personas, 0 errores): las tres se escribieron
+      en la persona 1815. Causa real: el contador `M4CSP_BLOCK_SEQ` (CYC,
+      `STD_PERSON`) está en 1814 desde el 2026-09-30 y no avanza con la
+      importación; Meta4 da siempre la 1815, que ya existe, y la sobrescribe.
+- [x] powermeta4 calcula los ID que daría Meta4 (contador + 1 por persona, «BC»
+      en becarios, 4 dígitos en COLL) y bloquea el alta si alguno ya existe.
+      Contra PRE: planificados 1815–1817, ocupados 1815 y 1817 → bloqueado.
+- [x] Contador de CYC subido a 1817 por el usuario (comprobado: 1818–1820 libres).
+- [x] Prueba en PRE (tarea 110002): las 3 filas de un mismo Excel acabaron en la
+      persona 1818 (periodos 1, 2 y 3 en `M4SSP_ALTA_MASIVA_LOG`): Meta4 calcula el
+      ID solo en la primera fila y reutiliza `SRCO_ARG_ID_PERSON` en las demás.
+- [x] Una importación por persona (`_01`, `_02`…): antes de cada una se comprueba
+      el ID libre y se espera a que el planificador la termine (`M4RJS_*`,
+      `M4RCH_HIST_IMP_EXP`); el motivo de un rechazo sale de la traza. Si una
+      falla se para el resto y se dice quién quedó dado de alta.
+- [x] Prueba en PRE con una importación por persona: tareas 110003 y 110004
+      crearon 1819 y 1820 (1 fila, 0 errores, un periodo), pero el contador se
+      quedó en 1818 y 1819; la persona 2 se paró sin enviarse.
+- [x] El fichero lleva el ID en «ID PERSONA» (G, `SRCO_ARG_ID_PERSON`): primer ID
+      libre desde el contador + 1, comprobado después en `STD_PERSON`; aviso para
+      subir el contador al terminar.
+- [ ] Probar en PRE 3 personas con el ID en el fichero (contador en 1819: se
+      esperan 1821, 1822 y 1823).
+- [ ] Meta4: traza de `SRCO_SAVE_HIRE` para confirmar la resta FADRAO tras un
+      alta correcta, corregirla y limpiar las personas 1815 y 1818 de PRE.
+
+## Alta de personas con `INSERT` directo — análisis 2026-11-24
+
+- [x] Modelo del alta de Meta4 en [docs/alta-modelo-peoplenet.md](../docs/alta-modelo-peoplenet.md):
+      categoría `SAVE_HIRE` (108 grupos, 24 métodos LN4), tabla y columna de
+      cada ítem, perfil agregado de 69 altas CYC de 2026 y auditoría `AUC_*`
+      (`M4RDC_SEQUENCE`). Solo `SELECT`, sin datos personales.
+- [x] Traducidas las reglas de persona, periodo y rol. Las columnas sin mapeo
+      salen de los tipos extendidos de Meta4 (fechas de fin, indicadores,
+      ordinales `MAX + 1`, auditoría con `M4RDC_SEQUENCE`), de la clave del
+      nodo padre, de la fecha de alta o de diez reglas LN4 (nombre, dirección,
+      banco, rol, estructura, agrupación, experiencia). Todas comprobadas con
+      recuentos sobre 69 altas; ninguna queda sin explicar.
+- [x] Validaciones traducidas con la configuración real de Meta4
+      (`M4RAV_APP_VAL_LG1`): fecha de nacimiento, duplicidad por
+      `SCO_GB_NAME` (aviso), dirección española, IBAN (formato, ISO 13616 y
+      descomposición), BIC obligatorio desde `M4SSP_BANK_BIC_CODES`, cuenta
+      repetida, contacto principal, datos de pago y familia. powermeta4 ya
+      cubre fecha, dirección, IBAN, documento e ID.
+- [x] Alta directa (`META4_HIRE_MODE=direct`, `src/lib/meta4/hire/direct`):
+      modelo generado del diccionario y la plantilla (`npm run hire:model`),
+      plan puro, consultas previas, escritura en una transacción con
+      auditoría y contador, y enrutado desde `launchMeta4Hire`. Deduce y
+      exige el BIC, avisa de nombre duplicado y deriva el IBAN, la cuenta y
+      los ordinales.
+- [x] Plan contrastado con el perfil de las 69 altas CYC de 2026: mismas
+      tablas, mismas filas por persona y mismas columnas, salvo los campos
+      que la persona de prueba deja vacíos.
+- [x] Usuario de escritura: el de `PEOPLENET_DB_USER` ya puede escribir (el
+      mismo de DBeaver); `PEOPLENET_DB_WRITE_USE_READ_USER=true` lo reutiliza.
+- [x] Prueba en prenómina con `META4_HIRE_MODE=direct` (2026-11-24): persona
+      1829 grabada en 34 tablas y 4 de auditoría; columnas como las altas de
+      Meta4 y contador subido.
+- [x] `ID_SECUSER`/`ID_APPROLE` como Meta4 (usuario de `M4RSC_APPUSER` y rol de
+      la conexión) y seguridad de inserción del rol (`M4RDC_SEC_LOBJ`): con
+      `M4EMPLOYEE` se rechaza antes de grabar, como Meta4.
+- [x] Usuario de pruebas con rol de máscara `M4ADM` en prenómina:
+      `SOFIA.ELICES` (rol `M4_USER`). Alta 1830 correcta (2026-11-24).
+- [x] Comprobado que el modelo y las validaciones valen para las tres
+      sociedades: `SAVE_HIRE`, el diccionario y la configuración no dependen de
+      la organización, y la sociedad del contexto ya elige catálogos, contador
+      y entidad legal.
+- [ ] **Aplazado hasta que se aborde IBER** (decisión del usuario del
+      2026-11-24). El alta está contrastada solo con CYC; para IBER faltan tres
+      campos y para COLL falta el contraste. Lo necesario para retomarlo:
+      - Añadir al formulario, en la pestaña Organización, los items de
+        `SRCO_PA_HIRE_WIZ_ORG`: `CSP_ID_CAT_PER_CYC`, `ID_CAT_TEORICA`
+        («ID Categoría Teórica») y `CSP_ID_EQUIV_CAT_JOB_CYC`. Sus catálogos
+        son `M4CSP_CAT_PER_CYC`, `M4CSP_CAT_TEORICA` y
+        `M4CSP_EQUIV_CAT_JOB_CYC`, filtrados por `ID_ORGANIZATION`.
+      - Mostrarlos solo cuando la sociedad activa tenga valores: CYC tiene 0, 1
+        y 0; IBER 11, 49 y 8; COLL 9, 6 y 8. Así en CYC no aparecen.
+      - Los grupos ya están en `model.generated.json`
+        (`GRP_CSP_H_CAT_PER_CYC`, `GRP_CSP_H_HR_CAT_TEORICA`,
+        `CSP_EQUIV_CAT_JOB_CYC`): basta con que el item traiga valor para que
+        `plan.ts` escriba la fila, no hace falta tocar el plan.
+      - Después, un alta de prueba en IBER contrastada como la 1830 de CYC, y
+        el mismo contraste para COLL (14 altas, perfil más ligero:
+        `M4SCO_H_SAL_DATA` 14 %, la mayoría de tablas de nómina al 50 %).
+      - El detalle y los porcentajes, en «Las tres sociedades» de
+        [docs/alta-modelo-peoplenet.md](../docs/alta-modelo-peoplenet.md).
+- [x] La 1830 abierta **y editada** en Meta4 (prenómina, 2026-11-24): la
+      aplicación la muestra y guarda cambios sobre ella sin refrescar su caché,
+      así que las filas que escribe el alta le valen a la lógica de Meta4, no
+      solo a la base de datos.
+- [ ] Prueba en PRE: alta directa de una persona, comparada fila a fila con
+      una dada de alta desde Meta4; comprobar la caché de Meta4.
+- [x] Quitado el camino SOAP/Excel (2026-11-24, a petición del usuario):
+      `excel.ts`, `excel-lifecycle.ts`, `soap.ts`, `parser.ts`,
+      `import-status.ts`, `import-log.ts`, `filename.ts`, `write-file.ts`, sus
+      tests y el proyecto `excel-native` de Vitest. El alta directa es el único
+      camino; `META4_HIRE_FILE_PATH`, `META4_HIRE_TEMPLATE_PATH` y
+      `META4_HIRE_MODE=direct` ya no se usan.
+- [x] `CALCULA_VACIOS` traducido (2026-11-24): el alta escribe
+      `M4CSP_H_HR_JOB_AGRUPA_CAT` con la agrupación de la categoría del puesto,
+      leída en `lookups.ts`. Reproduce 359/366 filas reales (98 %) y 227/233 de
+      las creadas en el alta. Detalle en `docs/alta-modelo-peoplenet.md`.
+- [ ] Localizar la máscara de `STD_PERSON` (`CSP_MASCARA`), menor: los IDs de
+      CYC tienen 4 cifras y el alta ya los genera así.
+- [ ] Aprobar la excepción a «solo `SELECT`», con un usuario de escritura
+      limitado a las tablas del alta.
+- [ ] Probar en PRE la caché de Meta4 y comparar una persona grabada por Meta4
+      con otra grabada por powermeta4.
 
 ## Alta de personas: Fusion ID, ID Atradius, nombre y rol — 2026-11-19
 
@@ -549,7 +689,7 @@ Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.
 - [ ] Segunda sesión: leer primero manifiesto/errores y cerrar solo contratos
       afectados, permisos y reglas virtuales acreditados; mantener pendientes
       explícitos los destinos sin estructura y las simulaciones sin reglas LN4.
-- [ ] Repetir la integración Excel COM del alta en un entorno donde termine.
+- [x] ~~Repetir la integración Excel COM del alta~~: el alta ya no usa Excel COM.
 
 ## Formularios de expedientes simplificados — 2026-11-05
 

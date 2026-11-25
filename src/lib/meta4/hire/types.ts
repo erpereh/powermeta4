@@ -75,7 +75,8 @@ export type HirePerson = HireBasePerson & HireExtraFields;
 
 export type HireLaunchResult = {
   personCount: number;
-  returnCode: string;
-  fileName: string;
-  filePath: string;
+  /** IDs written in PeopleNet and confirmed in STD_PERSON, in order. */
+  personIds: string[];
+  /** Meta4's warnings (e.g. someone already has the same name). */
+  warnings?: string[];
 };

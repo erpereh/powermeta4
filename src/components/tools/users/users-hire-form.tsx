@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, type FocusEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { launchMeta4HireAction } from "@/app/actions/meta4-hire";
@@ -100,9 +100,14 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<FormError | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  /** Errors of the launch itself (PeopleNet, Meta4, security) open in a modal. */
+  const [launchError, setLaunchError] = useState<FormError | null>(null);
+  const [success, setSuccess] = useState<{ message: string; note?: string } | null>(null);
   const [feedback, setFeedback] = useState<Readonly<Record<number, PersonFeedback>>>({});
   const nextId = useRef(2);
+  const issuesSummaryRef = useRef<HTMLDivElement>(null);
+  /** Bumped when problems are revealed, to bring the summary into view. */
+  const [revealCount, setRevealCount] = useState(0);
 
   const validationContext = useMemo<HireValidationContext>(
     () => (catalogs.status === "ready" ? { documentTypes: catalogs.catalogs.documentType } : {}),
@@ -161,8 +166,17 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
     });
   };
 
+  useEffect(() => {
+    if (revealCount === 0) return;
+    // scrollIntoView is missing in jsdom.
+    issuesSummaryRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  }, [revealCount]);
+
   const confirmation = useMemo(
-    () => `Se van a procesar ${people.length} personas en Meta4`,
+    () =>
+      people.length === 1
+        ? "Se va a dar de alta 1 persona en PeopleNet."
+        : `Se van a dar de alta ${people.length} personas en PeopleNet, de una en una.`,
     [people.length],
   );
 
@@ -204,6 +218,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
   /** Shows every problem of the person and opens the tab of the first one. */
   const revealIssues = (id: number, issues: readonly HireFieldIssue[]) => {
     markAttempted([id]);
+    setRevealCount((count) => count + 1);
     const index = people.findIndex((person) => person.id === id);
     setError({
       message: `Revisa ${issues.length === 1 ? "1 dato" : `${issues.length} datos`} de la Persona ${index + 1} antes de continuar.`,
@@ -280,6 +295,7 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
   const submitHire = async () => {
     setPending(true);
     setError(null);
+    setLaunchError(null);
     try {
       const result = await launchMeta4HireAction(currentPayload());
       if (!result.ok) {
@@ -289,27 +305,38 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
           const draft = people[firstField.person - 1];
           if (draft) {
             markAttempted([draft.id]);
+            setRevealCount((count) => count + 1);
             setExpandedId(draft.id);
             if (firstField.field) setActiveTab(hireIssueTab(firstField.field));
           }
         }
-        // Close the confirmation so the error below is visible.
         setConfirmOpen(false);
-        setError({
+        const failure = {
           message: firstField
             ? "Revisa los datos marcados antes de lanzar el alta."
             : result.message,
           issues: issues.filter((issue) => !issue.field),
-        });
+        };
+        // Field problems stay next to the marked fields; the rest opens in a modal.
+        if (firstField) setError(failure);
+        else setLaunchError(failure);
         return;
       }
-      setSuccess(`Alta enviada correctamente · ${result.data.fileName}`);
+      const { personCount, personIds, note } = result.data;
+      const ids =
+        personIds.length === 0
+          ? ""
+          : ` (${personIds.length === 1 ? "ID" : "IDs"} ${personIds.join(", ")})`;
+      setSuccess({
+        message: `${personCount === 1 ? "Alta de 1 persona completada" : `Alta de ${personCount} personas completada`} en PeopleNet${ids}`,
+        ...(note ? { note } : {}),
+      });
       setPeople([createHirePersonDraft(nextId.current++)]);
       setExpandedId(nextId.current - 1);
       setActiveTab("personal");
       setConfirmOpen(false);
     } catch (caught) {
-      setError({ message: errorMessage(caught), issues: [] });
+      setLaunchError({ message: errorMessage(caught), issues: [] });
       setConfirmOpen(false);
     } finally {
       setPending(false);
@@ -320,8 +347,8 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
     <HireCatalogsProvider value={catalogs}>
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5 px-4 pt-5 sm:px-6">
         <Callout role="note" title="Borrador local hasta confirmar">
-          Los rótulos rojos indican un mapping Excel por confirmar. Esos valores permanecen en el
-          borrador local; los campos integrados se envían al confirmar el alta.
+          Los rótulos rojos indican un dato que todavía no se graba en PeopleNet. Esos valores
+          permanecen en el borrador local; los demás campos se graban al confirmar el alta.
         </Callout>
 
         <div className="flex flex-col gap-3">
@@ -349,6 +376,35 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                       disabled={pending || confirmOpen}
                       onFill={(next) => updateDraft(draft.id, () => next)}
                     />
+                  ) : null}
+                  {expandedFeedback?.attempted && visibleIssues.length > 0 ? (
+                    <div
+                      ref={issuesSummaryRef}
+                      className="mb-4 scroll-mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4"
+                    >
+                      <p className="text-sm font-medium text-destructive">
+                        Datos por revisar de la Persona {index + 1}
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm">
+                        {visibleIssues.map((issue) => {
+                          const tab = hireIssueTab(issue.field);
+                          const tabLabel =
+                            HIRE_TABS.find((candidate) => candidate.id === tab)?.label ?? "";
+                          return (
+                            <li key={issue.field}>
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab(tab)}
+                                className="text-left text-foreground underline-offset-2 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              >
+                                <span className="text-muted-foreground">{tabLabel} · </span>
+                                {issue.message}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
                   ) : null}
                   <HireIssuesProvider issues={issueMap}>
                     <HireDraftProvider key={draft.id} draft={draft} {...draftActions}>
@@ -393,32 +449,6 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                       </Tabs>
                     </HireDraftProvider>
                   </HireIssuesProvider>
-                  {expandedFeedback?.attempted && visibleIssues.length > 0 ? (
-                    <div className="mt-5 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                      <p className="text-sm font-medium text-destructive">
-                        Datos por revisar de la Persona {index + 1}
-                      </p>
-                      <ul className="mt-2 space-y-1 text-sm">
-                        {visibleIssues.map((issue) => {
-                          const tab = hireIssueTab(issue.field);
-                          const tabLabel =
-                            HIRE_TABS.find((candidate) => candidate.id === tab)?.label ?? "";
-                          return (
-                            <li key={issue.field}>
-                              <button
-                                type="button"
-                                onClick={() => setActiveTab(tab)}
-                                className="text-left text-foreground underline-offset-2 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              >
-                                <span className="text-muted-foreground">{tabLabel} · </span>
-                                {issue.message}
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  ) : null}
                   <div className="mt-5">
                     <Button
                       type="button"
@@ -492,9 +522,10 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
           </div>
         ) : null}
         {success ? (
-          <p role="status" className="text-sm text-foreground">
-            {success}
-          </p>
+          <div role="status" className="space-y-1 text-sm">
+            <p className="text-foreground">{success.message}</p>
+            {success.note ? <p className="text-muted-foreground">{success.note}</p> : null}
+          </div>
         ) : null}
 
         <div className="sticky bottom-0 z-10 -mx-4 mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
@@ -537,11 +568,41 @@ export function UsersHireForm({ catalogs }: { catalogs: HireCatalogState }) {
                   void submitHire();
                 }}
               >
-                {pending ? "Enviando..." : "Confirmar"}
+                {pending ? "Dando de alta…" : "Confirmar"}
               </Button>
             </>
           }
         />
+
+        <Modal
+          open={launchError !== null}
+          onOpenChange={(open) => {
+            if (!open) setLaunchError(null);
+          }}
+          title="No se ha podido dar de alta"
+          size="md"
+          footer={
+            <Button type="button" size="sm" onClick={() => setLaunchError(null)}>
+              Entendido
+            </Button>
+          }
+        >
+          {launchError ? (
+            <div role="alert" className="space-y-2 text-sm">
+              <p className="text-foreground">{launchError.message}</p>
+              {launchError.issues.length > 0 ? (
+                <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+                  {launchError.issues.map((issue, index) => (
+                    <li key={`${issue.person ?? 0}-${index}`}>
+                      {issue.person ? `Persona ${issue.person}: ` : ""}
+                      {issue.message}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
+        </Modal>
       </div>
     </HireCatalogsProvider>
   );
