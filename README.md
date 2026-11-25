@@ -45,9 +45,9 @@ La base se guarda bajo `POWERMETA4_DATA_DIR` (por defecto `./data`):
 - `backups/`: ZIP exportados.
 - `temp/`: imports pendientes y temporales controlados.
 
-Las actualizaciones de esquema se aplican exclusivamente con
-`npm run setup` o `npm run db:migrate`. La restauración nunca ejecuta
-migraciones.
+Las actualizaciones de la base activa se aplican con `npm run setup` o
+`npm run db:migrate`. La restauración de un backup compatible de esquema 11
+actualiza la copia preparada antes de sustituir la base activa.
 
 ## Persistencia y autenticación
 
@@ -63,7 +63,7 @@ Las conversaciones conservan ramas mediante `parentMessageId`,
 assistant-ui. Los mensajes `running` abandonados se recuperan como
 `incomplete` y no se reanudan automáticamente.
 
-El chat documental usa `POST /api/chat/run` (SSE, Node.js) y un endpoint
+El chat usa `POST /api/chat/run` (SSE, Node.js) y un endpoint
 OpenAI-compatible global configurado exclusivamente en el servidor mediante
 `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`. Las tres variables son obligatorias;
 no se guardan en SQLite ni se exponen al navegador. La UI solo recibe el
@@ -72,20 +72,24 @@ estado seguro `{ configured, model }` y avisa cuando falta la configuración.
 El transcript visible en SQLite conserva el texto real, ramas, edición,
 regeneración y reload. Para cada ejecución el servidor sigue
 `parentMessageId` desde el mensaje asistente en curso. Envía el texto de los
-ancestros documentales `user`/`assistant`, las reglas del asistente y el contexto
-seleccionado de manuales y adjuntos. El cliente compatible normaliza la raíz de `AI_BASE_URL` a
+turnos conversacionales `user`/`assistant` y las reglas del asistente. Las
+consultas que requieren el RAG reciben fragmentos de los manuales. El cliente
+compatible normaliza la raíz de `AI_BASE_URL` a
 `/chat/completions`, envía `{ model, messages, stream: true }`, procesa SSE y
 persiste contenido incremental y estados `complete`, `cancelled` o `failed`.
-El esquema actual es `DATABASE_SCHEMA_VERSION = 11`; la migración 009 elimina
-la infraestructura exclusiva del agente y las configuraciones de proveedor,
-sin tocar conversaciones, mensajes, attachments ni el grafo de padres.
+El esquema actual es `DATABASE_SCHEMA_VERSION = 12`. La migración 009 elimina
+la infraestructura exclusiva del agente y las configuraciones de proveedor.
+La 012 conserva las referencias a manuales antiguos y retira el índice
+anterior. Ambas conservan las conversaciones, los mensajes, los adjuntos y
+las ramas presentes en la base que se migra.
 
 El clip y el arrastre admiten PDF con texto, TXT, Markdown, CSV y XLSX.
 Los archivos se conservan localmente con el mensaje y el servidor comparte
-su texto con el proveedor de IA al enviar una consulta documental. El panel «Fuentes»
+su texto con el proveedor de IA cuando el turno usa ese archivo. El panel «Fuentes»
 muestra los manuales y adjuntos usados en cada respuesta.
-`npm run kb:ingest -- --lexical` construye el índice local y
-`npm run kb:ingest` incorpora embeddings.
+`npm run kb:ingest` prepara el índice de manuales y reanuda los embeddings
+pendientes. La generación publicada se puede trasladar mediante los comandos
+`kb:export` y `kb:import`.
 Configuración y evaluación en la [guía del RAG](docs/knowledge-base-rag.md).
 
 El chat detecta consultas de usuarios, recibos de nómina, quinquenal,
@@ -217,7 +221,7 @@ El manifest tiene exactamente estas cinco propiedades:
 ```json
 {
   "backupVersion": 1,
-  "databaseSchemaVersion": 11,
+  "databaseSchemaVersion": 12,
   "appVersion": "...",
   "createdAt": "...",
   "databasePath": "database/powermeta4.db"
@@ -227,15 +231,14 @@ El manifest tiene exactamente estas cinco propiedades:
 La instantánea activa el lock de escrituras solo durante `backup()`. El
 saneamiento de la copia, la lectura de uploads y la compresión se realizan sin
 ese lock. Sesiones, imports pendientes, recibos de idempotencia y el perfil Meta4
-cifrado se eliminan de la copia temporal; la base activa no se modifica al
-exportar. Los backups de esquema 8 no se restauran directamente: la política
-vigente exige coincidencia exacta con el esquema 11.
+cifrado se eliminan de la copia temporal. La exportación trabaja sobre una
+instantánea.
 
-La restauración exige coincidencia exacta de `backupVersion` y
-`databaseSchemaVersion` antes de adquirir mantenimiento. Valida seguridad del
-ZIP, integridad SQLite, foreign keys, historial de migraciones y tablas
-requeridas; sustituye base y uploads con rollback conjunto e invalida la
-sesión para exigir un nuevo login.
+La restauración admite `backupVersion` 1 con los esquemas 11 y 12 de
+`davidev`. Valida seguridad del ZIP, integridad SQLite, claves foráneas,
+historial de migraciones y tablas requeridas. Actualiza las copias de
+esquema 11 en preparación, sustituye base y uploads con rollback conjunto
+e invalida la sesión para exigir un nuevo login.
 
 ## Verificación
 

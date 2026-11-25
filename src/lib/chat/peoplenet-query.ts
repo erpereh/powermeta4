@@ -36,6 +36,7 @@ export type PeopleNetQuery = {
 
 export type PeopleNetTurn =
   | { kind: "general" }
+  | { kind: "unavailable" }
   | { kind: "clarify"; text: string }
   | { kind: "query"; query: PeopleNetQuery };
 
@@ -49,7 +50,18 @@ const idPattern =
 const excluded =
   /\b(?:da(?:me)? de alta|dar de alta|alta de personas|(?:crea|crear|modifica|modificar|actualiza|actualizar|desactiva|desactivar|elimina|eliminar) (?:a |el |la |un |una )?(?:usuario|persona|emplead[oa]|nomina|paga)|genera(?:r)? (?:una? )?(?:paga|nomina)|ejecuta(?:r)? (?:el )?(?:alta|proceso|informe)|programa(?:r)? (?:un )?informe)\b/;
 const manual =
-  /\b(?:segun (?:el |los )?manual|en la documentacion|que significa|que es (?:el|la|un|una)|como (?:puedo|se|hacer|funciona|configur\w*|consult[oa]r?|obtengo|saco|genero)|paso a paso|explica como|procedimiento para|en (?:lenguaje )?ln4|del (?:archivo|documento|adjunto)|(?:payroll|nomina) adjunt[ao]|esta nomina)\b/;
+  /\b(?:segun (?:el |los )?manual|(?:en|segun) la documentacion|(?:segun|presenta|describe|indica) la guia|(?:en|segun) (?:la (?:tabla|figura)|el diagrama)|plantillas? de consulta de nomina|tipos de calculo se seleccionan|service pack|sp\d{5}sp\d{3}|pnsp[a-z]?\d{5}_hf\d{3}|ram-?dl|que significa|que es (?:el|la|un|una)|como (?:puedo|se|hacer|funciona|configur\w*|consult[oa]r?|obtengo|saco|genero)|paso a paso|explica como|procedimiento para|en (?:lenguaje )?ln4|del (?:archivo|documento|adjunto)|(?:payroll|nomina) adjunt[ao]|esta nomina)\b/;
+const explanatoryQuestion =
+  /\b(?:para que sirve|cual es la diferencia|como funciona|que suele|que conceptos? (?:suelen?|deben?)|que datos (?:suele|debe))\b/;
+const credentialValue =
+  /\b(?:que|cual(?: es)?|dime|dame|muestrame) (?:la |el )?(?:contrasena|password|clave api|token de acceso)\b/;
+const credentialAdvice = /\b(?:segura|recomienda\w*|de ejemplo|fictici[oa]|aleatori[oa]|generar)\b/;
+const documentationOnly =
+  /\b(?:solo|unicamente|exclusivamente) (?:el |la |los |las )?(?:manual(?:es)?|documentacion|guias?)\b/;
+const installationScope =
+  /\b(?:mi|mis|nuestro|nuestra|nuestros|nuestras) (?:empresa|sociedad|instalacion|servidor|unidad|equipo|nominas?|recibos?)\b/;
+const actualPeriod =
+  /\b(?:hoy|ayer|ahora|en este momento|actualmente|esta semana|este mes|(?:periodo|trimestre|mes|ano) pasado|(?:19|20)\d{2})\b/;
 const actionPatterns: Record<PeopleNetAction, RegExp> = {
   "users.consult":
     /\b(?:usuarios?|correos?|emails?|e-mails?|ficha (?:de|del)|lista(?:do)? de (?:empleados|personas)|cuantos empleados)\b/,
@@ -63,6 +75,22 @@ const actionPatterns: Record<PeopleNetAction, RegExp> = {
     /\b(?:certificados? de (?:retenciones|haberes)|certificado (?:irpf|fiscal))\b/,
   "reports.primavera": /\bprimavera\b/,
 };
+const actionScope: Record<PeopleNetAction, RegExp> = {
+  "users.consult":
+    /\b(?:lista(?:do)?(?: (?:todos|todas))?(?: (?:de|los|las))? (?:usuarios|empleados|personas)|cuantos empleados(?: hay| tienen| figuran| con correo)?(?=[?.]|$| en la unidad\b)|correo (?:principal|secundario|historico|informado)|(?:mi|mis) (?:correo|ficha)|(?:dime|dame|busca|muestra|cual es|ver) (?:el |la )?(?:correo|e-?mail|ficha) de)\b/,
+  "payroll.consult":
+    /\b(?:(?:mi|mis|consulta|consultar|muestra|busca|ver) (?:las? |un(?:a)? )?(?:nominas?|recibos? (?:de (?:paga|salario)|salariales?))|(?:nomina|liquido|devengos?|sueldo|salario) (?:de|del)\b(?! (?:un|una|los|las)\b)|cuanto cobr[oa]\b(?! (?:un|una|los|las|de media)\b)|nomina ordinaria)\b/,
+  "reports.quinquenal":
+    /\b(?:(?:consulta(?:r)?|muestra|ver) el quinquenal|quinquenal de (?:matricula|empleado|\d)|quinquenal (?:salarial|retributivo))\b/,
+  "reports.payroll-results":
+    /\b(?:resultados? de (?:la )?nomina|informe de nomina|ejecucion(?:es)? guardadas?|salario base)\b/,
+  "reports.projections":
+    /\b(?:proyeccion(?:es)? (?:salarial(?:es)?|de (?:nomina|salario|un empleado))|compensacion|retribucion|mi proyeccion)\b/,
+  "reports.certificate": /\b(?:certificados? de (?:retenciones|haberes)|mi certificado)\b/,
+  "reports.primavera": /\b(?:nomina|descuadres?|cuadres?|filas?|devengos?|retenidos?|liquidos?)\b/,
+};
+const writingTask =
+  /^[¿¡\s]*(?:y\s+)?(?:por favor[,\s]+)?(?:(?:me )?puedes\s+)?(?:redacta(?:r)?|escribe|escribir|traduce|traducir|inventa(?:r)?|revisa(?:r)?|corrige|corregir)\b/;
 
 const valueEnd = new RegExp(
   "[?;,\\n]|\\.(?:\\s|$)|\\s+(?:para\\b|con\\b|del mes\\b|(?:en|de|del)\\s+(?:" +
@@ -94,7 +122,7 @@ function findPerson(text: string, action: PeopleNetAction) {
   );
   if (
     !subject ||
-    /^(?:nomina|paga|retenciones|haberes|(?:un|una|cualquier) (?:emplead[oa]|usuari[oa]|persona)|la unidad|la sociedad|los usuarios|la plantilla|esta nomina|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b/.test(
+    /^(?:nomina|paga|retenciones|haberes|(?:un|una|cualquier) (?:emplead[oa]|usuari[oa]|persona)|la unidad|(?:la|mi|nuestra) sociedad|(?:el|ese|este) service pack|los usuarios|la plantilla|esta nomina|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b/.test(
       subject,
     )
   )
@@ -241,8 +269,23 @@ export function detectPeopleNetTurn(input: string, previous?: PeopleNetQuery): P
   const original = normalizeUsersSearch(input.trim());
   const forced = /^peoplenet\s*:/.test(original);
   const text = original.replace(/^peoplenet\s*:\s*/, "");
-  const actions = PEOPLENET_ACTIONS.filter((action) => actionPatterns[action].test(text));
-  if (!forced && manual.test(text)) {
+  const manualsOnly = documentationOnly.test(text);
+  const explicitScope =
+    forced ||
+    idPattern.test(text) ||
+    /\b(?:peoplenet|meta4|datos reales|sociedad activa)\b/.test(text);
+  if (
+    (credentialValue.test(text) && (explicitScope || !credentialAdvice.test(text))) ||
+    (manualsOnly && installationScope.test(text) && actualPeriod.test(text))
+  )
+    return { kind: "unavailable" };
+  if (!forced && !idPattern.test(text) && writingTask.test(text)) return { kind: "general" };
+  const actions = PEOPLENET_ACTIONS.filter(
+    (action) =>
+      actionPatterns[action].test(text) &&
+      (explicitScope || previous?.action === action || actionScope[action].test(text)),
+  );
+  if (!forced && (manual.test(text) || explanatoryQuestion.test(text) || manualsOnly)) {
     if (
       idPattern.test(text) ||
       actions.some((action) => {
@@ -256,7 +299,10 @@ export function detectPeopleNetTurn(input: string, previous?: PeopleNetQuery): P
       };
     return { kind: "general" };
   }
-  if (excluded.test(text))
+  if (
+    excluded.test(text) &&
+    (explicitScope || /\b(?:da(?:me|r)? de alta|alta de personas)\b/.test(text))
+  )
     return {
       kind: "clarify",
       text: "Desde el chat puedes consultar datos de PeopleNet. El alta y las demás escrituras se gestionan en sus pantallas.",
@@ -281,14 +327,16 @@ export function detectPeopleNetTurn(input: string, previous?: PeopleNetQuery): P
   const bareName =
     needsPerson &&
     previous.person === undefined &&
-    !/^(?:muchas gracias|de acuerdo|buenos dias|por favor)\b/.test(text) &&
+    !/^(?:muchas gracias|de acuerdo|buenos dias|buenas tardes|buenas noches|por favor|la|el|los|las|un|una|hola)\b/.test(
+      text,
+    ) &&
     /^\p{Lu}[\p{L}'-]+(?: [\p{L}'-]+){1,3}[.!]?$/u.test(input.trim());
   const bareId = previous && /^(?:si,?\s+)?(\d{1,10})[.!]?$/.exec(text)?.[1];
   const useBareId =
     bareId && (!/^(?:19|20)\d{2}$/.test(bareId) || (needsPerson && !previous.person));
   const followup = Boolean(
     previous &&
-    (/^(?:[¿¡]+\s*)?(?:y\b|compar|mejor\b|solo\b|(?:cuantos|cuantas) tienen\b|(?:sumame|suma|filtra)\b|(?:para |en |de )?(?:el |la )?(?:matricula|empleado|\d{4}|mes anterior|ano anterior))/.test(
+    (/^(?:[¿¡]+\s*)?(?:y\s+)?(?:compar|mejor\b|solo\b|(?:cuantos|cuantas) tienen\b|(?:sumame|suma|filtra)\b|(?:para |en |de )?(?:el |la )?(?:matricula|empleado|\d{4}|mes anterior|ano anterior))/.test(
       text,
     ) ||
       new RegExp("^(?:y en |en |de )?(?:" + monthNames.join("|") + ")\\b").test(text) ||

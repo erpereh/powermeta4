@@ -36,7 +36,8 @@ const discoverMigrations = (directory: string): DiscoveredMigration[] => {
   return migrations;
 };
 
-const normalizeMigrationSql = (sql: string): string => sql.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+const normalizeMigrationSql = (sql: string): string =>
+  sql.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
 
 export const checksumMigrationSql = (sql: string): string =>
   createHash("sha256").update(normalizeMigrationSql(sql), "utf8").digest("hex");
@@ -79,12 +80,13 @@ const assertAppliedMigrationPrefix = (
 export const validateMigrationHistory = (
   database: DatabaseSync,
   migrationsDirectory = defaultMigrationsDirectory(),
+  schemaVersion: number = DATABASE_SCHEMA_VERSION,
 ): void => {
   const migrations = loadMigrations(migrationsDirectory);
   assertMigrationTableHasChecksums(database);
   const applied = readAppliedMigrations(database);
   assertAppliedMigrationPrefix(applied, migrations);
-  if (applied.length !== migrations.length || migrations.length !== DATABASE_SCHEMA_VERSION) {
+  if (applied.length !== schemaVersion || migrations.length !== DATABASE_SCHEMA_VERSION) {
     throw new Error("La base no tiene exactamente las migraciones admitidas.");
   }
 };

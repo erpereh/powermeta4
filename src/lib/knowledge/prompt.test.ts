@@ -16,6 +16,7 @@ const manual: RetrievedChunk = {
 describe("prompt del chat", () => {
   it("allows document analysis without external technical references", () => {
     const message = buildRagSystemMessage({ hasManuals: false, hasAttachments: true });
+    expect(message).toContain("Eres el asistente de PowerMeta4");
     expect(message).toContain("experto en PeopleNet");
     expect(message).toContain(NO_ANSWER_SENTENCE);
     expect(message).toContain("Puedes resumir, comparar y extraer datos");
