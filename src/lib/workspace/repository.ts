@@ -5,6 +5,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { isChatColorName, isChatIconName } from "@/lib/chat-customization";
 import {
   MAX_ATTACHMENTS,
+  PEOPLENET_RECIPE_PART,
   attachmentSchema,
   readChatSources,
   stripInternalParts,
@@ -76,8 +77,28 @@ const parseContent = (value: unknown): MessageContent => {
 };
 const serializeAssistantUpdate = (content: MessageContent, existing: unknown) =>
   serializeContent(
-    withChatSources(stripInternalParts(content), readChatSources(parseContent(existing))),
+    withPrivateRecipe(
+      withChatSources(stripInternalParts(content), readChatSources(parseContent(existing))),
+      readPrivateRecipe(parseContent(existing)),
+    ),
   );
+const omitPrivateRecipe = (content: MessageContent): MessageContent =>
+  typeof content === "string"
+    ? content
+    : content.filter((part) => part.type !== "data" || part.name !== PEOPLENET_RECIPE_PART);
+const readPrivateRecipe = (content: MessageContent): string | undefined => {
+  const part =
+    typeof content === "string"
+      ? undefined
+      : content.find((part) => part.type === "data" && part.name === PEOPLENET_RECIPE_PART);
+  return part?.type === "data" && typeof part.data === "string" ? part.data : undefined;
+};
+const withPrivateRecipe = (content: MessageContent, ciphertext?: string): MessageContent => {
+  const cleaned = omitPrivateRecipe(content);
+  if (!ciphertext) return cleaned;
+  const parts = typeof cleaned === "string" ? [{ type: "text" as const, text: cleaned }] : cleaned;
+  return [...parts, { type: "data", name: PEOPLENET_RECIPE_PART, data: ciphertext }];
+};
 const stringValue = (value: unknown, fallback = ""): string =>
   typeof value === "string" ? value : fallback;
 const nullableString = (value: unknown): string | null =>
@@ -105,7 +126,7 @@ const mapMessage = (row: Row): Message => ({
   id: stringValue(row.id),
   conversationId: stringValue(row.conversation_id),
   role: row.role === "assistant" ? "assistant" : "user",
-  content: parseContent(row.content_json),
+  content: omitPrivateRecipe(parseContent(row.content_json)),
   createdAt: stringValue(row.created_at),
   updatedAt: stringValue(row.updated_at),
   status: isPersistedStatus(row.status) ? row.status : "incomplete",
@@ -971,23 +992,44 @@ export const createWorkspaceRepository = (database: DatabaseSync = getDatabase()
       conversationId: string,
       messageId: string,
       sources: ChatSource[],
+      recipe?: { ciphertext: string; generationId: string | null },
     ) =>
       withRepositoryWrite(() => {
         ensureConversation(database, companyId, conversationId);
         const message = database
           .prepare(
-            "SELECT content_json FROM messages WHERE id = ? AND conversation_id = ? AND role = 'assistant' AND status = 'running'",
+            "SELECT content_json, generation_id FROM messages WHERE id = ? AND conversation_id = ? AND role = 'assistant' AND status = 'running'",
           )
           .get(messageId, conversationId);
-        if (!message) return false;
+        if (
+          !message ||
+          (recipe &&
+            (message.generation_id !== recipe.generationId ||
+              readPrivateRecipe(parseContent(message.content_json))))
+        )
+          return false;
         database
           .prepare("UPDATE messages SET content_json = ? WHERE id = ?")
           .run(
-            serializeContent(withChatSources(parseContent(message.content_json), sources)),
+            serializeContent(
+              withPrivateRecipe(
+                withChatSources(parseContent(message.content_json), sources),
+                recipe?.ciphertext ?? readPrivateRecipe(parseContent(message.content_json)),
+              ),
+            ),
             messageId,
           );
         return true;
       }),
+    getPeopleNetRecipe: (companyId: CompanyId, conversationId: string, messageId: string) => {
+      ensureConversation(database, companyId, conversationId);
+      const row = database
+        .prepare(
+          "SELECT content_json FROM messages WHERE id = ? AND conversation_id = ? AND role = 'assistant' AND status = 'complete'",
+        )
+        .get(messageId, conversationId);
+      return readPrivateRecipe(parseContent(row?.content_json));
+    },
     updateMessage,
     finalizeMessage,
     setConversationHead,

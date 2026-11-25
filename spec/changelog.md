@@ -64,6 +64,20 @@
   La lógica de identidad se verificó también con un script tsx desechable. El
   primer intento de `npm test` falló por el directorio de trabajo en minúscula
   (ver la entrada anterior), no por la instalación.
+## 2026-11-25 - Function Calling de PeopleNet
+
+- El chat incorpora las siete lecturas de PeopleNet de Inicio con un registro
+  validado en servidor, llamadas encadenadas y cálculos sobre referencias de
+  la rama. Las tarjetas muestran tablas, cálculos y documentos disponibles.
+- Function Calling usa las tres variables globales de IA del chat. El
+  proveedor configurado recibe métricas minimizadas. La ruta local sigue
+  disponible si el proveedor rechaza o ignora las herramientas. Las recetas
+  de consulta se cifran con DPAPI CurrentUser, y las filas e importes
+  devueltos permanecen en memoria.
+- Pasaron 98 pruebas dirigidas, typecheck, build y formato del TypeScript
+  modificado. La verificación real de PeopleNet, DPAPI y del protocolo del
+  proveedor queda pendiente en la VM.
+
 ## 2026-11-25 - Integración del alta directa y el chat
 
 - El alta directa de `salvadev` y el asistente de `davidev` comparten una

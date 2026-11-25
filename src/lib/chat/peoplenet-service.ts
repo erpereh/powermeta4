@@ -115,6 +115,18 @@ function comparePeriods(
 
 export class PeopleNetScopeError extends Error {}
 
+export type PeopleNetDataset = {
+  action: PeopleNetAction;
+  columns: Column[];
+  rows: Table["rows"];
+  employeeId?: string;
+};
+export type PeopleNetRead = {
+  result: PeopleNetResult;
+  dataset?: PeopleNetDataset;
+  outcome: "ok" | "empty" | NonNullable<Table["outcome"]>;
+};
+
 export async function executePeopleNetQuery(
   query: PeopleNetQuery,
   auth: ResolvedAuthSession,
@@ -122,11 +134,24 @@ export async function executePeopleNetQuery(
   page: number,
   signal: AbortSignal,
 ): Promise<PeopleNetResult> {
+  return (await readPeopleNetQuery(query, auth, companyId, page, signal)).result;
+}
+
+export async function readPeopleNetQuery(
+  query: PeopleNetQuery,
+  auth: ResolvedAuthSession,
+  companyId: string,
+  page: number,
+  signal: AbortSignal,
+): Promise<PeopleNetRead> {
   const tool = getTool(query.action);
-  if (!tool?.implemented) throw new PeopleNetScopeError();
+  if (!Object.hasOwn(readers, query.action) || !tool?.implemented || tool.permissions.length)
+    throw new PeopleNetScopeError();
+  signal.throwIfAborted();
   const debug = auth.authContext.mode === "debug" && isDebugAuthEnabled();
   const operational = debug ? undefined : await getMeta4OperationalContext(auth);
   if (operational && operational.companyId !== companyId) throw new PeopleNetScopeError();
+  signal.throwIfAborted();
 
   const result: PeopleNetResult = {
     source: { label: tool.name, href: tool.route },
@@ -169,8 +194,11 @@ export async function executePeopleNetQuery(
         candidates = (await directory()).filter((user) => user.id === id);
       } else
         return {
-          ...result,
-          message: "PeopleNet no ha podido confirmar tu identidad. Puedes indicar una matrícula.",
+          outcome: "missing",
+          result: {
+            ...result,
+            message: "PeopleNet no ha podido confirmar tu identidad. Puedes indicar una matrícula.",
+          },
         };
     } else {
       const people = await directory();
@@ -187,19 +215,25 @@ export async function executePeopleNetQuery(
     }
     if (candidates.length === 0)
       return {
-        ...result,
-        message: "No se ha encontrado a esa persona en el listado de la sociedad activa.",
+        outcome: "empty",
+        result: {
+          ...result,
+          message: "No se ha encontrado a esa persona en el listado de la sociedad activa.",
+        },
       };
     if (candidates.length > 1)
       return {
-        ...result,
-        columns: ["Matrícula", "Nombre"],
-        total: candidates.length,
-        rows: candidates
-          .slice(page * PEOPLENET_PAGE_SIZE, (page + 1) * PEOPLENET_PAGE_SIZE)
-          .map(({ id, fullName }) => [id, fullName]),
-        message:
-          "Hay varias personas que coinciden. Responde con la matrícula que quieres consultar.",
+        outcome: "ambiguous",
+        result: {
+          ...result,
+          columns: ["Matrícula", "Nombre"],
+          total: candidates.length,
+          rows: candidates
+            .slice(page * PEOPLENET_PAGE_SIZE, (page + 1) * PEOPLENET_PAGE_SIZE)
+            .map(({ id, fullName }) => [id, fullName]),
+          message:
+            "Hay varias personas que coinciden. Responde con la matrícula que quieres consultar.",
+        },
       };
     [employee] = candidates;
   }
@@ -266,8 +300,15 @@ export async function executePeopleNetQuery(
     result.filters.push("Con correo principal informado");
   }
 
-  const selected =
-    query.includeColumns || table.defaultKeys ? mentionedColumns(table.columns, query.text) : [];
+  const selected = query.structured
+    ? table.columns.filter(
+        ({ key }) =>
+          query.structured?.metrics.includes(key) ||
+          (key === "email" && query.structured?.showEmail),
+      )
+    : query.includeColumns || table.defaultKeys
+      ? mentionedColumns(table.columns, query.text)
+      : [];
   const metricColumns = selected.some(({ unit }) => unit) ? selected : table.columns;
   let columns = selected.length
     ? table.columns.filter(
@@ -323,15 +364,35 @@ export async function executePeopleNetQuery(
       message ??=
         "Se muestran los valores disponibles. Para calcular la diferencia hacen falta dos periodos con valores comparables.";
   }
+  const invalidFilter = query.filters.some(
+    ({ field }) => !table.columns.some(({ key }) => key === field),
+  );
+  const invalidMetric = query.structured?.metrics.some(
+    (metric) => !table.columns.some(({ key }) => key === metric),
+  );
+  if (invalidMetric)
+    message ??= "La vista seleccionada no contiene todas las métricas solicitadas.";
+  if (!rows.length && !table.document) message ??= "No hay datos para estos filtros.";
   return {
-    ...result,
-    calculations,
-    message,
-    document: table.document,
-    total: rows.length,
-    columns: columns.map(({ label }) => label),
-    rows: rows
-      .slice(page * PEOPLENET_PAGE_SIZE, (page + 1) * PEOPLENET_PAGE_SIZE)
-      .map((row) => columns.map(({ key }) => row[key] ?? null)),
+    outcome:
+      table.outcome ??
+      (invalidFilter || invalidMetric ? "missing" : rows.length || table.document ? "ok" : "empty"),
+    result: {
+      ...result,
+      calculations,
+      message,
+      document: table.document,
+      total: rows.length,
+      columns: columns.map(({ label }) => label),
+      rows: rows
+        .slice(page * PEOPLENET_PAGE_SIZE, (page + 1) * PEOPLENET_PAGE_SIZE)
+        .map((row) => columns.map(({ key }) => row[key] ?? null)),
+    },
+    dataset: {
+      action: query.action,
+      columns: table.columns,
+      rows,
+      employeeId: employee?.id ?? table.employeeId,
+    },
   };
 }

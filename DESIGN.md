@@ -408,7 +408,9 @@ elegidos en el servidor.
 Se conservan streaming, cancelación, estados persistidos, edición,
 regeneración, ramas y `headMessageId`.
 
-Las consultas de PeopleNet aparecen como tarjetas en el mensaje del asistente.
+Las consultas y cruces de PeopleNet aparecen como tarjetas en el mensaje del
+asistente, una por operación. El texto indica si se calculó un resultado, si
+faltan filtros o si hay varias coincidencias que el usuario debe concretar.
 El primer resultado se abre al completar el turno. «Ver resultado» vuelve a
 leer los datos con la sesión y la sociedad vigentes. Las tablas paginan a 25
 filas y su desplazamiento horizontal queda dentro de la tarjeta. La acción de

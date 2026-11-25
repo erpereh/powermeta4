@@ -39,6 +39,8 @@ export type Table = {
   document?: { label: string; href: string };
   calculations?: PeopleNetResult["calculations"];
   defaultKeys?: string[];
+  outcome?: "missing" | "ambiguous" | "partial" | "unavailable";
+  employeeId?: string;
 };
 type Employee = {
   id: string;
@@ -75,7 +77,12 @@ const conceptColumn = column("concept", "Concepto");
 const fold = normalizeUsersSearch;
 const contains = (value: PeopleNetCell | undefined, filter: string) =>
   typeof value === "string" && fold(value).includes(fold(filter));
-const empty = (message: string): Table => ({ columns: [], rows: [], message });
+const empty = (message: string, outcome: Table["outcome"] = "missing"): Table => ({
+  columns: [],
+  rows: [],
+  message,
+  outcome,
+});
 
 export async function readDirectory(
   debug: boolean,
@@ -163,7 +170,7 @@ export async function readUsers(query: PeopleNetQuery, context: ReadContext): Pr
     center: employee.center,
     job: employee.job,
   }));
-  if (!context.employee || !/\bficha\b|correo(?:s)? historico/.test(query.text))
+  if (query.structured || !context.employee || !/\bficha\b|correo(?:s)? historico/.test(query.text))
     return { columns, rows, defaultKeys: ["id", "name", "user"] };
   if (context.debug) return { columns, rows };
   const detail = await getPeopleNetEmployeeDetail(context.employee.id, context.society);
@@ -255,12 +262,14 @@ export async function readPayroll(query: PeopleNetQuery, context: ReadContext): 
         receipts.set(receipt.paymentDate + "/" + receipt.id, receipt);
       missing += result.missing.length;
     } catch (error) {
-      if (error instanceof PayrollReceiptError) return empty(error.message);
+      if (error instanceof PayrollReceiptError) return empty(error.message, "unavailable");
       throw error;
     }
   }
   const entries = [...receipts.values()];
-  const lines = /\b(?:desglos\w*|conceptos?|lineas|detalle)\b/.test(query.text) && !query.compare;
+  const lines =
+    query.structured?.detail ??
+    (/\b(?:desglos\w*|conceptos?|lineas|detalle)\b/.test(query.text) && !query.compare);
   const currencies = new Set(entries.map(({ receipt }) => receipt.currencyId));
   const currency = currencies.size === 1 ? entries[0]?.receipt.currencyId : undefined;
   const earnings = amount("earnings", "Devengos", ["devengado", "bruto"]);
@@ -285,9 +294,15 @@ export async function readPayroll(query: PeopleNetQuery, context: ReadContext): 
         amount("ss", "Cuota Seguridad Social", ["seguridad social"]),
       ];
   return {
+    outcome: missing ? "partial" : undefined,
     columns: columns.map((item) => (item.unit ? { ...item, unit: currency } : item)),
     rows: entries.flatMap(({ paymentDate, payName, receipt }): Row[] => {
-      const base = { period: paymentDate, pay: payName, currency: receipt.currencyId };
+      const base = {
+        period: paymentDate,
+        pay: payName,
+        currency: receipt.currencyId,
+        id: context.employee?.id ?? null,
+      };
       if (!lines)
         return [
           {
@@ -302,7 +317,9 @@ export async function readPayroll(query: PeopleNetQuery, context: ReadContext): 
         ];
       return receipt.lines
         .filter(
-          (line) => line.section === "concept" || /\b(?:informativ|coste empresa)/.test(query.text),
+          (line) =>
+            line.section === "concept" ||
+            (query.structured?.informative ?? /\b(?:informativ|coste empresa)/.test(query.text)),
         )
         .map((line) => ({
           ...base,
@@ -392,14 +409,16 @@ export async function readPayrollResults(
     (run) =>
       (!query.report ||
         contains(run.reportName, query.report) ||
-        fold(run.reportId) === query.report) &&
+        fold(run.reportId) === fold(query.report)) &&
       (!query.runDate || run.runAt.toLowerCase().startsWith(query.runDate)) &&
       (!ranges.length || ranges.some(([from, to]) => run.accruedOn >= from && run.accruedOn <= to)),
   );
   const showRuns =
-    matching.length !== 1 || /\b(?:lista|listar) (?:las )?ejecuciones\b/.test(query.text);
+    matching.length !== 1 ||
+    (query.structured?.listRuns ?? /\b(?:lista|listar) (?:las )?ejecuciones\b/.test(query.text));
   if (showRuns)
     return {
+      outcome: matching.length > 1 && !query.structured?.listRuns ? "ambiguous" : undefined,
       columns: [
         column("report", "Informe"),
         column("id", "ID de informe"),
@@ -423,14 +442,21 @@ export async function readPayrollResults(
     };
   const run = matching[0];
   const detail = context.debug ? sampleRunDetail : await getPayrollReportRun(context.society, run);
-  if (!detail) return empty("La ejecución seleccionada ya no está disponible.");
+  if (!detail) return empty("La ejecución seleccionada ya no está disponible.", "unavailable");
+  const recognized = new Set<string>();
   const columns = detail.headers.map((header, index) => {
     const normalized = fold(header.trim());
-    const key = /^(?:id empleado|matricula|empleado|id hr|id_hr)$/.test(normalized)
+    const semanticKey = /^(?:id empleado|matricula|empleado|id hr|id_hr)$/.test(normalized)
       ? "id"
       : /^(?:id )?centro(?: de coste| trabajo| de trabajo)?$/.test(normalized)
         ? "center"
-        : "col" + index;
+        : normalized === "salario base"
+          ? "baseSalary"
+          : normalized === "liquido"
+            ? "net"
+            : undefined;
+    const key = semanticKey && !recognized.has(semanticKey) ? semanticKey : "col" + index;
+    recognized.add(key);
     const numeric = detail.rows.some(
       (row) => typeof payrollReportCell(row[index] ?? "", header) === "number",
     );
@@ -453,7 +479,9 @@ export async function readPayrollResults(
     );
   return {
     columns,
-    rows: rows.filter((row) => !context.employee || row.id === context.employee.id),
+    rows: rows
+      .filter((row) => !context.employee || row.id === context.employee.id)
+      .map((row) => ({ ...row, period: run.accruedOn })),
   };
 }
 
@@ -476,8 +504,18 @@ export async function readProjections(query: PeopleNetQuery, context: ReadContex
     }
     if (result.data.report) reports.push(result.data.report);
   }
-  const detail = /\b(?:por paga|conceptos?|desglos\w*)\b/.test(query.text) && !query.compare;
+  const detail =
+    query.structured?.detail ??
+    (/\b(?:por paga|conceptos?|desglos\w*)\b/.test(query.text) && !query.compare);
   return {
+    outcome: notices.length ? (reports.length ? "partial" : "unavailable") : undefined,
+    employeeId:
+      context.employee?.id ??
+      (portal.mode === "meta4" && portal.identity.status === "resolved"
+        ? portal.identity.person.employeeId
+        : context.debug
+          ? debugSelection().actor
+          : undefined),
     columns: detail
       ? [
           yearColumn,
@@ -556,7 +594,7 @@ export async function readCertificates(
       notices.push(result.message);
       continue;
     }
-    if (/\b(?:ejercicios|anos) disponibles\b/.test(query.text)) {
+    if (query.structured?.listYears ?? /\b(?:ejercicios|anos) disponibles\b/.test(query.text)) {
       return {
         columns: [yearColumn],
         rows: result.page.years.map((entry) => ({ year: entry.year })),
@@ -596,6 +634,14 @@ export async function readCertificates(
     }
   }
   return {
+    outcome: notices.length && !document ? (rows.length ? "partial" : "unavailable") : undefined,
+    employeeId:
+      context.employee?.id ??
+      (portal.mode === "meta4" && portal.identity.status === "resolved"
+        ? portal.identity.person.employeeId
+        : context.debug
+          ? debugSelection().actor
+          : undefined),
     columns: [yearColumn, conceptColumn, amount("amount", "Importe")],
     rows,
     document,
@@ -647,6 +693,7 @@ export async function readPrimavera(query: PeopleNetQuery, context: ReadContext)
       : await getPrimaveraReport(context.society, period);
     for (const { month, rows: employees } of report.months)
       for (const employee of employees) {
+        if (context.employee && employee.employeeId !== context.employee.id) continue;
         if (context.employee && employee.employeeId !== context.employee.id) continue;
         const key = year + "-" + pad(month);
         rows.set(key + "/" + employee.employeeId, {

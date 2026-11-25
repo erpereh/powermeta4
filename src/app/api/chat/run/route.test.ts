@@ -170,7 +170,7 @@ beforeEach(() => {
 });
 
 describe("POST /api/chat/run", () => {
-  it("routes PeopleNet before accessing the external provider", async () => {
+  it("routes PeopleNet locally when the provider lacks tool support", async () => {
     mocks.getConversation.mockResolvedValue(
       chat([
         message("user-1", "user", null, "Listado de usuarios con correo principal"),
@@ -183,7 +183,7 @@ describe("POST /api/chat/run", () => {
       { type: "content", content: [{ type: "text", text: "Consulta de PeopleNet" }] },
     ]);
     expect(mocks.setMessageSources).toHaveBeenCalledOnce();
-    expect(mocks.getChatProvider).not.toHaveBeenCalled();
+    expect(mocks.streamResponse).not.toHaveBeenCalled();
     expect(mocks.retrieveRelevantChunks).not.toHaveBeenCalled();
   });
 

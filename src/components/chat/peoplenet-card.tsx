@@ -26,23 +26,38 @@ export function PeopleNetCard() {
   const context = useContext(PeopleNetChatContext);
   const messageId = useAuiState((state) => state.message.id);
   const complete = useAuiState((state) => state.message.status?.type === "complete");
-  const action = useWorkspaceStore((state) => {
+  const content = useWorkspaceStore((state) => {
     if (!context || state.activeCompanyId !== context.companyId) return undefined;
     const chat = state.workspaces[context.companyId]?.chats.find(({ id }) => id === context.chatId);
     const message = chat?.messages.find(({ id }) => id === messageId);
     if (message?.status !== "complete") return undefined;
-    return readChatSources(message.content).find((source) => source.kind === "peoplenet")?.id;
+    return message.content;
   });
-  const title = action ? getTool(action)?.name : undefined;
-  if (!context || !complete || !title) return null;
-  return (
-    <PeopleNetResultCard
-      key={messageId}
-      {...context}
-      messageId={messageId}
-      title={title}
-      autoOpen={context.autoOpenMessageId === messageId}
-    />
+  if (!context || !complete || !content) return null;
+  const calls = readChatSources(content).flatMap<{ title?: string; callId?: string }>((source) => {
+    if (source.kind === "peoplenet")
+      return [{ title: getTool(source.id)?.name, callId: undefined }];
+    if (source.kind === "peoplenet-call")
+      return [
+        {
+          title:
+            source.action === "analysis" ? "Análisis de PeopleNet" : getTool(source.action)?.name,
+          callId: source.id,
+        },
+      ];
+    return [];
+  });
+  return calls.map(({ title, callId }, index) =>
+    title ? (
+      <PeopleNetResultCard
+        key={`${messageId}/${callId ?? "legacy"}`}
+        {...context}
+        messageId={messageId}
+        callId={callId}
+        title={title}
+        autoOpen={index === 0 && context.autoOpenMessageId === messageId}
+      />
+    ) : null,
   );
 }
 
@@ -55,12 +70,14 @@ function PeopleNetResultCard({
   companyId,
   chatId,
   messageId,
+  callId,
   title,
   autoOpen,
 }: {
   companyId: string;
   chatId: string;
   messageId: string;
+  callId?: string;
   title: string;
   autoOpen: boolean;
 }) {
@@ -80,6 +97,7 @@ function PeopleNetResultCard({
             companyId,
             conversationId: chatId,
             assistantMessageId: messageId,
+            callId,
             page,
           }),
           signal: controller.signal,
@@ -107,7 +125,7 @@ function PeopleNetResultCard({
     }
     void load();
     return () => controller.abort();
-  }, [attempt, chatId, companyId, messageId, page]);
+  }, [attempt, callId, chatId, companyId, messageId, page]);
 
   function changePage(next: number | null) {
     setState({ type: "loading" });

@@ -2,7 +2,12 @@
 
 import { BookOpen, Download, ExternalLink, FileText } from "lucide-react";
 
-import { attachmentDownloadUrl, readChatSources, type ChatSource } from "@/lib/chat/chat-data";
+import {
+  attachmentDownloadUrl,
+  isPeopleNetSource,
+  readChatSources,
+  type ChatSource,
+} from "@/lib/chat/chat-data";
 import { getMessagePlainText } from "@/lib/chat/to-thread-message";
 import { visibleMessages } from "@/lib/chat/visible-messages";
 import type { Chat } from "@/types/chat";
@@ -25,7 +30,7 @@ export function ChatSources({ chat, companyId }: { chat: Chat; companyId: string
   const byId = new Map(branch.map((message) => [message.id, message]));
   const turns = branch.toReversed().flatMap((message) => {
     if (message.role !== "assistant") return [];
-    const sources = readChatSources(message.content).filter(({ kind }) => kind !== "peoplenet");
+    const sources = readChatSources(message.content).filter((source) => !isPeopleNetSource(source));
     if (!sources.length) return [];
     const question = byId.get(message.parentMessageId ?? "");
     return [

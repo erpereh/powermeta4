@@ -22,6 +22,22 @@
 - [x] Aclarado por qué `npm test` parecía no arrancar: vitest falla si el
       directorio de trabajo llega como `c:\Users\…` en minúscula; desde
       `C:/Users/...` la suite se ejecuta con normalidad.
+## Function Calling de PeopleNet — 2026-11-25
+
+- [x] Registrar las siete lecturas de Inicio, implementar el encadenamiento,
+      los cálculos y cruces en servidor, y mostrar sus tarjetas en el chat.
+- [x] Usar la configuración global del chat para Function Calling, volver a
+      validar sesión y sociedad durante la lectura y guardar la receta cifrada.
+- [x] Ejecutar 98 pruebas dirigidas en ocho archivos. Las nuevas usan PeopleNet
+      DEBUG y un proveedor simulado. Pasaron typecheck, build y formato de los
+      archivos TypeScript modificados. El lint global mantiene incidencias
+      preexistentes de formato en el repositorio.
+- [x] Verificar que el chat vuelve al flujo anterior si el proveedor rechaza
+      las herramientas con HTTP 404 o responde con texto sin llamadas.
+- [ ] En la VM, con DEBUG desactivado, contrastar las siete lecturas con Inicio,
+      encadenar consultas con el proveedor autorizado y comprobar aislamiento
+      por sociedad, reapertura de tarjetas, DPAPI y enlaces a documentos.
+
 ## Integración de ramas — 2026-11-25
 
 - [x] Integrar el alta directa de `salvadev` y el chatbot de `davidev`

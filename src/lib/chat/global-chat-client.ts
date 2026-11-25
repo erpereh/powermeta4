@@ -1,5 +1,8 @@
 import "server-only";
 
+import { z } from "zod";
+import type { ChatTools } from "@/lib/ai/chat-provider";
+
 export type GlobalChatStatus = {
   configured: boolean;
   model: string | null;
@@ -265,3 +268,132 @@ export const getGlobalChatStatus = (): GlobalChatStatus => {
     throw error;
   }
 };
+
+const toolTurn = z.object({
+  role: z.literal("assistant"),
+  content: z.string().max(16000).nullable().optional(),
+  tool_calls: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(256),
+        type: z.literal("function"),
+        function: z.object({
+          name: z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+          arguments: z.string().max(4096),
+        }),
+        extra_content: z
+          .object({ google: z.object({ thought_signature: z.string().max(16384) }) })
+          .optional(),
+      }),
+    )
+    .max(10)
+    .nullable()
+    .optional(),
+});
+const toolResponse = z.object({
+  choices: z
+    .array(
+      z.object({
+        message: toolTurn,
+        finish_reason: z.string().nullable().optional(),
+      }),
+    )
+    .length(1),
+});
+export function getGlobalChatTools(): ChatTools | undefined {
+  const configuration = getToolChatConfiguration();
+  if (!configuration) return;
+
+  return {
+    async complete({ messages, tools, abortSignal }) {
+      // Keep the same server-configured connection throughout a tool run.
+      const current = getToolChatConfiguration();
+      if (
+        !current ||
+        current.endpoint !== configuration.endpoint ||
+        current.model !== configuration.model ||
+        current.apiKey !== configuration.apiKey
+      ) {
+        throw new GlobalChatError("CHAT_CONFIG_UNAVAILABLE");
+      }
+      let response: Response;
+      try {
+        response = await fetch(configuration.endpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${configuration.apiKey}`,
+            "Content-Type": "application/json",
+          },
+          redirect: "error",
+          cache: "no-store",
+          signal: abortSignal,
+          body: JSON.stringify({
+            model: configuration.model,
+            messages,
+            tools,
+            tool_choice: "auto",
+            stream: false,
+          }),
+        });
+      } catch (error) {
+        if (isAbortError(error, abortSignal)) throw error;
+        throw new GlobalChatError("CHAT_NETWORK_ERROR");
+      }
+      if (!response.ok) throw errorForStatus(response.status);
+      const parsed = toolResponse.safeParse(await readBoundedToolResponse(response));
+      const choice = parsed.success ? parsed.data.choices[0] : undefined;
+      if (!choice || choice.finish_reason === "length" || choice.finish_reason === "content_filter")
+        throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+      const { tool_calls, content } = choice.message;
+      if (
+        (choice.finish_reason === "tool_calls" && !tool_calls?.length) ||
+        (!tool_calls?.length && !content?.trim()) ||
+        (tool_calls && new Set(tool_calls.map(({ id }) => id)).size !== tool_calls.length)
+      )
+        throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+      return {
+        role: "assistant",
+        content: content ?? null,
+        ...(tool_calls?.length ? { tool_calls } : {}),
+      };
+    },
+  };
+}
+
+function getToolChatConfiguration() {
+  try {
+    const configuration = readGlobalChatConfiguration();
+    const url = new URL(configuration.endpoint);
+    if (url.username || url.password) return;
+    if (url.protocol === "https:" || ["127.0.0.1", "[::1]", "localhost"].includes(url.hostname))
+      return configuration;
+  } catch (error) {
+    if (!(error instanceof GlobalChatConfigurationError)) throw error;
+  }
+}
+
+async function readBoundedToolResponse(response: Response): Promise<unknown> {
+  const reader = response.body?.getReader();
+  if (!reader) throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+  const decoder = new TextDecoder();
+  let body = "";
+  let size = 0;
+  try {
+    for (;;) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > 256 * 1024) {
+        await reader.cancel();
+        throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+      }
+      body += decoder.decode(chunk.value, { stream: true });
+    }
+    return JSON.parse(body + decoder.decode()) as unknown;
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+  } finally {
+    reader.releaseLock();
+  }
+}

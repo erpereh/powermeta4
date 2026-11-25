@@ -32,6 +32,14 @@ export type PeopleNetQuery = {
   mismatchesOnly: boolean;
   payGroup: PayrollPayFilter;
   paymentType: PayrollPaymentType;
+  structured?: {
+    metrics: string[];
+    detail: boolean;
+    informative: boolean;
+    listRuns: boolean;
+    listYears: boolean;
+    showEmail: boolean;
+  };
 };
 
 export type PeopleNetTurn =
