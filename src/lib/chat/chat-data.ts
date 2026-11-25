@@ -17,6 +17,7 @@ export const ATTACHMENT_ACCEPT = Object.keys(ATTACHMENT_MIME_TYPES)
   .join(",");
 export const ATTACHMENTS_PART = "powermeta4-attachments";
 export const SOURCES_PART = "powermeta4-sources";
+export const PEOPLENET_RECIPE_PART = "powermeta4-peoplenet-recipe";
 
 export const attachmentSchema = z.object({
   id: z.string().uuid(),
@@ -47,10 +48,25 @@ export const sourcesSchema = z
         id: z.enum(PEOPLENET_ACTIONS),
         name: z.literal("PeopleNet"),
       }),
+      z.object({
+        kind: z.literal("peoplenet-call"),
+        id: z.string().uuid(),
+        action: z.enum([...PEOPLENET_ACTIONS, "analysis"]),
+        name: z.literal("PeopleNet"),
+      }),
+      z.object({
+        kind: z.literal("peoplenet-context"),
+        id: z.literal("peoplenet"),
+        name: z.literal("PeopleNet"),
+      }),
     ]),
   )
   .max(24);
 export type ChatSource = z.infer<typeof sourcesSchema>[number];
+export const isPeopleNetSource = (source: ChatSource) =>
+  source.kind === "peoplenet" ||
+  source.kind === "peoplenet-call" ||
+  source.kind === "peoplenet-context";
 
 export const readChatAttachments = (content: MessageContent): ChatAttachment[] => {
   const part =
@@ -78,7 +94,10 @@ export const stripInternalParts = (content: MessageContent) =>
     ? content
     : content.filter(
         (part) =>
-          part.type !== "data" || (part.name !== ATTACHMENTS_PART && part.name !== SOURCES_PART),
+          part.type !== "data" ||
+          (part.name !== ATTACHMENTS_PART &&
+            part.name !== SOURCES_PART &&
+            part.name !== PEOPLENET_RECIPE_PART),
       );
 
 export const withChatAttachments = (

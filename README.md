@@ -92,14 +92,32 @@ pendientes. La generación publicada se puede trasladar mediante los comandos
 `kb:export` y `kb:import`.
 Configuración y evaluación en la [guía del RAG](docs/knowledge-base-rag.md).
 
-El chat detecta consultas de usuarios, recibos de nómina, quinquenal,
-resultados de nómina, proyecciones, certificado de retenciones y Primavera.
-Por ejemplo, «Consulta la nómina de matrícula 90001 de octubre de 2026»
-funciona con datos ficticios en DEBUG. Con sesión Meta4 usa el alcance de
-la acción de Inicio y la sociedad resuelta en servidor. Usa `PeopleNet:`
-para indicar que una pregunta ambigua pide datos operativos. Las filas no
-se envían al proveedor ni se guardan en el transcript. «Ver resultado»
-vuelve a consultar la referencia del turno con la sesión vigente.
+El chat puede consultar usuarios, recibos de nómina, quinquenal, resultados de
+nómina, proyecciones, certificados de retenciones y Primavera. El proveedor
+autorizado elige las lecturas con Function Calling y puede encadenarlas. El
+servidor aplica el alcance de Inicio y la sociedad activa, y calcula recuentos,
+sumas, medias, diferencias, variaciones y cruces. Las tarjetas muestran las
+filas y los documentos disponibles. «Ver resultado» vuelve a leer con la
+sesión vigente. Las recetas de consulta se cifran con DPAPI CurrentUser y las
+filas e importes devueltos se mantienen en memoria.
+
+Para activar Function Calling en la VM, configurar en el servidor
+`AI_PEOPLENET_APPROVED_ENDPOINT` con la URL aprobada de Chat Completions y
+`AI_PEOPLENET_APPROVED_MODEL` con el modelo aprobado. Deben coincidir con
+`AI_BASE_URL` normalizada a `/chat/completions` y con `AI_MODEL`. Usar HTTPS
+o una dirección de loopback. El proveedor autorizado recibe métricas mínimas
+y referencias opacas. Los valores identificativos obtenidos de PeopleNet, los
+archivos y las tablas completas quedan en local. Con la autorización vacía o
+ante un rechazo explícito de Function Calling, las consultas locales siguen
+disponibles. El alta de personas permanece en su formulario de Inicio.
+
+Para probar en DEBUG con datos ficticios, iniciar una sesión DEBUG en
+`npm run dev` y configurar un endpoint de pruebas que admita Tools. Por
+ejemplo, pedir «Busca a Ana López, revisa su nómina de octubre de 2026 y su
+proyección del mismo ejercicio». En la VM, validar con DEBUG desactivado,
+una sesión Meta4 y el proveedor autorizado. Contrastar cada lectura con
+Inicio, cambiar de sociedad durante una consulta y comprobar los enlaces
+y la reapertura de tarjetas bajo la cuenta Windows del servicio.
 
 SOAP Meta4, DPAPI CurrentUser y las cookies HttpOnly opacas permanecen
 server-only. Tras un login Meta4 real se consulta el perfil de usuario

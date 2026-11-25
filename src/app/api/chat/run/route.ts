@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentAuthContext, deleteSessionCookie } from "@/lib/auth/session";
-import type { ChatMessage } from "@/lib/ai/chat-provider";
+import type { ChatMessage, ChatProvider } from "@/lib/ai/chat-provider";
 import { getChatProvider } from "@/lib/ai/get-chat-provider";
 import {
   ChatHistoryError,
@@ -12,10 +12,19 @@ import {
 import {
   attachmentRefsFromBranch,
   readChatAttachments,
+  readChatSources,
   type ChatSource,
 } from "@/lib/chat/chat-data";
 import { loadChatAttachmentContext } from "@/lib/chat/attachment-service";
 import { getPeopleNetBranch } from "@/lib/chat/peoplenet-branch";
+import {
+  openPeopleNetRecipe,
+  recipeScope,
+  sealPeopleNetRecipe,
+  type RunRecipe,
+} from "@/lib/chat/peoplenet-recipes";
+import { runPeopleNetTools } from "@/lib/chat/peoplenet-run";
+import { PeopleNetScopeError } from "@/lib/chat/peoplenet-service";
 import { getWorkspaceRepository, getWorkspaceScope } from "@/lib/workspace/service";
 import { knowledgeRoot, readPointer } from "@/lib/knowledge/manuals/config";
 import {
@@ -63,6 +72,9 @@ const readId = (value: unknown): string | null =>
 
 const attachmentMention =
   /\b(?:adjunt\w*|(?:el|ese|este|aquel|los|estos) (?:archivos?|pdfs?|xlsx|excel|csv|ficheros?|documentos?))\b/i;
+
+const documentaryRequest =
+  /\b(?:según (?:el |los )?manual|documentación|paso a paso|cómo (?:se|puedo|funciona)|service pack|ram-?dl|sp\d{5}sp\d{3})\b/i;
 
 const encodeSse = (payload: InternalChatEvent): string => `data: ${JSON.stringify(payload)}\n\n`;
 
@@ -173,7 +185,8 @@ export async function POST(request: Request) {
   }
   const availableFiles = attachmentRefsFromBranch(publicHistory);
   const latestContent = users.at(-1)?.content ?? "";
-  const latestText = textContent(latestContent).toLowerCase();
+  const latestInput = textContent(latestContent);
+  const latestText = latestInput.toLowerCase();
   const namedFiles = availableFiles.filter(({ name }) => latestText.includes(name.toLowerCase()));
   const selectedFileIds = new Set(
     [...namedFiles, ...readChatAttachments(latestContent)].map(({ id }) => id),
@@ -198,6 +211,128 @@ export async function POST(request: Request) {
       };
 
       try {
+        let chatProvider: ChatProvider | undefined;
+        const localOnly =
+          turn.kind === "unavailable" ||
+          (turn.kind === "clarify" && /\b(?:escrituras|quita los datos)\b/.test(turn.text));
+        const keepDocumentary =
+          turn.kind === "general" &&
+          (refs.length > 0 ||
+            (search.isDocumental &&
+              (documentaryRequest.test(latestText) ||
+                (search.continuesTopic && users.length > 1))));
+        if (
+          !localOnly &&
+          !keepDocumentary &&
+          latestInput.trim() &&
+          process.env.AI_PEOPLENET_APPROVED_ENDPOINT?.trim() &&
+          process.env.AI_PEOPLENET_APPROVED_MODEL?.trim()
+        ) {
+          chatProvider = getChatProvider();
+          const tools = chatProvider.getPeopleNetTools?.();
+          if (tools) {
+            const repository = getWorkspaceRepository();
+            const assertScope = async () => {
+              request.signal.throwIfAborted();
+              const current = await getCurrentAuthContext();
+              if (
+                !current ||
+                current.sessionId !== authSession.sessionId ||
+                current.authContext.mode !== authSession.authContext.mode ||
+                current.authContext.username !== authSession.authContext.username
+              )
+                throw new PeopleNetScopeError();
+              const active = await getWorkspaceScope(current.authContext);
+              if (
+                active.activeCompanyId !== companyId ||
+                !active.companies.some(({ id }) => id === companyId)
+              )
+                throw new PeopleNetScopeError();
+            };
+            await assertScope();
+            const previous: RunRecipe[] = [];
+            const marked = branch
+              .filter(
+                (message) =>
+                  message.role === "assistant" &&
+                  message.status === "complete" &&
+                  readChatSources(message.content).some(
+                    ({ kind }) => kind === "peoplenet-call" || kind === "peoplenet-context",
+                  ),
+              )
+              .slice(-3);
+            for (const message of marked) {
+              const ciphertext = repository.getPeopleNetRecipe(
+                companyId,
+                conversationId,
+                message.id,
+              );
+              if (!ciphertext) continue;
+              const saved = await openPeopleNetRecipe(
+                ciphertext,
+                recipeScope(authSession, companyId, conversationId, message.id),
+              );
+              if (saved) previous.push(saved);
+            }
+            const last = previous.at(-1);
+            const continuesPeopleNet =
+              turn.kind !== "general" ||
+              search.continuesTopic ||
+              /^\p{Lu}[\p{L}'-]+(?: \p{Lu}[\p{L}'-]+){1,3}[.!]?$/u.test(latestInput.trim());
+            const pending =
+              continuesPeopleNet && last?.needsInput && branch.at(-2)?.id === last.messageId
+                ? users.find(({ id }) => id === branch.at(-2)?.parentMessageId)
+                : undefined;
+            const outcome = await runPeopleNetTools({
+              auth: authSession,
+              companyId,
+              signal: request.signal,
+              assertScope,
+              provider: tools,
+              input: latestInput,
+              previous,
+              pendingQuestion: pending ? textContent(pending.content) : undefined,
+              knownOperational: turn.kind !== "general",
+              onOperational: async () => {
+                await assertScope();
+                if (
+                  !(await repository.setMessageSources(
+                    companyId,
+                    conversationId,
+                    assistantMessageId,
+                    [{ kind: "peoplenet-context", id: "peoplenet", name: "PeopleNet" }],
+                  ))
+                )
+                  throw new PeopleNetScopeError();
+              },
+            });
+            if (outcome.kind === "operational") {
+              await assertScope();
+              const ciphertext = await sealPeopleNetRecipe(
+                recipeScope(authSession, companyId, conversationId, assistantMessageId),
+                {
+                  calls: outcome.calls,
+                  dependencies: outcome.dependencies,
+                  needsInput: outcome.needsInput,
+                },
+              );
+              await assertScope();
+              if (
+                !(await repository.setMessageSources(
+                  companyId,
+                  conversationId,
+                  assistantMessageId,
+                  outcome.sources,
+                  { ciphertext, generationId: assistantMessage.generationId ?? null },
+                ))
+              )
+                return;
+              if (send({ type: "sources", sources: outcome.sources }))
+                send({ type: "content", content: [{ type: "text", text: outcome.text }] });
+              return;
+            }
+          }
+        }
         if (turn.kind !== "general") {
           if (turn.kind === "query") {
             const sources: ChatSource[] = [
@@ -231,7 +366,7 @@ export async function POST(request: Request) {
           });
           return;
         }
-        const chatProvider = getChatProvider();
+        chatProvider ??= getChatProvider();
         if (!chatProvider.getStatus().configured) {
           send({
             type: "error",
@@ -383,15 +518,17 @@ export async function POST(request: Request) {
         }
       } catch (error) {
         if (!isAbortError(error, request.signal)) {
+          if (error instanceof PeopleNetScopeError) {
+            send({
+              type: "error",
+              errorCode: "COMPANY_MISMATCH",
+              message: "La consulta ya no pertenece a la sociedad activa.",
+            });
+            return;
+          }
           console.error(
             "[chat] provider streaming failed",
-            error instanceof Error
-              ? {
-                  name: error.name,
-                  message: error.message,
-                  code: (error as { code?: string }).code,
-                }
-              : error,
+            error instanceof Error ? { name: error.name } : { name: "unknown" },
           );
           send(toInternalError(error));
         }

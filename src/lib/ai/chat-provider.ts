@@ -19,6 +19,40 @@ export type ChatStatus = {
   model: string | null;
 };
 
+export type ChatToolDefinition = {
+  type: "function";
+  function: { name: string; description: string; parameters: Record<string, unknown> };
+};
+
+export type ChatToolCall = {
+  id: string;
+  type: "function";
+  function: { name: string; arguments: string };
+  extra_content?: { google: { thought_signature: string } };
+};
+
+export type ChatToolTurn = {
+  role: "assistant";
+  content: string | null;
+  tool_calls?: ChatToolCall[];
+};
+export type ChatToolMessage =
+  | ChatMessage
+  | ChatToolTurn
+  | {
+      role: "tool";
+      tool_call_id: string;
+      content: string;
+    };
+
+export type ChatTools = {
+  complete: (options: {
+    messages: readonly ChatToolMessage[];
+    tools: readonly ChatToolDefinition[];
+    abortSignal: AbortSignal;
+  }) => Promise<ChatToolTurn>;
+};
+
 export interface ChatProvider {
   readonly name: string;
   streamResponse(options: {
@@ -26,4 +60,5 @@ export interface ChatProvider {
     abortSignal?: AbortSignal;
   }): AsyncGenerator<string>;
   getStatus(): ChatStatus;
+  getPeopleNetTools?(): ChatTools | undefined;
 }

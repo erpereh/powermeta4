@@ -9,7 +9,8 @@ OpenAI-compatible global y server-side mediante `AI_BASE_URL`, `AI_API_KEY` y
 `AI_MODEL`; no hay configuración por empresa ni picker interactivo. El modelo
 recibe texto de la rama seleccionada, referencias de manuales y texto
 extraído de los archivos que adjunta el usuario en los turnos documentales.
-Las consultas operativas del chat se resuelven localmente con los lectores de Inicio.
+Las consultas operativas del chat se ejecutan con los lectores de Inicio. Un
+proveedor expresamente autorizado puede seleccionar y encadenar esas lecturas.
 
 ## Fuentes de verdad y orden de lectura
 
@@ -88,7 +89,7 @@ Consulta los manuales en preguntas documentales y seguimientos del mismo
 tema. Envía los ancestros `user`/`assistant` con texto no vacío y las
 instrucciones del sistema del servidor. Los manuales y adjuntos pertinentes
 van en bloques delimitados como datos. Excluye el placeholder actual, las
-partes internas de la UI, los turnos operativos, tools y function calling.
+partes internas de la UI y los turnos operativos del historial general y del RAG.
 
 Los adjuntos del chat se guardan localmente por conversación y mensaje y se
 resuelven solo en la rama activa. El texto extraído queda fuera del índice de
@@ -102,13 +103,21 @@ El cliente server-only normaliza `AI_BASE_URL` a `/chat/completions`, envía
 si falta una variable muestra `IA no configurada`. Las consultas de PeopleNet
 funcionan con la configuración y sesión propias de Meta4.
 
-El chat detecta las siete consultas de Inicio con reglas locales. Usa lectores
-de solo lectura, valida sociedad y conversación en servidor, y excluye el alta.
-`POST /api/chat/peoplenet/result` reconstruye la consulta desde la rama del
-turno guardado y vuelve a validar la sesión y el workspace. SQLite guarda la
-pregunta y la referencia del turno. Las filas solo viven en memoria mientras se
-muestran. DEBUG utiliza muestras ficticias y el proveedor externo no recibe
-las preguntas, los archivos ni los resultados de los turnos de PeopleNet.
+El registro server-only de Function Calling contiene las siete lecturas de
+Inicio, enlazadas por su ID de acción. El alta queda fuera. Para habilitarlo,
+`AI_PEOPLENET_APPROVED_ENDPOINT` y `AI_PEOPLENET_APPROVED_MODEL` deben coincidir
+con el endpoint normalizado y el modelo del chat global. Las consultas locales
+siguen disponibles cuando falta esa autorización o el proveedor rechaza las
+Tools. Antes de cada lectura se valida sesión, conversación y sociedad activa.
+El proveedor autorizado recibe métricas mínimas, estados y referencias opacas.
+Identidades obtenidas de PeopleNet, tablas completas, archivos, enlaces y
+cálculos permanecen en servidor. DEBUG usa solo muestras ficticias.
+
+`POST /api/chat/peoplenet/result` vuelve a autorizar la lectura al abrir cada
+tarjeta. Los turnos de Function Calling guardan referencias públicas y una
+receta cifrada con DPAPI CurrentUser en SQLite. Las filas y los importes
+devueltos solo se mantienen en memoria. Las referencias usadas por el modelo
+se resuelven dentro de los ancestros de la rama seleccionada.
 
 ## Herramientas y recomendaciones
 

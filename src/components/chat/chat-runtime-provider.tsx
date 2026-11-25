@@ -296,7 +296,10 @@ export function ChatRuntimeProvider({ companyId, chatId, children }: ChatRuntime
         });
         const finalError = actionFailed(finalResult);
         if (finalError) throw finalError;
-        if (finalStatus === "complete" && sources.some(({ kind }) => kind === "peoplenet"))
+        if (
+          finalStatus === "complete" &&
+          sources.some(({ kind }) => kind === "peoplenet" || kind === "peoplenet-call")
+        )
           setAutoOpenMessageId(assistantMessage.id);
         showContent(finalContent);
         setMessageStatus(chatId, assistantMessage.id, finalStatus, companyId);

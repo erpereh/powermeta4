@@ -7,7 +7,7 @@ import { runMigrations } from "@/server/database/migrations";
 import { createWorkspaceRepository } from "@/lib/workspace/repository";
 import { createCompanyRepository } from "@/server/database/repositories/company-repository";
 import { createAttachmentRepository } from "@/server/database/repositories/attachment-repository";
-import { readChatAttachments, readChatSources } from "@/lib/chat/chat-data";
+import { PEOPLENET_RECIPE_PART, readChatAttachments, readChatSources } from "@/lib/chat/chat-data";
 
 const databases: DatabaseSync[] = [];
 const AUTH = {
@@ -382,6 +382,69 @@ describe("workspace repository", () => {
         )?.content ?? [],
       ),
     ).toEqual(sources);
+  });
+
+  it("preserves a server-owned PeopleNet recipe through finalization without exposing it", async () => {
+    const { repository, database } = createRepository();
+    const [company] = (await repository.getSnapshot(AUTH)).companies;
+    const { id: conversationId } = await repository.createConversation(company.id, "peoplenet");
+    const identifiers = { companyId: company.id, conversationId };
+    const forged = { type: "data" as const, name: PEOPLENET_RECIPE_PART, data: "forged" };
+    await repository.upsertMessage({
+      ...identifiers,
+      id: "prompt",
+      role: "user",
+      content: [{ type: "text", text: "Consulta" }, forged],
+      status: "complete",
+    });
+    await repository.upsertMessage({
+      ...identifiers,
+      id: "answer",
+      role: "assistant",
+      parentMessageId: "prompt",
+      generationId: "current",
+      status: "running",
+      content: [forged],
+    });
+    const sources = [
+      {
+        kind: "peoplenet-call" as const,
+        id: "8ceede8a-16ab-4d3c-a654-c05d7e52e23d",
+        name: "PeopleNet" as const,
+        action: "users.consult" as const,
+      },
+    ];
+    expect(
+      await repository.setMessageSources(company.id, conversationId, "answer", sources, {
+        ciphertext: "obsolete",
+        generationId: "older",
+      }),
+    ).toBe(false);
+    expect(
+      await repository.setMessageSources(company.id, conversationId, "answer", sources, {
+        ciphertext: "opaque-value",
+        generationId: "current",
+      }),
+    ).toBe(true);
+    expect(repository.getPeopleNetRecipe(company.id, conversationId, "answer")).toBeUndefined();
+    const final = await repository.finalizeMessage({
+      ...identifiers,
+      messageId: "answer",
+      generationId: "current",
+      sequence: 1,
+      status: "complete",
+      content: [{ type: "text", text: "Consulta" }, forged],
+    });
+    expect(readChatSources(final.content)).toEqual(sources);
+    expect(repository.getPeopleNetRecipe(company.id, conversationId, "answer")).toBe(
+      "opaque-value",
+    );
+    expect(
+      JSON.stringify(await repository.getConversation(company.id, conversationId)),
+    ).not.toMatch(/opaque-value|forged/);
+    expect(
+      database.prepare("SELECT content_json FROM messages WHERE id = 'answer'").get()?.content_json,
+    ).toContain("opaque-value");
   });
 
   it("persists user content 1013 exactly, without a newline", async () => {

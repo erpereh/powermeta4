@@ -3,6 +3,11 @@ import { deleteSessionCookie, getCurrentAuthContext } from "@/lib/auth/session";
 import { getChatAncestors } from "@/lib/chat/chat-history";
 import { readChatSources } from "@/lib/chat/chat-data";
 import { getPeopleNetBranch } from "@/lib/chat/peoplenet-branch";
+import {
+  openPeopleNetRecipe,
+  recipeScope,
+  replayPeopleNetCall,
+} from "@/lib/chat/peoplenet-recipes";
 import { executePeopleNetQuery, PeopleNetScopeError } from "@/lib/chat/peoplenet-service";
 import { isMeta4ProfileError } from "@/lib/meta4/profile-errors";
 import { Meta4SessionRequiredError } from "@/lib/meta4/errors";
@@ -17,6 +22,7 @@ const inputSchema = z
     conversationId: id,
     assistantMessageId: id,
     page: z.number().int().min(0).max(10000),
+    callId: z.string().uuid().optional(),
   })
   .strict();
 
@@ -31,7 +37,7 @@ export async function POST(request: Request) {
   }
   const input = inputSchema.safeParse(await request.json().catch(() => null));
   if (!input.success) return json({ message: "La referencia de la consulta no es válida." }, 400);
-  const { companyId, conversationId, assistantMessageId, page } = input.data;
+  const { companyId, conversationId, assistantMessageId, page, callId } = input.data;
   const active = async () => {
     const scope = await getWorkspaceScope(auth.authContext);
     return (
@@ -58,9 +64,55 @@ export async function POST(request: Request) {
   }
   const message = conversation.messages.find((message) => message.id === assistantMessageId);
   if (message?.role !== "assistant" || message.status !== "complete") return notFound();
-  const marker = readChatSources(message.content).find((source) => source.kind === "peoplenet");
-  if (!marker) return notFound();
+  const sources = readChatSources(message.content);
   try {
+    if (callId) {
+      if (!sources.some((source) => source.kind === "peoplenet-call" && source.id === callId))
+        return notFound();
+      const ciphertext = getWorkspaceRepository().getPeopleNetRecipe(
+        companyId,
+        conversationId,
+        assistantMessageId,
+      );
+      if (!ciphertext) return notFound();
+      const recipe = await openPeopleNetRecipe(
+        ciphertext,
+        recipeScope(auth, companyId, conversationId, assistantMessageId),
+      );
+      if (!recipe) return notFound();
+      const outcome = await replayPeopleNetCall(
+        recipe,
+        callId,
+        {
+          auth,
+          companyId,
+          signal: request.signal,
+          assertScope: async () => {
+            request.signal.throwIfAborted();
+            const current = await getCurrentAuthContext();
+            if (
+              !current ||
+              current.sessionId !== auth.sessionId ||
+              current.authContext.mode !== auth.authContext.mode ||
+              current.authContext.username !== auth.authContext.username
+            )
+              throw new PeopleNetScopeError();
+            const scope = await getWorkspaceScope(current.authContext);
+            if (
+              scope.activeCompanyId !== companyId ||
+              !scope.companies.some(({ id }) => id === companyId)
+            )
+              throw new PeopleNetScopeError();
+          },
+        },
+        page,
+      );
+      if (!outcome) return notFound();
+      if (!(await active())) return forbidden();
+      return json(outcome.result);
+    }
+    const marker = sources.find((source) => source.kind === "peoplenet");
+    if (!marker) return notFound();
     const branch = getChatAncestors(conversation.messages, message.id);
     const { turn } = getPeopleNetBranch(branch);
     if (turn.kind !== "query" || turn.query.action !== marker.id) return notFound();

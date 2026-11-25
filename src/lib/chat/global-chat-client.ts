@@ -1,5 +1,8 @@
 import "server-only";
 
+import { z } from "zod";
+import type { ChatTools } from "@/lib/ai/chat-provider";
+
 export type GlobalChatStatus = {
   configured: boolean;
   model: string | null;
@@ -12,6 +15,7 @@ export type GlobalChatErrorCode =
   | "CHAT_RATE_LIMITED"
   | "CHAT_SERVICE_UNAVAILABLE"
   | "CHAT_NETWORK_ERROR"
+  | "CHAT_TOOLS_UNSUPPORTED"
   | "CHAT_INVALID_RESPONSE";
 
 const ERROR_MESSAGES: Record<GlobalChatErrorCode, string> = {
@@ -22,6 +26,7 @@ const ERROR_MESSAGES: Record<GlobalChatErrorCode, string> = {
   CHAT_SERVICE_UNAVAILABLE:
     "El proveedor de chat está saturado ahora mismo. Inténtalo de nuevo en unos segundos.",
   CHAT_NETWORK_ERROR: "No se pudo conectar con el proveedor de chat.",
+  CHAT_TOOLS_UNSUPPORTED: "El proveedor configurado no admite consultas encadenadas.",
   CHAT_INVALID_RESPONSE: "La respuesta del proveedor de chat no es válida.",
 };
 
@@ -265,3 +270,167 @@ export const getGlobalChatStatus = (): GlobalChatStatus => {
     throw error;
   }
 };
+
+const toolTurn = z.object({
+  role: z.literal("assistant"),
+  content: z.string().max(16000).nullable().optional(),
+  tool_calls: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(256),
+        type: z.literal("function"),
+        function: z.object({
+          name: z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+          arguments: z.string().max(4096),
+        }),
+        extra_content: z
+          .object({ google: z.object({ thought_signature: z.string().max(16384) }) })
+          .optional(),
+      }),
+    )
+    .max(10)
+    .nullable()
+    .optional(),
+});
+const toolResponse = z.object({
+  choices: z
+    .array(
+      z.object({
+        message: toolTurn,
+        finish_reason: z.string().nullable().optional(),
+      }),
+    )
+    .length(1),
+});
+const unsupportedTools = z.object({
+  error: z.object({
+    param: z.string().optional(),
+    code: z.string().optional(),
+    message: z.string().max(3000).optional(),
+  }),
+});
+
+export function getApprovedGlobalChatTools(): ChatTools | undefined {
+  const configuration = getApprovedGlobalChatToolsConfiguration();
+  if (!configuration) return;
+
+  return {
+    async complete({ messages, tools, abortSignal }) {
+      // Check the authorization at the network boundary as well as on path selection.
+      const current = getApprovedGlobalChatToolsConfiguration();
+      if (
+        !current ||
+        current.endpoint !== configuration.endpoint ||
+        current.model !== configuration.model ||
+        current.apiKey !== configuration.apiKey
+      ) {
+        throw new GlobalChatError("CHAT_CONFIG_UNAVAILABLE");
+      }
+      let response: Response;
+      try {
+        response = await fetch(configuration.endpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${configuration.apiKey}`,
+            "Content-Type": "application/json",
+          },
+          redirect: "error",
+          cache: "no-store",
+          signal: abortSignal,
+          body: JSON.stringify({
+            model: configuration.model,
+            messages,
+            tools,
+            tool_choice: "auto",
+            stream: false,
+          }),
+        });
+      } catch (error) {
+        if (isAbortError(error, abortSignal)) throw error;
+        throw new GlobalChatError("CHAT_NETWORK_ERROR");
+      }
+      if (!response.ok && response.status !== 400 && response.status !== 422)
+        throw errorForStatus(response.status);
+      const data: unknown = await readBoundedToolResponse(response);
+      if (!response.ok) {
+        const rejection = unsupportedTools.safeParse(data);
+        if (rejection.success) {
+          const { param, code, message } = rejection.data.error;
+          if (
+            code === "tools_not_supported" ||
+            (param === "tools" && code === "unsupported_parameter") ||
+            /\b(?:tools|function calling) (?:is |are )?not supported\b/i.test(message ?? "")
+          ) {
+            throw new GlobalChatError("CHAT_TOOLS_UNSUPPORTED");
+          }
+        }
+        throw errorForStatus(response.status);
+      }
+      const parsed = toolResponse.safeParse(data);
+      const choice = parsed.success ? parsed.data.choices[0] : undefined;
+      if (!choice || choice.finish_reason === "length" || choice.finish_reason === "content_filter")
+        throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+      const { tool_calls, content } = choice.message;
+      if (
+        (choice.finish_reason === "tool_calls" && !tool_calls?.length) ||
+        (!tool_calls?.length && !content?.trim()) ||
+        (tool_calls && new Set(tool_calls.map(({ id }) => id)).size !== tool_calls.length)
+      )
+        throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+      return {
+        role: "assistant",
+        content: content ?? null,
+        ...(tool_calls?.length ? { tool_calls } : {}),
+      };
+    },
+  };
+}
+
+function requiredApprovalEndpoint() {
+  const value = process.env.AI_PEOPLENET_APPROVED_ENDPOINT?.trim();
+  if (!value) return;
+  const endpoint = resolveGlobalChatCompletionsUrl(value);
+  const url = new URL(endpoint);
+  if (url.username || url.password) return;
+  if (url.protocol === "https:" || ["127.0.0.1", "[::1]", "localhost"].includes(url.hostname))
+    return endpoint;
+}
+
+function getApprovedGlobalChatToolsConfiguration() {
+  try {
+    const current = readGlobalChatConfiguration();
+    if (
+      current.endpoint === requiredApprovalEndpoint() &&
+      current.model === process.env.AI_PEOPLENET_APPROVED_MODEL?.trim()
+    )
+      return current;
+  } catch (error) {
+    if (!(error instanceof GlobalChatConfigurationError)) throw error;
+  }
+}
+
+async function readBoundedToolResponse(response: Response): Promise<unknown> {
+  const reader = response.body?.getReader();
+  if (!reader) throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+  const decoder = new TextDecoder();
+  let body = "";
+  let size = 0;
+  try {
+    for (;;) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > 256 * 1024) {
+        await reader.cancel();
+        throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+      }
+      body += decoder.decode(chunk.value, { stream: true });
+    }
+    return JSON.parse(body + decoder.decode()) as unknown;
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw new GlobalChatError("CHAT_INVALID_RESPONSE");
+  } finally {
+    reader.releaseLock();
+  }
+}

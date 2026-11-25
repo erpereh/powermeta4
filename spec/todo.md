@@ -1,5 +1,19 @@
 # powermeta4 - estado de tareas
 
+## Function Calling de PeopleNet — 2026-11-25
+
+- [x] Registrar las siete lecturas de Inicio, implementar el encadenamiento,
+      los cálculos y cruces en servidor, y mostrar sus tarjetas en el chat.
+- [x] Exigir autorización del endpoint y modelo, volver a validar sesión y
+      sociedad durante la lectura y guardar únicamente la receta cifrada.
+- [x] Ejecutar 98 pruebas dirigidas en ocho archivos. Las nuevas usan PeopleNet
+      DEBUG y un proveedor simulado. Pasaron typecheck, build y formato de los
+      archivos TypeScript modificados. El lint global mantiene incidencias
+      preexistentes de formato en el repositorio.
+- [ ] En la VM, con DEBUG desactivado, contrastar las siete lecturas con Inicio,
+      encadenar consultas con el proveedor autorizado y comprobar aislamiento
+      por sociedad, reapertura de tarjetas, DPAPI y enlaces a documentos.
+
 ## Integración de ramas — 2026-11-25
 
 - [x] Integrar el alta directa de `salvadev` y el chatbot de `davidev`

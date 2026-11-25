@@ -1,6 +1,10 @@
 import "server-only";
 
-import { getGlobalChatStatus, streamGlobalChat } from "@/lib/chat/global-chat-client";
+import {
+  getApprovedGlobalChatTools,
+  getGlobalChatStatus,
+  streamGlobalChat,
+} from "@/lib/chat/global-chat-client";
 import type { ChatProvider } from "@/lib/ai/chat-provider";
 import type {
   EmbeddingProvider,
@@ -26,6 +30,7 @@ export const httpCompatibleChatProvider: ChatProvider = {
   streamResponse: (options) =>
     streamGlobalChat({ messages: options.messages, abortSignal: options.abortSignal }),
   getStatus: getGlobalChatStatus,
+  getPeopleNetTools: getApprovedGlobalChatTools,
 };
 
 export class EmbeddingConfigurationError extends Error {
