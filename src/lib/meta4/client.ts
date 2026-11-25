@@ -9,7 +9,6 @@ import {
   parseRetrieveM4SessionResponse,
 } from "./soap-xml";
 import { getMeta4ServiceUrl, META4_SERVICE } from "./config";
-import type { Meta4SoapPoster } from "./user-profile-lookup";
 
 export const META4_TIMEOUT_MS = 15_000;
 
@@ -21,7 +20,6 @@ export type Meta4LoginResult = {
 export type Meta4Client = {
   login: (username: string, password: string) => Promise<Meta4LoginResult>;
   retrieveM4Session: (refreshSessionId: string) => Promise<{ jSessionId: string }>;
-  createCookieSoapPoster: () => Meta4SoapPoster;
 };
 
 export class Meta4HttpError extends Error {
@@ -126,9 +124,5 @@ export const createMeta4Client = (options: Meta4ClientOptions = {}): Meta4Client
       parseRetrieveM4SessionResponse(body);
       return { jSessionId: extractJSessionId(response.headers) };
     },
-    createCookieSoapPoster:
-      () =>
-      async ({ url: requestUrl, xml, headers }) =>
-        postSoapXml(fetchImpl, requestUrl, xml, timeoutMs, headers),
   };
 };

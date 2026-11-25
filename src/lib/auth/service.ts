@@ -19,10 +19,7 @@ import type { Meta4Client } from "@/lib/meta4/client";
 import { Meta4SessionRequiredError, Meta4SocietyNotAllowedError } from "@/lib/meta4/errors";
 import { Meta4ProfileError } from "@/lib/meta4/profile-errors";
 import { orderMeta4Societies, type Meta4Society } from "@/lib/meta4/societies";
-import {
-  lookupMeta4SocietyProfiles,
-  type Meta4SoapPoster,
-} from "@/lib/meta4/user-profile-lookup";
+import { lookupMeta4SocietyProfilesFromDatabase } from "@/lib/peoplenet/user-profile";
 import type { SocietyLookupMatch } from "@/lib/meta4/user-profile-types";
 import {
   encryptMeta4ProfilePayload,
@@ -52,7 +49,7 @@ type AuthServiceOptions = {
   now?: () => Date;
   createSessionNonce?: () => string;
   createLocalSessionId?: () => string;
-  lookupProfile?: typeof lookupMeta4SocietyProfiles;
+  lookupProfile?: typeof lookupMeta4SocietyProfilesFromDatabase;
   logProfileLookup?: (message: string, details: Record<string, string>) => void;
 };
 
@@ -88,7 +85,7 @@ export const createAuthService = ({
   now = () => new Date(),
   createSessionNonce = createOpaqueSessionId,
   createLocalSessionId = randomUUID,
-  lookupProfile = lookupMeta4SocietyProfiles,
+  lookupProfile = lookupMeta4SocietyProfilesFromDatabase,
   logProfileLookup,
 }: AuthServiceOptions) => {
   let restoreFlight: Promise<{ username: string } | null> | null = null;
@@ -174,8 +171,6 @@ export const createAuthService = ({
     };
   };
 
-  const createCookiePoster = (): Meta4SoapPoster => soap.createCookieSoapPoster();
-
   const encryptMatches = async (matches: readonly SocietyLookupMatch[]) =>
     Promise.all(
       matches.map(async (match) => ({
@@ -200,14 +195,7 @@ export const createAuthService = ({
       }
 
       try {
-        const jSessionId = await dpapi.unprotectSecret(session.jsessionIdEncrypted);
-        const lookup = await lookupProfile({
-          username,
-          jSessionId,
-          postSoap: createCookiePoster(),
-          now,
-          log: logProfileLookup,
-        });
+        const lookup = await lookupProfile({ username, now, log: logProfileLookup });
         const profiles = await encryptMatches(
           lookup.matches.map((match) => ({
             ...match,
@@ -225,9 +213,7 @@ export const createAuthService = ({
     return profileRepairFlight;
   };
 
-  const resolveWorkspace = async (
-    username: string,
-  ): Promise<ReconciledAuthSocieties | null> => {
+  const resolveWorkspace = async (username: string): Promise<ReconciledAuthSocieties | null> => {
     const available = await profileRepository.listAvailableSocieties(username);
     if (available.length > 0) {
       return repository.reconcileActiveWorkspace(available);
@@ -239,13 +225,7 @@ export const createAuthService = ({
     if (!username || !password) throw new Error("El usuario y la contraseña son obligatorios.");
 
     const loggedIn = await soap.login(username, password);
-    const lookup = await lookupProfile({
-      username,
-      jSessionId: loggedIn.jSessionId,
-      postSoap: createCookiePoster(),
-      now,
-      log: logProfileLookup,
-    });
+    const lookup = await lookupProfile({ username, now, log: logProfileLookup });
 
     try {
       const currentTime = now();
@@ -395,7 +375,9 @@ export const createAuthService = ({
     society: Meta4Society,
   ): Promise<ReconciledAuthSocieties> => {
     assertMeta4Session(authSession);
-    const available = await profileRepository.listAvailableSocieties(authSession.authContext.username);
+    const available = await profileRepository.listAvailableSocieties(
+      authSession.authContext.username,
+    );
     if (!available.includes(society)) {
       throw new Meta4SocietyNotAllowedError();
     }

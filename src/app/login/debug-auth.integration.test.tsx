@@ -65,11 +65,7 @@ describe("debug authentication configuration integration", () => {
           clearProfile: vi.fn(async () => undefined),
         },
         dpapi: { protectSecret: vi.fn(), unprotectSecret: vi.fn() },
-        soap: {
-          login: vi.fn(),
-          retrieveM4Session: vi.fn(),
-          createCookieSoapPoster: vi.fn(() => vi.fn()),
-        },
+        soap: { login: vi.fn(), retrieveM4Session: vi.fn() },
         createSessionNonce: () => "A".repeat(43),
         createLocalSessionId: () => "debug-integration-session",
       }),

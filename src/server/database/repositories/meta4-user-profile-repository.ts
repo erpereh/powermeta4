@@ -3,7 +3,7 @@ import "server-only";
 import type { DatabaseSync } from "node:sqlite";
 
 import type { DpapiAdapter } from "@/lib/security/dpapi";
-import { extractDisplayName } from "@/lib/meta4/user-profile-soap";
+import { extractDisplayName } from "@/lib/meta4/user-profile-display";
 import type { Meta4UserProfile } from "@/lib/meta4/user-profile-types";
 import { isMeta4Society, orderMeta4Societies, type Meta4Society } from "@/lib/meta4/societies";
 import { Meta4ProfileError } from "@/lib/meta4/profile-errors";

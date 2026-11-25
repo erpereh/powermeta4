@@ -72,14 +72,16 @@ const createRepository = (
         availableSocieties: data.profiles.map((profile) => profile.society),
       };
     }),
-    persistMeta4ProfileRepair: vi.fn(async (data: { profiles: Meta4LoginPersistData["profiles"] }) => {
-      currentProfiles = [...data.profiles];
-      return {
-        society: data.profiles[0]?.society ?? "CYC",
-        companyId: `company-${data.profiles[0]?.society ?? "CYC"}`,
-        availableSocieties: data.profiles.map((profile) => profile.society),
-      };
-    }),
+    persistMeta4ProfileRepair: vi.fn(
+      async (data: { profiles: Meta4LoginPersistData["profiles"] }) => {
+        currentProfiles = [...data.profiles];
+        return {
+          society: data.profiles[0]?.society ?? "CYC",
+          companyId: `company-${data.profiles[0]?.society ?? "CYC"}`,
+          availableSocieties: data.profiles.map((profile) => profile.society),
+        };
+      },
+    ),
     reconcileActiveWorkspace: vi.fn(async (availableSocieties) => {
       if (availableSocieties.length === 0) return null;
       const society = availableSocieties[0]!;
@@ -163,7 +165,9 @@ const createRepository = (
     }),
     getDecryptedProfile: vi.fn(async () => null),
     listAvailableSocieties: vi.fn(async (username: string) =>
-      currentProfiles.filter((profile) => profile.username === username).map((profile) => profile.society),
+      currentProfiles
+        .filter((profile) => profile.username === username)
+        .map((profile) => profile.society),
     ),
     clearProfile: vi.fn(async () => {
       currentProfiles = [];
@@ -197,7 +201,6 @@ const createDpapi = () => ({
 const createSoap = () => ({
   login: vi.fn(async () => ({ jSessionId: "jsession", refreshSessionId: "refresh" })),
   retrieveM4Session: vi.fn(async () => ({ jSessionId: "new-jsession" })),
-  createCookieSoapPoster: vi.fn(() => vi.fn(async () => new Response("<ok/>", { status: 200 }))),
 });
 
 afterEach(() => {
@@ -369,11 +372,9 @@ describe("Meta4 auth service", () => {
     const result = await service.login(" USER&NAME ", "p<&");
 
     expect(result.societyCode).toBe("IBER");
+    // El perfil ya no viaja por SOAP: el lookup solo recibe el usuario.
     expect(lookupProfile).toHaveBeenCalledWith(
-      expect.objectContaining({
-        username: " USER&NAME ",
-        jSessionId: "jsession-1",
-      }),
+      expect.objectContaining({ username: " USER&NAME " }),
     );
     expect(repository.persistMeta4LoginState).toHaveBeenCalledWith(
       expect.objectContaining({

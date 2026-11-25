@@ -71,7 +71,17 @@ Thread salvo petición expresa.
 - La autenticación se valida en servidor con SOAP Meta4 y una cookie opaca
   HttpOnly. JSESSIONID y refreshSessionId se cifran con DPAPI CurrentUser.
   Secretos, tokens y API keys nunca se guardan en Zustand, localStorage o
-  sessionStorage.
+  sessionStorage. `/services/Login` es el único servicio SOAP de Meta4 que usa
+  la aplicación: comprueba la contraseña (`M4RSC_APPUSER.N_PASSWORD` está
+  cifrada por Meta4 y no se valida con `SELECT`). El perfil y las sociedades
+  del usuario los lee PeopleNet en servidor
+  (`lookupMeta4SocietyProfilesFromDatabase`, solo `SELECT`), en lugar del
+  retirado `CSP_CONSULTA_ORO_INTRAN_NEW`: la matrícula sale de
+  `M4RSC_APPUSER.ID_APP_USER` (o de `CLAVE_SELF` si no hay usuario de
+  aplicación), las fichas de `M4ORO_EMPLEADOS` con los campos que devolvía el
+  servicio y el centro de coste de `M4SSP_H_HR_CTO_COS` con su nombre en
+  `M4SSP_CENTR_COSTO`. Una sociedad con más de una ficha se descarta y el
+  login exige la conexión de lectura a PeopleNet.
 
 ## Chat global y herramientas SOAP
 
@@ -131,13 +141,16 @@ las preguntas, los archivos ni los resultados de los turnos de PeopleNet.
   `docs/portal/implementacion/{estado,dependencias-servidor}.md`.
 - La sociedad, la variante (carpeta `m4custom` homónima; BASE en otro caso) y
   la identidad se resuelven en servidor (`getPortalContext`). La identidad
-  exige un registro del perfil con `clave_Self` igual al usuario y, si
-  PeopleNet está configurado, una única ficha coherente en
-  `M4ORO_EMPLEADOS`; sin coherencia no se muestran datos personales. Ninguna
-  acción recibe sociedad ni matrícula propia del navegador.
+  exige un único registro del perfil con `clave_Self` y matrícula —se prefiere
+  el que coincide con el usuario de la sesión, y cuando ninguno coincide vale
+  la única ficha que devuelve el perfil, porque el usuario de aplicación puede
+  no ser la `clave_Self` del autoservicio (`SOFIA.ELICES` / `selicesm`)— y, si
+  PeopleNet está configurado, una única ficha de `M4ORO_EMPLEADOS` con esa
+  misma matrícula y `clave_Self`; sin coherencia no se muestran datos
+  personales. Ninguna acción recibe sociedad ni matrícula propia del navegador.
 - Lecturas reales: servicios SOAP publicados en `/services/*` con su contrato
   generado desde las fuentes Java de `clon_portal` (`npm run
-  portal:soap-catalog`) y `SELECT` parametrizadas en PeopleNet guardadas por
+portal:soap-catalog`) y `SELECT` parametrizadas en PeopleNet guardadas por
   `assertReadOnlySql`. Los apartados `sql` (`sqlConsult` en
   `src/lib/portal/registry/sql/*`) reproducen la sentencia original de cada
   nodo Meta4, resuelta del diccionario con `scripts/portal/resolver-tablas.ts`
@@ -242,7 +255,7 @@ Los Route Handlers locales de workspace
 y backups usan runtime Node.js y validan la sesión, la empresa y la
 conversación en servidor. `POST /api/chat/run` es el runtime de chat
 (SSE, Node.js): valida sesión, empresa y conversación, reconstruye la rama
-  por `parentMessageId` y llama al endpoint OpenAI-compatible global.
+por `parentMessageId` y llama al endpoint OpenAI-compatible global.
 `POST /api/users/export` (Node.js, requiere sesión) descarga en Excel el
 listado de usuarios filtrado y, en la hoja «Detalle», la ficha de cada persona:
 recibe solo el texto de búsqueda y vuelve a leer en servidor, sin guardar ficheros.

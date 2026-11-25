@@ -2,7 +2,6 @@ import "server-only";
 
 export const META4_SERVICE = {
   login: "Login",
-  profile: "CSP_CONSULTA_ORO_INTRAN_NEW",
 } as const;
 
 export type Meta4ServiceName = (typeof META4_SERVICE)[keyof typeof META4_SERVICE];

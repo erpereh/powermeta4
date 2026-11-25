@@ -28,13 +28,12 @@ const productionSources = (directory: string): string[] =>
   });
 
 describe("Meta4 base URL", () => {
-  it("strips trailing slashes and derives every SOAP service", () => {
+  it("strips trailing slashes and derives the login service", () => {
     withBaseUrl(`${HOST}/`, () => {
       expect(getMeta4BaseUrl()).toBe(HOST);
       expect(getMeta4ServiceUrl(META4_SERVICE.login)).toBe(`${HOST}/services/Login`);
-      expect(getMeta4ServiceUrl(META4_SERVICE.profile)).toBe(
-        `${HOST}/services/CSP_CONSULTA_ORO_INTRAN_NEW`,
-      );
+      // El perfil ya no se consulta por SOAP: lo lee PeopleNet con SELECT.
+      expect(Object.values(META4_SERVICE)).toEqual(["Login"]);
     });
   });
 
@@ -54,11 +53,12 @@ describe("Meta4 base URL", () => {
     expect(() => getMeta4ServiceUrl("Login", "http://meta4.example.test")).toThrow(/HTTPS/);
   });
 
+  // Recorre y lee todo src: con la suite completa en paralelo pasa de 5 s.
   it("does not hardcode a Meta4 host in production source", () => {
     const forbidden = /meta4desasoap|wmeta4pre2|creditocaucion\.es/i;
     const hits = productionSources(path.join(process.cwd(), "src")).filter((file) =>
       forbidden.test(readFileSync(file, "utf8")),
     );
     expect(hits).toEqual([]);
-  });
+  }, 30_000);
 });

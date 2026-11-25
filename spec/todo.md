@@ -1,5 +1,28 @@
 # powermeta4 - estado de tareas
 
+## Perfil del usuario sin SOAP — 2026-11-25
+
+- [x] Leer el perfil y las sociedades de PeopleNet (`M4RSC_APPUSER`,
+      `M4ORO_EMPLEADOS`, centro de coste) y retirar
+      `CSP_CONSULTA_ORO_INTRAN_NEW`, dejando `/services/Login` como único SOAP.
+- [ ] Iniciar sesión en el navegador con un usuario válido y comprobar el
+      perfil de `/settings`, el portal y las proyecciones. Las credenciales de
+      acceso rápido de `.env.local` ya no sirven
+      (`LOGIN_INVALID_CREDENTIALS`).
+- [ ] Comprobar un usuario con ficha en dos sociedades (CYC e IBER) para ver
+      el selector de workspace con el perfil leído por SQL.
+
+## Identidad del portal — 2026-11-25
+
+- [x] Resolver la identidad cuando el usuario de aplicación no es la
+      `clave_Self` del autoservicio (`SOFIA.ELICES` / `selicesm`), con el
+      contraste perfil↔`M4ORO_EMPLEADOS` por matrícula y clave.
+- [ ] Abrir `/tools/reports/proyecciones?employee=1013` con la sesión real de
+      CYC y confirmar el informe en pantalla y sus descargas.
+- [x] Aclarado por qué `npm test` parecía no arrancar: vitest falla si el
+      directorio de trabajo llega como `c:\Users\…` en minúscula; desde
+      `C:/Users/...` la suite se ejecuta con normalidad.
+
 ## Consultas de PeopleNet desde el chat — 2026-11-23
 
 - [x] Resolver en local las siete acciones de lectura de Inicio con filtros,
@@ -131,23 +154,18 @@
       y entidad legal.
 - [ ] **Aplazado hasta que se aborde IBER** (decisión del usuario del
       2026-11-24). El alta está contrastada solo con CYC; para IBER faltan tres
-      campos y para COLL falta el contraste. Lo necesario para retomarlo:
-      - Añadir al formulario, en la pestaña Organización, los items de
-        `SRCO_PA_HIRE_WIZ_ORG`: `CSP_ID_CAT_PER_CYC`, `ID_CAT_TEORICA`
-        («ID Categoría Teórica») y `CSP_ID_EQUIV_CAT_JOB_CYC`. Sus catálogos
-        son `M4CSP_CAT_PER_CYC`, `M4CSP_CAT_TEORICA` y
-        `M4CSP_EQUIV_CAT_JOB_CYC`, filtrados por `ID_ORGANIZATION`.
-      - Mostrarlos solo cuando la sociedad activa tenga valores: CYC tiene 0, 1
-        y 0; IBER 11, 49 y 8; COLL 9, 6 y 8. Así en CYC no aparecen.
-      - Los grupos ya están en `model.generated.json`
-        (`GRP_CSP_H_CAT_PER_CYC`, `GRP_CSP_H_HR_CAT_TEORICA`,
-        `CSP_EQUIV_CAT_JOB_CYC`): basta con que el item traiga valor para que
-        `plan.ts` escriba la fila, no hace falta tocar el plan.
-      - Después, un alta de prueba en IBER contrastada como la 1830 de CYC, y
-        el mismo contraste para COLL (14 altas, perfil más ligero:
-        `M4SCO_H_SAL_DATA` 14 %, la mayoría de tablas de nómina al 50 %).
-      - El detalle y los porcentajes, en «Las tres sociedades» de
-        [docs/alta-modelo-peoplenet.md](../docs/alta-modelo-peoplenet.md).
+      campos y para COLL falta el contraste. Lo necesario para retomarlo: - Añadir al formulario, en la pestaña Organización, los items de
+      `SRCO_PA_HIRE_WIZ_ORG`: `CSP_ID_CAT_PER_CYC`, `ID_CAT_TEORICA`
+      («ID Categoría Teórica») y `CSP_ID_EQUIV_CAT_JOB_CYC`. Sus catálogos
+      son `M4CSP_CAT_PER_CYC`, `M4CSP_CAT_TEORICA` y
+      `M4CSP_EQUIV_CAT_JOB_CYC`, filtrados por `ID_ORGANIZATION`. - Mostrarlos solo cuando la sociedad activa tenga valores: CYC tiene 0, 1
+      y 0; IBER 11, 49 y 8; COLL 9, 6 y 8. Así en CYC no aparecen. - Los grupos ya están en `model.generated.json`
+      (`GRP_CSP_H_CAT_PER_CYC`, `GRP_CSP_H_HR_CAT_TEORICA`,
+      `CSP_EQUIV_CAT_JOB_CYC`): basta con que el item traiga valor para que
+      `plan.ts` escriba la fila, no hace falta tocar el plan. - Después, un alta de prueba en IBER contrastada como la 1830 de CYC, y
+      el mismo contraste para COLL (14 altas, perfil más ligero:
+      `M4SCO_H_SAL_DATA` 14 %, la mayoría de tablas de nómina al 50 %). - El detalle y los porcentajes, en «Las tres sociedades» de
+      [docs/alta-modelo-peoplenet.md](../docs/alta-modelo-peoplenet.md).
 - [x] La 1830 abierta **y editada** en Meta4 (prenómina, 2026-11-24): la
       aplicación la muestra y guarda cambios sobre ella sin refrescar su caché,
       así que las filas que escribe el alta le valen a la lógica de Meta4, no
@@ -191,7 +209,7 @@
       lanza el alta necesita un rol con modelo de seguridad `M4ADM` como rol por
       defecto (`M4_USER_RRHH`, `M4_USER`, `M4DRRHH` o `M4ADM`).
 - [x] `ARG_LIST_EMAIL` vacío: con «0» Meta4 enviaba el aviso a «0» (`550 No such
-      user`, subtarea con error). Comprobado en PRE: tarea 109999 sin error.
+user`, subtarea con error). Comprobado en PRE: tarea 109999 sin error.
 - [ ] Borrar en PRE la persona ficticia de la prueba si RRHH lo pide.
 
 ## Cuadre: vacíos y motivos breves — 2026-11-19
@@ -1093,7 +1111,7 @@ Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.
       de `printGrafDoughnut`. Build y suite sin Excel COM: 921 correctas.
 - [x] Informe de Inicio a pantalla completa desde xl, igual que en el portal.
 - [x] Exportar a PDF y Excel en ambos lados (`POST
-      /api/portal/projections/export`): PDF apaisado (A3 con más de 14 pagas)
+/api/portal/projections/export`): PDF apaisado (A3 con más de 14 pagas)
       con gráficas de anillo, comparativa y todas las tablas; Excel con hojas
       «Desglose» y «Gráficas». Carga común `loadProjectionPage`. PDF revisado
       con la muestra; 7 pruebas nuevas; build y suite sin Excel COM: 928.
@@ -2078,18 +2096,14 @@ Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.
       este modo; confirmarlo.
 - [ ] **Recibos que no cuadran** (muestran «Recibo incompleto» con la
       diferencia; abril 2026: CYC 7/587, IBER 38/112, COLL 9/21). Pedir PDF de
-      referencia al usuario:
-      - CYC con baja maternidad/IT (p. ej. 1236, 1158, 1223, 1247, 1264,
-        1378, 1536): Meta4 pinta «Prestación Teórica Maternidad» y similares
-        en devengos sin sumarlas a `SSP_TOTAL_DEVENGOS`. Decidir si van como
-        informativas o con otro tratamiento.
-      - IBER Portugal (p. ej. 10377): la línea «Desconto Seguro de Saúde»
-        (`CSP_PT_DESC_SEG_SAUDE`) supera en 13-22 € al retenido de Meta4.
-      - COLL (p. ej. 0001, 0012, 0018): diferencias parecidas.
-      - Items del report sin columna en BD ni equivalencia:
-        `CYC_SEG_VIDA_GLOBAL_MES_INFO`, `CYC_LOTE_NAVIDAD_INFO`,
-        `CYC_PRESTAMO_ESPECIE_INFO`. Añadir a `PRINT_ITEM_COLUMNS` en
-        `payroll-receipt-template.ts` solo tras comprobarlos contra un PDF.
+      referencia al usuario: - CYC con baja maternidad/IT (p. ej. 1236, 1158, 1223, 1247, 1264,
+      1378, 1536): Meta4 pinta «Prestación Teórica Maternidad» y similares
+      en devengos sin sumarlas a `SSP_TOTAL_DEVENGOS`. Decidir si van como
+      informativas o con otro tratamiento. - IBER Portugal (p. ej. 10377): la línea «Desconto Seguro de Saúde»
+      (`CSP_PT_DESC_SEG_SAUDE`) supera en 13-22 € al retenido de Meta4. - COLL (p. ej. 0001, 0012, 0018): diferencias parecidas. - Items del report sin columna en BD ni equivalencia:
+      `CYC_SEG_VIDA_GLOBAL_MES_INFO`, `CYC_LOTE_NAVIDAD_INFO`,
+      `CYC_PRESTAMO_ESPECIE_INFO`. Añadir a `PRINT_ITEM_COLUMNS` en
+      `payroll-receipt-template.ts` solo tras comprobarlos contra un PDF.
 - [ ] **Validación línea a línea con más PDF.** Solo la 1013 (abril 2026) está
       comparada línea a línea; en el resto solo se ha comprobado que los
       totales cuadran. Revisar 2-3 recibos más (con horas extra, dietas, bajas
@@ -2117,6 +2131,7 @@ Este cierre sustituye las instrucciones históricas de repetir la auditoría VM.
       fuera del recibo, como en la SELECT de Meta4; confirmar qué es.
 
 Referencias técnicas para retomar:
+
 - Plantilla: `M4SCO_ROWS` / `M4SCO_ROW_COL_DEF` (`SCO_ID_REPORT = 'RECIBO'`,
   cuerpo 1; columnas 1 unidades, 2 precio, 3 concepto, 4 devengos,
   5 retención; `%` = `SCO_BEF_AFT 'A'` + `SCO_CONSTANT '%'`), item + componente
@@ -2275,7 +2290,7 @@ Referencias técnicas para retomar:
       localización, tipo de vía, población, provincia, comunidad y país. Se
       escriben en V/W, AA–AT, AM, T y BB–CF.
 - [x] Geografía: IDs internos con ruta completa (`país/comunidad/provincia/
-      población`) porque se repiten entre países; Excel recibe el último
+población`) porque se repiten entre países; Excel recibe el último
       segmento. Elegir población rellena provincia, comunidad y país; cambiar
       un nivel superior limpia los inferiores que no le pertenecen; el
       servidor rechaza combinaciones incoherentes.
@@ -2464,11 +2479,11 @@ Referencias técnicas para retomar:
       registrado en el GAC de la máquina, que rompía `QueryInterface` sobre
       `_Application` en 32 y 64 bits por igual.
 - [x] Corregido el desenrollado de colecciones vacías (`Write-Output
-      -NoEnumerate`) y la resolución de indexadores tipo `Item`
+-NoEnumerate`) y la resolución de indexadores tipo `Item`
       (`InvokeMethod | GetProperty`).
 - [x] Verificación: `npm run typecheck` correcto; `npm run lint` correcto;
       `npm test` 94 archivos, 451 pruebas correctas y 36 omitidas; `npm run
-      build` correcto. Ejecución real del script contra
+build` correcto. Ejecución real del script contra
       `Hire_1_PERSONA.xls` completa, sin Excel huérfano ni alta real.
 
 ## Alta de personas Meta4 - 2026-09-22 (URL única y Excel)
@@ -2600,7 +2615,7 @@ vigente del chat global.
 - [x] El diálogo de Buscar de la sidebar montaba `CommandInput` /
       `CommandList` fuera del raíz `Command`. cmdk no tenía contexto y
       al abrir la paleta fallaba con `Cannot read properties of
-      undefined (reading 'subscribe')`.
+undefined (reading 'subscribe')`.
 - [x] `AppSidebar` envuelve la paleta con `Command shouldFilter={false}`
       (filtrado propio vía `filterChats`), igual que
       `ToolsCommandPalette`. `CommandDialog` no se cambia para no
