@@ -138,7 +138,7 @@ export const getPortalContext = async (
       context.society,
       evaluation.person.employeeId,
     );
-    if (!crossCheckIdentity(rows, evaluation.person.employeeId, context.username)) {
+    if (!crossCheckIdentity(rows, evaluation.person.employeeId, evaluation.selfKey)) {
       return {
         ...base,
         identity: { status: "unresolved", message: UNRESOLVED_MESSAGES["cross-check-failed"] },

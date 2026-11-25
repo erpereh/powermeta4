@@ -65,7 +65,7 @@ describe("identidad propia del portal", () => {
       ),
     ).toBe(false);
   });
-  it("exige clave_Self igual al usuario y nunca usa el primer registro por defecto", () => {
+  it("prefiere la ficha del usuario y nunca usa el primer registro por defecto", () => {
     const sets = [
       record({ clave_Self: "otra", id_Empleado: "1" }),
       record({
@@ -78,12 +78,40 @@ describe("identidad propia del portal", () => {
     ];
     expect(evaluateProfileIdentity(sets, "usuario")).toMatchObject({
       status: "resolved",
+      selfKey: "usuario",
       person: { employeeId: "2", fullName: "Ana Ruiz", hireDate: "2020-01-15" },
     });
-    expect(evaluateProfileIdentity([sets[0]], "usuario")).toEqual({
+    // Ninguna ficha coincide con el usuario de aplicación: varias matrículas
+    // siguen siendo ambiguas y sin clave_Self no hay identidad.
+    expect(evaluateProfileIdentity(sets, "otro.usuario")).toEqual({
+      status: "unresolved",
+      reason: "ambiguous",
+    });
+    expect(evaluateProfileIdentity([record({ id_Empleado: "1" })], "usuario")).toEqual({
       status: "unresolved",
       reason: "no-coherent-record",
     });
+  });
+
+  it("acepta la única ficha del perfil cuando su clave_Self no es el usuario de aplicación", () => {
+    // SOFIA.ELICES / selicesm: CSP_CONSULTA_ORO_INTRAN_NEW se consulta con el
+    // usuario conectado y devuelve su clave_Self del autoservicio.
+    const evaluation = evaluateProfileIdentity(
+      [record({ clave_Self: "selicesm", id_Empleado: "1683", nombre: "Sofía" })],
+      "SOFIA.ELICES",
+    );
+    expect(evaluation).toMatchObject({
+      status: "resolved",
+      selfKey: "selicesm",
+      person: { employeeId: "1683" },
+    });
+    // El contraste con ORO usa la clave del perfil, no el usuario de la sesión.
+    expect(
+      crossCheckIdentity([{ employeeId: "1683", selfKey: "selicesm" }], "1683", "selicesm"),
+    ).toBe(true);
+    expect(crossCheckIdentity([{ employeeId: "1683", selfKey: "otra" }], "1683", "selicesm")).toBe(
+      false,
+    );
   });
 
   it("rechaza identidades ambiguas e ignora fechas centinela", () => {

@@ -13,7 +13,7 @@ export type PortalPerson = {
 };
 
 export type IdentityEvaluation =
-  | { readonly status: "resolved"; readonly person: PortalPerson }
+  | { readonly status: "resolved"; readonly person: PortalPerson; readonly selfKey: string }
   | {
       readonly status: "unresolved";
       readonly reason: "no-coherent-record" | "ambiguous" | "cross-check-failed";
@@ -52,36 +52,39 @@ export const buildFullName = (parts: readonly (string | null)[]): string =>
     .join(" ");
 
 /**
- * Exige un único registro del perfil cuyo `clave_Self` coincida con el usuario
- * de la sesión. A diferencia de la carga del perfil, nunca usa el primero por
- * defecto: sin coherencia no hay identidad.
+ * Exige un único registro del perfil con `clave_Self` y matrícula. Se prefiere
+ * el que coincide con el usuario de la sesión; cuando ninguno coincide vale la
+ * única ficha que devuelve el perfil, porque `CSP_CONSULTA_ORO_INTRAN_NEW` se
+ * consulta con el usuario conectado y su `clave_Self` del autoservicio puede
+ * no ser su usuario de aplicación (`SOFIA.ELICES` / `selicesm`). La coherencia
+ * la cierra `crossCheckIdentity` contra `M4ORO_EMPLEADOS`. A diferencia de la
+ * carga del perfil, nunca usa el primero por defecto: sin una única matrícula
+ * y una única `clave_Self` no hay identidad.
  */
 export const evaluateProfileIdentity = (
   recordSets: readonly Meta4ProfileRecordSet[],
   username: string,
 ): IdentityEvaluation => {
   const expected = username.trim().toLowerCase();
-  const coherent = recordSets.flatMap((set) => {
+  const candidates = recordSets.flatMap((set) => {
     const selfKey = profileField(set.fields, "clave_Self", "CVE_SELF");
     const employeeId = profileField(set.fields, "id_Empleado");
-    if (!selfKey || !employeeId || selfKey.toLowerCase() !== expected) return [];
-    return [{ employeeId, fields: set.fields }];
+    if (!selfKey || !employeeId) return [];
+    return [{ employeeId, selfKey: selfKey.trim().toLowerCase(), fields: set.fields }];
   });
+  const matching = candidates.filter((entry) => entry.selfKey === expected);
+  const coherent = matching.length ? matching : candidates;
   const ids = new Set(coherent.map((entry) => entry.employeeId));
   if (ids.size === 0) return { status: "unresolved", reason: "no-coherent-record" };
   if (ids.size > 1) return { status: "unresolved", reason: "ambiguous" };
-  const [{ employeeId, fields }] = coherent;
-  if (
-    recordSets.some(
-      (set) =>
-        profileField(set.fields, "id_Empleado") === employeeId &&
-        profileField(set.fields, "clave_Self", "CVE_SELF")?.toLowerCase() !== expected,
-    )
-  ) {
+  const [{ employeeId, selfKey, fields }] = coherent;
+  // Dos fichas de la misma matrícula con usuarios distintos no se adivinan.
+  if (candidates.some((entry) => entry.employeeId === employeeId && entry.selfKey !== selfKey)) {
     return { status: "unresolved", reason: "ambiguous" };
   }
   return {
     status: "resolved",
+    selfKey,
     person: {
       employeeId,
       fullName:
@@ -105,11 +108,15 @@ export type OroIdentityRow = {
   readonly selfKey: string | null;
 };
 
-/** La ficha ORO debe existir, ser única y pertenecer al mismo usuario. */
+/**
+ * La ficha ORO debe existir, ser única y pertenecer al mismo autoservicio que
+ * el perfil Meta4: misma matrícula y misma `clave_Self` (no el usuario de
+ * aplicación, que puede diferir).
+ */
 export const crossCheckIdentity = (
   rows: readonly OroIdentityRow[],
   employeeId: string,
-  username: string,
+  selfKey: string,
 ): boolean => {
   const identities = new Set(
     rows.map((row) =>
@@ -118,6 +125,6 @@ export const crossCheckIdentity = (
   );
   return (
     identities.size === 1 &&
-    identities.has(JSON.stringify([employeeId.trim(), username.trim().toLowerCase()]))
+    identities.has(JSON.stringify([employeeId.trim(), selfKey.trim().toLowerCase()]))
   );
 };

@@ -51,6 +51,25 @@ describe("contexto de identidad del portal", () => {
     });
     expect(load).toHaveBeenCalledWith("COLL", "001471");
   });
+  it("resuelve con el autoservicio del perfil cuando el usuario de aplicación difiere", async () => {
+    const result = await getPortalContext(session, {
+      ...deps,
+      getOperationalContext: async () => ({
+        mode: "meta4",
+        society: "COLL",
+        username: "SOFIA.ELICES",
+        companyId: "coll",
+        jSessionId: "synthetic",
+      }),
+      loadProfile: async () => ({
+        recordSets: [{ fields: { id_Empleado: "1683", clave_Self: "selicesm" } }],
+      }),
+      loadOroIdentity: async () => [{ employeeId: "1683", selfKey: "selicesm" }],
+    });
+    expect(result).toMatchObject({
+      identity: { status: "resolved", crossChecked: true, person: { employeeId: "1683" } },
+    });
+  });
   it("falla cerrado ante errores o usuarios contradictorios en PeopleNet configurado", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const result = await getPortalContext(session, {
