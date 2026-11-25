@@ -4,6 +4,8 @@
 
 - La cabecera y el bloque Markdown comparten contorno y fondo. Verificada
   su unión en Chrome en escritorio y móvil, también dentro de listas.
+- Las tabulaciones y las líneas vacías del bloque se dibujan sobre un fondo
+  continuo. El resaltado con fondo se aplica al código dentro de un párrafo.
 
 ## 2026-11-23 - Consultas de PeopleNet desde el chat
 

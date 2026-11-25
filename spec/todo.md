@@ -5,6 +5,9 @@
 - [x] Unir la cabecera y el cuerpo del bloque Markdown, también cuando
       aparece dentro de una lista. Chrome confirmó un hueco de 0 px a
       1280 y 390 px y desplazamiento horizontal dentro del bloque.
+- [x] Aplicar fondo y relleno de código en línea solo fuera de los bloques.
+      Chrome confirmó tabulaciones y líneas vacías sobre el fondo continuo
+      del bloque a 1280 y 390 px.
 
 ## Consultas de PeopleNet desde el chat — 2026-11-23
 
