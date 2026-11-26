@@ -4,12 +4,16 @@ import {
   BACKUP_DATABASE_PATH,
   BACKUP_VERSION,
   DATABASE_SCHEMA_VERSION,
+  LEGACY_MANUAL_SOURCES_SCHEMA_VERSION,
   LEGACY_RAG_SCHEMA_VERSION,
 } from "@/server/database/version";
 
 export type BackupManifest = {
   backupVersion: typeof BACKUP_VERSION;
-  databaseSchemaVersion: typeof DATABASE_SCHEMA_VERSION | typeof LEGACY_RAG_SCHEMA_VERSION;
+  databaseSchemaVersion:
+    | typeof DATABASE_SCHEMA_VERSION
+    | typeof LEGACY_MANUAL_SOURCES_SCHEMA_VERSION
+    | typeof LEGACY_RAG_SCHEMA_VERSION;
   appVersion: string;
   createdAt: string;
   databasePath: typeof BACKUP_DATABASE_PATH;
@@ -25,6 +29,7 @@ export const parseBackupManifest = (value: unknown): BackupManifest => {
   }
   if (
     value.databaseSchemaVersion !== DATABASE_SCHEMA_VERSION &&
+    value.databaseSchemaVersion !== LEGACY_MANUAL_SOURCES_SCHEMA_VERSION &&
     value.databaseSchemaVersion !== LEGACY_RAG_SCHEMA_VERSION
   ) {
     throw new Error("La versión de base de datos no es compatible.");

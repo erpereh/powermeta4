@@ -7,13 +7,16 @@ import { DatabaseSync } from "node:sqlite";
 import { Uint8ArrayReader, Uint8ArrayWriter, ZipReader, ZipWriter } from "@zip.js/zip.js";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { GROUPINGS } from "@/features/retributive-breakdown/contract";
 import { closeDatabase, getDatabase } from "@/server/database/client";
 import { bootstrapDatabase } from "@/server/database/bootstrap";
 import { checksumMigrationSql, runMigrations } from "@/server/database/migrations";
+import { createBreakdownRepository } from "@/server/database/repositories/retributive-breakdown-repository";
 import {
   BACKUP_DATABASE_PATH,
   BACKUP_VERSION,
   DATABASE_SCHEMA_VERSION,
+  LEGACY_MANUAL_SOURCES_SCHEMA_VERSION,
   LEGACY_RAG_SCHEMA_VERSION,
 } from "@/server/database/version";
 import { ensureLocalDataDirectories } from "@/server/database/paths";
@@ -78,6 +81,34 @@ const createFixture = async () => {
 };
 
 describe("backup safety and exact format", () => {
+  it("restores an active breakdown with its five generated books", async () => {
+    await createFixture();
+    const database = getDatabase();
+    const company = database.prepare("SELECT id FROM companies LIMIT 1").get();
+    if (typeof company?.id !== "string") throw new Error("Missing workspace");
+    const books = new Map(GROUPINGS.map(({ file }, index) => [file, new Uint8Array([index + 1])]));
+    const saved = await createBreakdownRepository(database).save(
+      company.id,
+      {
+        period: { from: "01/01/2025", to: "31/12/2025" },
+        employeeRows: 10,
+        concepts: [],
+        groupings: [],
+      },
+      books,
+    );
+    const { exportBackup, restoreBackup, validateBackup } = await import("@/lib/backups/service");
+    const backup = await exportBackup();
+    const validated = await validateBackup(backup.bytes, "browser-session-hash");
+    await restoreBackup(validated.importId, "browser-session-hash");
+    const restored = createBreakdownRepository(getDatabase());
+    expect(restored.list(company.id)).toEqual({
+      entries: [saved.entry],
+      activeAnalysisId: saved.entry.id,
+    });
+    expect(restored.get(company.id, saved.entry.id)).toEqual(saved);
+    expect(restored.readBooks(company.id, saved.entry.id)).toEqual(books);
+  });
   it("rejects Zip Slip paths, symlinks and configured limits", () => {
     expect(() => normalizeZipEntryName("../outside.txt")).toThrow();
     expect(() => normalizeZipEntryName("C:/outside.txt")).toThrow();
@@ -379,93 +410,106 @@ describe("backup safety and exact format", () => {
     );
   });
 
-  it("upgrades a schema 11 backup before installing it and retains citation IDs and PDF bytes", async () => {
-    const { dataDir, paths } = await createFixture();
-    const file = path.join(dataDir, "schema-11.db");
-    const migrationsDir = path.resolve("src/server/database/migrations");
-    const legacy = new DatabaseSync(file);
-    const pdf = new TextEncoder().encode("%PDF-1.7\nlegacy fixture");
-    const checksum = createHash("sha256").update(pdf).digest("hex");
-    const timestamp = "2026-11-24T00:00:00.000Z";
-    try {
-      const migrations = (await readdir(migrationsDir)).sort().slice(0, LEGACY_RAG_SCHEMA_VERSION);
-      for (const [index, name] of migrations.entries()) {
-        const sql = await readFile(path.join(migrationsDir, name), "utf8");
-        legacy.exec(sql);
+  it.each([LEGACY_RAG_SCHEMA_VERSION, LEGACY_MANUAL_SOURCES_SCHEMA_VERSION])(
+    "upgrades a schema %s backup and retains citation IDs and PDF bytes",
+    async (schemaVersion) => {
+      const { dataDir, paths } = await createFixture();
+      const file = path.join(dataDir, `schema-${schemaVersion}.db`);
+      const migrationsDir = path.resolve("src/server/database/migrations");
+      const legacy = new DatabaseSync(file);
+      const pdf = new TextEncoder().encode("%PDF-1.7\nlegacy fixture");
+      const checksum = createHash("sha256").update(pdf).digest("hex");
+      const timestamp = "2026-11-24T00:00:00.000Z";
+      try {
+        const migrations = (await readdir(migrationsDir)).sort().slice(0, schemaVersion);
+        for (const [index, name] of migrations.entries()) {
+          const sql = await readFile(path.join(migrationsDir, name), "utf8");
+          legacy.exec(sql);
+          legacy
+            .prepare(
+              "INSERT INTO schema_migrations (version, name, checksum, applied_at) VALUES (?, ?, ?, ?)",
+            )
+            .run(index + 1, name.slice(0, -4), checksumMigrationSql(sql), timestamp);
+        }
+        bootstrapDatabase(legacy);
+        const company = legacy.prepare("SELECT id FROM companies").get();
+        if (!company) throw new Error("Missing legacy workspace");
         legacy
           .prepare(
-            "INSERT INTO schema_migrations (version, name, checksum, applied_at) VALUES (?, ?, ?, ?)",
+            "INSERT INTO conversations (id, company_id, created_at, updated_at) VALUES ('legacy-chat', ?, ?, ?)",
           )
-          .run(index + 1, name.slice(0, -4), checksumMigrationSql(sql), timestamp);
-      }
-      bootstrapDatabase(legacy);
-      const company = legacy.prepare("SELECT id FROM companies").get();
-      if (!company) throw new Error("Missing legacy workspace");
-      legacy
-        .prepare(
-          "INSERT INTO conversations (id, company_id, created_at, updated_at) VALUES ('legacy-chat', ?, ?, ?)",
-        )
-        .run(company.id, timestamp, timestamp);
-      legacy
-        .prepare(
-          "INSERT INTO messages (id, conversation_id, role, content_json, status, created_at, updated_at) VALUES ('legacy-message', 'legacy-chat', 'assistant', ?, 'complete', ?, ?)",
-        )
-        .run(
-          JSON.stringify([
-            {
-              type: "data",
-              name: "powermeta4-sources",
-              data: [{ kind: "manual", id: "legacy-id", version: 3, name: "Manual.pdf", page: 1 }],
-            },
-          ]),
-          timestamp,
-          timestamp,
-        );
-      legacy
-        .prepare(`INSERT INTO kb_documents
+          .run(company.id, timestamp, timestamp);
+        legacy
+          .prepare(
+            "INSERT INTO messages (id, conversation_id, role, content_json, status, created_at, updated_at) VALUES ('legacy-message', 'legacy-chat', 'assistant', ?, 'complete', ?, ?)",
+          )
+          .run(
+            JSON.stringify([
+              {
+                type: "data",
+                name: "powermeta4-sources",
+                data: [
+                  { kind: "manual", id: "legacy-id", version: 3, name: "Manual.pdf", page: 1 },
+                ],
+              },
+            ]),
+            timestamp,
+            timestamp,
+          );
+        if (schemaVersion === LEGACY_RAG_SCHEMA_VERSION) {
+          legacy
+            .prepare(`INSERT INTO kb_documents
         (id, file_name, original_file_name, relative_path, checksum, byte_size, page_count, version, metadata_json, embedding_model, embedding_dims, indexed_at, created_at, updated_at)
         VALUES ('legacy-id', 'manual.pdf', 'Manual.pdf', 'uploads/manuals/manual.pdf', ?, ?, 1, 3, '{}', 'legacy', 768, ?, ?, ?)`)
-        .run(checksum, pdf.byteLength, timestamp, timestamp, timestamp);
-    } finally {
-      legacy.close();
-    }
-    const writer = new Uint8ArrayWriter();
-    const zip = new ZipWriter(writer);
-    const manifest = {
-      backupVersion: BACKUP_VERSION,
-      databaseSchemaVersion: LEGACY_RAG_SCHEMA_VERSION,
-      appVersion: "0.1.0",
-      createdAt: timestamp,
-      databasePath: BACKUP_DATABASE_PATH,
-    };
-    await zip.add(
-      "manifest.json",
-      new Uint8ArrayReader(new TextEncoder().encode(JSON.stringify(manifest))),
-    );
-    await zip.add(BACKUP_DATABASE_PATH, new Uint8ArrayReader(await readFile(file)));
-    await zip.add("uploads/", new Uint8ArrayReader(new Uint8Array()));
-    await zip.add("uploads/manuals/manual.pdf", new Uint8ArrayReader(pdf));
-    await zip.close();
-    const { validateBackup, restoreBackup } = await import("@/lib/backups/service");
-    const validation = await validateBackup(await writer.getData(), "browser-session-hash");
-    expect(validation.manifest.databaseSchemaVersion).toBe(LEGACY_RAG_SCHEMA_VERSION);
-    await restoreBackup(validation.importId, "browser-session-hash");
-    const database = getDatabase();
-    expect(database.prepare("PRAGMA user_version").get()).toMatchObject({
-      user_version: DATABASE_SCHEMA_VERSION,
-    });
-    expect(
-      database.prepare("SELECT id, version, checksum FROM legacy_manual_sources").get(),
-    ).toEqual({ id: "legacy-id", version: 3, checksum });
-    expect(database.prepare("SELECT name FROM sqlite_schema WHERE name GLOB 'kb_*'").all()).toEqual(
-      [],
-    );
-    expect(
-      database.prepare("SELECT content_json FROM messages WHERE id = 'legacy-message'").get()
-        ?.content_json,
-    ).toContain("legacy-id");
-    expect(await readFile(path.join(paths.uploadsDir, "manuals", "manual.pdf"))).toEqual(
-      Buffer.from(pdf),
-    );
-  });
+            .run(checksum, pdf.byteLength, timestamp, timestamp, timestamp);
+        } else {
+          legacy
+            .prepare(`INSERT INTO legacy_manual_sources
+          (id, version, checksum, original_file_name, relative_path)
+          VALUES ('legacy-id', 3, ?, 'Manual.pdf', 'uploads/manuals/manual.pdf')`)
+            .run(checksum);
+        }
+      } finally {
+        legacy.close();
+      }
+      const writer = new Uint8ArrayWriter();
+      const zip = new ZipWriter(writer);
+      const manifest = {
+        backupVersion: BACKUP_VERSION,
+        databaseSchemaVersion: schemaVersion,
+        appVersion: "0.1.0",
+        createdAt: timestamp,
+        databasePath: BACKUP_DATABASE_PATH,
+      };
+      await zip.add(
+        "manifest.json",
+        new Uint8ArrayReader(new TextEncoder().encode(JSON.stringify(manifest))),
+      );
+      await zip.add(BACKUP_DATABASE_PATH, new Uint8ArrayReader(await readFile(file)));
+      await zip.add("uploads/", new Uint8ArrayReader(new Uint8Array()));
+      await zip.add("uploads/manuals/manual.pdf", new Uint8ArrayReader(pdf));
+      await zip.close();
+      const { validateBackup, restoreBackup } = await import("@/lib/backups/service");
+      const validation = await validateBackup(await writer.getData(), "browser-session-hash");
+      expect(validation.manifest.databaseSchemaVersion).toBe(schemaVersion);
+      await restoreBackup(validation.importId, "browser-session-hash");
+      const database = getDatabase();
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({
+        user_version: DATABASE_SCHEMA_VERSION,
+      });
+      expect(
+        database.prepare("SELECT id, version, checksum FROM legacy_manual_sources").get(),
+      ).toEqual({ id: "legacy-id", version: 3, checksum });
+      expect(
+        database.prepare("SELECT name FROM sqlite_schema WHERE name GLOB 'kb_*'").all(),
+      ).toEqual([]);
+      expect(
+        database.prepare("SELECT content_json FROM messages WHERE id = 'legacy-message'").get()
+          ?.content_json,
+      ).toContain("legacy-id");
+      expect(await readFile(path.join(paths.uploadsDir, "manuals", "manual.pdf"))).toEqual(
+        Buffer.from(pdf),
+      );
+    },
+  );
 });

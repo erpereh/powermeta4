@@ -77,7 +77,7 @@ consultas que requieren el RAG reciben fragmentos de los manuales. El cliente
 compatible normaliza la raíz de `AI_BASE_URL` a
 `/chat/completions`, envía `{ model, messages, stream: true }`, procesa SSE y
 persiste contenido incremental y estados `complete`, `cancelled` o `failed`.
-El esquema actual es `DATABASE_SCHEMA_VERSION = 12`. La migración 009 elimina
+El esquema actual es `DATABASE_SCHEMA_VERSION = 13`. La migración 009 elimina
 la infraestructura exclusiva del agente y las configuraciones de proveedor.
 La 012 conserva las referencias a manuales antiguos y retira el índice
 anterior. Ambas conservan las conversaciones, los mensajes, los adjuntos y
@@ -233,18 +233,26 @@ y `cuadre:verify-local`: [Guía de Cuadre de nómina](docs/automatizacion-reunio
 ## Desglose Retributivo
 
 En **Herramientas → Desglose Retributivo** (`/tools/desglose-retributivo`),
-carga los cinco Excel de PeopleNet del mismo periodo. La herramienta admite
+arrastra o selecciona los cinco Excel de PeopleNet del mismo periodo. La herramienta admite
 cualquier sesión válida, incluido DEBUG en desarrollo. Cada libro contiene
 **Empleados** y una hoja agrupada por categoría personal, categoría, familia
 de puesto, puesto o valoración del puesto. El formato compatible se validó
 con los libros de IBER 2025.
 
-La herramienta conserva Empleados y el resumen de cada libro. Completa el
-desglose por concepto con las medias y medianas de mujeres y hombres y sus
-diferencias porcentuales. El botón **Generar y descargar ZIP** devuelve los
-cinco Excel con los resultados como valores. El servidor procesa los archivos
-en memoria. Los cinco originales privados de IBER 2025 quedan en
-`fuentes/desglose-retributivo-iber-2025/` en el equipo de trabajo.
+Pulsa **Analizar** para consultar el periodo, los recuentos y las cinco
+agrupaciones. En **Agrupaciones** puedes elegir un concepto salarial y
+buscar por código o nombre para ver sus medias, medianas y diferencias
+porcentuales. **Exportar Excel** ofrece el libro completo de seis hojas,
+cada Excel individual y el ZIP con los cinco individuales.
+
+**Historial** permite reabrir, volver a exportar y eliminar análisis del workspace
+activo. **Nuevo análisis** conserva el anterior en el historial. Tras actualizar,
+ejecuta `npm run setup` con el servidor detenido para aplicar la migración 013.
+
+El servidor procesa los originales en memoria. La base SQLite local y sus copias
+incluyen las métricas guardadas y los cinco Excel generados, con la hoja
+**Empleados**. Los cinco originales privados de IBER 2025 quedan en
+`fuentes/desglose-retributivo-iber-2025/`, una carpeta local ignorada por Git.
 
 ## Copias locales
 
@@ -261,7 +269,7 @@ El manifest tiene exactamente estas cinco propiedades:
 ```json
 {
   "backupVersion": 1,
-  "databaseSchemaVersion": 12,
+  "databaseSchemaVersion": 13,
   "appVersion": "...",
   "createdAt": "...",
   "databasePath": "database/powermeta4.db"
@@ -274,10 +282,10 @@ ese lock. Sesiones, imports pendientes, recibos de idempotencia y el perfil Meta
 cifrado se eliminan de la copia temporal. La exportación trabaja sobre una
 instantánea.
 
-La restauración admite `backupVersion` 1 con los esquemas 11 y 12.
+La restauración admite `backupVersion` 1 con los esquemas 11, 12 y 13.
 Valida seguridad del ZIP, integridad SQLite, claves foráneas,
 historial de migraciones y tablas requeridas. Actualiza las copias de
-esquema 11 en preparación, sustituye base y uploads con rollback conjunto
+esquemas 11 y 12 en preparación, sustituye base y uploads con rollback conjunto
 e invalida la sesión para exigir un nuevo login.
 
 ## Verificación

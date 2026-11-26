@@ -36,7 +36,7 @@ describe("local database setup", () => {
     const secondBootstrap = bootstrapDatabase(database);
 
     expect(BACKUP_VERSION).toBe(1);
-    expect(DATABASE_SCHEMA_VERSION).toBe(12);
+    expect(DATABASE_SCHEMA_VERSION).toBe(13);
     expect(firstBootstrap.created).toBe(true);
     expect(secondBootstrap.created).toBe(false);
     expect(database.prepare("SELECT COUNT(*) AS count FROM companies").get()?.count).toBe(1);

@@ -1,5 +1,65 @@
 # Changelog
 
+## 2026-11-26 - Acciones del historial de Desglose Retributivo
+
+- El menú para exportar o eliminar se sitúa a la derecha y centrado
+  verticalmente en cada fila. Verificado en Chromium a 1.440 y 390 px con
+  apertura por teclado, descarga y confirmación de borrado.
+- Typecheck y build correctos. La suite completa pasó 1.804 pruebas, omitió
+  dos y registró cinco timeouts en la auditoría del portal. Las 58 pruebas
+  dirigidas del Desglose y de los tres archivos de auditoría pasaron.
+
+## 2026-11-26 - Historial vacío de Desglose Retributivo
+
+- Aplicada la migración 013 en la base habitual tras verificar su copia
+  SQLite. La base conserva los recuentos de empresas, conversaciones,
+  mensajes y adjuntos.
+- Resumen muestra el formulario cuando el historial está vacío. Los fallos
+  de carga se muestran en Historial con reintento. Si falta la migración,
+  el servidor indica que la base local debe actualizarse.
+- Prueba de extremo a extremo en Chromium con DEBUG en `localhost:3000`.
+  IBER 2025 produjo 70 registros, 88 conceptos y 79 grupos. Se comprobaron
+  la recarga, las siete descargas, 41.712 valores y el borrado del único
+  análisis de prueba. Un 503 simulado verificó el aviso y su reintento.
+- Suite completa con 237 archivos, 1.809 pruebas aprobadas y dos omitidas.
+  Typecheck, build, formato del código tocado y `git diff --check`
+  correctos. El lint global mantiene los fallos de formato existentes.
+
+## 2026-11-26 - Interfaz e historial de Desglose Retributivo
+
+- El Desglose reutiliza la carga y las superficies del Registro Retributivo.
+  Los cinco Excel se seleccionan o arrastran juntos. Historial comparte la
+  navegación con Resumen y Agrupaciones.
+- La migración 013 guarda cada análisis en SQLite por workspace. Permite
+  reabrirlo, repetir las siete descargas y eliminarlo con confirmación.
+  Los Excel generados incluyen Empleados y forman parte de las copias
+  locales. Los originales se procesan en memoria.
+- Verificada la restauración de análisis y los cinco libros generados.
+  Las copias de los esquemas 11 y 12 se actualizan durante la restauración.
+- En Chromium con DEBUG se verificaron la reapertura, el teclado, la
+  vista a 390 px, el borrado y las siete descargas. Los 41.712 valores
+  coinciden entre el consolidado de seis hojas, los individuales y
+  la vista previa de IBER 2025.
+- Suite completa con 237 archivos, 1.805 pruebas aprobadas y dos omitidas.
+  Typecheck, build, formato del TypeScript cambiado y `git diff --check`
+  correctos. El lint global sigue fallando por formato en 690 archivos.
+
+## 2026-11-26 - Resultados de Desglose Retributivo
+
+- Desglose Retributivo muestra el resumen y las seis métricas de cada
+  agrupación. Permite elegir el concepto y buscar grupos por código o nombre.
+- El menú de exportación descarga un Excel de seis hojas, un Excel por
+  agrupación o el ZIP con los cinco individuales.
+- Comprobadas las siete descargas y los filtros en Chromium con DEBUG.
+  Excel abrió el consolidado de seis hojas y los 41.712 valores del
+  desglose coincidieron con la referencia de 2025.
+- Suite completa en `davidev` con 237 archivos, 1.802 pruebas aprobadas y
+  dos omitidas. Typecheck, build, formato del código del desglose y
+  `git diff --check` correctos. El lint global señaló nueve avisos y
+  falló en la comprobación de formato de 690 archivos.
+- Los cinco originales privados siguen en la carpeta local ignorada por
+  Git. El índice no contiene ninguno.
+
 ## 2026-11-26 - Acceso a Desglose Retributivo
 
 - El formulario y la descarga funcionan con cualquier sesión válida,

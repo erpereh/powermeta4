@@ -226,10 +226,14 @@ export const assertSqliteIntegrity = (
     const oldKnowledgeTables = ["kb_documents", "kb_chunks", "kb_chunks_fts"];
     const manualTables =
       schemaVersion === LEGACY_RAG_SCHEMA_VERSION ? oldKnowledgeTables : ["legacy_manual_sources"];
-    for (const table of [...requiredTables, ...manualTables])
+    const breakdownTables =
+      schemaVersion === DATABASE_SCHEMA_VERSION
+        ? ["retributive_breakdown_analyses", "retributive_breakdown_books"]
+        : [];
+    for (const table of [...requiredTables, ...manualTables, ...breakdownTables])
       if (!tables.has(table)) throw new Error("La copia SQLite no tiene el esquema requerido.");
     if (
-      schemaVersion === DATABASE_SCHEMA_VERSION &&
+      schemaVersion !== LEGACY_RAG_SCHEMA_VERSION &&
       oldKnowledgeTables.some((table) => tables.has(table))
     )
       throw new Error("La copia SQLite contiene tablas del índice de manuales retirado.");
@@ -678,7 +682,7 @@ export const restoreBackup = async (
     );
     try {
       const stagedDatabasePath = await writeInspectionDatabase(inspected, stagingDirectory);
-      if (inspected.manifest.databaseSchemaVersion === LEGACY_RAG_SCHEMA_VERSION)
+      if (inspected.manifest.databaseSchemaVersion !== DATABASE_SCHEMA_VERSION)
         upgradeStagedBackup(stagedDatabasePath);
       const stagedUploadsPath = path.join(stagingDirectory, "uploads");
       await copyUploadsFromZip(inspected, stagedUploadsPath);

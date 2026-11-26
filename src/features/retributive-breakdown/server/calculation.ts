@@ -1,9 +1,8 @@
-import { GROUPINGS } from "../contract";
+import { GROUPINGS, type BreakdownMetrics } from "../contract";
 import { attribute, BreakdownInputError, children, normalize, type Sheet } from "./workbook";
 
 export type Grouping = (typeof GROUPINGS)[number];
 export type Scalar = string | number | null;
-type Metrics = [number, number, number, number, number, number];
 type Concept = { code: string; column: number; section: string };
 
 const sections = ["Conceptos Salario", "Conceptos C. Salarial", "Conceptos Extrasalarial"];
@@ -127,6 +126,7 @@ export function readEmployees(sheet: Sheet) {
   return {
     sheet,
     header,
+    period: { from, to },
     concepts,
     rows,
     sexColumn,
@@ -182,7 +182,7 @@ export type GroupResult = {
   added: boolean;
   women: number;
   men: number;
-  metrics: Metrics[];
+  metrics: BreakdownMetrics[];
 };
 
 type GroupRow = Pick<GroupResult, "row" | "identifier" | "label" | "added">;
@@ -278,13 +278,13 @@ export function analyzeGrouping(source: Employees, destination: Sheet, grouping:
         if (typeof value === "number") return [value];
         return value === null && blanksAsZero ? [0] : [];
       });
-    const metrics = concepts.map(({ column }): Metrics => {
+    const metrics = concepts.map(({ column }): BreakdownMetrics => {
       const averageWomen = mean(amounts(meanWomen, column, false));
       const averageMen = mean(amounts(meanMen, column, false));
       const midWomen = median(amounts(medianWomen, column, true));
       const midMen = median(amounts(medianMen, column, true));
       const difference = (women: number, men: number) => (men === 0 ? 0 : (men - women) / men);
-      const values: Metrics = [
+      const values: BreakdownMetrics = [
         averageWomen,
         averageMen,
         difference(averageWomen, averageMen),

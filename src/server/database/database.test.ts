@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { bootstrapDatabase } from "@/server/database/bootstrap";
 import { checksumMigrationSql, runMigrations } from "@/server/database/migrations";
 import { withTransaction } from "@/server/database/transaction";
+import { DATABASE_SCHEMA_VERSION } from "@/server/database/version";
 import { createAuthRepository } from "@/lib/auth/session-repository";
 
 const createMigratedDatabase = () => {
@@ -47,7 +48,9 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 12 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({
+        user_version: DATABASE_SCHEMA_VERSION,
+      });
       expect(database.prepare("SELECT version, name FROM schema_migrations").all()).toEqual([
         { version: 1, name: "001_initial" },
         { version: 2, name: "002_debug_auth_mode" },
@@ -61,6 +64,7 @@ describe("node:sqlite database kernel", () => {
         { version: 10, name: "010_knowledge_base" },
         { version: 11, name: "011_payroll_reconciliation" },
         { version: 12, name: "012_legacy_manual_sources" },
+        { version: 13, name: "013_retributive_breakdown_history" },
       ]);
       const migrated = database
         .prepare(
@@ -177,6 +181,7 @@ describe("node:sqlite database kernel", () => {
         { version: 10, name: "010_knowledge_base" },
         { version: 11, name: "011_payroll_reconciliation" },
         { version: 12, name: "012_legacy_manual_sources" },
+        { version: 13, name: "013_retributive_breakdown_history" },
       ]);
 
       const tables = database
@@ -198,6 +203,8 @@ describe("node:sqlite database kernel", () => {
         "meta4_user_profile",
         "payroll_reconciliation_dossiers",
         "pending_backup_imports",
+        "retributive_breakdown_analyses",
+        "retributive_breakdown_books",
         "retributivo_analyses",
         "retributivo_settings",
         "retributivo_state",
@@ -211,7 +218,7 @@ describe("node:sqlite database kernel", () => {
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 12,
+        count: DATABASE_SCHEMA_VERSION,
       });
     } finally {
       database.close();
@@ -291,7 +298,9 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 12 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({
+        user_version: DATABASE_SCHEMA_VERSION,
+      });
       expect(
         database.prepare("SELECT id, company_id, title, head_message_id FROM conversations").all(),
       ).toEqual([
@@ -406,7 +415,9 @@ describe("node:sqlite database kernel", () => {
 
       runMigrations(database);
 
-      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({ user_version: 12 });
+      expect(database.prepare("PRAGMA user_version").get()).toMatchObject({
+        user_version: DATABASE_SCHEMA_VERSION,
+      });
       expect(database.prepare("SELECT society, username FROM meta4_user_profile").all()).toEqual([
         { society: "IBER", username: "usuario" },
       ]);
@@ -615,6 +626,10 @@ describe("node:sqlite database kernel", () => {
         migrationPath(directory, "012_test.sql"),
         "CREATE TABLE migration_test_v12 (id TEXT PRIMARY KEY); PRAGMA user_version = 12;",
       );
+      writeFileSync(
+        migrationPath(directory, "013_test.sql"),
+        "CREATE TABLE migration_test_v13 (id TEXT PRIMARY KEY); PRAGMA user_version = 13;",
+      );
       runMigrations(database, directory);
       writeFileSync(
         firstMigrationPath,
@@ -643,13 +658,14 @@ describe("node:sqlite database kernel", () => {
       writeFileSync(migrationPath(directory, "010_test.sql"), "CREATE TABLE tenth (id TEXT);");
       writeFileSync(migrationPath(directory, "011_test.sql"), "CREATE TABLE eleventh (id TEXT);");
       writeFileSync(migrationPath(directory, "012_test.sql"), "CREATE TABLE twelfth (id TEXT);");
+      writeFileSync(migrationPath(directory, "013_test.sql"), "CREATE TABLE thirteenth (id TEXT);");
       runMigrations(database, directory);
       writeFileSync(migrationPath(directory, "002_future.sql"), "CREATE TABLE future (id TEXT);");
       expect(() => runMigrations(database, directory)).toThrow(/versión|migraciones|duplicad/i);
       expect(
         database.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get(),
       ).toMatchObject({
-        count: 12,
+        count: DATABASE_SCHEMA_VERSION,
       });
       expect(database.prepare("SELECT name FROM sqlite_master WHERE name = 'future'").get()).toBe(
         undefined,

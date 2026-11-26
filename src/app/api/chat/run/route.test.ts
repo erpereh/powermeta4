@@ -5,6 +5,7 @@ import type { ManualEvidence } from "@/lib/knowledge/manuals/retrieve";
 import { NO_ANSWER_SENTENCE } from "@/lib/knowledge/prompt";
 import type { Chat, Message } from "@/types/chat";
 import type { WorkspaceSnapshot } from "@/lib/local-database/dtos";
+import { DATABASE_SCHEMA_VERSION } from "@/server/database/version";
 
 const mocks = vi.hoisted(() => ({
   getCurrentAuthContext: vi.fn(),
@@ -66,7 +67,7 @@ const snapshot: WorkspaceSnapshot = {
   workspaces: {},
   auth: authContext,
   backupVersion: 1,
-  databaseSchemaVersion: 12,
+  databaseSchemaVersion: DATABASE_SCHEMA_VERSION,
   appVersion: "0.1.0",
 };
 

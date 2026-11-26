@@ -1,5 +1,72 @@
 # powermeta4 - estado de tareas
 
+## Acciones del historial de Desglose Retributivo — 2026-11-26
+
+- [x] Alinear el menú de acciones al borde derecho y centrarlo
+      verticalmente en cada fila del historial.
+- [x] Comprobar la alineación en Chromium a 1.440 y 390 px, la apertura por
+      teclado, la descarga y el diálogo de eliminación con datos ficticios.
+- [x] Ejecutar typecheck, build, formato del código cambiado y revisión del
+      diff. El lint global conserva los fallos de formato existentes.
+- [x] Ejecutar la suite completa. Pasaron 1.804 pruebas y se omitieron dos.
+      Cinco pruebas de auditoría del portal agotaron el límite de 5 s.
+      Los tres archivos de auditoría y las pruebas dirigidas del Desglose
+      pasaron en la repetición por separado (58 pruebas).
+
+## Historial vacío de Desglose Retributivo — 2026-11-26
+
+- [x] Comprobar que la base habitual seguía en el esquema 12. Crear una
+      copia SQLite verificada y aplicar la migración 013 con `npm run setup`.
+- [x] Mantener Resumen sin alertas de carga. Mostrar un historial vacío
+      como estado normal y los fallos de carga en Historial con reintento.
+- [x] Distinguir una migración pendiente y conservar los cinco Excel
+      seleccionados cuando falle el guardado. Pasaron 22 pruebas dirigidas.
+- [x] Verificar en Chromium con DEBUG en `localhost:3000` el historial
+      vacío, la carga real de los cinco Excel IBER 2025, la recarga, las
+      siete descargas, el borrado individual y el reintento ante un 503
+      simulado. Contrastar seis hojas y 41.712 valores.
+- [x] Ejecutar la suite completa (237 archivos, 1.809 pruebas aprobadas y
+      dos omitidas), typecheck, build y revisión del diff. El lint global
+      conserva nueve avisos y 690 archivos con problemas de formato.
+      Los cinco Excel privados siguen ignorados y fuera del índice.
+
+## Interfaz e historial de Desglose Retributivo — 2026-11-26
+
+- [x] Reutilizar la carga, la navegación, las cifras y los componentes
+      del historial del Registro Retributivo. Usar una zona de carga
+      para los cinco Excel con retirada individual.
+- [x] Guardar en SQLite por workspace el resultado y los cinco Excel
+      generados. Reabrir el análisis activo, ofrecer las siete descargas
+      desde el historial y confirmar el borrado individual o completo.
+- [x] Probar el historial, el aislamiento, el borrado y la exportación
+      con datos ficticios. Probar la restauración con historial y la
+      compatibilidad con copias de los esquemas 11 y 12.
+- [x] Verificar en Chromium con DEBUG la carga por selector y arrastre,
+      reapertura tras recarga, teclado, siete descargas y borrado a 390 px.
+      Contrastar seis hojas y 41.712 valores con los cinco Excel de IBER 2025.
+- [x] Pasar la suite completa (237 archivos, 1.805 pruebas aprobadas y
+      dos omitidas), typecheck, build y formato de los archivos TypeScript
+      modificados o nuevos. El lint global mantiene nueve avisos y 690
+      archivos con problemas de formato.
+- [x] Revisar el diff y confirmar que los cinco originales privados están
+      ignorados y fuera del índice de Git.
+
+## Resultados de Desglose Retributivo — 2026-11-26
+
+- [x] Añadir las vistas Resumen y Agrupaciones con filtro por concepto y
+      búsqueda de grupos tras analizar los cinco originales.
+- [x] Exportar el libro completo con Empleados y las cinco agrupaciones,
+      los Excel individuales y el ZIP de los cinco libros separados.
+- [x] Probar en Chromium con DEBUG los filtros, el reinicio, la vista a
+      390 px y las siete descargas. Abrir el completo en Excel y contrastar
+      las seis hojas y 41.712 valores del desglose.
+- [x] Repetir `npm test` en `davidev`. Los 237 archivos pasaron con 1.802
+      pruebas aprobadas y dos omitidas. Typecheck, build y formato de los
+      12 archivos de código del desglose correctos. `npm run lint` señaló
+      nueve avisos y falló en el chequeo global de formato (690 archivos).
+- [x] Revisar el diff, incluidos los cuatro archivos nuevos, y comprobar que
+      Git ignora los cinco Excel privados y que ninguno está en el índice.
+
 ## Acceso a Desglose Retributivo — 2026-11-26
 
 - [x] Mostrar el formulario y generar el ZIP con cualquier sesión válida,

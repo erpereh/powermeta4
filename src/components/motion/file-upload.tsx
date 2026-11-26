@@ -67,6 +67,8 @@ export interface FileUploadProps {
   title?: string;
   description?: string;
   browseLabel?: string;
+  inputLabel?: string;
+  removeLabel?: (item: FileUploadItem) => string;
   className?: string;
   classNames?: FileUploadClassNames;
 }
@@ -226,12 +228,14 @@ function FileUploadRow({
   onRetry,
   classNames,
   removeLabel,
+  disabled,
 }: {
   item: FileUploadItem;
   onRemove: (item: FileUploadItem) => void;
   onRetry?: (item: FileUploadItem) => void;
   classNames?: FileUploadClassNames;
   removeLabel?: (item: FileUploadItem) => string;
+  disabled?: boolean;
 }) {
   const reduce = useReducedMotion();
   const status = item.status ?? "queued";
@@ -279,6 +283,7 @@ function FileUploadRow({
               {status === "error" && onRetry ? (
                 <button
                   type="button"
+                  disabled={disabled}
                   onClick={() => onRetry(item)}
                   aria-label={`Retry ${item.name}`}
                   className={cn(
@@ -291,6 +296,7 @@ function FileUploadRow({
               ) : null}
               <button
                 type="button"
+                disabled={disabled}
                 onClick={() => onRemove(item)}
                 aria-label={removeLabel?.(item) ?? `Remove ${item.name}`}
                 className={cn(
@@ -342,6 +348,7 @@ export interface FileUploadListProps {
   onRetry?: (item: FileUploadItem) => void;
   classNames?: FileUploadClassNames;
   removeLabel?: (item: FileUploadItem) => string;
+  disabled?: boolean;
 }
 
 /** The same queue rows without a second upload control or independent state. */
@@ -351,6 +358,7 @@ export function FileUploadList({
   onRetry,
   classNames,
   removeLabel,
+  disabled,
 }: FileUploadListProps) {
   return (
     <ul className={cn("space-y-2", classNames?.queue)}>
@@ -363,6 +371,7 @@ export function FileUploadList({
             onRetry={onRetry}
             classNames={classNames}
             removeLabel={removeLabel}
+            disabled={disabled}
           />
         ))}
       </AnimatePresence>
@@ -386,6 +395,8 @@ export function FileUpload({
   title = "Drop files here",
   description = "Add files to the upload queue",
   browseLabel = "Browse",
+  inputLabel = "Upload files",
+  removeLabel,
   className,
   classNames,
 }: FileUploadProps) {
@@ -463,7 +474,7 @@ export function FileUpload({
         ref={inputRef}
         id={inputId}
         type="file"
-        aria-label="Upload files"
+        aria-label={inputLabel}
         accept={accept}
         multiple={multiple}
         disabled={disabled || maxReached}
@@ -569,6 +580,8 @@ export function FileUpload({
         items={maxVisibleItems === undefined ? items : items.slice(0, Math.max(0, maxVisibleItems))}
         onRemove={removeItem}
         onRetry={retryItem}
+        disabled={disabled}
+        removeLabel={removeLabel}
         classNames={classNames}
       />
     </div>

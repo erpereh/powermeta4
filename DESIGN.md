@@ -378,6 +378,19 @@ Los mensajes operativos de la explicación IA y el chat conservan su comportamie
 - **Explicación IA**: panel ligero; carga con `ThinkingShimmer`, resultado en
   `Accordion` y copia con `ActionSwapButton`.
 
+## Desglose Retributivo
+
+Comparte `ToolsPageHeader`, `Tabs underline` y `StatTile` con el Registro
+Retributivo. **Resumen**, **Agrupaciones** e **Historial** ocupan una sola
+barra de navegación. La carga usa un `FileUpload` centrado para los cinco
+archivos y un `StatefulButton` con el recuento y el estado. La acción queda
+debajo de la carga en pantallas estrechas.
+
+Agrupaciones conserva los filtros y las cabeceras de media y mediana dentro
+de `DataTableShell`. El historial usa `HoverList` con la fecha, el periodo,
+los recuentos y un menú separado de la acción de abrir. El borrado individual
+y el borrado del historial se confirman mediante `Modal`.
+
 ## Chat y recomendaciones
 
 El Thread conserva `ExternalStoreRuntime` y una sola instancia de
