@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-26 - Fecha del análisis de Desglose Retributivo
+
+- La cabecera del análisis activo muestra la fecha y la hora en una sola línea.
+
 ## 2026-11-26 - Acciones del historial de Desglose Retributivo
 
 - El menú para exportar o eliminar se sitúa a la derecha y centrado

@@ -1,5 +1,9 @@
 # powermeta4 - estado de tareas
 
+## Fecha del análisis de Desglose Retributivo — 2026-11-26
+
+- [x] Mantener la fecha y la hora del análisis activo en una sola línea.
+
 ## Acciones del historial de Desglose Retributivo — 2026-11-26
 
 - [x] Alinear el menú de acciones al borde derecho y centrarlo

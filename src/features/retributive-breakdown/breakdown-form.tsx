@@ -335,7 +335,7 @@ function BreakdownSession() {
             {active && (
               <time
                 dateTime={active.entry.createdAt}
-                className="hidden pb-2.5 text-xs text-muted-foreground md:block"
+                className="hidden shrink-0 pb-2.5 text-xs whitespace-nowrap text-muted-foreground md:block"
               >
                 {dateFormat.format(new Date(active.entry.createdAt))}
               </time>
