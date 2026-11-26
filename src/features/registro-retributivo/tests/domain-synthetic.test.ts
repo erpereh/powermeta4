@@ -6,7 +6,7 @@ import { buildDefaultConceptMap } from "@/features/registro-retributivo/compare/
 import { salaryStatus } from "@/features/registro-retributivo/compare/salaryDiff";
 import { extractGroupedExcelSheets } from "@/features/registro-retributivo/groupings/groupedExcelSheets";
 import { median } from "@/features/registro-retributivo/groupings/registroGroupings";
-import { parseRegistroRetributivo } from "@/features/registro-retributivo/parsers/registroRetributivoParser";
+import { createInternalCheck, parseRegistroRetributivo } from "@/features/registro-retributivo/parsers/registroRetributivoParser";
 import type { ConceptMappingRule, RegistroEmployee } from "@/features/registro-retributivo/types";
 import { formatEuro, parseSpanishMoney } from "@/features/registro-retributivo/utils/money";
 import {
@@ -221,6 +221,53 @@ describe("concept mapping and comparison", () => {
       pdfAmount: 208,
       status: "OK",
     });
+  });
+
+  test("sums pending receipt concepts for each person", async () => {
+    const amounts = [
+      { employeeNumber: "10048", amount: 10 },
+      { employeeNumber: "10048", amount: 12 },
+      { employeeNumber: "10049", amount: 50 },
+    ];
+    const result = await compareAnalysis(
+      amounts.map(({ employeeNumber, amount }, fileIndex) => ({
+        sourceFile: `recibo-${fileIndex}.pdf`,
+        periodLabel: "Del 1 al 31 Enero 2025",
+        workerName: "PERSONA TEST",
+        employeeNumber,
+        concepts: [{ name: "Concepto por asignar", amount, type: "devengo" }],
+      })),
+      [],
+      { tolerance: 1 },
+    );
+
+    expect(result.people.map((row) => row.pendingReceiptConcepts)).toEqual([
+      [{ pdfConcept: "Concepto por asignar", totalDetected: 22 }],
+      [{ pdfConcept: "Concepto por asignar", totalDetected: 50 }],
+    ]);
+    expect(result.unmappedConcepts[0]?.totalDetected).toBe(72);
+  });
+
+  test("checks the workbook's blocks and total at the analysis tolerance", async () => {
+    const employee = emptyRegistroEmployee({
+      periodComplete: { salary: 100.01, salaryComplement: 200.01, extraSalary: 0, total: 300.02 },
+      normalizedPlusVariables: { salary: 100, salaryComplement: 200, extraSalary: 0, total: 300 },
+    });
+    const check = createInternalCheck({
+      employee,
+      salaryBreakdown: 100,
+      salaryComplementBreakdown: 200,
+      extraSalaryBreakdown: 0,
+    });
+    expect(check.status).toBe("OK");
+
+    for (const tolerance of [0, 0.01, 0.02]) {
+      const result = await compareAnalysis([], [employee], { tolerance, internalExcelChecks: [check] });
+      const expected = tolerance < 0.02 ? "Revisar" : "OK";
+      expect(result.internalExcelChecks[0]?.status).toBe(expected);
+      expect(result.internalExcelNormalizedVariablesChecks?.[0]?.status).toBe(expected);
+      expect(result.summary.internalExcelDifferences).toBe(tolerance < 0.02 ? 1 : 0);
+    }
   });
 
   test("exclusions remove matched rows before metrics", async () => {

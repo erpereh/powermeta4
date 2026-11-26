@@ -49,50 +49,46 @@ function concept(overrides: Partial<ConceptComparisonRow>): ConceptComparisonRow
   };
 }
 
-describe("probable deterministic cause", () => {
-  test("labels telework-like extra salary differences without changing the row", () => {
-    const row = person({ extraSalaryDifference: 208.05, totalDifference: 208.05, detail: "Teletrabajo pendiente" });
-
-    expect(describePersonCause(row, 1).label).toBe("Teletrabajo");
-    expect(row.status).toBe("OK");
-  });
-
-  test("labels vacation bonus and compensated block reclassification", () => {
-    expect(describePersonCause(person({ salaryComplementDifference: 841.92 }), 1).label).toBe("Bolsa vacaciones");
-    expect(
-      describePersonCause(person({ salaryDifference: 120, salaryComplementDifference: -119.7, totalDifference: 0.3 }), 1).label,
-    ).toBe("Reclasificación entre bloques");
-  });
-
-  test("labels 10123-style compensated salary and complement movement as block reclassification", () => {
-    const cause = describePersonCause(
+describe("difference explanations", () => {
+  test("quantifies the offset and the remaining difference between blocks", () => {
+    const evidence = describePersonCause(
       person({
-        employeeNumber: "10123",
-        salaryDifference: 3679.81,
-        salaryComplementDifference: -3679.8,
-        extraSalaryDifference: -193.94,
-        totalDifference: -193.94,
-        detail: "Diferencia residual extrasalarial",
+        salaryDifference: 16563.95,
+        salaryComplementDifference: -13989.52,
+        extraSalaryDifference: 0.04,
+        totalDifference: 2574.47,
       }),
       1,
     );
 
-    expect(cause.label).toBe("Reclasificación entre bloques");
-    expect(cause.description).toContain("bloque Salario");
-    expect(cause.description).toContain("bloque Complemento Salarial");
-    expect(cause.review).toContain("Extrasalarial");
+    expect(evidence).toEqual({
+      label: "Compensación entre bloques",
+      description: "Las diferencias positivas de Salario compensan 13.989,52 EUR de las negativas de Complemento Salarial. La diferencia total es de 2.574,47 EUR (recibos menos Registro).",
+    });
   });
 
-  test("labels no-registro, pending concept, tolerance and fallback cases", () => {
-    expect(describePersonCause(person({ status: "Sin Registro" }), 1).label).toBe("Recibo sin Reg. Retrib.");
-    expect(describePersonCause(person({ unmappedConceptsCount: 2, totalDifference: 50 }), 1).label).toBe("Concepto pendiente");
-    expect(describePersonCause(person({ totalDifference: 0.5 }), 1).label).toBe("Redondeo");
-    expect(describePersonCause(person({ totalDifference: 50 }), 1).label).toBe("Sin causa clara");
+  test("describes the offset when the total is within the tolerance", () => {
+    const evidence = describePersonCause(
+      person({ salaryDifference: 120, salaryComplementDifference: -119.7, totalDifference: 0.3 }),
+      1,
+    );
+    expect(evidence?.description).toContain("compensan 119,70 EUR");
+    expect(evidence?.description).toContain("0,30 EUR");
   });
 
-  test("describes concept rows using existing deterministic data only", () => {
-    expect(describeConceptCause(concept({ pdfConcept: "Teletrabajo", difference: 208.01 }), 1).label).toBe("Teletrabajo");
-    expect(describeConceptCause(concept({ pdfConcept: "Bolsa de Vacaciones", difference: 841.92 }), 1).label).toBe("Bolsa vacaciones");
-    expect(describeConceptCause(concept({ status: "Sin mapear", difference: 20 }), 1).label).toBe("Revisión");
+  test("leaves explanations empty when the amounts do not establish one", () => {
+    expect(describePersonCause(person({ extraSalaryDifference: 208, totalDifference: 208, detail: "Teletrabajo" }), 1)).toBeUndefined();
+    expect(describePersonCause(person({ salaryComplementDifference: 841.92, totalDifference: 841.92 }), 1)).toBeUndefined();
+    expect(describePersonCause(person({ salaryDifference: 500, salaryComplementDifference: -500, status: "Sin PDF" }), 1)).toBeUndefined();
+    expect(describeConceptCause(concept({ pdfConcept: "Bolsa de Vacaciones", pdfAmount: 900, registroAmount: 58.08, difference: 841.92 }), 1)).toBeUndefined();
+    expect(describeConceptCause(concept({ pdfAmount: 1, difference: 1 }), 1)).toBeUndefined();
+  });
+
+  test("explains an amount in one source using the compared values", () => {
+    expect(describeConceptCause(concept({ pdfConcept: "Gratificación una sola vez", pdfAmount: 3000, difference: 3000 }), 1)).toEqual({
+      label: "Importe solo en los recibos",
+      description: "Los recibos incluidos suman 3.000,00 EUR para este concepto y el Registro recoge 0,00 EUR.",
+    });
+    expect(describeConceptCause(concept({ registroAmount: 20, difference: -20 }), 1)?.label).toBe("Importe solo en el Registro");
   });
 });

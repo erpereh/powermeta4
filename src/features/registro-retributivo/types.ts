@@ -313,6 +313,7 @@ export interface PersonComparisonRow {
   readonly pdfControlTotalDevengado: number;
   readonly payrollCount: number;
   readonly unmappedConceptsCount: number;
+  readonly pendingReceiptConcepts?: readonly { readonly pdfConcept: string; readonly totalDetected: number }[];
   readonly status: AnalysisStatus;
   readonly detail: string;
   readonly periods: readonly string[];

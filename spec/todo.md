@@ -1,5 +1,25 @@
 # powermeta4 - estado de tareas
 
+## Diferencias del Registro Retributivo — 2026-11-26
+
+- [x] Simplificar el detalle de Personas, quitar la columna de causas y el
+      borde del acordeón. Mostrar solo explicaciones respaldadas por los
+      importes y aplicarlas también al Excel exportado.
+- [x] Mostrar los pendientes por persona y considerar bloques y total en
+      Cuadre Reg. con la tolerancia del análisis.
+- [x] Repetir el análisis IBER con 21 PDF, 953 recibos, 70 personas en ambos
+      orígenes, nueve solo con recibo y cinco hojas agrupadas. Reproducir
+      2.574,47 EUR al desactivar teletrabajo y dos diferencias internas de
+      0,01 EUR con tolerancia cero. Verificar el Excel exportado.
+- [x] Suite completa (1.784 aprobadas, dos omitidas), comprobación de tipos
+      y compilación de producción correctas. `npm run lint` sigue fallando
+      en el chequeo global de formato.
+- [x] Verificar en Chromium a 1.440 y 375 px la apertura con teclado, el
+      foco visible, el retorno de foco al cerrar y las cuatro columnas del
+      desglose completas, sin desplazamiento horizontal. Tras el ajuste
+      móvil, repetir las pruebas dirigidas (154 aprobadas, dos omitidas),
+      typecheck y build.
+
 ## Perfil del usuario sin SOAP — 2026-11-25
 
 - [x] Leer el perfil y las sociedades de PeopleNet (`M4RSC_APPUSER`,

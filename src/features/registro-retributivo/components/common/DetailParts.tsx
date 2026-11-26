@@ -37,16 +37,18 @@ export function MoneyTable({
   rows,
   tolerance,
 }: Readonly<{ caption: string; leftLabel: string; rightLabel: string; rows: readonly MoneyRow[]; tolerance?: number }>) {
+  const amountClass = "wrap-break-word px-2 py-2 text-right font-mono tabular-nums sm:px-3";
+
   return (
     <div data-surface="economic-breakdown" className="min-w-0 overflow-x-auto rounded-xl border border-border">
-      <table className="w-full min-w-[26rem] text-sm">
+      <table className="w-full table-fixed text-xs sm:table-auto sm:text-sm">
         <caption className="sr-only">{caption}</caption>
         <thead className="bg-muted/50 text-xs text-muted-foreground">
           <tr>
-            <th scope="col" className="px-3 py-2 text-left font-medium">Bloque</th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">{leftLabel}</th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">{rightLabel}</th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">Dif.</th>
+            <th scope="col" className="w-[29%] px-2 py-2 text-left font-medium sm:w-auto sm:px-3">Bloque</th>
+            <th scope="col" className="wrap-break-word px-2 py-2 text-right font-medium sm:px-3">{leftLabel}</th>
+            <th scope="col" className="wrap-break-word px-2 py-2 text-right font-medium sm:px-3">{rightLabel}</th>
+            <th scope="col" className="px-2 py-2 text-right font-medium sm:px-3">Dif.</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -54,32 +56,15 @@ export function MoneyTable({
             const total = index === rows.length - 1 && row.label === "Total";
             return (
               <tr key={row.label} className={cn(total && "bg-muted/30 font-semibold")}>
-                <th scope="row" className="px-3 py-2 text-left font-medium text-foreground">{row.label}</th>
-                <td className="px-3 py-2 text-right font-mono tabular-nums">{formatEuro(row.left)}</td>
-                <td className="px-3 py-2 text-right font-mono tabular-nums">{formatEuro(row.right)}</td>
-                <td className={cn("px-3 py-2 text-right font-mono tabular-nums", tolerance === undefined ? diffClass(row.diff) : toleranceDiffClass(row.diff, tolerance))}>{formatEuro(row.diff)}</td>
+                <th scope="row" className="wrap-break-word px-2 py-2 text-left font-medium text-foreground sm:px-3">{row.label}</th>
+                <td className={amountClass}>{formatEuro(row.left)}</td>
+                <td className={amountClass}>{formatEuro(row.right)}</td>
+                <td className={cn(amountClass, tolerance === undefined ? diffClass(row.diff) : toleranceDiffClass(row.diff, tolerance))}>{formatEuro(row.diff)}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-/** Causa probable y qué revisar, como dos bloques de lectura. */
-export function CauseBlocks({ label, description, review }: Readonly<{ label: string; description: string; review: string }>) {
-  return (
-    <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-      <div className="min-w-0 rounded-xl bg-muted/50 p-3.5">
-        <p className="text-xs text-muted-foreground">Causa probable</p>
-        <p className="mt-0.5 text-sm font-semibold text-foreground">{displayText(label)}</p>
-        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{displayText(description)}</p>
-      </div>
-      <div className="min-w-0 rounded-xl border border-dashed border-border p-3.5">
-        <p className="text-xs text-muted-foreground">Qué revisar</p>
-        <p className="mt-1.5 text-sm leading-6 text-foreground">{displayText(review)}</p>
-      </div>
     </div>
   );
 }

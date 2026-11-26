@@ -3,7 +3,6 @@
 import { ChevronDown, Search, Table2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAppState, type DashboardFilters, EMPTY_FILTERS, matchesQuery } from "@/features/registro-retributivo/state/AppState";
-import { StatusBadge } from "@/features/registro-retributivo/components/common/StatusBadge";
 import { StatusPill } from "@/features/registro-retributivo/components/common/StatusPill";
 import { DetailField, MoneyTable } from "@/features/registro-retributivo/components/common/DetailParts";
 import {
@@ -30,9 +29,9 @@ import {
   type TableProps,
 } from "@/components/system";
 import { AgrupacionesView } from "@/features/registro-retributivo/components/groupings/AgrupacionesView";
-import type { AppView, ConceptComparisonRow, PersonComparisonRow, UnmappedConceptRow } from "@/features/registro-retributivo/types";
+import type { AppView, ConceptComparisonRow, PersonComparisonRow } from "@/features/registro-retributivo/types";
 import { formatEuro } from "@/features/registro-retributivo/utils/money";
-import { describeConceptCause, describePersonCause, type ProbableCause } from "@/features/registro-retributivo/ui/probableCause";
+import { describeConceptCause, describePersonCause } from "@/features/registro-retributivo/ui/probableCause";
 import { toleranceDiffClass } from "@/features/registro-retributivo/ui/statusStyles";
 import { cn } from "@/lib/utils";
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
@@ -163,11 +162,23 @@ function personVerdict(row: PersonComparisonRow, tolerance: number): Verdict {
     return { title: `Tiene ${row.payrollCount} ${row.payrollCount === 1 ? "recibo" : "recibos"}, pero no aparece en el Registro Retributivo.`, tone: "neutral" };
   }
   if (row.status === "Sin PDF") {
-    return { title: "Está en el Registro Retributivo, pero no se ha subido ningún recibo suyo.", tone: "neutral" };
+    return { title: "Está en el Registro Retributivo y el análisis no contiene recibos de esta persona.", tone: "neutral" };
   }
   const difference = row.totalDifference;
   if (Math.abs(difference) <= tolerance) {
-    return { title: `Recibo y Registro coinciden: la diferencia (${formatEuro(difference)}) está dentro de la tolerancia.`, tone: "ok" };
+    const hasBlockDifference = [row.salaryDifference, row.salaryComplementDifference, row.extraSalaryDifference].some(
+      (blockDifference) => Math.abs(blockDifference) > tolerance,
+    );
+    if (hasBlockDifference) {
+      return {
+        title: `La diferencia total es de ${formatEuro(difference)}. Hay diferencias por bloque que superan la tolerancia.`,
+        tone: "danger",
+      };
+    }
+    return {
+      title: `La diferencia de ${formatEuro(difference)} entre recibos y Registro está dentro de la tolerancia.`,
+      tone: row.status === "Sin mapear" ? "neutral" : "ok",
+    };
   }
   return {
     title: `Los recibos suman ${formatEuro(Math.abs(difference))} ${difference > 0 ? "más" : "menos"} que el Registro Retributivo.`,
@@ -175,27 +186,16 @@ function personVerdict(row: PersonComparisonRow, tolerance: number): Verdict {
   };
 }
 
-function VerdictBox({ verdict, cause }: Readonly<{ verdict: Verdict; cause: ProbableCause }>) {
+function VerdictBox({ verdict }: Readonly<{ verdict: Verdict }>) {
   return (
     <section
       aria-label="Conclusión"
       className={cn(
-        "flex flex-col gap-3 rounded-xl border p-4",
+        "rounded-xl border p-4",
         verdict.tone === "danger" ? "border-destructive/25 bg-destructive/5" : verdict.tone === "ok" ? "border-emerald-500/30 bg-emerald-500/5" : "border-border bg-muted/40",
       )}
     >
       <p className="text-base font-semibold text-foreground text-pretty">{verdict.title}</p>
-      <dl className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <dt className="text-xs text-muted-foreground">Causa probable</dt>
-          <dd className="text-sm font-medium text-foreground">{displayText(cause.label)}</dd>
-          <dd className="mt-0.5 text-sm text-muted-foreground text-pretty">{displayText(cause.description)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-muted-foreground">Qué revisar</dt>
-          <dd className="text-sm text-foreground text-pretty">{displayText(cause.review)}</dd>
-        </div>
-      </dl>
     </section>
   );
 }
@@ -239,7 +239,7 @@ function isReviewConcept(row: ConceptComparisonRow): boolean {
 }
 
 function isDifferenceConcept(row: ConceptComparisonRow, tolerance: number): boolean {
-  return Math.abs(row.difference) > tolerance || row.status === "Diferencia";
+  return Math.abs(row.difference) > tolerance;
 }
 
 function matchesConceptFilter(row: ConceptComparisonRow, filter: ConceptFilter, tolerance: number): boolean {
@@ -252,13 +252,13 @@ function matchesConceptFilter(row: ConceptComparisonRow, filter: ConceptFilter, 
 function PersonConcepts({
   person,
   concepts,
-  unmappedConcepts,
   tolerance,
+  comparable,
 }: Readonly<{
   person: PersonComparisonRow;
   concepts: readonly ConceptComparisonRow[];
-  unmappedConcepts: readonly UnmappedConceptRow[];
   tolerance: number;
+  comparable: boolean;
 }>) {
   const personConcepts = useMemo(
     () =>
@@ -275,7 +275,7 @@ function PersonConcepts({
   };
   const [filter, setFilter] = useState<ConceptFilter>(counts.differences ? "differences" : "all");
   const visible = personConcepts.filter((row) => matchesConceptFilter(row, filter, tolerance));
-  const relatedUnmapped = unmappedConcepts.filter((row) => row.exampleEmployeeNumbers.includes(person.employeeNumber));
+  const pendingConcepts = person.pendingReceiptConcepts;
   const options: Array<{ value: ConceptFilter; label: string }> = [
     { value: "differences", label: "Con diferencia" },
     { value: "all", label: "Todos" },
@@ -287,7 +287,7 @@ function PersonConcepts({
     <section aria-labelledby="person-concepts-title" className="flex min-w-0 flex-col gap-3">
       <div>
         <h3 id="person-concepts-title" className="text-sm font-semibold text-foreground">Concepto a concepto</h3>
-        <p className="text-xs text-muted-foreground">Cada línea compara un concepto del recibo con su código del Registro. Pulsa una para ver por qué difiere.</p>
+        <p className="text-xs text-muted-foreground">Abre un concepto para ver sus importes en los recibos y en el Registro.</p>
       </div>
 
       {personConcepts.length ? (
@@ -312,10 +312,14 @@ function PersonConcepts({
               ))}
           </div>
           <Accordion
-            className="overflow-hidden rounded-xl border border-border"
-            classNames={{ trigger: "min-h-12 gap-3 px-3", title: "text-sm", description: "text-sm", content: "[&>div]:px-3 [&>div]:pb-3" }}
+            classNames={{
+              trigger: "min-h-12 gap-3 px-3 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+              title: "text-sm",
+              description: "text-sm",
+              content: "[&>div]:px-3 [&>div]:pb-3",
+            }}
             items={visible.map((row, index) => {
-              const cause = describeConceptCause(row, tolerance);
+              const cause = comparable ? describeConceptCause(row, tolerance) : undefined;
               return {
                 id: `${row.registroCode}-${row.pdfConcept ?? "sin-pdf"}-${index}`,
                 title: (
@@ -324,7 +328,11 @@ function PersonConcepts({
                       <span className="block truncate">{displayText(row.pdfConcept) || displayText(row.block)}</span>
                       <span className="block truncate font-mono text-xs text-muted-foreground">{displayText(row.registroCode) || "Sin código"}</span>
                     </span>
-                    <span className={cn("shrink-0 font-mono text-sm tabular-nums", toleranceDiffClass(row.difference, tolerance))}>{formatEuro(row.difference)}</span>
+                    {comparable ? (
+                      <span className={cn("shrink-0 font-mono text-sm tabular-nums", toleranceDiffClass(row.difference, tolerance))}>
+                        {formatEuro(row.difference)}
+                      </span>
+                    ) : null}
                   </span>
                 ),
                 description: (
@@ -334,10 +342,7 @@ function PersonConcepts({
                       <DetailField label="En registro" value={formatEuro(row.registroAmount)} />
                       <DetailField label="Bloque" value={row.block} />
                     </dl>
-                    <p className="text-sm text-foreground text-pretty">
-                      <span className="font-medium">{displayText(cause.label)}.</span> {displayText(cause.description)}
-                    </p>
-                    <p className="text-sm text-muted-foreground text-pretty">Qué revisar: {displayText(cause.review)}</p>
+                    {cause ? <p className="text-sm text-foreground text-pretty">{cause.description}</p> : null}
                   </div>
                 ),
               };
@@ -348,24 +353,20 @@ function PersonConcepts({
         <p className="rounded-xl bg-muted/50 px-4 py-4 text-sm text-muted-foreground">No hay conceptos comparados para esta persona.</p>
       )}
 
-      {relatedUnmapped.length ? (
+      {pendingConcepts?.length ? (
         <div className="flex flex-col gap-2">
-          <h4 className="text-xs font-medium text-muted-foreground">Conceptos del recibo que no cuentan en el cálculo</h4>
+          <h4 className="text-xs font-medium text-muted-foreground">Conceptos de los recibos pendientes de asignación</h4>
           <ul className="divide-y divide-border rounded-xl border border-border">
-            {relatedUnmapped.map((row) => (
-              <li key={row.pdfConcept} className="flex flex-col gap-1 px-3 py-2.5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 truncate text-sm font-medium text-foreground">{displayText(row.pdfConcept)}</span>
-                  <span className="shrink-0 font-mono text-xs tabular-nums">{formatEuro(row.totalDetected)}</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <StatusBadge value={row.decisionType ?? row.action} />
-                  <span>{displayText(row.recommendedAction ?? row.action)}</span>
-                </div>
+            {pendingConcepts.map((row) => (
+              <li key={row.pdfConcept} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                <span className="min-w-0 break-words text-sm font-medium text-foreground">{displayText(row.pdfConcept)}</span>
+                <span className="shrink-0 font-mono text-xs tabular-nums">{formatEuro(row.totalDetected)}</span>
               </li>
             ))}
           </ul>
         </div>
+      ) : !pendingConcepts && person.unmappedConceptsCount > 0 ? (
+        <p className="text-sm text-muted-foreground">Hay conceptos de los recibos pendientes de asignación.</p>
       ) : null}
     </section>
   );
@@ -375,9 +376,8 @@ function PersonDrawer({
   row,
   tolerance,
   concepts,
-  unmappedConcepts,
   onClose,
-}: Readonly<{ row: PersonComparisonRow; tolerance: number; concepts: readonly ConceptComparisonRow[]; unmappedConcepts: readonly UnmappedConceptRow[]; onClose: () => void }>) {
+}: Readonly<{ row: PersonComparisonRow; tolerance: number; concepts: readonly ConceptComparisonRow[]; onClose: () => void }>) {
   const cause = describePersonCause(row, tolerance);
   const profile = selectPersonProfileFromRow(row);
   const comparable = isComparableStatus(row.status);
@@ -393,7 +393,7 @@ function PersonDrawer({
       size="lg"
     >
       <div data-surface="person-detail-content" className="flex min-w-0 flex-col gap-6">
-        <VerdictBox verdict={personVerdict(row, tolerance)} cause={cause} />
+        <VerdictBox verdict={personVerdict(row, tolerance)} />
 
         <dl data-surface="person-overview" className="grid min-w-0 grid-cols-2 gap-x-4 gap-y-3">
           <DetailField label="Centro" value={row.workplace} />
@@ -424,9 +424,15 @@ function PersonDrawer({
               { label: "Total", left: profile.totals.payroll, right: profile.totals.registro, diff: profile.totals.difference },
             ]}
           />
+          {cause ? <p className="text-sm text-muted-foreground text-pretty">{cause.description}</p> : null}
         </section>
 
-        <PersonConcepts person={row} concepts={concepts} unmappedConcepts={unmappedConcepts} tolerance={tolerance} />
+        <PersonConcepts
+          person={row}
+          concepts={concepts}
+          tolerance={comparable ? tolerance : Number.POSITIVE_INFINITY}
+          comparable={comparable}
+        />
       </div>
     </Drawer>
   );
@@ -487,16 +493,6 @@ function PersonasList({ onOpen }: Readonly<{ onOpen: (row: PersonComparisonRow) 
         sortValue: (row) => (isComparableStatus(row.status) ? Math.abs(row.totalDifference) : -1),
         cell: (row) => <DifferenceCell row={row} tolerance={tolerance} />,
       },
-      {
-        key: "cause",
-        header: "Causa probable",
-        width: "220px",
-        cell: (row) => (
-          <span className="block truncate text-sm text-muted-foreground">
-            {isComparableStatus(row.status) ? displayText(describePersonCause(row, tolerance).label) : "—"}
-          </span>
-        ),
-      },
     ],
     [tolerance],
   );
@@ -506,8 +502,7 @@ function PersonasList({ onOpen }: Readonly<{ onOpen: (row: PersonComparisonRow) 
       <header>
         <h2 className="text-xl font-semibold tracking-tight text-foreground">Personas</h2>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">
-          Cada fila compara lo que suman los recibos de una persona con lo que figura en el Registro Retributivo. Pulsa una fila para ver por qué
-          difiere.
+          Cada fila compara lo que suman los recibos de una persona con lo que figura en el Registro Retributivo. Abre una fila para ver el desglose.
         </p>
       </header>
 
@@ -587,7 +582,6 @@ export function TablesView({ mode }: Readonly<{ mode: Extract<AppView, "personas
           row={selected}
           tolerance={result.summary?.tolerance ?? 1}
           concepts={result.concepts}
-          unmappedConcepts={result.unmappedConcepts}
           onClose={() => setSelected(undefined)}
         />
       ) : null}

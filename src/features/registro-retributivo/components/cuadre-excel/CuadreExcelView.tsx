@@ -11,7 +11,7 @@ import type { AnalysisStatus, InternalExcelCheckRow, InternalExcelNormalizedVari
 import { displayText } from "@/features/registro-retributivo/ui/displayText";
 import { toleranceDiffClass } from "@/features/registro-retributivo/ui/statusStyles";
 import { cn } from "@/lib/utils";
-import { formatEuro } from "@/features/registro-retributivo/utils/money";
+import { formatEuro, roundMoney } from "@/features/registro-retributivo/utils/money";
 import { normalizeComparableText } from "@/features/registro-retributivo/utils/normalize";
 
 type CuadreMode = "breakdown" | "normalizedVariables";
@@ -88,7 +88,7 @@ function fromBreakdown(row: InternalExcelCheckRow, person?: string): CuadreRow {
       label: "Total",
       period: blocks.reduce((sum, block) => sum + block.period, 0),
       other: blocks.reduce((sum, block) => sum + block.other, 0),
-      difference: blocks.reduce((sum, block) => sum + block.difference, 0),
+      difference: roundMoney(blocks.reduce((sum, block) => sum + block.difference, 0)),
     },
     breakdownSource: row,
   };
@@ -247,10 +247,14 @@ function CuadreDrawer({
   otherLabel,
   onClose,
 }: Readonly<{ row: CuadreRow; tolerance: number; otherLabel: string; onClose: () => void }>) {
-  const failing = [...row.blocks].filter((block) => Math.abs(block.difference) > tolerance);
+  const failing = row.blocks.filter((block) => Math.abs(block.difference) > tolerance);
+  const totalDiffers = Math.abs(row.total.difference) > tolerance;
+  const hasDifferences = failing.length > 0 || totalDiffers;
   const title = failing.length
-    ? `No cuadra en ${LIST_FORMAT.format(failing.map((block) => block.label.toLowerCase()))}: el total del periodo difiere de «${otherLabel.toLowerCase()}».`
-    : "Cuadra: el total del periodo coincide dentro de la tolerancia.";
+    ? `No cuadra en ${LIST_FORMAT.format(failing.map((block) => block.label.toLowerCase()))} al comparar con «${otherLabel.toLowerCase()}».`
+    : totalDiffers
+      ? `El total del periodo difiere de «${otherLabel.toLowerCase()}» en ${formatEuro(row.total.difference)}.`
+      : "Los bloques y el total del periodo coinciden dentro de la tolerancia.";
 
   return (
     <Drawer
@@ -265,7 +269,7 @@ function CuadreDrawer({
       <div className="flex min-w-0 flex-col gap-6">
         <section
           aria-label="Conclusión"
-          className={cn("rounded-xl border p-4", failing.length ? "border-destructive/25 bg-destructive/5" : "border-emerald-500/30 bg-emerald-500/5")}
+          className={cn("rounded-xl border p-4", hasDifferences ? "border-destructive/25 bg-destructive/5" : "border-emerald-500/30 bg-emerald-500/5")}
         >
           <p className="text-base font-semibold text-foreground text-pretty">{title}</p>
           {displayText(row.detail) ? <p className="mt-2 text-sm text-muted-foreground text-pretty">{displayText(row.detail)}</p> : null}

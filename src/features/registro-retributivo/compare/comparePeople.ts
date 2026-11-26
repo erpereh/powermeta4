@@ -15,7 +15,7 @@ import type {
   UnmappedConceptRow,
 } from "@/features/registro-retributivo/types";
 import { findConceptRule, isRuleEnabledForComparison, mappingStatusFromConceptType } from "@/features/registro-retributivo/compare/conceptMapping";
-import { salaryStatus } from "@/features/registro-retributivo/compare/salaryDiff";
+import { internalCheckStatus, salaryStatus } from "@/features/registro-retributivo/compare/salaryDiff";
 import { roundMoney } from "@/features/registro-retributivo/utils/money";
 import { sortPeriodLabels } from "@/features/registro-retributivo/utils/spanishDates";
 import { normalizeComparableText, normalizeEmployeeId, normalizeEmployeeNumber } from "@/features/registro-retributivo/utils/normalize";
@@ -63,13 +63,6 @@ function statusFromDifference(difference: number, options: CompareOptions): Anal
     reviewThreshold: options.reviewThreshold,
     incidentThreshold: options.incidentThreshold,
   });
-}
-
-function internalNormalizedVariablesStatus(difference: number, tolerance: number): AnalysisStatus {
-  const absoluteDifference = Math.abs(difference);
-  if (absoluteDifference <= tolerance) return "OK";
-  if (absoluteDifference > 50) return "Diferencia";
-  return "Revisar";
 }
 
 function worstStatus(statuses: readonly AnalysisStatus[]): AnalysisStatus {
@@ -338,42 +331,6 @@ function personStatus(input: {
   return diffStatus;
 }
 
-function hasCompensatedBlockReclassification(input: {
-  readonly salaryDifference: number;
-  readonly salaryComplementDifference: number;
-  readonly extraSalaryDifference: number;
-  readonly totalDifference: number;
-  readonly options: CompareOptions;
-}): boolean {
-  const tolerance = Math.max(0, input.options.tolerance);
-  const relevant = [input.salaryDifference, input.salaryComplementDifference, input.extraSalaryDifference].filter(
-    (difference) => Math.abs(difference) > tolerance,
-  );
-  if (relevant.length < 2 || !relevant.some((difference) => difference > 0) || !relevant.some((difference) => difference < 0)) {
-    return false;
-  }
-
-  const positiveTotal = relevant.filter((difference) => difference > 0).reduce((sum, difference) => sum + difference, 0);
-  const negativeTotal = Math.abs(relevant.filter((difference) => difference < 0).reduce((sum, difference) => sum + difference, 0));
-  const compensatedBase = Math.min(positiveTotal, negativeTotal);
-  const maxNetDifference = Math.max(input.options.incidentThreshold ?? 50, compensatedBase * 0.2);
-  return Math.abs(input.totalDifference) <= maxNetDifference;
-}
-
-function personDetail(input: {
-  readonly salaryDifference: number;
-  readonly salaryComplementDifference: number;
-  readonly extraSalaryDifference: number;
-  readonly totalDifference: number;
-  readonly options: CompareOptions;
-}): string {
-  const base = "PDF calculado como suma de conceptos incluidos por mapa. Total Devengado se conserva solo como control auxiliar.";
-  if (hasCompensatedBlockReclassification(input)) {
-    return `${base} Diferencia principalmente compensada por reclasificacion entre bloques.`;
-  }
-  return base;
-}
-
 function justification(employee: RegistroEmployee | undefined, aggregate: PayrollAggregate | undefined): string {
   if (!employee) return "Persona detectada en PDF sin línea equivalente en Registro.";
   if (!aggregate?.records.length) return "No se han detectado PDFs para la matrícula.";
@@ -388,7 +345,7 @@ function justification(employee: RegistroEmployee | undefined, aggregate: Payrol
   ) {
     return "Registro contiene importes variables, PPE o IT que pueden explicar diferencias entre normalizado y real.";
   }
-  return "Sin causa detectada.";
+  return "";
 }
 
 function createConceptRows(
@@ -592,11 +549,7 @@ function createInternalNormalizedVariablesChecks(
       const salaryComplementDifference = roundMoney(employee.periodComplete.salaryComplement - employee.normalizedPlusVariables.salaryComplement);
       const extraSalaryDifference = roundMoney(employee.periodComplete.extraSalary - employee.normalizedPlusVariables.extraSalary);
       const totalDifference = roundMoney(employee.periodComplete.total - employee.normalizedPlusVariables.total);
-      const status = worstStatus(
-        [salaryDifference, salaryComplementDifference, extraSalaryDifference, totalDifference].map((difference) =>
-          internalNormalizedVariablesStatus(difference, options.tolerance),
-        ),
-      );
+      const status = internalCheckStatus([salaryDifference, salaryComplementDifference, extraSalaryDifference, totalDifference], options.tolerance);
 
       return {
         employeeNumber: employee.employeeNumber,
@@ -633,7 +586,13 @@ export async function compareAnalysis(
   const excludedSet = new Set(excludedEmployeeIdsApplied);
   const filteredPayrollRecords = payrollRecords.filter((record) => !isExcludedEmployee(record.employeeNumber, excludedSet));
   const filteredRegistroRecords = registroRecords.filter((record) => !isExcludedEmployee(record.employeeNumber, excludedSet));
-  const filteredInternalExcelChecks = (options.internalExcelChecks ?? []).filter((row) => !isExcludedEmployee(row.employeeNumber, excludedSet));
+  const filteredInternalExcelChecks = (options.internalExcelChecks ?? [])
+    .filter((row) => !isExcludedEmployee(row.employeeNumber, excludedSet))
+    .map((row) => {
+      const blocks = [row.salaryDifference, row.salaryComplementDifference, row.extraSalaryDifference];
+      const totalDifference = roundMoney(blocks.reduce((sum, difference) => sum + difference, 0));
+      return { ...row, status: internalCheckStatus([...blocks, totalDifference], options.tolerance) };
+    });
   const normalizedAvailable = options.normalizedAvailable !== false;
   const internalExcelNormalizedVariablesChecks = normalizedAvailable
     ? createInternalNormalizedVariablesChecks(filteredRegistroRecords, options)
@@ -720,8 +679,11 @@ export async function compareAnalysis(
       pdfControlTotalDevengado: payrollControlTotal(records),
       payrollCount: records.length,
       unmappedConceptsCount: unmappedCount,
+      pendingReceiptConcepts: aggregate.unmapped.size
+        ? [...aggregate.unmapped].map(([pdfConcept, { amount }]) => ({ pdfConcept, totalDetected: amount }))
+        : undefined,
       status,
-      detail: personDetail({ salaryDifference, salaryComplementDifference, extraSalaryDifference, totalDifference, options }),
+      detail: "PDF calculado como suma de conceptos incluidos por mapa. Total Devengado se conserva solo como control auxiliar.",
       periods: sortPeriodLabels([...new Set(records.map((record) => record.periodLabel))]),
       files: [...new Set(records.map((record) => `${record.sourceFile}${record.pageNumber ? ` p.${record.pageNumber}` : ""}`))],
     });

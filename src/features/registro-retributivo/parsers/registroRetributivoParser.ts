@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
+import { internalCheckStatus } from "@/features/registro-retributivo/compare/salaryDiff";
 import type {
-  AnalysisStatus,
   AvailableConceptCodes,
   ConceptBlockKey,
   InternalExcelCheckRow,
@@ -119,14 +119,6 @@ function total(block: Pick<MoneyByBlock, "salary" | "salaryComplement" | "extraS
   return roundMoney(block.salary + block.salaryComplement + block.extraSalary);
 }
 
-function statusFromDifference(difference: number, tolerance = 1): AnalysisStatus {
-  const abs = Math.abs(difference);
-  if (abs <= tolerance) {
-    return "OK";
-  }
-  return abs <= 50 ? "Revisar" : "Diferencia";
-}
-
 function blockConceptHeaders(headers: readonly HeaderInfo[], blockKey: ConceptBlockKey): HeaderInfo[] {
   const block = BLOCKS.find((item) => item.blockKey === blockKey);
   if (!block) {
@@ -144,10 +136,7 @@ export function createInternalCheck(input: {
   const salaryDifference = roundMoney(input.employee.periodComplete.salary - input.salaryBreakdown);
   const salaryComplementDifference = roundMoney(input.employee.periodComplete.salaryComplement - input.salaryComplementBreakdown);
   const extraSalaryDifference = roundMoney(input.employee.periodComplete.extraSalary - input.extraSalaryBreakdown);
-  const worst = [salaryDifference, salaryComplementDifference, extraSalaryDifference].reduce(
-    (max, value) => Math.max(max, Math.abs(value)),
-    0,
-  );
+  const totalDifference = roundMoney(salaryDifference + salaryComplementDifference + extraSalaryDifference);
 
   return {
     employeeNumber: input.employee.employeeNumber,
@@ -164,7 +153,7 @@ export function createInternalCheck(input: {
     extraSalaryPeriod: input.employee.periodComplete.extraSalary,
     extraSalaryBreakdown: input.extraSalaryBreakdown,
     extraSalaryDifference,
-    status: statusFromDifference(worst),
+    status: internalCheckStatus([salaryDifference, salaryComplementDifference, extraSalaryDifference, totalDifference], 1),
     detail: "Comparación interna entre columnas de periodo completo y suma de conceptos del Registro.",
   };
 }

@@ -329,13 +329,17 @@ Los mensajes operativos de la explicación IA y el chat conservan su comportamie
   `Combobox` de centro y puesto en una fila; filtro de estado con chips
   (`aria-pressed`) con los mismos nombres y colores que Inicio y solo los
   estados con personas; una frase resume las filas visibles sin mezclar
-  importes no comparables. La tabla tiene cinco columnas (matrícula, persona con
-  centro y puesto, estado, diferencia y causa probable) ordenada por diferencia;
+  importes no comparables. La tabla tiene cuatro columnas (matrícula, persona con
+  centro y puesto, estado y diferencia) ordenada por diferencia;
   «Recibo sin Registro» y «Registro sin recibo» muestran su importe atenuado y
-  van al final. El detalle (`Drawer`) empieza por la conclusión en una frase,
-  causa probable y qué revisar; los periodos se resumen en una línea
-  desplegable; importes por bloque y conceptos (filtrados por defecto a los que
-  tienen diferencia) debajo. El rojo marca solo lo que supera la tolerancia
+  van al final. El detalle (`Drawer`) empieza por la conclusión económica y
+  señala los bloques fuera de tolerancia si el total está dentro. Los periodos
+  se resumen en una línea desplegable. La compensación cuantificada aparece
+  bajo los importes por bloque. El acordeón sin borde exterior muestra los
+  conceptos con diferencia por defecto y explica los importes presentes en
+  una sola fuente en el concepto desplegado. Los pendientes muestran el
+  importe de la persona. El desglose muestra las cuatro columnas en móvil.
+  El rojo señala diferencias que superan la tolerancia
   (`toleranceDiffClass`), sea del signo que sea.
 - **Cuadre Reg.**: título «Cuadre del Registro» y una frase que aclara que
   comprueba la coherencia interna del Excel y no usa los recibos. Los dos modos
@@ -344,7 +348,8 @@ Los mensajes operativos de la explicación IA y el chat conservan su comportamie
   veredicto en una frase, chips de estado como en Personas, búsqueda y una
   `Table` beUI de seis columnas con solo las diferencias por bloque (rojo solo
   por encima de la tolerancia). El detalle es un `Drawer` que empieza por la
-  conclusión y muestra los importes completos.
+  conclusión y muestra los importes completos. El análisis aplica su
+  tolerancia tanto a los bloques como al total en ambos modos.
 - **Agrupaciones**: se presenta como «Brecha entre mujeres y hombres por
   grupo». `groupings/genderGap.ts` interpreta las columnas de cada hoja
   (tipo de retribución · bloque · media/mediana · mujeres/varones/diferencia)

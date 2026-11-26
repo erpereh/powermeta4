@@ -11,6 +11,7 @@ import { buildRegistroGroupingComparisons, enrichRegistroGroupingsWithPdf, media
 import { parsePayrollPdf } from "@/features/registro-retributivo/parsers/payrollPdfParser";
 import { parseRegistroRetributivo } from "@/features/registro-retributivo/parsers/registroRetributivoParser";
 import type { ConceptMappingRule, GroupingComparisonRow, PersonComparisonRow, PayrollRecord, RegistroEmployee } from "@/features/registro-retributivo/types";
+import { describePersonCause } from "@/features/registro-retributivo/ui/probableCause";
 import { formatEuro, parseSpanishMoney } from "@/features/registro-retributivo/utils/money";
 import { normalizeComparableText, normalizeEmployeeId, normalizeProfessionalGroup } from "@/features/registro-retributivo/utils/normalize";
 import { parsePayrollPeriod, toIsoDate } from "@/features/registro-retributivo/utils/spanishDates";
@@ -994,9 +995,8 @@ describe.skipIf(!hasSourceFixtures)("comparison engine", () => {
       },
     );
 
-    expect(result.people.find((row) => row.employeeNumber === "COMP01")?.detail).toContain(
-      "Diferencia principalmente compensada por reclasificacion entre bloques.",
-    );
+    expect(result.people[0]).toMatchObject({ employeeNumber: "COMP01", totalDifference: 0, status: "Diferencia" });
+    expect(describePersonCause(result.people[0], 1)?.description).toContain("compensan 200,00 EUR");
   });
 
   test("validates Registro vs PDF comparison on local receipts without identity assertions", async () => {

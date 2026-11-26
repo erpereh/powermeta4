@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-11-26 - Diferencias del Registro Retributivo
+
+- El detalle de Personas deja la conclusión económica en el aviso y explica
+  bajo el desglose la compensación cuantificada entre bloques. Cada concepto
+  desplegado explica su importe si figura en una sola fuente. Se retiran la
+  columna «Causa probable», «Qué revisar» y el borde exterior del acordeón.
+  La exportación deja en blanco las causas y observaciones sin evidencia.
+- Los conceptos pendientes muestran el importe de los recibos de la persona.
+  El histórico previo muestra un aviso cuando había pendientes. Cuadre Reg.
+  usa la tolerancia del análisis en los bloques y el total.
+- Contraste con los archivos IBER de 2025. Se leyeron 953 recibos de 21 PDF,
+  70 personas del Registro y cinco hojas agrupadas. Con teletrabajo
+  desactivado se reprodujeron 2.574,47 EUR de diferencia y se verificó el
+  detalle de la gratificación de 3.000 EUR en el Excel exportado.
+- Suite completa con 1.784 pruebas aprobadas y dos omitidas. Typecheck y
+  build correctos. El chequeo global de formato de lint sigue fallando.
+- Revisión en Chromium a 1.440 y 375 px con teclado. Las cuatro columnas
+  del desglose caben en ambos tamaños.
+
 ## 2026-11-25 - El perfil del usuario se lee de PeopleNet, sin SOAP
 
 - Retirado el servicio SOAP `CSP_CONSULTA_ORO_INTRAN_NEW`: el perfil y las

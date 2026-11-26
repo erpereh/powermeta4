@@ -27,3 +27,9 @@ export function salaryStatus(
 export function calculateDifference(actual: number, expected: number): number {
   return roundMoney(actual - expected);
 }
+
+export function internalCheckStatus(differences: readonly number[], tolerance: number): SalaryStatus {
+  const largest = Math.max(0, ...differences.map((difference) => Math.abs(difference)));
+  if (largest <= Math.max(0, tolerance)) return "OK";
+  return largest > 50 ? "Diferencia" : "Revisar";
+}

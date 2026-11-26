@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SidebarProvider, ToastProvider } from "@/components/system";
 import RegistroRetributivoPage from "@/app/(app)/tools/registro-retributivo/page";
 import { STANDALONE_TOOLS } from "@/lib/tools/registry";
+import type { PersonComparisonRow } from "@/features/registro-retributivo/types";
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -129,7 +130,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function stubAnalysisFetch(resultOverrides: Record<string, unknown> = {}) {
+function stubAnalysisFetch(resultOverrides: Record<string, unknown> = {}, personOverrides: Partial<PersonComparisonRow> = {}) {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo) => {
@@ -214,6 +215,7 @@ function stubAnalysisFetch(resultOverrides: Record<string, unknown> = {}) {
                         "Del 1 al 28 Febrero 2025",
                       ],
                       files: [],
+                      ...personOverrides,
                     },
                   ],
                   normalizedVsReal: [],
@@ -370,8 +372,68 @@ describe("Registro Retributivo page", () => {
     const dialog = await screen.findByRole("dialog");
     const conclusion = within(dialog).getByRole("region", { name: "Conclusión" });
     expect(conclusion.textContent).toContain("Los recibos suman 208,05 EUR más que el Registro Retributivo.");
-    expect(within(conclusion).getByText("Qué revisar")).toBeTruthy();
+    expect(conclusion.children).toHaveLength(1);
+    expect(screen.queryByRole("columnheader", { name: "Causa probable" })).toBeNull();
+    expect(within(dialog).queryByText(/Qué revisar|Sin causa clara|causa determinista/)).toBeNull();
     expect(within(dialog).getByText(/4 periodos, de enero de 2025 a diciembre de 2025/)).toBeTruthy();
+  });
+
+  it("shows block offsets and evidence for a one-sided concept outside the conclusion", async () => {
+    const user = userEvent.setup();
+    const concept = {
+      employeeNumber: "10048",
+      block: "C. Salarial",
+      status: "Diferencia",
+      detail: "",
+    };
+    stubAnalysisFetch({
+      concepts: [
+        { ...concept, registroCode: "GRAT", pdfConcept: "Gratificación", registroAmount: 0, pdfAmount: 3000, difference: 3000 },
+        { ...concept, registroCode: "COMP", pdfConcept: "Complemento", registroAmount: 4000, pdfAmount: 880, difference: -3120 },
+      ],
+    }, {
+      salaryDifference: 120,
+      salaryComplementDifference: -120,
+      extraSalaryDifference: 0,
+      totalDifference: 0,
+    });
+    renderPage();
+
+    const nav = screen.getAllByRole("navigation", { name: "Navegación de Registro Retributivo" })[0];
+    await user.click(within(nav).getByRole("tab", { name: "Personas" }));
+    await user.click(await screen.findByRole("row", { name: /Abrir detalle/ }));
+    const dialog = within(await screen.findByRole("dialog"));
+    const conclusion = dialog.getByRole("region", { name: "Conclusión" });
+    expect(conclusion.textContent).toContain("Hay diferencias por bloque que superan la tolerancia.");
+    expect(conclusion.textContent).not.toContain("compensan");
+    expect(dialog.getByRole("region", { name: "Importes por bloque" }).textContent).toContain("compensan 120,00 EUR");
+
+    await user.click(dialog.getByRole("button", { name: /^Complemento/ }));
+    const complement = dialog.getByRole("region", { name: /^Complemento/ });
+    expect(complement.textContent).toContain("En registro");
+    expect(complement.querySelector("p")).toBeNull();
+
+    await user.click(dialog.getByRole("button", { name: /^Gratificación/ }));
+    const bonus = dialog.getByRole("region", { name: /^Gratificación/ });
+    expect(bonus.textContent).toContain("Los recibos incluidos suman 3.000,00 EUR para este concepto y el Registro recoge 0,00 EUR.");
+  });
+
+  it.each([
+    { pendingReceiptConcepts: [{ pdfConcept: "Concepto pendiente", totalDetected: 18 }], expected: "18,00 EUR" },
+    { pendingReceiptConcepts: undefined, expected: "Hay conceptos de los recibos pendientes de asignación." },
+  ])("shows pending concepts as $expected", async ({ pendingReceiptConcepts, expected }) => {
+    const user = userEvent.setup();
+    stubAnalysisFetch({
+      unmappedConcepts: [{ pdfConcept: "Concepto pendiente", totalDetected: 80, exampleEmployeeNumbers: ["10048"] }],
+    }, { unmappedConceptsCount: 1, pendingReceiptConcepts });
+    renderPage();
+
+    const nav = screen.getAllByRole("navigation", { name: "Navegación de Registro Retributivo" })[0];
+    await user.click(within(nav).getByRole("tab", { name: "Personas" }));
+    await user.click(await screen.findByRole("row", { name: /Abrir detalle/ }));
+    const dialog = within(await screen.findByRole("dialog"));
+    expect(dialog.getByText(expected)).toBeTruthy();
+    expect(dialog.queryByText("80,00 EUR")).toBeNull();
   });
 
   it("explains the Cuadre Reg. check and opens a failing row", async () => {

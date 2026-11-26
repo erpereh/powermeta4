@@ -402,8 +402,8 @@ function addPersonas(workbook: ExcelJS.Workbook, analysis: AnalysisResult): void
         zeroMoney(item.pdfTotal),
         zeroMoney(item.totalDifference),
         item.status,
-        cause.label,
-        item.detail || cause.review,
+        cause?.label ?? null,
+        cause?.description ?? null,
       ]);
       applyStatusRowStyle(row, item.status, headers.length, 18);
     });
@@ -455,7 +455,9 @@ function addConceptos(workbook: ExcelJS.Workbook, analysis: AnalysisResult): voi
   } else {
     sortConcepts(analysis.concepts).forEach((item) => {
       const person = peopleByEmployee.get(item.employeeNumber);
-      const cause = describeConceptCause(item, analysis.summary.tolerance);
+      const cause = person && person.status !== "Sin PDF" && person.status !== "Sin Registro"
+        ? describeConceptCause(item, analysis.summary.tolerance)
+        : undefined;
       const row = sheet.addRow([
         item.employeeNumber,
         item.person,
@@ -467,8 +469,8 @@ function addConceptos(workbook: ExcelJS.Workbook, analysis: AnalysisResult): voi
         zeroMoney(item.pdfAmount),
         zeroMoney(item.difference),
         item.status,
-        cause.label,
-        item.detail || cause.review,
+        cause?.label ?? null,
+        cause?.description ?? null,
       ]);
       applyStatusRowStyle(row, item.status, headers.length, 10);
     });
