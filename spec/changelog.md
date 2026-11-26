@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-26 - Acceso a Desglose Retributivo
+
+- El formulario y la descarga funcionan con cualquier sesión válida,
+  incluido DEBUG. Los mensajes de la herramienta indican cómo revisar
+  los archivos en caso de error.
+- Comprobado en Chromium el acceso desde Herramientas en DEBUG y la
+  descarga del ZIP con los cinco libros de prueba.
+- Suite completa con 1.794 pruebas aprobadas y dos omitidas. Typecheck y
+  build correctos. El formato global conserva los fallos existentes.
+
 ## 2026-11-26 - Desglose Retributivo
 
 - Nueva herramienta de la barra lateral para IBER. Genera un ZIP con cinco

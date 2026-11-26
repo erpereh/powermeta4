@@ -74,16 +74,16 @@ function request(files: readonly File[]) {
   });
 }
 
-function authorize(societyCode: "IBER" | "CYC") {
+function authorize(societyCode: "IBER" | "CYC" | null) {
   vi.mocked(getCurrentAuthContext).mockResolvedValue({
     sessionId: "ficticia",
     cookieHash: "ficticio",
     authContext: {
-      mode: "meta4",
+      mode: societyCode === null ? "debug" : "meta4",
       username: "ficticio",
-      canUseMeta4: true,
+      canUseMeta4: societyCode !== null,
       societyCode,
-      availableSocieties: ["CYC", "IBER"],
+      availableSocieties: societyCode === null ? [] : [societyCode],
     },
     expiresAt: new Date(),
     lastValidatedAt: null,
@@ -145,15 +145,42 @@ describe("POST /api/desglose-retributivo/generate", () => {
     }
   });
 
-  it("exige sesión y sociedad IBER antes de leer la subida", async () => {
+  it("exige sesión antes de leer la subida", async () => {
     vi.mocked(getCurrentAuthContext).mockResolvedValueOnce(null);
     const anonymous = request(batch);
     expect((await POST(anonymous)).status).toBe(401);
     expect(anonymous.bodyUsed).toBe(false);
-    authorize("CYC");
-    const cyc = request(batch);
-    expect((await POST(cyc)).status).toBe(403);
-    expect(cyc.bodyUsed).toBe(false);
+  });
+
+  it.each([
+    ["DEBUG", null],
+    ["CYC", "CYC"],
+  ] as const)(
+    "genera un ZIP con cinco Excel válidos en una sesión %s",
+    async (_session, societyCode) => {
+      authorize(societyCode);
+      const response = await POST(request(batch));
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe("application/zip");
+      const archive = new ZipReader(
+        new Uint8ArrayReader(new Uint8Array(await response.arrayBuffer())),
+      );
+      try {
+        expect(await archive.getEntries()).toHaveLength(GROUPINGS.length);
+      } finally {
+        await archive.close();
+      }
+    },
+  );
+
+  it("describe un formato incompatible sin pedir un cambio de sociedad", async () => {
+    authorize(null);
+    const incompatible = await buildInput(4, { company: "CYC" });
+    const response = await POST(request(batch.slice(0, -1).concat(incompatible)));
+    expect(response.status).toBe(422);
+    expect(await response.json()).toEqual({
+      error: expect.stringMatching(/ID Empresa.*formato admitido/),
+    });
   });
 
   it("rechaza lotes incompletos, agrupaciones repetidas y archivos inválidos", async () => {
@@ -168,11 +195,10 @@ describe("POST /api/desglose-retributivo/generate", () => {
     }
   });
 
-  it("rechaza diferencias de empleados o periodo, otras sociedades y fórmulas de entrada", async () => {
+  it("rechaza diferencias de empleados o periodo y fórmulas de entrada", async () => {
     for (const [variant, error] of [
       [{ firstSalary: 101 }, /no coinciden/],
       [{ year: 2026 }, /no coinciden/],
-      [{ company: "CYC" }, /íntegramente a IBER/],
       [{ formula: true }, /fórmulas o errores/],
     ] as const) {
       const response = await POST(request(batch.slice(0, -1).concat(await buildInput(4, variant))));

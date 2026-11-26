@@ -530,7 +530,7 @@ export const STANDALONE_TOOLS = [
     id: "desglose-retributivo",
     name: "Desglose Retributivo",
     shortName: "Desglose Retributivo",
-    description: "Completa los cinco Excel agrupados de PeopleNet para IBER.",
+    description: "Completa los cinco Excel agrupados de PeopleNet.",
     route: "/tools/desglose-retributivo",
     icon: "desglose-retributivo",
     implemented: true,

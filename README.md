@@ -233,9 +233,11 @@ y `cuadre:verify-local`: [Guía de Cuadre de nómina](docs/automatizacion-reunio
 ## Desglose Retributivo
 
 En **Herramientas → Desglose Retributivo** (`/tools/desglose-retributivo`),
-selecciona la sociedad IBER y carga los cinco Excel de PeopleNet del mismo
-periodo. Cada libro contiene **Empleados** y una hoja agrupada por categoría
-personal, categoría, familia de puesto, puesto o valoración del puesto.
+carga los cinco Excel de PeopleNet del mismo periodo. La herramienta admite
+cualquier sesión válida, incluido DEBUG en desarrollo. Cada libro contiene
+**Empleados** y una hoja agrupada por categoría personal, categoría, familia
+de puesto, puesto o valoración del puesto. El formato compatible se validó
+con los libros de IBER 2025.
 
 La herramienta conserva Empleados y el resumen de cada libro. Completa el
 desglose por concepto con las medias y medianas de mujeres y hombres y sus

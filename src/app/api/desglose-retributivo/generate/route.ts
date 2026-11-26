@@ -10,10 +10,8 @@ function failure(error: string, status: number): Response {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const session = await getCurrentAuthContext();
-  if (!session) return failure("Tu sesión ha caducado. Vuelve a iniciar sesión.", 401);
-  if (session.authContext.societyCode !== "IBER") {
-    return failure("Selecciona la sociedad IBER para generar el desglose.", 403);
+  if (!(await getCurrentAuthContext())) {
+    return failure("Tu sesión ha caducado. Vuelve a iniciar sesión.", 401);
   }
   // El margen permite las cabeceras multipart mientras el límite de archivos se comprueba aparte.
   if (Number(request.headers.get("content-length")) > MAX_UPLOAD_BYTES + 128 * 1024) {

@@ -1,5 +1,16 @@
 # powermeta4 - estado de tareas
 
+## Acceso a Desglose Retributivo — 2026-11-26
+
+- [x] Mostrar el formulario y generar el ZIP con cualquier sesión válida,
+      incluido DEBUG. Usar mensajes de validación sobre los archivos.
+- [x] Entrar en DEBUG desde Chromium, abrir la herramienta desde la barra
+      lateral y descargar y comprobar el ZIP con los cinco libros de 2025.
+- [x] Probar la descarga con otra sociedad activa, el rechazo sin sesión y
+      los archivos incompatibles. Suite completa con 1.794 pruebas aprobadas
+      y dos omitidas, tipos y build correctos. El lint global conserva
+      los fallos de formato existentes.
+
 ## Desglose Retributivo — 2026-11-26
 
 - [x] Herramienta de la barra lateral para IBER en

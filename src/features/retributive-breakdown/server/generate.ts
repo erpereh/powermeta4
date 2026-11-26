@@ -27,7 +27,7 @@ export async function generateBreakdown(files: readonly File[]) {
     );
     if (!employees || !summary || !grouping) {
       throw new BreakdownInputError(
-        "Cada Excel debe contener Empleados y una agrupación reconocida de IBER.",
+        "Cada Excel debe contener Empleados y una de las cinco agrupaciones requeridas.",
       );
     }
     if (results.has(grouping.file)) {
@@ -48,7 +48,7 @@ export async function generateBreakdown(files: readonly File[]) {
   return writeZip(
     GROUPINGS.map(({ file }) => {
       const bytes = results.get(file);
-      if (!bytes) throw new BreakdownInputError("Falta una agrupación de IBER.");
+      if (!bytes) throw new BreakdownInputError("Falta una de las cinco agrupaciones requeridas.");
       return ["desglose-iber-" + file + ".xlsx", bytes];
     }),
     0,

@@ -118,7 +118,9 @@ export function readEmployees(sheet: Sheet) {
   if (!rows.length) throw new BreakdownInputError("El libro no contiene empleados.");
   for (const row of rows) {
     if (normalize(sheet.value(row, companyColumn)) !== "iber") {
-      throw new BreakdownInputError("La hoja Empleados debe corresponder íntegramente a IBER.");
+      throw new BreakdownInputError(
+        "Revisa la columna «ID Empresa» de Empleados. Sus valores no corresponden al formato admitido.",
+      );
     }
     for (const { column } of concepts) scalar(sheet.value(row, column));
   }

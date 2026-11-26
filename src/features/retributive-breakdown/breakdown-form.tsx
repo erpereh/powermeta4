@@ -15,7 +15,7 @@ function selectionError(files: readonly File[]): string | null {
   if (files.reduce((size, file) => size + file.size, 0) > MAX_UPLOAD_BYTES) {
     return "Los cinco archivos deben sumar como máximo 9 MiB.";
   }
-  if (files.length > GROUPINGS.length) return "Selecciona solo los cinco Excel de IBER.";
+  if (files.length > GROUPINGS.length) return "Selecciona solo cinco archivos Excel.";
   return null;
 }
 
@@ -148,7 +148,7 @@ export function BreakdownForm() {
         className="space-y-3 self-start border-t pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6"
       >
         <h2 id="breakdown-groupings" className="text-sm font-semibold">
-          Agrupaciones de IBER
+          Agrupaciones requeridas
         </h2>
         <ul className="list-disc space-y-1.5 pl-4 text-sm text-muted-foreground">
           {GROUPINGS.map(({ sheet }) => (
