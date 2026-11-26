@@ -4,7 +4,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 export class BreakdownInputError extends Error {}
 
-type XmlNode = {
+export type XmlNode = {
   [key: string]: XmlNode[] | Record<string, string> | string | undefined;
   ":@"?: Record<string, string>;
   "#text"?: string;
@@ -56,7 +56,7 @@ export function requireElement(nodes: XmlNode[], tag: string): XmlNode {
   return node;
 }
 
-function textContent(nodes: readonly XmlNode[]): string {
+export function textContent(nodes: readonly XmlNode[]): string {
   return nodes.map((node) => node["#text"] ?? "").join("");
 }
 
@@ -111,7 +111,7 @@ export function readRange(ref: string | undefined): Range {
 
 export type XmlDocument = { nodes: XmlNode[]; root: XmlNode };
 
-function parsePart(parts: Parts, path: string, tag: string): XmlDocument {
+export function parsePart(parts: Parts, path: string, tag: string): XmlDocument {
   const data = parts.get(path);
   if (!data) throw new BreakdownInputError("Al Excel le falta un componente obligatorio.");
   const xml = decoder.decode(data);
@@ -205,9 +205,16 @@ export type Workbook = {
   parts: Parts;
   sheets: Sheet[];
   styles: XmlDocument;
+  sharedStrings: XmlNode[];
+  document: XmlDocument;
+  relationships: XmlDocument;
+  contentTypes: XmlDocument;
 };
 
-export async function readWorkbook(bytes: Uint8Array): Promise<Workbook> {
+export async function readWorkbook(
+  bytes: Uint8Array,
+  expandedLimit = maxExpandedWorkbookBytes,
+): Promise<Workbook> {
   const zip = new ZipReader(new Uint8ArrayReader(bytes), {
     checkSignature: true,
     checkOverlappingEntry: true,
@@ -219,7 +226,7 @@ export async function readWorkbook(bytes: Uint8Array): Promise<Workbook> {
     if (
       entries.length > 1000 ||
       entries.some((entry) => entry.encrypted) ||
-      entries.reduce((size, entry) => size + entry.uncompressedSize, 0) > maxExpandedWorkbookBytes
+      entries.reduce((size, entry) => size + entry.uncompressedSize, 0) > expandedLimit
     ) {
       throw new BreakdownInputError(
         "El Excel está protegido o supera el tamaño descomprimido admitido.",
@@ -263,11 +270,12 @@ export async function readWorkbook(bytes: Uint8Array): Promise<Workbook> {
         attribute(node, "Target"),
       ]),
     );
-    const strings = parts.has("xl/sharedStrings.xml")
-      ? children(parsePart(parts, "xl/sharedStrings.xml", "sst").root, "sst")
-          .filter((item) => "si" in item)
-          .map((item) => excelText(children(item, "si")))
+    const sharedStrings = parts.has("xl/sharedStrings.xml")
+      ? children(parsePart(parts, "xl/sharedStrings.xml", "sst").root, "sst").filter(
+          (item) => "si" in item,
+        )
       : [];
+    const strings = sharedStrings.map((item) => excelText(children(item, "si")));
     const sheetList = requireElement(children(workbook.root, "workbook"), "sheets");
     const sheets = children(sheetList, "sheets").filter((item) => "sheet" in item);
     if (sheets.length !== 2) {
@@ -287,7 +295,15 @@ export async function readWorkbook(bytes: Uint8Array): Promise<Workbook> {
     if (parsedSheets[0].path === parsedSheets[1].path) {
       throw new BreakdownInputError("El Excel contiene hojas duplicadas.");
     }
-    return { parts, sheets: parsedSheets, styles: parsePart(parts, "xl/styles.xml", "styleSheet") };
+    return {
+      parts,
+      sheets: parsedSheets,
+      styles: parsePart(parts, "xl/styles.xml", "styleSheet"),
+      sharedStrings,
+      document: workbook,
+      relationships,
+      contentTypes,
+    };
   } catch (error) {
     if (error instanceof BreakdownInputError) throw error;
     throw new BreakdownInputError("No se ha podido leer un Excel .xlsx válido.");

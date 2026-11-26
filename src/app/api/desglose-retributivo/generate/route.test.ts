@@ -79,6 +79,8 @@ async function buildInput(
   summary.getRow(14).values = [0, "Clave numérica"];
   summary.getRow(15).values = ["[SIN DEFINIR]", "[SIN DEFINIR]"];
   summary.getCell("BG13").value = 305;
+  // Cada libro usa el mismo ID OOXML para un formato personalizado distinto.
+  summary.getCell("BG13").numFmt = '0.00 "resumen ' + index + '"';
   summary.getCell("C16").value = 450;
   const bytes = new Uint8Array(await workbook.xlsx.writeBuffer());
   return new File([bytes], "original-" + index + ".xlsx");
@@ -134,11 +136,18 @@ describe("POST /api/desglose-retributivo/generate", () => {
       expect(workbook.worksheets[0].getCell("N13").value).toBe(100);
       for (const sheet of workbook.worksheets.slice(1)) {
         expect(sheet.getCell("BG13").value).toBe(305);
+        const index = GROUPINGS.findIndex(({ sheet: title }) => title === sheet.name);
+        expect(sheet.getCell("BG13").numFmt).toBe('0.00 "resumen ' + index + '"');
         expect(sheet.getCell("BH10").value).toBe("SALARIO");
         expect(sheet.getCell("BI10").master.address).toBe("BH10");
         expect(sheet.getCell("BH13").value).toBe(200);
         expect(sheet.getCell("BJ13").value).toBeCloseTo(1 / 3);
         expect(sheet.getCell("BJ13").numFmt).toBe("0.00%");
+      }
+      const personal = workbook.getWorksheet(GROUPINGS[0].sheet);
+      if (output === "complete") {
+        expect(personal?.getCell("A4").value).toBe("Periodo de cálculo");
+        expect(personal?.getCell("B4").value).toBe("01/01/2027 - 31/12/2027");
       }
     },
   );
