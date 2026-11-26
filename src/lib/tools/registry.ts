@@ -60,7 +60,8 @@ export type ToolIconName =
   | "process-errors"
   | "process-history"
   | "registro-retributivo"
-  | "cuadre-nomina";
+  | "cuadre-nomina"
+  | "desglose-retributivo";
 
 export type ToolDefinition = {
   id: string;
@@ -136,6 +137,7 @@ export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   "process-history": History,
   "registro-retributivo": TableProperties,
   "cuadre-nomina": FileSpreadsheet,
+  "desglose-retributivo": FileChartColumn,
 };
 
 const tool = (
@@ -523,6 +525,16 @@ export const STANDALONE_TOOLS = [
     icon: "registro-retributivo",
     implemented: true,
     keywords: ["registro", "retributivo", "retrib", "salario", "igualdad", "brecha"],
+  },
+  {
+    id: "desglose-retributivo",
+    name: "Desglose Retributivo",
+    shortName: "Desglose Retributivo",
+    description: "Completa los cinco Excel agrupados de PeopleNet para IBER.",
+    route: "/tools/desglose-retributivo",
+    icon: "desglose-retributivo",
+    implemented: true,
+    keywords: ["excel", "iber", "desglose", "retributivo", "agrupaciones"],
   },
 ] as const satisfies readonly StandaloneToolDefinition[];
 

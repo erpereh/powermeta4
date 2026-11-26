@@ -43,6 +43,7 @@ export const MODULE_TONES: Record<ToolModuleId, IconTone> = {
 export const STANDALONE_TOOL_TONES: Record<string, IconTone> = {
   "cuadre-nomina": "green",
   "registro-retributivo": "rose",
+  "desglose-retributivo": "violet",
 };
 
 export const getStandaloneToolTone = (toolId: string): IconTone =>

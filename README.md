@@ -230,6 +230,20 @@ la de `.env.local` (prioridad sobre `.env`) y el Excel/Datos indican cuál fue.
 Uso, pruebas, reglas pendientes y comandos `cuadre:discover`, `cuadre:verify`
 y `cuadre:verify-local`: [Guía de Cuadre de nómina](docs/automatizacion-reunion/IMPLEMENTATION.md).
 
+## Desglose Retributivo
+
+En **Herramientas → Desglose Retributivo** (`/tools/desglose-retributivo`),
+selecciona la sociedad IBER y carga los cinco Excel de PeopleNet del mismo
+periodo. Cada libro contiene **Empleados** y una hoja agrupada por categoría
+personal, categoría, familia de puesto, puesto o valoración del puesto.
+
+La herramienta conserva Empleados y el resumen de cada libro. Completa el
+desglose por concepto con las medias y medianas de mujeres y hombres y sus
+diferencias porcentuales. El botón **Generar y descargar ZIP** devuelve los
+cinco Excel con los resultados como valores. El servidor procesa los archivos
+en memoria. Los cinco originales privados de IBER 2025 quedan en
+`fuentes/desglose-retributivo-iber-2025/` en el equipo de trabajo.
+
 ## Copias locales
 
 El ZIP contiene exclusivamente:

@@ -163,6 +163,7 @@ describe("app sidebar tools group", () => {
     expect(tools.getAllByRole("button").map((button) => button.textContent?.trim())).toEqual([
       "Cuadre de nómina",
       "Reg. Retrib.",
+      "Desglose Retributivo",
       "Portal",
     ]);
     expect(
@@ -176,6 +177,15 @@ describe("app sidebar tools group", () => {
     expect(tools.queryByRole("button", { name: "Informes" })).toBeNull();
     expect(tools.queryByRole("button", { name: "Procesos" })).toBeNull();
     expect(mocks.push).not.toHaveBeenCalled();
+  });
+
+  it("opens Desglose Retributivo as a standalone tool", async () => {
+    const user = userEvent.setup();
+    renderSidebar();
+
+    await user.click(toolsList().getByRole("button", { name: "Desglose Retributivo" }));
+
+    expect(mocks.push).toHaveBeenCalledWith("/tools/desglose-retributivo");
   });
 
   it("keeps the tools reachable from the collapsed desktop rail", async () => {

@@ -1,5 +1,24 @@
 # powermeta4 - estado de tareas
 
+## Desglose Retributivo — 2026-11-26
+
+- [x] Herramienta de la barra lateral para IBER en
+      `/tools/desglose-retributivo`. Subida de los cinco Excel de un mismo
+      periodo y descarga de cinco libros calculados en ZIP.
+- [x] Copiar los cinco originales a `fuentes/desglose-retributivo-iber-2025/`,
+      comprobar SHA-256 y excluirlos de Git.
+- [x] Contrastar 41.712 resultados de los cinco libros de IBER 2025, abrirlos
+      con Excel 16.0 y comprobar el formato numérico, la conservación de
+      Empleados y el resumen de PeopleNet.
+- [x] Probar otro ejercicio, la descarga, los rechazos del endpoint y el
+      acceso desde Herramientas. Suite completa con 1.791 pruebas aprobadas
+      y dos omitidas, tipos y build correctos.
+- [x] Ejecutar lint y revisar el diff. El código nuevo pasa su comprobación
+      de formato. Lint global sigue fallando por formato previo y finales de
+      línea de la copia de trabajo.
+- [ ] CYC pendiente de un Excel original de PeopleNet para validar sus
+      agrupaciones.
+
 ## Diferencias del Registro Retributivo — 2026-11-26
 
 - [x] Simplificar el detalle de Personas, quitar la columna de causas y el

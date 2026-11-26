@@ -148,7 +148,7 @@ describe("tool registry", () => {
     expect(searchTools("empresas").tools.some((tool) => tool.moduleId === "companies")).toBe(true);
   });
 
-  it("keeps Registro Retributivo and Cuadre de nómina as sidebar standalone tools", () => {
+  it("registers standalone tools in the sidebar", () => {
     const registro = STANDALONE_TOOLS.find((tool) => tool.id === "registro-retributivo");
 
     expect(TOOL_MODULES.map((module) => module.name)).toEqual([
@@ -161,12 +161,18 @@ describe("tool registry", () => {
     expect(SIDEBAR_TOOL_ITEMS.map((item) => item.name)).toEqual([
       "Cuadre de nómina",
       "Reg. Retrib.",
+      "Desglose Retributivo",
     ]);
     expect(STANDALONE_TOOLS.find((tool) => tool.id === "cuadre-nomina")).toMatchObject({
       route: "/tools/cuadre-nomina",
       implemented: true,
     });
     expect(searchTools("cuadre").tools).toEqual([]);
+    expect(STANDALONE_TOOLS.find((tool) => tool.id === "desglose-retributivo")).toMatchObject({
+      route: "/tools/desglose-retributivo",
+      implemented: true,
+    });
+    expect(searchTools("desglose retributivo").tools).toEqual([]);
     expect(
       SIDEBAR_TOOL_ITEMS.every((item) => !TOOL_MODULES.some((module) => module.id === item.id)),
     ).toBe(true);

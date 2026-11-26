@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-11-26 - Desglose Retributivo
+
+- Nueva herramienta de la barra lateral para IBER. Genera un ZIP con cinco
+  Excel a partir de los libros individuales de PeopleNet del mismo periodo.
+  Comprueba la sesión, la sociedad y la coincidencia de Empleados.
+- Completa media, mediana y diferencias por sexo y concepto en las cinco
+  agrupaciones. Conserva Empleados y el resumen de cada libro mediante
+  edición OOXML en memoria. Los originales de prueba quedan fuera de Git.
+- Contraste de 41.712 resultados con la entrega de IBER 2025, conservación
+  del resumen y apertura correcta de los cinco libros en Excel 16.0.
+- Suite completa con 1.791 pruebas aprobadas y dos omitidas. Typecheck,
+  build y formato del código nuevo correctos. El chequeo global de formato
+  continúa fallando por formato previo y finales de línea en Windows.
+
 ## 2026-11-26 - Diferencias del Registro Retributivo
 
 - El detalle de Personas deja la conclusión económica en el aviso y explica
