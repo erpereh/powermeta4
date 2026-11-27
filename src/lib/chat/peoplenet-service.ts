@@ -203,13 +203,20 @@ export async function readPeopleNetQuery(
     } else {
       const people = await directory();
       const target = fold(person.value);
-      const exact = people.filter(({ id, fullName, claveSelf }) =>
-        person.type === "id"
-          ? fold(id) === target
-          : fold(fullName) === target || fold(claveSelf) === target,
+      // La etiqueta que pone el modelo no decide dónde se busca: «la matrícula
+      // de 1683» llega a veces como nombre y «Ana López» como matrícula. Se
+      // prueban ambas lecturas sobre el mismo directorio de la sociedad, que
+      // es el único alcance permitido.
+      const byId = people.filter(({ id }) => fold(id) === target);
+      const byName = people.filter(
+        ({ fullName, claveSelf }) => fold(fullName) === target || fold(claveSelf) === target,
       );
+      const exact =
+        person.type === "id" ? (byId.length ? byId : byName) : byName.length ? byName : byId;
+      // La búsqueda parcial sigue reservada a los nombres: una matrícula se
+      // escribe entera y no debe arrastrar coincidencias sueltas.
       candidates =
-        exact.length || person.type === "id"
+        exact.length || /^\d+$/.test(target)
           ? exact
           : people.filter(({ fullName }) => fold(fullName).includes(target));
     }
@@ -236,6 +243,14 @@ export async function readPeopleNetQuery(
         },
       };
     [employee] = candidates;
+    // Las pantallas que aceptan `?employee=` abren la ficha de esa persona,
+    // desde donde se descarga su informe. Sin la matrícula el enlace deja al
+    // usuario en la pantalla vacía.
+    if (
+      employee &&
+      (query.action === "reports.projections" || query.action === "reports.certificate")
+    )
+      result.source.href = `${tool.route}?employee=${encodeURIComponent(employee.id)}`;
   }
   signal.throwIfAborted();
   const table = await readers[query.action](query, {

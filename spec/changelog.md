@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-11-28 - La matrícula del chat deja de depender de la etiqueta del modelo
+
+- Una consulta de proyecciones por matrícula fallaba con «No se ha encontrado
+  a esa persona en el listado de la sociedad activa» según cómo se escribiera
+  la pregunta, mientras la misma matrícula funcionaba en la pantalla. El
+  modelo etiquetaba unas veces la matrícula como nombre y otras como
+  identificador, y cada etiqueta buscaba en un campo distinto. Ahora se
+  prueban ambas lecturas sobre el mismo directorio de la sociedad, que sigue
+  siendo el único alcance permitido. La búsqueda parcial sigue reservada a los
+  nombres.
+- La tarjeta de proyecciones y la de certificado enlazan a su pantalla con
+  `?employee=`, de modo que el enlace abre la ficha de esa persona y permite
+  descargar el informe en lugar de dejar la pantalla vacía.
+
 ## 2026-11-28 - El chat no calcula por su cuenta
 
 - La respuesta escribía la clase de columna como si fuera una moneda. Los
