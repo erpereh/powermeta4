@@ -33,9 +33,13 @@ import {
   manualContext,
   manualSystem,
   NO_ANSWER_SENTENCE,
+  shownAnswer,
 } from "@/lib/knowledge/manuals/grounding";
+import { redact } from "@/lib/knowledge/manuals/layout";
 import { retrieveManuals, searchQuestion } from "@/lib/knowledge/manuals/retrieve";
 import {
+  buildAnswerContext,
+  buildAnswerSystemMessage,
   buildChatContext,
   buildGeneralSystemMessage,
   buildRagSystemMessage,
@@ -72,9 +76,6 @@ const readId = (value: unknown): string | null =>
 
 const attachmentMention =
   /\b(?:adjunt\w*|(?:el|ese|este|aquel|los|estos) (?:archivos?|pdfs?|xlsx|excel|csv|ficheros?|documentos?))\b/i;
-
-const documentaryRequest =
-  /\b(?:según (?:el |los )?manual|documentación|paso a paso|cómo (?:se|puedo|funciona)|service pack|ram-?dl|sp\d{5}sp\d{3})\b/i;
 
 const encodeSse = (payload: InternalChatEvent): string => `data: ${JSON.stringify(payload)}\n\n`;
 
@@ -164,8 +165,12 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  const { turn, publicHistory } = getPeopleNetBranch(branch);
-  const messages = toChatHistory(publicHistory);
+  const { turn, publicHistory, pending: currentQuestion } = getPeopleNetBranch(branch);
+  // La pregunta en curso siempre acompaña a la redacción, aunque el lenguaje
+  // local la haya apartado del historial por considerarla operativa.
+  const messages = toChatHistory(
+    currentQuestion ? [...publicHistory, currentQuestion] : publicHistory,
+  );
   const publicIds = new Set(publicHistory.map(({ id }) => id));
   const users = branch.filter(({ role }) => role === "user");
   let search = searchQuestion("");
@@ -212,16 +217,15 @@ export async function POST(request: Request) {
 
       try {
         let chatProvider: ChatProvider | undefined;
-        const localOnly =
-          turn.kind === "unavailable" ||
-          (turn.kind === "clarify" && /\b(?:escrituras|quita los datos)\b/.test(turn.text));
-        const keepDocumentary =
-          turn.kind === "general" &&
-          (refs.length > 0 ||
-            (search.isDocumental &&
-              (documentaryRequest.test(latestText) ||
-                (search.continuesTopic && users.length > 1))));
-        if (!localOnly && !keepDocumentary && latestInput.trim()) {
+        // El modelo decide el turno: puede leer PeopleNet, consultar los
+        // manuales, combinar ambos o devolver GENERAL. Solo las peticiones de
+        // credenciales se resuelven sin consultarle.
+        const localOnly = turn.kind === "unavailable";
+        // Cuando el planificador llega a decidir, su veredicto manda: el
+        // lenguaje de consulta local solo gobierna el turno si no hubo
+        // herramientas con las que consultarle.
+        let planned = false;
+        if (!localOnly && latestInput.trim()) {
           chatProvider = getChatProvider();
           const tools = chatProvider.getPeopleNetTools?.();
           if (tools) {
@@ -277,6 +281,7 @@ export async function POST(request: Request) {
               continuesPeopleNet && last?.needsInput && branch.at(-2)?.id === last.messageId
                 ? users.find(({ id }) => id === branch.at(-2)?.parentMessageId)
                 : undefined;
+            planned = true;
             const outcome = await runPeopleNetTools({
               auth: authSession,
               companyId,
@@ -286,6 +291,7 @@ export async function POST(request: Request) {
               input: latestInput,
               previous,
               pendingQuestion: pending ? textContent(pending.content) : undefined,
+              attachments: refs.map(({ name }) => name),
               onOperational: async () => {
                 await assertScope();
                 if (
@@ -299,34 +305,162 @@ export async function POST(request: Request) {
                   throw new PeopleNetScopeError();
               },
             });
+            if (outcome.kind === "fallback" && outcome.manualsMissing && !refs.length) {
+              // El modelo quiso respaldarse en los manuales y no hay nada que
+              // los respalde: se responde la abstención en lugar de dejar que
+              // complete el hueco con conocimiento propio.
+              send({ type: "content", content: [{ type: "text", text: NO_ANSWER_SENTENCE }] });
+              return;
+            }
             if (outcome.kind === "operational") {
               await assertScope();
-              const ciphertext = await sealPeopleNetRecipe(
-                recipeScope(authSession, companyId, conversationId, assistantMessageId),
-                {
-                  calls: outcome.calls,
-                  dependencies: outcome.dependencies,
-                  needsInput: outcome.needsInput,
-                },
-              );
-              await assertScope();
-              if (
-                !(await repository.setMessageSources(
-                  companyId,
-                  conversationId,
-                  assistantMessageId,
-                  outcome.sources,
-                  { ciphertext, generationId: assistantMessage.generationId ?? null },
-                ))
-              )
-                return;
-              if (send({ type: "sources", sources: outcome.sources }))
+              if (outcome.calls.length) {
+                const ciphertext = await sealPeopleNetRecipe(
+                  recipeScope(authSession, companyId, conversationId, assistantMessageId),
+                  {
+                    calls: outcome.calls,
+                    dependencies: outcome.dependencies,
+                    needsInput: outcome.needsInput,
+                  },
+                );
+                await assertScope();
+                if (
+                  !(await repository.setMessageSources(
+                    companyId,
+                    conversationId,
+                    assistantMessageId,
+                    outcome.sources,
+                    { ciphertext, generationId: assistantMessage.generationId ?? null },
+                  ))
+                )
+                  return;
+                if (!send({ type: "sources", sources: outcome.sources })) return;
+              }
+              // Sin datos ni pasajes el turno es una aclaración o un aviso: su
+              // texto ya está redactado en servidor.
+              if (!outcome.data.length && !outcome.evidence.length) {
                 send({ type: "content", content: [{ type: "text", text: outcome.text }] });
+                return;
+              }
+              const files = await loadChatAttachmentContext(
+                companyId,
+                conversationId,
+                refs,
+                request.signal,
+              );
+              request.signal.throwIfAborted();
+              if (files.sources.length) {
+                if (
+                  !(await repository.setMessageSources(
+                    companyId,
+                    conversationId,
+                    assistantMessageId,
+                    [...outcome.sources, ...files.sources],
+                  ))
+                )
+                  return;
+                if (!send({ type: "sources", sources: [...outcome.sources, ...files.sources] }))
+                  return;
+              }
+              const providerMessages: ChatMessage[] = [
+                {
+                  role: "system",
+                  content: buildAnswerSystemMessage({
+                    hasData: outcome.data.length > 0,
+                    hasManuals: outcome.evidence.length > 0,
+                    hasAttachments: files.items.length > 0,
+                    incomplete: outcome.needsInput,
+                  }),
+                },
+                ...messages,
+              ];
+              providerMessages.splice(Math.max(1, providerMessages.length - 1), 0, {
+                role: "user",
+                content: buildAnswerContext(
+                  outcome.data,
+                  outcome.evidence.map((hit) => ({
+                    title: hit.title,
+                    page: hit.page,
+                    section: redact(hit.section),
+                    release: hit.release,
+                    text: redact(hit.text),
+                  })),
+                  files.items,
+                  files.omitted,
+                ),
+              });
+              // Un turno puramente documental conserva la exigencia de cita:
+              // sin un pasaje válido detrás, la respuesta no se publica. En
+              // cuanto hay lecturas de PeopleNet la respuesta contiene datos
+              // que no están en los manuales y no puede recortarse por citas.
+              const strict =
+                outcome.evidence.length > 0 && outcome.data.length === 0 && !files.items.length;
+              let written = "";
+              let shown = "";
+              try {
+                for await (const delta of chatProvider.streamResponse({
+                  messages: providerMessages,
+                  abortSignal: request.signal,
+                })) {
+                  if (request.signal.aborted) return;
+                  written += delta;
+                  const next = strict
+                    ? groundedAnswer(written, outcome.evidence, true, false)
+                    : shownAnswer(written, false);
+                  if (next === shown) continue;
+                  shown = next;
+                  if (!send({ type: "content", content: [{ type: "text", text: shown }] })) return;
+                }
+              } catch (error) {
+                // La lectura ya está resuelta y publicada: un fallo al
+                // redactar no invalida el turno, se entrega el texto del
+                // servidor y el usuario conserva sus tarjetas.
+                if (request.signal.aborted) throw error;
+                console.error("[chat] la redacción del turno operativo falló");
+                written = "";
+                shown = "";
+              }
+              const finished = (
+                strict
+                  ? groundedAnswer(written, outcome.evidence, true, true)
+                  : shownAnswer(written, true)
+              ).trimEnd();
+              const answer = finished.trim() ? finished : outcome.text;
+              if (!answer.trim()) {
+                // No hubo redacción ni texto del servidor: el turno queda como
+                // fallido para que el usuario pueda regenerarlo, con las
+                // tarjetas ya publicadas.
+                send({
+                  type: "error",
+                  errorCode: "CHAT_INVALID_RESPONSE",
+                  message: "No se pudo redactar la respuesta. Puedes volver a generarla.",
+                });
+                return;
+              }
+              const cited = citedSources(written, outcome.evidence);
+              if (cited.length) {
+                const sources = [...outcome.sources, ...cited, ...files.sources];
+                if (
+                  !(await repository.setMessageSources(
+                    companyId,
+                    conversationId,
+                    assistantMessageId,
+                    sources,
+                  ))
+                )
+                  return;
+                if (!send({ type: "sources", sources })) return;
+              }
+              if (answer !== shown)
+                send({ type: "content", content: [{ type: "text", text: answer }] });
               return;
             }
           }
         }
-        if (turn.kind !== "general") {
+        // Si el modelo ignoró las herramientas, la consulta local sigue
+        // disponible. Las aclaraciones del lenguaje local, en cambio, no
+        // contradicen a un planificador que ya decidió conversar.
+        if (turn.kind !== "general" && (!planned || turn.kind === "query")) {
           if (turn.kind === "query") {
             const sources: ChatSource[] = [
               { kind: "peoplenet", id: turn.query.action, name: "PeopleNet" },
@@ -519,11 +653,11 @@ export async function POST(request: Request) {
             });
             return;
           }
+          const mapped = toInternalError(error);
           console.error(
-            "[chat] provider streaming failed",
-            error instanceof Error ? { name: error.name } : { name: "unknown" },
+            `[chat] provider streaming failed ${error instanceof Error ? error.name : "unknown"}/${mapped.errorCode}`,
           );
-          send(toInternalError(error));
+          send(mapped);
         }
       } finally {
         if (controller.desiredSize !== null) controller.close();

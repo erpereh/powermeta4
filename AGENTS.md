@@ -93,13 +93,22 @@ anterior se eliminan mediante la migración `009_remove_agent_and_provider_confi
 las migraciones 006/007 se conservan únicamente como historia de esquema.
 
 `POST /api/chat/run` valida sesión, empresa, conversación y mensaje asistente,
-reconstruye la rama exacta con `parentMessageId`. El asistente de PowerMeta4
-usa conversación general para saludos y preguntas ajenas a PeopleNet.
-Consulta los manuales en preguntas documentales y seguimientos del mismo
-tema. Envía los ancestros `user`/`assistant` con texto no vacío y las
+reconstruye la rama exacta con `parentMessageId`. Quien decide el turno es el
+modelo, en una primera pasada de Function Calling: puede leer PeopleNet,
+consultar los manuales con `consultar_manual`, combinar ambos o devolver
+GENERAL. El lenguaje de consulta local (`detectPeopleNetTurn`) deja de ser una
+puerta previa: solo resuelve el turno cuando no hay herramientas con las que
+preguntar al modelo, y sus aclaraciones no contradicen a un planificador que
+ya decidió conversar. Cuando el modelo pide los manuales y no obtiene ningún
+pasaje, el turno se abstiene en lugar de completar el hueco con conocimiento
+propio. Una segunda pasada en streaming redacta la respuesta visible con los
+datos que el servidor ya entregó al planificador; si falla, se entrega el
+texto compuesto en servidor y las tarjetas se conservan. Envía los ancestros
+`user`/`assistant` con texto no vacío, la pregunta en curso y las
 instrucciones del sistema del servidor. Los manuales y adjuntos pertinentes
 van en bloques delimitados como datos. Excluye el placeholder actual, las
-partes internas de la UI y los turnos operativos del historial general y del RAG.
+partes internas de la UI y los turnos operativos anteriores del historial
+general y del RAG.
 
 Los adjuntos del chat se guardan localmente por conversación y mensaje y se
 resuelven solo en la rama activa. El texto extraído queda fuera del índice de
@@ -114,15 +123,21 @@ si falta una variable muestra `IA no configurada`. Las consultas de PeopleNet
 funcionan con la configuración y sesión propias de Meta4.
 
 El registro server-only de Function Calling contiene las siete lecturas de
-Inicio, enlazadas por su ID de acción. El alta queda fuera. Usa el endpoint
+Inicio, enlazadas por su ID de acción, más `consultar_manual`, que busca
+pasajes en el índice publicado de manuales y puede combinarse con las
+lecturas en el mismo turno. El alta queda fuera. Usa el endpoint
 y el modelo configurados mediante `AI_BASE_URL`, `AI_API_KEY` y `AI_MODEL`.
 La elección del proveedor en el servidor fija el destino de las métricas
 minimizadas. Las consultas locales siguen disponibles cuando falta la
 configuración o el modelo rechaza o ignora las Tools. Antes de cada lectura
 se valida sesión, conversación y sociedad activa.
 El proveedor configurado recibe métricas mínimas, estados y referencias opacas.
-Identidades obtenidas de PeopleNet, tablas completas, archivos, enlaces y
-cálculos permanecen en servidor. DEBUG usa solo muestras ficticias.
+Identidades obtenidas de PeopleNet, tablas completas, archivos y enlaces
+permanecen en servidor. Los importes de las métricas pedidas en una lectura de
+una sola persona y el valor de un análisis sí llegan al modelo, que puede
+escribirlos en su respuesta; decisión del usuario del 2026-11-27, para que el
+chat interprete las cifras en lugar de remitir siempre a la tarjeta. DEBUG usa
+solo muestras ficticias.
 
 `POST /api/chat/peoplenet/result` vuelve a autorizar la lectura al abrir cada
 tarjeta. Los turnos de Function Calling guardan referencias públicas y una

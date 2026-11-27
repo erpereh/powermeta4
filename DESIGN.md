@@ -418,6 +418,11 @@ proveedores ni preferencias de proveedor en la interfaz.
 
 Los favoritos se derivan de `Chat.favorite`; no se crean arrays paralelos.
 
+El texto de un turno con datos lo redacta el modelo a partir de los importes
+mínimos que el servidor le entregó, y remite a la tarjeta para la tabla, las
+identidades y el enlace. Si esa redacción falla, el mensaje conserva el texto
+compuesto en servidor.
+
 El historial pintado en el Thread es el transcript SQLite real. Cada ejecución
 reconstruye la rama exacta desde el `parentMessageId` del mensaje asistente en
 curso. Los turnos documentales envían al modelo el texto correspondiente,
@@ -429,8 +434,11 @@ regeneración, ramas y `headMessageId`.
 Las consultas y cruces de PeopleNet aparecen como tarjetas en el mensaje del
 asistente, una por operación. El texto indica si se calculó un resultado, si
 faltan filtros o si hay varias coincidencias que el usuario debe concretar.
-El primer resultado se abre al completar el turno. «Ver resultado» vuelve a
-leer los datos con la sesión y la sociedad vigentes. Las tablas paginan a 25
+Los resultados del turno recién terminado se abren solos, escalonados para no
+lanzar todas las lecturas a la vez; los de turnos anteriores siguen plegados.
+La cabecera de cada tarjeta indica cuántos registros hay y los resultados
+calculados se muestran como cifras destacadas sobre la tabla. «Ver resultado»
+vuelve a leer los datos con la sesión y la sociedad vigentes. Las tablas paginan a 25
 filas y su desplazamiento horizontal queda dentro de la tarjeta. La acción de
 Inicio figura como enlace de origen y las muestras llevan la etiqueta DEBUG.
 

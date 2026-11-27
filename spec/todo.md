@@ -1,5 +1,40 @@
 # powermeta4 - estado de tareas
 
+## Chat: una sola decisión para manuales y acciones — 2026-11-27
+
+- [x] Añadir `consultar_manual` al registro de Function Calling para que el
+      modelo pueda combinar manuales y lecturas de PeopleNet en un mismo turno.
+- [x] Retirar las puertas previas por expresiones regulares
+      (`keepDocumentary`, el `localOnly` documental) y dejar que el
+      planificador decida el turno. El lenguaje local conserva la consulta
+      cuando el modelo ignora las herramientas, pero sus aclaraciones ya no
+      contradicen una decisión del planificador.
+- [x] Incluir la pregunta en curso en el historial de la redacción. Antes se
+      excluía cuando el lenguaje local la clasificaba como operativa y el
+      camino general recibía solo las instrucciones del sistema, lo que hacía
+      fallar el turno con `CHAT_INVALID_RESPONSE`.
+- [x] Redactar en streaming las respuestas con datos o pasajes, con los
+      importes mínimos que el servidor ya entrega al planificador. Un fallo de
+      la redacción conserva el texto del servidor y las tarjetas.
+- [x] Abstenerse cuando el modelo consulta los manuales y no obtiene ningún
+      pasaje, en lugar de completar con conocimiento propio.
+- [x] Aplicar el corte estricto por citas solo a los turnos puramente
+      documentales; un turno con datos ya no se trunca por falta de marcas.
+- [x] Abrir todas las tarjetas del turno recién terminado, escalonar sus
+      lecturas, mostrar el recuento de registros en la cabecera y destacar los
+      resultados calculados.
+- [x] Añadir `npm run chat:evaluate`, un banco de casos que ejecuta ramas
+      completas contra el servidor de desarrollo y el modelo real e imprime el
+      enrutado de cada turno.
+- [ ] Publicar el índice de manuales. La ingesta léxica dejó 439 documentos y
+      24.305 pasajes como candidato, pero `assertComplete` exige embeddings
+      (`vectorized > 0`) y cero páginas en revisión (hay 174), y las consultas
+      filtran `documents.approved = 1`. Sin índice activo toda pregunta
+      documental se abstiene.
+- [ ] Verificar el chat con una sesión Meta4 real y datos de la matrícula
+      1683: hasta ahora solo se ha comprobado con el acceso DEBUG y sus
+      muestras ficticias.
+
 ## Sincronización de ramas — 2026-11-27
 
 - [x] Verificar que `davidev` contiene el historial de `salvadev` y `main`

@@ -445,6 +445,46 @@ describe("Function Calling de PeopleNet con fixtures DEBUG", () => {
     expect(callSources(id)).toHaveLength(0);
   });
 
+  it("redacta la respuesta operativa con los importes mínimos y conserva la pregunta", async () => {
+    const id = start("¿Cuánto cobró la matrícula 90001 en octubre de 2026?");
+    let data = "";
+    const fetch = vi.fn(async (_url: string, init: RequestInit) => {
+      const body = String(init.body);
+      const payload = JSON.parse(body) as { stream: boolean; messages: ChatToolMessage[] };
+      if (payload.stream === false)
+        return reply([
+          call("a", "consultar_nomina", {
+            person: who,
+            periods: [{ year: 2026, month: 10 }],
+            metrics: ["net"],
+          }),
+        ]);
+      data = JSON.stringify(payload.messages);
+      return new Response(
+        'data: {"choices":[{"delta":{"content":"El líquido de octubre fue 1.000 €."}}]}\n\ndata: [DONE]\n\n',
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const sse = await answer(id);
+    expect(sse).toContain("El líquido de octubre fue");
+    // La redacción recibe la pregunta del usuario y las lecturas minimizadas,
+    // nunca identidades ni la tabla completa.
+    expect(data).toContain("Cuánto cobró la matrícula 90001");
+    expect(data).toContain("lecturasDePeopleNet");
+    expect(callSources(id).map(({ action }) => action)).toEqual(["payroll.consult"]);
+  });
+
+  it("se abstiene cuando el modelo consulta los manuales y no hay ningún pasaje", async () => {
+    const id = start("¿Qué es un concepto de nómina en PeopleNet?");
+    stubProvider((_body, round) =>
+      round === 0
+        ? reply([call("m", "consultar_manual", { pregunta: "concepto de nómina" })])
+        : reply(undefined, "GENERAL"),
+    );
+    expect(await answer(id)).toContain("No tengo información suficiente");
+    expect(callSources(id)).toHaveLength(0);
+  });
+
   it("vigila el workspace y la sesión antes de publicar una lectura", async () => {
     const id = start("Lista los usuarios");
     stubProvider(() => reply([call("a", "listar_usuarios", {})]));

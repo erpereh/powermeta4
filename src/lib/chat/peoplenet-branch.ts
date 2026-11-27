@@ -8,6 +8,13 @@ import { detectPeopleNetTurn, type PeopleNetQuery, type PeopleNetTurn } from "./
 export function getPeopleNetBranch(branch: readonly Message[]): {
   turn: PeopleNetTurn;
   publicHistory: Message[];
+  /**
+   * Pregunta en curso cuando el lenguaje local la consideró operativa y la
+   * dejó fuera del historial. Quien redacta la respuesta la necesita: la
+   * decisión del planificador puede no coincidir con esa clasificación, y
+   * aunque coincida, el redactor tiene que saber qué se preguntó.
+   */
+  pending?: Message;
 } {
   // A persisted marker still protects an older turn if the wording rules change.
   const marked = new Set(
@@ -49,5 +56,10 @@ export function getPeopleNetBranch(branch: readonly Message[]): {
       if (turn.kind === "query") previous = turn.query;
     }
   }
-  return { turn, publicHistory };
+  const last = branch.findLast(({ role }) => role === "user");
+  return {
+    turn,
+    publicHistory,
+    ...(last && !publicHistory.includes(last) ? { pending: last } : {}),
+  };
 }

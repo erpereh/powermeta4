@@ -19,6 +19,7 @@
     "kb:import": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/kb-maintenance.ts import",
     "kb:publish": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/kb-maintenance.ts publish",
     "kb:evaluate": "node --use-system-ca --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/kb-manual-evaluate.ts",
+    "chat:evaluate": "cross-env NODE_ENV=development node --use-system-ca --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/chat/evaluate.ts",
     "portal:soap-catalog": "node --import tsx scripts/portal/soap-catalog.ts",
     "portal:docs": "node --import tsx scripts/portal/dependencias.ts",
     "portal:discover": "node --conditions=react-server --import tsx scripts/portal/descubrir.ts",

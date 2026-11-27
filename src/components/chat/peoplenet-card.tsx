@@ -55,7 +55,8 @@ export function PeopleNetCard() {
         messageId={messageId}
         callId={callId}
         title={title}
-        autoOpen={index === 0 && context.autoOpenMessageId === messageId}
+        index={index}
+        autoOpen={context.autoOpenMessageId === messageId}
       />
     ) : null,
   );
@@ -72,6 +73,7 @@ function PeopleNetResultCard({
   messageId,
   callId,
   title,
+  index,
   autoOpen,
 }: {
   companyId: string;
@@ -79,6 +81,7 @@ function PeopleNetResultCard({
   messageId: string;
   callId?: string;
   title: string;
+  index: number;
   autoOpen: boolean;
 }) {
   const [page, setPage] = useState(autoOpen ? 0 : null);
@@ -88,6 +91,9 @@ function PeopleNetResultCard({
   useEffect(() => {
     if (page === null) return;
     const controller = new AbortController();
+    // Un turno puede abrir varias tarjetas a la vez: se escalonan para no
+    // lanzar todas las lecturas contra PeopleNet en el mismo instante.
+    const delay = page === 0 ? Math.min(index, 6) * 250 : 0;
     async function load() {
       try {
         const response = await fetch("/api/chat/peoplenet/result", {
@@ -123,9 +129,12 @@ function PeopleNetResultCard({
           setState({ type: "error", message: "No se pudo cargar el resultado de PeopleNet." });
       }
     }
-    void load();
-    return () => controller.abort();
-  }, [attempt, callId, chatId, companyId, messageId, page]);
+    const timer = setTimeout(() => void load(), delay);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [attempt, callId, chatId, companyId, index, messageId, page]);
 
   function changePage(next: number | null) {
     setState({ type: "loading" });
@@ -139,7 +148,19 @@ function PeopleNetResultCard({
       className="my-2 min-w-0 rounded-xl border border-border bg-card p-3 text-sm sm:p-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-medium">{title}</h3>
+        <div className="min-w-0">
+          <h3 className="font-medium">{title}</h3>
+          {result ? (
+            <p className="text-muted-foreground">
+              {result.total === 1
+                ? "1 registro"
+                : result.total
+                  ? `${number.format(result.total)} registros`
+                  : "Sin registros"}
+              {result.debug ? " · DEBUG" : ""}
+            </p>
+          ) : null}
+        </div>
         <Button
           type="button"
           size="sm"
@@ -194,11 +215,14 @@ function PeopleNetTable({
       ) : null}
       {result.message ? <p role="status">{result.message}</p> : null}
       {result.calculations.length ? (
-        <dl className="grid gap-x-4 gap-y-1 sm:grid-cols-[1fr_auto]">
+        <dl className="flex flex-wrap gap-2">
           {result.calculations.map(({ label, value }, index) => (
-            <div className="contents" key={index}>
-              <dt>{label}</dt>
-              <dd className="font-medium tabular-nums sm:text-end">{display(value)}</dd>
+            <div
+              className="min-w-32 flex-1 rounded-md border border-border bg-muted/40 px-3 py-2"
+              key={index}
+            >
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd className="text-base font-medium tabular-nums">{display(value)}</dd>
             </div>
           ))}
         </dl>

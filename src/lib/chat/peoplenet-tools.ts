@@ -184,6 +184,15 @@ export type PeopleAnalysis = z.infer<typeof analysisSchema>;
 export const clarificationSchema = z.strictObject({
   field: z.enum(["person", "period", "report", "run", "metric", "scope", "operation"]),
 });
+export const MAX_MANUAL_LOOKUPS = 3;
+export const manualSchema = z.strictObject({
+  pregunta: z
+    .string()
+    .trim()
+    .min(3)
+    .max(400)
+    .describe("Pregunta o tema a buscar, con los nombres técnicos tal como aparecen."),
+});
 export const presentationSchema = z.strictObject({ refs: z.array(ref).min(1).max(MAX_TOOL_CALLS) });
 
 export function toolDefinitions(): ChatToolDefinition[] {
@@ -207,6 +216,11 @@ export function toolDefinitions(): ChatToolDefinition[] {
       "analizar_resultados",
       "Calcula en servidor sobre referencias de este turno o de la rama. Diferencia es izquierda menos derecha. Variación compara izquierda frente a derecha. Intersección cruza por persona o persona y periodo.",
       analysisSchema,
+    ),
+    publicSchema(
+      "consultar_manual",
+      "Busca pasajes en los manuales internos de PeopleNet y Meta4. Úsalo para preguntas documentales, para explicar la sintaxis LN4 y para interpretar lo que devuelven las lecturas. Puede combinarse con ellas en el mismo turno.",
+      manualSchema,
     ),
     publicSchema(
       "aclarar_consulta",

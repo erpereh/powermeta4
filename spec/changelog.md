@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-11-27 - El modelo decide entre manuales y acciones en el chat
+
+- `consultar_manual` entra en el registro de Function Calling. El modelo puede
+  pedir pasajes de los manuales, leer PeopleNet o ambas cosas en el mismo
+  turno, que es lo que permite explicar un importe con la documentación
+  detrás.
+- `POST /api/chat/run` deja de decidir el turno con expresiones regulares.
+  `detectPeopleNetTurn` solo gobierna cuando no hay herramientas con las que
+  preguntar al modelo, y conserva la consulta local si el modelo las ignora;
+  sus aclaraciones ya no se imponen a un planificador que decidió conversar.
+- La pregunta en curso viaja siempre con la redacción. Antes quedaba fuera del
+  historial cuando el lenguaje local la consideraba operativa, y el camino
+  general llegaba a enviar solo las instrucciones del sistema: el proveedor
+  devolvía una respuesta vacía y el turno terminaba en
+  `CHAT_INVALID_RESPONSE`.
+- Una segunda pasada en streaming redacta las respuestas con datos o pasajes.
+  El modelo escribe los importes que el servidor ya le había entregado —las
+  métricas pedidas de una lectura de una sola persona y el valor de un
+  análisis— en lugar del texto fijo anterior. Identidades, tablas completas y
+  enlaces siguen solo en la tarjeta. Si la redacción falla, el mensaje conserva
+  el texto del servidor.
+- El turno se abstiene cuando el modelo consulta los manuales y no obtiene
+  ningún pasaje, en vez de completar con conocimiento propio. El corte
+  estricto por citas se limita a los turnos puramente documentales: uno con
+  datos o adjuntos ya no se trunca por falta de marcas.
+- Las tarjetas del turno recién terminado se abren todas, escalonadas, con el
+  recuento de registros en la cabecera y los resultados calculados
+  destacados.
+- `npm run chat:evaluate` ejecuta ramas completas contra el servidor de
+  desarrollo y el modelo real, e imprime el enrutado y la respuesta de cada
+  turno. Adopta la sesión abierta sin cerrarla y admite el acceso DEBUG.
+- Comprobado: `npm run typecheck`, 173 pruebas en 21 archivos de chat,
+  conocimiento y componentes. El `oxfmt --check` de `npm run lint` sigue
+  fallando en masa por la ausencia de configuración, como ya constaba.
+- Pendiente: el índice de manuales no está publicado en este entorno. La
+  ingesta léxica dejó 439 documentos y 24.305 pasajes como candidato, pero las
+  consultas exigen `documents.approved = 1` y la publicación exige embeddings
+  y cero páginas en revisión. Pendiente también la verificación con una sesión
+  Meta4 real.
+
 ## 2026-11-27 - Verificación de la sincronización de ramas
 
 - Confirmado que `davidev` en `f8d50455` contiene los historiales de
