@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BriefcaseBusiness,
   Building2,
   CalendarCog,
   CalendarRange,
@@ -34,6 +35,7 @@ export type ToolIconName =
   | "user-plus"
   | "user-search"
   | "user-settings"
+  | "user-job-change"
   | "user-deactivate"
   | "companies"
   | "company-search"
@@ -110,6 +112,7 @@ export const TOOL_ICONS: Record<ToolIconName, LucideIcon> = {
   "user-plus": UserRoundPlus,
   "user-search": Search,
   "user-settings": UserRoundCog,
+  "user-job-change": BriefcaseBusiness,
   "user-deactivate": UserRoundX,
   companies: Building2,
   "company-search": Building2,
@@ -175,6 +178,26 @@ export const TOOL_MODULES = [
         icon: "user-search",
         keywords: ["usuario", "usuarios", "listado", "consultar", "buscar", "empleado"],
         aiPrompt: "Quiero consultar los datos de un usuario",
+        implemented: true,
+      }),
+      tool({
+        id: "users.change-job",
+        moduleId: "users",
+        name: "Cambiar puesto o categoría",
+        description:
+          "Prepara el cambio de puesto, categoría y unidad organizativa del rol en PeopleNet.",
+        route: "/tools/users/cambio-puesto",
+        icon: "user-job-change",
+        keywords: [
+          "puesto",
+          "categoría",
+          "cambio",
+          "rol",
+          "unidad organizativa",
+          "modificación",
+          "promoción",
+        ],
+        aiPrompt: "Quiero cambiar el puesto o la categoría de una persona",
         implemented: true,
       }),
       tool({

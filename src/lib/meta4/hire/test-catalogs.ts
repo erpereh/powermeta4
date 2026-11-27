@@ -82,6 +82,10 @@ export const HIRE_TEST_CATALOGS: HireCatalogs = {
   workLocation: [{ id: "724", name: "España", detail: "País" }],
   category: [{ id: "I1", name: "Categoría I1" }],
   startReason: [{ id: "001", name: "Nueva Alta" }],
+  changeReason: [
+    { id: "001", name: "Promoción" },
+    { id: "002", name: "Desaparición del puesto anterior" },
+  ],
   structure: [{ id: "0", name: "Empleado" }],
   functionalWorkCenter: [{ id: "O_CEN1", name: "Oficinas Centrales", detail: "Madrid" }],
 };

@@ -36,7 +36,7 @@ const geoPath = (value: string): string[] => value.split("/").filter(Boolean);
  * every stored row takes its lowest grouping. So the lookup is by category,
  * which matches 359 of those 366 rows.
  */
-const jobCategoryGroup = async (
+export const jobCategoryGroup = async (
   job: string,
   hireDate: string,
   society: Meta4Society,

@@ -1,5 +1,30 @@
 # powermeta4 - estado de tareas
 
+## Cambiar puesto o categoría (solo plan) — 2026-11-27
+
+- [x] Investigar cómo lo hace PeopleNet: tipo de modificación del empleado `02`
+      «Cambio de puesto/posición» (`M4SCO_PM_TYPE`), su cadena de categorías
+      (`M4SCO_PM_TYPE_CAT`) y las reglas LN4 `SRCO_PM_SET_PROPS_CHANGE_J_P`,
+      `SRCO_PM_VAL_NEW_ROLE_JOB_POS` y `SRCO_VAL_PAYROLL_LOCK`.
+- [x] Documentarlo en `docs/cambio-puesto-categoria-peoplenet.md`.
+- [x] Reutilizar el modelo de `SAVE_HIRE` del alta en vez de generar otro: ya
+      trae las tablas del rol, sus columnas y su auditoría.
+- [x] Leer la situación actual con `SELECT` (periodo, rol principal vigente y
+      los tramos de cada histórico del rol) con la sociedad del contexto
+      operativo.
+- [x] Calcular el plan: rol nuevo con cierre del anterior cuando la fecha de
+      corte no es el inicio del rol, actualización del rol cuando lo es, y
+      cierre más apertura de tramo cuando cambia una columna de la clave.
+- [x] Pantalla `/tools/users/cambio-puesto` y acción `users.change-job` en
+      Inicio, con «Grabar en PeopleNet» deshabilitado.
+- [ ] Contrastar en PRE con una persona a la que Meta4 ya le cambió el puesto:
+      los tramos del plan deben coincidir con los reales de
+      `M4SCO_H_HR_JOB` y `M4SSP_H_CATEGORIA`.
+- [ ] Traducir `SRCO_PM_PAYROLL_LOCK` (`SCO_GET_LOCKED_DATE` y los parámetros
+      `SCO_PARAM_LOCKED_PAYS` / `SCO_PARAM_CLOSED_PAYS`); hoy solo se avisa.
+- [ ] Decidir si se aprueba la escritura. Haría falta `UPDATE` para cerrar
+      tramos y rol, y permisos nuevos para `PEOPLENET_DB_WRITE_*`.
+
 ## Chat: una sola decisión para manuales y acciones — 2026-11-27
 
 - [x] Añadir `consultar_manual` al registro de Function Calling para que el

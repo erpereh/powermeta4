@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-11-27 - Cambiar puesto o categoría: el movimiento de Meta4, sin grabar
+
+- Nueva acción «Cambiar puesto o categoría» en Usuarios
+  (`/tools/users/cambio-puesto`). Reproduce el tipo de modificación del
+  empleado `02` «Cambio de puesto/posición» de PeopleNet, que no es un campo
+  editable: `SRSP_PA_MODIFICATION` reutiliza el asistente del alta
+  `SRCO_PA_MN_HIRE` y graba con `SAVE_HIRE`.
+- La fecha de corte decide, como en el LN4 `SRCO_PM_VAL_NEW_ROLE_JOB_POS`: si
+  no coincide con el inicio del rol se crea un rol nuevo y se cierra el
+  anterior el día antes; si coincide se actualiza el rol. El periodo nunca se
+  crea.
+- Puesto, categoría, unidad organizativa, ubicación, centro funcional,
+  estructura y Atradius son tramos del mismo rol y se preparan juntos. El
+  puesto arrastra la agrupación de categoría (`CALCULA_VACIOS`, reutilizada del
+  alta) y, donde existe, la equivalencia categoría/puesto; al cambiar una
+  columna de la clave el tramo se cierra y se abre otro en lugar de
+  actualizarse.
+- La pantalla muestra la situación actual leída de PeopleNet, el cambio y el
+  plan de grabación fila a fila (tabla, operación, tramo y columnas) con su
+  auditoría. **No graba**: el envío está deshabilitado, porque la única
+  escritura ERP aprobada sigue siendo el alta de personas.
+- Avisa de lo que Meta4 comprueba y powermeta4 todavía no: el bloqueo de
+  nómina (`SRCO_PM_PAYROLL_LOCK`), los tramos posteriores a la fecha de corte
+  y la falta de motivo del cambio.
+- Catálogo nuevo `changeReason` (`M4SCO_X_JOB_CHG_RE`, organización `0000`),
+  que es el mismo motivo para el rol, la unidad organizativa y la categoría.
+- `docs/cambio-puesto-categoria-peoplenet.md` recoge la cadena de categorías,
+  el LN4 traducido, las tablas con sus columnas de vigencia y lo que falta para
+  poder grabar.
+
 ## 2026-11-27 - El modelo decide entre manuales y acciones en el chat
 
 - `consultar_manual` entra en el registro de Function Calling. El modelo puede

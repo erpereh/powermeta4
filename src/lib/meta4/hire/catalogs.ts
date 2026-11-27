@@ -31,6 +31,7 @@ export const HIRE_CATALOG_SOURCES = [
   "workLocation",
   "category",
   "startReason",
+  "changeReason",
   "structure",
   "functionalWorkCenter",
   "currency",

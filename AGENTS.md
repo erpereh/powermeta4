@@ -271,7 +271,8 @@ portal:soap-catalog`) y `SELECT` parametrizadas en PeopleNet guardadas por
 Las rutas privadas están bajo el grupo `(app)` y conservan sus URLs públicas:
 `/`, `/home`, `/chat/new`, `/chat/[chatId]`, `/settings`, `/tools`,
 `/tools/registro-retributivo`, `/tools/users`, `/tools/users/list`,
-`/tools/users/new`, `/tools/companies`, `/tools/payroll`,
+`/tools/users/new`, `/tools/users/cambio-puesto`, `/tools/companies`,
+`/tools/payroll`,
 `/tools/payroll/receipt`, `/tools/reports`, `/tools/reports/quinquenal`,
 `/tools/reports/resultados-nomina`, `/tools/reports/proyecciones`,
 `/tools/reports/certificado-retenciones`, `/tools/reports/primavera`,
@@ -287,9 +288,21 @@ por `parentMessageId` y llama al endpoint OpenAI-compatible global.
 `POST /api/users/export` (Node.js, requiere sesión) descarga en Excel el
 listado de usuarios filtrado y, en la hoja «Detalle», la ficha de cada persona:
 recibe solo el texto de búsqueda y vuelve a leer en servidor, sin guardar ficheros.
-`/tools/users/new` es el alta de personas en PeopleNet (alta directa). Las
-rutas antiguas `/tools/users/search` y `/tools/users/[userId]` solo redirigen
-a `/tools/users`. `/login` es pública y `/inbox` se eliminó sin redirección.
+`/tools/users/new` es el alta de personas en PeopleNet (alta directa).
+`/tools/users/cambio-puesto` reproduce el tipo de modificación del empleado
+`02` «Cambio de puesto/posición» de Meta4 (`M4SCO_PM_TYPE`), que ejecuta
+`SRSP_PA_MODIFICATION` reutilizando el asistente del alta y grabando con
+`SAVE_HIRE`: lee la situación actual del rol con `SELECT`, deja preparar el
+cambio de puesto, categoría, unidad organizativa, ubicación, estructura y
+Atradius y muestra el plan de grabación (rol nuevo si la fecha de corte no es
+el inicio del rol, actualización si lo es; el periodo nunca se crea, regla
+`SRCO_PM_VAL_NEW_ROLE_JOB_POS`). **No escribe**: el envío queda deshabilitado,
+el bloqueo de nómina (`SRCO_PM_PAYROLL_LOCK`) se avisa como no comprobado y
+todo está en `src/lib/meta4/job-change` y en
+[docs/cambio-puesto-categoria-peoplenet.md](docs/cambio-puesto-categoria-peoplenet.md).
+Las rutas antiguas `/tools/users/search` y `/tools/users/[userId]` solo
+redirigen a `/tools/users`. `/login` es pública y `/inbox` se eliminó sin
+redirección.
 
 No añadir APIs ficticias, permisos reales, invitaciones ni persistencia remota.
 El alta de personas es la excepción de escritura ERP aprobada. Contra

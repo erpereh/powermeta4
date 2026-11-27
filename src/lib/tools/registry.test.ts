@@ -12,7 +12,7 @@ import {
 } from "@/lib/tools/registry";
 
 describe("tool registry", () => {
-  it("contains five modules with four actions each, plus the implemented reports", () => {
+  it("contains five modules with their actions, plus the implemented reports", () => {
     expect(TOOL_MODULES.map((module) => module.id)).toEqual([
       "users",
       "companies",
@@ -20,7 +20,7 @@ describe("tool registry", () => {
       "reports",
       "processes",
     ]);
-    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([4, 4, 4, 9, 4]);
+    expect(TOOL_MODULES.map((module) => module.tools.length)).toEqual([5, 4, 4, 9, 4]);
   });
 
   it("keeps action IDs, prompts and icons configured", () => {
@@ -32,6 +32,7 @@ describe("tool registry", () => {
     expect(TOOL_REGISTRY.map((tool) => tool.aiPrompt)).toEqual([
       "Quiero crear un nuevo usuario",
       "Quiero consultar los datos de un usuario",
+      "Quiero cambiar el puesto o la categoría de una persona",
       "Quiero modificar los datos de un usuario",
       "Quiero dar de baja un usuario",
       "Quiero consultar los datos de una empresa",
@@ -58,11 +59,11 @@ describe("tool registry", () => {
     ]);
   });
 
-  it("keeps user actions as external ERP placeholders except the users list", () => {
+  it("keeps user actions as external ERP placeholders except the implemented ones", () => {
     const userTools = TOOL_REGISTRY.filter((tool) => tool.moduleId === "users");
     const consult = userTools.find((tool) => tool.id === "users.consult");
 
-    expect(userTools).toHaveLength(4);
+    expect(userTools).toHaveLength(5);
     expect(consult).toMatchObject({
       name: "Listado de usuarios",
       description: "Consulta todos los usuarios disponibles en la sociedad actual.",
@@ -79,14 +80,23 @@ describe("tool registry", () => {
       route: "/tools/users/new",
       implemented: true,
     });
+    const changeJob = userTools.find((tool) => tool.id === "users.change-job");
+    expect(changeJob).toMatchObject({
+      name: "Cambiar puesto o categoría",
+      route: "/tools/users/cambio-puesto",
+      icon: "user-job-change",
+      implemented: true,
+    });
+    const implemented = ["users.consult", "users.create", "users.change-job"];
     expect(
       userTools
-        .filter((tool) => tool.id !== "users.consult" && tool.id !== "users.create")
+        .filter((tool) => !implemented.includes(tool.id))
         .every((tool) => !tool.implemented && tool.route === "/tools/users"),
     ).toBe(true);
     expect(userTools.map((tool) => tool.aiPrompt)).toEqual([
       "Quiero crear un nuevo usuario",
       "Quiero consultar los datos de un usuario",
+      "Quiero cambiar el puesto o la categoría de una persona",
       "Quiero modificar los datos de un usuario",
       "Quiero dar de baja un usuario",
     ]);
