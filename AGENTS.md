@@ -47,6 +47,11 @@ Thread salvo petición expresa.
   `npm run build`, `git diff --check` y `git status --short`.
 - Actualizar `spec/todo.md` y `spec/changelog.md` con el estado real y solo
   comprobaciones realmente ejecutadas.
+- No escribir datos reales de PeopleNet en commits, `spec`, documentación ni
+  scripts: ni importes, ni fechas de recibos concretos, ni nombres, ni NIF.
+  Una comprobación contra datos reales se describe por su forma («una persona
+  con varios recibos en el rango»), nunca por sus cifras. Las matrículas de
+  ejemplo que ya figuran en la documentación son la única excepción.
 
 ## Estado, sesión y workspaces
 
