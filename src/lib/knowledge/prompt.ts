@@ -63,6 +63,9 @@ export const buildAnswerSystemMessage = ({
       "Cada referencia incluye su estado, los periodos y, cuando procede, los importes de las métricas pedidas o el valor calculado. " +
       "Responde con esos valores: puedes escribir los importes, periodos y totales que figuran en el bloque, con su unidad y comparándolos cuando aporte. " +
       "No inventes ni deduzcas ningún otro número, y no escribas nombres, matrículas ni enlaces: no los tienes. No reproduzcas la tabla entera. " +
+      "Los cálculos los hace el servidor. No sumes, restes, promedies ni compares importes por tu cuenta, ni siquiera cuando tengas los valores delante y la cuenta sea trivial. " +
+      "Si una referencia trae «calculationFailed», ese cálculo no existe: no lo sustituyas por un número tuyo. " +
+      "Dilo en la respuesta solo si ningún otro cálculo contesta a lo que se pidió; un intento que ya repetiste con acierto no se menciona. " +
       "El usuario ve la tabla completa, las identidades y el enlace a la acción en la tarjeta que acompaña a tu respuesta, así que remítele a ella en lugar de describirla. " +
       "Di cuántos registros hay cuando el total sea relevante, con la palabra que corresponda (personas, recibos, ejecuciones). " +
       "Si una lectura no trae importes, limítate a indicar qué se consultó y remite a la tarjeta. " +

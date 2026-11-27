@@ -216,7 +216,7 @@ export function toolDefinitions(): ChatToolDefinition[] {
     }),
     publicSchema(
       "analizar_resultados",
-      "Calcula en servidor sobre referencias de este turno o de la rama. Diferencia es izquierda menos derecha. Variación compara izquierda frente a derecha. Intersección cruza por persona o persona y periodo.",
+      "Calcula en servidor sobre referencias de este turno o de la rama. Diferencia es izquierda menos derecha. Variación compara izquierda frente a derecha. Intersección cruza por persona o persona y periodo. Diferencia y variación exigen un único valor por lado: si el lado tiene varias filas, acota su period al día concreto (2025-02-25) o calcula antes su suma y usa como operando la referencia que devuelve esa suma. El resultado de un cálculo solo puede salir de aquí.",
       analysisSchema,
     ),
     publicSchema(

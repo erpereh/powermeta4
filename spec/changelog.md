@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-11-28 - El chat no calcula por su cuenta
+
+- Una comparación con varias filas por lado se rechazaba en servidor y el
+  modelo rellenaba el hueco restando él mismo los importes, con dos tarjetas
+  vacías debajo afirmando lo contrario. El cálculo rechazado viaja ahora con
+  su motivo y la salida posible, y las instrucciones de la redacción prohíben
+  cualquier aritmética propia, por trivial que sea.
+- `analizar_resultados` explica cómo deshacer la ambigüedad: acotar el
+  `period` de cada lado al día concreto, o sumar un lado y usar la referencia
+  resultante como operando.
+- Un análisis sin resultado deja de publicar tarjeta: solo mostraría «Sin
+  registros» junto a un texto que ya explica el rechazo.
+- El payload del análisis lleva los periodos comparados, para que la respuesta
+  diga entre qué fechas calcula sin deducirlo.
+- `npm run chat:evaluate` imprime el contenido de cada tarjeta, que es lo que
+  permitió ver que las tarjetas vacías y el número del texto se contradecían.
+- Comprobado contra PeopleNet real con una persona con tres recibos en el
+  rango: la diferencia la calcula el servidor, la respuesta nombra las dos
+  fechas comparadas y solo se publica la tarjeta del análisis con resultado.
+  173 pruebas en 21 archivos y typecheck limpio.
+
 ## 2026-11-27 - Cambiar puesto o categoría: el movimiento de Meta4, sin grabar
 
 - Nueva acción «Cambiar puesto o categoría» en Usuarios

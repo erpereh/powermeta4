@@ -136,6 +136,21 @@ function payload(recipe: ToolRecipe, read: PeopleNetRead) {
     rows,
     calculation: recipe.kind === "analysis" ? result.calculations[0]?.value : undefined,
     calculationLabel: recipe.kind === "analysis" ? result.calculations[0]?.label : undefined,
+    // Qué se comparó, para que la respuesta pueda decirlo sin deducirlo.
+    comparedPeriods:
+      recipe.kind === "analysis" && (recipe.args.left.period || recipe.args.right?.period)
+        ? { left: recipe.args.left.period, right: recipe.args.right?.period }
+        : undefined,
+    // Un cálculo rechazado viaja con su motivo y con la salida posible, para
+    // que el modelo lo reintente bien o lo diga, nunca para que lo sustituya
+    // por aritmética propia.
+    ...(recipe.kind === "analysis" && !result.calculations.length
+      ? {
+          calculationFailed: true,
+          reason: result.message,
+          hint: "No calcules tú el resultado. Acota cada lado con period al día concreto (por ejemplo 2025-02-25), o calcula antes la suma de un lado y usa la referencia que devuelve como operando. Si aun así no se puede, dilo en la respuesta.",
+        }
+      : {}),
   };
 }
 
@@ -251,6 +266,9 @@ export async function runPeopleNetTools(
       return call ? [call] : [];
     });
     const sources = ordered.flatMap((call): ChatSource[] => {
+      // Un análisis rechazado no tiene nada que enseñar: su tarjeta solo diría
+      // «Sin registros» junto a un texto que explica el rechazo.
+      if (call.kind === "analysis" && !reads.get(call.id)?.result.calculations.length) return [];
       const action = call.kind === "analysis" ? "analysis" : getPeopleTool(call.tool)?.action;
       return action ? [{ kind: "peoplenet-call", id: call.id, action, name: "PeopleNet" }] : [];
     });

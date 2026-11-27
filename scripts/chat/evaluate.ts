@@ -22,7 +22,12 @@ import {
 import { closeDatabase, getDatabase } from "../../src/server/database/client";
 import { CASES, type EvaluationCase } from "./cases";
 
-type Turn = { text: string; sources: string[]; errorCode?: string };
+type Turn = {
+  text: string;
+  sources: string[];
+  cards: { action: string; id: string }[];
+  errorCode?: string;
+};
 
 const sessionFile = join(process.env.POWERMETA4_DATA_DIR ?? "data", "temp", "chat-evaluate.json");
 
@@ -186,7 +191,7 @@ async function runTurn(
     const detail: unknown = await response.json().catch(() => null);
     throw new Error(`HTTP ${response.status} ${JSON.stringify(detail)}`);
   }
-  const turn: Turn = { text: "", sources: [] };
+  const turn: Turn = { text: "", sources: [], cards: [] };
   const decoder = new TextDecoder();
   let buffer = "";
   for await (const chunk of response.body as unknown as AsyncIterable<Uint8Array>) {
@@ -204,11 +209,17 @@ async function runTurn(
         message?: string;
       };
       if (event.type === "content") turn.text = event.content?.[0]?.text ?? "";
-      if (event.type === "sources")
+      if (event.type === "sources") {
         turn.sources = (event.sources ?? []).map(
           (source) =>
             `${source.kind}${source.action ? `:${source.action}` : ""}${source.page ? `:p${source.page}` : ""}`,
         );
+        turn.cards = (event.sources ?? []).flatMap((source) =>
+          source.kind === "peoplenet-call" && source.action
+            ? [{ action: source.action, id: source.id }]
+            : [],
+        );
+      }
       if (event.type === "error") {
         turn.errorCode = event.errorCode;
         turn.text = event.message ?? "";
@@ -280,6 +291,34 @@ async function runCase(
     if (turns[index]?.sources.length) console.log(`    fuentes: ${turns[index].sources.join(", ")}`);
   }
   for (const failure of failures) console.log(`  ! ${failure}`);
+  // Detalle de cada tarjeta: lo que el usuario ve bajo la respuesta.
+  for (const card of last?.cards ?? []) {
+    const response = await fetch(`${base}/api/chat/peoplenet/result`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `${SESSION_COOKIE_NAME}=${session.sessionNonce}`,
+      },
+      body: JSON.stringify({
+        companyId: session.companyId,
+        conversationId,
+        assistantMessageId: parent,
+        callId: card.id,
+        page: 0,
+      }),
+    });
+    const data = (await response.json()) as {
+      total?: number;
+      message?: string;
+      calculations?: { label: string; value: number | string | null }[];
+    };
+    const figures = (data.calculations ?? [])
+      .map(({ label, value }) => `${label}=${String(value)}`)
+      .join(", ");
+    console.log(
+      `    tarjeta ${card.action}: total=${data.total ?? "?"}${figures ? ` · ${figures}` : ""}${data.message ? ` · ${data.message}` : ""}`,
+    );
+  }
   deleteConversation(conversationId);
   return failures.length === 0;
 }
