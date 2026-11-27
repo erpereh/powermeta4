@@ -33,7 +33,9 @@ const metrics = z
   .min(1)
   .max(4)
   .optional()
-  .describe("Métricas solicitadas. Omitir para mostrar solo la tabla al usuario.");
+  .describe(
+    "Métricas solicitadas. Son la única vía para conocer los importes: inclúyelas siempre que la respuesta deba comentar una cifra. Omitir solo para mostrar la tabla sin comentarla.",
+  );
 const years = z.array(year).min(1).max(2).optional();
 const payrollMetrics = ["earnings", "deductions", "net", "irpf", "base", "ss", "price"] as const;
 

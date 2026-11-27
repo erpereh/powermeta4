@@ -53,9 +53,7 @@ function adoptBrowserSession(): { sessionNonce: string; companyId: string } | un
     | { username: string }
     | undefined;
   const company = database
-    .prepare(
-      "SELECT value_json FROM workspace_settings WHERE key = 'activeCompanyId' ORDER BY updated_at DESC LIMIT 1",
-    )
+    .prepare("SELECT value_json FROM app_settings WHERE key = 'activeCompanyId'")
     .get() as { value_json: string } | undefined;
   if (!soap || !company) return undefined;
   const sessionNonce = createOpaqueSessionId();
