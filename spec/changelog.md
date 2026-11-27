@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-27 - Verificación de la sincronización de ramas
+
+- Confirmado que `davidev` en `f8d50455` contiene los historiales de
+  `salvadev` y `main` en `3fa77880`. La simulación de Git aceptó el avance
+  directo de las referencias remotas en una operación atómica.
+- Pasaron la comprobación de tipos, el build de producción, `git diff --check`
+  y 1.809 pruebas en 237 archivos, con dos omisiones. El lint previo al
+  cambio documental registró nueve avisos y falló en el chequeo de formato
+  de 721 archivos.
+
 ## 2026-11-26 - Fecha del análisis de Desglose Retributivo
 
 - La cabecera del análisis activo muestra la fecha y la hora en una sola línea.

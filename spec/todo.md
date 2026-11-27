@@ -1,5 +1,14 @@
 # powermeta4 - estado de tareas
 
+## Sincronización de ramas — 2026-11-27
+
+- [x] Verificar que `davidev` contiene el historial de `salvadev` y `main`
+      y comprobar el avance directo en una simulación del push atómico.
+- [x] Validar el código común con typecheck, build y `git diff --check`.
+      Pasaron 1.809 pruebas en 237 archivos y se omitieron dos. El lint
+      previo al cambio documental registró nueve avisos y 721 archivos con
+      problemas de formato.
+
 ## Fecha del análisis de Desglose Retributivo — 2026-11-26
 
 - [x] Mantener la fecha y la hora del análisis activo en una sola línea.
