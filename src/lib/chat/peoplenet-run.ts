@@ -138,6 +138,9 @@ function payload(recipe: ToolRecipe, read: PeopleNetRead) {
     // Los lectores sustituyen `unit` por la moneda cuando la lectura tiene una
     // sola; cuando no, queda la clase de columna, que no es una unidad y no
     // debe acabar escrita como si lo fuera.
+    // Sin métricas pedidas la lectura trae filas pero ningún importe. Hay que
+    // distinguirlo de «no hay datos»: el usuario ve la tabla completa.
+    metricsRequested: selected.length > 0,
     metrics: numeric.map(({ key, label, unit }) => ({
       key,
       label,
@@ -275,10 +278,20 @@ export async function runPeopleNetTools(
       const call = calls.get(id);
       return call ? [call] : [];
     });
+    // Una lectura vacía solo merece tarjeta si es lo único que hay: cuando el
+    // modelo tantea varios filtros, las que no devolvieron nada se convierten
+    // en ruido sobre la que sí respondió.
+    const anyResult = ordered.some((call) => {
+      const read = reads.get(call.id);
+      return Boolean(read?.result.total || read?.result.calculations.length);
+    });
     const sources = ordered.flatMap((call): ChatSource[] => {
+      const read = reads.get(call.id);
       // Un análisis rechazado no tiene nada que enseñar: su tarjeta solo diría
       // «Sin registros» junto a un texto que explica el rechazo.
-      if (call.kind === "analysis" && !reads.get(call.id)?.result.calculations.length) return [];
+      if (call.kind === "analysis") {
+        if (!read?.result.calculations.length) return [];
+      } else if (anyResult && !read?.result.total && !read?.result.document) return [];
       const action = call.kind === "analysis" ? "analysis" : getPeopleTool(call.tool)?.action;
       return action ? [{ kind: "peoplenet-call", id: call.id, action, name: "PeopleNet" }] : [];
     });

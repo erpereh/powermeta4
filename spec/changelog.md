@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-11-28 - El texto del chat deja de contradecir a sus tarjetas
+
+- La respuesta afirmaba que no había importes mientras la tarjeta los estaba
+  mostrando, porque el modelo no había pedido métricas para esa lectura. El
+  payload distingue ahora «no se pidieron importes» de «no hay datos»: con
+  registros a la vista solo puede remitir a la tarjeta, y solo afirma ausencia
+  cuando el total es cero.
+- «Consulta de PeopleNet» dejaba de respuesta un rótulo sin sentido cuando el
+  modelo no llegaba a redactar y resolvía la consulta local. Ahora dice que la
+  consulta se ha ejecutado y dónde está el resultado.
+- Las cifras se escriben en formato español, como la tarjeta, en vez de en
+  notación cruda.
+- Una lectura sin resultados deja de publicar tarjeta si otra del mismo turno
+  sí respondió, y `presentar_resultados` pide al modelo que no incluya tanteos
+  intermedios, subconjuntos de una lectura más amplia ni referencias de turnos
+  anteriores ajenas a la pregunta.
+
 ## 2026-11-28 - La matrícula del chat deja de depender de la etiqueta del modelo
 
 - Una consulta de proyecciones por matrícula fallaba con «No se ha encontrado

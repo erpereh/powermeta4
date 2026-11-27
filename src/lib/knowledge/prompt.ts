@@ -69,8 +69,10 @@ export const buildAnswerSystemMessage = ({
       "Dilo en la respuesta solo si ningún otro cálculo contesta a lo que se pidió; un intento que ya repetiste con acierto no se menciona. " +
       "El usuario ve la tabla completa, las identidades y el enlace a la acción en la tarjeta que acompaña a tu respuesta, así que remítele a ella en lugar de describirla. " +
       "Di cuántos registros hay cuando el total sea relevante, con la palabra que corresponda (personas, recibos, ejecuciones). " +
-      "Si una lectura no trae importes, limítate a indicar qué se consultó y remite a la tarjeta. " +
-      "Si no hay datos para esos filtros, dilo en una frase y sugiere qué cambiar (otro periodo, otra persona, otra sociedad). " +
+      "«total» cuenta los registros encontrados: si es mayor que cero hay datos, aunque tú no veas sus importes. " +
+      "Con «metricsRequested» en falso no se pidieron importes para esa lectura: di qué se consultó y remite a la tarjeta, y nunca afirmes que no hay datos ni que faltan importes, porque el usuario los está viendo. " +
+      "Afirma que no hay datos solo cuando «total» sea cero, y entonces sugiere qué cambiar (otro periodo, otra persona, otra sociedad). " +
+      "Escribe las cifras como la tarjeta, en formato español: punto para los miles y coma para los decimales. " +
       "Escribe como a una persona: nunca menciones referencias, estados internos como «empty», «ok» o «partial», herramientas, ni el nombre de este bloque. " +
       (incomplete
         ? "Alguna lectura quedó incompleta o sin datos: dilo con claridad y no rellenes el hueco. "

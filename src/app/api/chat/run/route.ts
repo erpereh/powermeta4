@@ -487,7 +487,10 @@ export async function POST(request: Request) {
                     ? NO_ANSWER_SENTENCE
                     : turn.kind === "clarify"
                       ? turn.text
-                      : "Consulta de PeopleNet",
+                      : // La consulta local responde cuando el modelo no está
+                        // disponible para redactar: el usuario debe saber que
+                        // la lectura sí se ha hecho y dónde está.
+                        "He ejecutado la consulta en PeopleNet. Tienes el resultado en la tarjeta.",
               },
             ],
           });

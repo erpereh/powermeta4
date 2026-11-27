@@ -181,7 +181,12 @@ describe("POST /api/chat/run", () => {
     const response = await POST(request(validBody));
     expect(parseSse(await response.text())).toEqual([
       { type: "sources", sources: [{ kind: "peoplenet", id: "users.consult", name: "PeopleNet" }] },
-      { type: "content", content: [{ type: "text", text: "Consulta de PeopleNet" }] },
+      {
+        type: "content",
+        content: [
+          { type: "text", text: "He ejecutado la consulta en PeopleNet. Tienes el resultado en la tarjeta." },
+        ],
+      },
     ]);
     expect(mocks.setMessageSources).toHaveBeenCalledOnce();
     expect(mocks.streamResponse).not.toHaveBeenCalled();

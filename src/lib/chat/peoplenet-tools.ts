@@ -231,7 +231,7 @@ export function toolDefinitions(): ChatToolDefinition[] {
     ),
     publicSchema(
       "presentar_resultados",
-      "Finaliza una respuesta operativa seleccionando y ordenando las referencias verificadas que la contestan. Incluye los análisis relevantes.",
+      "Finaliza una respuesta operativa seleccionando y ordenando las referencias verificadas que la contestan. Incluye los análisis relevantes. Cada referencia se convierte en una tarjeta para el usuario: incluye solo las que aportan algo distinto, no los tanteos intermedios ni los subconjuntos de otra lectura más amplia, y no arrastres referencias de turnos anteriores salvo que la respuesta se apoye en ellas.",
       presentationSchema,
     ),
   ];
