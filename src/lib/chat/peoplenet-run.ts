@@ -47,6 +47,9 @@ const prompts = {
     "Desde el chat puedes consultar datos de PeopleNet. Las escrituras se gestionan en sus pantallas.",
 } satisfies Record<string, string>;
 
+/** Clases de columna que no son una unidad escribible. */
+const GENERIC_UNITS = new Set(["importe", "valor"]);
+
 /** Filas de una lectura de una sola persona que pueden llegar al modelo. */
 const MAX_ROWS_TO_MODEL = 24;
 
@@ -107,7 +110,7 @@ function payload(recipe: ToolRecipe, read: PeopleNetRead) {
   // sin ellos la respuesta no puede comentar ni una cifra. Los agregados
   // siguen pasando por la función de análisis.
   const rows =
-    outcome === "ok" &&
+    (outcome === "ok" || outcome === "partial") &&
     dataset?.rows.length &&
     dataset.rows.length <= MAX_ROWS_TO_MODEL &&
     singlePerson(read) &&
@@ -132,7 +135,14 @@ function payload(recipe: ToolRecipe, read: PeopleNetRead) {
         dataset?.rows.slice(0, 100).flatMap((row) => asPeriod(row.period ?? row.year) ?? []),
       ),
     ].slice(0, 12),
-    metrics: numeric.map(({ key, unit }) => ({ key, unit })),
+    // Los lectores sustituyen `unit` por la moneda cuando la lectura tiene una
+    // sola; cuando no, queda la clase de columna, que no es una unidad y no
+    // debe acabar escrita como si lo fuera.
+    metrics: numeric.map(({ key, label, unit }) => ({
+      key,
+      label,
+      ...(unit && !GENERIC_UNITS.has(unit) ? { unit } : {}),
+    })),
     rows,
     calculation: recipe.kind === "analysis" ? result.calculations[0]?.value : undefined,
     calculationLabel: recipe.kind === "analysis" ? result.calculations[0]?.label : undefined,

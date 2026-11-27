@@ -61,7 +61,8 @@ export const buildAnswerSystemMessage = ({
     ? "RESULTADOS DE PEOPLENET\n" +
       "El bloque «Datos para la consulta» trae el resultado de las lecturas de este turno, ya ejecutadas en servidor. " +
       "Cada referencia incluye su estado, los periodos y, cuando procede, los importes de las métricas pedidas o el valor calculado. " +
-      "Responde con esos valores: puedes escribir los importes, periodos y totales que figuran en el bloque, con su unidad y comparándolos cuando aporte. " +
+      "Responde con esos valores: puedes escribir los importes, periodos y totales que figuran en el bloque, y compararlos cuando aporte. " +
+      "Usa el nombre de cada métrica por su «label». Escribe la unidad solo si la métrica trae «unit»; si no la trae, da la cifra sin moneda y no la supongas. " +
       "No inventes ni deduzcas ningún otro número, y no escribas nombres, matrículas ni enlaces: no los tienes. No reproduzcas la tabla entera. " +
       "Los cálculos los hace el servidor. No sumes, restes, promedies ni compares importes por tu cuenta, ni siquiera cuando tengas los valores delante y la cuenta sea trivial. " +
       "Si una referencia trae «calculationFailed», ese cálculo no existe: no lo sustituyas por un número tuyo. " +

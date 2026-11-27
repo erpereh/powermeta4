@@ -2,6 +2,14 @@
 
 ## 2026-11-28 - El chat no calcula por su cuenta
 
+- La respuesta escribía la clase de columna como si fuera una moneda. Los
+  lectores sustituyen `unit` por la moneda cuando la lectura tiene una sola;
+  cuando queda la clase genérica, ya no viaja al modelo, que da la cifra sin
+  unidad en vez de suponerla.
+- Una lectura parcial no entregaba ningún importe, aunque sus filas fueran
+  válidas. Ahora los entrega y el estado sigue visible para que la respuesta
+  avise de lo que falta.
+
 - Una comparación con varias filas por lado se rechazaba en servidor y el
   modelo rellenaba el hueco restando él mismo los importes, con dos tarjetas
   vacías debajo afirmando lo contrario. El cálculo rechazado viaja ahora con
